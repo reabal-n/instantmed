@@ -53,18 +53,24 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
+  const startedAt = Date.now()
   const lock = await acquireCronLock("posthog-reconciliation")
   if (!lock.acquired) {
+    const lockUnavailable = lock.reason === "unavailable"
+    await recordCronHeartbeat("posthog-reconciliation", {
+      durationMs: Date.now() - startedAt,
+      status: lockUnavailable ? "configuration_error" : "skipped",
+    })
     return NextResponse.json({
-      success: true,
-      skipped: true,
+      success: !lockUnavailable,
+      skipped: !lockUnavailable,
       reason: lock.existingLockAge
         ? `Already running for ${lock.existingLockAge}s`
-        : "Already running",
-    })
+        : lockUnavailable
+          ? "Cron lock unavailable"
+          : "Already running",
+    }, { status: lockUnavailable ? 503 : 200 })
   }
-
-  const startedAt = Date.now()
 
   try {
     const now = new Date()

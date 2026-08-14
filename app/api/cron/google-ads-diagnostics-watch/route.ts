@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("google-ads-diagnostics-watch")
+  const startedAt = Date.now()
 
   const now = new Date()
   const {
@@ -87,6 +87,10 @@ export async function GET(request: NextRequest) {
   )
 
   if (!uploadIdentifier || !uploadedAt) {
+    await recordCronHeartbeat("google-ads-diagnostics-watch", {
+      durationMs: Date.now() - startedAt,
+      status: "disabled",
+    })
     return NextResponse.json({
       success: true,
       skipped: true,
@@ -99,6 +103,10 @@ export async function GET(request: NextRequest) {
   const eligibleAt = resolveEligibleAt(uploadedAt, processingWindowHours)
 
   if (now < eligibleAt) {
+    await recordCronHeartbeat("google-ads-diagnostics-watch", {
+      durationMs: Date.now() - startedAt,
+      status: "skipped",
+    })
     return NextResponse.json({
       success: true,
       skipped: true,
@@ -125,6 +133,7 @@ export async function GET(request: NextRequest) {
     })
     const diagnosticsWatch = report.diagnosticsWatch
     const failingStatus = !diagnosticsWatch || !PASSING_WATCH_STATUSES.has(diagnosticsWatch.status)
+    const handledQueryFailure = report.queryErrors.length > 0
 
     if (failingStatus) {
       Sentry.captureMessage("Google Ads diagnostics watch failed", {
@@ -148,8 +157,18 @@ export async function GET(request: NextRequest) {
         status: diagnosticsWatch?.status || "missing_watch_result",
         uploadIdentifier,
       })
+      await recordCronHeartbeat("google-ads-diagnostics-watch", {
+        durationMs: Date.now() - startedAt,
+        itemsProcessed: 1,
+        status: "error",
+      })
     } else {
       logger.info("Google Ads diagnostics watch passed", { jobId, requestId, uploadIdentifier })
+      await recordCronHeartbeat("google-ads-diagnostics-watch", {
+        durationMs: Date.now() - startedAt,
+        itemsProcessed: 1,
+        status: handledQueryFailure ? "partial_failure" : "ok",
+      })
     }
 
     return NextResponse.json(
@@ -172,6 +191,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     const eventId = captureCronError(err, { jobName: "google-ads-diagnostics-watch" })
+    await recordCronHeartbeat("google-ads-diagnostics-watch", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
+    })
     return NextResponse.json(
       {
         error: err.message,

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("emergency-flags")
+  const startedAt = Date.now()
 
   try {
     const supabase = createServiceRoleClient()
@@ -46,10 +46,19 @@ export async function GET(request: NextRequest) {
 
     if (fetchError) {
       log.error("Failed to fetch abandoned intakes", { error: fetchError.message })
+      await recordCronHeartbeat("emergency-flags", {
+        durationMs: Date.now() - startedAt,
+        status: "error",
+      })
       return NextResponse.json({ error: "Database error" }, { status: 500 })
     }
 
     if (!abandonedIntakes || abandonedIntakes.length === 0) {
+      await recordCronHeartbeat("emergency-flags", {
+        durationMs: Date.now() - startedAt,
+        itemsProcessed: 0,
+        status: "ok",
+      })
       return NextResponse.json({ message: "No abandoned intakes with flags found", flagged: 0 })
     }
 
@@ -84,6 +93,12 @@ export async function GET(request: NextRequest) {
       log.warn("Abandoned intake with emergency flags", { intakeId: intake.id })
     }
 
+    await recordCronHeartbeat("emergency-flags", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: processed,
+      status: "ok",
+    })
+
     return NextResponse.json({
       message: "Emergency flags check completed",
       processed,
@@ -92,6 +107,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     log.error("Emergency flags cron error", { error })
     Sentry.captureException(error)
+    await recordCronHeartbeat("emergency-flags", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
+    })
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

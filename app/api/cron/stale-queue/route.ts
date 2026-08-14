@@ -48,11 +48,12 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("stale-queue")
+  const startedAt = Date.now()
 
   try {
     const supabase = createServiceRoleClient()
     const now = new Date()
+    let handledFailures = 0
 
     const flags = await getFeatureFlags()
     const patientDelayEmailHours = flags.patient_delay_email_hours ?? 2
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
     // "paid" here and paged "1 intake waiting 2h+" for days (2026-07-04) while
     // the doctor queue (already filtered) showed nothing. Alerts must count
     // the same world the queue shows.
-    const { count: staleCount } = await filterSeededE2EIntakes(
+    const { count: staleCount, error: staleCountError } = await filterSeededE2EIntakes(
       supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
@@ -72,6 +73,7 @@ export async function GET(request: NextRequest) {
         .eq("payment_status", "paid")
         .lt("paid_at", patientEmailThreshold.toISOString()),
     )
+    if (staleCountError) throw new Error(`Stale queue count failed: ${staleCountError.message}`)
 
     const totalStale = staleCount ?? 0
 
@@ -89,7 +91,7 @@ export async function GET(request: NextRequest) {
     // continuity, but ops only get paged for the genuine slow tail.
     const sentryAlertHours = Math.max(STALE_QUEUE_SENTRY_ALERT_MIN_HOURS, patientDelayEmailHours)
     const sentryAlertThreshold = new Date(now.getTime() - sentryAlertHours * 60 * 60 * 1000)
-    const { count: sentryStaleCount } = await filterSeededE2EIntakes(
+    const { count: sentryStaleCount, error: sentryStaleError } = await filterSeededE2EIntakes(
       supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
@@ -97,6 +99,7 @@ export async function GET(request: NextRequest) {
         .eq("payment_status", "paid")
         .lt("paid_at", sentryAlertThreshold.toISOString()),
     )
+    if (sentryStaleError) throw new Error(`Stale queue paging count failed: ${sentryStaleError.message}`)
     const totalSentryStale = sentryStaleCount ?? 0
 
     if (totalSentryStale > 0) {
@@ -116,7 +119,7 @@ export async function GET(request: NextRequest) {
     const reminderThreshold = new Date(
       now.getTime() - QUEUE_WAITING_TELEGRAM_REMINDER_MIN_MINUTES * 60 * 1000,
     )
-    const { count: waitingReminderCount, data: oldestWaitingRows } =
+    const { count: waitingReminderCount, data: oldestWaitingRows, error: waitingReminderError } =
       await filterSeededE2EIntakes(
         supabase
           .from("intakes")
@@ -127,6 +130,9 @@ export async function GET(request: NextRequest) {
           .order("paid_at", { ascending: true })
           .limit(1),
       )
+    if (waitingReminderError) {
+      throw new Error(`Queue reminder count failed: ${waitingReminderError.message}`)
+    }
     const waitingForReminder = waitingReminderCount ?? 0
     if (waitingForReminder > 0) {
       const oldestPaidAtRaw = oldestWaitingRows?.[0]?.paid_at
@@ -134,17 +140,18 @@ export async function GET(request: NextRequest) {
       const oldestWaitingMinutes = Number.isFinite(oldestPaidAtMs)
         ? Math.max(0, Math.floor((now.getTime() - oldestPaidAtMs) / 60_000))
         : QUEUE_WAITING_TELEGRAM_REMINDER_MIN_MINUTES
-      await sendQueueWaitingReminderViaTelegram({
+      const reminderDelivered = await sendQueueWaitingReminderViaTelegram({
         waitingCount: waitingForReminder,
         oldestWaitingMinutes,
       })
+      if (!reminderDelivered) handledFailures++
     }
 
     // ── Patient delay emails ─────────────────────────────────────────────────
     // Send a "we're running late" email to patients waiting the configured hours (once per intake).
     let delayEmailsSent = 0
     try {
-      const { data: delayEmailCandidates } = await filterSeededE2EIntakes(
+      const { data: delayEmailCandidates, error: delayEmailCandidatesError } = await filterSeededE2EIntakes(
         supabase
           .from("intakes")
           .select(`
@@ -162,6 +169,9 @@ export async function GET(request: NextRequest) {
           .not("patient_id", "is", null)
           .limit(20),
       )
+      if (delayEmailCandidatesError) {
+        throw new Error(`Delay-email candidate query failed: ${delayEmailCandidatesError.message}`)
+      }
 
       if (delayEmailCandidates && delayEmailCandidates.length > 0) {
         const [{ sendEmail }, { StillReviewingEmail, stillReviewingSubject }, { isOvernightInSydney }, React] =
@@ -174,7 +184,7 @@ export async function GET(request: NextRequest) {
         // Computed once per run: honest overnight copy 22:00–06:59 Sydney.
         const overnight = isOvernightInSydney()
 
-        await Promise.allSettled(
+        const delayOutcomes = await Promise.allSettled(
           delayEmailCandidates.map(async (intake) => {
             const patientRaw = intake.patient as
               | { full_name: string; email: string }[]
@@ -205,24 +215,33 @@ export async function GET(request: NextRequest) {
                 patientId: intake.patient_id,
               })
               if (emailResult.success || emailResult.outboxId) {
-                await supabase
+                const { error: markerError } = await supabase
                   .from("intakes")
                   .update({ delay_notification_sent_at: new Date().toISOString() })
                   .eq("id", intake.id)
+                if (markerError) {
+                  throw new Error(`Delay-email marker update failed: ${markerError.message}`)
+                }
                 delayEmailsSent++
               } else {
+                handledFailures++
                 logger.error("Patient delay notification failed without outbox recovery", {
                   intakeId: intake.id,
                   error: emailResult.error,
                 })
               }
             } catch (err) {
+              handledFailures++
               logger.error("Failed to send patient delay notification", { intakeId: intake.id }, err as Error)
             }
           }),
         )
+        handledFailures += delayOutcomes.filter(
+          (outcome) => outcome.status === "rejected",
+        ).length
       }
     } catch (delayEmailError) {
+      handledFailures++
       logger.error("Error in patient delay email block", {}, delayEmailError as Error)
     }
 
@@ -238,7 +257,7 @@ export async function GET(request: NextRequest) {
         "@/lib/stripe/priority-fee-refund"
       )
       const breachThreshold = new Date(now.getTime() - PRIORITY_BREACH_HOURS * 60 * 60 * 1000)
-      const { data: breachCandidates } = await filterSeededE2EIntakes(
+      const { data: breachCandidates, error: breachCandidatesError } = await filterSeededE2EIntakes(
         supabase
           .from("intakes")
           .select(`
@@ -257,6 +276,9 @@ export async function GET(request: NextRequest) {
           .not("patient_id", "is", null)
           .limit(10),
       )
+      if (breachCandidatesError) {
+        throw new Error(`Priority-breach candidate query failed: ${breachCandidatesError.message}`)
+      }
 
       if (breachCandidates && breachCandidates.length > 0) {
         const [{ stripe }, { sendEmail }, templates, React] = await Promise.all([
@@ -270,6 +292,7 @@ export async function GET(request: NextRequest) {
           const result = await refundPriorityFeeOnBreach({ stripe, supabase }, intake)
           if (result.status !== "refunded") {
             if (result.status === "failed") {
+              handledFailures++
               logger.error("Priority breach refund failed", { intakeId: intake.id, error: result.error })
             }
             continue
@@ -294,7 +317,7 @@ export async function GET(request: NextRequest) {
               intake.category as string | null,
               intake.subtype as string | null,
             )
-            await sendEmail({
+            const emailResult = await sendEmail({
               to: patient.email,
               toName: patient.full_name || undefined,
               subject: templates.priorityFeeRefundedSubject(),
@@ -312,7 +335,11 @@ export async function GET(request: NextRequest) {
               patientId: intake.patient_id,
               idempotencyKey: `priority-fee-refunded:${intake.id}`,
             })
+            if (!emailResult.success && !emailResult.outboxId) {
+              handledFailures++
+            }
           } catch (emailError) {
+            handledFailures++
             logger.error(
               "Priority breach refund email failed",
               { intakeId: intake.id },
@@ -322,6 +349,7 @@ export async function GET(request: NextRequest) {
         }
       }
     } catch (breachError) {
+      handledFailures++
       logger.error("Error in priority breach refund block", {}, breachError as Error)
     }
 
@@ -329,13 +357,16 @@ export async function GET(request: NextRequest) {
     const AWAITING_SCRIPT_THRESHOLD_HOURS = 48
     const awaitingScriptThreshold = new Date(now.getTime() - AWAITING_SCRIPT_THRESHOLD_HOURS * 60 * 60 * 1000)
 
-    const { count: stuckScriptCount } = await filterSeededE2EIntakes(
+    const { count: stuckScriptCount, error: stuckScriptError } = await filterSeededE2EIntakes(
       supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .eq("status", "awaiting_script")
         .lt("updated_at", awaitingScriptThreshold.toISOString()),
     )
+    if (stuckScriptError) {
+      throw new Error(`Awaiting-script count failed: ${stuckScriptError.message}`)
+    }
 
     if ((stuckScriptCount ?? 0) > 0) {
       logger.warn("Intakes stuck in awaiting_script for 48+ hours", { stuck_count: stuckScriptCount })
@@ -345,6 +376,12 @@ export async function GET(request: NextRequest) {
         metadata: { stuck_count: stuckScriptCount },
       })
     }
+
+    await recordCronHeartbeat("stale-queue", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: totalStale,
+      status: handledFailures > 0 ? "partial_failure" : "ok",
+    })
 
     return NextResponse.json({
       success: true,
@@ -357,6 +394,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logger.error("Stale queue monitor failed", {
       error: error instanceof Error ? error.message : "Unknown error",
+    })
+    await recordCronHeartbeat("stale-queue", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
     })
     return NextResponse.json({ error: "Stale queue monitor failed" }, { status: 500 })
   }

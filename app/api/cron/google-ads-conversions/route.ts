@@ -117,17 +117,24 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("google-ads-conversions")
+  const startedAt = Date.now()
 
   const lock = await acquireCronLock("google-ads-conversions")
   if (!lock.acquired) {
+    const lockUnavailable = lock.reason === "unavailable"
+    await recordCronHeartbeat("google-ads-conversions", {
+      durationMs: Date.now() - startedAt,
+      status: lockUnavailable ? "configuration_error" : "skipped",
+    })
     return NextResponse.json({
-      success: true,
-      skipped: true,
+      success: !lockUnavailable,
+      skipped: !lockUnavailable,
       reason: lock.existingLockAge
         ? `Already running for ${lock.existingLockAge}s`
-        : "Already running",
-    })
+        : lockUnavailable
+          ? "Cron lock unavailable"
+          : "Already running",
+    }, { status: lockUnavailable ? 503 : 200 })
   }
 
   try {
@@ -138,19 +145,31 @@ export async function GET(request: NextRequest) {
 
     if (preflightOnly) {
       const preflight = await preflightGoogleAdsPurchaseConversionAction()
-      return NextResponse.json({
-        success: preflight.severity !== "error",
-        skipped: true,
-        reason: "preflight_only",
-        preflight: serializePreflight(preflight),
-        lookback_days: LOOKBACK_DAYS,
-        force,
-        processed: 0,
-        skipped_already_resolved: 0,
-        skipped_uploads: 0,
-        failed: 0,
-        batch_limit: BATCH_LIMIT,
+      await recordCronHeartbeat("google-ads-conversions", {
+        durationMs: Date.now() - startedAt,
+        itemsProcessed: 0,
+        status: preflight.severity === "error"
+          ? "configuration_error"
+          : preflight.ok
+            ? "ok"
+            : "partial_failure",
       })
+      return NextResponse.json(
+        {
+          success: preflight.severity !== "error",
+          skipped: true,
+          reason: "preflight_only",
+          preflight: serializePreflight(preflight),
+          lookback_days: LOOKBACK_DAYS,
+          force,
+          processed: 0,
+          skipped_already_resolved: 0,
+          skipped_uploads: 0,
+          failed: 0,
+          batch_limit: BATCH_LIMIT,
+        },
+        { status: preflight.severity === "error" ? 503 : 200 },
+      )
     }
 
     const candidateQuery = supabase
@@ -206,20 +225,27 @@ export async function GET(request: NextRequest) {
           preflightSeverity: preflight.severity,
         })
 
-        return NextResponse.json({
-          success: true,
-          skipped: true,
-          reason: "skipped_preflight",
-          code: preflight.code,
-          preflight: serializePreflight(preflight),
-          lookback_days: LOOKBACK_DAYS,
-          candidates: candidates.length,
-          force,
-          processed: 0,
-          skipped_already_resolved: candidates.length - retryable.length,
-          failed: 0,
-          batch_limit: BATCH_LIMIT,
+        await recordCronHeartbeat("google-ads-conversions", {
+          durationMs: Date.now() - startedAt,
+          status: "configuration_error",
         })
+        return NextResponse.json(
+          {
+            success: false,
+            skipped: true,
+            reason: "skipped_preflight",
+            code: preflight.code,
+            preflight: serializePreflight(preflight),
+            lookback_days: LOOKBACK_DAYS,
+            candidates: candidates.length,
+            force,
+            processed: 0,
+            skipped_already_resolved: candidates.length - retryable.length,
+            failed: 0,
+            batch_limit: BATCH_LIMIT,
+          },
+          { status: 503 },
+        )
       }
     }
 
@@ -341,6 +367,11 @@ export async function GET(request: NextRequest) {
 
     const adjustmentSkipped = adjustmentResults.filter((result) => result.status.startsWith("skipped"))
     const adjustmentFailed = adjustmentResults.filter((result) => result.status === "failed")
+    const configurationSkips = results.filter((result) => (
+      result.status === "skipped_missing_env"
+      || result.status === "skipped_no_access_token"
+    ))
+    const disabledUploads = results.filter((result) => result.status === "skipped_disabled")
 
     logger.info("Google Ads conversion backfill complete", {
       candidates: candidates.length,
@@ -349,6 +380,22 @@ export async function GET(request: NextRequest) {
       failed: failed.length,
       adjustmentCandidates: preparedAdjustmentCandidates.length,
       adjustmentFailed: adjustmentFailed.length,
+    })
+
+    // Row-level missing/expired attribution and already-resolved adjustment
+    // skips have their own durable audit rows (and upload-side Sentry owner), so
+    // they do not turn a completed batch into an infrastructure outage.
+    const completedStatus = configurationSkips.length > 0
+      ? "configuration_error"
+      : failed.length + adjustmentFailed.length > 0
+        ? "partial_failure"
+        : disabledUploads.length > 0 && disabledUploads.length === results.length
+          ? "disabled"
+          : "ok"
+    await recordCronHeartbeat("google-ads-conversions", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: results.length + adjustmentResults.length,
+      status: completedStatus,
     })
 
     return NextResponse.json({
@@ -372,6 +419,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     const eventId = captureCronError(err, { jobName: "google-ads-conversions" })
+    await recordCronHeartbeat("google-ads-conversions", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
+    })
     return NextResponse.json(
       { success: false, error: err.message, sentry_event_id: eventId },
       { status: 500 },

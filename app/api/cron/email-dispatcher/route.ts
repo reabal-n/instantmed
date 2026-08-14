@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("email-dispatcher")
+  const startedAt = Date.now()
 
   try {
     const outcome = await withCronTimeout(
@@ -42,6 +42,10 @@ export async function GET(request: NextRequest) {
 
     if (outcome.timedOut) {
       logger.warn("Cron: email-dispatcher timed out", { jobName: outcome.jobName })
+      await recordCronHeartbeat("email-dispatcher", {
+        durationMs: Date.now() - startedAt,
+        status: "timeout",
+      })
       return NextResponse.json({
         success: true,
         partial: true,
@@ -58,6 +62,11 @@ export async function GET(request: NextRequest) {
       failed: result.failed,
       skipped: result.skipped,
     })
+    await recordCronHeartbeat("email-dispatcher", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: result.processed,
+      status: result.failed > 0 ? "partial_failure" : "ok",
+    })
 
     return NextResponse.json({
       success: true,
@@ -68,6 +77,10 @@ export async function GET(request: NextRequest) {
     const err = toError(error)
     logger.error("Email dispatcher cron failed", { error: err.message })
     captureCronError(err, { jobName: "email-dispatcher" })
+    await recordCronHeartbeat("email-dispatcher", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
+    })
     return NextResponse.json(
       { success: false, error: "Email dispatcher failed" },
       { status: 500 }

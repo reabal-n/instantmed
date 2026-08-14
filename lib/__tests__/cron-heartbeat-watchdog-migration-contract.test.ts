@@ -11,6 +11,14 @@ const migration = readFileSync(
   "utf8",
 ).toLowerCase()
 
+const outcomeMigration = readFileSync(
+  join(
+    process.cwd(),
+    "supabase/migrations/20260814185000_record_truthful_cron_outcomes.sql",
+  ),
+  "utf8",
+).toLowerCase()
+
 describe("cron heartbeat watchdog migration", () => {
   it("keeps attempt time separate from the last successful outcome", () => {
     expect(migration).toContain(
@@ -46,5 +54,39 @@ describe("cron heartbeat watchdog migration", () => {
       "revoke all on function public.claim_cron_heartbeat_alerts(jsonb)",
     )
     expect(migration.match(/to service_role;/g)).toHaveLength(2)
+  })
+
+  it("atomically separates invocation, recovery, and failure outcomes", () => {
+    expect(outcomeMigration).toContain(
+      "add column if not exists last_failure_at timestamptz",
+    )
+    expect(outcomeMigration).toContain(
+      "create or replace function public.record_cron_heartbeat_outcome",
+    )
+    expect(outcomeMigration).toContain(
+      "failed_outcome := not p_rearm_outage and p_status <> 'skipped'",
+    )
+    expect(outcomeMigration).toContain("on conflict (job_name) do update")
+    expect(outcomeMigration).toContain(
+      "run_count = case",
+    )
+    expect(outcomeMigration).toContain(
+      "when heartbeat.run_count < 9223372036854775807::bigint",
+    )
+    expect(outcomeMigration).toContain(
+      "create or replace function public.increment_cron_run_count()",
+    )
+    expect(outcomeMigration).toContain(
+      "when old.run_count < 9223372036854775807::bigint",
+    )
+    expect(outcomeMigration).toContain(
+      "when p_rearm_outage then excluded.last_run_at",
+    )
+    expect(outcomeMigration).toContain("security invoker")
+    expect(outcomeMigration).toContain("set search_path = ''")
+    expect(outcomeMigration).toContain(
+      "revoke all on function public.record_cron_heartbeat_outcome(text, text, integer, integer, boolean)",
+    )
+    expect(outcomeMigration).toContain("to service_role;")
   })
 })

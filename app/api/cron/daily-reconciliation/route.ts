@@ -28,18 +28,25 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("daily-reconciliation")
+  const startedAt = Date.now()
 
   // Acquire concurrency lock - prevents overlapping execution in serverless
   const lock = await acquireCronLock("daily-reconciliation")
   if (!lock.acquired) {
+    const lockUnavailable = lock.reason === "unavailable"
+    await recordCronHeartbeat("daily-reconciliation", {
+      durationMs: Date.now() - startedAt,
+      status: lockUnavailable ? "configuration_error" : "skipped",
+    })
     return NextResponse.json({
-      success: true,
-      skipped: true,
+      success: !lockUnavailable,
+      skipped: !lockUnavailable,
       reason: lock.existingLockAge
         ? `Already running for ${lock.existingLockAge}s`
-        : "Already running"
-    })
+        : lockUnavailable
+          ? "Cron lock unavailable"
+          : "Already running"
+    }, { status: lockUnavailable ? 503 : 200 })
   }
 
   try {
@@ -170,7 +177,11 @@ export async function GET(request: NextRequest) {
       logger.info("Daily reconciliation clean", { ...summary })
     }
 
-    await releaseCronLock("daily-reconciliation")
+    await recordCronHeartbeat("daily-reconciliation", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: records.length,
+      status: "ok",
+    })
 
     return NextResponse.json({
       success: true,
@@ -186,8 +197,13 @@ export async function GET(request: NextRequest) {
     const err = toError(error)
     logger.error("Daily reconciliation cron failed", { error: err.message })
     captureCronError(err, { jobName: "daily-reconciliation" })
-    await releaseCronLock("daily-reconciliation")
+    await recordCronHeartbeat("daily-reconciliation", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
+    })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
+  } finally {
+    await releaseCronLock("daily-reconciliation")
   }
 }
 

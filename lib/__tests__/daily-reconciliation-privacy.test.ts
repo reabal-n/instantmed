@@ -102,5 +102,53 @@ describe("daily reconciliation privacy", () => {
     expect(sentryPayload).not.toContain("Patient Name")
     expect(sentryPayload).not.toContain("REF-123")
     expect(sentryPayload).not.toContain("intake-1")
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "daily-reconciliation",
+      expect.objectContaining({ itemsProcessed: 1, status: "ok" }),
+    )
+    expect(mocks.releaseCronLock).toHaveBeenCalledWith("daily-reconciliation")
+  })
+
+  it("records a query failure instead of acknowledging success", async () => {
+    mocks.getReconciliationRecords.mockResolvedValue({
+      data: [],
+      error: "database unavailable",
+      summary: {
+        delivered: 0,
+        failed: 0,
+        mismatches: 0,
+        pending: 0,
+        total: 0,
+      },
+    })
+
+    const response = await GET(new NextRequest("https://instantmed.example/api/cron/daily-reconciliation"))
+
+    expect(response.status).toBe(500)
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "daily-reconciliation",
+      expect.objectContaining({ status: "error" }),
+    )
+    expect(mocks.recordCronHeartbeat).not.toHaveBeenCalledWith(
+      "daily-reconciliation",
+      expect.objectContaining({ status: "ok" }),
+    )
+    expect(mocks.releaseCronLock).toHaveBeenCalledWith("daily-reconciliation")
+  })
+
+  it("treats unavailable lock storage as configuration failure, not a neutral skip", async () => {
+    mocks.acquireCronLock.mockResolvedValue({
+      acquired: false,
+      reason: "unavailable",
+    })
+
+    const response = await GET(new NextRequest("https://instantmed.example/api/cron/daily-reconciliation"))
+
+    expect(response.status).toBe(503)
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "daily-reconciliation",
+      expect.objectContaining({ status: "configuration_error" }),
+    )
+    expect(mocks.getReconciliationRecords).not.toHaveBeenCalled()
   })
 })

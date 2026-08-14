@@ -114,7 +114,11 @@ export function withCronAuth(
 export async function acquireCronLock(
   jobName: string,
   maxDurationSeconds: number = 300
-): Promise<{ acquired: boolean; existingLockAge?: number }> {
+): Promise<{
+  acquired: boolean
+  existingLockAge?: number
+  reason?: "held" | "unavailable"
+}> {
   try {
     const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
     const supabase = createServiceRoleClient()
@@ -163,7 +167,7 @@ export async function acquireCronLock(
           })
         }
 
-        return { acquired: false, existingLockAge: lockAge }
+        return { acquired: false, existingLockAge: lockAge, reason: "held" }
       }
       throw error
     }
@@ -179,7 +183,7 @@ export async function acquireCronLock(
       tags: { cronJob: jobName },
       extra: { context: "cron-lock-acquisition-failure" },
     })
-    return { acquired: false }
+    return { acquired: false, reason: "unavailable" }
   }
 }
 

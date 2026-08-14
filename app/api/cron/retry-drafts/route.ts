@@ -32,23 +32,29 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("retry-drafts")
+  const startedAt = Date.now()
 
   // Acquire concurrency lock - prevents overlapping runs from double-processing rows
   const lock = await acquireCronLock("retry-drafts")
   if (!lock.acquired) {
+    const lockUnavailable = lock.reason === "unavailable"
+    await recordCronHeartbeat("retry-drafts", {
+      durationMs: Date.now() - startedAt,
+      status: lockUnavailable ? "configuration_error" : "skipped",
+    })
     return NextResponse.json({
-      success: true,
-      skipped: true,
+      success: !lockUnavailable,
+      skipped: !lockUnavailable,
       reason: lock.existingLockAge
         ? `Already running for ${lock.existingLockAge}s`
-        : "Already running",
-    })
+        : lockUnavailable
+          ? "Cron lock unavailable"
+          : "Already running",
+    }, { status: lockUnavailable ? 503 : 200 })
   }
 
-  const supabase = createServiceRoleClient()
-
   try {
+    const supabase = createServiceRoleClient()
     // Find pending retries that are due
     const { data: pendingRetries, error: fetchError } = await supabase
       .from("ai_draft_retry_queue")
@@ -61,10 +67,19 @@ export async function GET(request: NextRequest) {
 
     if (fetchError) {
       logger.error("Failed to fetch pending retries", { error: fetchError.message })
+      await recordCronHeartbeat("retry-drafts", {
+        durationMs: Date.now() - startedAt,
+        status: "error",
+      })
       return NextResponse.json({ error: "Database error" }, { status: 500 })
     }
 
     if (!pendingRetries || pendingRetries.length === 0) {
+      await recordCronHeartbeat("retry-drafts", {
+        durationMs: Date.now() - startedAt,
+        itemsProcessed: 0,
+        status: "ok",
+      })
       return NextResponse.json({ processed: 0, message: "No pending retries" })
     }
 
@@ -80,13 +95,16 @@ export async function GET(request: NextRequest) {
 
         if (result.success) {
           // Mark as completed
-          await supabase
+          const { error: completionError } = await supabase
             .from("ai_draft_retry_queue")
             .update({ 
               completed_at: new Date().toISOString(),
               attempts: newAttempts,
             })
             .eq("id", retry.id)
+          if (completionError) {
+            throw new Error(`Draft retry completion update failed: ${completionError.message}`)
+          }
 
           logger.info("Draft retry succeeded", { 
             intakeId: retry.intake_id, 
@@ -105,7 +123,7 @@ export async function GET(request: NextRequest) {
 
         if (newAttempts >= retry.max_attempts) {
           // Mark as failed permanently
-          await supabase
+          const { error: exhaustedUpdateError } = await supabase
             .from("ai_draft_retry_queue")
             .update({ 
               attempts: newAttempts,
@@ -113,6 +131,9 @@ export async function GET(request: NextRequest) {
               completed_at: new Date().toISOString(), // Mark complete so we stop retrying
             })
             .eq("id", retry.id)
+          if (exhaustedUpdateError) {
+            throw new Error(`Draft retry exhaustion update failed: ${exhaustedUpdateError.message}`)
+          }
 
           logger.error("Draft retry exhausted max attempts", { 
             intakeId: retry.intake_id, 
@@ -121,7 +142,7 @@ export async function GET(request: NextRequest) {
           })
         } else {
           // Schedule next retry
-          await supabase
+          const { error: retryUpdateError } = await supabase
             .from("ai_draft_retry_queue")
             .update({ 
               attempts: newAttempts,
@@ -129,6 +150,9 @@ export async function GET(request: NextRequest) {
               next_retry_at: nextRetryAt.toISOString(),
             })
             .eq("id", retry.id)
+          if (retryUpdateError) {
+            throw new Error(`Draft retry schedule update failed: ${retryUpdateError.message}`)
+          }
 
           logger.warn("Draft retry failed, scheduled next attempt", { 
             intakeId: retry.intake_id, 
@@ -143,7 +167,11 @@ export async function GET(request: NextRequest) {
 
     logger.info("Retry drafts cron completed", { succeeded, failed, total: pendingRetries.length })
 
-    await releaseCronLock("retry-drafts")
+    await recordCronHeartbeat("retry-drafts", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: pendingRetries.length,
+      status: failed > 0 ? "partial_failure" : "ok",
+    })
     return NextResponse.json({
       processed: pendingRetries.length,
       succeeded,
@@ -154,7 +182,12 @@ export async function GET(request: NextRequest) {
     const err = toError(error)
     logger.error("Cron job error", { error: err.message })
     captureCronError(err, { jobName: "retry-drafts" })
-    await releaseCronLock("retry-drafts")
+    await recordCronHeartbeat("retry-drafts", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
+    })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
+  } finally {
+    await releaseCronLock("retry-drafts")
   }
 }

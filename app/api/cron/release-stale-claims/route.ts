@@ -23,24 +23,29 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("release-stale-claims")
+  const startTime = Date.now()
 
   // Acquire concurrency lock - prevents overlapping execution in serverless
   const lock = await acquireCronLock("release-stale-claims")
   if (!lock.acquired) {
+    const lockUnavailable = lock.reason === "unavailable"
+    await recordCronHeartbeat("release-stale-claims", {
+      durationMs: Date.now() - startTime,
+      status: lockUnavailable ? "configuration_error" : "skipped",
+    })
     return NextResponse.json({
-      success: true,
-      skipped: true,
+      success: !lockUnavailable,
+      skipped: !lockUnavailable,
       reason: lock.existingLockAge
         ? `Already running for ${lock.existingLockAge}s`
-        : "Already running"
-    })
+        : lockUnavailable
+          ? "Cron lock unavailable"
+          : "Already running"
+    }, { status: lockUnavailable ? 503 : 200 })
   }
 
-  const supabase = createServiceRoleClient()
-  const startTime = Date.now()
-
   try {
+    const supabase = createServiceRoleClient()
     // Call the database function to release stale claims
     const { data, error } = await supabase.rpc("release_stale_intake_claims", {
       p_timeout_minutes: 30,
@@ -48,6 +53,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       logger.error("Failed to release stale claims", { error: error.message })
+      await recordCronHeartbeat("release-stale-claims", {
+        durationMs: Date.now() - startTime,
+        status: "error",
+      })
       return NextResponse.json(
         { success: false, error: "Failed to release stale claims" },
         { status: 500 }
@@ -67,7 +76,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Track cron run
-    await supabase.from("cron_job_runs").upsert(
+    const { error: runRecordError } = await supabase.from("cron_job_runs").upsert(
       {
         job_name: "release_stale_claims",
         last_run_at: new Date().toISOString(),
@@ -77,7 +86,15 @@ export async function GET(request: NextRequest) {
       { onConflict: "job_name" }
     )
 
-    await releaseCronLock("release-stale-claims")
+    if (runRecordError) {
+      throw new Error(`Failed to record stale-claims run: ${runRecordError.message}`)
+    }
+
+    await recordCronHeartbeat("release-stale-claims", {
+      durationMs: duration,
+      itemsProcessed: releasedCount,
+      status: "ok",
+    })
 
     return NextResponse.json({
       success: true,
@@ -89,10 +106,15 @@ export async function GET(request: NextRequest) {
     const error = toError(err)
     logger.error("Cron job failed", { error: error.message })
     captureCronError(error, { jobName: "release-stale-claims" })
-    await releaseCronLock("release-stale-claims")
+    await recordCronHeartbeat("release-stale-claims", {
+      durationMs: Date.now() - startTime,
+      status: "error",
+    })
     return NextResponse.json(
       { success: false, error: "Cron job failed" },
       { status: 500 }
     )
+  } finally {
+    await releaseCronLock("release-stale-claims")
   }
 }

@@ -322,6 +322,49 @@ describe("Google Ads Agent cron timing and idempotency", () => {
       reportDate: "2026-07-27",
       success: true,
     })
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "google-ads-daily-brief",
+      expect.objectContaining({ itemsProcessed: 1, status: "ok" }),
+    )
+  })
+
+  it("records a handled tracking-input failure even when the fail-closed brief delivers", async () => {
+    vi.setSystemTime(new Date("2026-07-27T23:00:00.000Z"))
+    mocks.getGoogleAdsPurchaseImportHealth.mockRejectedValue(
+      new Error("reporting unavailable"),
+    )
+
+    const response = await GET(request)
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({ delivered: true, success: true })
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "google-ads-daily-brief",
+      expect.objectContaining({ status: "partial_failure" }),
+    )
+  })
+
+  it("records a degraded snapshot input as a partial cron outcome", async () => {
+    vi.setSystemTime(new Date("2026-07-27T23:00:00.000Z"))
+    mocks.buildAdsAgentSnapshot.mockResolvedValue({
+      ...snapshot,
+      inputs: {
+        ...snapshot.inputs,
+        stripeFees: {
+          asOf: "2026-07-27T23:00:00.000Z",
+          reason: "fee source unavailable",
+          status: "failed",
+        },
+      },
+    })
+
+    const response = await GET(request)
+
+    expect(response.status).toBe(200)
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "google-ads-daily-brief",
+      expect.objectContaining({ status: "partial_failure" }),
+    )
   })
 
   it("skips work after the report date is already delivered", async () => {
@@ -344,6 +387,10 @@ describe("Google Ads Agent cron timing and idempotency", () => {
     })
     expect(mocks.buildAdsAgentSnapshot).not.toHaveBeenCalled()
     expect(mocks.sendGoogleAdsDailyBriefViaTelegram).not.toHaveBeenCalled()
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "google-ads-daily-brief",
+      expect.objectContaining({ rearmOutage: true, status: "skipped" }),
+    )
   })
 
   it("marks a failed send for a later retry", async () => {
@@ -360,6 +407,10 @@ describe("Google Ads Agent cron timing and idempotency", () => {
         errorCode: "telegram_send_failed",
         runId: "run-1",
       }),
+    )
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "google-ads-daily-brief",
+      expect.objectContaining({ status: "error" }),
     )
   })
 
@@ -384,6 +435,7 @@ describe("Google Ads Agent cron timing and idempotency", () => {
     expect(mocks.recordCronHeartbeat).toHaveBeenCalledOnce()
     expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
       "google-ads-daily-brief",
+      expect.objectContaining({ status: "disabled" }),
     )
     expect(mocks.claimDailyAdsAgentRun).not.toHaveBeenCalled()
     expect(mocks.sendGoogleAdsDailyBriefViaTelegram).not.toHaveBeenCalled()
@@ -400,6 +452,7 @@ describe("Google Ads Agent cron timing and idempotency", () => {
     })
     expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
       "google-ads-daily-brief",
+      expect.objectContaining({ status: "skipped" }),
     )
     expect(mocks.claimDailyAdsAgentRun).not.toHaveBeenCalled()
   })

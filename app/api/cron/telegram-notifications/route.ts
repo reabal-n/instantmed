@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("telegram-notifications")
+  const startedAt = Date.now()
 
   try {
     const outcome = await withCronTimeout(
@@ -105,6 +105,10 @@ export async function GET(request: NextRequest) {
 
     if (outcome.timedOut) {
       logger.warn("Telegram notification cron timed out", {})
+      await recordCronHeartbeat("telegram-notifications", {
+        durationMs: Date.now() - startedAt,
+        status: "timeout",
+      })
       return NextResponse.json({
         success: true,
         partial: true,
@@ -113,6 +117,11 @@ export async function GET(request: NextRequest) {
     }
 
     logger.info("Telegram notification cron completed", outcome.result)
+    await recordCronHeartbeat("telegram-notifications", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: outcome.result.processed,
+      status: outcome.result.failed > 0 ? "partial_failure" : "ok",
+    })
 
     return NextResponse.json({
       success: true,
@@ -122,6 +131,10 @@ export async function GET(request: NextRequest) {
     const message = err instanceof Error ? err.message : String(err)
     logger.error("Telegram notification cron failed", { error: message })
     Sentry.captureException(err, { tags: { source: "telegram-notification-cron" } })
+    await recordCronHeartbeat("telegram-notifications", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
+    })
     return NextResponse.json({ success: false, error: "Telegram notification retry failed" }, { status: 500 })
   }
 }

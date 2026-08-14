@@ -29,17 +29,20 @@ interface HeartbeatRow {
   last_run_at: string | null
   last_status: string
   last_success_at: string | null
+  last_failure_at?: string | null
+  last_failure_status?: string | null
 }
 
 function createHeartbeatClient(input: {
   heartbeats: HeartbeatRow[]
+  heartbeatReadError?: { message: string } | null
   deploymentStartedAt?: string
   claimed?: Array<{ job_name: string; outage_key: string }>
   claimError?: { message: string } | null
 }) {
   const heartbeatSelect = vi.fn(async () => ({
     data: input.heartbeats,
-    error: null,
+    error: input.heartbeatReadError ?? null,
   }))
   const rpc = vi.fn(async (name: string) => {
     if (name === "get_or_create_cron_watchdog_deployment") {
@@ -135,6 +138,61 @@ describe("cron heartbeat outage classification", () => {
     expect(firstFailure.outageKey).toBe(repeatedFailure.outageKey)
     expect(failureAfterRecovery.outageKey).not.toBe(firstFailure.outageKey)
   })
+
+  it("keeps a neutral skip from masking failure and rearms after durable disable", async () => {
+    const { findCronHeartbeatOutages } = await import("@/lib/monitoring/cron-heartbeat")
+    const nowMs = Date.parse("2026-08-15T20:00:00.000Z")
+    const base = {
+      nowMs,
+      deploymentStartedAtMs: nowMs - 10 * 60_000,
+      deploymentKey: "dpl_current",
+    }
+
+    const failedThenSkipped = findCronHeartbeatOutages({
+      ...base,
+      heartbeats: [{
+        job_name: "google-ads-daily-brief",
+        last_run_at: "2026-08-15T19:30:00.000Z",
+        last_status: "skipped",
+        last_success_at: "2026-08-14T23:00:00.000Z",
+        last_failure_at: "2026-08-15T19:00:00.000Z",
+        last_failure_status: "error",
+      }],
+    })[0]
+    const disabledRecovery = findCronHeartbeatOutages({
+      ...base,
+      heartbeats: [{
+        job_name: "google-ads-daily-brief",
+        last_run_at: "2026-08-15T19:40:00.000Z",
+        last_status: "disabled",
+        last_success_at: "2026-08-15T19:40:00.000Z",
+        last_failure_at: "2026-08-15T19:00:00.000Z",
+        last_failure_status: "error",
+      }],
+    })
+    const failureAfterDisable = findCronHeartbeatOutages({
+      ...base,
+      heartbeats: [{
+        job_name: "google-ads-daily-brief",
+        last_run_at: "2026-08-15T19:50:00.000Z",
+        last_status: "error",
+        last_success_at: "2026-08-15T19:40:00.000Z",
+        last_failure_at: "2026-08-15T19:50:00.000Z",
+        last_failure_status: "error",
+      }],
+    })[0]
+
+    expect(failedThenSkipped).toEqual(expect.objectContaining({
+      jobName: "google-ads-daily-brief",
+      status: "error",
+      outageKey: "failed:2026-08-14T23:00:00.000Z",
+    }))
+    expect(disabledRecovery).toEqual([])
+    expect(failureAfterDisable.outageKey).toBe(
+      "failed:2026-08-15T19:40:00.000Z",
+    )
+    expect(failureAfterDisable.outageKey).not.toBe(failedThenSkipped.outageKey)
+  })
 })
 
 describe("cron heartbeat outcome recording", () => {
@@ -148,31 +206,43 @@ describe("cron heartbeat outcome recording", () => {
     vi.useRealTimers()
   })
 
-  it("advances last success only for a successful final outcome", async () => {
-    const upsert = vi.fn(async () => ({ error: null }))
+  it("rearms only completed or deliberately disabled outcomes by default", async () => {
+    const rpc = vi.fn(async () => ({ data: null, error: null }))
     mocks.createServiceRoleClient.mockReturnValue({
-      from: vi.fn(() => ({ upsert })),
+      rpc,
     })
     const { recordCronHeartbeat } = await import("@/lib/monitoring/cron-heartbeat")
 
     await recordCronHeartbeat("posthog-reconciliation", { status: "ok" })
+    await recordCronHeartbeat("posthog-reconciliation", { status: "skipped" })
+    await recordCronHeartbeat("posthog-reconciliation", { status: "disabled" })
     await recordCronHeartbeat("posthog-reconciliation", {
       status: "configuration_error",
     })
 
-    expect(upsert).toHaveBeenNthCalledWith(
+    expect(rpc).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({
-        last_status: "ok",
-        last_success_at: "2026-08-15T20:00:00.000Z",
-      }),
-      { onConflict: "job_name", defaultToNull: false },
+      "record_cron_heartbeat_outcome",
+      expect.objectContaining({ p_status: "ok", p_rearm_outage: true }),
     )
-    expect(upsert.mock.calls[1]?.[0]).not.toHaveProperty("last_success_at")
-    expect(upsert.mock.calls[1]?.[1]).toEqual({
-      onConflict: "job_name",
-      defaultToNull: false,
-    })
+    expect(rpc).toHaveBeenNthCalledWith(
+      2,
+      "record_cron_heartbeat_outcome",
+      expect.objectContaining({ p_status: "skipped", p_rearm_outage: false }),
+    )
+    expect(rpc).toHaveBeenNthCalledWith(
+      3,
+      "record_cron_heartbeat_outcome",
+      expect.objectContaining({ p_status: "disabled", p_rearm_outage: true }),
+    )
+    expect(rpc).toHaveBeenNthCalledWith(
+      4,
+      "record_cron_heartbeat_outcome",
+      expect.objectContaining({
+        p_status: "configuration_error",
+        p_rearm_outage: false,
+      }),
+    )
   })
 })
 
@@ -239,6 +309,34 @@ describe("cron heartbeat atomic alert claims", () => {
     )
   })
 
+  it("returns unhealthy and emits a stable PHI-free signal when heartbeat state is unreadable", async () => {
+    const harness = createHeartbeatClient({
+      heartbeats: [],
+      heartbeatReadError: { message: "relation unavailable" },
+    })
+    mocks.createServiceRoleClient.mockReturnValue(harness.client)
+
+    const { checkCronHeartbeats } = await import("@/lib/monitoring/cron-heartbeat")
+    const result = await checkCronHeartbeats()
+
+    expect(result).toEqual({ overdue: [], healthy: false })
+    expect(mocks.captureMessage).toHaveBeenCalledWith(
+      "Cron heartbeat watchdog cannot read heartbeat state",
+      expect.objectContaining({
+        fingerprint: ["cron-heartbeat-read-failed"],
+        level: "fatal",
+        tags: expect.objectContaining({
+          watchdog_status: "configuration_error",
+        }),
+        extra: { heartbeat_state_available: false },
+      }),
+    )
+    expect(JSON.stringify(mocks.captureMessage.mock.calls[0])).not.toMatch(
+      /relation unavailable|intake|patient|email|medication/i,
+    )
+    expect(harness.rpc).not.toHaveBeenCalled()
+  })
+
   it("does not emit when another invocation already owns the outage", async () => {
     const harness = createHeartbeatClient({
       heartbeats: [{
@@ -262,7 +360,7 @@ describe("cron heartbeat atomic alert claims", () => {
     expect(mocks.logError).not.toHaveBeenCalled()
   })
 
-  it("does not guess ownership when the atomic claim fails", async () => {
+  it("fails open with a stable PHI-free page when the atomic claim fails", async () => {
     const harness = createHeartbeatClient({
       heartbeats: [{
         job_name: "posthog-reconciliation",
@@ -281,6 +379,24 @@ describe("cron heartbeat atomic alert claims", () => {
       "Could not atomically claim cron heartbeat alerts",
       { error: "metrics unavailable", overdueCount: 1 },
     )
-    expect(mocks.captureMessage).not.toHaveBeenCalled()
+    expect(mocks.captureMessage).toHaveBeenCalledWith(
+      "Cron heartbeat alert claim failed; known outages require attention",
+      expect.objectContaining({
+        fingerprint: ["cron-heartbeat-alert-claim-failed"],
+        level: "fatal",
+        tags: expect.objectContaining({
+          alert_claim_status: "configuration_error",
+          overdue_count: "1",
+        }),
+        extra: {
+          overdue: [expect.objectContaining({
+            jobName: "posthog-reconciliation",
+            status: "configuration_error",
+          })],
+        },
+      }),
+    )
+    const sentryPayload = JSON.stringify(mocks.captureMessage.mock.calls[0])
+    expect(sentryPayload).not.toMatch(/intake|patient|email|medication/i)
   })
 })

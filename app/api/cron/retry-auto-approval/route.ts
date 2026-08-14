@@ -35,9 +35,20 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("retry-auto-approval")
-
-  const supabase = createServiceRoleClient()
+  const startedAt = Date.now()
+  let handledFailures = 0
+  let supabase: ReturnType<typeof createServiceRoleClient>
+  try {
+    supabase = createServiceRoleClient()
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
+    captureCronError(err, { jobName: "retry-auto-approval" })
+    await recordCronHeartbeat("retry-auto-approval", {
+      durationMs: Date.now() - startedAt,
+      status: "configuration_error",
+    })
+    return NextResponse.json({ error: "Internal error" }, { status: 500 })
+  }
 
   // -----------------------------------------------------------------------
   // Send "still reviewing" emails - runs regardless of auto-approval flag
@@ -45,7 +56,7 @@ export async function GET(request: NextRequest) {
   try {
     const fortyFiveMinAgo = new Date(Date.now() - 45 * 60 * 1000).toISOString()
     const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
-    const { data: followUpCandidates } = await supabase
+    const { data: followUpCandidates, error: followUpCandidatesError } = await supabase
       .from("intakes")
       .select(`
         id, patient_id, category, subtype,
@@ -63,6 +74,9 @@ export async function GET(request: NextRequest) {
       .gt("paid_at", fourHoursAgo)
       .not("patient_id", "is", null)
       .limit(20)
+    if (followUpCandidatesError) {
+      throw new Error(`Follow-up candidate query failed: ${followUpCandidatesError.message}`)
+    }
 
     if (followUpCandidates && followUpCandidates.length > 0) {
       const [{ sendEmail }, { StillReviewingEmail, stillReviewingSubject }, { isOvernightInSydney }, React] =
@@ -75,7 +89,7 @@ export async function GET(request: NextRequest) {
       // Computed once per run: honest overnight copy 22:00–06:59 Sydney.
       const overnight = isOvernightInSydney()
 
-      await Promise.allSettled(
+      const followUpOutcomes = await Promise.allSettled(
         followUpCandidates.map(async (intake) => {
           const patientRaw = intake.patient as
             | { full_name: string; email: string }[]
@@ -90,7 +104,7 @@ export async function GET(request: NextRequest) {
           )
 
           try {
-            await sendEmail({
+            const emailResult = await sendEmail({
               to: patient.email,
               toName: patient.full_name || undefined,
               subject: stillReviewingSubject(requestType, overnight),
@@ -108,12 +122,20 @@ export async function GET(request: NextRequest) {
               intakeId: intake.id,
               patientId: intake.patient_id ?? undefined,
             })
+            if (!emailResult.success && !emailResult.outboxId) {
+              handledFailures++
+              return
+            }
             // Mark sent so we don't send twice
-            await supabase
+            const { error: markerError } = await supabase
               .from("intakes")
               .update({ follow_up_sent_at: new Date().toISOString() })
               .eq("id", intake.id)
+            if (markerError) {
+              throw new Error(`Follow-up marker update failed: ${markerError.message}`)
+            }
           } catch (err) {
+            handledFailures++
             logger.error(
               "Failed to send still-reviewing email",
               { intakeId: intake.id },
@@ -122,36 +144,48 @@ export async function GET(request: NextRequest) {
           }
         }),
       )
+      handledFailures += followUpOutcomes.filter(
+        (outcome) => outcome.status === "rejected",
+      ).length
     }
   } catch (followUpError) {
+    handledFailures++
     logger.error("Error in still-reviewing follow-up block", {}, followUpError as Error)
     // Don't return early - auto-approval should still run
   }
 
-  // The code-owned governance gate cannot be overridden by the database flag.
-  // Still-reviewing emails above continue if the reviewed code-owned
-  // authorisation gate is ever closed again.
-  if (!isAutoApprovalGovernanceApproved()) {
-    logger.warn(
-      "Auto-approval governance gate is closed - all med certs remain in the doctor queue.",
-    )
-    return NextResponse.json({
-      skipped: true,
-      reason: "Auto-approval stopped by code-owned governance gate",
-    })
-  }
-
-  // Quick bail if feature flag is off
-  const flags = await getFeatureFlags()
-  if (!flags.ai_auto_approve_enabled) {
-    logger.warn(
-      "Auto-approval feature flag is OFF - skipping all auto-approval processing. " +
-      "Enable via admin dashboard (feature_flags.ai_auto_approve_enabled) or DB.",
-    )
-    return NextResponse.json({ skipped: true, reason: "Auto-approval disabled via feature flag" })
-  }
-
   try {
+    // The code-owned governance gate cannot be overridden by the database flag.
+    // Still-reviewing emails above continue if the reviewed code-owned
+    // authorisation gate is ever closed again.
+    if (!isAutoApprovalGovernanceApproved()) {
+      logger.warn(
+        "Auto-approval governance gate is closed - all med certs remain in the doctor queue.",
+      )
+      await recordCronHeartbeat("retry-auto-approval", {
+        durationMs: Date.now() - startedAt,
+        status: handledFailures > 0 ? "partial_failure" : "disabled",
+      })
+      return NextResponse.json({
+        skipped: true,
+        reason: "Auto-approval stopped by code-owned governance gate",
+      })
+    }
+
+    // Quick bail if feature flag is off
+    const flags = await getFeatureFlags()
+    if (!flags.ai_auto_approve_enabled) {
+      logger.warn(
+        "Auto-approval feature flag is OFF - skipping all auto-approval processing. " +
+        "Enable via admin dashboard (feature_flags.ai_auto_approve_enabled) or DB.",
+      )
+      await recordCronHeartbeat("retry-auto-approval", {
+        durationMs: Date.now() - startedAt,
+        status: handledFailures > 0 ? "partial_failure" : "disabled",
+      })
+      return NextResponse.json({ skipped: true, reason: "Auto-approval disabled via feature flag" })
+    }
+
     // -----------------------------------------------------------------------
     // Auto-approval: find intakes eligible for AI review via state machine
     // -----------------------------------------------------------------------
@@ -170,18 +204,21 @@ export async function GET(request: NextRequest) {
 
     if (fetchError) {
       logger.error("Failed to fetch eligible intakes", { error: fetchError.message })
-      return NextResponse.json({ error: "Database error" }, { status: 500 })
+      throw new Error(`Eligible-intake query failed: ${fetchError.message}`)
     }
 
     // Timeout recovery: rescue intakes stuck in "attempting" for > 10 minutes
     let recovered = 0
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString()
-    const { data: stuckIntakes } = await supabase
+    const { data: stuckIntakes, error: stuckIntakesError } = await supabase
       .from("intakes")
       .select("id")
       .eq("auto_approval_state", "attempting")
       .lt("auto_approval_state_updated_at", tenMinutesAgo)
       .limit(5)
+    if (stuckIntakesError) {
+      throw new Error(`Stale-attempt query failed: ${stuckIntakesError.message}`)
+    }
 
     if (stuckIntakes && stuckIntakes.length > 0) {
       const { recoverStale } = await import("@/lib/clinical/auto-approval-state")
@@ -193,12 +230,15 @@ export async function GET(request: NextRequest) {
 
     // Recovery: intakes stuck in "awaiting_drafts" for > 10 minutes
     // (after() callback killed before draft generation completed, AND draft retry queue failed)
-    const { data: stuckDrafts } = await supabase
+    const { data: stuckDrafts, error: stuckDraftsError } = await supabase
       .from("intakes")
       .select("id")
       .eq("auto_approval_state", "awaiting_drafts")
       .lt("auto_approval_state_updated_at", tenMinutesAgo)
       .limit(5)
+    if (stuckDraftsError) {
+      throw new Error(`Stale-draft query failed: ${stuckDraftsError.message}`)
+    }
 
     if (stuckDrafts && stuckDrafts.length > 0) {
       const { generateDraftsForIntake: genDrafts } = await import("@/app/actions/generate-drafts")
@@ -209,8 +249,11 @@ export async function GET(request: NextRequest) {
           if (draftResult.success) {
             await markDraftsReady(supabase, stuck.id)
             recovered++
+          } else {
+            handledFailures++
           }
         } catch (err) {
+          handledFailures++
           logger.warn("Failed to recover awaiting_drafts intake", {
             intakeId: stuck.id,
             error: err instanceof Error ? err.message : String(err),
@@ -220,6 +263,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (!eligibleIntakes || eligibleIntakes.length === 0) {
+      await recordCronHeartbeat("retry-auto-approval", {
+        durationMs: Date.now() - startedAt,
+        itemsProcessed: recovered,
+        status: handledFailures > 0 ? "partial_failure" : "ok",
+      })
       return NextResponse.json({ processed: 0, recovered, reason: "No eligible intakes" })
     }
 
@@ -235,12 +283,15 @@ export async function GET(request: NextRequest) {
     for (const intake of eligibleIntakes) {
       try {
         // Check if AI drafts exist - if not, generate them first
-        const { data: existingDrafts } = await supabase
+        const { data: existingDrafts, error: existingDraftsError } = await supabase
           .from("document_drafts")
           .select("id")
           .eq("intake_id", intake.id)
           .eq("is_ai_generated", true)
           .limit(1)
+        if (existingDraftsError) {
+          throw new Error(`Existing-draft query failed: ${existingDraftsError.message}`)
+        }
 
         if (!existingDrafts || existingDrafts.length === 0) {
           logger.info("No AI drafts found, generating before auto-approval", { intakeId: intake.id })
@@ -282,13 +333,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Check for intakes that recently hit needs_doctor via max retries
-    const { data: maxedOut } = await supabase
+    const { data: maxedOut, error: maxedOutError } = await supabase
       .from("intakes")
       .select("id")
       .eq("auto_approval_state", "needs_doctor")
       .like("auto_approval_state_reason", "max_retries%")
       .gt("auto_approval_state_updated_at", eightHoursAgo)
       .limit(10)
+    if (maxedOutError) {
+      throw new Error(`Retry-cap query failed: ${maxedOutError.message}`)
+    }
 
     if (maxedOut && maxedOut.length > 0) {
       const ids = maxedOut.map(i => i.id.slice(0, 8)).join(", ")
@@ -312,6 +366,12 @@ export async function GET(request: NextRequest) {
       recovered,
     })
 
+    await recordCronHeartbeat("retry-auto-approval", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: eligibleIntakes.length + recovered,
+      status: failed + handledFailures > 0 ? "partial_failure" : "ok",
+    })
+
     return NextResponse.json({
       processed: eligibleIntakes.length,
       approved,
@@ -326,6 +386,10 @@ export async function GET(request: NextRequest) {
     const err = error instanceof Error ? error : new Error(String(error))
     captureCronError(err, { jobName: "retry-auto-approval" })
     logger.error("Unexpected error in retry-auto-approval cron", { error: err.message })
+    await recordCronHeartbeat("retry-auto-approval", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
+    })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

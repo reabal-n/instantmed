@@ -137,15 +137,17 @@ async function getNoPurchaseRevenueWindow(
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
-  await recordCronHeartbeat("business-alerts")
+  const startedAt = Date.now()
 
   try {
     const supabase = createServiceRoleClient()
     const now = new Date()
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
     const alerts: BusinessAlert[] = []
+    let handledFailures = 0
 
     const onSectionFailure = (alert: BusinessAlert, error: Error) => {
+      handledFailures++
       logger.error("Business alert section failed", { metric: alert.metric, error: error.message })
       trackBusinessMetric({
         metric: "business_alert_section_failed",
@@ -236,6 +238,9 @@ export async function GET(request: NextRequest) {
     let googleAdsPurchaseImportHealth = null
     try {
       googleAdsPurchaseImportHealth = await getGoogleAdsPurchaseImportHealth({ supabase, now })
+      if (googleAdsPurchaseImportHealth.queryErrors.length > 0) {
+        handledFailures++
+      }
       const googleAdsUploadAuditSourceAnomalyAlert =
         buildGoogleAdsUploadAuditSourceAnomalyAlert(googleAdsPurchaseImportHealth)
       if (googleAdsUploadAuditSourceAnomalyAlert) {
@@ -256,6 +261,7 @@ export async function GET(request: NextRequest) {
         })
       }
     } catch (error) {
+      handledFailures++
       const err = toError(error)
       const alert = {
         metric: "google_ads_purchase_import_health_failed" as const,
@@ -285,6 +291,9 @@ export async function GET(request: NextRequest) {
       | null = null
     try {
       googleAdsUploadStreamHealth = await getGoogleAdsUploadStreamHealth(supabase, { now })
+      if (googleAdsUploadStreamHealth.queryFailed) {
+        handledFailures++
+      }
       const uploadStreamStalledAlert = buildGoogleAdsUploadStreamStalledAlert(googleAdsUploadStreamHealth)
       if (uploadStreamStalledAlert) {
         alerts.push(uploadStreamStalledAlert)
@@ -310,6 +319,7 @@ export async function GET(request: NextRequest) {
       logger.warn("Google Ads upload-stream health check failed", {
         error: toError(error).message,
       })
+      handledFailures++
     }
 
     // 3c. Retained-value adjustment risk: refunded/disputed purchases are
@@ -317,6 +327,9 @@ export async function GET(request: NextRequest) {
     // failure is tied to an original click-attributed purchase upload.
     try {
       googleAdsAdjustmentHealth = await getGoogleAdsAdjustmentHealth(supabase, { now })
+      if (googleAdsAdjustmentHealth.queryFailed) {
+        handledFailures++
+      }
       const adjustmentRiskAlert = buildGoogleAdsAdjustmentTerminalRiskAlert(googleAdsAdjustmentHealth)
       if (adjustmentRiskAlert) {
         alerts.push(adjustmentRiskAlert)
@@ -330,6 +343,7 @@ export async function GET(request: NextRequest) {
       logger.warn("Google Ads adjustment health check failed", {
         error: toError(error).message,
       })
+      handledFailures++
     }
 
     // 4. Email delivery failures (certificates not delivered)
@@ -677,6 +691,8 @@ export async function GET(request: NextRequest) {
               cooldownHours: resolveCriticalAlertCooldownHours(alert.metric),
             })
           }
+        } else {
+          handledFailures++
         }
       }
     }
@@ -714,6 +730,12 @@ export async function GET(request: NextRequest) {
     const invariants = operationalInvariants as OperationalInvariants | null
     const noPurchase = noPurchaseWindow as NoPurchaseRevenueWindow | null
     const fulfilment = prescriptionFulfilment as PrescriptionFulfilmentDashboard | null
+
+    await recordCronHeartbeat("business-alerts", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: alerts.length,
+      status: handledFailures > 0 ? "partial_failure" : "ok",
+    })
 
     return NextResponse.json({
       success: true,
@@ -765,6 +787,10 @@ export async function GET(request: NextRequest) {
     const err = toError(error)
     logger.error("Business alerts monitor failed", { error: err.message })
     captureCronError(err, { jobName: "business-alerts" })
+    await recordCronHeartbeat("business-alerts", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
+    })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

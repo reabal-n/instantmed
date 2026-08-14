@@ -95,9 +95,11 @@ describe("cron surface contract", () => {
     expect(heartbeatSource).toContain(
       '"google-ads-diagnostics-watch": { schedule: "50 * * * *", maxDelayMinutes: 75 }',
     )
-    expect(watchRouteSource).toContain('await recordCronHeartbeat("google-ads-diagnostics-watch")')
-    expect(watchRouteSource.indexOf('await recordCronHeartbeat("google-ads-diagnostics-watch")')).toBeLessThan(
-      watchRouteSource.indexOf("resolveWatchUploadIdentifier(request)"),
+    expect(watchRouteSource).toContain('await recordCronHeartbeat("google-ads-diagnostics-watch",')
+    expect(watchRouteSource).toContain('status: "disabled"')
+    expect(watchRouteSource).toContain('status: "skipped"')
+    expect(watchRouteSource.indexOf('status: handledQueryFailure ? "partial_failure" : "ok"')).toBeGreaterThan(
+      watchRouteSource.indexOf("Google Ads diagnostics watch passed"),
     )
     expect(operationsSource).toContain(
       "| Google Ads Diagnostics Watch | `/api/cron/google-ads-diagnostics-watch` | Hourly (:50) |",
@@ -149,9 +151,9 @@ describe("cron surface contract", () => {
     expect(heartbeatSource).toContain(
       '"business-alerts":        { schedule: "*/30 * * * *",   maxDelayMinutes: 75 }',
     )
-    expect(routeSource).toContain('await recordCronHeartbeat("business-alerts")')
-    expect(routeSource.indexOf('await recordCronHeartbeat("business-alerts")')).toBeLessThan(
-      routeSource.indexOf("const supabase = createServiceRoleClient()"),
+    expect(routeSource).toContain('await recordCronHeartbeat("business-alerts",')
+    expect(routeSource.indexOf('status: handledFailures > 0 ? "partial_failure" : "ok"')).toBeGreaterThan(
+      routeSource.indexOf("const fulfilment = prescriptionFulfilment"),
     )
     expect(operationsSource).toContain("| Business Alerts | `/api/cron/business-alerts` | Every 30 min |")
   })

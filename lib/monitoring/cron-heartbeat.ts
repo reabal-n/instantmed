@@ -13,6 +13,8 @@ interface CronHeartbeatRow {
   last_run_at: string | null
   last_status: string | null
   last_success_at?: string | null
+  last_failure_at?: string | null
+  last_failure_status?: string | null
 }
 
 interface CronHeartbeatOutage {
@@ -28,7 +30,7 @@ interface CronHeartbeatOutage {
  * maxDelayMinutes is how late a cron can be before we alert.
  * Set to ~2x the schedule interval to account for cold starts and jitter.
  */
-const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number }> = {
+export const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number }> = {
   "email-dispatcher":       { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "telegram-notifications":  { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "retry-auto-approval":    { schedule: "*/3 * * * *",   maxDelayMinutes: 10 },
@@ -49,32 +51,38 @@ const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number
  * Record a cron job execution heartbeat.
  *
  * Callers that use `last_status` as an outcome signal must call this after the
- * work finishes (or from their error path). Successful outcomes also advance
- * `last_success_at`; failed attempts deliberately preserve that recovery
- * boundary so the watchdog can deduplicate one alert per continuous outage.
+ * work finishes (or from their error path). `ok` and deliberately disabled
+ * outcomes rearm the outage generation by default. A planned `skipped` outcome
+ * proves invocation without clearing a prior failed-work outage unless the
+ * caller has separate durable completion evidence and opts into rearming.
  */
 export async function recordCronHeartbeat(
   jobName: string,
-  metadata?: { durationMs?: number; itemsProcessed?: number; status?: string }
+  metadata?: {
+    durationMs?: number
+    itemsProcessed?: number
+    status?: string
+    rearmOutage?: boolean
+  }
 ): Promise<void> {
   try {
     const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
     const supabase = createServiceRoleClient()
-    const recordedAt = new Date().toISOString()
     const status = metadata?.status || "ok"
-
-    await supabase.from("cron_heartbeats").upsert(
-      {
-        job_name: jobName,
-        last_run_at: recordedAt,
-        run_count: 1, // Will be incremented by trigger if exists, otherwise just set
-        last_duration_ms: metadata?.durationMs || null,
-        last_items_processed: metadata?.itemsProcessed || null,
-        last_status: status,
-        ...(status === "ok" ? { last_success_at: recordedAt } : {}),
-      },
-      { onConflict: "job_name", defaultToNull: false }
+    const rearmOutage = metadata?.rearmOutage ?? (
+      status === "ok" || status === "disabled"
     )
+    const { error } = await supabase.rpc("record_cron_heartbeat_outcome", {
+      p_duration_ms: metadata?.durationMs ?? null,
+      p_items_processed: metadata?.itemsProcessed ?? null,
+      p_job_name: jobName,
+      p_rearm_outage: rearmOutage,
+      p_status: status,
+    })
+
+    if (error) {
+      throw new Error(error.message)
+    }
   } catch (err) {
     // Non-blocking - never fail a cron because heartbeat recording failed
     log.warn("Failed to record cron heartbeat", {
@@ -128,15 +136,28 @@ export function findCronHeartbeatOutages(input: {
       ? (input.nowMs - lastRunAtMs) / (1000 * 60)
       : Number.POSITIVE_INFINITY
     const status = heartbeat.last_status || "unknown"
+    const lastSuccessAtMs = heartbeat.last_success_at
+      ? Date.parse(heartbeat.last_success_at)
+      : Number.NEGATIVE_INFINITY
+    const lastFailureAt = heartbeat.last_failure_at
+      // Backward-compatible fallback until the outcome migration is applied.
+      || (!new Set(["ok", "skipped", "disabled"]).has(status)
+        ? heartbeat.last_run_at
+        : null)
+    const lastFailureAtMs = lastFailureAt
+      ? Date.parse(lastFailureAt)
+      : Number.NEGATIVE_INFINITY
+    const hasUnrecoveredFailure = Number.isFinite(lastFailureAtMs)
+      && lastFailureAtMs > lastSuccessAtMs
 
-    if (status !== "ok") {
+    if (hasUnrecoveredFailure) {
       outages.push({
         jobName,
         lastRunAt: heartbeat.last_run_at,
         minutesOverdue: Number.isFinite(minutesSinceRun)
           ? Math.max(0, Math.round(minutesSinceRun))
           : 0,
-        status,
+        status: heartbeat.last_failure_status || status,
         outageKey: `failed:${heartbeat.last_success_at || "never-successful"}`,
       })
       continue
@@ -177,12 +198,22 @@ export async function checkCronHeartbeats(): Promise<{
 
     const { data: heartbeats, error } = await supabase
       .from("cron_heartbeats")
-      .select("job_name, last_run_at, last_status, last_success_at")
+      .select("job_name, last_run_at, last_status, last_success_at, last_failure_at, last_failure_status")
 
     if (error) {
-      // Table might not exist yet - not an error condition
       log.warn("Could not read cron heartbeats", { error: error.message })
-      return { overdue: [], healthy: true }
+      Sentry.captureMessage("Cron heartbeat watchdog cannot read heartbeat state", {
+        level: "fatal",
+        fingerprint: ["cron-heartbeat-read-failed"],
+        tags: {
+          source: "cron-heartbeat-monitor",
+          watchdog_status: "configuration_error",
+        },
+        // Do not attach the provider error: database messages can include query
+        // context. The stable signal is sufficient to diagnose schema/ACL drift.
+        extra: { heartbeat_state_available: false },
+      })
+      return { overdue: [], healthy: false }
     }
 
     const now = Date.now()
@@ -215,6 +246,7 @@ export async function checkCronHeartbeats(): Promise<{
     })
 
     let alertableOverdue: CronHeartbeatOutage[] = []
+    let alertClaimFailed = false
     if (overdue.length > 0) {
       // Claim before emitting. The RPC inserts against a partial unique index,
       // so concurrent watchdog invocations can never both own the same outage.
@@ -230,6 +262,10 @@ export async function checkCronHeartbeats(): Promise<{
       )
 
       if (claimError) {
+        // Fail open: the claim RPC protects deduplication, but must never turn
+        // a known cron outage into silence when its schema or ACL is broken.
+        alertClaimFailed = true
+        alertableOverdue = overdue
         log.error("Could not atomically claim cron heartbeat alerts", {
           error: claimError.message,
           overdueCount: overdue.length,
@@ -252,19 +288,30 @@ export async function checkCronHeartbeats(): Promise<{
     if (alertableOverdue.length > 0) {
       log.error("Critical cron jobs overdue", {
         overdueCount: overdue.length,
-        newlyAlertedCount: alertableOverdue.length,
+        ...(alertClaimFailed
+          ? { failOpenAlertCount: alertableOverdue.length }
+          : { newlyAlertedCount: alertableOverdue.length }),
         jobs: alertableOverdue
           .map((o) => `${o.jobName} (+${o.minutesOverdue}min)`)
           .join(", "),
       })
 
-      Sentry.captureMessage(`${alertableOverdue.length} critical cron job(s) newly overdue`, {
-        level: alertableOverdue.length >= 3 ? "fatal" : "error",
+      const sentryMessage = alertClaimFailed
+        ? "Cron heartbeat alert claim failed; known outages require attention"
+        : `${alertableOverdue.length} critical cron job(s) newly overdue`
+      Sentry.captureMessage(sentryMessage, {
+        level: alertClaimFailed || alertableOverdue.length >= 3 ? "fatal" : "error",
+        ...(alertClaimFailed
+          ? { fingerprint: ["cron-heartbeat-alert-claim-failed"] }
+          : {}),
         tags: {
           source: "cron-heartbeat-monitor",
+          alert_claim_status: alertClaimFailed ? "configuration_error" : "claimed",
           overdue_count: String(alertableOverdue.length),
           total_overdue_count: String(overdue.length),
-          newly_alerted_count: String(alertableOverdue.length),
+          ...(alertClaimFailed
+            ? { fail_open_alert_count: String(alertableOverdue.length) }
+            : { newly_alerted_count: String(alertableOverdue.length) }),
         },
         extra: { overdue: alertableOverdue },
       })
@@ -275,6 +322,15 @@ export async function checkCronHeartbeats(): Promise<{
     log.error("Cron heartbeat check failed", {
       error: err instanceof Error ? err.message : String(err),
     })
-    return { overdue: [], healthy: true } // Don't false-alarm on check failure
+    Sentry.captureMessage("Cron heartbeat watchdog failed before classification", {
+      level: "fatal",
+      fingerprint: ["cron-heartbeat-watchdog-failed"],
+      tags: {
+        source: "cron-heartbeat-monitor",
+        watchdog_status: "error",
+      },
+      extra: { heartbeat_state_classified: false },
+    })
+    return { overdue: [], healthy: false }
   }
 }

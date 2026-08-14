@@ -141,7 +141,10 @@ async function classifyDailyTracking(args: {
   now: Date
   snapshot: AdsAgentSnapshot
   supabase: ReturnType<typeof createServiceRoleClient>
-}): Promise<AdsAgentSnapshot["tracking"]> {
+}): Promise<{
+  hadInputFailure: boolean
+  tracking: AdsAgentSnapshot["tracking"]
+}> {
   const [accountResult, purchaseResult, uploadResult, adjustmentResult] =
     await Promise.allSettled([
       getAdsAccountState({ now: args.now }),
@@ -196,39 +199,42 @@ async function classifyDailyTracking(args: {
 
   const accountStateReadable = args.snapshot.inputs.accountState?.status === "fresh"
 
-  return classifyTrackingHealth({
-    accountStateReadable,
-    autoTaggingEnabled: args.snapshot.account.autoTaggingEnabled === true,
-    browserOrGa4PurchasePrimary: browserOrGa4PurchaseIsPrimary(account),
-    conversionLagImmature: false,
-    criticalInputsFresh: Object.values(args.snapshot.inputs).every(
-      (input) => input.status === "fresh",
-    ),
-    criticalQueriesOk:
-      !criticalHealthReadFailed && !nonLaggingPurchaseFailure,
-    enabledCampaignCount: enabledCampaigns.length,
-    evidenceAsOf: args.now.toISOString(),
-    googleDiagnosticsLagging,
-    localPaidOrders: upload?.paidOrders ?? purchase?.localOrders ?? 0,
-    primaryPurchaseActionOk:
-      purchase?.preflightOk === true
-      && configuredPurchaseActionIsPrimary(account),
-    productionUploadWindowElapsed: true,
-    productionUploadsHealthy,
-    purchasePreflightOk: purchase?.preflightOk === true,
-    requiredFinalUrlSuffixPresent: hasRequiredFinalUrlSuffix(
-      args.snapshot.account.finalUrlSuffix,
-    ),
-    spendAvailable: enabledCampaigns.every(
-      (campaign) => campaign.spendCents != null,
-    ),
-    stripeFeesComplete:
-      args.snapshot.inputs.stripeFees?.status === "fresh",
-    terminalClickAttributedAdjustmentFailures:
-      adjustment?.terminalClickAttributedFailures ?? 0,
-    uploadAuditHealthy:
-      auditSourceAnomaly == null && uploadPartialFailure == null,
-  })
+  return {
+    hadInputFailure: criticalHealthReadFailed,
+    tracking: classifyTrackingHealth({
+      accountStateReadable,
+      autoTaggingEnabled: args.snapshot.account.autoTaggingEnabled === true,
+      browserOrGa4PurchasePrimary: browserOrGa4PurchaseIsPrimary(account),
+      conversionLagImmature: false,
+      criticalInputsFresh: Object.values(args.snapshot.inputs).every(
+        (input) => input.status === "fresh",
+      ),
+      criticalQueriesOk:
+        !criticalHealthReadFailed && !nonLaggingPurchaseFailure,
+      enabledCampaignCount: enabledCampaigns.length,
+      evidenceAsOf: args.now.toISOString(),
+      googleDiagnosticsLagging,
+      localPaidOrders: upload?.paidOrders ?? purchase?.localOrders ?? 0,
+      primaryPurchaseActionOk:
+        purchase?.preflightOk === true
+        && configuredPurchaseActionIsPrimary(account),
+      productionUploadWindowElapsed: true,
+      productionUploadsHealthy,
+      purchasePreflightOk: purchase?.preflightOk === true,
+      requiredFinalUrlSuffixPresent: hasRequiredFinalUrlSuffix(
+        args.snapshot.account.finalUrlSuffix,
+      ),
+      spendAvailable: enabledCampaigns.every(
+        (campaign) => campaign.spendCents != null,
+      ),
+      stripeFeesComplete:
+        args.snapshot.inputs.stripeFees?.status === "fresh",
+      terminalClickAttributedAdjustmentFailures:
+        adjustment?.terminalClickAttributedFailures ?? 0,
+      uploadAuditHealthy:
+        auditSourceAnomaly == null && uploadPartialFailure == null,
+    }),
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -243,11 +249,13 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  // This heartbeat proves that Vercel invoked the production schedule. The
-  // delivery flag and Sydney-hour guard control work, not scheduler liveness.
-  await recordCronHeartbeat("google-ads-daily-brief")
+  const startedAt = Date.now()
 
   if (process.env.GOOGLE_ADS_AGENT_DAILY_BRIEF_ENABLED !== "true") {
+    await recordCronHeartbeat("google-ads-daily-brief", {
+      durationMs: Date.now() - startedAt,
+      status: "disabled",
+    })
     return NextResponse.json({
       success: true,
       skipped: true,
@@ -262,6 +270,10 @@ export async function GET(request: NextRequest) {
     shadowRequested
     && process.env.GOOGLE_ADS_AGENT_SHADOW_DRY_RUN_REPORT_DATE === reportDate
   if (!isSydneyDailyAdsBriefHour(now) && !shadowAuthorized) {
+    await recordCronHeartbeat("google-ads-daily-brief", {
+      durationMs: Date.now() - startedAt,
+      status: "skipped",
+    })
     return NextResponse.json({
       success: true,
       skipped: true,
@@ -272,7 +284,7 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  const supabase = createServiceRoleClient()
+  let supabase: ReturnType<typeof createServiceRoleClient> | null = null
   let runId: string | null = null
   let stage:
     | "claim"
@@ -281,12 +293,20 @@ export async function GET(request: NextRequest) {
     | "receipt" = "claim"
 
   try {
+    supabase = createServiceRoleClient()
     const claim = await claimDailyAdsAgentRun({
       now,
       reportDate,
       supabase,
     })
     if (!claim.claimed) {
+      const alreadyDelivered = claim.reason === "already_delivered"
+      const ambiguousDelivery = claim.reason === "delivery_ambiguous"
+      await recordCronHeartbeat("google-ads-daily-brief", {
+        durationMs: Date.now() - startedAt,
+        status: ambiguousDelivery ? "delivery_ambiguous" : "skipped",
+        rearmOutage: alreadyDelivered,
+      })
       return NextResponse.json({
         success: true,
         skipped: true,
@@ -298,12 +318,15 @@ export async function GET(request: NextRequest) {
     stage = "build"
 
     const baseSnapshot = await buildAdsAgentSnapshot({ now, supabase })
-    const tracking = await classifyDailyTracking({
+    const { hadInputFailure, tracking } = await classifyDailyTracking({
       now,
       snapshot: baseSnapshot,
       supabase,
     })
     const snapshot = { ...baseSnapshot, tracking }
+    const snapshotHasInputFailure = Object.values(snapshot.inputs).some(
+      (input) => input.status !== "fresh",
+    )
     reportFailedSnapshotInputs(snapshot)
     const recommendations = evaluateAdsPolicy(snapshot)
     const message = formatDailyAdsBrief(snapshot, recommendations)
@@ -330,6 +353,13 @@ export async function GET(request: NextRequest) {
       reportDate,
       trackingState: tracking.state,
     })
+    await recordCronHeartbeat("google-ads-daily-brief", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: 1,
+      status: hadInputFailure || snapshotHasInputFailure
+        ? "partial_failure"
+        : "ok",
+    })
     return NextResponse.json({
       success: true,
       delivered: true,
@@ -346,7 +376,7 @@ export async function GET(request: NextRequest) {
           ? "daily_run_claim_failed"
           : "daily_brief_build_failed"
 
-    if (runId) {
+    if (runId && supabase) {
       try {
         await markDailyAdsAgentRunFailed({
           errorCode,
@@ -370,6 +400,10 @@ export async function GET(request: NextRequest) {
       errorCode,
       jobName: "google-ads-daily-brief",
       reportDate,
+    })
+    await recordCronHeartbeat("google-ads-daily-brief", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
     })
     return NextResponse.json(
       { error: "Daily Google Ads brief failed" },
