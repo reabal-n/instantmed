@@ -1,3 +1,4 @@
+import { after } from "next/server"
 import { PostHog } from 'posthog-node';
 
 import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
@@ -19,7 +20,11 @@ function getPostHogClient() {
         host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
         disableGeoip: true,
         flushAt: 1,
-        flushInterval: 0
+        flushInterval: 0,
+        // Bind the SDK's asynchronous queue to the active Next.js request.
+        // Without this, Vercel may freeze the invocation before the batch
+        // finishes and a reused singleton can retry it on an unrelated route.
+        waitUntil: (promise) => after(promise),
       }
     );
   }

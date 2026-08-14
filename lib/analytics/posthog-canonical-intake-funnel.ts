@@ -7,6 +7,7 @@ import {
   type CanonicalFunnelFlowRow,
   type CanonicalIntakeFunnelSummary,
 } from "@/lib/analytics/canonical-intake-funnel"
+import { normalizePostHogApiHost } from "@/lib/analytics/posthog-host"
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const DEFAULT_COHORT_DAYS = 30
@@ -40,11 +41,6 @@ export type PostHogCanonicalIntakeFunnelSnapshot =
 interface Options {
   days?: number
   now?: Date
-}
-
-function normalizePostHogHost(host: string): string {
-  if (host.includes("us.i.posthog.com")) return "https://us.posthog.com"
-  return host.replace(/\/$/, "")
 }
 
 function sqlString(value: string): string {
@@ -164,7 +160,7 @@ export async function getPostHogCanonicalIntakeFunnelSnapshot(
     })
   }
 
-  const host = normalizePostHogHost(
+  const host = normalizePostHogApiHost(
     process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.posthog.com",
   )
   const eventList = CANONICAL_INTAKE_FUNNEL_EVENTS.map(sqlString).join(", ")

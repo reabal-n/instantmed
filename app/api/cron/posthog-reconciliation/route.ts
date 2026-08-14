@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
+import { normalizePostHogApiHost } from "@/lib/analytics/posthog-host"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { acquireCronLock, releaseCronLock, verifyCronRequest } from "@/lib/api/cron-auth"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
@@ -39,7 +40,7 @@ const ACCEPTABLE_DELTA = 0.10
  *   to the team's events API. Different from `NEXT_PUBLIC_POSTHOG_KEY`
  *   (which is the ingestion key).
  * - `POSTHOG_PROJECT_ID` — numeric project id (e.g. 277439).
- * - `NEXT_PUBLIC_POSTHOG_HOST` — used for the API base URL.
+ * - `NEXT_PUBLIC_POSTHOG_HOST` — ingestion host, normalized to the matching API host.
  */
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
@@ -75,7 +76,9 @@ export async function GET(request: NextRequest) {
     if (supabaseError) throw new Error(`Supabase count failed: ${supabaseError.message}`)
 
     // ─── PostHog truth ───────────────────────────────────────────────
-    const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.posthog.com"
+    const posthogHost = normalizePostHogApiHost(
+      process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.posthog.com",
+    )
     const posthogApiKey = process.env.POSTHOG_PROJECT_API_KEY
     const posthogProjectId = process.env.POSTHOG_PROJECT_ID
     if (!posthogApiKey || !posthogProjectId) {
@@ -107,9 +110,9 @@ export async function GET(request: NextRequest) {
     )
     if (!phRes.ok) {
       // A 401/403/404 here is a configuration problem (bad/expired
-      // POSTHOG_PROJECT_API_KEY, missing scope, or wrong project id), not a
-      // runtime failure. Do NOT captureCronError on these — the cron runs hourly
-      // and this exact flood (INSTANTMED-2A, "PostHog trends API 403") helped
+      // POSTHOG_PROJECT_API_KEY, missing scope, wrong project id, or wrong API
+      // host), not a runtime failure. Do NOT captureCronError on these — the
+      // cron runs hourly and this exact flood (INSTANTMED-2A, "PostHog trends API 403") helped
       // exhaust the Sentry quota and kill ingestion in June 2026. Skip gracefully
       // like the missing-credentials branch; fix the key in Vercel prod instead.
       // See docs/audits/2026-06-10-comprehensive-audit.md.
