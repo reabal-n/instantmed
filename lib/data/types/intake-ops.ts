@@ -50,10 +50,3 @@ export interface StuckIntakesFilters {
   service_type?: string
   status?: string
 }
-
-// SLA THRESHOLDS (in minutes)
-export const SLA_THRESHOLDS = {
-  PAID_TO_REVIEW: 5,       // Paid should be reviewed within 5 minutes
-  REVIEW_TIMEOUT: 60,      // Review should complete within 60 minutes
-  DELIVERY_TIMEOUT: 10,    // Delivery should complete within 10 minutes of approval
-} as const

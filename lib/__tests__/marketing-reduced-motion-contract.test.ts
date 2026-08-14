@@ -87,22 +87,13 @@ describe("marketing reduced-motion contract", () => {
   it("uses one stable mobile-menu tree and disables motion in place", () => {
     const menu = read("components/ui/animated-mobile-menu.tsx")
     const navbar = read("components/shared/navbar.tsx")
-    const iconPath = menu.slice(
-      menu.indexOf("const Path ="),
-      menu.indexOf("// Animated hamburger toggle button"),
-    )
+    const toggle = read("components/shared/navbar/mobile-menu-toggle.tsx")
 
     expect(navbar).toContain('mobileMenuOpen && "max-md:z-[60]"')
     expect(menu).toContain(
       'data-mobile-menu-motion={prefersReducedMotion ? "static" : "animated"}',
     )
-    expect(menu).toContain(
-      'const openMotionState = prefersReducedMotion ? "reducedOpen" : "open"',
-    )
-    expect(menu).toContain(
-      'const closedMotionState = prefersReducedMotion ? "reducedClosed" : "closed"',
-    )
-    expect(menu).not.toContain("if (prefersReducedMotion) {")
+    expect(menu).not.toContain("framer-motion")
     expect(menu).toContain('data-mobile-menu-panel="true"')
     expect(menu).toContain('data-mobile-menu-content="true"')
     expect(menu).toContain("const returnFocusRef = useRef<HTMLElement | null>(null)")
@@ -112,32 +103,20 @@ describe("marketing reduced-motion contract", () => {
     expect(menu).toContain("returnFocusRef.current?.focus({ preventScroll: true })")
     expect(menu).toContain("firstNavigationLink ?? getVisibleDrawerControls(contentRef.current)[0]")
     expect(menu).toContain("tabIndex={-1}")
-    expect(menu).toContain('e.key !== "Tab"')
-    expect(menu).toContain('aria-controls="mobile-navigation-menu"')
-    expect(menu).not.toContain("initial={prefersReducedMotion ? false")
-    expect(menu).toContain(
-      "whileHover={item.disabled || prefersReducedMotion ? undefined : { y: -1, x: 4",
-    )
-    expect(menu).toContain(
-      "whileTap={item.disabled || prefersReducedMotion ? undefined : { scale: 0.98,",
-    )
+    expect(menu).toContain('event.key !== "Tab"')
+    expect(toggle).toContain('aria-controls="mobile-navigation-menu"')
+    expect(menu).toContain("motion-reduce:!transition-none")
+    expect(toggle).toContain("motion-reduce:transition-none")
     expect(menu).not.toContain("clipPath")
-    expect(menu).toContain("d: string")
-    expect(menu).toContain('d="M 2 2.5 L 20 2.5"')
-    expect(menu).toContain('d="M 2 16.346 L 20 16.346"')
-    expect(iconPath).toContain('initial="closed"')
-    expect(iconPath).not.toContain("initial={{}}")
-    expect(iconPath).not.toContain("initial={false}")
-    expect(menu).toContain('x: "100%"')
-    expect(menu).toContain("duration: 0.22")
-    expect(menu).toContain("duration: 0.16")
-    expect(menu).not.toContain("delay: 0.1")
-    expect(menu).toContain("staggerChildren: 0.05")
-    expect(menu).toContain("delayChildren: 0.04")
-    expect(menu).toContain("y: 12")
-    expect(menu).toContain('type: "tween"')
-    expect(menu).toContain('animate={isOpen ? "open" : "closed"}')
-    expect(menu).toContain("duration: prefersReducedMotion ? 0 : 0.15")
+    expect(toggle).toContain('d={isOpen ? "M 3 16.5 L 17 2.5" : "M 2 2.5 L 20 2.5"}')
+    expect(toggle).toContain('d={isOpen ? "M 3 2.5 L 17 16.346" : "M 2 16.346 L 20 16.346"}')
+    expect(menu).toContain("visible translate-x-0")
+    expect(menu).toContain("invisible translate-x-full")
+    expect(menu).toContain("[transition-duration:220ms,0ms]")
+    expect(menu).toContain("[transition-duration:160ms,0ms]")
+    expect(menu).toContain("[transition-delay:0ms,160ms]")
+    expect(menu).toContain("aria-hidden={!isOpen}")
+    expect(menu).toContain("inert={!isOpen ? true : undefined}")
   })
 
   it("moves the pricing sticky CTA by its own height and settles reduced motion", () => {
@@ -156,16 +135,18 @@ describe("marketing reduced-motion contract", () => {
 
   it("keeps the shared mobile purchase bar inert when hidden and transform-only", () => {
     const sticky = read("components/marketing/shared/sticky-cta.tsx")
-    const container = firstMotionContainerOpeningTag(sticky)
 
-    expect(sticky).toContain("initial={{}}")
-    expect(sticky).toContain('y: show ? 0 : "100%"')
-    expect(sticky).toContain("show ? 0.18 : 0.14")
-    expect(sticky).toContain('visibility: show ? "visible" : "hidden"')
+    expect(sticky).toContain("transition-[transform,visibility]")
+    expect(sticky).toContain("visible translate-y-0")
+    expect(sticky).toContain("invisible translate-y-full")
+    expect(sticky).toContain("[transition-duration:180ms,0ms]")
+    expect(sticky).toContain("[transition-duration:140ms,0ms]")
+    expect(sticky).toContain("[transition-delay:0ms,140ms]")
+    expect(sticky).toContain("motion-reduce:!transition-none")
     expect(sticky).toContain("inert={!show ? true : undefined}")
     expect(sticky).not.toContain("useScrollDirection")
     expect(sticky).not.toContain("grid-template-rows,opacity,margin")
-    expect(container).not.toMatch(/\bopacity\b/)
+    expect(sticky).not.toContain("framer-motion")
   })
 
   it("uses the shared strong-out timing for hero and reveal entrances", () => {
@@ -179,6 +160,7 @@ describe("marketing reduced-motion contract", () => {
 
     expect(heroMotion).toContain("0.22s cubic-bezier(0.23, 1, 0.32, 1)")
     expect(heroMotion).toContain("0.25s cubic-bezier(0.23, 1, 0.32, 1)")
+    expect(heroMotion).toContain("hero-subheadline-enter")
     expect(heroMotion).toContain("0.05s")
     expect(heroMotion).toContain("reveal-fade-up 0.25s cubic-bezier(0.23, 1, 0.32, 1)")
     expect(heroMotion).not.toMatch(/hero-fade-(?:up|down|up-lg)\s+0\.[45]s/)

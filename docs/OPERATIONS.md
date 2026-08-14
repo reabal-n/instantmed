@@ -506,7 +506,7 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM UTC) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
 | Outbox Archival | `/api/cron/outbox-archival` | Daily (4 AM UTC) | Delete delivered emails >90 days old and exhausted-failed emails >180 days old from `email_outbox` (batch 500) |
 
-**Review reputation measurement:** `/admin/analytics` owns the compact 30-day review-request funnel. The snapshot is point-in-time: eligibility, sent/suppressed markers, outbox creation and provider acceptance, delivery updates, cooldown evidence, and first traversal must all exist at or before the same `as_of`. `Sent` is the primary handled bucket; `Delivered`, `Trackable sent`, and `Unique email traversal` are sent-only submetrics. The remaining eligible population is partitioned into awaiting the next 10:00 Sydney run, 30-day cooldown, policy suppression, pre-lifecycle-cutover handled-but-unverifiable legacy, and actionable backlog. Sent plus those five buckets must equal eligible exactly; otherwise the UI shows the whole snapshot as unavailable. Any nonzero actionable backlog requires investigation through the existing delivery owners, not an automatic resend or backfill. The traversal rate uses only keyed `Trackable sent` rows created after instrumentation, never the 131 historical unkeyed sends. `Unique email traversal` means the first successful redirect consume, not a verified person or posted review, because automated email scanners may follow links. The ProductReview total is a separate externally verified aggregate: an admin may record only the current public numeric total, which appends a fixed-dimension `operational_metrics` snapshot. Never paste review text, author data, profile URLs, patient/intake/email identifiers, or clinical context into that action. One snapshot establishes the baseline; a later snapshot yields a dated external delta. No 24-hour versus 48-hour timing split is active: retain the current 48-hour policy while actionable send coverage is investigated and volume remains insufficient for a decision-grade timing test. Do not infer one-to-one attribution between traversal and the external delta. Outbox archival bounds email-funnel evidence to 90 days.
+**Review reputation measurement:** `/admin/analytics` owns the compact 30-day review-request funnel. The snapshot is point-in-time: eligibility, sent/suppressed markers, outbox creation and provider acceptance, delivery updates, cooldown evidence, and first traversal must all exist at or before the same `as_of`. `Confirmed sent` is the primary handled bucket; `Delivered`, `Trackable sent`, and `Unique email traversal` are confirmed-sent submetrics. The remaining eligible population is partitioned into awaiting the next 10:00 Sydney run, 30-day cooldown, policy suppression, pre-lifecycle-cutover handled-but-unverifiable legacy, and actionable backlog. Confirmed sent plus those five buckets must equal eligible exactly; otherwise the UI shows the whole snapshot as unavailable. Any nonzero actionable backlog requires investigation through the existing delivery owners, not an automatic resend or backfill. The traversal rate uses only keyed `Trackable sent` rows created after instrumentation, never the 131 historical unkeyed sends. `Unique email traversal` means the first successful redirect consume, not a verified person or posted review, because automated email scanners may follow links. The ProductReview total is a separate externally verified aggregate: an admin may record only the current public numeric total, which appends a fixed-dimension `operational_metrics` snapshot. Never paste review text, author data, profile URLs, patient/intake/email identifiers, or clinical context into that action. One snapshot establishes the baseline; a later snapshot yields a dated external delta. No 24-hour versus 48-hour timing split is active: retain the current 48-hour policy while actionable send coverage is investigated and volume remains insufficient for a decision-grade timing test. Do not infer one-to-one attribution between traversal and the external delta. Outbox archival bounds email-funnel evidence to 90 days.
 
 **Priority review analytics rename:** From 2026-06-25, patient checkout UI emits `priority_review_opted_in` / `priority_review_opted_out`. To protect existing saved PostHog insights, it also dual-emits the legacy `express_review_opted_in` / `express_review_opted_out` aliases with `legacy_alias_for` through 2026-08-31. New dashboards should use the `priority_review_*` events; delete the aliases only after saved insights are migrated.
 
@@ -904,9 +904,11 @@ Scope note: the exclusion belongs to **marketing** only. Clinical and patient-fa
 
 **Certificate generation monitor:** `/admin/ops` also surfaces a critical **Cert missing record** invariant for recent paid medical-certificate intakes that are approved/completed but have no generated certificate row. Use the certificate delivery rescue panel first; do not resend a link until a certificate record exists.
 
-**Historical auto-issued certificate runbook:** Medical-certificate protocol issuance is active and bounded by `lib/clinical/auto-approval-governance.ts`. The database feature flag can stop issuance but cannot widen the reviewed one-to-three-day work, study, and carer boundary. Concerning or uncertain requests remain in `/dashboard` for a doctor outcome. Protocol-issued rows are labelled **Auto-issued** and persisted engine notes are labelled **Flagged**. For the bounded historical retrospective set in `docs/ROADMAP.md`, open each source record and record the clinical review outside this engineering change. If correction is needed, **revoke** with a clinical reason (minimum 5 characters); that invalidates the certificate and returns the intake to manual review. The admin-only control remains in `components/doctor/review/revoke-auto-issued-certificate.tsx` → `revokeAIApproval`, and is pinned by `lib/__tests__/ai-approval-reopen-guard.test.ts`.
+**Historical auto-issued certificate runbook:** Medical-certificate protocol issuance is active and bounded by `lib/clinical/auto-approval-governance.ts`. The database feature flag can stop issuance but cannot widen the reviewed one-to-three-day work, study, and carer boundary. Concerning or uncertain requests remain in `/dashboard` for a doctor outcome. Protocol-issued rows are labelled **Auto-issued** and persisted engine notes are labelled **Flagged**. The complete retrospective set in `docs/ROADMAP.md` is nine reportable cases: eight require an `ai_audit_log` handle query because their flag predates dashboard persistence, and one is dashboard-visible. Obtain explicit approval before opening their authenticated admin detail pages because each open records `logClinicianOpenedRequest`; inspect clinical content only in that authorised source surface and never paste it into chat. Record each Medical Director review individually. If correction is needed, **revoke** with a clinical reason (minimum 5 characters); that invalidates the certificate and returns the intake to manual review. The admin-only control remains in `components/doctor/review/revoke-auto-issued-certificate.tsx` → `revokeAIApproval`, and is pinned by `lib/__tests__/ai-approval-reopen-guard.test.ts`.
 
 **Kill switches:** `DISABLE_INTAKE_EVENTS=true` (disable event logging), `DISABLE_STUCK_INTAKE_SENTRY=true` (disable stuck intake Sentry warnings), `DISABLE_RECONCILIATION_SENTRY=true` (disable reconciliation mismatch Sentry warnings).
+
+**Stuck-intake operational truth boundary (2026-08-14).** `v_stuck_intakes` owns stuck-state classification. System Health, the Operations viewer, and bounded reason/service-bucket Sentry warnings all apply `filterReportableIntakes` before counting or alerting, so fixed seeded E2E profiles and rows with `exclude_from_reporting = true` cannot create operational incidents. The view exposes `patient_id` and `exclude_from_reporting` only for that server-side filter, remains `security_invoker`, and is selectable only by `service_role`. A view query failure is **unknown/degraded**, never zero: Operations shows **Stuck-intake status unavailable** and must not render **Clear** or **No stuck intakes found** until a read succeeds. This is a reporting boundary only; do not reuse it for the stale clinical queue, patient-delay contact, refunds, or authorised recovery work, where an excluded row may still need action.
 
 ### Stuck Intake Resolution
 
@@ -914,27 +916,30 @@ Scope note: the exclusion belongs to **marketing** only. Clinical and patient-fa
 |--------|-------|------------|
 | `paid_no_review` | No doctor picked up intake | Check doctor availability; assign/review manually |
 | `review_timeout` | Doctor started but did not finish within 60 min | Contact doctor or reassign; check for blocking issues |
-| `delivery_pending` | Approved but email not sent | Check `email_outbox` via `/admin/emails/hub?intake_id=...`; trigger manually |
-| `delivery_failed` | Delivery email failed | Check `/admin/emails/hub?intake_id=...` for error; verify patient email; retry or contact patient |
+| `delivery_pending` | Approved but delivery is not proven | For medical certificates, inspect the current certificate in the delivery rescue panel; for other services, check `email_outbox` via `/admin/emails/hub?intake_id=...` |
+| `delivery_failed` | Current delivery attempt failed without stronger sent evidence | Re-read the current certificate/outbox evidence in the appropriate admin surface before an authorised retry or patient contact |
 
 ### Useful SQL Queries
 
+Use `/admin/ops/intakes-stuck` or the server-side data reader for reportable stuck totals; both own the canonical application filter. Do not copy seeded profile IDs into SQL runbooks or use `SELECT *` for routine incident evidence. The minimum-field queries below are for a single authorised case after its handle is already known.
+
 ```sql
--- Current stuck intakes
-SELECT * FROM v_stuck_intakes ORDER BY stuck_age_minutes DESC;
-
--- Count by reason
-SELECT stuck_reason, COUNT(*) FROM v_stuck_intakes GROUP BY stuck_reason;
-
 -- Recent events for an intake
-SELECT * FROM intake_events WHERE intake_id = '<ID>' ORDER BY created_at DESC LIMIT 20;
+SELECT event_type, actor_role, created_at
+FROM intake_events
+WHERE intake_id = '<ID>'
+ORDER BY created_at DESC
+LIMIT 20;
 
 -- Failed delivery emails
-SELECT i.id, i.reference_number, i.status, eo.error_message
+SELECT i.reference_number, i.status, eo.email_type, eo.status AS outbox_status, eo.created_at
 FROM intakes i JOIN email_outbox eo ON eo.intake_id = i.id
-WHERE i.status = 'approved'
+WHERE i.id = '<ID>'
+  AND i.status = 'approved'
   AND eo.email_type IN ('request_approved', 'certificate_delivery', 'med_cert_patient', 'script_sent')
-  AND eo.status = 'failed';
+  AND eo.status = 'failed'
+ORDER BY eo.created_at DESC
+LIMIT 20;
 ```
 
 ---
@@ -949,13 +954,15 @@ WHERE i.status = 'approved'
 
 | Metric | Target (p75) | Current | Source |
 |---|---|---|---|
-| First Contentful Paint (FCP) | ≤ 2.0s | 1.4s local / 3.4s prod | `WebVitalsReporter`, PSI |
-| Largest Contentful Paint (LCP) | ≤ 2.5s | 5.2s prod conversion pages | `WebVitalsReporter`, PSI |
-| Cumulative Layout Shift (CLS) | ≤ 0.1 | 0.003 | `WebVitalsReporter` |
+| First Contentful Paint (FCP) | ≤ 2.0s | Re-measure at release checkpoint | PostHog `$web_vitals`, Lighthouse, CrUX |
+| Largest Contentful Paint (LCP) | ≤ 2.5s | 2026-08-14 like-for-like local production builds, applied mobile throttling: main → release candidate was 3.765s → 2.285s for med cert and 3.043s → 1.966s for prescriptions (3 runs each) | PostHog `$web_vitals`, Lighthouse, CrUX |
+| Cumulative Layout Shift (CLS) | ≤ 0.1 | 2026-08-14 local production build: 0 on both commercial routes (3 runs each) | PostHog `$web_vitals`, Lighthouse, CrUX |
 | Total Blocking Time (TBT) | ≤ 200ms | PR CI noisy; production gate remains ≤ 300ms | Lighthouse CI |
-| Interaction to Next Paint (INP) | ≤ 200ms | TBD (needs dashboard) | `WebVitalsReporter` |
+| Interaction to Next Paint (INP) | ≤ 200ms | Re-measure at release checkpoint | PostHog `$web_vitals`, CrUX |
 
 **CI gate:** PR LHCI blocks on FCP ≤ 3s, CLS ≤ 0.1, accessibility ≥ 0.9, and SEO ≥ 0.9. LCP and TBT are warning-only in the general PR Lighthouse config because simulated throttling on GitHub runners has produced 600ms-1s TBT outliers and 7s+ LCP on untouched marketing pages. The dedicated mobile `/request` Lighthouse gate hard-gates stable paid-intake metrics (FCP ≤2s, TBT ≤300ms, CLS ≤0.05) while keeping composite performance score and simulated LCP warning-only.
+
+**Money-page release measurement:** the opt-in three-run profile uses applied DevTools mobile throttling and median aggregation for LCP ≤2.5s. On 2026-08-14, untouched `main` and the release candidate were measured locally as production builds with the same Lighthouse 13.1 / Chrome 151 profile. `/medical-certificate` moved from a 3.765s median on `main` to 2.285s on the release candidate (candidate runs 1.999/2.285/2.329s; 39.3% lower). `/prescriptions` moved from 3.043s to 1.966s (candidate runs 1.954/1.966/1.981s; 35.4% lower). CLS was 0 throughout. This is like-for-like lab evidence, not a production field-performance claim. A separate earlier production-URL run using default simulated throttling yielded 5.07s and 5.53s respectively; those values are retained only as historical dependency diagnostics and are not comparable with the applied-throttle control. During diagnosis, Lantern simulation also produced a synthetic 4s+ critical tail while the underlying loopback trace painted far earlier; retain that mode for dependency diagnosis, but do not mislabel its synthetic queue as observed browser paint. Deployment success still requires the rolling 28-day URL-level mobile CrUX p75 checkpoint below 2.5s. PostHog RUM is directional because acquisition telemetry starts after first interaction.
 
 **Bundle-size gate:** shared first-load JS ≤ 160 KB (current: 129 KB). Enforced by `scripts/check-bundle-size.sh` after every release build.
 
@@ -996,7 +1003,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 
 ### How SLOs are measured
 
-- **RUM**: `WebVitalsReporter` in `app/layout.tsx` fires `web_vital` events to PostHog. Build a PostHog Insight grouping by `$pathname` + `device_type` for p50/p75/p95.
+- **RUM**: PostHog's `capture_performance` integration in `instrumentation-client.ts` emits `$web_vitals`. Build an Insight using `$web_vitals_LCP_value`, grouped by `$pathname` and device type, for p50/p75/p95. On acquisition routes PostHog starts after first interaction, so this cohort excludes passive bounces and is directional rather than population-complete. Use URL-level mobile CrUX p75 as the unbiased rolling 28-day field checkpoint.
 - **CI-Lab**: `@lhci/cli` on every push to `main` + every PR. Results retained 14 days as GH artifact.
 - **Synthetic**: GitHub Actions runs `e2e/prod-request-flow-synthetic.spec.ts` against `https://instantmed.com.au` every 5 minutes. It clicks the med-cert certificate type, duration, and start-date controls and smoke-checks repeat script, prescription, ED, hair-loss, and women's-health request paths. The browser helper `e2e/helpers/production-synthetic-isolation.ts` fulfills `/api/draft` and `/ingest` locally; the production probe must not create `partial_intakes`, recovery emails, or PostHog funnel events.
 - **Error tracking**: Sentry captures + custom tags (see `lib/observability/sentry.ts`).
@@ -1572,27 +1579,9 @@ Run after each weekly wave. If conversion is healthy, the reactivation lever wor
 
 ### Q6 — Certificate sent but intake timestamp missing (14d)
 
-Detects medical-certificate requests where the patient certificate email was sent, but the intake mirror still lacks `document_sent_at`. This is the drift class that can make patient tracking and support triage look like delivery is still pending even when the secure app-routed certificate link has gone out.
+Detects medical-certificate requests where the **current certificate storage version** has a sent patient-email outbox row but the intake mirror still lacks `document_sent_at`. The dashboard-owned query is `countCertificateSentMissingTimestamp()` in `lib/admin/ops-invariants.ts`; it applies the canonical seeded/reportability exclusions and rejects historical sends from an older document version. Do not reproduce the patient exclusions or inspect unbounded outbox payloads in an ad-hoc SQL query.
 
-```sql
-WITH recent_sent_cert_emails AS (
-  SELECT DISTINCT intake_id
-  FROM email_outbox
-  WHERE email_type = 'med_cert_patient'
-    AND status = 'sent'
-    AND intake_id IS NOT NULL
-    AND created_at >= NOW() - INTERVAL '14 days'
-)
-SELECT COUNT(*) AS certificate_sent_missing_document_sent_at
-FROM intakes i
-JOIN recent_sent_cert_emails e ON e.intake_id = i.id
-WHERE i.category = 'medical_certificate'
-  AND i.document_sent_at IS NULL
-  AND COALESCE(i.exclude_from_reporting, false) = false
-  AND i.patient_id != 'e2e00000-0000-0000-0000-000000000002';
-```
-
-Operator action: open `/admin/ops` → **Certificate delivery rescue**, confirm whether the certificate email was sent/delivered/clicked or downloaded, then use the recommended support action. If the invariant is non-zero, admins can use **Repair timestamps** in the rescue panel to mirror proven sent certificate-email evidence onto `intakes.document_sent_at` for recent valid certificates. This does not resend emails, expose raw storage URLs, or attach certificate files. Do not bulk-resend certificates because of this count.
+Operator action: open `/admin/ops` → **Certificate delivery rescue**, confirm whether the current certificate email was sent/delivered/clicked or downloaded, then use the recommended support action. If the invariant is non-zero, admins can use **Repair timestamps** in the rescue panel. Provider reconciliation and timestamp repair both lock the latest valid certificate, verify its current storage version, then update the certificate/intake delivery state in one transaction. Revocation clears that mirror atomically. An older send therefore cannot restore fulfilment after a correction or revocation. This does not resend emails, expose raw storage URLs, or attach certificate files. Do not bulk-resend certificates because of this count.
 
 ### How these become alerts
 

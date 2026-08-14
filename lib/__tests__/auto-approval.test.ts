@@ -497,7 +497,9 @@ describe("evaluateAutoApprovalEligibility", () => {
   it("blocks issuance when the AI draft is marked requiresReview (operator decision 2026-08-07)", () => {
     // History: v2.3 demoted this to a soft flag ("batch review still catches
     // concerns post-approval"). Batch review was then removed (2026-08-04),
-    // and 90 days of production showed 8/109 auto-approvals carried this flag
+    // and the Aug 7 snapshot showed 8/109 auto-approvals carried this flag.
+    // A ninth issued before #442 enforced the block on Aug 10 (9/116 in the
+    // fixed 90-day window ending at enforcement)
     // — including a fever/photophobia/vomiting/difficulty-walking cluster the
     // draft itself called potential red-flag symptoms — with no human reader.
     // Promoted back to a pre-issuance block: an uncertain draft routes to a

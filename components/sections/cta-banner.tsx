@@ -3,6 +3,10 @@
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
+import {
+  type ServiceId,
+  useServiceAvailability,
+} from "@/components/providers/service-availability-provider"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
@@ -27,6 +31,8 @@ interface CTABannerProps extends SectionProps {
   onCtaClick?: () => void;
   /** Optional disabled state — flips the CTA into a "Contact us" link. */
   isDisabled?: boolean;
+  /** Optional live service kill switch for server-owned landing pages. */
+  availabilityServiceId?: ServiceId;
   /** When provided, renders a price line below the CTA. e.g. `29.95`. */
   price?: number;
   /**
@@ -49,14 +55,20 @@ export function CTABanner({
   trustBadges,
   onCtaClick,
   isDisabled,
+  availabilityServiceId,
   price,
   microcopy,
   revealInstant = false,
   className,
   id,
 }: CTABannerProps) {
-  const resolvedHref = isDisabled ? "/contact" : ctaHref;
-  const resolvedCtaText = isDisabled ? "Contact us" : ctaText;
+  const availability = useServiceAvailability();
+  const isUnavailable = isDisabled
+    ?? (availabilityServiceId
+      ? availability.isServiceDisabled(availabilityServiceId)
+      : false);
+  const resolvedHref = isUnavailable ? "/contact" : ctaHref;
+  const resolvedCtaText = isUnavailable ? "Contact us" : ctaText;
   return (
     <section id={id} className={cn("py-8 sm:py-10 lg:py-16 px-4", className)}>
       <Reveal instant={revealInstant} className="mx-auto max-w-4xl rounded-3xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] p-6 sm:p-8 lg:p-16 text-center relative overflow-hidden">

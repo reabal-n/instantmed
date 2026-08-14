@@ -524,8 +524,9 @@ export function evaluateAutoApprovalEligibility(
     flags.push(`draft_not_ready: ${drafts.clinicalNote.status}`)
   } else {
     // 12. AI draft review flag — PRE-ISSUANCE BLOCK (operator decision
-    // 2026-08-07, promoted from soft). 90 days of production: 8 of 109
-    // auto-approvals carried this flag and every one was the draft lane —
+    // 2026-08-07; enforced in #442 on 2026-08-10). The decision-time
+    // snapshot was 8 of 109; one more issued before enforcement, making the
+    // fixed pre-enforcement retrospective 9 of 116. Every one was draft-lane —
     // among them a fever/photophobia/vomiting/difficulty-walking cluster the
     // draft itself called "potential red-flag symptoms", auto-issued because
     // the flag was soft and its only reader (batch review) had been removed.

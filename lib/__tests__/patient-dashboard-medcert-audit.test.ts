@@ -79,10 +79,15 @@ describe("patient dashboard and certificate delivery contracts", () => {
 
   it("mirrors certificate email success onto the intake delivery timestamp", () => {
     const issuedCertificates = readProjectFile("lib/data/issued-certificates.ts")
+    const migration = readProjectFile(
+      "supabase/migrations/20260814110000_make_stuck_intakes_reportable.sql",
+    )
 
-    expect(issuedCertificates).toContain("document_sent_at")
-    expect(issuedCertificates).toContain('generated_document_type: "medical_certificate"')
-    expect(issuedCertificates).toContain('.is("document_sent_at", null)')
+    expect(issuedCertificates).toContain('"reconcile_certificate_email_status"')
+    expect(issuedCertificates).not.toContain('.from("intakes")\n      .update({\n        document_sent_at')
+    expect(migration).toContain("CREATE OR REPLACE FUNCTION public.reconcile_certificate_email_status")
+    expect(migration).toContain("SET document_sent_at = COALESCE(i.document_sent_at, v_now)")
+    expect(migration).toContain("generated_document_type = 'medical_certificate'")
   })
 
   it("deep-links pending-info patients into the requested message thread", () => {

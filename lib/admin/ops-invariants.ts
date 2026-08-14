@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 
 /**
@@ -9,9 +10,9 @@ import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
  * problems they detect stop being invisible. Q3 (integration env-type audit) is
  * a boot-time config check, not a row count, so it is intentionally not here.
  *
- * Counts are fail-soft (a query that errors returns 0) so a transient outage on
- * one invariant never throws the whole ops page, matching the resilience of
- * lib/data/system-health.ts and app/admin/ops/page.tsx.
+ * Individual cards remain numeric for backwards compatibility, while every
+ * failed query is also returned in `queryFailures`. Callers must render that
+ * degraded state and must not interpret a failed card's zero as healthy.
  */
 
 // Clinic-side, pre-decision intake statuses. A paid intake parked in one of
@@ -151,26 +152,78 @@ async function countCertificateSentMissingTimestamp(
 ): Promise<CountResult> {
   const { data: sentRows, error: emailError } = await supabase
     .from("email_outbox")
-    .select("intake_id")
+    .select("intake_id, certificate_id, metadata")
     .eq("email_type", "med_cert_patient")
     .eq("status", "sent")
     .gte("created_at", sinceIso)
     .not("intake_id", "is", null)
+    .not("certificate_id", "is", null)
     .limit(5000)
 
   if (emailError) {
     return { count: null, error: emailError }
   }
 
+  type SentRow = {
+    intake_id: string | null
+    certificate_id: string | null
+    metadata: Record<string, unknown> | null
+  }
+  const typedSentRows = (sentRows ?? []) as SentRow[]
   const intakeIds = [
-    ...new Set(
-      ((sentRows ?? []) as Array<{ intake_id: string | null }>)
-        .map((row) => row.intake_id)
-        .filter((id): id is string => typeof id === "string" && id.length > 0),
-    ),
+    ...new Set(typedSentRows
+      .map((row) => row.intake_id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0)),
   ]
 
   if (intakeIds.length === 0) {
+    return { count: 0, error: null }
+  }
+
+  const { data: certificates, error: certificateError } = await supabase
+    .from("issued_certificates")
+    .select("id, intake_id, status, storage_path, created_at")
+    .in("intake_id", intakeIds)
+    .eq("status", "valid")
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+
+  if (certificateError) {
+    return { count: null, error: certificateError }
+  }
+
+  const latestValidByIntake = new Map<string, {
+    id: string
+    storage_path: string
+  }>()
+  for (const certificate of (certificates ?? []) as Array<{
+    id: string
+    intake_id: string
+    status: string
+    storage_path: string
+    created_at: string | null
+  }>) {
+    if (!latestValidByIntake.has(certificate.intake_id)) {
+      latestValidByIntake.set(certificate.intake_id, certificate)
+    }
+  }
+
+  const currentVersionSentIntakeIds = [
+    ...new Set(typedSentRows.flatMap((row) => {
+      if (!row.intake_id || !row.certificate_id) return []
+      const certificate = latestValidByIntake.get(row.intake_id)
+      const emailVersion = row.metadata?.certificate_storage_version
+      if (
+        !certificate
+        || certificate.id !== row.certificate_id
+        || typeof emailVersion !== "string"
+        || emailVersion !== getEmployerCertificateStorageVersion(certificate.storage_path)
+      ) return []
+      return [row.intake_id]
+    })),
+  ]
+
+  if (currentVersionSentIntakeIds.length === 0) {
     return { count: 0, error: null }
   }
 
@@ -178,7 +231,7 @@ async function countCertificateSentMissingTimestamp(
     supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .in("id", intakeIds)
+      .in("id", currentVersionSentIntakeIds)
       .eq("category", "medical_certificate")
       .is("document_sent_at", null)
       .or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false"),

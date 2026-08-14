@@ -1,6 +1,5 @@
 "use client"
 
-import { AnimatePresence, motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
@@ -13,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 const resourceLinks: Array<{ title: string; href: string; description: string; sticker: StickerIconName }> = [
@@ -37,7 +35,6 @@ interface ResourcesDropdownProps {
 
 export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
   const [open, setOpen] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
 
   const isResourceActive =
     isActivePath("/how-it-works") ||
@@ -68,21 +65,12 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
           </button>
         </DropdownMenuTrigger>
 
-        <AnimatePresence>
-          {open && (
-            <DropdownMenuContent
-              forceMount
-              loop
-              align="start"
-              className="w-60 rounded-2xl border border-dawn-200/40 dark:border-white/10 bg-white/90 dark:bg-white/10 backdrop-blur-xl p-0 overflow-hidden shadow-xl shadow-primary/[0.08]"
-            >
-              <motion.div
-                initial={prefersReducedMotion ? false : { opacity: 0, y: -4, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={prefersReducedMotion ? {} : { opacity: 0, y: -4, scale: 0.98 }}
-                transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                className="p-2"
-              >
+        <DropdownMenuContent
+          loop
+          align="start"
+          className="w-60 rounded-2xl border border-dawn-200/40 dark:border-white/10 bg-white/90 dark:bg-white/10 backdrop-blur-xl p-0 overflow-hidden shadow-xl shadow-primary/[0.08]"
+        >
+          <div className="p-2">
                 {resourceLinks.map((link) => (
                   <DropdownMenuItem key={link.href} asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
                     <Link
@@ -120,10 +108,8 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
                     </Link>
                   </DropdownMenuItem>
                 ))}
-              </motion.div>
-            </DropdownMenuContent>
-          )}
-        </AnimatePresence>
+          </div>
+        </DropdownMenuContent>
       </DropdownMenu>
 
       {/* Tubelight active indicator */}

@@ -12,8 +12,6 @@
 @source "../hooks";
 @source "../lib";
 
-
-
 /* ================================
    SEAMLESS SCROLLING
    ================================ */
@@ -1076,7 +1074,7 @@ body {
    Replaces Framer Motion motion.div wrappers for above-fold elements to
    eliminate the opacity:0 flash that delays LCP when framer-motion hydrates. */
 
-/* Fade + slide up (subheadline, badges, CTA, count) */
+/* Fade + slide up (badges, CTA, count) */
 @keyframes hero-fade-up {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }

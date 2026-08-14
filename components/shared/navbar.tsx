@@ -1,23 +1,33 @@
 "use client"
 
-import { LayoutDashboard, LogOut } from "lucide-react"
-import Link from "next/link"
+import dynamic from "next/dynamic"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 
-import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
-import { MobileMenuContent } from "@/components/shared/navbar/mobile-menu-content"
+import { MobileMenuToggle } from "@/components/shared/navbar/mobile-menu-toggle"
 import { ResourcesDropdown } from "@/components/shared/navbar/resources-dropdown"
 import { ServicesDropdown } from "@/components/shared/navbar/services-dropdown"
 import { ThemeSwitch } from "@/components/shared/navbar/theme-switch"
 import { UserMenu } from "@/components/shared/navbar/user-menu"
-import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-menu"
-import { Button } from "@/components/uix"
-import { navigateToPostSignIn } from "@/lib/navigation/auth-handoff"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
+
+let navbarMobileDrawerPromise: ReturnType<typeof importNavbarMobileDrawer> | null = null
+
+function importNavbarMobileDrawer() {
+  return import("@/components/shared/navbar/mobile-drawer").then(
+    (module) => module.NavbarMobileDrawer,
+  )
+}
+
+const loadNavbarMobileDrawer = () => {
+  navbarMobileDrawerPromise ??= importNavbarMobileDrawer()
+  return navbarMobileDrawerPromise
+}
+
+const DeferredNavbarMobileDrawer = dynamic(loadNavbarMobileDrawer, { ssr: false })
 
 interface NavbarProps {
   variant?: "marketing" | "patient" | "doctor"
@@ -26,10 +36,11 @@ interface NavbarProps {
 
 export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [mobileDrawerLoaded, setMobileDrawerLoaded] = useState(false)
+  const [mobileDrawerPending, setMobileDrawerPending] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
-  const { signOut, user, isLoaded } = useAuth()
+  const { user, isLoaded } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -37,13 +48,35 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  const handleSignOut = async () => {
-    setIsLoggingOut(true)
-    await signOut()
-  }
-
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || userName?.split(" ")[0] || "User"
   const isActivePath = (path: string) => pathname === path || pathname?.startsWith(path + "/")
+  const prepareMobileDrawer = async () => {
+    try {
+      await loadNavbarMobileDrawer()
+      setMobileDrawerLoaded(true)
+      return true
+    } catch {
+      // Allow a later interaction to retry a failed chunk request while the
+      // disclosure stays truthfully collapsed.
+      navbarMobileDrawerPromise = null
+      return false
+    }
+  }
+
+  const toggleMobileDrawer = async () => {
+    if (mobileMenuOpen) {
+      setMobileMenuOpen(false)
+      return
+    }
+    if (mobileDrawerPending) return
+
+    setMobileDrawerPending(true)
+    try {
+      if (await prepareMobileDrawer()) setMobileMenuOpen(true)
+    } finally {
+      setMobileDrawerPending(false)
+    }
+  }
 
   return (
     <>
@@ -80,6 +113,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <BrandLogo
               size="md"
               priority
+              prefetch={false}
               className={cn(
                 "relative z-10",
                 mobileMenuOpen && "max-md:opacity-0"
@@ -144,82 +178,26 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
             {/* Mobile Menu Toggle */}
             <div className="md:hidden">
-              <MenuToggle toggle={() => setMobileMenuOpen(!mobileMenuOpen)} isOpen={mobileMenuOpen} />
+              <MobileMenuToggle
+                toggle={toggleMobileDrawer}
+                isOpen={mobileMenuOpen}
+                isPending={mobileDrawerPending}
+                onIntent={() => void prepareMobileDrawer()}
+              />
             </div>
           </div>
         </nav>
       </header>
 
-      {/* Animated Mobile Menu */}
-      <AnimatedMobileMenu
-        isOpen={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-        header={
-          <BrandLogo size="md" onClick={() => setMobileMenuOpen(false)} />
-        }
-        footer={
-          <div className="space-y-3">
-            <ThemeSwitch variant="mobile" />
-            {variant === "marketing" && (
-              <>
-                {!isLoaded ? (
-                  <div
-                    className="h-10 w-full rounded-xl border border-border/40 bg-muted/40"
-                    aria-hidden="true"
-                  />
-                ) : user ? (
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-colors flex items-center justify-center gap-2"
-                    onClick={() => {
-                      setMobileMenuOpen(false)
-                      navigateToPostSignIn(window)
-                    }}
-                    onPointerDown={(event) => event.stopPropagation()}
-                    onKeyDown={(event) => event.stopPropagation()}
-                  >
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
-                  </Button>
-                ) : (
-                  <AppSignInButton>
-                    <Button variant="outline" className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-colors flex items-center justify-center">
-                      Log in
-                    </Button>
-                  </AppSignInButton>
-                )}
-                <Button
-                  asChild
-                  className="w-full rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
-                >
-                  <Link
-                    href="/request"
-                    onPointerDown={(event) => event.stopPropagation()}
-                    onKeyDown={(event) => event.stopPropagation()}
-                  >
-                    Get started
-                  </Link>
-                </Button>
-              </>
-            )}
-            {variant === "patient" && (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false)
-                  handleSignOut()
-                }}
-                disabled={isLoggingOut}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-destructive-light hover:bg-destructive-light text-destructive transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="text-sm font-medium">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
-              </button>
-            )}
-          </div>
-        }
-      >
-        <MobileMenuContent variant={variant} onClose={() => setMobileMenuOpen(false)} />
-      </AnimatedMobileMenu>
+      {mobileDrawerLoaded ? (
+        <DeferredNavbarMobileDrawer
+          variant={variant}
+          isOpen={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+        />
+      ) : (
+        <span id="mobile-navigation-menu" hidden />
+      )}
     </>
   )
 }

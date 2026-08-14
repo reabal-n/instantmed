@@ -68,7 +68,17 @@ describe("lighthouse CI contract", () => {
       "http://localhost:3061/request",
     ]))
     expect(collect.numberOfRuns).toBe(3)
+    expect(moneyPagesLighthouseConfig.ci.assert.aggregationMethod).toBe("median")
     expect(collect.settings.formFactor).toBe("mobile")
+    expect(collect.settings.throttlingMethod).toBe("devtools")
+    expect(collect.settings.throttling).toEqual({
+      rttMs: 150,
+      throughputKbps: 1638.4,
+      requestLatencyMs: 562.5,
+      downloadThroughputKbps: 1474.56,
+      uploadThroughputKbps: 675,
+      cpuSlowdownMultiplier: 4,
+    })
     expect(collect.settings.screenEmulation).toMatchObject({
       mobile: true,
       width: 390,

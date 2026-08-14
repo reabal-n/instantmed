@@ -12,9 +12,9 @@ export interface ReportingFilterOptions extends SeededE2EFilterOptions {
 /**
  * Canonical live-reporting filter for business metrics.
  *
- * Use this for revenue, conversion, KPI, and monitoring reads. Do not use it
- * for clinical queues or support recovery, where an excluded test row may still
- * need to be visible to an authorised operator.
+ * Use this for revenue, conversion, KPI, and explicitly reportable operational
+ * monitoring reads. Do not apply it to a live clinical queue or general support
+ * recovery by default, where an excluded row may still need authorised action.
  */
 export function filterReportableIntakes<T extends ReportingFilterQuery>(
   query: T,
