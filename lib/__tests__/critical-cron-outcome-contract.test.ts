@@ -95,6 +95,7 @@ describe("critical cron terminal outcome contract", () => {
       "(signal) => processPendingPaidTelegramNotifications(signal)",
     )
     expect(telegramNotifications).toContain("signal?.throwIfAborted()")
+    expect(telegramNotifications).toContain("if (signal?.aborted) throw err")
   })
 
   it("does not classify failed auto-approval outcomes or recovery transitions as skips", () => {

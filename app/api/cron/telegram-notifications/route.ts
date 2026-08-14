@@ -74,6 +74,7 @@ async function processPendingPaidTelegramNotifications(signal?: AbortSignal) {
         skipped++
       }
     } catch (err) {
+      if (signal?.aborted) throw err
       failed++
       logger.error("Paid request Telegram retry failed", {
         intakeId: intake.id,
