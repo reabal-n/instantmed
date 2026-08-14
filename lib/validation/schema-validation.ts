@@ -25,6 +25,7 @@ const REQUIRED_SCHEMA = {
     "medicare_number",
     "medicare_irn",
     "medicare_expiry",
+    "consent_myhr",
     "ihi_number",
     "address_line1",
     "suburb",

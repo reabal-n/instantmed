@@ -27,6 +27,11 @@ function createClient(options: StubOptions = {}) {
       delivered: 7,
       trackable_sent: 6,
       unique_redirect_traversals: 3,
+      awaiting_next_run: 1,
+      cooldown_deferred: 1,
+      policy_suppressed: 1,
+      legacy_handled_unverifiable: 1,
+      actionable_backlog: 0,
     },
     error: options.funnelError ?? null,
   }))
@@ -89,6 +94,11 @@ describe("getReviewRequestFunnelSnapshot", () => {
       trackableSent: 6,
       uniqueRedirectTraversals: 3,
       traversalRate: 50,
+      awaitingNextRun: 1,
+      cooldownDeferred: 1,
+      policySuppressed: 1,
+      legacyHandledUnverifiable: 1,
+      actionableBacklog: 0,
     })
     expect(snapshot.external).toMatchObject({
       status: "live",
@@ -106,6 +116,11 @@ describe("getReviewRequestFunnelSnapshot", () => {
         delivered: 0,
         trackable_sent: 0,
         unique_redirect_traversals: 0,
+        awaiting_next_run: 1,
+        cooldown_deferred: 1,
+        policy_suppressed: 1,
+        legacy_handled_unverifiable: 1,
+        actionable_backlog: 0,
       },
     })
     const baseline = createClient({
@@ -115,6 +130,11 @@ describe("getReviewRequestFunnelSnapshot", () => {
         delivered: 4,
         trackable_sent: 0,
         unique_redirect_traversals: 0,
+        awaiting_next_run: 1,
+        cooldown_deferred: 1,
+        policy_suppressed: 1,
+        legacy_handled_unverifiable: 1,
+        actionable_backlog: 0,
       },
     })
 
@@ -145,6 +165,11 @@ describe("getReviewRequestFunnelSnapshot", () => {
       trackableSent: null,
       uniqueRedirectTraversals: null,
       traversalRate: null,
+      awaitingNextRun: null,
+      cooldownDeferred: null,
+      policySuppressed: null,
+      legacyHandledUnverifiable: null,
+      actionableBacklog: null,
     })
     expect(first.external).toMatchObject({ status: "baseline", total: 2, delta: null })
 
@@ -194,11 +219,62 @@ describe("getReviewRequestFunnelSnapshot", () => {
         delivered: 4,
         trackable_sent: 5,
         unique_redirect_traversals: 1,
+        awaiting_next_run: 0,
+        cooldown_deferred: 0,
+        policy_suppressed: 0,
+        legacy_handled_unverifiable: 0,
+        actionable_backlog: 0,
       },
     })
 
     await expect(getReviewRequestFunnelSnapshot(impossible.client, NOW)).resolves.toMatchObject({
       funnel: { status: "degraded", eligible: null, sent: null },
+    })
+  })
+
+  it("fails closed when lifecycle buckets do not reconcile exactly to eligible", async () => {
+    const mismatch = createClient({
+      funnelData: {
+        eligible: 12,
+        sent: 8,
+        delivered: 7,
+        trackable_sent: 6,
+        unique_redirect_traversals: 3,
+        awaiting_next_run: 1,
+        cooldown_deferred: 1,
+        policy_suppressed: 1,
+        legacy_handled_unverifiable: 0,
+        actionable_backlog: 0,
+      },
+    })
+
+    await expect(getReviewRequestFunnelSnapshot(mismatch.client, NOW)).resolves.toMatchObject({
+      funnel: {
+        status: "degraded",
+        eligible: null,
+        actionableBacklog: null,
+      },
+    })
+  })
+
+  it("surfaces actionable backlog as the primary funnel state", async () => {
+    const actionable = createClient({
+      funnelData: {
+        eligible: 12,
+        sent: 8,
+        delivered: 7,
+        trackable_sent: 6,
+        unique_redirect_traversals: 3,
+        awaiting_next_run: 1,
+        cooldown_deferred: 1,
+        policy_suppressed: 1,
+        legacy_handled_unverifiable: 0,
+        actionable_backlog: 1,
+      },
+    })
+
+    await expect(getReviewRequestFunnelSnapshot(actionable.client, NOW)).resolves.toMatchObject({
+      funnel: { status: "action_required", actionableBacklog: 1 },
     })
   })
 

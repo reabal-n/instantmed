@@ -10,7 +10,12 @@ export const PRODUCT_REVIEW_TOTAL_METRIC_NAME = "productreview_review_total"
 const DAY_MS = 24 * 60 * 60 * 1000
 const EXTERNAL_SNAPSHOT_STALE_DAYS = 14
 
-export type ReviewRequestFunnelStatus = "degraded" | "no_sends" | "baseline" | "live"
+export type ReviewRequestFunnelStatus =
+  | "degraded"
+  | "action_required"
+  | "no_sends"
+  | "baseline"
+  | "live"
 export type ProductReviewSnapshotStatus = "due" | "baseline" | "live" | "stale" | "degraded"
 
 interface ReviewRequestFunnelAxis {
@@ -22,6 +27,11 @@ interface ReviewRequestFunnelAxis {
   uniqueRedirectTraversals: number | null
   /** Unique redirect traversals divided by trackable sends, never all sends. */
   traversalRate: number | null
+  awaitingNextRun: number | null
+  cooldownDeferred: number | null
+  policySuppressed: number | null
+  legacyHandledUnverifiable: number | null
+  actionableBacklog: number | null
 }
 
 interface ProductReviewSnapshotAxis {
@@ -47,6 +57,11 @@ interface FunnelRpcRow {
   delivered: number
   trackableSent: number
   uniqueRedirectTraversals: number
+  awaitingNextRun: number
+  cooldownDeferred: number
+  policySuppressed: number
+  legacyHandledUnverifiable: number
+  actionableBacklog: number
 }
 
 interface ExternalMetricRow {
@@ -62,6 +77,11 @@ const DEGRADED_FUNNEL: ReviewRequestFunnelAxis = {
   trackableSent: null,
   uniqueRedirectTraversals: null,
   traversalRate: null,
+  awaitingNextRun: null,
+  cooldownDeferred: null,
+  policySuppressed: null,
+  legacyHandledUnverifiable: null,
+  actionableBacklog: null,
 }
 
 const DEGRADED_EXTERNAL: ProductReviewSnapshotAxis = {
@@ -108,6 +128,24 @@ function parseFunnelRow(value: unknown): FunnelRpcRow | null {
   const delivered = parseNonNegativeInteger(row.delivered)
   const trackableSent = parseNonNegativeInteger(row.trackable_sent)
   const uniqueRedirectTraversals = parseNonNegativeInteger(row.unique_redirect_traversals)
+  const awaitingNextRun = parseNonNegativeInteger(row.awaiting_next_run)
+  const cooldownDeferred = parseNonNegativeInteger(row.cooldown_deferred)
+  const policySuppressed = parseNonNegativeInteger(row.policy_suppressed)
+  const legacyHandledUnverifiable = parseNonNegativeInteger(
+    row.legacy_handled_unverifiable,
+  )
+  const actionableBacklog = parseNonNegativeInteger(row.actionable_backlog)
+  const lifecycleCounts = [
+    sent,
+    awaitingNextRun,
+    cooldownDeferred,
+    policySuppressed,
+    legacyHandledUnverifiable,
+    actionableBacklog,
+  ]
+  const reconciledEligible = lifecycleCounts.every((count) => count !== null)
+    ? lifecycleCounts.reduce<number>((total, count) => total + count!, 0)
+    : null
 
   if (
     eligible === null ||
@@ -115,6 +153,14 @@ function parseFunnelRow(value: unknown): FunnelRpcRow | null {
     delivered === null ||
     trackableSent === null ||
     uniqueRedirectTraversals === null ||
+    awaitingNextRun === null ||
+    cooldownDeferred === null ||
+    policySuppressed === null ||
+    legacyHandledUnverifiable === null ||
+    actionableBacklog === null ||
+    reconciledEligible === null ||
+    !Number.isSafeInteger(reconciledEligible) ||
+    reconciledEligible !== eligible ||
     sent > eligible ||
     delivered > sent ||
     trackableSent > sent ||
@@ -123,7 +169,18 @@ function parseFunnelRow(value: unknown): FunnelRpcRow | null {
     return null
   }
 
-  return { eligible, sent, delivered, trackableSent, uniqueRedirectTraversals }
+  return {
+    eligible,
+    sent,
+    delivered,
+    trackableSent,
+    uniqueRedirectTraversals,
+    awaitingNextRun,
+    cooldownDeferred,
+    policySuppressed,
+    legacyHandledUnverifiable,
+    actionableBacklog,
+  }
 }
 
 function buildFunnelAxis(value: unknown, hasError: boolean): ReviewRequestFunnelAxis {
@@ -131,11 +188,13 @@ function buildFunnelAxis(value: unknown, hasError: boolean): ReviewRequestFunnel
   const row = parseFunnelRow(value)
   if (!row) return DEGRADED_FUNNEL
 
-  const status: ReviewRequestFunnelStatus = row.sent === 0
-    ? "no_sends"
-    : row.trackableSent === 0
-      ? "baseline"
-      : "live"
+  const status: ReviewRequestFunnelStatus = row.actionableBacklog > 0
+    ? "action_required"
+    : row.sent === 0
+      ? "no_sends"
+      : row.trackableSent === 0
+        ? "baseline"
+        : "live"
 
   return {
     status,

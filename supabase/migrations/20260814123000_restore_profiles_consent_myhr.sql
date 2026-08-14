@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS consent_myhr BOOLEAN DEFAULT FALSE;
