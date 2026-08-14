@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
+import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -100,6 +101,9 @@ export async function GET(
       profile.id,
       "patient",
       {
+        certificate_storage_version: getEmployerCertificateStorageVersion(
+          certificate.storage_path,
+        ),
         file_size_bytes: pdfBuffer.byteLength,
         endpoint: "certificates_id_download",
       },

@@ -33,6 +33,8 @@ describe("requestPatientCertificateDownload", () => {
     expect(routeSource).toContain("x-forwarded-for")
     expect(routeSource).toContain("user-agent")
     expect(routeSource).toContain("Certificate access is temporarily unavailable")
+    expect(routeSource).toContain("certificate_storage_version")
+    expect(routeSource).toContain("getEmployerCertificateStorageVersion")
     expect(routeSource).not.toContain("void logCertificateEvent")
   })
 

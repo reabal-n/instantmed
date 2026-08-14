@@ -31,6 +31,7 @@ export type HistoricalAutoIssuedReviewOpenOutcome =
   | "case_state_changed"
   | "case_not_found"
   | "actor_not_authorized"
+  | "cohort_mismatch"
   | "unavailable"
 
 export type HistoricalAutoIssuedReviewReceiptOutcome =
@@ -41,6 +42,7 @@ export type HistoricalAutoIssuedReviewReceiptOutcome =
   | "case_state_changed"
   | "case_not_found"
   | "actor_not_authorized"
+  | "cohort_mismatch"
 
 export type HistoricalAutoIssuedReviewReceiptResult =
   | { outcome: HistoricalAutoIssuedReviewReceiptOutcome; queryFailed: false }
@@ -52,6 +54,7 @@ const OPEN_OUTCOMES = new Set<HistoricalAutoIssuedReviewOpenOutcome>([
   "case_state_changed",
   "case_not_found",
   "actor_not_authorized",
+  "cohort_mismatch",
 ])
 
 const RECEIPT_OUTCOMES = new Set<HistoricalAutoIssuedReviewReceiptOutcome>([
@@ -62,6 +65,7 @@ const RECEIPT_OUTCOMES = new Set<HistoricalAutoIssuedReviewReceiptOutcome>([
   "case_state_changed",
   "case_not_found",
   "actor_not_authorized",
+  "cohort_mismatch",
 ])
 
 function integer(value: unknown): number | null {

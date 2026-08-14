@@ -25,6 +25,7 @@ const OUTCOME_ERRORS: Record<
   case_not_opened: "Reload this review before recording an outcome.",
   case_state_changed: "The certificate changed while it was being reviewed. Reload and check its current state.",
   correction_started: "This certificate has already been returned for correction.",
+  cohort_mismatch: "This retrospective is paused because its fixed cohort changed. Nothing was recorded; contact the operator.",
 }
 
 interface ReceiptData {

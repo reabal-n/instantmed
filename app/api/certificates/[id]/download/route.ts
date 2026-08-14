@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
 import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
+import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import {
   getCertificateById,
   getCertificateForIntake,
@@ -111,6 +112,9 @@ export async function GET(
       profile.id,
       auditActorRole,
       {
+        certificate_storage_version: getEmployerCertificateStorageVersion(
+          certificate.storage_path,
+        ),
         endpoint: "certificate_signed_url_download",
       },
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()

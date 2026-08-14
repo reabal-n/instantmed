@@ -100,6 +100,7 @@ describe("recordHistoricalAutoIssuedNoCorrectionAction", () => {
     ["correction_started", "returned for correction"],
     ["case_not_found", "fixed historical review cohort"],
     ["actor_not_authorized", "not authorised"],
+    ["cohort_mismatch", "paused because its fixed cohort changed"],
   ])("fails closed for %s", async (outcome, message) => {
     stubRpc(outcome)
 

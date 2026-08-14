@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto"
+
 import { NextRequest } from "next/server"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -103,6 +105,22 @@ describe("ID-keyed certificate download currentness", () => {
       error: null,
     })
     mocks.getCertificateForIntake.mockResolvedValue(newerCertificate)
+    mocks.getSecureDownloadUrl.mockResolvedValue({
+      success: true,
+      url: "https://storage.example/signed.pdf",
+    })
+    mocks.createSignedUrl.mockResolvedValue({
+      data: { signedUrl: "https://storage.example/current.pdf" },
+      error: null,
+    })
+    mocks.logCertificateEvent.mockResolvedValue({ success: true })
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(
+        new Uint8Array([0x25, 0x50, 0x44, 0x46]),
+        { status: 200, headers: { "content-type": "application/pdf" } },
+      )),
+    )
   })
 
   it("rejects a valid owned historical row before generating a signed URL", async () => {
@@ -133,5 +151,34 @@ describe("ID-keyed certificate download currentness", () => {
     expect(mocks.getCertificateForIntake).toHaveBeenCalledWith(INTAKE_ID)
     expect(mocks.createSignedUrl).not.toHaveBeenCalled()
     expect(mocks.logCertificateEvent).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ["signed URL", getSignedUrl, `/api/certificates/${CERTIFICATE_ID}/download`],
+    ["streamed PDF", streamPatientCertificate, `/api/patient/certificates/${CERTIFICATE_ID}/download`],
+  ])("binds a current patient %s audit to the exact storage version", async (_label, route, path) => {
+    mocks.getCertificateForIntake.mockResolvedValue(requestedCertificate)
+    const expectedStorageVersion = createHash("sha256")
+      .update(requestedCertificate.storage_path)
+      .digest("hex")
+      .slice(0, 32)
+
+    const response = await route(
+      request(path),
+      { params: Promise.resolve({ id: CERTIFICATE_ID }) },
+    )
+
+    expect(response.status).toBe(200)
+    expect(mocks.logCertificateEvent).toHaveBeenCalledWith(
+      CERTIFICATE_ID,
+      "downloaded",
+      PATIENT_ID,
+      "patient",
+      expect.objectContaining({
+        certificate_storage_version: expectedStorageVersion,
+      }),
+      undefined,
+      undefined,
+    )
   })
 })

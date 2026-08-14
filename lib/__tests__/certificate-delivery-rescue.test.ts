@@ -93,6 +93,11 @@ describe("certificate delivery rescue", () => {
   })
 
   it("does not count safe downloaded timestamp drift as a rescue warning", async () => {
+    const storagePath = "certificates/downloaded/current.pdf"
+    const storageVersion = createHash("sha256")
+      .update(storagePath)
+      .digest("hex")
+      .slice(0, 32)
     const supabase = createRescueSupabaseStub({
       intakes: [
         {
@@ -111,6 +116,7 @@ describe("certificate delivery rescue", () => {
           id: "cert-downloaded",
           intake_id: baseEvidence.intakeId,
           status: "valid",
+          storage_path: storagePath,
           created_at: "2026-06-29T00:02:00Z",
           email_sent_at: "2026-06-29T00:03:00Z",
           email_failed_at: null,
@@ -131,6 +137,8 @@ describe("certificate delivery rescue", () => {
       certificate_audit_log: [
         {
           certificate_id: "cert-downloaded",
+          actor_role: "patient",
+          event_data: { certificate_storage_version: storageVersion },
           created_at: "2026-06-29T00:05:00Z",
         },
       ],
@@ -143,6 +151,104 @@ describe("certificate delivery rescue", () => {
     expect(overview.cases[0]?.warnings).toContain("document_sent_at missing")
     expect(overview.actionCount).toBe(0)
     expect(overview.warningCount).toBe(0)
+  })
+
+  it("does not let a stale patient download suppress rescue for a corrected storage version", async () => {
+    const currentStoragePath = "certificates/downloaded/version-two.pdf"
+    const staleStorageVersion = createHash("sha256")
+      .update("certificates/downloaded/version-one.pdf")
+      .digest("hex")
+      .slice(0, 32)
+    const supabase = createRescueSupabaseStub({
+      intakes: [
+        {
+          id: baseEvidence.intakeId,
+          reference_number: baseEvidence.referenceNumber,
+          status: "approved",
+          document_sent_at: null,
+          created_at: "2026-06-29T00:00:00Z",
+          updated_at: "2026-06-29T00:06:00Z",
+          approved_at: "2026-06-29T00:01:00Z",
+          completed_at: null,
+        },
+      ],
+      issued_certificates: [
+        {
+          id: "cert-corrected-download",
+          intake_id: baseEvidence.intakeId,
+          status: "valid",
+          storage_path: currentStoragePath,
+          created_at: "2026-06-29T00:02:00Z",
+          email_sent_at: null,
+          email_failed_at: null,
+          email_failure_reason: null,
+          resend_count: 0,
+        },
+      ],
+      email_outbox: [],
+      certificate_audit_log: [
+        {
+          certificate_id: "cert-corrected-download",
+          actor_role: "patient",
+          event_data: { certificate_storage_version: staleStorageVersion },
+          created_at: "2026-06-29T00:05:00Z",
+        },
+      ],
+    })
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never)
+
+    expect(overview.cases[0]?.recommendation.action).toBe("resend_secure_link")
+    expect(overview.cases[0]?.accessEvidence).toBe("none")
+  })
+
+  it("does not treat an exact-version staff download as patient delivery evidence", async () => {
+    const currentStoragePath = "certificates/downloaded/staff-viewed.pdf"
+    const currentStorageVersion = createHash("sha256")
+      .update(currentStoragePath)
+      .digest("hex")
+      .slice(0, 32)
+    const supabase = createRescueSupabaseStub({
+      intakes: [
+        {
+          id: baseEvidence.intakeId,
+          reference_number: baseEvidence.referenceNumber,
+          status: "approved",
+          document_sent_at: null,
+          created_at: "2026-06-29T00:00:00Z",
+          updated_at: "2026-06-29T00:06:00Z",
+          approved_at: "2026-06-29T00:01:00Z",
+          completed_at: null,
+        },
+      ],
+      issued_certificates: [
+        {
+          id: "cert-staff-download",
+          intake_id: baseEvidence.intakeId,
+          status: "valid",
+          storage_path: currentStoragePath,
+          created_at: "2026-06-29T00:02:00Z",
+          email_sent_at: null,
+          email_failed_at: null,
+          email_failure_reason: null,
+          resend_count: 0,
+        },
+      ],
+      email_outbox: [],
+      certificate_audit_log: [
+        {
+          certificate_id: "cert-staff-download",
+          actor_role: "doctor",
+          event_data: { certificate_storage_version: currentStorageVersion },
+          created_at: "2026-06-29T00:05:00Z",
+        },
+      ],
+    })
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never)
+
+    expect(overview.cases[0]?.recommendation.action).toBe("resend_secure_link")
+    expect(overview.cases[0]?.accessEvidence).toBe("none")
   })
 
   it("accepts manual reconciliation only for the current certificate storage version", async () => {

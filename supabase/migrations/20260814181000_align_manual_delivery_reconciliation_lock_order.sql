@@ -1,5 +1,5 @@
 -- Align the already-deployed manual-delivery reconciliation RPC with the
--- intake -> certificate row-lock order used by
+-- certificate -> intake row-lock order used by the latest deployed
 -- revoke_auto_issued_certificate(). The original migration's opposite order
 -- could deadlock if a legacy delivery attestation raced a certificate revoke.
 --
@@ -29,8 +29,8 @@ SET search_path = pg_catalog, public
 AS $function$
 DECLARE
   v_certificate record;
+  v_current_certificate record;
   v_intake record;
-  v_intake_id uuid;
   v_actor_role text;
   v_inserted_id uuid;
 BEGIN
@@ -44,32 +44,14 @@ BEGIN
     RETURN 'actor_not_authorized';
   END IF;
 
-  -- Resolve the immutable parent handle without a row lock, then take locks in
-  -- the same order as revoke_auto_issued_certificate(): intake, certificate.
-  SELECT certificate.intake_id
-    INTO v_intake_id
-    FROM public.issued_certificates AS certificate
-   WHERE certificate.id = p_certificate_id;
-
-  IF NOT FOUND THEN
-    RETURN 'certificate_not_found';
-  END IF;
-
-  SELECT intake.id, intake.category, intake.status
-    INTO v_intake
-    FROM public.intakes AS intake
-   WHERE intake.id = v_intake_id
-     FOR UPDATE;
-
-  IF NOT FOUND THEN
-    RETURN 'intake_not_found';
-  END IF;
-
+  -- Match the latest deployed revoke path: lock the exact certificate first,
+  -- then its intake, then re-read which certificate is current.
   SELECT
     certificate.id,
     certificate.intake_id,
     certificate.status,
     certificate.created_at,
+    certificate.storage_path,
     left(
       encode(extensions.digest(certificate.storage_path, 'sha256'), 'hex'),
       32
@@ -83,6 +65,16 @@ BEGIN
     RETURN 'certificate_not_found';
   END IF;
 
+  SELECT intake.id, intake.category, intake.status
+    INTO v_intake
+    FROM public.intakes AS intake
+   WHERE intake.id = v_certificate.intake_id
+     FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RETURN 'intake_not_found';
+  END IF;
+
   IF v_certificate.intake_id IS DISTINCT FROM v_intake.id THEN
     RETURN 'certificate_not_current_valid';
   END IF;
@@ -92,15 +84,22 @@ BEGIN
     RETURN 'intake_not_reconcilable';
   END IF;
 
-  IF v_certificate.status <> 'valid'
-     OR EXISTS (
-       SELECT 1
-       FROM public.issued_certificates AS newer
-       WHERE newer.intake_id = v_certificate.intake_id
-         AND newer.status = 'valid'
-         AND (newer.created_at, newer.id) >
-           (v_certificate.created_at, v_certificate.id)
-     ) THEN
+  SELECT certificate.id,
+         certificate.status,
+         certificate.storage_path,
+         certificate.created_at
+    INTO v_current_certificate
+    FROM public.issued_certificates AS certificate
+   WHERE certificate.intake_id = v_intake.id
+   ORDER BY certificate.created_at DESC, certificate.id DESC
+   LIMIT 1;
+
+  IF NOT FOUND
+     OR v_current_certificate.id IS DISTINCT FROM v_certificate.id
+     OR v_current_certificate.status <> 'valid'
+     OR v_current_certificate.storage_path IS DISTINCT FROM v_certificate.storage_path
+     OR v_certificate.status <> 'valid'
+     OR v_certificate.storage_version IS NULL THEN
     RETURN 'certificate_not_current_valid';
   END IF;
 
@@ -136,7 +135,7 @@ GRANT EXECUTE ON FUNCTION public.record_manual_certificate_delivery_reconciliati
   TO service_role;
 
 COMMENT ON FUNCTION public.record_manual_certificate_delivery_reconciliation(uuid, uuid) IS
-  'Records admin-attested legacy manual delivery for the exact current valid certificate using the shared intake-then-certificate correction lock order; never rewrites provider, intake delivery, or certificate-validity state';
+  'Records admin-attested legacy manual delivery for the exact current valid certificate using the shared certificate-then-intake correction lock order; never rewrites provider, intake delivery, or certificate-validity state';
 
 COMMENT ON CONSTRAINT certificate_delivery_reconciliations_recorded_by_fkey
   ON public.certificate_delivery_reconciliations IS

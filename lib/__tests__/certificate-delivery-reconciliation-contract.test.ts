@@ -69,21 +69,22 @@ describe("manual certificate delivery reconciliation contract", () => {
       '.select("id, intake_id, certificate_id, email_type, status, delivery_status, sent_at, created_at, metadata")',
     )
     expect(rescue).toContain("certEmailByCertificateVersion")
-    expect(rescue).toContain("certificateEmailVersionKey(cert?.id, currentStorageVersion)")
+    expect(rescue).toContain("certificateVersionKey(cert?.id, currentStorageVersion)")
   })
 
-  it("aligns reconciliation with the intake-then-certificate correction lock order", () => {
+  it("aligns reconciliation with the certificate-then-intake correction lock order", () => {
     const sql = readFileSync(LOCK_ORDER_MIGRATION_PATH, "utf8")
-    const intakeLock = sql.indexOf("SELECT intake.id, intake.category, intake.status")
     const certificateLock = sql.indexOf("certificate.status,\n    certificate.created_at")
+    const intakeLock = sql.indexOf("SELECT intake.id, intake.category, intake.status")
 
     expect(sql).toContain(
       "CREATE OR REPLACE FUNCTION public.record_manual_certificate_delivery_reconciliation",
     )
-    expect(intakeLock).toBeGreaterThan(-1)
-    expect(certificateLock).toBeGreaterThan(intakeLock)
+    expect(certificateLock).toBeGreaterThan(-1)
+    expect(intakeLock).toBeGreaterThan(certificateLock)
     expect(sql.match(/FOR UPDATE/g)?.length).toBe(2)
     expect(sql).toContain("v_certificate.intake_id IS DISTINCT FROM v_intake.id")
+    expect(sql).toContain("v_current_certificate.id IS DISTINCT FROM v_certificate.id")
     expect(sql).toContain("v_certificate.status <> 'valid'")
     expect(sql).toContain("ON CONFLICT (certificate_id, certificate_storage_version) DO NOTHING")
     expect(sql).not.toMatch(/UPDATE\s+(public\.)?(intakes|issued_certificates)/i)

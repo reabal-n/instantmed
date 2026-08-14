@@ -10,6 +10,7 @@
 
 import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 import { getApiAuth } from "@/lib/auth/helpers"
+import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
 import { createLogger } from "@/lib/observability/logger"
@@ -130,6 +131,9 @@ export async function GET(
       profile.id,
       "patient",
       {
+        certificate_storage_version: getEmployerCertificateStorageVersion(
+          certificate.storage_path,
+        ),
         file_size_bytes: pdfBuffer.byteLength,
         endpoint: "patient_documents_intake_download",
       },

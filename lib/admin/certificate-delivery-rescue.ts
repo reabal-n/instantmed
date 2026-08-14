@@ -109,14 +109,14 @@ function certificateStorageVersion(storagePath: string | null | undefined): stri
   return createHash("sha256").update(storagePath).digest("hex").slice(0, 32)
 }
 
-function emailCertificateStorageVersion(
+function metadataCertificateStorageVersion(
   metadata: Record<string, unknown> | null | undefined,
 ): string | null {
   const value = metadata?.certificate_storage_version
   return typeof value === "string" && /^[0-9a-f]{32}$/.test(value) ? value : null
 }
 
-function certificateEmailVersionKey(
+function certificateVersionKey(
   certificateId: string | null | undefined,
   storageVersion: string | null | undefined,
 ): string | null {
@@ -475,21 +475,36 @@ export async function getCertificateDeliveryRescueCases(
     const latestCertByIntake = latestBy(certRows, (row) => row.intake_id, (row) => row.created_at)
     const certIds = [...latestCertByIntake.values()].map((row) => row.id)
 
-    let latestDownloadByCertificate = new Map<string, { certificate_id: string; created_at: string | null }>()
+    let latestPatientDownloadByCertificateVersion = new Map<string, {
+      certificate_id: string
+      actor_role: string | null
+      event_data: Record<string, unknown> | null
+      created_at: string | null
+    }>()
     if (certIds.length > 0) {
       const { data: downloads, error: downloadsError } = await supabase
         .from("certificate_audit_log")
-        .select("certificate_id, created_at")
+        .select("certificate_id, actor_role, event_data, created_at")
         .in("certificate_id", certIds)
         .eq("event_type", "downloaded")
+        .eq("actor_role", "patient")
         .order("created_at", { ascending: false })
 
       if (downloadsError) {
         log.warn("Failed to load certificate download evidence", { error: downloadsError.message })
       } else {
-        latestDownloadByCertificate = latestBy(
-          (downloads ?? []) as Array<{ certificate_id: string; created_at: string | null }>,
-          (row) => row.certificate_id,
+        const patientDownloads = (downloads ?? []) as Array<{
+          certificate_id: string
+          actor_role: string | null
+          event_data: Record<string, unknown> | null
+          created_at: string | null
+        }>
+        latestPatientDownloadByCertificateVersion = latestBy(
+          patientDownloads.filter((row) => row.actor_role === "patient"),
+          (row) => certificateVersionKey(
+            row.certificate_id,
+            metadataCertificateStorageVersion(row.event_data),
+          ),
           (row) => row.created_at,
         )
       }
@@ -507,9 +522,9 @@ export async function getCertificateDeliveryRescueCases(
     }>
     const certEmailByCertificateVersion = latestBy(
       emailRows.filter((row) => row.email_type === "med_cert_patient"),
-      (row) => certificateEmailVersionKey(
+      (row) => certificateVersionKey(
         row.certificate_id,
-        emailCertificateStorageVersion(row.metadata),
+        metadataCertificateStorageVersion(row.metadata),
       ),
       (row) => row.created_at,
     )
@@ -523,9 +538,12 @@ export async function getCertificateDeliveryRescueCases(
       .map((intake) => {
         const cert = latestCertByIntake.get(intake.id)
         const receiptEmail = receiptEmailByIntake.get(intake.id)
-        const download = cert?.id ? latestDownloadByCertificate.get(cert.id) : null
         const currentStorageVersion = certificateStorageVersion(cert?.storage_path)
-        const certEmailKey = certificateEmailVersionKey(cert?.id, currentStorageVersion)
+        const certificateVersion = certificateVersionKey(cert?.id, currentStorageVersion)
+        const download = certificateVersion
+          ? latestPatientDownloadByCertificateVersion.get(certificateVersion)
+          : null
+        const certEmailKey = certificateVersion
         const certEmail = certEmailKey
           ? certEmailByCertificateVersion.get(certEmailKey)
           : undefined

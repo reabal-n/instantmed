@@ -58,8 +58,10 @@ describe("historical auto-issued review data boundary", () => {
 
   it("accepts only explicit RPC outcomes", () => {
     expect(parseHistoricalAutoIssuedReviewOpenOutcome("opened")).toBe("opened")
+    expect(parseHistoricalAutoIssuedReviewOpenOutcome("cohort_mismatch")).toBe("cohort_mismatch")
     expect(parseHistoricalAutoIssuedReviewOpenOutcome("unexpected")).toBe("unavailable")
     expect(parseHistoricalAutoIssuedReviewReceiptOutcome("recorded")).toBe("recorded")
+    expect(parseHistoricalAutoIssuedReviewReceiptOutcome("cohort_mismatch")).toBe("cohort_mismatch")
     expect(parseHistoricalAutoIssuedReviewReceiptOutcome("unexpected")).toBeNull()
   })
 

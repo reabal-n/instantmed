@@ -177,5 +177,8 @@ function historicalReviewUnavailableReason(
   if (outcome === "actor_not_authorized") {
     return "You are not authorised to record this historical review."
   }
+  if (outcome === "cohort_mismatch") {
+    return "This retrospective is paused because its fixed cohort changed. No outcome can be recorded."
+  }
   return "The contextual review-open receipt could not be recorded. Reload before choosing an outcome."
 }

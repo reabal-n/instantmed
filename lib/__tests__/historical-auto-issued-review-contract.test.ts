@@ -42,10 +42,31 @@ describe("fixed historical auto-issued review SQL contract", () => {
     expect(migration).toContain("coalesce(i.exclude_from_reporting, false) IS FALSE")
     expect(migration).toContain("latest_draft.content #>> '{flags,requiresReview}' = 'true'")
     expect(migration).toContain("draft.created_at <= i.ai_approved_at")
-    expect(migration).toContain("flag ->> 'code' = 'draft_review_flag'")
-    expect(migration).toContain("flag ->> 'source' = 'auto_approval'")
+    expect(migration).toContain("decision_audit.action = 'auto_approve'")
+    expect(migration).toContain("decision_audit.created_at <= i.ai_approved_at")
+    expect(migration).toContain("jsonb_array_elements_text")
+    expect(migration).toContain("audit_soft_flag.value LIKE 'draft_review_flag:%'")
+    expect(migration).toMatch(/draft_requires_review\s+OR\s+audit_requires_review/)
     expect(migration).toContain("coalesce(i.reference_number, '') !~* '^E2E-'")
+    expect(migration).toContain("historical_auto_issued_review_cohort_append_only")
+    expect(migration).not.toContain("jsonb_typeof(i.risk_flags)")
     expect(migration).not.toMatch(/WHERE\s+i\.id\s+IN\s*\(/i)
+  })
+
+  it("keeps an audit-only eligibility fixture in the derived snapshot", () => {
+    const auditOnlyFixture = {
+      draftRequiresReview: false,
+      auditSoftFlags: ["draft_review_flag: decision-time uncertainty"],
+    }
+
+    expect(auditOnlyFixture.draftRequiresReview).toBe(false)
+    expect(auditOnlyFixture.auditSoftFlags.some((flag) =>
+      flag.startsWith("draft_review_flag:"),
+    )).toBe(true)
+    expect(migration).toContain("latest_draft.content #>> '{flags,requiresReview}' = 'true' AS draft_requires_review")
+    expect(migration).toContain("AS audit_requires_review")
+    expect(migration).toContain("WHEN draft_requires_review AND audit_requires_review THEN 'draft_and_audit'")
+    expect(migration).toContain("WHEN audit_requires_review THEN 'ai_audit_soft_flag'")
   })
 
   it("keeps the lane and both mutations service-role only", () => {
@@ -60,7 +81,7 @@ describe("fixed historical auto-issued review SQL contract", () => {
       expect(migration).toContain(`REVOKE ALL ON FUNCTION public.${name}`)
       expect(migration).toContain(`GRANT EXECUTE ON FUNCTION public.${name}`)
     }
-    expect(migration.match(/SET search_path = pg_catalog, public/g)?.length).toBe(3)
+    expect(migration.match(/SET search_path = pg_catalog, public/g)?.length).toBe(4)
   })
 
   it("requires an active admin and a same-actor contextual open of the exact version", () => {
@@ -69,6 +90,8 @@ describe("fixed historical auto-issued review SQL contract", () => {
     for (const body of [open, receipt]) {
       expect(body).toContain("profile.auth_user_id IS NOT NULL")
       expect(body).toContain("v_actor_role IS DISTINCT FROM 'admin'")
+      expect(body).toContain("FROM public.v_historical_auto_issued_review_source")
+      expect(body).toContain("RETURN 'cohort_mismatch'")
     }
     expect(receipt).toContain("opened.actor_id = p_actor_id")
     expect(receipt).toContain("'historical_auto_issued_draft_review'")
@@ -77,14 +100,14 @@ describe("fixed historical auto-issued review SQL contract", () => {
     expect(receipt).toContain("RETURN 'case_not_opened'")
   })
 
-  it("serializes with revoke using intake then certificate locks and reasserts current state", () => {
+  it("serializes with revoke using certificate then intake locks and reasserts current state", () => {
     const receipt = functionBody("record_historical_auto_issued_no_correction")
-    const intakeLock = receipt.indexOf("SELECT intake.id, intake.status")
     const certificateLock = receipt.indexOf(
-      "SELECT certificate.id, certificate.status, certificate.storage_path",
+      "SELECT certificate.id,\n         certificate.intake_id,\n         certificate.status,\n         certificate.storage_path",
     )
-    expect(intakeLock).toBeGreaterThan(-1)
-    expect(certificateLock).toBeGreaterThan(intakeLock)
+    const intakeLock = receipt.indexOf("SELECT intake.id, intake.status")
+    expect(certificateLock).toBeGreaterThan(-1)
+    expect(intakeLock).toBeGreaterThan(certificateLock)
     expect(receipt.match(/FOR UPDATE/g)?.length).toBe(2)
     expect(receipt).toContain("v_source.current_certificate_id IS DISTINCT FROM")
     expect(receipt).toContain("v_source.current_certificate_storage_version IS DISTINCT FROM")
