@@ -6,9 +6,10 @@ import { handleAsyncPaymentSucceeded } from "./checkout-session-async-payment-su
 import { handleCheckoutSessionCompleted } from "./checkout-session-completed"
 import { handleCheckoutSessionExpired } from "./checkout-session-expired"
 import { handlePaymentIntentFailed } from "./payment-intent-payment-failed"
-import type { HandlerResult,WebhookContext } from "./types"
+import { handleRefundLifecycle } from "./refund-lifecycle"
+import type { HandlerResult, WebhookContext } from "./types"
 
-export type { HandlerResult,WebhookContext }
+export type { HandlerResult, WebhookContext }
 
 type WebhookHandler = (ctx: WebhookContext) => Promise<HandlerResult>
 
@@ -22,6 +23,9 @@ export const handlers: ReadonlyMap<string, WebhookHandler> = new Map([
   ["checkout.session.async_payment_succeeded", handleAsyncPaymentSucceeded],
   ["checkout.session.async_payment_failed", handleAsyncPaymentFailed],
   ["charge.refunded", handleChargeRefunded],
+  ["refund.created", handleRefundLifecycle],
+  ["refund.failed", handleRefundLifecycle],
+  ["refund.updated", handleRefundLifecycle],
   ["payment_intent.payment_failed", handlePaymentIntentFailed],
   ["charge.dispute.created", handleChargeDisputeCreated],
   ["charge.dispute.updated", handleChargeDisputeLifecycle],

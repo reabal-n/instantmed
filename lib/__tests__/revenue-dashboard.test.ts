@@ -132,6 +132,8 @@ describe("revenue dashboard read model", () => {
     const dashboard = await getRevenueDashboard(revenueDashboardClient([
       { data: [], error: null },
       { data: null, error: { message: "refund read unavailable" } },
+      { data: [{ conflicting_refund_count: 0, incomplete_intake_count: 0, unledgered_refund_cents: 0 }], error: null },
+      { data: [], error: null },
       { data: [], error: null },
       { data: [], error: null },
       { data: [], error: null },
@@ -149,6 +151,7 @@ describe("revenue dashboard read model", () => {
     const dashboard = await getRevenueDashboard(revenueDashboardClient([
       { data: [], error: null },
       { data: [], error: null },
+      { data: [{ conflicting_refund_count: 0, incomplete_intake_count: 0, unledgered_refund_cents: 0 }], error: null },
       { data: null, error: { message: "dispute ledger unavailable" } },
       { data: [], error: null },
       { data: [], error: null },
@@ -161,11 +164,78 @@ describe("revenue dashboard read model", () => {
     expect(REVENUE_PURCHASE_PAYMENT_STATUSES).toContain("disputed")
   })
 
+  it("fails revenue closed until cumulative refunds have exact Stripe evidence", async () => {
+    const dashboard = await getRevenueDashboard(revenueDashboardClient([
+      { data: [], error: null },
+      { data: [], error: null },
+      {
+        data: [{ conflicting_refund_count: 0, incomplete_intake_count: 1, unledgered_refund_cents: 2495 }],
+        error: null,
+      },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+    ]), NOW)
+
+    expect(dashboard.sourceAvailability.revenue).toBe("unavailable")
+  })
+
+  it("fails revenue closed when immutable observations conflict for one Refund id", async () => {
+    const dashboard = await getRevenueDashboard(revenueDashboardClient([
+      { data: [], error: null },
+      { data: [], error: null },
+      {
+        data: [{
+          conflicting_refund_count: 1,
+          incomplete_intake_count: 0,
+          unledgered_refund_cents: 0,
+        }],
+        error: null,
+      },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+    ]), NOW)
+
+    expect(dashboard.sourceAvailability.revenue).toBe("unavailable")
+  })
+
+  it("fails revenue closed when exact Stripe refunds cannot be linked to an intake", async () => {
+    const dashboard = await getRevenueDashboard(revenueDashboardClient([
+      { data: [], error: null },
+      {
+        data: [{
+          amount_cents: 995,
+          intake_id: null,
+          refund_created_at: "2026-06-18T01:00:00.000Z",
+          stripe_refund_id: "re_unlinked",
+        }],
+        error: null,
+      },
+      {
+        data: [{ conflicting_refund_count: 0, incomplete_intake_count: 0, unledgered_refund_cents: 0 }],
+        error: null,
+      },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+    ]), NOW)
+
+    expect(dashboard.sourceAvailability.revenue).toBe("unavailable")
+  })
+
   it("loads a reinstatement for an older dispute by either durable cash timestamp", async () => {
     const calls: QueryCall[] = []
     const dashboard = await getRevenueDashboard(revenueDashboardClient([
       { data: [], error: null },
       { data: [], error: null },
+      { data: [{ conflicting_refund_count: 0, incomplete_intake_count: 0, unledgered_refund_cents: 0 }], error: null },
       {
         data: [{
           amount: 4995,
@@ -201,6 +271,21 @@ describe("revenue dashboard read model", () => {
       args: [expect.stringContaining("funds_withdrawn_at.gte.")],
       method: "or",
       table: "stripe_disputes",
+    }))
+    expect(calls).toContainEqual({
+      args: ["livemode", true],
+      method: "eq",
+      table: "stripe_refund_cash_movements",
+    })
+    expect(calls).toContainEqual(expect.objectContaining({
+      args: [expect.stringContaining("refund_cash_at.gte.")],
+      method: "or",
+      table: "stripe_refund_cash_movements",
+    }))
+    expect(calls).not.toContainEqual(expect.objectContaining({
+      args: ["livemode", expect.anything()],
+      method: "eq",
+      table: "stripe_refund_ledger_health",
     }))
   })
 
@@ -330,6 +415,93 @@ describe("revenue dashboard read model", () => {
       grossCents: 4995,
       netCents: 4000,
     })
+  })
+
+  it("assigns an exact refund top-up to its own window across headline and service mix", () => {
+    const dashboard = buildRevenueDashboard({
+      now: NOW,
+      paidRows: [
+        paidRow({
+          id: "topup-medcert",
+          paid_at: "2026-05-01T01:00:00.000Z",
+        }),
+      ],
+      refundRows: [
+        {
+          category: "medical_certificate",
+          id: "topup-medcert",
+          amount_cents: 4995,
+          refund_amount_cents: 995,
+          refund_status: "succeeded",
+          refunded_at: "2026-05-10T01:00:00.000Z",
+          stripe_refund_id: "re_partial",
+          subtype: null,
+        },
+        {
+          category: "medical_certificate",
+          id: "topup-medcert",
+          amount_cents: 4995,
+          refund_amount_cents: 4000,
+          refund_status: "succeeded",
+          refunded_at: "2026-06-17T01:00:00.000Z",
+          stripe_refund_id: "re_topup",
+          subtype: null,
+        },
+      ],
+      createdRows: [],
+      checkoutRows: [],
+      partialDraftRows: [],
+      refundStats: { eligible: 0, failed: 0, totalRefunded: 4995 },
+    })
+
+    expect(dashboard.windows.find((window) => window.key === "last30Days")).toMatchObject({
+      grossCents: 0,
+      netCents: -4000,
+      refundCents: 4000,
+    })
+    expect(dashboard.serviceMix).toEqual([
+      expect.objectContaining({
+        grossCents: 0,
+        label: "Medical certificates",
+        netCents: -4000,
+      }),
+    ])
+    expect(dashboard.refundWork.totalRefunded30dCents).toBe(4000)
+  })
+
+  it("restores a failed refund at reversal time across headline, daily, and service mix", () => {
+    const dashboard = buildRevenueDashboard({
+      now: NOW,
+      paidRows: [paidRow({ id: "failed-refund", paid_at: "2026-05-01T01:00:00.000Z" })],
+      refundRows: [{
+        category: "medical_certificate",
+        id: "failed-refund",
+        amount_cents: 4995,
+        refund_amount_cents: 995,
+        refund_reversed_at: "2026-06-18T01:30:00.000Z",
+        refund_status: "failed",
+        refunded_at: "2026-05-10T01:00:00.000Z",
+        stripe_refund_id: "re_failed",
+        subtype: null,
+      }],
+      createdRows: [],
+      checkoutRows: [],
+      partialDraftRows: [],
+      refundStats: { eligible: 0, failed: 1, totalRefunded: 0 },
+    })
+
+    expect(dashboard.windows.find((window) => window.key === "today")).toMatchObject({
+      netCents: 995,
+      refundCents: -995,
+    })
+    expect(dashboard.daily.at(-1)).toMatchObject({
+      netCents: 995,
+      refundCents: -995,
+    })
+    expect(dashboard.serviceMix).toEqual([
+      expect.objectContaining({ label: "Medical certificates", netCents: 995 }),
+    ])
+    expect(dashboard.refundWork.totalRefunded30dCents).toBe(0)
   })
 
   it("timestamps a dispute cash withdrawal and caps the combined loss at the order amount", () => {
@@ -540,8 +712,20 @@ describe("revenue dashboard read model", () => {
         }),
       ],
       refundRows: [
-        refundRow({ refund_amount_cents: 3_000, refunded_at: "2026-05-12T01:00:00.000Z" }),
-        refundRow({ refund_amount_cents: 2_495, refunded_at: "2026-06-17T01:00:00.000Z" }),
+        refundRow({
+          id: "prior-window-ed",
+          amount_cents: 5_000,
+          refund_amount_cents: 3_000,
+          refunded_at: "2026-05-12T01:00:00.000Z",
+          stripe_refund_id: "re_prior_window",
+        }),
+        refundRow({
+          id: "current-window",
+          amount_cents: 10_000,
+          refund_amount_cents: 2_495,
+          refunded_at: "2026-06-17T01:00:00.000Z",
+          stripe_refund_id: "re_current_window",
+        }),
       ],
       createdRows: [],
       checkoutRows: [],

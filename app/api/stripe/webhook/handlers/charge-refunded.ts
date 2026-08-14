@@ -5,9 +5,14 @@ import { runGoogleAdsConversionAdjustment } from "@/lib/analytics/google-ads-con
 import { sendRefundEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
+import {
+  persistStripeRefundEventEvidence,
+  reconcilePersistedStripeRefundState,
+  reportStripeRefundEvidenceFailure,
+} from "@/lib/stripe/refund-event-persistence"
 
 import type { HandlerResult, WebhookContext } from "./types"
-import { tryClaimEvent } from "./utils"
+import { addToDeadLetterQueue, tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:charge-refunded")
 
@@ -25,14 +30,37 @@ function greetingFirstName(name: string | null | undefined): string {
   return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase()
 }
 
-function latestRefundFromCharge(charge: Stripe.Charge): Stripe.Refund | null {
-  const refunds = charge.refunds?.data ?? []
-  if (!refunds.length) return null
+function latestRefund(refunds: Stripe.Refund[]): Stripe.Refund | null {
+  const cashRefunds = refunds.filter((refund) =>
+    refund.status === "succeeded" &&
+    !refund.failure_balance_transaction &&
+    typeof refund.balance_transaction === "object" &&
+    refund.balance_transaction?.object === "balance_transaction",
+  )
+  if (!cashRefunds.length) return null
 
-  return refunds.reduce((latest, refund) => {
+  return cashRefunds.reduce((latest, refund) => {
     if (!latest) return refund
-    return (refund.created ?? 0) > (latest.created ?? 0) ? refund : latest
+    return refundCashEpochSeconds(refund) > refundCashEpochSeconds(latest)
+      ? refund
+      : latest
   }, null as Stripe.Refund | null)
+}
+
+function refundCashEpochSeconds(refund: Stripe.Refund): number {
+  return typeof refund.balance_transaction === "object"
+    ? refund.balance_transaction?.created ?? 0
+    : 0
+}
+
+function outstandingRefundCents(refunds: Stripe.Refund[]): number {
+  return refunds.reduce((sum, refund) =>
+    refund.status === "succeeded" &&
+    !refund.failure_balance_transaction &&
+    refundCashEpochSeconds(refund) > 0
+      ? sum + refund.amount
+      : sum,
+  0)
 }
 
 export async function handleChargeRefunded(ctx: WebhookContext): Promise<HandlerResult> {
@@ -49,6 +77,69 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
     amountRefunded: charge.amount_refunded,
   })
 
+  const evidence = await persistStripeRefundEventEvidence(ctx)
+  if (evidence.error) {
+    reportStripeRefundEvidenceFailure(ctx.event, evidence.error)
+    if (!ctx.adminReplay) {
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        charge.id,
+        evidence.intakeId,
+        evidence.error,
+        "REFUND_EVIDENCE_UNAVAILABLE",
+        event as unknown as Record<string, unknown>,
+      )
+    }
+    return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
+  }
+
+  const latest = latestRefund(evidence.refunds)
+  if (
+    !latest ||
+    outstandingRefundCents(evidence.refunds) !== charge.amount_refunded
+  ) {
+    const error = "Stripe refund objects do not reconcile to the charge refund total"
+    reportStripeRefundEvidenceFailure(ctx.event, error)
+    if (!ctx.adminReplay) {
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        charge.id,
+        evidence.intakeId,
+        error,
+        "REFUND_CHARGE_TOTAL_MISMATCH",
+        event as unknown as Record<string, unknown>,
+      )
+    }
+    return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
+  }
+
+  const reconciliationError = await reconcilePersistedStripeRefundState({
+    intakeId: evidence.intakeId,
+    livemode: event.livemode,
+    refunds: evidence.refunds,
+    supabase,
+  })
+  if (reconciliationError) {
+    reportStripeRefundEvidenceFailure(ctx.event, reconciliationError)
+    if (!ctx.adminReplay) {
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        charge.id,
+        evidence.intakeId,
+        reconciliationError,
+        "REFUND_STATE_RECONCILIATION_FAILED",
+        event as unknown as Record<string, unknown>,
+      )
+    }
+    return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
+  }
+
   const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, undefined, charge.id)
   if (!shouldProcess) {
     return NextResponse.json({ received: true, skipped: true })
@@ -58,11 +149,8 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
     // Update intake payment_status based on refund
     const isFullRefund = charge.amount_refunded === charge.amount
     const timestamp = new Date().toISOString()
-    const latestRefund = latestRefundFromCharge(charge)
-    const refundedAt = latestRefund?.created
-      ? new Date(latestRefund.created * 1000).toISOString()
-      : timestamp
-    const refundStripeId = latestRefund?.id ?? null
+    const refundedAt = new Date(refundCashEpochSeconds(latest) * 1000).toISOString()
+    const refundStripeId = latest.id
     // Record the amount actually refunded, clamped to the charge as a safe floor
     // against malformed Stripe payloads. intakes.amount_cents is reconciled to
     // session.amount_total on the paid transition (see checkout-session-completed.ts),

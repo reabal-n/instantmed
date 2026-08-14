@@ -61,7 +61,9 @@ type RefundRevenueRow = {
   amount_cents: number | null
   refund_amount_cents: number | null
   refund_status: string | null
+  refund_reversed_at?: string | null
   refunded_at: string | null
+  stripe_refund_id?: string | null
   subtype?: string | null
 }
 
@@ -89,6 +91,27 @@ type StripeDisputeReadRow = {
   funds_withdrawn_cents: number | null
   intake: LinkedDisputeIntakeRow | LinkedDisputeIntakeRow[] | null
   intake_id: string | null
+}
+
+type StripeRefundMovementReadRow = {
+  amount_cents: number | null
+  category: string | null
+  exclude_from_reporting: boolean | null
+  intake_id: string | null
+  livemode: boolean
+  order_amount_cents: number | null
+  patient_id: string | null
+  refund_cash_at: string | null
+  refund_created_at: string | null
+  refund_reversed_at: string | null
+  stripe_refund_id: string
+  subtype: string | null
+}
+
+type StripeRefundLedgerHealthRow = {
+  conflicting_refund_count: number | string | null
+  incomplete_intake_count: number | string | null
+  unledgered_refund_cents: number | string | null
 }
 
 type TimedRow = {
@@ -297,11 +320,19 @@ export async function getRevenueDashboard(
       .not("paid_at", "is", null)
       .gte("paid_at", fetchSince)
       .order("paid_at", { ascending: false })),
-    filterReportableIntakes(supabase
-      .from("intakes")
-      .select("id, amount_cents, category, subtype, refund_amount_cents, refund_status, refunded_at")
-      .not("refunded_at", "is", null)
-      .gte("refunded_at", fetchSince)),
+    supabase
+      .from("stripe_refund_cash_movements")
+      .select("stripe_refund_id, intake_id, amount_cents, refund_created_at, refund_cash_at, refund_reversed_at, livemode, order_amount_cents, category, subtype, exclude_from_reporting, patient_id")
+      .eq("currency", "aud")
+      .eq("livemode", true)
+      .or(
+        `and(refund_cash_at.gte.${fetchSince},refund_cash_at.lte.${nowIso}),` +
+        `and(refund_reversed_at.gte.${fetchSince},refund_reversed_at.lte.${nowIso})`,
+      ),
+    supabase
+      .from("stripe_refund_ledger_health")
+      .select("conflicting_refund_count, incomplete_intake_count, unledgered_refund_cents")
+      .single(),
     supabase
       .from("stripe_disputes")
       .select("intake_id, funds_withdrawn_at, funds_withdrawn_cents, funds_reinstated_at, funds_reinstated_cents, intake:intakes(id, amount_cents, category, subtype, refund_amount_cents, refund_status, refunded_at, exclude_from_reporting, patient_id)")
@@ -334,13 +365,26 @@ export async function getRevenueDashboard(
 
   const paidResult = results[0].status === "fulfilled" ? results[0].value : null
   const refundResult = results[1].status === "fulfilled" ? results[1].value : null
-  const disputeResult = results[2].status === "fulfilled" ? results[2].value : null
-  const createdResult = results[3].status === "fulfilled" ? results[3].value : null
-  const checkoutResult = results[4].status === "fulfilled" ? results[4].value : null
-  const partialDraftResult = results[5].status === "fulfilled" ? results[5].value : null
-  const refundStatsRead = results[6].status === "fulfilled" ? results[6].value : null
+  const refundLedgerHealthResult = results[2].status === "fulfilled" ? results[2].value : null
+  const disputeResult = results[3].status === "fulfilled" ? results[3].value : null
+  const createdResult = results[4].status === "fulfilled" ? results[4].value : null
+  const checkoutResult = results[5].status === "fulfilled" ? results[5].value : null
+  const partialDraftResult = results[6].status === "fulfilled" ? results[6].value : null
+  const refundStatsRead = results[7].status === "fulfilled" ? results[7].value : null
   const paidRowsAvailable = paidResult !== null && !paidResult.error
-  const refundRowsAvailable = refundResult !== null && !refundResult.error
+  const refundMovementRows = refundResult && !refundResult.error
+    ? ((refundResult.data ?? []) as StripeRefundMovementReadRow[])
+    : []
+  const refundLedgerHealth = normalizeRefundLedgerHealth(refundLedgerHealthResult?.data)
+  const refundRowsAvailable =
+    refundResult !== null &&
+    !refundResult.error &&
+    refundMovementRows.every(hasCompleteRefundMovementEvidence) &&
+    refundLedgerHealthResult !== null &&
+    !refundLedgerHealthResult.error &&
+    refundLedgerHealth.conflictingRefundCount === 0 &&
+    refundLedgerHealth.incompleteIntakeCount === 0 &&
+    refundLedgerHealth.unledgeredRefundCents === 0
   const disputeRowsAvailable = disputeResult !== null && !disputeResult.error
   const createdRowsAvailable = createdResult !== null && !createdResult.error
   const checkoutRowsAvailable = checkoutResult !== null && !checkoutResult.error
@@ -349,14 +393,11 @@ export async function getRevenueDashboard(
   const paidRows = paidRowsAvailable
     ? ((paidResult.data ?? []) as PaidRevenueRow[])
     : []
-  const directRefundRows = refundRowsAvailable
-    ? ((refundResult.data ?? []) as RefundRevenueRow[])
-    : []
+  const refundRows = normalizeRefundMovementRows(refundMovementRows)
   const disputeReadRows = disputeRowsAvailable
     ? ((disputeResult.data ?? []) as StripeDisputeReadRow[])
     : []
-  const { disputeRows, linkedRefundRows } = normalizeDisputeRows(disputeReadRows)
-  const refundRows = mergeRefundRows(directRefundRows, linkedRefundRows)
+  const disputeRows = normalizeDisputeRows(disputeReadRows, refundRows)
   const createdRows = createdRowsAvailable
     ? ((createdResult.data ?? []) as TimedRow[])
     : []
@@ -392,14 +433,89 @@ export async function getRevenueDashboard(
   })
 }
 
-function normalizeDisputeRows(rows: StripeDisputeReadRow[]): {
-  disputeRows: DisputeRevenueRow[]
-  linkedRefundRows: RefundRevenueRow[]
-} {
+function normalizeRefundMovementRows(
+  rows: StripeRefundMovementReadRow[],
+): RefundRevenueRow[] {
   const includeSeeded = shouldIncludeSeededE2EData()
   const seededPatientIds = new Set<string>(SEEDED_E2E_PATIENT_PROFILE_IDS)
+  return rows.flatMap((row) => {
+    if (
+      !row.intake_id ||
+      row.exclude_from_reporting === true ||
+      (!includeSeeded && row.patient_id && seededPatientIds.has(row.patient_id))
+    ) {
+      return []
+    }
+    return [{
+      amount_cents: row.order_amount_cents,
+      category: row.category,
+      id: row.intake_id,
+      refund_amount_cents: row.amount_cents,
+      refund_status: "succeeded",
+      refunded_at: row.refund_cash_at,
+      refund_reversed_at: row.refund_reversed_at,
+      stripe_refund_id: row.stripe_refund_id,
+      subtype: row.subtype,
+    }]
+  })
+}
+
+function hasCompleteRefundMovementEvidence(row: StripeRefundMovementReadRow): boolean {
+  return Boolean(
+    row.intake_id &&
+    row.stripe_refund_id &&
+    row.refund_cash_at &&
+    Number.isFinite(Date.parse(row.refund_cash_at)) &&
+    (
+      row.refund_reversed_at === null ||
+      (
+        Number.isFinite(Date.parse(row.refund_reversed_at)) &&
+        Date.parse(row.refund_reversed_at) >= Date.parse(row.refund_cash_at)
+      )
+    ) &&
+    Number.isInteger(row.amount_cents) &&
+    Number(row.amount_cents) > 0,
+  )
+}
+
+function normalizeRefundLedgerHealth(data: unknown): {
+  conflictingRefundCount: number
+  incompleteIntakeCount: number
+  unledgeredRefundCents: number
+} {
+  const value = Array.isArray(data) ? data[0] : data
+  const row = value as StripeRefundLedgerHealthRow | null | undefined
+  const conflictingRefundCount = Number(row?.conflicting_refund_count)
+  const incompleteIntakeCount = Number(row?.incomplete_intake_count)
+  const unledgeredRefundCents = Number(row?.unledgered_refund_cents)
+  return {
+    conflictingRefundCount: Number.isFinite(conflictingRefundCount)
+      ? conflictingRefundCount
+      : Number.POSITIVE_INFINITY,
+    incompleteIntakeCount: Number.isFinite(incompleteIntakeCount)
+      ? incompleteIntakeCount
+      : Number.POSITIVE_INFINITY,
+    unledgeredRefundCents: Number.isFinite(unledgeredRefundCents)
+      ? unledgeredRefundCents
+      : Number.POSITIVE_INFINITY,
+  }
+}
+
+function normalizeDisputeRows(
+  rows: StripeDisputeReadRow[],
+  refundRows: RefundRevenueRow[],
+): DisputeRevenueRow[] {
+  const includeSeeded = shouldIncludeSeededE2EData()
+  const seededPatientIds = new Set<string>(SEEDED_E2E_PATIENT_PROFILE_IDS)
+  const currentRefundCentsByIntake = new Map<string, number>()
+  for (const row of refundRows) {
+    if (!row.id) continue
+    currentRefundCentsByIntake.set(
+      row.id,
+      (currentRefundCentsByIntake.get(row.id) ?? 0) + getRecordedRefundCents(row),
+    )
+  }
   const disputeRows: DisputeRevenueRow[] = []
-  const linkedRefundRows: RefundRevenueRow[] = []
 
   for (const row of rows) {
     const intake = Array.isArray(row.intake) ? (row.intake[0] ?? null) : row.intake
@@ -418,38 +534,16 @@ function normalizeDisputeRows(rows: StripeDisputeReadRow[]): {
       funds_withdrawn_at: row.funds_withdrawn_at,
       funds_withdrawn_cents: row.funds_withdrawn_cents,
       order_amount_cents: intake?.amount_cents ?? null,
+      prior_refund_cents: Math.max(
+        Number(intake?.refund_amount_cents ?? 0) -
+          (row.intake_id ? currentRefundCentsByIntake.get(row.intake_id) ?? 0 : 0),
+        0,
+      ),
       subtype: intake?.subtype ?? null,
     })
-    if (intake?.refunded_at) {
-      linkedRefundRows.push({
-        id: intake.id,
-        amount_cents: intake.amount_cents,
-        category: intake.category,
-        refund_amount_cents: intake.refund_amount_cents,
-        refund_status: intake.refund_status,
-        refunded_at: intake.refunded_at,
-        subtype: intake.subtype,
-      })
-    }
   }
 
-  return { disputeRows, linkedRefundRows }
-}
-
-function mergeRefundRows(
-  directRows: RefundRevenueRow[],
-  linkedRows: RefundRevenueRow[],
-): RefundRevenueRow[] {
-  const byIntake = new Map<string, RefundRevenueRow>()
-  const unlinked: RefundRevenueRow[] = []
-  // The direct intake read is authoritative when both reads contain the same
-  // row. Linked snapshots only fill the pre-horizon refund needed to cap a
-  // later dispute without reading the entire historical intake table.
-  for (const row of [...linkedRows, ...directRows]) {
-    if (row.id) byIntake.set(row.id, row)
-    else unlinked.push(row)
-  }
-  return [...byIntake.values(), ...unlinked]
+  return disputeRows
 }
 
 export type RevenueWindowBounds = {
@@ -492,7 +586,6 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
   // The raw arrays span the 60-day fetch horizon; every consumer below must
   // re-scope to its own window so widening the fetch never widens a readout.
   const last30PaidRows = input.paidRows.filter((row) => isAtOrAfter(row.paid_at, last30DaysStart))
-  const last30RefundRows = input.refundRows.filter((row) => isAtOrAfter(row.refunded_at, last30DaysStart))
 
   const windows: RevenueDashboardWindow[] = [
     buildRevenueWindow(
@@ -566,7 +659,12 @@ export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDash
       eligibleRefunds: input.refundStats.eligible,
       failedRefunds: input.refundStats.failed,
       openRefundWork: input.refundStats.eligible + input.refundStats.failed,
-      totalRefunded30dCents: sumRefunds(last30RefundRows),
+      totalRefunded30dCents: sumRefundMovements(
+        input.paidRows,
+        input.refundRows,
+        last30DaysStart,
+        input.now,
+      ),
     },
     windows,
     trendPeriods: buildTrendPeriods(input.paidRows, input.refundRows, input.now, disputeRows),
@@ -666,6 +764,9 @@ function buildDailyRevenue(
     if (row.type === "refund") {
       bucket.refundCents += row.cents
       bucket.netCents -= row.cents
+    } else if (row.type === "refund_reversal") {
+      bucket.refundCents -= row.cents
+      bucket.netCents += row.cents
     } else if (row.type === "dispute") {
       bucket.disputeCents += row.cents
       bucket.netCents -= row.cents
@@ -948,7 +1049,10 @@ function buildServiceMix(
       orderCount: 0,
       shareOfGross: 0,
     }
-    const signedCents = deduction.type === "dispute_reinstatement"
+    const signedCents = (
+      deduction.type === "refund_reversal" ||
+      deduction.type === "dispute_reinstatement"
+    )
       ? deduction.cents
       : -deduction.cents
     current.netCents += signedCents
@@ -1054,11 +1158,21 @@ function sumAmounts(rows: PaidRevenueRow[]): number {
   return rows.reduce((sum, row) => sum + Number(row.amount_cents ?? 0), 0)
 }
 
-function sumRefunds(rows: RefundRevenueRow[]): number {
-  return rows.reduce(
-    (sum, row) => sum + getRecordedRefundCents(row),
-    0,
-  )
+function sumRefundMovements(
+  paidRows: PaidRevenueRow[],
+  refundRows: RefundRevenueRow[],
+  since: Date,
+  until: Date,
+): number {
+  return Math.max(0, buildNetRetainedDeductions({ paidRows, refundRows, disputeRows: [] })
+    .filter((row) =>
+      (row.type === "refund" || row.type === "refund_reversal") &&
+      isWithinRange(row.occurredAt, since, until),
+    )
+    .reduce(
+      (sum, row) => sum + (row.type === "refund_reversal" ? -row.cents : row.cents),
+      0,
+    ))
 }
 
 function serviceLabel(category: string | null, subtype: string | null): string {

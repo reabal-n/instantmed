@@ -9,7 +9,9 @@ export type NetRetainedRefundRow = {
   amount_cents?: number | null
   refund_amount_cents: number | null
   refund_status: string | null
+  refund_reversed_at?: string | null
   refunded_at: string | null
+  stripe_refund_id?: string | null
 }
 
 export type NetRetainedDisputeRow = {
@@ -19,6 +21,7 @@ export type NetRetainedDisputeRow = {
   funds_withdrawn_at: string | null
   funds_withdrawn_cents: number | null
   order_amount_cents: number | null
+  prior_refund_cents?: number | null
 }
 
 type RecordedRefundRow = {
@@ -39,19 +42,19 @@ export type NetRetainedDeduction = {
   cents: number
   intakeId: string | null
   occurredAt: string
-  type: "refund" | "dispute" | "dispute_reinstatement"
+  type: "refund" | "refund_reversal" | "dispute" | "dispute_reinstatement"
 }
 
 /**
  * Canonical value for an operator reporting window.
  *
- * Purchases enter by `paid_at`; refunds leave by `refunded_at`; dispute losses
- * leave and return only when Stripe reports durable balance withdrawal and
- * reinstatement events. A failed retry with no recorded cash movement does not
- * reduce retained revenue, but its latest status must not erase an amount and
- * timestamp recorded by an earlier successful attempt. Refund and dispute
- * losses for the same intake are capped at the captured order amount so one
- * order cannot be deducted twice. Inclusive bounds mirror the Supabase reads.
+ * Purchases enter by `paid_at`; exact refund rows leave and return by their
+ * Stripe balance-transaction times (the initial time is carried in the
+ * legacy-named `refunded_at` field). Dispute losses likewise leave and return
+ * only when Stripe reports durable balance withdrawal and reinstatement events.
+ * Refund and dispute losses for the same intake are capped at the captured
+ * order amount so one order cannot be deducted twice. Inclusive bounds mirror
+ * the Supabase reads.
  */
 export function buildNetRetainedPurchaseValue(input: {
   paidRows: NetRetainedPurchaseRow[]
@@ -73,7 +76,11 @@ export function buildNetRetainedPurchaseValue(input: {
     disputeRows: input.disputeRows ?? [],
   }).filter((row) => isWithinWindow(row.occurredAt, input.since, input.until))
   const refundCents = deductions.reduce(
-    (sum, row) => sum + (row.type === "refund" ? row.cents : 0),
+    (sum, row) => {
+      if (row.type === "refund") return sum + row.cents
+      if (row.type === "refund_reversal") return sum - row.cents
+      return sum
+    },
     0,
   )
   const disputeCents = deductions.reduce(
@@ -98,12 +105,13 @@ export function buildNetRetainedPurchaseValue(input: {
 }
 
 /**
- * Convert the durable refund/dispute snapshots into incremental cash-loss
- * events. Intake refund amounts are cumulative, so repeated snapshots take the
- * highest recorded level. Stripe dispute withdrawals are additive and
- * reinstatements reverse only a previously recorded dispute loss. The combined
- * loss remains capped at the captured order amount when the intake link is
- * known.
+ * Convert exact Stripe refund observations plus durable dispute snapshots into
+ * incremental cash-loss events. Legacy intake refund amounts are cumulative,
+ * so repeated rows without a Stripe refund identity take the highest recorded
+ * level; identified Stripe refunds are independent movements. Stripe dispute
+ * withdrawals are additive and reinstatements reverse only a previously
+ * recorded dispute loss. The combined loss remains capped at the captured
+ * order amount when the intake link is known.
  */
 export function buildNetRetainedDeductions(input: {
   paidRows: NetRetainedPurchaseRow[]
@@ -113,6 +121,7 @@ export function buildNetRetainedDeductions(input: {
   type LossEvent = {
     amountCents: number
     intakeId: string | null
+    isIncrementalRefund: boolean
     key: string
     occurredAt: string
     orderAmountCents: number | null
@@ -133,14 +142,20 @@ export function buildNetRetainedDeductions(input: {
   }
 
   const events: LossEvent[] = []
+  const exactRefundIds = new Set<string>()
   input.refundRows.forEach((row, index) => {
     const amountCents = getRecordedRefundCents(row)
     const timestamp = parseTimestamp(row.refunded_at)
     if (amountCents === 0 || timestamp === null || !row.refunded_at) return
+    if (row.stripe_refund_id) {
+      if (exactRefundIds.has(row.stripe_refund_id)) return
+      exactRefundIds.add(row.stripe_refund_id)
+    }
     const key = row.id ?? `unlinked-refund:${index}`
     events.push({
       amountCents,
       intakeId: row.id ?? null,
+      isIncrementalRefund: Boolean(row.stripe_refund_id),
       key,
       occurredAt: row.refunded_at,
       orderAmountCents: orderAmounts.get(key) ?? null,
@@ -148,6 +163,20 @@ export function buildNetRetainedDeductions(input: {
       timestamp,
       type: "refund",
     })
+    const reversalTimestamp = parseTimestamp(row.refund_reversed_at)
+    if (reversalTimestamp !== null && row.refund_reversed_at) {
+      events.push({
+        amountCents,
+        intakeId: row.id ?? null,
+        isIncrementalRefund: true,
+        key,
+        occurredAt: row.refund_reversed_at,
+        orderAmountCents: orderAmounts.get(key) ?? null,
+        sequence: input.refundRows.length + index,
+        timestamp: reversalTimestamp,
+        type: "refund_reversal",
+      })
+    }
   })
   input.disputeRows.forEach((row, index) => {
     const key = row.intake_id ?? `unlinked-dispute:${index}`
@@ -157,6 +186,7 @@ export function buildNetRetainedDeductions(input: {
       events.push({
         amountCents: withdrawalCents,
         intakeId: row.intake_id,
+        isIncrementalRefund: false,
         key,
         occurredAt: row.funds_withdrawn_at,
         orderAmountCents: orderAmounts.get(key) ?? null,
@@ -172,6 +202,7 @@ export function buildNetRetainedDeductions(input: {
       events.push({
         amountCents: reinstatementCents,
         intakeId: row.intake_id,
+        isIncrementalRefund: false,
         key,
         occurredAt: row.funds_reinstated_at,
         orderAmountCents: orderAmounts.get(key) ?? null,
@@ -184,7 +215,8 @@ export function buildNetRetainedDeductions(input: {
   const eventPriority: Record<NetRetainedDeduction["type"], number> = {
     refund: 0,
     dispute: 1,
-    dispute_reinstatement: 2,
+    refund_reversal: 2,
+    dispute_reinstatement: 3,
   }
   events.sort((left, right) =>
     left.timestamp - right.timestamp ||
@@ -197,7 +229,27 @@ export function buildNetRetainedDeductions(input: {
     disputeReinstatedCents: number
     deductedCents: number
     refundCents: number
+    refundReversedCents: number
   }>()
+  for (const row of input.disputeRows) {
+    if (!row.intake_id) continue
+    const priorRefundCents = positiveCents(row.prior_refund_cents)
+    if (priorRefundCents === 0) continue
+    const orderAmountCents = orderAmounts.get(row.intake_id) ?? null
+    const baselineCents = orderAmountCents === null
+      ? priorRefundCents
+      : Math.min(priorRefundCents, orderAmountCents)
+    const current = lossByIntake.get(row.intake_id)
+    if (!current || baselineCents > current.refundCents) {
+      lossByIntake.set(row.intake_id, {
+        disputeCents: 0,
+        disputeReinstatedCents: 0,
+        deductedCents: baselineCents,
+        refundCents: baselineCents,
+        refundReversedCents: 0,
+      })
+    }
+  }
   const deductions: NetRetainedDeduction[] = []
 
   for (const event of events) {
@@ -206,9 +258,14 @@ export function buildNetRetainedDeductions(input: {
       disputeReinstatedCents: 0,
       deductedCents: 0,
       refundCents: 0,
+      refundReversedCents: 0,
     }
     if (event.type === "refund") {
-      state.refundCents = Math.max(state.refundCents, event.amountCents)
+      state.refundCents = event.isIncrementalRefund
+        ? state.refundCents + event.amountCents
+        : Math.max(state.refundCents, event.amountCents)
+    } else if (event.type === "refund_reversal") {
+      state.refundReversedCents += event.amountCents
     } else if (event.type === "dispute") {
       state.disputeCents += event.amountCents
     } else {
@@ -219,7 +276,11 @@ export function buildNetRetainedDeductions(input: {
       state.disputeCents - state.disputeReinstatedCents,
       0,
     )
-    const uncappedLoss = state.refundCents + outstandingDisputeCents
+    const outstandingRefundCents = Math.max(
+      state.refundCents - state.refundReversedCents,
+      0,
+    )
+    const uncappedLoss = outstandingRefundCents + outstandingDisputeCents
     const totalLoss = event.orderAmountCents === null
       ? uncappedLoss
       : Math.min(uncappedLoss, event.orderAmountCents)
@@ -234,12 +295,15 @@ export function buildNetRetainedDeductions(input: {
         occurredAt: event.occurredAt,
         type: event.type,
       })
-    } else if (incrementalCents < 0 && event.type === "dispute_reinstatement") {
+    } else if (
+      incrementalCents < 0 &&
+      (event.type === "refund_reversal" || event.type === "dispute_reinstatement")
+    ) {
       deductions.push({
         cents: Math.abs(incrementalCents),
         intakeId: event.intakeId,
         occurredAt: event.occurredAt,
-        type: "dispute_reinstatement",
+        type: event.type,
       })
     }
   }

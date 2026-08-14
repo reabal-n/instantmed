@@ -77,6 +77,7 @@
     "medcert:readiness": "bash scripts/check-medcert-readiness.sh",
     "medcert:readiness:e2e": "MEDCERT_READINESS_STATIC=0 bash scripts/check-medcert-readiness.sh",
     "smoke:stripe": "npx tsx scripts/stripe-smoke-test.ts",
+    "stripe:refund-ledger:backfill": "tsx scripts/backfill-stripe-refund-events.ts",
     "keys:rotate": "npx tsx scripts/rotate-keys.ts",
     "test:templates": "npx tsx scripts/test-all-templates.ts",
     "seo:gsc-index-audit": "node tools/gsc-mcp-server/gsc-index-audit.mjs",

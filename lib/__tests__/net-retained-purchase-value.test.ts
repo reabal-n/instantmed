@@ -79,6 +79,67 @@ describe("Net Retained Purchase Value", () => {
     })
   })
 
+  it("timestamps exact partial and top-up refund movements independently", () => {
+    const value = buildNetRetainedPurchaseValue({
+      since: new Date("2026-06-01T00:00:00.000Z"),
+      until: new Date("2026-07-01T00:00:00.000Z"),
+      paidRows: [
+        { id: "topup-order", amount_cents: 4995, paid_at: "2026-05-01T00:00:00.000Z" },
+      ],
+      refundRows: [
+        {
+          id: "topup-order",
+          amount_cents: 4995,
+          refund_amount_cents: 995,
+          refund_status: "succeeded",
+          refunded_at: "2026-05-20T00:00:00.000Z",
+          stripe_refund_id: "re_partial",
+        },
+        {
+          id: "topup-order",
+          amount_cents: 4995,
+          refund_amount_cents: 4000,
+          refund_status: "succeeded",
+          refunded_at: "2026-06-20T00:00:00.000Z",
+          stripe_refund_id: "re_topup",
+        },
+      ],
+    })
+
+    expect(value).toMatchObject({
+      grossCents: 0,
+      netCents: -4000,
+      refundCents: 4000,
+    })
+  })
+
+  it("restores revenue at the durable balance-reversal time when a refund fails", () => {
+    const value = buildNetRetainedPurchaseValue({
+      since: new Date("2026-06-01T00:00:00.000Z"),
+      until: new Date("2026-07-01T00:00:00.000Z"),
+      paidRows: [
+        { id: "failed-refund", amount_cents: 4995, paid_at: "2026-05-01T00:00:00.000Z" },
+      ],
+      refundRows: [
+        {
+          id: "failed-refund",
+          amount_cents: 4995,
+          refund_amount_cents: 995,
+          refund_status: "failed",
+          refunded_at: "2026-05-20T00:00:00.000Z",
+          refund_reversed_at: "2026-06-20T00:00:00.000Z",
+          stripe_refund_id: "re_failed",
+        },
+      ],
+    })
+
+    expect(value).toMatchObject({
+      grossCents: 0,
+      netCents: 995,
+      refundCents: -995,
+    })
+  })
+
   it("deducts dispute withdrawals by cash-event time without double-counting losses already refunded", () => {
     const value = buildNetRetainedPurchaseValue({
       since: new Date("2026-06-01T00:00:00.000Z"),

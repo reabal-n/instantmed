@@ -329,12 +329,21 @@ function createWebhookSupabaseMock(
   const updates: UpdateRecord[] = []
   const selects: SelectRecord[] = []
   const updateResults = Array.isArray(updateResult) ? [...updateResult] : null
+  let refundEvidence: Record<string, unknown>[] = []
   const selectResultFactory: SelectResultFactory = typeof selectResult === "function"
     ? selectResult
     : () => selectResult
 
   const supabase = {
-    from: vi.fn((table: string) => ({
+    from: vi.fn((table: string) => table === "stripe_refund_events" ? {
+      select: vi.fn(() => ({
+        in: vi.fn(async () => ({ data: refundEvidence, error: null })),
+      })),
+      upsert: vi.fn(async (rows: Record<string, unknown>[]) => {
+        refundEvidence = rows
+        return { data: null, error: null }
+      }),
+    } : ({
       select: vi.fn((selected?: string) => {
         const record: SelectRecord = { filters: [], selected, table }
         selects.push(record)
@@ -350,6 +359,7 @@ function createWebhookSupabaseMock(
             : updateResult),
         )
       }),
+      upsert: vi.fn(async () => ({ data: null, error: null })),
     })),
     rpc: vi.fn(async () => claimResult),
   }
@@ -359,7 +369,9 @@ function createWebhookSupabaseMock(
 
 function makeEvent(type: string, object: Record<string, unknown>): Stripe.Event {
   return {
+    created: Math.floor(Date.parse("2026-04-14T12:37:30.000Z") / 1000),
     id: "evt_test",
+    livemode: true,
     type,
     data: { object },
   } as unknown as Stripe.Event
@@ -1041,7 +1053,17 @@ describe("Stripe webhook payment state transitions", () => {
           data: [
             {
               amount: 1995,
-              created: Math.floor(Date.parse(refundedAt) / 1000),
+              balance_transaction: {
+                amount: -1995,
+                created: Math.floor(Date.parse(refundedAt) / 1000),
+                id: "txn_partial",
+                net: -1995,
+                object: "balance_transaction",
+                source: "re_partial",
+                type: "refund",
+              },
+              currency: "aud",
+              created: Math.floor(Date.parse("2026-04-14T12:00:00.000Z") / 1000),
               id: "re_partial",
               status: "succeeded",
             },
@@ -1087,6 +1109,16 @@ describe("Stripe webhook payment state transitions", () => {
           data: [
             {
               amount: 1995,
+              balance_transaction: {
+                amount: -1995,
+                created: Math.floor(Date.parse("2026-04-14T12:37:28.000Z") / 1000),
+                id: "txn_partial",
+                net: -1995,
+                object: "balance_transaction",
+                source: "re_partial",
+                type: "refund",
+              },
+              currency: "aud",
               created: Math.floor(Date.parse("2026-04-14T12:37:28.000Z") / 1000),
               id: "re_partial",
               status: "succeeded",
