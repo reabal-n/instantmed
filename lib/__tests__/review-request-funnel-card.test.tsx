@@ -25,6 +25,11 @@ const LIVE_SNAPSHOT: ReviewRequestFunnelSnapshot = {
     trackableSent: 6,
     uniqueRedirectTraversals: 3,
     traversalRate: 50,
+    awaitingNextRun: 1,
+    cooldownDeferred: 1,
+    policySuppressed: 1,
+    legacyHandledUnverifiable: 1,
+    actionableBacklog: 0,
   },
   external: {
     status: "live",
@@ -48,6 +53,12 @@ describe("ReviewRequestFunnelCard", () => {
     expect(html).toContain("87.5% of sent")
     expect(html).toContain("Unique email traversals")
     expect(html).toContain("50% of 6 trackable sends")
+    expect(html).toContain("Why eligible requests were not sent")
+    expect(html).toContain("Awaiting next run")
+    expect(html).toContain("30-day cooldown")
+    expect(html).toContain("Policy suppressed")
+    expect(html).toContain("Legacy handled, unverified")
+    expect(html).toContain("Needs investigation")
     expect(html).toContain("Externally posted reviews")
     expect(html).toContain("+3 since baseline")
     expect(html).toContain("Email security scanners can open review links")
@@ -69,6 +80,11 @@ describe("ReviewRequestFunnelCard", () => {
             trackableSent: null,
             uniqueRedirectTraversals: null,
             traversalRate: null,
+            awaitingNextRun: null,
+            cooldownDeferred: null,
+            policySuppressed: null,
+            legacyHandledUnverifiable: null,
+            actionableBacklog: null,
           },
           external: {
             status: "degraded",
@@ -84,5 +100,24 @@ describe("ReviewRequestFunnelCard", () => {
     expect(html.match(/Unavailable/g)?.length).toBeGreaterThanOrEqual(5)
     expect(html).toContain("Email funnel unavailable")
     expect(html).toContain("External total unavailable")
+  })
+
+  it("makes a non-zero actionable backlog explicit", () => {
+    const html = renderToStaticMarkup(
+      <ReviewRequestFunnelCard
+        snapshot={{
+          ...LIVE_SNAPSHOT,
+          funnel: {
+            ...LIVE_SNAPSHOT.funnel,
+            status: "action_required",
+            legacyHandledUnverifiable: 0,
+            actionableBacklog: 1,
+          },
+        }}
+      />,
+    )
+
+    expect(html).toContain("Needs investigation")
+    expect(html).toContain("1 request missed expected processing")
   })
 })

@@ -23,9 +23,16 @@ const FUNNEL_BADGES: Record<ReviewRequestFunnelStatus, {
   status: StatusBadgeStatus
 }> = {
   degraded: { label: "Email funnel unavailable", status: "warning" },
+  action_required: { label: "Needs investigation", status: "warning" },
   no_sends: { label: "No sends", status: "neutral" },
   baseline: { label: "Measurement baseline", status: "info" },
   live: { label: "Live", status: "success" },
+}
+
+function backlogExplanation(count: number | null): string {
+  if (count === null) return "Lifecycle unavailable"
+  if (count === 0) return "No missed processing"
+  return `${count.toLocaleString("en-AU")} ${count === 1 ? "request" : "requests"} missed expected processing`
 }
 
 const EXTERNAL_BADGES: Record<ProductReviewSnapshotStatus, {
@@ -179,6 +186,47 @@ export function ReviewRequestFunnelCard({
             </dd>
           </div>
         </dl>
+
+        <div className="mt-4">
+          <h4 className="text-xs font-semibold text-foreground">
+            Why eligible requests were not sent
+          </h4>
+          <dl className="mt-2 grid overflow-hidden rounded-lg border border-border/60 bg-muted/20 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="border-b border-border/60 px-3 py-2.5 sm:border-r xl:border-b-0">
+              <dt className="text-xs text-muted-foreground">Awaiting next run</dt>
+              <dd className="mt-1 text-base font-semibold tabular-nums text-foreground">
+                {displayCount(snapshot.funnel.awaitingNextRun)}
+              </dd>
+            </div>
+            <div className="border-b border-border/60 px-3 py-2.5 xl:border-b-0 xl:border-r">
+              <dt className="text-xs text-muted-foreground">30-day cooldown</dt>
+              <dd className="mt-1 text-base font-semibold tabular-nums text-foreground">
+                {displayCount(snapshot.funnel.cooldownDeferred)}
+              </dd>
+            </div>
+            <div className="border-b border-border/60 px-3 py-2.5 sm:border-r xl:border-b-0">
+              <dt className="text-xs text-muted-foreground">Policy suppressed</dt>
+              <dd className="mt-1 text-base font-semibold tabular-nums text-foreground">
+                {displayCount(snapshot.funnel.policySuppressed)}
+              </dd>
+            </div>
+            <div className="border-b border-border/60 px-3 py-2.5 xl:border-b-0 xl:border-r">
+              <dt className="text-xs text-muted-foreground">Legacy handled, unverified</dt>
+              <dd className="mt-1 text-base font-semibold tabular-nums text-foreground">
+                {displayCount(snapshot.funnel.legacyHandledUnverifiable)}
+              </dd>
+            </div>
+            <div className="px-3 py-2.5 sm:col-span-2 xl:col-span-1">
+              <dt className="text-xs text-muted-foreground">Needs investigation</dt>
+              <dd className="mt-1 text-base font-semibold tabular-nums text-foreground">
+                {displayCount(snapshot.funnel.actionableBacklog)}
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            {backlogExplanation(snapshot.funnel.actionableBacklog)}. Sent plus these five lifecycle buckets must equal Eligible.
+          </p>
+        </div>
 
         {snapshot.funnel.status === "degraded" ? (
           <p className="mt-3 rounded-lg border border-amber-200/70 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100">
