@@ -11,6 +11,10 @@ const REPORTABLE_MIGRATION_PATH = join(
   process.cwd(),
   "supabase/migrations/20260814110000_make_stuck_intakes_reportable.sql",
 )
+const CLEAN_RESET_MIGRATION_PATH = join(
+  process.cwd(),
+  "supabase/migrations/20260814113000_retire_replay_only_intake_triggers.sql",
+)
 const CORRECTION_MIGRATION_PATH = join(
   process.cwd(),
   "supabase/migrations/20260710173000_atomic_certificate_corrections.sql",
@@ -218,5 +222,54 @@ describe("stuck intakes view contract", () => {
     expect(sql).toMatch(
       /GRANT EXECUTE ON FUNCTION public\.reconcile_certificate_email_status\(uuid, text, text, text, text\)\s+TO service_role/i,
     )
+  })
+
+  it("retires replay-only intake triggers after the legacy audit_log table becomes a view", () => {
+    const sql = readFileSync(CLEAN_RESET_MIGRATION_PATH, "utf8")
+    const executableSql = sql.replace(/--.*$/gm, "")
+
+    expect(sql).toMatch(
+      /DROP TRIGGER IF EXISTS audit_intake_create\s+ON public\.intakes/i,
+    )
+    expect(sql).toMatch(
+      /DROP TRIGGER IF EXISTS audit_intake_status\s+ON public\.intakes/i,
+    )
+    expect(sql).toMatch(
+      /DROP TRIGGER IF EXISTS trigger_notify_on_intake_status_change\s+ON public\.intakes/i,
+    )
+    expect(sql).toContain(
+      "DROP FUNCTION IF EXISTS public.audit_intake_created()",
+    )
+    expect(sql).toContain(
+      "DROP FUNCTION IF EXISTS public.audit_intake_status_change()",
+    )
+    expect(sql).toContain(
+      "DROP FUNCTION IF EXISTS public.notify_on_intake_status_change()",
+    )
+    expect(sql).toContain(
+      "DROP FUNCTION IF EXISTS public.log_audit_event(",
+    )
+    const archiveGuardStart = sql.indexOf(
+      "IF to_regprocedure('public.archive_old_audit_logs(integer)') IS NOT NULL",
+    )
+    const archiveDrop = sql.indexOf(
+      "DROP FUNCTION IF EXISTS public.archive_old_audit_logs(integer);",
+      archiveGuardStart,
+    )
+
+    expect(archiveGuardStart).toBeGreaterThan(-1)
+    expect(archiveDrop).toBeGreaterThan(archiveGuardStart)
+    expect(sql.slice(archiveGuardStart, archiveDrop)).toContain(
+      "to_regclass('public.audit_logs_archive') IS NULL",
+    )
+    for (const requiredSourceColumn of ["request_id", "archived_at", "retention_tier"]) {
+      expect(sql.slice(archiveGuardStart, archiveDrop)).toContain(
+        `column_name = '${requiredSourceColumn}'`,
+      )
+    }
+    expect(executableSql).not.toMatch(
+      /DROP TABLE(?: IF EXISTS)? public\.audit_logs_archive/i,
+    )
+    expect(executableSql).not.toMatch(/\bDROP\b[^;]*\bCASCADE\b/i)
   })
 })

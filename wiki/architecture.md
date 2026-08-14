@@ -14,7 +14,7 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 | `lib/` | 1,214 files |
 | E2E TypeScript files under `e2e/` | 78 (69 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 113 |
+| SQL migrations under `supabase/migrations/` | 114 |
 
 ## Runtime Shape
 
