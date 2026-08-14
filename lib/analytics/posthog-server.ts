@@ -1,4 +1,3 @@
-import { after } from "next/server"
 import { PostHog } from 'posthog-node';
 
 import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
@@ -12,6 +11,27 @@ import { shouldIncludeSeededE2EData } from "@/lib/data/seeded-e2e-data"
 
 let posthogClient: PostHog | null = null;
 
+type NextAfter = typeof import("next/server")["after"]
+
+function loadNextAfter(): NextAfter {
+  // Keep Next's React server entrypoint out of standalone Node CLI imports.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return (require("next/server") as typeof import("next/server")).after
+}
+
+export function waitUntilPostHogFlush(
+  promise: Promise<unknown>,
+  loadAfter: () => NextAfter = loadNextAfter,
+): void {
+  if (process.env.NEXT_RUNTIME !== "nodejs") return
+
+  try {
+    loadAfter()(promise)
+  } catch {
+    // Outside an active Next request, PostHog keeps its normal best-effort queue.
+  }
+}
+
 function getPostHogClient() {
   if (!posthogClient) {
     posthogClient = new PostHog(
@@ -24,7 +44,7 @@ function getPostHogClient() {
         // Bind the SDK's asynchronous queue to the active Next.js request.
         // Without this, Vercel may freeze the invocation before the batch
         // finishes and a reused singleton can retry it on an unrelated route.
-        waitUntil: (promise) => after(promise),
+        waitUntil: waitUntilPostHogFlush,
       }
     );
   }

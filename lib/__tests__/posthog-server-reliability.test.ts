@@ -1,14 +1,10 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
-import { after } from "next/server"
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { normalizePostHogApiHost } from "@/lib/analytics/posthog-host"
-
-vi.mock("next/server", () => ({
-  after: vi.fn(),
-}))
+import { waitUntilPostHogFlush } from "@/lib/analytics/posthog-server"
 
 const reconciliationRouteSource = readFileSync(
   join(process.cwd(), "app/api/cron/posthog-reconciliation/route.ts"),
@@ -16,39 +12,27 @@ const reconciliationRouteSource = readFileSync(
 )
 
 describe("server-side PostHog delivery", () => {
-  beforeEach(() => {
-    vi.resetModules()
-    vi.mocked(after).mockReset()
-    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test")
-    vi.stubEnv("NEXT_PUBLIC_POSTHOG_HOST", "https://us.i.posthog.com")
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => new Response(null, { status: 200 })),
-    )
-  })
-
   afterEach(() => {
     vi.unstubAllEnvs()
-    vi.unstubAllGlobals()
   })
 
-  it("keeps an enqueued server event alive through the active request", async () => {
-    const {
-      capturePersonlessPostHogEvent,
-      shutdownPostHog,
-    } = await import("@/lib/analytics/posthog-server")
+  it("registers a PostHog flush with an active Next request", () => {
+    vi.stubEnv("NEXT_RUNTIME", "nodejs")
+    const after = vi.fn()
+    const flushPromise = Promise.resolve()
 
-    capturePersonlessPostHogEvent({
-      event: "delivery_lifecycle_test",
-      requestId: "request-test-id",
-      properties: { outcome: "accepted" },
-    })
+    waitUntilPostHogFlush(flushPromise, () => after)
 
-    await vi.waitFor(() => {
-      expect(after).toHaveBeenCalledWith(expect.any(Promise))
-    })
+    expect(after).toHaveBeenCalledWith(flushPromise)
+  })
 
-    await shutdownPostHog()
+  it("does not load the Next server runtime from a standalone Node process", () => {
+    vi.stubEnv("NEXT_RUNTIME", "")
+    const loadAfter = vi.fn()
+
+    waitUntilPostHogFlush(Promise.resolve(), loadAfter)
+
+    expect(loadAfter).not.toHaveBeenCalled()
   })
 })
 
