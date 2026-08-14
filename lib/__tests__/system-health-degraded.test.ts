@@ -19,9 +19,10 @@ vi.mock("@/lib/supabase/service-role", () => ({
   createServiceRoleClient: mocks.createServiceRoleClient,
 }))
 
-vi.mock("@/lib/data/seeded-e2e-data", () => ({
-  // Passthrough: the stuck-intakes query is wrapped, not transformed, in tests.
-  filterSeededE2EIntakes: (query: unknown) => query,
+vi.mock("@/lib/data/reporting-filters", () => ({
+  // Passthrough: reportability itself is covered by reporting-filters.test.ts
+  // and intake-ops-reporting.test.ts. These tests isolate degraded semantics.
+  filterReportableIntakes: (query: unknown) => query,
 }))
 
 vi.mock("@/lib/stripe/price-config-health", () => ({

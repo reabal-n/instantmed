@@ -904,9 +904,11 @@ Scope note: the exclusion belongs to **marketing** only. Clinical and patient-fa
 
 **Certificate generation monitor:** `/admin/ops` also surfaces a critical **Cert missing record** invariant for recent paid medical-certificate intakes that are approved/completed but have no generated certificate row. Use the certificate delivery rescue panel first; do not resend a link until a certificate record exists.
 
-**Historical auto-issued certificate runbook:** Medical-certificate protocol issuance is active and bounded by `lib/clinical/auto-approval-governance.ts`. The database feature flag can stop issuance but cannot widen the reviewed one-to-three-day work, study, and carer boundary. Concerning or uncertain requests remain in `/dashboard` for a doctor outcome. Protocol-issued rows are labelled **Auto-issued** and persisted engine notes are labelled **Flagged**. For the bounded historical retrospective set in `docs/ROADMAP.md`, open each source record and record the clinical review outside this engineering change. If correction is needed, **revoke** with a clinical reason (minimum 5 characters); that invalidates the certificate and returns the intake to manual review. The admin-only control remains in `components/doctor/review/revoke-auto-issued-certificate.tsx` → `revokeAIApproval`, and is pinned by `lib/__tests__/ai-approval-reopen-guard.test.ts`.
+**Historical auto-issued certificate runbook:** Medical-certificate protocol issuance is active and bounded by `lib/clinical/auto-approval-governance.ts`. The database feature flag can stop issuance but cannot widen the reviewed one-to-three-day work, study, and carer boundary. Concerning or uncertain requests remain in `/dashboard` for a doctor outcome. Protocol-issued rows are labelled **Auto-issued** and persisted engine notes are labelled **Flagged**. The complete retrospective set in `docs/ROADMAP.md` is nine reportable cases: eight require an `ai_audit_log` handle query because their flag predates dashboard persistence, and one is dashboard-visible. Obtain explicit approval before opening their authenticated admin detail pages because each open records `logClinicianOpenedRequest`; inspect clinical content only in that authorised source surface and never paste it into chat. Record each Medical Director review individually. If correction is needed, **revoke** with a clinical reason (minimum 5 characters); that invalidates the certificate and returns the intake to manual review. The admin-only control remains in `components/doctor/review/revoke-auto-issued-certificate.tsx` → `revokeAIApproval`, and is pinned by `lib/__tests__/ai-approval-reopen-guard.test.ts`.
 
 **Kill switches:** `DISABLE_INTAKE_EVENTS=true` (disable event logging), `DISABLE_STUCK_INTAKE_SENTRY=true` (disable stuck intake Sentry warnings), `DISABLE_RECONCILIATION_SENTRY=true` (disable reconciliation mismatch Sentry warnings).
+
+**Stuck-intake operational truth boundary (2026-08-14).** `v_stuck_intakes` owns stuck-state classification. System Health, the Operations viewer, and bounded reason/service-bucket Sentry warnings all apply `filterReportableIntakes` before counting or alerting, so fixed seeded E2E profiles and rows with `exclude_from_reporting = true` cannot create operational incidents. The view exposes `patient_id` and `exclude_from_reporting` only for that server-side filter, remains `security_invoker`, and is selectable only by `service_role`. A view query failure is **unknown/degraded**, never zero: Operations shows **Stuck-intake status unavailable** and must not render **Clear** or **No stuck intakes found** until a read succeeds. This is a reporting boundary only; do not reuse it for the stale clinical queue, patient-delay contact, refunds, or authorised recovery work, where an excluded row may still need action.
 
 ### Stuck Intake Resolution
 
@@ -914,27 +916,30 @@ Scope note: the exclusion belongs to **marketing** only. Clinical and patient-fa
 |--------|-------|------------|
 | `paid_no_review` | No doctor picked up intake | Check doctor availability; assign/review manually |
 | `review_timeout` | Doctor started but did not finish within 60 min | Contact doctor or reassign; check for blocking issues |
-| `delivery_pending` | Approved but email not sent | Check `email_outbox` via `/admin/emails/hub?intake_id=...`; trigger manually |
-| `delivery_failed` | Delivery email failed | Check `/admin/emails/hub?intake_id=...` for error; verify patient email; retry or contact patient |
+| `delivery_pending` | Approved but delivery is not proven | For medical certificates, inspect the current certificate in the delivery rescue panel; for other services, check `email_outbox` via `/admin/emails/hub?intake_id=...` |
+| `delivery_failed` | Current delivery attempt failed without stronger sent evidence | Re-read the current certificate/outbox evidence in the appropriate admin surface before an authorised retry or patient contact |
 
 ### Useful SQL Queries
 
+Use `/admin/ops/intakes-stuck` or the server-side data reader for reportable stuck totals; both own the canonical application filter. Do not copy seeded profile IDs into SQL runbooks or use `SELECT *` for routine incident evidence. The minimum-field queries below are for a single authorised case after its handle is already known.
+
 ```sql
--- Current stuck intakes
-SELECT * FROM v_stuck_intakes ORDER BY stuck_age_minutes DESC;
-
--- Count by reason
-SELECT stuck_reason, COUNT(*) FROM v_stuck_intakes GROUP BY stuck_reason;
-
 -- Recent events for an intake
-SELECT * FROM intake_events WHERE intake_id = '<ID>' ORDER BY created_at DESC LIMIT 20;
+SELECT event_type, actor_role, created_at
+FROM intake_events
+WHERE intake_id = '<ID>'
+ORDER BY created_at DESC
+LIMIT 20;
 
 -- Failed delivery emails
-SELECT i.id, i.reference_number, i.status, eo.error_message
+SELECT i.reference_number, i.status, eo.email_type, eo.status AS outbox_status, eo.created_at
 FROM intakes i JOIN email_outbox eo ON eo.intake_id = i.id
-WHERE i.status = 'approved'
+WHERE i.id = '<ID>'
+  AND i.status = 'approved'
   AND eo.email_type IN ('request_approved', 'certificate_delivery', 'med_cert_patient', 'script_sent')
-  AND eo.status = 'failed';
+  AND eo.status = 'failed'
+ORDER BY eo.created_at DESC
+LIMIT 20;
 ```
 
 ---
@@ -1574,27 +1579,9 @@ Run after each weekly wave. If conversion is healthy, the reactivation lever wor
 
 ### Q6 — Certificate sent but intake timestamp missing (14d)
 
-Detects medical-certificate requests where the patient certificate email was sent, but the intake mirror still lacks `document_sent_at`. This is the drift class that can make patient tracking and support triage look like delivery is still pending even when the secure app-routed certificate link has gone out.
+Detects medical-certificate requests where the **current certificate storage version** has a sent patient-email outbox row but the intake mirror still lacks `document_sent_at`. The dashboard-owned query is `countCertificateSentMissingTimestamp()` in `lib/admin/ops-invariants.ts`; it applies the canonical seeded/reportability exclusions and rejects historical sends from an older document version. Do not reproduce the patient exclusions or inspect unbounded outbox payloads in an ad-hoc SQL query.
 
-```sql
-WITH recent_sent_cert_emails AS (
-  SELECT DISTINCT intake_id
-  FROM email_outbox
-  WHERE email_type = 'med_cert_patient'
-    AND status = 'sent'
-    AND intake_id IS NOT NULL
-    AND created_at >= NOW() - INTERVAL '14 days'
-)
-SELECT COUNT(*) AS certificate_sent_missing_document_sent_at
-FROM intakes i
-JOIN recent_sent_cert_emails e ON e.intake_id = i.id
-WHERE i.category = 'medical_certificate'
-  AND i.document_sent_at IS NULL
-  AND COALESCE(i.exclude_from_reporting, false) = false
-  AND i.patient_id != 'e2e00000-0000-0000-0000-000000000002';
-```
-
-Operator action: open `/admin/ops` → **Certificate delivery rescue**, confirm whether the certificate email was sent/delivered/clicked or downloaded, then use the recommended support action. If the invariant is non-zero, admins can use **Repair timestamps** in the rescue panel to mirror proven sent certificate-email evidence onto `intakes.document_sent_at` for recent valid certificates. This does not resend emails, expose raw storage URLs, or attach certificate files. Do not bulk-resend certificates because of this count.
+Operator action: open `/admin/ops` → **Certificate delivery rescue**, confirm whether the current certificate email was sent/delivered/clicked or downloaded, then use the recommended support action. If the invariant is non-zero, admins can use **Repair timestamps** in the rescue panel. Provider reconciliation and timestamp repair both lock the latest valid certificate, verify its current storage version, then update the certificate/intake delivery state in one transaction. Revocation clears that mirror atomically. An older send therefore cannot restore fulfilment after a correction or revocation. This does not resend emails, expose raw storage URLs, or attach certificate files. Do not bulk-resend certificates because of this count.
 
 ### How these become alerts
 

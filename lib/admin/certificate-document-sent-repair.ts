@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS } from "@/lib/admin/ops-invariants"
+import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -19,6 +20,8 @@ export type CertificateDocumentSentRepairErrorCode =
 export interface SentCertificateEmailRepairRow {
   id: string
   intake_id: string | null
+  certificate_id: string | null
+  metadata: Record<string, unknown> | null
   status: string | null
   sent_at: string | null
   created_at: string | null
@@ -38,6 +41,7 @@ export interface CertificateDocumentSentRepairCertificateRow {
   id: string
   intake_id: string
   status: string | null
+  storage_path: string
   created_at: string | null
 }
 
@@ -45,6 +49,7 @@ export interface CertificateDocumentSentRepairCandidate {
   intakeId: string
   certificateId: string
   emailOutboxId: string
+  expectedStorageVersion: string
   documentSentAt: string
 }
 
@@ -76,8 +81,24 @@ function timestampOf(value: string | null | undefined): number {
   return Number.isNaN(timestamp) ? -1 : timestamp
 }
 
+function isNewerCertificate(
+  candidate: CertificateDocumentSentRepairCertificateRow,
+  current: CertificateDocumentSentRepairCertificateRow,
+): boolean {
+  const candidateTimestamp = timestampOf(candidate.created_at)
+  const currentTimestamp = timestampOf(current.created_at)
+
+  return candidateTimestamp > currentTimestamp
+    || (candidateTimestamp === currentTimestamp && candidate.id > current.id)
+}
+
 function sentTimestamp(row: SentCertificateEmailRepairRow): string | null {
   return row.sent_at || row.updated_at || row.created_at || null
+}
+
+function emailStorageVersion(row: SentCertificateEmailRepairRow): string | null {
+  const value = row.metadata?.certificate_storage_version
+  return typeof value === "string" && /^[0-9a-f]{32}$/.test(value) ? value : null
 }
 
 function isRepairableIntake(row: CertificateDocumentSentRepairIntakeRow | undefined): row is CertificateDocumentSentRepairIntakeRow {
@@ -101,39 +122,52 @@ export function buildCertificateDocumentSentRepairPlan({
   certificates: CertificateDocumentSentRepairCertificateRow[]
   limit?: number
 }): CertificateDocumentSentRepairPlan {
-  const latestEmailByIntake = new Map<string, SentCertificateEmailRepairRow>()
+  const latestEmailByCertificateVersion = new Map<string, SentCertificateEmailRepairRow>()
   const intakeById = new Map(intakes.map((row) => [row.id, row]))
   const validCertificateByIntake = new Map<string, CertificateDocumentSentRepairCertificateRow>()
 
   for (const certificate of certificates) {
     if (normalize(certificate.status) !== "valid") continue
     const existing = validCertificateByIntake.get(certificate.intake_id)
-    if (!existing || timestampOf(certificate.created_at) >= timestampOf(existing.created_at)) {
+    if (!existing || isNewerCertificate(certificate, existing)) {
       validCertificateByIntake.set(certificate.intake_id, certificate)
     }
   }
 
   for (const email of emails) {
-    if (!email.intake_id || normalize(email.status) !== "sent" || !sentTimestamp(email)) continue
-    const existing = latestEmailByIntake.get(email.intake_id)
+    if (
+      !email.intake_id
+      || !email.certificate_id
+      || normalize(email.status) !== "sent"
+      || !sentTimestamp(email)
+    ) continue
+    const storageVersion = emailStorageVersion(email)
+    if (!storageVersion) continue
+    const key = `${email.certificate_id}:${storageVersion}`
+    const existing = latestEmailByCertificateVersion.get(key)
     if (!existing || timestampOf(sentTimestamp(email)) >= timestampOf(sentTimestamp(existing))) {
-      latestEmailByIntake.set(email.intake_id, email)
+      latestEmailByCertificateVersion.set(key, email)
     }
   }
 
   const candidates: CertificateDocumentSentRepairCandidate[] = []
 
-  for (const [intakeId, email] of latestEmailByIntake.entries()) {
+  for (const [intakeId, certificate] of validCertificateByIntake.entries()) {
     const intake = intakeById.get(intakeId)
-    const certificate = validCertificateByIntake.get(intakeId)
+    const expectedStorageVersion = getEmployerCertificateStorageVersion(certificate.storage_path)
+    const email = latestEmailByCertificateVersion.get(
+      `${certificate.id}:${expectedStorageVersion}`,
+    )
+    if (!email) continue
     const documentSentAt = sentTimestamp(email)
 
-    if (!isRepairableIntake(intake) || !certificate || !documentSentAt) continue
+    if (!isRepairableIntake(intake) || !documentSentAt) continue
 
     candidates.push({
       intakeId,
       certificateId: certificate.id,
       emailOutboxId: email.id,
+      expectedStorageVersion,
       documentSentAt,
     })
   }
@@ -142,7 +176,7 @@ export function buildCertificateDocumentSentRepairPlan({
 
   return {
     candidates: candidates.slice(0, limit),
-    skippedCount: Math.max(0, latestEmailByIntake.size - candidates.length),
+    skippedCount: Math.max(0, latestEmailByCertificateVersion.size - candidates.length),
   }
 }
 
@@ -198,11 +232,12 @@ export async function repairCertificateDocumentSentAt(
   try {
     const { data: emails, error: emailError } = await supabase
       .from("email_outbox")
-      .select("id, intake_id, status, sent_at, created_at, updated_at")
+      .select("id, intake_id, certificate_id, metadata, status, sent_at, created_at, updated_at")
       .eq("email_type", "med_cert_patient")
       .eq("status", "sent")
       .gte("created_at", since)
       .not("intake_id", "is", null)
+      .not("certificate_id", "is", null)
       .order("created_at", { ascending: false })
       .limit(Math.max(limit * 6, 300))
 
@@ -246,10 +281,11 @@ export async function repairCertificateDocumentSentAt(
 
     const { data: certificates, error: certificateError } = await supabase
       .from("issued_certificates")
-      .select("id, intake_id, status, created_at")
+      .select("id, intake_id, status, storage_path, created_at")
       .in("intake_id", intakeIds)
       .eq("status", "valid")
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
 
     if (certificateError) {
       log.warn("Failed to load issued certificates for document_sent_at repair", {
@@ -276,34 +312,19 @@ export async function repairCertificateDocumentSentAt(
     }
 
     for (const candidate of plan.candidates) {
-      // PostgREST rejects nullable `.or()` filters on this PATCH path (42703).
-      // Preserve the reportable-row union as two guarded updates while keeping
-      // every candidate/status/document/E2E constraint on both attempts.
-      const repairWithReportingGuard = (reportingGuard: "null" | "false") => {
-        let updateQuery = supabase
-          .from("intakes")
-          .update({
-            document_sent_at: candidate.documentSentAt,
-            generated_document_type: "medical_certificate",
-          })
-          .eq("id", candidate.intakeId)
-          .eq("category", "medical_certificate")
-          .in("status", [...REPAIRABLE_INTAKE_STATUSES])
-          .is("document_sent_at", null)
-
-        updateQuery = reportingGuard === "null"
-          ? updateQuery.is("exclude_from_reporting", null)
-          : updateQuery.eq("exclude_from_reporting", false)
-
-        return filterSeededE2EIntakes(updateQuery).select("id")
-      }
-
-      let { data: updatedRows, error: updateError } = await repairWithReportingGuard("null")
-      if (!updateError && (!updatedRows || updatedRows.length === 0)) {
-        const fallbackRepair = await repairWithReportingGuard("false")
-        updatedRows = fallbackRepair.data
-        updateError = fallbackRepair.error
-      }
+      // The RPC locks the exact current valid certificate and rechecks its
+      // storage-version hash plus the matching sent outbox row before writing
+      // the intake mirror. A correction racing this action either wins first
+      // and makes the RPC return false, or wins second and clears the mirror.
+      const { data: repaired, error: updateError } = await supabase.rpc(
+        "repair_certificate_document_sent_at",
+        {
+          p_intake_id: candidate.intakeId,
+          p_certificate_id: candidate.certificateId,
+          p_outbox_id: candidate.emailOutboxId,
+          p_expected_storage_version: candidate.expectedStorageVersion,
+        },
+      )
 
       if (updateError) {
         summary.failedCount += 1
@@ -313,7 +334,7 @@ export async function repairCertificateDocumentSentAt(
         continue
       }
 
-      if ((updatedRows ?? []).length > 0) {
+      if (repaired === true) {
         summary.updatedCount += 1
       } else {
         summary.skippedCount += 1
