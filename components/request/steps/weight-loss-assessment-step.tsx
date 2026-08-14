@@ -30,8 +30,8 @@
  * eating-disorder note.
  */
 
-import { AlertCircle, AlertTriangle } from "lucide-react"
-import { useEffect, useState } from "react"
+import { AlertTriangle } from "lucide-react"
+import { useCallback, useEffect, useMemo } from "react"
 
 import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -40,13 +40,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
+import { usePostHog } from "@/lib/analytics/posthog-context"
 import {
   computeBmi,
   WEIGHT_LOSS_BMI_FLOOR,
   WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY,
   WEIGHT_LOSS_COMORBIDITY_KEYS,
 } from "@/lib/clinical/weight-loss-eligibility"
+import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { validateWeightLossAssessmentStep } from "@/lib/request/validation"
 import { cn } from "@/lib/utils"
 
 import { useRequestStore } from "../store"
@@ -81,13 +84,11 @@ function BinaryChoice({
   label,
   value,
   onChange,
-  error,
   ariaLabel,
 }: {
   label: React.ReactNode
   value: "yes" | "no" | ""
   onChange: (value: "yes" | "no") => void
-  error?: string
   ariaLabel: string
 }) {
   return (
@@ -116,19 +117,30 @@ function BinaryChoice({
           </label>
         ))}
       </RadioGroup>
-      {error && (
-        <p className="text-xs text-destructive flex items-center gap-1">
-          <AlertCircle className="w-3 h-3" />
-          {error}
-        </p>
-      )}
     </div>
   )
 }
 
-export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmentStepProps) {
-  const { answers, setAnswer, setAnswers } = useRequestStore()
-  const [errors, setErrors] = useState<Record<string, string>>({})
+const WEIGHT_LOSS_BLOCKING_REASONS = [
+  ["weightKg", "a valid current weight (30-300 kg)"],
+  ["heightCm", "a valid height (100-250 cm)"],
+  ["targetWeight", "your target weight"],
+  ["previousAttempts", "what you have tried before"],
+  ["weight_pregnancy_status", "pregnancy or breastfeeding status"],
+  ["weight_men2_thyroid_cancer", "MEN2 or medullary thyroid cancer history"],
+  ["weight_pancreatitis", "pancreatitis history"],
+  ["eatingDisorderHistory", "eating disorder history"],
+  ["wlAdverseReactions", "adverse reaction history"],
+  ["wlAdverseReactionsDetails", "adverse reaction details"],
+  ["weightLossGoals", "your weight loss goals (at least 20 characters)"],
+] as const
+
+export default function WeightLossAssessmentStep({
+  serviceType,
+  onNext,
+}: WeightLossAssessmentStepProps) {
+  const { answers, flowInstanceId, setAnswer, setAnswers } = useRequestStore()
+  const posthog = usePostHog()
 
   const weightKg = (answers.weightKg as string) || ""
   const heightCm = (answers.heightCm as string) || ""
@@ -187,61 +199,39 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
     }
   }
 
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!weightKg || parseFloat(weightKg) < 30 || parseFloat(weightKg) > 300) {
-      newErrors.weightKg = "Please enter a valid weight (30-300 kg)"
-    }
-    if (!heightCm || parseFloat(heightCm) < 100 || parseFloat(heightCm) > 250) {
-      newErrors.heightCm = "Please enter a valid height (100-250 cm)"
-    }
-    if (!targetWeight) {
-      newErrors.targetWeight = "Please enter your target weight"
-    }
-    if (!previousAttempts) {
-      newErrors.previousAttempts = "Please select an option"
-    }
-    if (!eatingDisorderHistory) {
-      newErrors.eatingDisorderHistory = "Please answer this question"
-    }
-    if (!pregnancyStatus) {
-      newErrors.pregnancyStatus = "Please answer this question"
-    }
-    if (men2History === undefined) {
-      newErrors.men2History = "Please answer this question"
-    }
-    if (pancreatitisHistory === undefined) {
-      newErrors.pancreatitisHistory = "Please answer this question"
-    }
-    if (!wlAdverseReactions) {
-      newErrors.wlAdverseReactions = "Please answer this question"
-    }
-    if (wlAdverseReactions === 'yes' && wlAdverseReactionsDetails.length < 10) {
-      newErrors.wlAdverseReactionsDetails = "Please describe the adverse reaction(s)"
-    }
-    if (!weightLossGoals || weightLossGoals.length < 20) {
-      newErrors.weightLossGoals = "Please describe your goals (at least 20 characters)"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+  // The same Zod schema gates both this screen and checkout. This keeps the
+  // numeric bounds and required safety answers from drifting into a second,
+  // client-only validator.
+  const validation = useMemo(
+    () => validateWeightLossAssessmentStep(answers),
+    [answers],
+  )
+  const isComplete = validation.isValid
+  const blockingReasons = useMemo(
+    () => WEIGHT_LOSS_BLOCKING_REASONS.flatMap(([key, reason]) => (
+      validation.errors[key] ? [reason] : []
+    )),
+    [validation.errors],
+  )
+  const { validationSummary, showBlockingReasons } = useStepValidationSummary(
+    isComplete,
+    useCallback(() => blockingReasons, [blockingReasons]),
+    {
+      flowInstanceId,
+      posthog,
+      serviceType,
+      subtype: answers.consultSubtype as string | undefined,
+      stepId: "weight-loss-assessment",
+    },
+  )
 
   const handleNext = () => {
-    if (validate()) {
-      onNext()
+    if (!isComplete) {
+      showBlockingReasons()
+      return
     }
+    onNext()
   }
-
-  const isComplete = Boolean(
-    weightKg && heightCm && targetWeight && previousAttempts
-    && eatingDisorderHistory && pregnancyStatus
-    && men2History !== undefined && pancreatitisHistory !== undefined
-    && wlAdverseReactions
-    && (wlAdverseReactions !== 'yes' || wlAdverseReactionsDetails.length >= 10)
-    && weightLossGoals.length >= 20
-  )
 
   return (
     <div className="space-y-6">
@@ -258,12 +248,6 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
             placeholder="e.g., 85"
             className="h-11"
           />
-          {errors.weightKg && (
-            <p className="text-xs text-destructive flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              {errors.weightKg}
-            </p>
-          )}
         </div>
 
         <div className="space-y-2">
@@ -277,12 +261,6 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
             placeholder="e.g., 170"
             className="h-11"
           />
-          {errors.heightCm && (
-            <p className="text-xs text-destructive flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              {errors.heightCm}
-            </p>
-          )}
         </div>
       </div>
 
@@ -320,12 +298,6 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
           placeholder="e.g., 75"
           className="h-11"
         />
-        {errors.targetWeight && (
-          <p className="text-xs text-destructive flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {errors.targetWeight}
-          </p>
-        )}
       </div>
 
       {/* Previous attempts */}
@@ -354,12 +326,6 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
             </label>
           ))}
         </RadioGroup>
-        {errors.previousAttempts && (
-          <p className="text-xs text-destructive flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {errors.previousAttempts}
-          </p>
-        )}
       </div>
 
       {/* Relevant medical history - toggles (also feeds the comorbidity rule) */}
@@ -383,7 +349,6 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         ariaLabel="Pregnancy or breastfeeding status"
         value={(pregnancyStatus as "yes" | "no" | "")}
         onChange={(value) => setAnswer("weight_pregnancy_status", value)}
-        error={errors.pregnancyStatus}
       />
 
       <BinaryChoice
@@ -391,7 +356,6 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         ariaLabel="Medullary thyroid cancer or MEN2 history"
         value={men2History === undefined ? "" : men2History ? "yes" : "no"}
         onChange={(value) => setAnswer("weight_men2_thyroid_cancer", value === "yes")}
-        error={errors.men2History}
       />
 
       <BinaryChoice
@@ -399,7 +363,6 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         ariaLabel="Pancreatitis history"
         value={pancreatitisHistory === undefined ? "" : pancreatitisHistory ? "yes" : "no"}
         onChange={(value) => setAnswer("weight_pancreatitis", value === "yes")}
-        error={errors.pancreatitisHistory}
       />
 
       {/* Eating disorder history — soft escalation to a doctor call */}
@@ -408,7 +371,6 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         ariaLabel="Eating disorder history"
         value={(eatingDisorderHistory as "yes" | "no" | "")}
         onChange={handleEatingDisorderChange}
-        error={errors.eatingDisorderHistory}
       />
 
       {eatingDisorderHistory === "yes" && (
@@ -429,7 +391,6 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
           ariaLabel="Previous adverse reactions to weight loss medications"
           value={(wlAdverseReactions as "yes" | "no" | "")}
           onChange={(value) => setAnswer("wlAdverseReactions", value)}
-          error={errors.wlAdverseReactions}
         />
 
         {wlAdverseReactions === 'yes' && (
@@ -443,12 +404,6 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
               placeholder="Tell us what happened and which option it involved, if you remember."
               className="min-h-[80px] resize-none"
             />
-            {errors.wlAdverseReactionsDetails && (
-              <p className="text-xs text-destructive flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" />
-                {errors.wlAdverseReactionsDetails}
-              </p>
-            )}
           </div>
         )}
       </div>
@@ -464,22 +419,26 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
           placeholder="Describe what you hope to achieve, any specific concerns, and what motivated you to seek help now..."
           className="min-h-[100px] resize-none"
         />
-        {errors.weightLossGoals && (
-          <p className="text-xs text-destructive flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {errors.weightLossGoals}
-          </p>
-        )}
         <p className="text-xs text-muted-foreground">{weightLossGoals.length}/20 characters minimum</p>
       </div>
 
-      {/* Continue button */}
+      {/* Validation summary — announced to screen readers on first Continue tap. */}
+      {validationSummary.length > 0 && (
+        <Alert variant="destructive" role="alert" aria-live="assertive">
+          <AlertDescription>
+            {validationSummary.length === 1 ? "Add this to continue: " : "Add these to continue: "}
+            {validationSummary.join(", ")}.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Always clickable so incomplete mobile and desktop attempts get feedback. */}
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
         data-intake-primary-ready={isComplete ? "true" : "false"}
         onClick={handleNext}
-        disabled={!isComplete}
+        variant={isComplete ? "default" : "secondary"}
         className="w-full h-12 text-base font-medium max-sm:hidden"
       >
         Continue

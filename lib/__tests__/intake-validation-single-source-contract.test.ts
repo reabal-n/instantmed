@@ -26,9 +26,9 @@ import { describe, expect, it } from "vitest"
  * different single system (StepBlockedSummary — medication / certificate /
  * medical-history) are out of scope; this contract only forbids running BOTH.
  *
- * Deliberately NOT covered: weight-loss-assessment (gated, not live). It is the
- * known anti-pattern template and must be rebuilt on shared primitives before
- * any launch — see docs/plans/2026-07-09-intake-dropoff-final-plan.md §P2.2.
+ * Weight management launched on 2026-08-10. Its assessment now uses the same
+ * shared hook and gates on the checkout-owned Zod result instead of keeping a
+ * parallel client validator alive after launch.
  */
 
 const root = process.cwd()
@@ -49,6 +49,7 @@ describe("intake validation single-source contract", () => {
     // ed-goals-step.
     expect(hookSteps.length).toBeGreaterThanOrEqual(9)
     expect(hookSteps).toContain("hair-loss-assessment-step.tsx")
+    expect(hookSteps).toContain("weight-loss-assessment-step.tsx")
     expect(hookSteps).toContain("womens-health-assessment-step.tsx")
   })
 
@@ -100,6 +101,32 @@ describe("intake validation single-source contract", () => {
       "pregnancy check",
     ]) {
       expect(source, `${reason} must stay a blocking reason`).toContain(`"${reason}"`)
+    }
+  })
+
+  it("keeps weight assessment readiness on the checkout-owned schema", () => {
+    const source = readStep("weight-loss-assessment-step.tsx")
+
+    expect(source).toContain("validateWeightLossAssessmentStep(answers)")
+    expect(source).toContain("const isComplete = validation.isValid")
+    expect(source).toContain("useStepValidationSummary(")
+    expect(source).toContain('variant={isComplete ? "default" : "secondary"}')
+    expect(source).not.toContain("disabled={!isComplete}")
+
+    for (const key of [
+      "weightKg",
+      "heightCm",
+      "targetWeight",
+      "previousAttempts",
+      "weight_pregnancy_status",
+      "weight_men2_thyroid_cancer",
+      "weight_pancreatitis",
+      "eatingDisorderHistory",
+      "wlAdverseReactions",
+      "wlAdverseReactionsDetails",
+      "weightLossGoals",
+    ]) {
+      expect(source, `${key} must stay represented in the blocking summary`).toContain(`["${key}",`)
     }
   })
 })
