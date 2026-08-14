@@ -223,8 +223,15 @@ export async function GET(request: NextRequest) {
     if (stuckIntakes && stuckIntakes.length > 0) {
       const { recoverStale } = await import("@/lib/clinical/auto-approval-state")
       for (const stuck of stuckIntakes) {
-        await recoverStale(supabase, stuck.id)
-        recovered++
+        const recoverySucceeded = await recoverStale(supabase, stuck.id)
+        if (recoverySucceeded) {
+          recovered++
+        } else {
+          handledFailures++
+          logger.warn("Stale auto-approval recovery transition failed", {
+            intakeId: stuck.id,
+          })
+        }
       }
     }
 
@@ -247,8 +254,15 @@ export async function GET(request: NextRequest) {
         try {
           const draftResult = await genDrafts(stuck.id)
           if (draftResult.success) {
-            await markDraftsReady(supabase, stuck.id)
-            recovered++
+            const transitionSucceeded = await markDraftsReady(supabase, stuck.id)
+            if (transitionSucceeded) {
+              recovered++
+            } else {
+              handledFailures++
+              logger.warn("Awaiting-drafts recovery transition failed", {
+                intakeId: stuck.id,
+              })
+            }
           } else {
             handledFailures++
           }
@@ -309,7 +323,13 @@ export async function GET(request: NextRequest) {
 
         // attemptAutoApproval handles claiming via state machine internally
         const result = await attemptAutoApproval(intake.id)
-        if (result.autoApproved) {
+        if (!result.success) {
+          failed++
+          logger.warn("Retry auto-approval failed", {
+            intakeId: intake.id,
+            reason: result.reason,
+          })
+        } else if (result.autoApproved) {
           approved++
           logger.info("Retry auto-approval succeeded", {
             intakeId: intake.id,

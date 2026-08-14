@@ -8,6 +8,27 @@ alter table public.cron_heartbeats
   add column if not exists last_failure_at timestamptz,
   add column if not exists last_failure_status text;
 
+-- Install the outcome-aware trigger before the data backfill below. Metadata-
+-- only updates preserve run_count; only a new invocation timestamp increments
+-- it. This keeps migration replay from being counted as a cron execution.
+create or replace function public.increment_cron_run_count()
+returns trigger
+language plpgsql
+volatile
+security invoker
+set search_path = ''
+as $function$
+begin
+  new.run_count := case
+    when new.last_run_at is distinct from old.last_run_at
+      and old.run_count < 9223372036854775807::bigint
+      then old.run_count + 1
+    else old.run_count
+  end;
+  return new;
+end;
+$function$;
+
 update public.cron_heartbeats
 set
   last_failure_at = last_run_at,
@@ -23,26 +44,6 @@ comment on column public.cron_heartbeats.last_failure_at is
 
 comment on column public.cron_heartbeats.last_failure_status is
   'Aggregate status for the latest failed cron outcome; never contains patient or request data.';
-
--- The baseline trigger owns increments for every update path, including this
--- migration's ON CONFLICT update. Keep it overflow-safe and make the upsert's
--- intended increment explicit below so either layer remains auditable.
-create or replace function public.increment_cron_run_count()
-returns trigger
-language plpgsql
-volatile
-security invoker
-set search_path = ''
-as $function$
-begin
-  new.run_count := case
-    when old.run_count < 9223372036854775807::bigint
-      then old.run_count + 1
-    else old.run_count
-  end;
-  return new;
-end;
-$function$;
 
 create or replace function public.record_cron_heartbeat_outcome(
   p_job_name text,

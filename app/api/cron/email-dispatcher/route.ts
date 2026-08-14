@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const outcome = await withCronTimeout(
-      () => processEmailDispatch(),
+      (signal) => processEmailDispatch(signal),
       { timeoutMs: 50_000, jobName: "email-dispatcher" }
     )
 

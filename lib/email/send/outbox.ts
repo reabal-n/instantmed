@@ -361,6 +361,7 @@ export async function claimOutboxRow(outboxId: string): Promise<{
   claimed: boolean
   row?: OutboxRow
   error?: string
+  failureReason?: "not_claimed" | "query_failed"
 }> {
   const supabase = createServiceRoleClient()
 
@@ -380,10 +381,18 @@ export async function claimOutboxRow(outboxId: string): Promise<{
   if (error) {
     // Row was already claimed by another process or doesn't exist
     if (error.code === "PGRST116") {
-      return { claimed: false, error: "Already claimed or not found" }
+      return {
+        claimed: false,
+        error: "Already claimed or not found",
+        failureReason: "not_claimed",
+      }
     }
     logger.warn("[Email] Failed to claim outbox row", { outboxId, error: error.message })
-    return { claimed: false, error: error.message }
+    return {
+      claimed: false,
+      error: error.message,
+      failureReason: "query_failed",
+    }
   }
 
   return { claimed: true, row: data as OutboxRow }

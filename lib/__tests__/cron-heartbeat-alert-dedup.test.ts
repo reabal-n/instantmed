@@ -37,7 +37,7 @@ function createHeartbeatClient(input: {
   heartbeats: HeartbeatRow[]
   heartbeatReadError?: { message: string } | null
   deploymentStartedAt?: string
-  claimed?: Array<{ job_name: string; outage_key: string }>
+  claimed?: unknown
   claimError?: { message: string } | null
 }) {
   const heartbeatSelect = vi.fn(async () => ({
@@ -398,5 +398,47 @@ describe("cron heartbeat atomic alert claims", () => {
     )
     const sentryPayload = JSON.stringify(mocks.captureMessage.mock.calls[0])
     expect(sentryPayload).not.toMatch(/intake|patient|email|medication/i)
+  })
+
+  it("fails open when a successful claim RPC returns a malformed payload", async () => {
+    const harness = createHeartbeatClient({
+      heartbeats: [{
+        job_name: "posthog-reconciliation",
+        last_run_at: "2026-08-15T19:00:00.000Z",
+        last_status: "configuration_error",
+        last_success_at: null,
+      }],
+      claimed: [{ job_name: "posthog-reconciliation" }],
+    })
+    mocks.createServiceRoleClient.mockReturnValue(harness.client)
+
+    const { checkCronHeartbeats } = await import("@/lib/monitoring/cron-heartbeat")
+    const result = await checkCronHeartbeats()
+
+    expect(result.healthy).toBe(false)
+    expect(mocks.logError).toHaveBeenCalledWith(
+      "Cron heartbeat alert claim returned malformed payload",
+      { overdueCount: 1 },
+    )
+    expect(mocks.captureMessage).toHaveBeenCalledWith(
+      "Cron heartbeat alert claim failed; known outages require attention",
+      expect.objectContaining({
+        fingerprint: ["cron-heartbeat-alert-claim-failed"],
+        level: "fatal",
+        tags: expect.objectContaining({
+          alert_claim_status: "configuration_error",
+          fail_open_alert_count: "1",
+        }),
+        extra: {
+          overdue: [expect.objectContaining({
+            jobName: "posthog-reconciliation",
+            status: "configuration_error",
+          })],
+        },
+      }),
+    )
+    expect(JSON.stringify(mocks.captureMessage.mock.calls[0])).not.toMatch(
+      /intake|patient|email|medication/i,
+    )
   })
 })

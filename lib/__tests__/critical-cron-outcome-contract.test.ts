@@ -85,4 +85,34 @@ describe("critical cron terminal outcome contract", () => {
       expect(source).toContain('"configuration_error" : "skipped"')
     },
   )
+
+  it("forwards timeout abort signals into both short-interval dispatch loops", () => {
+    const emailDispatcher = read("app/api/cron/email-dispatcher/route.ts")
+    const telegramNotifications = read("app/api/cron/telegram-notifications/route.ts")
+
+    expect(emailDispatcher).toContain("(signal) => processEmailDispatch(signal)")
+    expect(telegramNotifications).toContain(
+      "(signal) => processPendingPaidTelegramNotifications(signal)",
+    )
+    expect(telegramNotifications).toContain("signal?.throwIfAborted()")
+  })
+
+  it("does not classify failed auto-approval outcomes or recovery transitions as skips", () => {
+    const source = read("app/api/cron/retry-auto-approval/route.ts")
+
+    expect(source).toContain("if (!result.success)")
+    expect(source).toContain("const recoverySucceeded = await recoverStale")
+    expect(source).toContain("const transitionSucceeded = await markDraftsReady")
+    expect(source).toContain('status: failed + handledFailures > 0 ? "partial_failure" : "ok"')
+  })
+
+  it("keeps preflight-only checks neutral and invariant query failures partial", () => {
+    const conversions = read("app/api/cron/google-ads-conversions/route.ts")
+    const businessAlerts = read("app/api/cron/business-alerts/route.ts")
+
+    expect(conversions).toMatch(/preflight\.ok\s*\? "skipped"/)
+    expect(businessAlerts).toContain(
+      "handledFailures += operationalInvariants.queryFailures?.length ?? 0",
+    )
+  })
 })

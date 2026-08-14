@@ -201,18 +201,30 @@ export async function withCronTimeout<T>(
   const timeoutMs = options?.timeoutMs ?? 50_000
   const jobName = options?.jobName ?? "unknown"
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  let timedOut = false
+  let timer: ReturnType<typeof setTimeout> | undefined
+
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      timedOut = true
+      controller.abort()
+      reject(new Error(`Cron job timed out: ${jobName}`))
+    }, timeoutMs)
+  })
 
   try {
-    const result = await fn(controller.signal)
-    clearTimeout(timer)
+    const result = await Promise.race([
+      Promise.resolve().then(() => fn(controller.signal)),
+      timeout,
+    ])
     return { result, timedOut: false }
   } catch (err) {
-    clearTimeout(timer)
-    if (controller.signal.aborted) {
+    if (timedOut) {
       return { timedOut: true, jobName }
     }
     throw err // re-throw non-timeout errors
+  } finally {
+    if (timer) clearTimeout(timer)
   }
 }
 

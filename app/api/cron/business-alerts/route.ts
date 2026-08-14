@@ -528,6 +528,7 @@ export async function GET(request: NextRequest) {
       onFailure: onSectionFailure,
       run: async () => {
         operationalInvariants = await getOperationalInvariants(supabase)
+        handledFailures += operationalInvariants.queryFailures?.length ?? 0
         const invariantAlerts = buildOperationalInvariantAlerts(operationalInvariants)
 
         for (const alert of invariantAlerts) {

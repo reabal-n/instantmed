@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
         status: preflight.severity === "error"
           ? "configuration_error"
           : preflight.ok
-            ? "ok"
+            ? "skipped"
             : "partial_failure",
       })
       return NextResponse.json(

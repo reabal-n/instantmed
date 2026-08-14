@@ -77,7 +77,7 @@ describe("cron heartbeat watchdog migration", () => {
       "create or replace function public.increment_cron_run_count()",
     )
     expect(outcomeMigration).toContain(
-      "when old.run_count < 9223372036854775807::bigint",
+      "and old.run_count < 9223372036854775807::bigint",
     )
     expect(outcomeMigration).toContain(
       "when p_rearm_outage then excluded.last_run_at",
@@ -88,5 +88,23 @@ describe("cron heartbeat watchdog migration", () => {
       "revoke all on function public.record_cron_heartbeat_outcome(text, text, integer, integer, boolean)",
     )
     expect(outcomeMigration).toContain("to service_role;")
+  })
+
+  it("does not count the failure-boundary backfill as a cron invocation", () => {
+    const triggerDefinition = outcomeMigration.indexOf(
+      "create or replace function public.increment_cron_run_count()",
+    )
+    const failureBackfill = outcomeMigration.indexOf(
+      "update public.cron_heartbeats",
+    )
+
+    expect(triggerDefinition).toBeGreaterThan(-1)
+    expect(failureBackfill).toBeGreaterThan(triggerDefinition)
+    expect(outcomeMigration).toContain(
+      "when new.last_run_at is distinct from old.last_run_at",
+    )
+    expect(outcomeMigration).toContain(
+      "else old.run_count",
+    )
   })
 })

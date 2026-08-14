@@ -150,7 +150,12 @@ function isMarketingEmailType(emailType: string): boolean {
   return MARKETING_EMAIL_TYPES.has(emailType as Parameters<typeof MARKETING_EMAIL_TYPES.has>[0])
 }
 
-async function recoverStaleSendingRows(): Promise<number> {
+function throwIfAborted(signal?: AbortSignal): void {
+  signal?.throwIfAborted()
+}
+
+async function recoverStaleSendingRows(signal?: AbortSignal): Promise<number> {
+  throwIfAborted(signal)
   const supabase = createServiceRoleClient()
   const staleBefore = new Date(Date.now() - STALE_SENDING_MINUTES * 60 * 1000).toISOString()
 
@@ -166,10 +171,11 @@ async function recoverStaleSendingRows(): Promise<number> {
     .select("id")
 
   if (error) {
-    logger.warn("[Email Dispatcher] Failed to recover stale sending rows", { error: error.message })
-    return 0
+    logger.error("[Email Dispatcher] Failed to recover stale sending rows", { error: error.message })
+    throw new Error(`Failed to recover stale sending rows: ${error.message}`)
   }
 
+  throwIfAborted(signal)
   const recovered = data?.length ?? 0
   if (recovered > 0) {
     logger.warn("[Email Dispatcher] Recovered stale sending rows", { recovered })
@@ -197,13 +203,17 @@ export interface DispatcherResult {
  * Process pending/failed emails from email_outbox.
  * This is the core dispatcher logic used by both cron and ops routes.
  */
-export async function processEmailDispatch(): Promise<DispatcherResult> {
-  await recoverStaleSendingRows()
+export async function processEmailDispatch(signal?: AbortSignal): Promise<DispatcherResult> {
+  throwIfAborted(signal)
+  await recoverStaleSendingRows(signal)
+  throwIfAborted(signal)
   await recoverLegacyQuietFailures()
+  throwIfAborted(signal)
 
   // Respect domain warmup for marketing only. Transactional clinical/payment
   // delivery must continue even when launch warmup is capped.
   const warmup = await checkDailySendLimit()
+  throwIfAborted(signal)
   const marketingPaused = !warmup.allowed
   if (marketingPaused) {
     logger.info("[Email Dispatcher] Skipping batch - daily send limit reached", {
@@ -230,6 +240,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
     .order("created_at", { ascending: true })
     .limit(MAX_BATCH_SIZE * 2)
 
+  throwIfAborted(signal)
   if (fetchError) {
     logger.error("[Email Dispatcher] Failed to fetch outbox", { error: fetchError.message })
     throw new Error(`Failed to fetch outbox: ${fetchError.message}`)
@@ -272,15 +283,30 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
   const results: DispatcherResult["results"] = []
 
   for (const row of eligible) {
+    throwIfAborted(signal)
     // STEP 1: Atomically claim the row (prevents duplicate sends)
     const claim = await claimOutboxRow(row.id)
     if (!claim.claimed) {
+      if (claim.failureReason === "query_failed") {
+        logger.error("[Email Dispatcher] Outbox claim query failed", {
+          id: row.id,
+          error: claim.error,
+        })
+        failed++
+        results.push({
+          id: row.id,
+          success: false,
+          error: "Outbox claim query failed",
+        })
+        continue
+      }
       logger.info("[Email Dispatcher] Row already claimed, skipping", { id: row.id })
       skipped++
       results.push({ id: row.id, success: false, skipped: true, error: "Already claimed" })
       continue
     }
 
+    throwIfAborted(signal)
     const claimedRow = claim.row!
 
     // STEP 2: Validate required fields
@@ -317,6 +343,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
 
     // STEP 4: Send the email
     const result = await sendFromOutboxRow(claimedRow)
+    throwIfAborted(signal)
 
     if (result.success) {
       sent++

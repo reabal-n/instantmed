@@ -1,16 +1,21 @@
-import { beforeEach,describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 // Must mock server-only before import
 vi.mock("server-only", () => ({}))
 
 import { NextRequest } from "next/server"
 
-import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { verifyCronRequest, withCronTimeout } from "@/lib/api/cron-auth"
 
 describe("cron-auth", () => {
   beforeEach(() => {
     vi.stubEnv("CRON_SECRET", "test-cron-secret")
     vi.stubEnv("VERCEL", "")
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllEnvs()
   })
 
   it("should allow valid CRON_SECRET", () => {
@@ -44,5 +49,26 @@ describe("cron-auth", () => {
     const result = verifyCronRequest(req)
     expect(result).not.toBeNull()
     expect(result?.status).toBe(500)
+  })
+
+  it("returns a timeout and aborts even when the callback never settles", async () => {
+    vi.useFakeTimers()
+    const receivedSignal: { current?: AbortSignal } = {}
+
+    const outcome = withCronTimeout(
+      (signal) => {
+        receivedSignal.current = signal
+        return new Promise<string>(() => {})
+      },
+      { timeoutMs: 25, jobName: "hung-cron" },
+    )
+
+    await vi.advanceTimersByTimeAsync(25)
+
+    await expect(outcome).resolves.toEqual({
+      timedOut: true,
+      jobName: "hung-cron",
+    })
+    expect(receivedSignal.current?.aborted).toBe(true)
   })
 })

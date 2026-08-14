@@ -27,7 +27,8 @@ type PendingPaidTelegramIntake = {
   paid_request_telegram_attempts: number | null
 }
 
-async function processPendingPaidTelegramNotifications() {
+async function processPendingPaidTelegramNotifications(signal?: AbortSignal) {
+  signal?.throwIfAborted()
   const supabase = createServiceRoleClient()
   const retryWindowStart = new Date(Date.now() - RETRY_WINDOW_MINUTES * 60 * 1000)
 
@@ -47,12 +48,14 @@ async function processPendingPaidTelegramNotifications() {
     throw error
   }
 
+  signal?.throwIfAborted()
   const pending = (data || []) as PendingPaidTelegramIntake[]
   let sent = 0
   let failed = 0
   let skipped = 0
 
   for (const intake of pending) {
+    signal?.throwIfAborted()
     try {
       const result = await sendPaidRequestTelegramNotification({
         supabase,
@@ -63,6 +66,7 @@ async function processPendingPaidTelegramNotifications() {
         category: intake.category,
         subtype: intake.subtype,
       })
+      signal?.throwIfAborted()
 
       if (result.sent) {
         sent++
@@ -99,7 +103,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const outcome = await withCronTimeout(
-      () => processPendingPaidTelegramNotifications(),
+      (signal) => processPendingPaidTelegramNotifications(signal),
       { timeoutMs: 50_000, jobName: "telegram-notifications" },
     )
 

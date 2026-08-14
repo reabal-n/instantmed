@@ -49,7 +49,10 @@ function createQuery<T>(result: T) {
   return query
 }
 
-function createReconciliationSupabaseMock() {
+function createReconciliationSupabaseMock(input?: {
+  documentsError?: { message: string } | null
+  emailsError?: { message: string } | null
+}) {
   const paidAt = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
   const supabase = {
     from: vi.fn((table: string) => {
@@ -84,7 +87,10 @@ function createReconciliationSupabaseMock() {
         return {
           select: vi.fn(() => ({
             in: vi.fn(() => ({
-              order: vi.fn(() => createThenable({ data: [], error: null })),
+              order: vi.fn(() => createThenable({
+                data: [],
+                error: input?.emailsError ?? null,
+              })),
             })),
           })),
         }
@@ -93,7 +99,10 @@ function createReconciliationSupabaseMock() {
       if (table === "intake_documents") {
         return {
           select: vi.fn(() => ({
-            in: vi.fn(() => createThenable({ data: [], error: null })),
+            in: vi.fn(() => createThenable({
+              data: [],
+              error: input?.documentsError ?? null,
+            })),
           })),
         }
       }
@@ -151,5 +160,27 @@ describe("payment reconciliation hardening", () => {
     expect(sentryPayload).not.toContain("Patient Name")
     expect(sentryPayload).not.toContain("REF-123")
     expect(sentryPayload).not.toContain("intake-1")
+  })
+
+  it("propagates an email evidence query failure instead of inferring no delivery", async () => {
+    mocks.createServiceRoleClient.mockReturnValue(createReconciliationSupabaseMock({
+      emailsError: { message: "email evidence unavailable" },
+    }))
+
+    const result = await getReconciliationRecords({ mismatch_only: false })
+
+    expect(result.data).toEqual([])
+    expect(result.error).toContain("Email reconciliation query failed")
+  })
+
+  it("propagates a document evidence query failure instead of inferring no document", async () => {
+    mocks.createServiceRoleClient.mockReturnValue(createReconciliationSupabaseMock({
+      documentsError: { message: "document evidence unavailable" },
+    }))
+
+    const result = await getReconciliationRecords({ mismatch_only: false })
+
+    expect(result.data).toEqual([])
+    expect(result.error).toContain("Document reconciliation query failed")
   })
 })

@@ -176,7 +176,12 @@ export async function getReconciliationRecords(
       .order("created_at", { ascending: false })
 
     if (emailsError) {
-      logger.warn("[Reconciliation] Failed to fetch emails", { error: emailsError.message })
+      logger.error("[Reconciliation] Failed to fetch emails", { error: emailsError.message })
+      return {
+        data: [],
+        summary: { total: 0, mismatches: 0, delivered: 0, pending: 0, failed: 0 },
+        error: `Email reconciliation query failed: ${emailsError.message}`,
+      }
     }
 
     // Group emails by intake_id
@@ -195,7 +200,12 @@ export async function getReconciliationRecords(
       .in("intake_id", intakeIds)
 
     if (docsError) {
-      logger.warn("[Reconciliation] Failed to fetch documents", { error: docsError.message })
+      logger.error("[Reconciliation] Failed to fetch documents", { error: docsError.message })
+      return {
+        data: [],
+        summary: { total: 0, mismatches: 0, delivered: 0, pending: 0, failed: 0 },
+        error: `Document reconciliation query failed: ${docsError.message}`,
+      }
     }
 
     const docsByIntake = new Map<string, boolean>()

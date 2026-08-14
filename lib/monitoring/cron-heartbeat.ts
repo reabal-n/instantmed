@@ -25,6 +25,31 @@ interface CronHeartbeatOutage {
   outageKey: string
 }
 
+function parseClaimedOutageKeys(
+  value: unknown,
+  overdue: CronHeartbeatOutage[],
+): Set<string> | null {
+  if (!Array.isArray(value)) return null
+
+  const expectedKeys = new Set(
+    overdue.map((item) => `${item.jobName}\u0000${item.outageKey}`),
+  )
+  const claimedKeys = new Set<string>()
+
+  for (const item of value) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return null
+    const jobName = (item as { job_name?: unknown }).job_name
+    const outageKey = (item as { outage_key?: unknown }).outage_key
+    if (typeof jobName !== "string" || typeof outageKey !== "string") return null
+
+    const key = `${jobName}\u0000${outageKey}`
+    if (!expectedKeys.has(key)) return null
+    claimedKeys.add(key)
+  }
+
+  return claimedKeys
+}
+
 /**
  * Expected cron schedules for monitoring.
  * maxDelayMinutes is how late a cron can be before we alert.
@@ -271,17 +296,20 @@ export async function checkCronHeartbeats(): Promise<{
           overdueCount: overdue.length,
         })
       } else {
-        const claimedKeys = new Set(
-          ((claimed || []) as Array<{ job_name?: unknown; outage_key?: unknown }>)
-            .filter((item) => (
-              typeof item.job_name === "string"
-              && typeof item.outage_key === "string"
-            ))
-            .map((item) => `${item.job_name}\u0000${item.outage_key}`),
-        )
-        alertableOverdue = overdue.filter((item) => (
-          claimedKeys.has(`${item.jobName}\u0000${item.outageKey}`)
-        ))
+        const claimedKeys = parseClaimedOutageKeys(claimed, overdue)
+        if (!claimedKeys) {
+          // A successful transport with an invalid body is still a broken
+          // deduplication claim. Page known outages without echoing the body.
+          alertClaimFailed = true
+          alertableOverdue = overdue
+          log.error("Cron heartbeat alert claim returned malformed payload", {
+            overdueCount: overdue.length,
+          })
+        } else {
+          alertableOverdue = overdue.filter((item) => (
+            claimedKeys.has(`${item.jobName}\u0000${item.outageKey}`)
+          ))
+        }
       }
     }
 

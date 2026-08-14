@@ -94,6 +94,7 @@ function frozenMetadata(metadata: Record<string, unknown> = {}) {
 function mockOutboxSelect(
   candidates: ReturnType<typeof makeCandidate>[],
   error: { message: string } | null = null,
+  staleRecoveryError: { message: string } | null = null,
 ) {
   // The dispatcher calls:
   //   supabase.from("email_outbox").select(...).in(...).lt(...).or(...).order(...).limit(...)
@@ -125,8 +126,8 @@ function mockOutboxSelect(
       error: null,
     }),
     then: (
-      resolve: (value: { data: unknown[]; error: null }) => void,
-    ) => resolve({ data: [], error: null }),
+      resolve: (value: { data: unknown[]; error: { message: string } | null }) => void,
+    ) => resolve({ data: [], error: staleRecoveryError }),
   }
   updateChain.select = vi.fn(() => selectTerminal)
   const updateMock = vi.fn(() => updateChain)
@@ -219,6 +220,16 @@ describe("email-dispatcher", () => {
 
     it("MAX_RETRIES is 10", () => {
       expect(MAX_RETRIES).toBe(10)
+    })
+
+    it("stops before querying when the cron timeout signal is already aborted", async () => {
+      const controller = new AbortController()
+      controller.abort()
+
+      await expect(processEmailDispatch(controller.signal)).rejects.toMatchObject({
+        name: "AbortError",
+      })
+      expect(mockSupabaseFrom).not.toHaveBeenCalled()
     })
   })
 
@@ -494,6 +505,27 @@ describe("email-dispatcher", () => {
         error: "Already claimed",
       })
       // Should not attempt to send
+      expect(mockSendFromOutboxRow).not.toHaveBeenCalled()
+    })
+
+    it("counts a claim query failure as failed work instead of a benign skip", async () => {
+      const candidate = makeCandidate()
+      mockOutboxSelect([candidate])
+      mockClaimOutboxRow.mockResolvedValue({
+        claimed: false,
+        error: "database unavailable",
+        failureReason: "query_failed",
+      })
+
+      const result = await processEmailDispatch()
+
+      expect(result.failed).toBe(1)
+      expect(result.skipped).toBe(0)
+      expect(result.results[0]).toEqual({
+        id: "outbox-1",
+        success: false,
+        error: "Outbox claim query failed",
+      })
       expect(mockSendFromOutboxRow).not.toHaveBeenCalled()
     })
   })
@@ -931,6 +963,14 @@ describe("email-dispatcher", () => {
   // Fetch error
   // -----------------------------------------------------------------------
   describe("fetch error", () => {
+    it("throws when stale-sending recovery cannot read or update the outbox", async () => {
+      mockOutboxSelect([], null, { message: "recovery query failed" })
+
+      await expect(processEmailDispatch()).rejects.toThrow(
+        "Failed to recover stale sending rows",
+      )
+    })
+
     it("throws when outbox query fails", async () => {
       mockOutboxSelect([], { message: "connection refused" })
 
