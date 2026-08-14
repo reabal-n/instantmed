@@ -9,6 +9,16 @@ const log = createLogger("cron-heartbeat")
 const CRON_HEARTBEAT_ALERT_METRIC = "cron_heartbeat_alert"
 const CRON_HEARTBEAT_ALERT_RECEIPT_LIMIT = 1_000
 
+export function shouldAlertCronOutage(
+  lastAlertAt: number | undefined,
+  lastRunAt: string | null,
+): boolean {
+  const lastRunAtMs = lastRunAt ? Date.parse(lastRunAt) : Number.NaN
+  return lastAlertAt === undefined || (
+    Number.isFinite(lastRunAtMs) && lastAlertAt < lastRunAtMs
+  )
+}
+
 /**
  * Expected cron schedules for monitoring.
  * maxDelayMinutes is how late a cron can be before we alert.
@@ -161,8 +171,7 @@ export async function checkCronHeartbeats(): Promise<{
 
         alertableOverdue = overdue.filter((item) => {
           const lastAlertAt = latestAlertByJob.get(item.jobName)
-          const lastRunAt = item.lastRunAt ? Date.parse(item.lastRunAt) : Number.NaN
-          return lastAlertAt === undefined || !Number.isFinite(lastRunAt) || lastAlertAt < lastRunAt
+          return shouldAlertCronOutage(lastAlertAt, item.lastRunAt)
         })
       }
     }

@@ -82,6 +82,14 @@ describe("cron heartbeat alert receipts", () => {
     vi.useRealTimers()
   })
 
+  it("suppresses an unchanged never-run outage after its first alert receipt", async () => {
+    const { shouldAlertCronOutage } = await import("@/lib/monitoring/cron-heartbeat")
+
+    expect(shouldAlertCronOutage(Date.parse("2026-08-15T00:00:00.000Z"), null))
+      .toBe(false)
+    expect(shouldAlertCronOutage(undefined, null)).toBe(true)
+  })
+
   it("suppresses repeated alerts for the same unchanged outage", async () => {
     const harness = createHeartbeatClient({
       lastRunAt: "2026-08-13T00:00:00.000Z",
