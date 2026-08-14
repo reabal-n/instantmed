@@ -508,6 +508,36 @@ describe("email-dispatcher", () => {
       expect(mockSendFromOutboxRow).not.toHaveBeenCalled()
     })
 
+    it("finishes a newly claimed row before honoring timeout cancellation", async () => {
+      const claimed = makeCandidate({
+        id: "claimed-before-timeout",
+        email_type: "review_request",
+        certificate_id: null,
+        intake_id: "intake-claimed",
+        metadata: frozenMetadata(),
+      })
+      const untouched = makeCandidate({ id: "untouched-after-timeout" })
+      const { updateMock } = mockOutboxSelect([claimed, untouched])
+      const controller = new AbortController()
+      mockClaimOutboxRow.mockImplementationOnce(async () => {
+        controller.abort()
+        return { claimed: true, row: claimed }
+      })
+      mockSendFromOutboxRow.mockResolvedValue({ success: true })
+
+      await expect(processEmailDispatch(controller.signal)).rejects.toMatchObject({
+        name: "AbortError",
+      })
+
+      expect(mockClaimOutboxRow).toHaveBeenCalledOnce()
+      expect(mockClaimOutboxRow).toHaveBeenCalledWith("claimed-before-timeout")
+      expect(mockSendFromOutboxRow).toHaveBeenCalledWith(claimed)
+      expect(updateMock).toHaveBeenCalledWith({
+        review_email_sent_at: expect.any(String),
+      })
+      expect(mockClaimOutboxRow).not.toHaveBeenCalledWith("untouched-after-timeout")
+    })
+
     it("counts a claim query failure as failed work instead of a benign skip", async () => {
       const candidate = makeCandidate()
       mockOutboxSelect([candidate])

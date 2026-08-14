@@ -306,7 +306,10 @@ export async function processEmailDispatch(signal?: AbortSignal): Promise<Dispat
       continue
     }
 
-    throwIfAborted(signal)
+    // A successful claim changes the row to `sending`. From this point the
+    // provider attempt and durable disposition must run to completion even if
+    // the cron timeout fires; the next loop boundary will honour cancellation.
+    // Aborting here would strand a critical email until stale-claim recovery.
     const claimedRow = claim.row!
 
     // STEP 2: Validate required fields
