@@ -104,6 +104,33 @@ describe("cron surface contract", () => {
     )
   })
 
+  it("keeps PostHog reconciliation outcome-monitored and documented", () => {
+    const vercelConfig = JSON.parse(read("vercel.json")) as {
+      crons?: Array<{ path?: string; schedule?: string }>
+    }
+    const reconciliationCron = (vercelConfig.crons ?? []).find(
+      (cron) => cron.path === "/api/cron/posthog-reconciliation",
+    )
+    const heartbeatSource = read("lib/monitoring/cron-heartbeat.ts")
+    const routeSource = read("app/api/cron/posthog-reconciliation/route.ts")
+    const operationsSource = read("docs/OPERATIONS.md")
+
+    expect(reconciliationCron).toEqual({
+      path: "/api/cron/posthog-reconciliation",
+      schedule: "15 * * * *",
+    })
+    expect(heartbeatSource).toContain(
+      '"posthog-reconciliation": { schedule: "15 * * * *",    maxDelayMinutes: 75 }',
+    )
+    expect(routeSource.indexOf('status: "ok"')).toBeGreaterThan(
+      routeSource.indexOf("PostHog reconciliation complete"),
+    )
+    expect(routeSource).toContain('status: "configuration_error"')
+    expect(operationsSource).toContain(
+      "| PostHog Reconciliation | `/api/cron/posthog-reconciliation` | Hourly (:15) |",
+    )
+  })
+
   it("keeps business-alerts scheduled, heartbeat-monitored, and documented", () => {
     const vercelConfig = JSON.parse(read("vercel.json")) as {
       crons?: Array<{ path?: string; schedule?: string }>

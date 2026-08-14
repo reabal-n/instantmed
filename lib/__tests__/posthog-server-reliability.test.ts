@@ -94,6 +94,7 @@ describe("PostHog purchase reconciliation", () => {
     )
     const trackBusinessMetric = vi.fn()
     const releaseCronLock = vi.fn(async () => undefined)
+    const recordCronHeartbeat = vi.fn(async () => undefined)
 
     vi.stubEnv("NODE_ENV", "production")
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_HOST", "https://us.i.posthog.com")
@@ -107,10 +108,10 @@ describe("PostHog purchase reconciliation", () => {
       verifyCronRequest: vi.fn(() => null),
     }))
     vi.doMock("@/lib/monitoring/cron-heartbeat", () => ({
-      recordCronHeartbeat: vi.fn(async () => undefined),
+      recordCronHeartbeat,
     }))
     vi.doMock("@/lib/observability/logger", () => ({
-      createLogger: () => ({ info: vi.fn(), warn: vi.fn() }),
+      createLogger: () => ({ error: vi.fn(), info: vi.fn(), warn: vi.fn() }),
     }))
     vi.doMock("@/lib/observability/sentry", () => ({
       captureCronError: vi.fn(),
@@ -164,6 +165,133 @@ describe("PostHog purchase reconciliation", () => {
       success: true,
       supabase_reportable_ever_paid: 4,
     })
+    expect(releaseCronLock).toHaveBeenCalledWith("posthog-reconciliation")
+    expect(recordCronHeartbeat).toHaveBeenCalledOnce()
+    expect(recordCronHeartbeat).toHaveBeenCalledWith(
+      "posthog-reconciliation",
+      {
+        durationMs: expect.any(Number),
+        itemsProcessed: 4,
+        status: "ok",
+      },
+    )
+  })
+
+  it("fails loudly and records a configuration outcome when credentials are missing", async () => {
+    const releaseCronLock = vi.fn(async () => undefined)
+    const recordCronHeartbeat = vi.fn(async () => undefined)
+    const createServiceRoleClient = vi.fn()
+    const fetchMock = vi.fn()
+    const captureCronError = vi.fn()
+
+    vi.stubEnv("POSTHOG_PROJECT_API_KEY", "")
+    vi.stubEnv("POSTHOG_PROJECT_ID", "")
+    vi.stubGlobal("fetch", fetchMock)
+    vi.doMock("@/lib/analytics/posthog-server", () => ({
+      trackBusinessMetric: vi.fn(),
+    }))
+    vi.doMock("@/lib/api/cron-auth", () => ({
+      acquireCronLock: vi.fn(async () => ({ acquired: true })),
+      releaseCronLock,
+      verifyCronRequest: vi.fn(() => null),
+    }))
+    vi.doMock("@/lib/monitoring/cron-heartbeat", () => ({ recordCronHeartbeat }))
+    vi.doMock("@/lib/observability/logger", () => ({
+      createLogger: () => ({ error: vi.fn(), info: vi.fn(), warn: vi.fn() }),
+    }))
+    vi.doMock("@/lib/observability/sentry", () => ({ captureCronError }))
+    vi.doMock("@/lib/supabase/service-role", () => ({ createServiceRoleClient }))
+    vi.doMock("@sentry/nextjs", () => ({ captureMessage: vi.fn() }))
+
+    const { GET } = await import("@/app/api/cron/posthog-reconciliation/route")
+    const response = await GET(
+      new Request("https://instantmed.test/api/cron/posthog-reconciliation") as Parameters<
+        typeof GET
+      >[0],
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(503)
+    expect(payload).toMatchObject({
+      success: false,
+      reason: "posthog_credentials_missing",
+    })
+    expect(recordCronHeartbeat).toHaveBeenCalledWith(
+      "posthog-reconciliation",
+      {
+        durationMs: expect.any(Number),
+        status: "configuration_error",
+      },
+    )
+    expect(createServiceRoleClient).not.toHaveBeenCalled()
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(captureCronError).not.toHaveBeenCalled()
+    expect(releaseCronLock).toHaveBeenCalledWith("posthog-reconciliation")
+  })
+
+  it("turns query API access failures into one durable configuration outage", async () => {
+    const countResult = Promise.resolve({ count: 2, error: null })
+    const query = {
+      eq: vi.fn(),
+      gte: vi.fn(),
+      in: vi.fn(),
+      lte: vi.fn(),
+      not: vi.fn(),
+      or: vi.fn(),
+      select: vi.fn(),
+      then: countResult.then.bind(countResult),
+    }
+    query.eq.mockReturnValue(query)
+    query.gte.mockReturnValue(query)
+    query.in.mockReturnValue(query)
+    query.lte.mockReturnValue(query)
+    query.not.mockReturnValue(query)
+    query.or.mockReturnValue(query)
+    query.select.mockReturnValue(query)
+
+    const recordCronHeartbeat = vi.fn(async () => undefined)
+    const captureCronError = vi.fn()
+    const releaseCronLock = vi.fn(async () => undefined)
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_HOST", "https://us.i.posthog.com")
+    vi.stubEnv("POSTHOG_PROJECT_API_KEY", "phx_test")
+    vi.stubEnv("POSTHOG_PROJECT_ID", "277439")
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { status: 403 })))
+    vi.doMock("@/lib/analytics/posthog-server", () => ({
+      trackBusinessMetric: vi.fn(),
+    }))
+    vi.doMock("@/lib/api/cron-auth", () => ({
+      acquireCronLock: vi.fn(async () => ({ acquired: true })),
+      releaseCronLock,
+      verifyCronRequest: vi.fn(() => null),
+    }))
+    vi.doMock("@/lib/monitoring/cron-heartbeat", () => ({ recordCronHeartbeat }))
+    vi.doMock("@/lib/observability/logger", () => ({
+      createLogger: () => ({ error: vi.fn(), info: vi.fn(), warn: vi.fn() }),
+    }))
+    vi.doMock("@/lib/observability/sentry", () => ({ captureCronError }))
+    vi.doMock("@/lib/supabase/service-role", () => ({
+      createServiceRoleClient: () => ({ from: vi.fn(() => query) }),
+    }))
+    vi.doMock("@sentry/nextjs", () => ({ captureMessage: vi.fn() }))
+
+    const { GET } = await import("@/app/api/cron/posthog-reconciliation/route")
+    const response = await GET(
+      new Request("https://instantmed.test/api/cron/posthog-reconciliation") as Parameters<
+        typeof GET
+      >[0],
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(503)
+    expect(payload).toMatchObject({ success: false, reason: "posthog_query_403" })
+    expect(recordCronHeartbeat).toHaveBeenCalledWith(
+      "posthog-reconciliation",
+      {
+        durationMs: expect.any(Number),
+        status: "configuration_error",
+      },
+    )
+    expect(captureCronError).not.toHaveBeenCalled()
     expect(releaseCronLock).toHaveBeenCalledWith("posthog-reconciliation")
   })
 })

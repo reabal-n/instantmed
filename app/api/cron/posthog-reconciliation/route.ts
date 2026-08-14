@@ -53,8 +53,6 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  await recordCronHeartbeat("posthog-reconciliation")
-
   const lock = await acquireCronLock("posthog-reconciliation")
   if (!lock.acquired) {
     return NextResponse.json({
@@ -66,9 +64,36 @@ export async function GET(request: NextRequest) {
     })
   }
 
+  const startedAt = Date.now()
+
   try {
     const now = new Date()
     const since = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
+    // ─── PostHog configuration ──────────────────────────────────────
+    const posthogHost = normalizePostHogApiHost(
+      process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.posthog.com",
+    )
+    const posthogApiKey = process.env.POSTHOG_PROJECT_API_KEY
+    const posthogProjectId = process.env.POSTHOG_PROJECT_ID
+    if (!posthogApiKey || !posthogProjectId) {
+      logger.error("PostHog reconciliation configuration is incomplete", {
+        hasProjectApiKey: Boolean(posthogApiKey),
+        hasProjectId: Boolean(posthogProjectId),
+      })
+      await recordCronHeartbeat("posthog-reconciliation", {
+        durationMs: Date.now() - startedAt,
+        status: "configuration_error",
+      })
+      return NextResponse.json(
+        {
+          success: false,
+          error: "PostHog reconciliation is not configured",
+          reason: "posthog_credentials_missing",
+        },
+        { status: 503 },
+      )
+    }
 
     // ─── Supabase truth ──────────────────────────────────────────────
     const supabase = createServiceRoleClient()
@@ -84,20 +109,6 @@ export async function GET(request: NextRequest) {
     if (supabaseError) throw new Error(`Supabase count failed: ${supabaseError.message}`)
 
     // ─── PostHog truth ───────────────────────────────────────────────
-    const posthogHost = normalizePostHogApiHost(
-      process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.posthog.com",
-    )
-    const posthogApiKey = process.env.POSTHOG_PROJECT_API_KEY
-    const posthogProjectId = process.env.POSTHOG_PROJECT_ID
-    if (!posthogApiKey || !posthogProjectId) {
-      logger.warn("PostHog credentials not configured — skipping reconciliation")
-      return NextResponse.json({
-        success: true,
-        skipped: true,
-        reason: "POSTHOG_PROJECT_API_KEY or POSTHOG_PROJECT_ID missing",
-      })
-    }
-
     const purchaseCountQuery = `
       SELECT count(DISTINCT toString(properties.flow_instance_id)) AS unique_valid_flows
       FROM events
@@ -130,22 +141,27 @@ export async function GET(request: NextRequest) {
       },
     )
     if (!phRes.ok) {
-      // A 401/403/404 here is a configuration problem (bad/expired
-      // POSTHOG_PROJECT_API_KEY, missing scope, wrong project id, or wrong API
-      // host), not a runtime failure. Do NOT captureCronError on these — the
-      // cron runs hourly and the prior trends-API flood (INSTANTMED-2A) helped
-      // exhaust the Sentry quota and kill ingestion in June 2026. Skip gracefully
-      // like the missing-credentials branch; fix the key in Vercel prod instead.
-      // See docs/audits/2026-06-10-comprehensive-audit.md.
+      // A 401/403/404 here is a configuration problem (bad/expired key,
+      // missing scope, wrong project id, or wrong API host). Persist the
+      // failed outcome and let the atomic heartbeat watchdog page once for
+      // the continuous outage. Do not emit directly here: the prior hourly
+      // trends-API flood helped exhaust the Sentry quota in June 2026.
       if (phRes.status === 401 || phRes.status === 403 || phRes.status === 404) {
-        logger.warn("PostHog reconciliation skipped: query API auth/config failure", {
+        logger.error("PostHog reconciliation query API configuration failed", {
           status: phRes.status,
         })
-        return NextResponse.json({
-          success: false,
-          skipped: true,
-          reason: `posthog_query_${phRes.status}`,
+        await recordCronHeartbeat("posthog-reconciliation", {
+          durationMs: Date.now() - startedAt,
+          status: "configuration_error",
         })
+        return NextResponse.json(
+          {
+            success: false,
+            error: "PostHog reconciliation query access failed",
+            reason: `posthog_query_${phRes.status}`,
+          },
+          { status: 503 },
+        )
       }
       throw new Error(`PostHog query API ${phRes.status}`)
     }
@@ -199,6 +215,12 @@ export async function GET(request: NextRequest) {
       breached,
     })
 
+    await recordCronHeartbeat("posthog-reconciliation", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: supabaseEverPaid,
+      status: "ok",
+    })
+
     return NextResponse.json({
       success: true,
       window_hours: 24,
@@ -210,6 +232,10 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
+    await recordCronHeartbeat("posthog-reconciliation", {
+      durationMs: Date.now() - startedAt,
+      status: "error",
+    })
     const eventId = captureCronError(err, { jobName: "posthog-reconciliation" })
     return NextResponse.json(
       { success: false, error: err.message, sentry_event_id: eventId },
