@@ -50,6 +50,7 @@ const EXPECTED_COLUMNS: Record<string, string[]> = {
     "medicare_number",
     "medicare_irn",
     "medicare_expiry",
+    "consent_myhr",
     "address_line1",
     "suburb",
     "state",
