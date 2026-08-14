@@ -6,6 +6,9 @@ import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("cron-heartbeat")
 
+const CRON_HEARTBEAT_ALERT_METRIC = "cron_heartbeat_alert"
+const CRON_HEARTBEAT_ALERT_RECEIPT_LIMIT = 1_000
+
 /**
  * Expected cron schedules for monitoring.
  * maxDelayMinutes is how late a cron can be before we alert.
@@ -110,10 +113,67 @@ export async function checkCronHeartbeats(): Promise<{
       }
     }
 
+    let alertableOverdue = overdue
+
     if (overdue.length > 0) {
+      // The watchdog runs every five minutes. Persist one aggregate-only
+      // receipt per outage so an unchanged gap does not create a Sentry/log
+      // storm. A later successful heartbeat has a newer last_run_at, which
+      // automatically rearms the alert without a recovery mutation.
+      const overdueJobNames = new Set(overdue.map((item) => item.jobName))
+      const { data: receipts, error: receiptReadError } = await supabase
+        .from("operational_metrics")
+        .select("dimensions, recorded_at")
+        .eq("metric_name", CRON_HEARTBEAT_ALERT_METRIC)
+        .order("recorded_at", { ascending: false })
+        .limit(CRON_HEARTBEAT_ALERT_RECEIPT_LIMIT)
+
+      if (receiptReadError) {
+        // Fail open: a receipt read must never hide a real cron outage.
+        log.warn("Could not read cron heartbeat alert receipts", {
+          error: receiptReadError.message,
+        })
+      } else {
+        const latestAlertByJob = new Map<string, number>()
+
+        for (const receipt of receipts ?? []) {
+          const dimensions = receipt.dimensions
+          if (!dimensions || Array.isArray(dimensions) || typeof dimensions !== "object") {
+            continue
+          }
+
+          const jobName = (dimensions as Record<string, unknown>).job_name
+          if (
+            typeof jobName !== "string" ||
+            !overdueJobNames.has(jobName) ||
+            latestAlertByJob.has(jobName)
+          ) {
+            continue
+          }
+
+          const recordedAt = typeof receipt.recorded_at === "string"
+            ? Date.parse(receipt.recorded_at)
+            : Number.NaN
+          if (Number.isFinite(recordedAt)) {
+            latestAlertByJob.set(jobName, recordedAt)
+          }
+        }
+
+        alertableOverdue = overdue.filter((item) => {
+          const lastAlertAt = latestAlertByJob.get(item.jobName)
+          const lastRunAt = item.lastRunAt ? Date.parse(item.lastRunAt) : Number.NaN
+          return lastAlertAt === undefined || !Number.isFinite(lastRunAt) || lastAlertAt < lastRunAt
+        })
+      }
+    }
+
+    if (alertableOverdue.length > 0) {
       log.error("Critical cron jobs overdue", {
         overdueCount: overdue.length,
-        jobs: overdue.map((o) => `${o.jobName} (+${o.minutesOverdue}min)`).join(", "),
+        newlyAlertedCount: alertableOverdue.length,
+        jobs: alertableOverdue
+          .map((o) => `${o.jobName} (+${o.minutesOverdue}min)`)
+          .join(", "),
       })
 
       Sentry.captureMessage(`${overdue.length} critical cron job(s) overdue`, {
@@ -121,10 +181,26 @@ export async function checkCronHeartbeats(): Promise<{
         tags: {
           source: "cron-heartbeat-monitor",
           overdue_count: String(overdue.length),
+          newly_alerted_count: String(alertableOverdue.length),
         },
-        extra: { overdue },
+        extra: { overdue, newlyAlerted: alertableOverdue },
       })
 
+      const { error: receiptWriteError } = await supabase
+        .from("operational_metrics")
+        .insert(alertableOverdue.map((item) => ({
+          metric_name: CRON_HEARTBEAT_ALERT_METRIC,
+          metric_value: item.minutesOverdue,
+          dimensions: { job_name: item.jobName },
+        })))
+
+      if (receiptWriteError) {
+        // Fail open on the next watchdog tick rather than suppressing an
+        // outage whose alert receipt was not durably recorded.
+        log.warn("Could not record cron heartbeat alert receipts", {
+          error: receiptWriteError.message,
+        })
+      }
     }
 
     return { overdue, healthy: overdue.length === 0 }
