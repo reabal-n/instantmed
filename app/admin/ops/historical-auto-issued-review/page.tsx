@@ -117,7 +117,7 @@ export default async function HistoricalAutoIssuedReviewPage() {
                       <span>Auto-issued {formatDate(reviewCase.aiApprovedAt)}</span>
                       <span className="inline-flex items-center gap-1">
                         <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                        AI draft requested individual review
+                        Decision-time evidence required individual review
                       </span>
                     </div>
                   </div>

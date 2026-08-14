@@ -16,13 +16,22 @@ const baseEvidence: CertificateDeliveryEvidence = {
   intakeStatus: "approved",
 }
 
-function createRescueSupabaseStub(results: Record<string, unknown[]>) {
+function createRescueSupabaseStub(
+  results: Record<string, unknown[]>,
+  errors: Partial<Record<string, { message: string }>> = {},
+) {
   const filterCalls: Array<{ table: string; method: "or" | "not"; args: unknown[] }> = []
+  const orderCalls: Array<{
+    table: string
+    field: string
+    options: { ascending?: boolean } | undefined
+  }> = []
 
   return {
     filterCalls,
+    orderCalls,
     from(table: string) {
-      const result = { data: results[table] ?? [], error: null }
+      const result = { data: results[table] ?? [], error: errors[table] ?? null }
       const query = {
         select: () => query,
         eq: () => query,
@@ -36,7 +45,10 @@ function createRescueSupabaseStub(results: Record<string, unknown[]>) {
           filterCalls.push({ table, method: "not", args })
           return query
         },
-        order: () => query,
+        order: (field: string, options?: { ascending?: boolean }) => {
+          orderCalls.push({ table, field, options })
+          return query
+        },
         limit: () => Promise.resolve(result),
         then: (resolve: (value: typeof result) => unknown, reject?: (reason: unknown) => unknown) =>
           Promise.resolve(result).then(resolve, reject),
@@ -249,6 +261,107 @@ describe("certificate delivery rescue", () => {
 
     expect(overview.cases[0]?.recommendation.action).toBe("resend_secure_link")
     expect(overview.cases[0]?.accessEvidence).toBe("none")
+  })
+
+  it("fails closed when patient download evidence cannot be read", async () => {
+    const supabase = createRescueSupabaseStub(
+      {
+        intakes: [
+          {
+            id: baseEvidence.intakeId,
+            reference_number: baseEvidence.referenceNumber,
+            status: "approved",
+            document_sent_at: null,
+            created_at: "2026-06-29T00:00:00Z",
+            updated_at: "2026-06-29T00:06:00Z",
+            approved_at: "2026-06-29T00:01:00Z",
+            completed_at: null,
+          },
+        ],
+        issued_certificates: [
+          {
+            id: "cert-download-read-failure",
+            intake_id: baseEvidence.intakeId,
+            status: "valid",
+            storage_path: "certificates/download-failure/current.pdf",
+            created_at: "2026-06-29T00:02:00Z",
+            email_sent_at: null,
+            email_failed_at: null,
+            email_failure_reason: null,
+            resend_count: 0,
+          },
+        ],
+        email_outbox: [],
+      },
+      { certificate_audit_log: { message: "audit read unavailable" } },
+    )
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never)
+
+    expect(overview).toMatchObject({
+      cases: [],
+      actionCount: 0,
+      warningCount: 0,
+      queryFailed: true,
+    })
+  })
+
+  it("preserves SQL id-desc order when current certificates share a creation time", async () => {
+    const tiedCreatedAt = "2026-06-29T00:02:00Z"
+    const supabase = createRescueSupabaseStub({
+      intakes: [
+        {
+          id: baseEvidence.intakeId,
+          reference_number: baseEvidence.referenceNumber,
+          status: "approved",
+          document_sent_at: null,
+          created_at: "2026-06-29T00:00:00Z",
+          updated_at: "2026-06-29T00:06:00Z",
+          approved_at: "2026-06-29T00:01:00Z",
+          completed_at: null,
+        },
+      ],
+      // This is the database order required by created_at DESC, id DESC.
+      issued_certificates: [
+        {
+          id: "00000000-0000-4000-8000-000000000002",
+          intake_id: baseEvidence.intakeId,
+          status: "valid",
+          storage_path: "certificates/tie/current.pdf",
+          created_at: tiedCreatedAt,
+          email_sent_at: null,
+          email_failed_at: null,
+          email_failure_reason: null,
+          resend_count: 0,
+        },
+        {
+          id: "00000000-0000-4000-8000-000000000001",
+          intake_id: baseEvidence.intakeId,
+          status: "superseded",
+          storage_path: "certificates/tie/older.pdf",
+          created_at: tiedCreatedAt,
+          email_sent_at: null,
+          email_failed_at: null,
+          email_failure_reason: null,
+          resend_count: 0,
+        },
+      ],
+      email_outbox: [],
+      certificate_audit_log: [],
+    })
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never)
+
+    expect(overview.cases[0]).toMatchObject({
+      certificateStatus: "valid",
+      recommendation: { action: "resend_secure_link" },
+    })
+    expect(
+      supabase.orderCalls.filter((call) => call.table === "issued_certificates"),
+    ).toEqual([
+      { table: "issued_certificates", field: "created_at", options: { ascending: false } },
+      { table: "issued_certificates", field: "id", options: { ascending: false } },
+    ])
   })
 
   it("accepts manual reconciliation only for the current certificate storage version", async () => {

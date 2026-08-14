@@ -67,6 +67,8 @@ describe("fixed historical auto-issued review SQL contract", () => {
     expect(migration).toContain("AS audit_requires_review")
     expect(migration).toContain("WHEN draft_requires_review AND audit_requires_review THEN 'draft_and_audit'")
     expect(migration).toContain("WHEN audit_requires_review THEN 'ai_audit_soft_flag'")
+    expect(migration).toContain("cohort.source_ai_audit_id")
+    expect(migration).toContain("cohort.decision_evidence")
   })
 
   it("keeps the lane and both mutations service-role only", () => {
@@ -115,6 +117,7 @@ describe("fixed historical auto-issued review SQL contract", () => {
   })
 
   it("writes append-only exact-version evidence and never mutates clinical or document state", () => {
+    const open = functionBody("open_historical_auto_issued_review_case")
     const receipt = functionBody("record_historical_auto_issued_no_correction")
     expect(migration).toContain("compliance_historical_auto_issued_review_receipt_unique")
     expect(migration).toContain(
@@ -126,6 +129,10 @@ describe("fixed historical auto-issued review SQL contract", () => {
     expect(migration).toContain("event_data ->> 'certificate_storage_version'")
     expect(receipt).toContain("INSERT INTO public.compliance_audit_log")
     expect(receipt).toContain("'no_correction_required'")
+    for (const body of [open, receipt]) {
+      expect(body).toContain("'source_ai_audit_id', v_source.source_ai_audit_id")
+      expect(body).toContain("'decision_evidence', v_source.decision_evidence")
+    }
     expect(receipt).toContain("WHEN unique_violation")
     expect(receipt).not.toMatch(/UPDATE\s+(public\.)?(intakes|issued_certificates|document_drafts)/i)
     expect(receipt).not.toContain("email_outbox")
@@ -153,5 +160,7 @@ describe("historical review surface contract", () => {
     expect(detailPage).toContain("historicalOpenOutcome === \"opened\"")
     expect(detailPage).toContain("viewerCanRevokeAutoIssued")
     expect(lanePage).toContain('timeZone: "Australia/Sydney"')
+    expect(lanePage).toContain("Decision-time evidence required individual review")
+    expect(lanePage).not.toContain("AI draft requested individual review")
   })
 })

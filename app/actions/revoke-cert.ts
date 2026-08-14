@@ -56,6 +56,7 @@ export async function revokeCertificateAction(
       .select("id, status, intake_id")
       .eq("intake_id", intakeId)
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(1)
       .maybeSingle()
 

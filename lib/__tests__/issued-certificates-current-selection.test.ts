@@ -21,6 +21,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
     from: () => {
       const equals = new Map<string, unknown>()
       const notEquals = new Map<string, unknown>()
+      const orders: Array<{ field: keyof CertificateRow; ascending: boolean }> = []
       const builder = {
         select: () => builder,
         eq: (field: string, value: unknown) => {
@@ -31,18 +32,29 @@ vi.mock("@/lib/supabase/service-role", () => ({
           notEquals.set(field, value)
           return builder
         },
-        order: () => builder,
+        order: (field: keyof CertificateRow, options?: { ascending?: boolean }) => {
+          orders.push({ field, ascending: options?.ascending ?? true })
+          return builder
+        },
         limit: () => builder,
         maybeSingle: async () => {
-          const matches = state.rows.filter((row) => {
-            for (const [field, value] of equals) {
-              if (row[field as keyof CertificateRow] !== value) return false
-            }
-            for (const [field, value] of notEquals) {
-              if (row[field as keyof CertificateRow] === value) return false
-            }
-            return true
-          })
+          const matches = state.rows
+            .filter((row) => {
+              for (const [field, value] of equals) {
+                if (row[field as keyof CertificateRow] !== value) return false
+              }
+              for (const [field, value] of notEquals) {
+                if (row[field as keyof CertificateRow] === value) return false
+              }
+              return true
+            })
+            .sort((left, right) => {
+              for (const { field, ascending } of orders) {
+                const comparison = String(left[field]).localeCompare(String(right[field]))
+                if (comparison !== 0) return ascending ? comparison : -comparison
+              }
+              return 0
+            })
           return { data: matches[0] ?? null, error: null }
         },
       }
@@ -94,6 +106,25 @@ describe("current certificate selection", () => {
     await expect(getCertificateWithPdfUrl(INTAKE_ID)).resolves.toMatchObject({
       id: "certificate-valid",
       pdf_url: "/api/patient/certificates/certificate-valid/download",
+    })
+  })
+
+  it("breaks equal creation-time ties by descending certificate id", async () => {
+    const lowerId = {
+      ...certificate("valid"),
+      id: "00000000-0000-4000-8000-000000000001",
+    }
+    const higherId = {
+      ...certificate("valid"),
+      id: "00000000-0000-4000-8000-000000000002",
+    }
+    state.rows = [lowerId, higherId]
+
+    await expect(getCertificateForIntake(INTAKE_ID)).resolves.toMatchObject({
+      id: higherId.id,
+    })
+    await expect(findExistingCertificate(INTAKE_ID)).resolves.toMatchObject({
+      id: higherId.id,
     })
   })
 

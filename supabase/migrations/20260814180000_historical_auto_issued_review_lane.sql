@@ -153,6 +153,8 @@ SELECT
   i.ai_approved_at,
   i.status AS intake_status,
   cohort.source_draft_id,
+  cohort.source_ai_audit_id,
+  cohort.decision_evidence,
   latest_certificate.id AS current_certificate_id,
   latest_certificate.status AS current_certificate_status,
   latest_certificate.created_at AS certificate_created_at,
@@ -363,7 +365,9 @@ BEGIN
       'review_context', 'historical_auto_issued_draft_review',
       'certificate_id', v_source.current_certificate_id,
       'certificate_storage_version', v_source.current_certificate_storage_version,
-      'source_draft_id', v_source.source_draft_id
+      'source_draft_id', v_source.source_draft_id,
+      'source_ai_audit_id', v_source.source_ai_audit_id,
+      'decision_evidence', v_source.decision_evidence
     )
   );
 
@@ -545,6 +549,8 @@ BEGIN
         'certificate_id', v_source.current_certificate_id,
         'certificate_storage_version', v_source.current_certificate_storage_version,
         'source_draft_id', v_source.source_draft_id,
+        'source_ai_audit_id', v_source.source_ai_audit_id,
+        'decision_evidence', v_source.decision_evidence,
         'opened_event_id', v_open_event.id,
         'opened_at', v_open_event.created_at
       )

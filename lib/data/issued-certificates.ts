@@ -164,6 +164,7 @@ export async function findExistingCertificate(
     .eq("intake_id", intakeId)
     .eq("status", "valid")
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(1)
     .maybeSingle()
 
@@ -989,6 +990,7 @@ export async function getCertificateForIntake(
     .eq("intake_id", intakeId)
     .eq("status", "valid")
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(1)
     .maybeSingle()
 
@@ -1500,6 +1502,7 @@ export async function getCertDeliveryStatus(intakeId: string): Promise<CertDeliv
     .eq("intake_id", intakeId)
     .neq("status", "revoked")
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(1)
     .maybeSingle()
 

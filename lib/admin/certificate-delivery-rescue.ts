@@ -362,7 +362,9 @@ function latestBy<T>(rows: T[], key: (row: T) => string | null | undefined, date
     const existing = map.get(id)
     const existingTime = existing ? new Date(dateKey(existing) ?? 0).getTime() : -1
     const rowTime = new Date(dateKey(row) ?? 0).getTime()
-    if (!existing || rowTime >= existingTime) {
+    // Queries are ordered by timestamp DESC, id DESC. Preserve that first row
+    // when timestamps tie instead of allowing a later (older-id) row to win.
+    if (!existing || rowTime > existingTime) {
       map.set(id, row)
     }
   }
@@ -440,13 +442,15 @@ export async function getCertificateDeliveryRescueCases(
         .from("issued_certificates")
         .select("id, intake_id, status, storage_path, created_at, email_sent_at, email_failed_at, email_failure_reason, resend_count, delivery_reconciliation:certificate_delivery_reconciliations(certificate_storage_version, recorded_at)")
         .in("intake_id", intakeIds)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false }),
       supabase
         .from("email_outbox")
         .select("id, intake_id, certificate_id, email_type, status, delivery_status, sent_at, created_at, metadata")
         .in("intake_id", intakeIds)
         .in("email_type", [...CERTIFICATE_EMAIL_TYPES, ...RECEIPT_EMAIL_TYPES])
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false }),
     ])
 
     if (certResult.error || emailResult.error) {
@@ -476,6 +480,7 @@ export async function getCertificateDeliveryRescueCases(
     const certIds = [...latestCertByIntake.values()].map((row) => row.id)
 
     let latestPatientDownloadByCertificateVersion = new Map<string, {
+      id: string
       certificate_id: string
       actor_role: string | null
       event_data: Record<string, unknown> | null
@@ -484,16 +489,19 @@ export async function getCertificateDeliveryRescueCases(
     if (certIds.length > 0) {
       const { data: downloads, error: downloadsError } = await supabase
         .from("certificate_audit_log")
-        .select("certificate_id, actor_role, event_data, created_at")
+        .select("id, certificate_id, actor_role, event_data, created_at")
         .in("certificate_id", certIds)
         .eq("event_type", "downloaded")
         .eq("actor_role", "patient")
         .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
 
       if (downloadsError) {
         log.warn("Failed to load certificate download evidence", { error: downloadsError.message })
+        return { cases: [], actionCount: 0, warningCount: 0, queryFailed: true }
       } else {
         const patientDownloads = (downloads ?? []) as Array<{
+          id: string
           certificate_id: string
           actor_role: string | null
           event_data: Record<string, unknown> | null

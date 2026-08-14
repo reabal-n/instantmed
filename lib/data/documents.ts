@@ -384,6 +384,7 @@ export async function getMedCertCertificateForIntake(intakeId: string): Promise<
     .eq("intake_id", intakeId)
     .eq("status", "valid")
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(1)
     .maybeSingle()
 

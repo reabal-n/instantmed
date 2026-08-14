@@ -1065,6 +1065,7 @@ async function validateCertificateEmailReference(input: {
     .eq("intake_id", certificate.intake_id)
     .eq("status", "valid")
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(1)
     .maybeSingle()
 

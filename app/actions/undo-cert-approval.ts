@@ -62,6 +62,7 @@ export async function undoCertApprovalAction(
       .select("id, doctor_id, status, created_at")
       .eq("intake_id", intakeId)
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(1)
       .maybeSingle()
 
