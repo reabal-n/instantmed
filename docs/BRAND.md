@@ -128,13 +128,13 @@ The brand is constant across categories; the *temperature* shifts. Same person, 
 |---|---|---|---|
 | Med cert | Light, utility, almost cheeky | Daylight, urban, kettle/laptop | Warm, fast |
 | Repeat Rx | Quiet, reliable, almost domestic | Kitchen counter, morning routine | Calm, trustworthy |
-| ED (future) | Mature, private, confident, never winking | Dimmer light, single male subject, no clichés | Direct, dignified |
-| Hair loss (future) | Grounded, scientific-but-human | Neutral, head-and-shoulder portraits | Practical, results-led |
-| Weight loss (future) | Clinically credible, evidence-led, never aspirational-aesthetic | Daylight, real bodies, never before/after | Conservative, factual |
+| ED | Mature, private, confident, never winking | Dimmer light, single male subject, no clichés | Direct, dignified |
+| Hair loss | Grounded, scientific-but-human | Neutral, head-and-shoulder portraits | Practical, results-led |
+| Weight management | Clinically credible, evidence-led, never aspirational-aesthetic | Daylight, real bodies, never before/after | Conservative, factual |
 
 **Brand spine that stays constant across all of these:** palette (ivory + coral accent + system blue), Plus Jakarta Sans display, sentence-fragment voice, signature devices, banned phrases, AHPRA-compliant copy rules.
 
-**Specific brand-stretch rules to honour now even though some pages launch later:**
+**Specific brand-stretch rules for the live specialty pages:**
 
 - **ED:** never euphemistic (no "rise and shine", no "performance", no "stand up"). Mature, direct, dignified. The patient is an adult; speak to one.
 - **Hair loss:** medical not cosmetic. Results-led not shame-led. No before/after photography. The frame is "treat it like a medical thing, because it is."

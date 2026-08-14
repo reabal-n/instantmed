@@ -126,7 +126,7 @@ Before turning on paid traffic for a new doctor on a service line, follow `docs/
 | ED | All repeat-prescription gates + `review_ed` granted + 10 ED cases reviewed manually + nitrate + cardiac contraindication understanding confirmed. |
 | Hair loss | All repeat-prescription gates + `review_hair_loss` granted + 10 hair-loss cases reviewed manually + red-flag escalation understanding confirmed. |
 | Women's health | All repeat-prescription gates + `review_consults` granted + women's-health scope confirmed: UTI + new/switch pill only, with red-flag, pregnancy-risk, and contraception contraindication escalation understood. |
-| Weight loss (when launched) | Gated future. Capability + monitoring infrastructure + Medical Director sign-off required. |
+| Weight management | All repeat-prescription gates + `review_weight_loss` granted + Medical Director sign-off + GLP-1-focused scope, contraindication, and call-required history training confirmed. |
 
 Production paid traffic gates per `docs/SERVICE_LAUNCH_CHECKLISTS.md` apply BEFORE turning on any campaign — these are SHARED across all doctors on a service line, not per-doctor.
 

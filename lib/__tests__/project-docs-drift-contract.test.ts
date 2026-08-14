@@ -53,6 +53,9 @@ const product = readProjectFile("PRODUCT.md")
 const testing = readProjectFile("docs/TESTING.md")
 const operations = readProjectFile("docs/OPERATIONS.md")
 const brand = readProjectFile("docs/BRAND.md")
+const doctorOnboarding = readProjectFile("docs/DOCTOR_ONBOARDING.md")
+const primitives = readProjectFile("docs/PRIMITIVES.md")
+const bookkeepingFileMap = readProjectFile("docs/bookkeeping/file-map.md")
 const clinical = readProjectFile("docs/CLINICAL.md")
 const advertisingCompliance = readProjectFile("docs/ADVERTISING_COMPLIANCE.md")
 const seoContentPolicy = readProjectFile("docs/SEO_CONTENT_POLICY.md")
@@ -109,6 +112,26 @@ describe("project docs drift contract", () => {
     }
   })
 
+  it("keeps root migration canon aligned with the applied audit follow-ups", () => {
+    for (const source of [agents, claude]) {
+      expect(source).toContain("Current count on disk: **118 migration files**")
+      expect(source).toContain("`20260814163645_reconcile_manual_certificate_delivery.sql`")
+      expect(source).toContain("`20260814171919_harden_audit_function_search_paths.sql`")
+      expect(source).not.toContain("Newest on disk is the pending `20260814123000")
+      expect(source).not.toContain("Immediately before it, the pending `20260814120000")
+    }
+  })
+
+  it("documents the evidence-preserving certificate and PostHog recovery paths", () => {
+    expect(operations).toContain(
+      "`record_manual_certificate_delivery_reconciliation(certificate_id, recorded_by)`",
+    )
+    expect(operations).toContain("do **not** resend it or backfill `email_sent_at`")
+    expect(operations).toContain("leaves the unknown historical delivery time `NULL`")
+    expect(operations).toContain("`normalizePostHogApiHost()`")
+    expect(operations).toContain("returns 403 and blinds this monitor")
+  })
+
   it("keeps growth policy and prepared submission packets aligned with active service scope", () => {
     const internalLinkRules = seoContentPolicy.slice(
       seoContentPolicy.indexOf("## 5. Internal Linking Rules"),
@@ -136,6 +159,21 @@ describe("project docs drift contract", () => {
     expect(clinical).toContain("**Weight-management scope (live 2026-08-10):**")
     expect(clinical).not.toContain("Weight loss still has a reserved intake subtype")
     expect(clinical).not.toContain("not currently accepting paid requests")
+    expect(doctorOnboarding).toContain("| Weight management |")
+    expect(doctorOnboarding).toContain("`review_weight_loss` granted")
+    expect(doctorOnboarding).not.toContain("Weight loss (when launched)")
+    expect(primitives).toContain("`WEIGHT_LOSS` ($89.95)")
+    expect(primitives).toContain("Women's health and weight management are active checkout paths")
+    expect(primitives).not.toContain("`WEIGHT_LOSS` ($89.95 reserved)")
+    expect(operations).toContain(
+      "Active: `ed`, `hair_loss`, `womens_health`, `weight_loss`",
+    )
+    expect(operations).toContain("Below 2 hours across the 24/7 operating window")
+    expect(operations).not.toContain("Below 2 hours during operating hours")
+    expect(brand).toContain("| Weight management |")
+    expect(brand).not.toContain("Weight loss (future)")
+    expect(bookkeepingFileMap).toContain("production go-live PR #447 on 2026-08-10")
+    expect(bookkeepingFileMap).not.toContain("Phases 1-5 blocked on five operator decisions")
     expect(brand).not.toContain("First review at 6am")
     expect(brand).not.toContain("Pre-6am / post-10pm")
     expect(citationKit).not.toContain("doctor consults")

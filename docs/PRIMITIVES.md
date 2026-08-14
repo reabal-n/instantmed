@@ -53,7 +53,7 @@ Certification copy comes from `legitscript_*` and `google_healthcare_ads_*` in `
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `PRICING` | `const object` | Raw prices: `MED_CERT` ($24.95), `MED_CERT_2DAY` ($29.95), `MED_CERT_3DAY` ($39.95), `REPEAT_SCRIPT` ($29.95), `NEW_SCRIPT` ($49.95), `CONSULT` ($49.95), `MENS_HEALTH` ($49.95), `WOMENS_HEALTH` ($49.95), `HAIR_LOSS` ($49.95), `WEIGHT_LOSS` ($89.95 reserved), `REFERRAL` ($29.95), `PATHOLOGY` ($29.95), `PRIORITY_FEE` ($9.95). Women's health is active; weight-loss remains reserved/future and must not render as a live checkout path until launch readiness is explicitly changed. |
+| `PRICING` | `const object` | Raw prices: `MED_CERT` ($24.95), `MED_CERT_2DAY` ($29.95), `MED_CERT_3DAY` ($39.95), `REPEAT_SCRIPT` ($29.95), `NEW_SCRIPT` ($49.95), `CONSULT` ($49.95), `MENS_HEALTH` ($49.95), `WOMENS_HEALTH` ($49.95), `HAIR_LOSS` ($49.95), `WEIGHT_LOSS` ($89.95), `REFERRAL` ($29.95), `PATHOLOGY` ($29.95), `PRIORITY_FEE` ($9.95). Women's health and weight management are active checkout paths; weight management remains organic/onsite only until a separate paid-Ads approval. |
 | `PRICING_DISPLAY` | `const object` | Formatted strings: `MED_CERT` ("$24.95"), `FROM_MED_CERT` ("From $24.95"), `RANGE` ("$24.95 - $49.95"), etc. |
 
 **Rule:** Never hardcode a price. Stripe price IDs are mapped separately in `lib/stripe/price-mapping.ts`.
