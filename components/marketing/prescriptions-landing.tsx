@@ -1,5 +1,3 @@
-"use client"
-
 import {
   ArrowRight,
   Building2,
@@ -15,15 +13,20 @@ import dynamic from "next/dynamic"
 import Link from "next/link"
 
 import { Hero } from "@/components/marketing/hero"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
 import {
-  type LandingPageConfig,
-  LandingPageShell,
-} from "@/components/marketing/shared/landing-page-shell"
+  PrescriptionHeroCTA,
+  PrescriptionsClientControls,
+} from "@/components/marketing/prescriptions-client-controls"
+import { Navbar } from "@/components/shared/navbar"
+import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { PRESCRIPTION_LANDING_FAQ } from "@/lib/data/prescription-faq"
+import { moneyH1Font } from "@/lib/fonts/money-h1"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"
 
@@ -100,16 +103,7 @@ const PRESCRIPTION_RESOURCES = [
   },
 ] as const
 
-const LANDING_CONFIG: LandingPageConfig = {
-  serviceId: "scripts",
-  analyticsId: "prescription",
-  sticky: {
-    ctaText: `Renew your medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
-    ctaHref: "/request?service=repeat-script",
-    mobileSummary: "Repeat medication request",
-    responseTime: "Doctor-reviewed after submission",
-  },
-}
+const PRESCRIPTION_HERO_CTA_ID = "prescription-hero-cta"
 
 function RepeatEligibilitySection() {
   return (
@@ -292,19 +286,23 @@ function PrescriptionResourceNav() {
 
 export function PrescriptionsLanding() {
   return (
-    <LandingPageShell config={LANDING_CONFIG}>
-      {({ isDisabled, heroCTARef, handleHeroCTA, handleFinalCTA, handleFAQOpen }) => (
-        <>
+    <MarketingPageShell>
+      <div className="min-h-screen overflow-x-hidden">
+        <PrescriptionsClientControls stickyTargetId={PRESCRIPTION_HERO_CTA_ID} />
+        <ReturningPatientBanner className="mx-4 mt-2" />
+        <Navbar variant="marketing" />
+
+        <main className="relative">
           <Hero
             title="Repeat prescription, reviewed from home."
+            titleClassName={moneyH1Font.className}
+            immediateSubheadline
             primaryCta={{
-              text: isDisabled
-                ? "Contact us"
-                : `Renew medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
-              href: isDisabled ? "/contact" : "/request?service=repeat-script",
-              onClick: handleHeroCTA,
-              ref: heroCTARef,
+              text: `Renew medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
+              href: "/request?service=repeat-script",
+              wrapperId: PRESCRIPTION_HERO_CTA_ID,
             }}
+            primaryCtaContent={<PrescriptionHeroCTA />}
             secondaryCta={null}
             beforeCta={(
               <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-foreground/75 lg:justify-start sm:text-sm">
@@ -329,33 +327,37 @@ export function PrescriptionsLanding() {
           <PrescriptionLifecycleGraphic />
           <PrescriptionFeePanel />
 
-          <FAQSection
-            pill="FAQ"
-            title="Before you start"
-            subtitle="Short answers about approval, eScripts, and repeats."
-            items={PRESCRIPTION_LANDING_FAQ}
-            initialCount={PRESCRIPTION_LANDING_FAQ.length}
-            onFAQOpen={handleFAQOpen}
-            viewAllHref="/faq"
-            className="bg-muted/30 dark:bg-white/[0.02]"
-          />
+          <div data-prescription-faq="">
+            <FAQSection
+              pill="FAQ"
+              title="Before you start"
+              subtitle="Short answers about approval, eScripts, and repeats."
+              items={PRESCRIPTION_LANDING_FAQ}
+              initialCount={PRESCRIPTION_LANDING_FAQ.length}
+              viewAllHref="/faq"
+              className="bg-muted/30 dark:bg-white/[0.02]"
+            />
+          </div>
 
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
-          <CTABanner
-            title="Ready to request your repeat?"
-            subtitle="Share your current medication and safety details for doctor review. An eScript is sent only if approved."
-            ctaText="Renew your medication"
-            ctaHref="/request?service=repeat-script"
-            onCtaClick={handleFinalCTA}
-            isDisabled={isDisabled}
-            price={PRICING.REPEAT_SCRIPT}
-            microcopy="Takes about 3 minutes."
-          />
+          <div data-prescription-cta="final_cta">
+            <CTABanner
+              title="Ready to request your repeat?"
+              subtitle="Share your current medication and safety details for doctor review. An eScript is sent only if approved."
+              ctaText="Renew your medication"
+              ctaHref="/request?service=repeat-script"
+              availabilityServiceId="scripts"
+              price={PRICING.REPEAT_SCRIPT}
+              microcopy="Takes about 3 minutes."
+            />
+          </div>
 
           <PrescriptionResourceNav />
-        </>
-      )}
-    </LandingPageShell>
+        </main>
+
+        <MarketingFooter />
+      </div>
+    </MarketingPageShell>
   )
 }

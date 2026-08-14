@@ -9,7 +9,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
+import { useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal } from "@/components/ui/scroll-reveal";
 import { cn } from "@/lib/utils";
 
 import { SectionHeader } from "./section-header";

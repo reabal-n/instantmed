@@ -9,7 +9,6 @@ import { UnavailableBanner } from "@/components/marketing/shared/unavailable-ban
 import { type ServiceId,useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Navbar } from "@/components/shared/navbar"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
-import { useReducedMotion } from "@/components/ui/motion"
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
 
 // ---------------------------------------------------------------------------
@@ -40,7 +39,6 @@ export interface LandingPageChildrenProps {
   handleFinalCTA: () => void
   handleStickyCTA: () => void
   handleFAQOpen: (question: string, index: number) => void
-  prefersReducedMotion: boolean
 }
 
 interface LandingPageShellProps {
@@ -58,7 +56,6 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
   const isDisabled = useServiceAvailability().isServiceDisabled(config.serviceId)
   const heroCTARef = useRef<HTMLDivElement>(null!)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
   const analytics = useLandingAnalytics(config.analyticsId)
 
   useEffect(() => {
@@ -98,7 +95,6 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
             handleFinalCTA,
             handleStickyCTA,
             handleFAQOpen,
-            prefersReducedMotion,
           })}
         </main>
 

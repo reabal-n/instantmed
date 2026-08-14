@@ -127,7 +127,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
               <p className="text-[10px] text-foreground/80 dark:text-white/70 font-medium">
                 AHPRA-registered doctor
               </p>
-              <p className="text-[9px] text-muted-foreground/70 dark:text-white/60 font-mono tracking-wide">
+              <p className="text-[9px] text-muted-foreground/70 dark:text-white/60 font-[ui-monospace] tracking-wide">
                 Registration on file
               </p>
             </div>
@@ -153,7 +153,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
             <CheckCircle2 className="w-3 h-3 text-success" aria-hidden="true" />
             <span className="text-[9px] text-muted-foreground dark:text-white/70">Fair Work Act s 107</span>
           </div>
-          <span className="text-[9px] text-muted-foreground/70 dark:text-white/60 font-mono">REF IM-2026-{compact ? "4823" : "48231"}</span>
+          <span className="text-[9px] text-muted-foreground/70 dark:text-white/60 font-[ui-monospace]">REF IM-2026-{compact ? "4823" : "48231"}</span>
         </div>
 
         {/* SPECIMEN watermark - corner ribbon, very subtle */}

@@ -12,48 +12,16 @@ import {
   createAuthHandoffRefreshGuard,
 } from '@/lib/navigation/auth-handoff'
 import { clearInstantMedBrowserCaches } from '@/lib/security/browser-cache-cleanup'
+import { resolveInitialAuthLoadPlan } from '@/lib/supabase/auth-cookie'
 
-const AUTH_IMMEDIATE_PATH_PREFIXES = [
-  '/account',
-  '/admin',
-  '/auth',
-  '/dashboard',
-  '/doctor',
-  '/patient',
-  '/sign-in',
-  '/sign-up',
-]
-
-// Public marketing routes also need a fast auth check so the nav can show
-// "Dashboard" instead of "Log in" for already-signed-in users. The cost is
-// one Supabase session read (~100ms typical) that runs in the background;
-// the gain is no auth flicker on the homepage / service pages. Anonymous
-// users hit the same call but the provider resolves to `isLoaded=true`
-// with `user=null` and the nav settles on "Log in".
+// Public marketing routes need a fast auth check so the nav can show
+// "Dashboard" instead of "Log in" for already-signed-in users. A matching
+// Supabase cookie keeps that verification immediate. Anonymous visitors settle
+// directly on "Log in" without downloading the browser SDK.
 //
 // /request is intentionally excluded. The server component already resolves
 // the cookie-backed user/profile for intake prefill, and loading the Supabase
 // browser client during hydration adds a mobile TBT long task to the paid flow.
-const AUTH_IMMEDIATE_ROOT_PATHS = new Set([
-  '/',
-  '/medical-certificate',
-  '/prescriptions',
-  '/consult',
-  '/erectile-dysfunction',
-  '/hair-loss',
-  '/womens-health',
-  '/about',
-  '/pricing',
-  '/contact',
-])
-
-function shouldLoadAuthImmediately(pathname: string) {
-  if (AUTH_IMMEDIATE_ROOT_PATHS.has(pathname)) return true
-  return AUTH_IMMEDIATE_PATH_PREFIXES.some((prefix) =>
-    pathname === prefix || pathname.startsWith(`${prefix}/`)
-  )
-}
-
 function scheduleIdle(callback: () => void, timeout = 1500) {
   if (typeof requestIdleCallback !== 'undefined') {
     const id = requestIdleCallback(callback, { timeout })
@@ -258,8 +226,23 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
     }
 
     const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
-    if (shouldLoadAuthImmediately(pathname)) {
+    const cookieNames = document.cookie
+      .split(';')
+      .map((cookie) => cookie.trim().split('=', 1)[0])
+      .filter(Boolean)
+    const authLoadPlan = resolveInitialAuthLoadPlan(
+      pathname,
+      cookieNames,
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+    )
+
+    if (authLoadPlan === 'verify') {
       loadAuth()
+    } else if (authLoadPlan === 'anonymous') {
+      // Cookie absence is only an anonymous fast path. It never grants access;
+      // any potentially authenticated route/session still verifies remotely.
+      initialAuthResolvedRef.current = true
+      setIsLoaded(true)
     } else {
       cancelInteraction = onFirstInteraction(() => {
         cancelIdleLoad = scheduleIdle(loadAuth)

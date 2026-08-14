@@ -16,6 +16,11 @@ import { cn } from "@/lib/utils"
 
 // ── Individual logos ─────────────────────────────────────────────────
 
+interface PaymentLogoProps {
+  className?: string
+  loading?: "eager" | "lazy"
+}
+
 export function StripeWordmark({ className }: { className?: string }) {
   return (
     <span
@@ -29,7 +34,7 @@ export function StripeWordmark({ className }: { className?: string }) {
   )
 }
 
-export function ApplePayLogo({ className }: { className?: string }) {
+export function ApplePayLogo({ className, loading }: PaymentLogoProps) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -37,12 +42,13 @@ export function ApplePayLogo({ className }: { className?: string }) {
       alt="Apple Pay"
       width={30}
       height={20}
+      loading={loading}
       className={cn("h-5 w-auto", className)}
     />
   )
 }
 
-export function GooglePayLogo({ className }: { className?: string }) {
+export function GooglePayLogo({ className, loading }: PaymentLogoProps) {
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -51,6 +57,7 @@ export function GooglePayLogo({ className }: { className?: string }) {
         alt="Google Pay"
         width={30}
         height={20}
+        loading={loading}
         className={cn("h-5 w-auto dark:hidden", className)}
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -60,6 +67,7 @@ export function GooglePayLogo({ className }: { className?: string }) {
         aria-hidden="true"
         width={30}
         height={20}
+        loading={loading}
         className={cn("h-5 w-auto hidden dark:block", className)}
       />
     </>
@@ -134,8 +142,8 @@ export function StripePaymentLogos({ className }: { className?: string }) {
     <div className={cn("flex items-center justify-center gap-2", className)}>
       <StripeWordmark className="text-[9px]" />
       <span className="text-muted-foreground/30" aria-hidden="true">·</span>
-      <ApplePayLogo className="h-[15px]" />
-      <GooglePayLogo className="h-[15px]" />
+      <ApplePayLogo className="h-[15px]" loading="lazy" />
+      <GooglePayLogo className="h-[15px]" loading="lazy" />
     </div>
   )
 }

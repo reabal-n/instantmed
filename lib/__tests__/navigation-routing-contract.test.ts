@@ -11,6 +11,7 @@ const marketingNavFiles = [
   "components/shared/navbar.tsx",
   "components/shared/navbar/user-menu.tsx",
   "components/shared/navbar/mobile-menu-content.tsx",
+  "components/shared/navbar/mobile-drawer.tsx",
 ]
 
 describe("navigation routing contracts", () => {
@@ -43,6 +44,7 @@ describe("navigation routing contracts", () => {
     const authHandoff = path.join(root, "lib/navigation/auth-handoff.ts")
     const userMenu = readFileSync(path.join(root, "components/shared/navbar/user-menu.tsx"), "utf8")
     const navbar = readFileSync(path.join(root, "components/shared/navbar.tsx"), "utf8")
+    const mobileDrawer = readFileSync(path.join(root, "components/shared/navbar/mobile-drawer.tsx"), "utf8")
 
     expect(existsSync(authHandoff)).toBe(true)
     expect(readFileSync(authHandoff, "utf8")).toContain('AUTH_POST_SIGNIN_HREF = "/auth/post-signin"')
@@ -50,17 +52,17 @@ describe("navigation routing contracts", () => {
     expect(userMenu).toContain("navigateToPostSignIn(window)")
     expect(userMenu).not.toContain('href="/auth/post-signin"')
     expect(userMenu).not.toMatch(/<Link\s+href=\{STAFF_DASHBOARD_HREF\}[\s\S]*Dashboard[\s\S]*<\/Link>/)
-    expect(navbar).toContain("navigateToPostSignIn(window)")
+    expect(mobileDrawer).toContain("navigateToPostSignIn(window)")
     expect(navbar).not.toContain('window.location.assign("/auth/post-signin")')
     expect(navbar).not.toContain("router.push(STAFF_DASHBOARD_HREF)")
   })
 
   it("keeps signed-in mobile users out of the transient log-in CTA while auth is loading", () => {
-    const navbar = readFileSync(path.join(root, "components/shared/navbar.tsx"), "utf8")
+    const mobileDrawer = readFileSync(path.join(root, "components/shared/navbar/mobile-drawer.tsx"), "utf8")
 
-    expect(navbar).toContain("!isLoaded ?")
-    expect(navbar).toContain('aria-hidden="true"')
-    expect(navbar).not.toContain("!(isLoaded && user)")
+    expect(mobileDrawer).toContain("!isLoaded ?")
+    expect(mobileDrawer).toContain('aria-hidden="true"')
+    expect(mobileDrawer).not.toContain("!(isLoaded && user)")
   })
 
   it("makes active mobile and patient left-rail nav clicks no-op instead of soft-refreshing", () => {
@@ -74,24 +76,25 @@ describe("navigation routing contracts", () => {
   })
 
   it("keeps the mobile menu icon pointer-transparent so the button receives taps", () => {
-    const animatedMobileMenu = readFileSync(path.join(root, "components/ui/animated-mobile-menu.tsx"), "utf8")
+    const menuToggle = readFileSync(path.join(root, "components/shared/navbar/mobile-menu-toggle.tsx"), "utf8")
 
-    expect(animatedMobileMenu).toContain('className="pointer-events-none"')
-    expect(animatedMobileMenu).toContain('aria-hidden="true"')
+    expect(menuToggle).toContain('className="pointer-events-none"')
+    expect(menuToggle).toContain('aria-hidden="true"')
   })
 
-  it("keeps one drawer tree stable while switching explicit reduced-motion variants", () => {
+  it("keeps one inert drawer tree stable while CSS settles reduced motion", () => {
     const animatedMobileMenu = readFileSync(path.join(root, "components/ui/animated-mobile-menu.tsx"), "utf8")
 
     expect(animatedMobileMenu).toContain('data-mobile-menu-hydrated={isHydrated ? "true" : "false"}')
     expect(animatedMobileMenu).toContain(
       'data-mobile-menu-motion={prefersReducedMotion ? "static" : "animated"}',
     )
-    expect(animatedMobileMenu).not.toContain("if (prefersReducedMotion) {")
-    expect(animatedMobileMenu).toContain("menuContentVariants")
-    expect(animatedMobileMenu).toContain('initial={prefersReducedMotion ? "reducedOpen" : "closed"}')
-    expect(animatedMobileMenu).toContain("animate={openMotionState}")
-    expect(animatedMobileMenu).toContain("exit={closedMotionState}")
+    expect(animatedMobileMenu).not.toContain("framer-motion")
+    expect(animatedMobileMenu).toContain("aria-hidden={!isOpen}")
+    expect(animatedMobileMenu).toContain("inert={!isOpen ? true : undefined}")
+    expect(animatedMobileMenu).toContain("motion-reduce:!transition-none")
+    expect(animatedMobileMenu).toContain("visible translate-x-0")
+    expect(animatedMobileMenu).toContain("invisible translate-x-full")
   })
 
   it("keeps the navbar glow markup stable across server and client themes", () => {
@@ -116,11 +119,12 @@ describe("navigation routing contracts", () => {
 
   it("keeps nav link clicks local so deferred loaders do not eat first navigation", () => {
     const navSources = [
-      "components/shared/navbar.tsx",
       "components/shared/navbar/animated-nav-link.tsx",
       "components/shared/navbar/user-menu.tsx",
       "components/shared/navbar/services-dropdown.tsx",
       "components/shared/navbar/resources-dropdown.tsx",
+      "components/shared/navbar/mobile-menu-toggle.tsx",
+      "components/shared/navbar/mobile-drawer.tsx",
       "components/ui/animated-mobile-menu.tsx",
       "components/shared/app-sign-in-button.tsx",
       "components/shared/brand-logo.tsx",

@@ -1,6 +1,5 @@
 "use client"
 
-import { AnimatePresence,motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
@@ -13,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
   type CanonicalServiceId,
   getActiveServices,
@@ -51,7 +49,6 @@ interface ServicesDropdownProps {
 export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
   const { isServiceDisabled } = useServiceAvailability()
   const [open, setOpen] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
 
   const isServiceActive =
     isActivePath("/medical-certificate") ||
@@ -78,21 +75,12 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
           </button>
         </DropdownMenuTrigger>
 
-        <AnimatePresence>
-          {open && (
-            <DropdownMenuContent
-              forceMount
-              loop
-              align="start"
-              className="w-64 rounded-2xl border border-dawn-200/40 dark:border-white/10 bg-white/90 dark:bg-white/10 backdrop-blur-xl p-0 overflow-hidden shadow-xl shadow-primary/[0.08]"
-            >
-              <motion.div
-                initial={prefersReducedMotion ? false : { opacity: 0, y: -4, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={prefersReducedMotion ? {} : { opacity: 0, y: -4, scale: 0.98 }}
-                transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                className="p-2"
-              >
+        <DropdownMenuContent
+          loop
+          align="start"
+          className="w-64 rounded-2xl border border-dawn-200/40 dark:border-white/10 bg-white/90 dark:bg-white/10 backdrop-blur-xl p-0 overflow-hidden shadow-xl shadow-primary/[0.08]"
+        >
+          <div className="p-2">
                 {services.map((service) => {
                   const disabled = isServiceDisabled(service.serviceId)
                   return (
@@ -135,11 +123,8 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                     </DropdownMenuItem>
                   )
                 })}
-
-              </motion.div>
-            </DropdownMenuContent>
-          )}
-        </AnimatePresence>
+          </div>
+        </DropdownMenuContent>
       </DropdownMenu>
 
       {/* Tubelight active indicator - mirrors AnimatedNavLink pattern */}

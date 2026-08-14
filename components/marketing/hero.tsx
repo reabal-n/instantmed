@@ -1,12 +1,9 @@
-'use client'
-
 import { ArrowRight, Star } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
 import { GoogleAdsCert } from '@/components/marketing/google-ads-cert'
 import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
-import { HeroDoctorReviewMockup } from '@/components/marketing/hero-doctor-review-mockup'
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
 import { WaitCounter } from '@/components/marketing/wait-counter'
@@ -23,6 +20,10 @@ interface CtaConfig {
   onClick?: () => void
   /** Optional ref to scroll into view on sticky-bar interactions. */
   ref?: React.RefObject<HTMLDivElement>
+  /** Optional stable wrapper id for a route-owned observer. */
+  wrapperId?: string
+  /** Data attributes consumed by a narrow analytics control island. */
+  dataAttributes?: Record<`data-${string}`, string>
 }
 
 interface SecondaryCtaConfig {
@@ -39,6 +40,10 @@ interface HeroProps {
    * their own positioning line.
    */
   title?: ReactNode
+  /** Optional H1 typography class for route-owned critical-font subsets. */
+  titleClassName?: string
+  /** Render the subhead immediately when it can become the route's LCP node. */
+  immediateSubheadline?: boolean
   /**
    * Announcement pill content above the H1. Defaults to the canonical
    * stars + doctor-review + Open now pill. Pass `null` to suppress.
@@ -52,6 +57,8 @@ interface HeroProps {
    * Primary CTA. Defaults to "Get started → /request".
    */
   primaryCta?: CtaConfig
+  /** Optional availability-aware CTA leaf while the hero remains server-owned. */
+  primaryCtaContent?: ReactNode
   /**
    * Secondary CTA. Defaults to "How it works → #how-it-works". Pass `null`
    * to render only the primary CTA.
@@ -70,10 +77,10 @@ interface HeroProps {
   reassuranceRow?: ReactNode | null
   /**
    * Optional mockup override. Pass a custom mockup for service-page heroes.
-   * Defaults to `HeroDoctorReviewMockup`. Pass `null` to suppress entirely
-   * (rare — usually a service has its own mockup).
+   * Pass an explicit mockup when the page needs one. Keeping this opt-in stops
+   * an animated homepage-only illustration entering every service bundle.
    */
-  mockup?: ReactNode | null
+  mockup: ReactNode | null
   /** Optional responsive/layout classes for the canonical mockup wrapper. */
   mockupClassName?: string
   /**
@@ -149,9 +156,12 @@ const DEFAULT_TRUST_ROW = (
 export function Hero({
   className,
   title = DEFAULT_TITLE,
+  titleClassName,
+  immediateSubheadline = false,
   pill,
   children,
   primaryCta = DEFAULT_PRIMARY,
+  primaryCtaContent,
   secondaryCta,
   beforeCta,
   reassuranceRow,
@@ -162,7 +172,7 @@ export function Hero({
 }: HeroProps) {
   const resolvedPill = pill === undefined ? buildDefaultPill(liveWait) : pill
   const resolvedSecondary = secondaryCta === undefined ? DEFAULT_SECONDARY : secondaryCta
-  const resolvedMockup = mockup === undefined ? <HeroDoctorReviewMockup /> : mockup
+  const resolvedMockup = mockup ?? null
   const resolvedTrustRow = trustRow === undefined ? DEFAULT_TRUST_ROW : trustRow
   const resolvedReassuranceRow = reassuranceRow === undefined
     ? (
@@ -207,13 +217,16 @@ export function Hero({
                 2026-05-26 (homepage-5jc7 / clkf / l0yn). */}
             <Heading
               level="display"
-              className="mb-5 sm:mb-7 min-h-[5rem] sm:min-h-[6.5rem] lg:min-h-[8rem]"
+              className={cn(
+                "mb-5 sm:mb-7 min-h-[5rem] sm:min-h-[6.5rem] lg:min-h-[8rem]",
+                titleClassName,
+              )}
             >
               {title}
             </Heading>
 
             {/* Subhead */}
-            <div className="hero-subheadline-enter">
+            <div className={immediateSubheadline ? undefined : "hero-subheadline-enter"}>
               {children ?? (
                 <p className="text-sm sm:text-base lg:text-lg leading-[1.5rem] sm:leading-relaxed text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 text-balance">
                   {/*
@@ -233,20 +246,23 @@ export function Hero({
             {/* CTAs — primary button leads, secondary demoted to ghost so
                 it stops competing for the click (2026-05-25 video-review fix). */}
             <div
+              id={primaryCta.wrapperId}
               ref={primaryCta.ref}
               className="hero-cta-enter flex flex-col sm:flex-row sm:items-center gap-2 justify-center lg:justify-start mb-3 sm:mb-4"
             >
-              <Button
-                asChild
-                size="lg"
-                className="h-auto min-h-12 whitespace-normal px-4 py-3 text-center text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 sm:px-8"
-                onClick={primaryCta.onClick}
-              >
-                <Link href={primaryCta.href}>
-                  {primaryCta.text}
-                  <ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" />
-                </Link>
-              </Button>
+              {primaryCtaContent ?? (
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-auto min-h-12 whitespace-normal px-4 py-3 text-center text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 sm:px-8"
+                  onClick={primaryCta.onClick}
+                >
+                  <Link href={primaryCta.href} {...primaryCta.dataAttributes}>
+                    {primaryCta.text}
+                    <ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" />
+                  </Link>
+                </Button>
+              )}
               {resolvedSecondary && (
                 <Button
                   asChild
