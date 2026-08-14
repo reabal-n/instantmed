@@ -264,12 +264,13 @@ export async function getIntakeForPatient(
     `)
     .eq("id", intakeId)
     .eq("patient_id", patientId)
-    .single()
+    .maybeSingle()
 
-  if (error || !data) {
+  if (error) {
     logger.error("Error fetching intake", {}, toError(error))
     return null
   }
+  if (!data) return null
 
   const {
     checkout_error: _checkoutError,
