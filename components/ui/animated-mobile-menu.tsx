@@ -1,6 +1,5 @@
 "use client"
 
-import { AnimatePresence, motion, type Variants } from "framer-motion"
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import * as React from "react"
@@ -8,102 +7,6 @@ import { useEffect, useRef } from "react"
 
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
-
-// Transform-only drawer motion keeps the panel on the compositor and avoids
-// the paint cost of animating a full-height clip path.
-const DRAWER_EASE = [0.16, 1, 0.3, 1] as const
-
-const sidebarVariants: Variants = {
-  open: {
-    x: 0,
-    transition: {
-      duration: 0.22,
-      ease: DRAWER_EASE,
-    },
-  },
-  closed: {
-    x: "100%",
-    transition: {
-      duration: 0.16,
-      ease: DRAWER_EASE,
-    },
-  },
-  reducedOpen: {
-    x: 0,
-    transition: { duration: 0, delay: 0 },
-  },
-  reducedClosed: {
-    x: "100%",
-    transition: { duration: 0, delay: 0 },
-  },
-}
-
-// Navigation list animation variants
-const navVariants: Variants = {
-  open: {
-    transition: { staggerChildren: 0.05, delayChildren: 0.04 },
-  },
-  closed: {
-    transition: { staggerChildren: 0.04, staggerDirection: -1 },
-  },
-  reducedOpen: {
-    transition: { duration: 0, delayChildren: 0, staggerChildren: 0 },
-  },
-  reducedClosed: {
-    transition: { duration: 0, delayChildren: 0, staggerChildren: 0 },
-  },
-}
-
-const menuContentVariants: Variants = {
-  open: {
-    opacity: 1,
-    transition: { duration: 0.18, ease: DRAWER_EASE },
-  },
-  closed: {
-    opacity: 0,
-    transition: { duration: 0.12, ease: DRAWER_EASE },
-  },
-  reducedOpen: {
-    opacity: 1,
-    transition: { duration: 0, delay: 0 },
-  },
-  reducedClosed: {
-    opacity: 0,
-    transition: { duration: 0, delay: 0 },
-  },
-}
-
-// Individual menu item animation variants
-const itemVariants: Variants = {
-  open: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: "tween",
-      duration: 0.18,
-      ease: DRAWER_EASE,
-    },
-  },
-  closed: {
-    y: 12,
-    opacity: 0,
-    transition: {
-      type: "tween",
-      duration: 0.12,
-      ease: DRAWER_EASE,
-    },
-  },
-  reducedOpen: {
-    y: 0,
-    opacity: 1,
-    transition: { duration: 0, delay: 0 },
-  },
-  reducedClosed: {
-    y: 0,
-    opacity: 0,
-    transition: { duration: 0, delay: 0 },
-  },
-}
 
 const DRAWER_FOCUSABLE_SELECTOR = [
   "a[href]",
@@ -132,108 +35,15 @@ function getVisibleDrawerControls(root: HTMLElement | null) {
   )
 }
 
-// Path component for animated hamburger icon
-interface PathProps {
-  d: string
-  variants: Variants
-  className?: string
-  stroke?: string
-  isOpen: boolean
-  prefersReducedMotion: boolean
-}
-
-const Path = ({ className, isOpen, prefersReducedMotion, ...props }: PathProps) => (
-  <motion.path
-    fill="transparent"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    className={className}
-    initial="closed"
-    animate={isOpen ? "open" : "closed"}
-    transition={{ type: "tween", duration: prefersReducedMotion ? 0 : 0.15, ease: DRAWER_EASE }}
-    {...props}
-  />
-)
-
-// Animated hamburger toggle button
-interface MenuToggleProps {
-  toggle: () => void
-  isOpen: boolean
-}
-
-export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
-  const prefersReducedMotion = useReducedMotion()
-
-  return (
-    <button
-      onClick={toggle}
-      onPointerDown={(event) => event.stopPropagation()}
-      onKeyDown={(event) => event.stopPropagation()}
-      className={cn(
-        "relative z-50 flex items-center justify-center",
-        "h-10 w-10 rounded-xl",
-        "bg-transparent",
-        "hover:bg-card/50 dark:hover:bg-white/10",
-        "transition-colors duration-200",
-        "outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      )}
-      aria-label={isOpen ? "Close menu" : "Open menu"}
-      aria-expanded={isOpen}
-      aria-controls="mobile-navigation-menu"
-    >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 23 23"
-        className="pointer-events-none"
-        aria-hidden="true"
-      >
-        <Path
-          d="M 2 2.5 L 20 2.5"
-          isOpen={isOpen}
-          prefersReducedMotion={prefersReducedMotion}
-          variants={{
-            closed: { d: "M 2 2.5 L 20 2.5" },
-            open: { d: "M 3 16.5 L 17 2.5" },
-          }}
-          stroke="currentColor"
-        />
-        <Path
-          d="M 2 9.423 L 20 9.423"
-          isOpen={isOpen}
-          prefersReducedMotion={prefersReducedMotion}
-          variants={{
-            closed: { opacity: 1 },
-            open: { opacity: 0 },
-          }}
-          stroke="currentColor"
-        />
-        <Path
-          d="M 2 16.346 L 20 16.346"
-          isOpen={isOpen}
-          prefersReducedMotion={prefersReducedMotion}
-          variants={{
-            closed: { d: "M 2 16.346 L 20 16.346" },
-            open: { d: "M 3 2.5 L 17 16.346" },
-          }}
-          stroke="currentColor"
-        />
-      </svg>
-    </button>
-  )
-}
-
-// Menu item colors - aligned with brand palette (blues, teals, greens)
 const menuColors = [
-  { light: "#2563EB", dark: "#60A5FA" }, // Blue (primary)
-  { light: "#0891B2", dark: "#22D3EE" }, // Cyan
-  { light: "#059669", dark: "#34D399" }, // Emerald
-  { light: "#3B82F6", dark: "#93C5FD" }, // Sky
-  { light: "#0D9488", dark: "#5EEAD4" }, // Teal
-  { light: "#D97706", dark: "#FBBF24" }, // Amber (warm accent)
+  { light: "#2563EB", dark: "#60A5FA" },
+  { light: "#0891B2", dark: "#22D3EE" },
+  { light: "#059669", dark: "#34D399" },
+  { light: "#3B82F6", dark: "#93C5FD" },
+  { light: "#0D9488", dark: "#5EEAD4" },
+  { light: "#D97706", dark: "#FBBF24" },
 ]
 
-// Menu item component
 export interface MenuItemData {
   label: string
   href: string
@@ -252,7 +62,6 @@ interface MenuItemProps {
 
 const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
   const { theme } = useTheme()
-  const prefersReducedMotion = useReducedMotion()
   const colorIndex = index % menuColors.length
   const accentColor = theme === "dark" ? menuColors[colorIndex].dark : menuColors[colorIndex].light
 
@@ -266,19 +75,24 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
     <>
       {item.icon ? (
         <div
-          className="flex items-center justify-center w-10 h-10 rounded-xl transition-colors"
+          className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
           style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
         >
           {item.icon}
         </div>
       ) : (
         <div
-          className="w-10 h-10 rounded-xl transition-colors"
-          style={{ backgroundColor: `${accentColor}20`, borderColor: accentColor, borderWidth: 2 }}
+          className="h-10 w-10 rounded-xl border-2 transition-colors"
+          style={{ backgroundColor: `${accentColor}20`, borderColor: accentColor }}
         />
       )}
-      <div className="flex-1 min-w-0">
-        <span className={cn("text-sm font-medium block", item.disabled ? "text-muted-foreground" : "text-foreground")}>
+      <div className="min-w-0 flex-1">
+        <span
+          className={cn(
+            "block text-sm font-medium",
+            item.disabled ? "text-muted-foreground" : "text-foreground",
+          )}
+        >
           {item.label}
         </span>
         {item.description && (
@@ -286,8 +100,8 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
         )}
       </div>
       {!item.disabled && (
-        <motion.div
-          className="w-2 h-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+        <div
+          className="h-2 w-2 rounded-full opacity-0 transition-opacity group-hover:opacity-100"
           style={{ backgroundColor: accentColor }}
         />
       )}
@@ -295,71 +109,45 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
   )
 
   return (
-    <motion.li
-      variants={itemVariants}
-      whileHover={item.disabled || prefersReducedMotion ? undefined : { y: -1, x: 4, transition: { type: "tween", duration: 0.16, ease: DRAWER_EASE } }}
-      whileTap={item.disabled || prefersReducedMotion ? undefined : { scale: 0.98, transition: { type: "tween", duration: 0.12, ease: DRAWER_EASE } }}
+    <li
       tabIndex={-1}
-      className="list-none"
+      className="list-none transition-transform duration-160 motion-reduce:transition-none md:hover:translate-x-1 md:hover:-translate-y-px active:scale-[0.98]"
     >
       {item.disabled ? (
-        <div
-          className={cn(
-            "flex items-center gap-4 px-4 py-3.5 rounded-2xl",
-            "opacity-60 cursor-not-allowed"
-          )}
-        >
+        <div className="flex cursor-not-allowed items-center gap-4 rounded-2xl px-4 py-3.5 opacity-60">
           {content}
         </div>
       ) : (
-      <Link
-        href={item.href}
-        prefetch={item.prefetch}
-        onClick={handleClick}
-        onPointerDown={(event) => event.stopPropagation()}
-        onKeyDown={(event) => event.stopPropagation()}
-        className={cn(
-          "flex items-center gap-4 px-4 py-3.5 rounded-2xl",
-          "transition-[background-color,box-shadow] duration-200",
-          // Glass hover effect
-          "hover:bg-card/70 dark:hover:bg-white/15",
-          "hover:shadow-md hover:shadow-primary/10",
-          "active:bg-muted dark:active:bg-white/25",
-          "group"
-        )}
-      >
-        {content}
-      </Link>
+        <Link
+          href={item.href}
+          prefetch={item.prefetch}
+          onClick={handleClick}
+          onPointerDown={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+          className={cn(
+            "group flex items-center gap-4 rounded-2xl px-4 py-3.5",
+            "transition-[background-color,box-shadow] duration-200",
+            "hover:bg-card/70 hover:shadow-md hover:shadow-primary/10 dark:hover:bg-white/15",
+            "active:bg-muted dark:active:bg-white/25",
+          )}
+        >
+          {content}
+        </Link>
       )}
-    </motion.li>
+    </li>
   )
 }
 
-// Section header component
-interface SectionHeaderProps {
-  title: string
-}
-
-const SectionHeader = ({ title }: SectionHeaderProps) => (
-  <motion.div
-    variants={itemVariants}
-    className="px-4 pt-4 pb-2"
-  >
-    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+const SectionHeader = ({ title }: { title: string }) => (
+  <div className="px-4 pb-2 pt-4">
+    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
       {title}
     </span>
-  </motion.div>
+  </div>
 )
 
-// Divider component
-const MenuDivider = () => (
-  <motion.div
-    variants={itemVariants}
-    className="my-3 mx-4 h-px bg-border/50"
-  />
-)
+const MenuDivider = () => <div className="mx-4 my-3 h-px bg-border/50" />
 
-// Main animated mobile menu component
 export interface AnimatedMobileMenuProps {
   isOpen: boolean
   onClose: () => void
@@ -368,6 +156,10 @@ export interface AnimatedMobileMenuProps {
   footer?: React.ReactNode
 }
 
+/**
+ * Dependency-light mobile drawer. Transform and opacity transitions stay on
+ * the compositor; focus containment and scroll locking remain explicit.
+ */
 export function AnimatedMobileMenu({
   isOpen,
   onClose,
@@ -377,32 +169,11 @@ export function AnimatedMobileMenu({
 }: AnimatedMobileMenuProps) {
   const prefersReducedMotion = useReducedMotion()
   const [isHydrated, setIsHydrated] = React.useState(false)
-  const containerRef = useRef<HTMLElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const returnFocusRef = useRef<HTMLElement | null>(null)
   const wasOpenRef = useRef(false)
-  const openMotionState = prefersReducedMotion ? "reducedOpen" : "open"
-  const closedMotionState = prefersReducedMotion ? "reducedClosed" : "closed"
 
   useEffect(() => setIsHydrated(true), [])
-
-  useEffect(() => {
-    if (!prefersReducedMotion) return
-
-    const settleDrawerMotion = () => {
-      for (const animation of containerRef.current?.getAnimations({ subtree: true }) ?? []) {
-        try {
-          animation.finish()
-        } catch {
-          animation.cancel()
-        }
-      }
-    }
-
-    settleDrawerMotion()
-    const settleFrame = requestAnimationFrame(settleDrawerMotion)
-    return () => cancelAnimationFrame(settleFrame)
-  }, [prefersReducedMotion])
 
   useEffect(() => {
     const wasOpen = wasOpenRef.current
@@ -415,26 +186,27 @@ export function AnimatedMobileMenu({
         const firstControl = firstNavigationLink ?? getVisibleDrawerControls(contentRef.current)[0]
         firstControl?.focus({ preventScroll: true })
       })
-      wasOpenRef.current = isOpen
+      wasOpenRef.current = true
       return () => cancelAnimationFrame(focusFrame)
-    } else if (!isOpen && wasOpen) {
+    }
+
+    if (!isOpen && wasOpen) {
       returnFocusRef.current?.focus({ preventScroll: true })
     }
 
     wasOpenRef.current = isOpen
   }, [isOpen])
 
-  // Keep keyboard focus inside the open drawer and close it with Escape.
   useEffect(() => {
     if (!isOpen) return
 
-    const handleDrawerKeyboard = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+    const handleDrawerKeyboard = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
         onClose()
         return
       }
 
-      if (e.key !== "Tab") return
+      if (event.key !== "Tab") return
       const contentControls = getVisibleDrawerControls(contentRef.current)
       const opener = returnFocusRef.current
       const controls = opener?.isConnected ? [opener, ...contentControls] : contentControls
@@ -443,15 +215,15 @@ export function AnimatedMobileMenu({
       const active = document.activeElement
       const first = controls[0]
       const last = controls[controls.length - 1]
-      if (e.shiftKey && active === first) {
-        e.preventDefault()
+      if (event.shiftKey && active === first) {
+        event.preventDefault()
         last.focus({ preventScroll: true })
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault()
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault()
         first.focus({ preventScroll: true })
       } else if (!(active instanceof HTMLElement) || !controls.includes(active)) {
-        e.preventDefault()
-        const fallbackControl = e.shiftKey ? last : contentControls[0] ?? first
+        event.preventDefault()
+        const fallbackControl = event.shiftKey ? last : contentControls[0] ?? first
         fallbackControl.focus({ preventScroll: true })
       }
     }
@@ -460,107 +232,70 @@ export function AnimatedMobileMenu({
     return () => document.removeEventListener("keydown", handleDrawerKeyboard)
   }, [isOpen, onClose])
 
-  // Prevent body scroll when menu is open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
+    document.body.style.overflow = isOpen ? "hidden" : ""
     return () => {
       document.body.style.overflow = ""
     }
   }, [isOpen])
 
   return (
-    <motion.nav
+    <nav
       data-mobile-menu-hydrated={isHydrated ? "true" : "false"}
       data-mobile-menu-motion={prefersReducedMotion ? "static" : "animated"}
       aria-label="Mobile navigation"
-      initial={{}}
-      animate={isOpen ? openMotionState : closedMotionState}
-      ref={containerRef}
+      aria-hidden={!isOpen}
+      inert={!isOpen ? true : undefined}
       className="md:hidden"
     >
-      {/* Backdrop */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: prefersReducedMotion ? 1 : 0 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
-            onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40 backdrop-blur-sm"
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Animated background panel - Glass with glow */}
-      <motion.div
-        data-mobile-menu-panel="true"
+      <div
         aria-hidden="true"
-        variants={sidebarVariants}
+        onClick={onClose}
         className={cn(
-          "fixed top-0 right-0 bottom-0 z-40 w-full max-w-[300px]",
-          // Glass surface
-          "bg-card/85 dark:bg-white/10",
-          "backdrop-blur-2xl",
-          // Border
-          "border-l border-border/50 dark:border-white/15",
-          // Glow shadow
-          "shadow-[-20px_0_60px_rgb(59,130,246,0.12)] dark:shadow-[-20px_0_60px_rgb(93,184,201,0.15)]"
+          "fixed inset-0 z-40 bg-black/20 backdrop-blur-sm transition-[opacity,visibility] dark:bg-black/40",
+          "motion-reduce:!transition-none",
+          isOpen
+            ? "visible opacity-100 [transition-duration:200ms,0ms]"
+            : "invisible opacity-0 [transition-duration:160ms,0ms] [transition-delay:0ms,160ms]",
         )}
       />
 
-      {/* Menu content */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            id="mobile-navigation-menu"
-            data-mobile-menu-content="true"
-            ref={contentRef}
-            variants={menuContentVariants}
-            initial={prefersReducedMotion ? "reducedOpen" : "closed"}
-            animate={openMotionState}
-            exit={closedMotionState}
-            className="fixed top-0 right-0 bottom-0 z-50 flex w-full max-w-[300px] flex-col"
-          >
-            {/* Header */}
-            {header && (
-              <motion.div
-                variants={itemVariants}
-                className="p-5 border-b border-border/30"
-              >
-                {header}
-              </motion.div>
-            )}
-
-            {/* Scrollable menu items */}
-            <motion.ul
-              variants={navVariants}
-              className="flex-1 overflow-y-auto py-4 px-2"
-            >
-              {children}
-            </motion.ul>
-
-            {/* Footer */}
-            {footer && (
-              <motion.div
-                variants={itemVariants}
-                className="p-4 border-t border-border/30"
-              >
-                {footer}
-              </motion.div>
-            )}
-          </motion.div>
+      <div
+        data-mobile-menu-panel="true"
+        aria-hidden="true"
+        className={cn(
+          "fixed bottom-0 right-0 top-0 z-40 w-full max-w-[300px]",
+          "border-l border-border/50 bg-card/85 shadow-[-20px_0_60px_rgb(59,130,246,0.12)] backdrop-blur-2xl",
+          "transition-[transform,visibility] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:!transition-none",
+          "dark:border-white/15 dark:bg-white/10 dark:shadow-[-20px_0_60px_rgb(93,184,201,0.15)]",
+          isOpen
+            ? "visible translate-x-0 [transition-duration:220ms,0ms]"
+            : "invisible translate-x-full [transition-duration:160ms,0ms] [transition-delay:0ms,160ms]",
         )}
-      </AnimatePresence>
-    </motion.nav>
+      />
+
+      <div
+        id="mobile-navigation-menu"
+        data-mobile-menu-content="true"
+        ref={contentRef}
+        className={cn(
+          "fixed bottom-0 right-0 top-0 z-50 flex w-full max-w-[300px] flex-col",
+          "transition-[transform,opacity,visibility] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:!transition-none",
+          isOpen
+            ? "visible translate-x-0 opacity-100 [transition-duration:220ms,180ms,0ms]"
+            : "invisible translate-x-full opacity-0 [transition-duration:160ms,120ms,0ms] [transition-delay:0ms,0ms,160ms]",
+        )}
+      >
+        {header && <div className="border-b border-border/30 p-5">{header}</div>}
+
+        <ul className="flex-1 overflow-y-auto px-2 py-4">{children}</ul>
+
+        {footer && <div className="border-t border-border/30 p-4">{footer}</div>}
+      </div>
+    </nav>
   )
 }
 
-// Export sub-components for composition
 AnimatedMobileMenu.Item = MenuItem
 AnimatedMobileMenu.Section = SectionHeader
 AnimatedMobileMenu.Divider = MenuDivider

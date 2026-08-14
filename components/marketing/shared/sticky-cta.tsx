@@ -1,11 +1,10 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 interface StickyCTAProps {
   /** Whether the sticky CTA is visible */
@@ -36,9 +35,6 @@ export function StickyCTA({
   mobileFooter,
   responseTime,
 }: StickyCTAProps) {
-  const prefersReducedMotion = useReducedMotion()
-  const motionDuration = prefersReducedMotion ? 0 : show ? 0.18 : 0.14
-
   const resolvedHref = isDisabled ? "/contact" : ctaHref
   const resolvedCtaText = isDisabled ? "Contact us" : ctaText
 
@@ -50,20 +46,16 @@ export function StickyCTA({
           subtree with focusable descendants is an axe failure
           (aria-hidden-focus). `inert` removes the subtree from BOTH the
           accessibility tree AND the focus order, which is what we want here. */}
-      <motion.div
+      <div
         role="region"
         aria-label="Quick purchase"
-        className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
-        initial={{}}
-        style={{ visibility: "hidden" }}
-        animate={{
-          y: show ? 0 : "100%",
-          visibility: show ? "visible" : "hidden",
-        }}
-        transition={{
-          y: { duration: motionDuration, ease: [0.16, 1, 0.3, 1] },
-          visibility: { duration: 0, delay: show ? 0 : motionDuration },
-        }}
+        className={cn(
+          "fixed bottom-0 left-0 right-0 z-50 lg:hidden",
+          "transition-[transform,visibility] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:!transition-none",
+          show
+            ? "visible translate-y-0 [transition-duration:180ms,0ms] [transition-delay:0ms,0ms]"
+            : "invisible translate-y-full [transition-duration:140ms,0ms] [transition-delay:0ms,140ms]",
+        )}
         inert={!show ? true : undefined}
       >
         {/*
@@ -93,7 +85,7 @@ export function StickyCTA({
           </Button>
           {mobileFooter}
         </div>
-      </motion.div>
+      </div>
     </>
   )
 }

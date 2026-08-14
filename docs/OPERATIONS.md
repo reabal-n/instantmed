@@ -949,13 +949,15 @@ WHERE i.status = 'approved'
 
 | Metric | Target (p75) | Current | Source |
 |---|---|---|---|
-| First Contentful Paint (FCP) | ≤ 2.0s | 1.4s local / 3.4s prod | `WebVitalsReporter`, PSI |
-| Largest Contentful Paint (LCP) | ≤ 2.5s | 5.2s prod conversion pages | `WebVitalsReporter`, PSI |
-| Cumulative Layout Shift (CLS) | ≤ 0.1 | 0.003 | `WebVitalsReporter` |
+| First Contentful Paint (FCP) | ≤ 2.0s | Re-measure at release checkpoint | PostHog `$web_vitals`, Lighthouse, CrUX |
+| Largest Contentful Paint (LCP) | ≤ 2.5s | 2026-08-14 like-for-like local production builds, applied mobile throttling: main → release candidate was 3.765s → 2.285s for med cert and 3.043s → 1.966s for prescriptions (3 runs each) | PostHog `$web_vitals`, Lighthouse, CrUX |
+| Cumulative Layout Shift (CLS) | ≤ 0.1 | 2026-08-14 local production build: 0 on both commercial routes (3 runs each) | PostHog `$web_vitals`, Lighthouse, CrUX |
 | Total Blocking Time (TBT) | ≤ 200ms | PR CI noisy; production gate remains ≤ 300ms | Lighthouse CI |
-| Interaction to Next Paint (INP) | ≤ 200ms | TBD (needs dashboard) | `WebVitalsReporter` |
+| Interaction to Next Paint (INP) | ≤ 200ms | Re-measure at release checkpoint | PostHog `$web_vitals`, CrUX |
 
 **CI gate:** PR LHCI blocks on FCP ≤ 3s, CLS ≤ 0.1, accessibility ≥ 0.9, and SEO ≥ 0.9. LCP and TBT are warning-only in the general PR Lighthouse config because simulated throttling on GitHub runners has produced 600ms-1s TBT outliers and 7s+ LCP on untouched marketing pages. The dedicated mobile `/request` Lighthouse gate hard-gates stable paid-intake metrics (FCP ≤2s, TBT ≤300ms, CLS ≤0.05) while keeping composite performance score and simulated LCP warning-only.
+
+**Money-page release measurement:** the opt-in three-run profile uses applied DevTools mobile throttling and median aggregation for LCP ≤2.5s. On 2026-08-14, untouched `main` and the release candidate were measured locally as production builds with the same Lighthouse 13.1 / Chrome 151 profile. `/medical-certificate` moved from a 3.765s median on `main` to 2.285s on the release candidate (candidate runs 1.999/2.285/2.329s; 39.3% lower). `/prescriptions` moved from 3.043s to 1.966s (candidate runs 1.954/1.966/1.981s; 35.4% lower). CLS was 0 throughout. This is like-for-like lab evidence, not a production field-performance claim. A separate earlier production-URL run using default simulated throttling yielded 5.07s and 5.53s respectively; those values are retained only as historical dependency diagnostics and are not comparable with the applied-throttle control. During diagnosis, Lantern simulation also produced a synthetic 4s+ critical tail while the underlying loopback trace painted far earlier; retain that mode for dependency diagnosis, but do not mislabel its synthetic queue as observed browser paint. Deployment success still requires the rolling 28-day URL-level mobile CrUX p75 checkpoint below 2.5s. PostHog RUM is directional because acquisition telemetry starts after first interaction.
 
 **Bundle-size gate:** shared first-load JS ≤ 160 KB (current: 129 KB). Enforced by `scripts/check-bundle-size.sh` after every release build.
 
@@ -996,7 +998,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 
 ### How SLOs are measured
 
-- **RUM**: `WebVitalsReporter` in `app/layout.tsx` fires `web_vital` events to PostHog. Build a PostHog Insight grouping by `$pathname` + `device_type` for p50/p75/p95.
+- **RUM**: PostHog's `capture_performance` integration in `instrumentation-client.ts` emits `$web_vitals`. Build an Insight using `$web_vitals_LCP_value`, grouped by `$pathname` and device type, for p50/p75/p95. On acquisition routes PostHog starts after first interaction, so this cohort excludes passive bounces and is directional rather than population-complete. Use URL-level mobile CrUX p75 as the unbiased rolling 28-day field checkpoint.
 - **CI-Lab**: `@lhci/cli` on every push to `main` + every PR. Results retained 14 days as GH artifact.
 - **Synthetic**: GitHub Actions runs `e2e/prod-request-flow-synthetic.spec.ts` against `https://instantmed.com.au` every 5 minutes. It clicks the med-cert certificate type, duration, and start-date controls and smoke-checks repeat script, prescription, ED, hair-loss, and women's-health request paths. The browser helper `e2e/helpers/production-synthetic-isolation.ts` fulfills `/api/draft` and `/ingest` locally; the production probe must not create `partial_intakes`, recovery emails, or PostHog funnel events.
 - **Error tracking**: Sentry captures + custom tags (see `lib/observability/sentry.ts`).

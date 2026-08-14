@@ -135,9 +135,9 @@ describe("auth post-sign-in handoff", () => {
   })
 
   it("loads browser auth immediately on the live women's health service page", () => {
-    const authProviderSource = readFileSync(join(process.cwd(), "lib/supabase/auth-provider.tsx"), "utf8")
+    const authCookieSource = readFileSync(join(process.cwd(), "lib/supabase/auth-cookie.ts"), "utf8")
 
-    expect(authProviderSource).toContain("'/womens-health'")
+    expect(authCookieSource).toContain('"/womens-health"')
   })
 
   it("keeps the auth provider inside body so auth state does not remount the document", () => {

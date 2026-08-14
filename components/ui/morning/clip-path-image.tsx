@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
 
-import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
+import { useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal } from "@/components/ui/scroll-reveal";
 import { cn } from "@/lib/utils";
 
 // Persists across React StrictMode's simulated remount - DOM nodes are preserved.
