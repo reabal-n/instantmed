@@ -109,6 +109,20 @@ function certificateStorageVersion(storagePath: string | null | undefined): stri
   return createHash("sha256").update(storagePath).digest("hex").slice(0, 32)
 }
 
+function emailCertificateStorageVersion(
+  metadata: Record<string, unknown> | null | undefined,
+): string | null {
+  const value = metadata?.certificate_storage_version
+  return typeof value === "string" && /^[0-9a-f]{32}$/.test(value) ? value : null
+}
+
+function certificateEmailVersionKey(
+  certificateId: string | null | undefined,
+  storageVersion: string | null | undefined,
+): string | null {
+  return certificateId && storageVersion ? `${certificateId}:${storageVersion}` : null
+}
+
 function firstTimestamp(...values: Array<string | null | undefined>): string | null {
   for (const value of values) {
     if (value) return value
@@ -429,7 +443,7 @@ export async function getCertificateDeliveryRescueCases(
         .order("created_at", { ascending: false }),
       supabase
         .from("email_outbox")
-        .select("id, intake_id, email_type, status, delivery_status, sent_at, created_at")
+        .select("id, intake_id, certificate_id, email_type, status, delivery_status, sent_at, created_at, metadata")
         .in("intake_id", intakeIds)
         .in("email_type", [...CERTIFICATE_EMAIL_TYPES, ...RECEIPT_EMAIL_TYPES])
         .order("created_at", { ascending: false }),
@@ -483,15 +497,20 @@ export async function getCertificateDeliveryRescueCases(
 
     const emailRows = (emailResult.data ?? []) as Array<{
       intake_id: string | null
+      certificate_id: string | null
       email_type: string | null
       status: string | null
       delivery_status: string | null
       sent_at: string | null
       created_at: string | null
+      metadata: Record<string, unknown> | null
     }>
-    const certEmailByIntake = latestBy(
+    const certEmailByCertificateVersion = latestBy(
       emailRows.filter((row) => row.email_type === "med_cert_patient"),
-      (row) => row.intake_id,
+      (row) => certificateEmailVersionKey(
+        row.certificate_id,
+        emailCertificateStorageVersion(row.metadata),
+      ),
       (row) => row.created_at,
     )
     const receiptEmailByIntake = latestBy(
@@ -503,10 +522,13 @@ export async function getCertificateDeliveryRescueCases(
     const allCases = intakeRows
       .map((intake) => {
         const cert = latestCertByIntake.get(intake.id)
-        const certEmail = certEmailByIntake.get(intake.id)
         const receiptEmail = receiptEmailByIntake.get(intake.id)
         const download = cert?.id ? latestDownloadByCertificate.get(cert.id) : null
         const currentStorageVersion = certificateStorageVersion(cert?.storage_path)
+        const certEmailKey = certificateEmailVersionKey(cert?.id, currentStorageVersion)
+        const certEmail = certEmailKey
+          ? certEmailByCertificateVersion.get(certEmailKey)
+          : undefined
         const deliveryReconciliations = Array.isArray(cert?.delivery_reconciliation)
           ? cert.delivery_reconciliation
           : cert?.delivery_reconciliation

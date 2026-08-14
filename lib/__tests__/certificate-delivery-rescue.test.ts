@@ -203,6 +203,11 @@ describe("certificate delivery rescue", () => {
   })
 
   it("counts queued certificate email delivery as a watch-only warning", async () => {
+    const currentStoragePath = "certificates/queued/current.pdf"
+    const currentStorageVersion = createHash("sha256")
+      .update(currentStoragePath)
+      .digest("hex")
+      .slice(0, 32)
     const supabase = createRescueSupabaseStub({
       intakes: [
         {
@@ -221,6 +226,7 @@ describe("certificate delivery rescue", () => {
           id: "cert-queued",
           intake_id: baseEvidence.intakeId,
           status: "valid",
+          storage_path: currentStoragePath,
           created_at: "2026-06-29T00:02:00Z",
           email_sent_at: null,
           email_failed_at: null,
@@ -231,11 +237,13 @@ describe("certificate delivery rescue", () => {
       email_outbox: [
         {
           intake_id: baseEvidence.intakeId,
+          certificate_id: "cert-queued",
           email_type: "med_cert_patient",
           status: "pending",
           delivery_status: null,
           sent_at: null,
           created_at: "2026-06-29T00:03:00Z",
+          metadata: { certificate_storage_version: currentStorageVersion },
         },
       ],
       certificate_audit_log: [],
@@ -250,6 +258,63 @@ describe("certificate delivery rescue", () => {
     })
     expect(overview.actionCount).toBe(0)
     expect(overview.warningCount).toBe(1)
+  })
+
+  it("does not let an earlier document-version email suppress rescue for a corrected certificate", async () => {
+    const currentStoragePath = "certificates/corrected/version-two.pdf"
+    const staleStorageVersion = createHash("sha256")
+      .update("certificates/corrected/version-one.pdf")
+      .digest("hex")
+      .slice(0, 32)
+    const supabase = createRescueSupabaseStub({
+      intakes: [
+        {
+          id: baseEvidence.intakeId,
+          reference_number: baseEvidence.referenceNumber,
+          status: "approved",
+          document_sent_at: null,
+          created_at: "2026-06-29T00:00:00Z",
+          updated_at: "2026-06-29T00:06:00Z",
+          approved_at: "2026-06-29T00:01:00Z",
+          completed_at: null,
+        },
+      ],
+      issued_certificates: [
+        {
+          id: "cert-corrected-in-place",
+          intake_id: baseEvidence.intakeId,
+          status: "valid",
+          storage_path: currentStoragePath,
+          created_at: "2026-06-29T00:02:00Z",
+          email_sent_at: null,
+          email_failed_at: null,
+          email_failure_reason: null,
+          resend_count: 0,
+        },
+      ],
+      email_outbox: [
+        {
+          intake_id: baseEvidence.intakeId,
+          certificate_id: "cert-corrected-in-place",
+          email_type: "med_cert_patient",
+          status: "sent",
+          delivery_status: "delivered",
+          sent_at: "2026-06-29T00:03:00Z",
+          created_at: "2026-06-29T00:03:00Z",
+          metadata: { certificate_storage_version: staleStorageVersion },
+        },
+      ],
+      certificate_audit_log: [],
+    })
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never)
+
+    expect(overview.cases).toHaveLength(1)
+    expect(overview.cases[0]?.recommendation).toMatchObject({
+      action: "resend_secure_link",
+      severity: "critical",
+    })
+    expect(overview.cases[0]?.certificateEmail.kind).toBe("missing")
   })
 
   it("keeps the full 14-day action total when the rendered case detail is capped", async () => {

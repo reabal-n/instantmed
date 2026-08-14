@@ -91,6 +91,10 @@ export const ADMIN_EMAIL_SUPPRESSION_HREF = "/admin/emails/suppression" as const
 export const ADMIN_REFUNDS_HREF = "/admin/refunds" as const
 export const ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq" as const
 export const ADMIN_PARCHMENT_OPS_HREF = "/admin/ops/parchment" as const
+export const ADMIN_HISTORICAL_AUTO_ISSUED_REVIEW_HREF =
+  "/admin/ops/historical-auto-issued-review" as const
+export const HISTORICAL_AUTO_ISSUED_REVIEW_QUERY_VALUE =
+  "historical-auto-issued" as const
 export const ADMIN_STALE_INTAKES_HREF = "/admin/ops/intakes-stuck" as const
 export const ADMIN_RECONCILIATION_HREF = "/admin/ops/reconciliation" as const
 export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" as const
@@ -121,6 +125,13 @@ export function buildStaffLedgerHref(options: {
 
 export function buildAdminIntakeHref(intakeId: string): string {
   return `/admin/intakes/${encodeURIComponent(intakeId)}`
+}
+
+export function buildHistoricalAutoIssuedReviewCaseHref(intakeId: string): string {
+  const params = new URLSearchParams({
+    review: HISTORICAL_AUTO_ISSUED_REVIEW_QUERY_VALUE,
+  })
+  return `${buildAdminIntakeHref(intakeId)}?${params.toString()}`
 }
 
 export function buildStaffEmailHubHref(options: {

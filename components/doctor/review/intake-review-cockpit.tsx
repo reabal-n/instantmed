@@ -2,7 +2,7 @@
 
 import { FileText, Loader2, RefreshCw } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useMemo, useState, useTransition } from "react"
+import { type ReactNode, useCallback, useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { requestMoreInfoAction } from "@/app/actions/request-more-info"
@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils"
 
 interface IntakeReviewCockpitProps {
   className?: string
+  historicalReviewActions?: ReactNode
   /**
    * Whether the viewer may revoke an auto-issued certificate.
    *
@@ -137,6 +138,7 @@ function CertificateDeliveryCard() {
 export function IntakeReviewCockpit({
   className,
   canRevokeAutoIssued,
+  historicalReviewActions,
 }: IntakeReviewCockpitProps) {
   const review = useIntakeReview()
   const { data, intake, answers, service } = review
@@ -237,7 +239,7 @@ export function IntakeReviewCockpit({
   // every approve/decline transition, so `IntakeActionButtons` renders no
   // decision for it — revocation is the one correction still available, and it
   // is offered here rather than as an obligation.
-  const decisionActions = isRevocableAutoIssuedCertificate(intake) && mayRevokeAutoIssued ? (
+  const standardDecisionActions = isRevocableAutoIssuedCertificate(intake) && mayRevokeAutoIssued ? (
     <RevokeAutoIssuedCertificate
       intakeId={intake.id}
       onRevoked={() => {
@@ -252,6 +254,12 @@ export function IntakeReviewCockpit({
       isRequestingClinicalDetail={isRequestingClinicalDetail}
     />
   )
+  const decisionActions = historicalReviewActions ? (
+    <div className="space-y-2">
+      {historicalReviewActions}
+      {standardDecisionActions}
+    </div>
+  ) : standardDecisionActions
 
   useDoctorShortcuts({
     disabled: review.isPending,

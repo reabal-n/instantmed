@@ -226,4 +226,73 @@ describe("operations action model", () => {
     expect(hrefs).not.toContain("/admin/refunds?status=failed")
     expect(hrefs).toContain("/admin/intakes?status=approved")
   })
+
+  it("routes the fixed unresolved cohort to one-at-a-time Medical Director review", () => {
+    const model = buildOpsActionModel(input({
+      historicalReview: {
+        cases: [{
+          aiApprovedAt: "2026-06-01T00:00:00.000Z",
+          certificateCreatedAt: "2026-06-01T00:01:00.000Z",
+          intakeId: "historical-1",
+          referenceNumber: "IM-HISTORICAL",
+          state: "ready_for_review",
+        }],
+        cohortCount: 9,
+        expectedCount: 9,
+        queryFailed: false,
+        resolvedCount: 8,
+        unresolvedCount: 1,
+      },
+    }))
+
+    expect(model.groups.flatMap(({ issues }) => issues)).toContainEqual(
+      expect.objectContaining({
+        count: 1,
+        href: "/admin/ops/historical-auto-issued-review",
+        owner: "Medical Director",
+        title: "Historical auto-issued safety review",
+      }),
+    )
+  })
+
+  it("does not expose the clinical retrospective lane to support", () => {
+    const historicalReview = {
+      cases: [],
+      cohortCount: 9,
+      expectedCount: 9,
+      queryFailed: false,
+      resolvedCount: 0,
+      unresolvedCount: 9,
+    }
+    const model = buildOpsActionModel(input({
+      historicalReview,
+      isAdmin: false,
+    }))
+
+    expect(model.groups.flatMap(({ issues }) => issues))
+      .not.toContainEqual(expect.objectContaining({
+        href: "/admin/ops/historical-auto-issued-review",
+      }))
+  })
+
+  it("fails closed when the historical cohort read is unavailable", () => {
+    const model = buildOpsActionModel(input({
+      historicalReview: {
+        cases: [],
+        cohortCount: 0,
+        expectedCount: 9,
+        queryFailed: true,
+        resolvedCount: 0,
+        unresolvedCount: 0,
+      },
+    }))
+
+    expect(model.allClear).toBe(false)
+    expect(model.groups.flatMap(({ issues }) => issues)).toContainEqual(
+      expect.objectContaining({
+        severity: "critical",
+        title: "Historical review lane unavailable",
+      }),
+    )
+  })
 })

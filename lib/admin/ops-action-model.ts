@@ -1,10 +1,12 @@
 import type { CertificateDeliveryRescueOverview } from "@/lib/admin/certificate-delivery-rescue"
+import type { HistoricalAutoIssuedReviewLane } from "@/lib/admin/historical-auto-issued-review"
 import type {
   OperationalFailureCategory,
   OperationalFailureOverview,
 } from "@/lib/admin/ops-failures"
 import type { OperationalInvariants } from "@/lib/admin/ops-invariants"
 import {
+  ADMIN_HISTORICAL_AUTO_ISSUED_REVIEW_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
   ADMIN_REFUNDS_HREF,
@@ -38,7 +40,7 @@ export interface OpsActionIssue {
   id: string
   nextAction: string
   occurredAt: string | null
-  owner: "Admin" | "Doctor" | "Support"
+  owner: "Admin" | "Doctor" | "Medical Director" | "Support"
   severity: OpsActionSeverity
   title: string
 }
@@ -339,6 +341,7 @@ export function buildOpsActionModel(args: {
   certificateDelivery: CertificateDeliveryRescueOverview
   failureOverview: OperationalFailureOverview
   googleAdsConversionHealth: { notReaching: number; queryFailed: boolean }
+  historicalReview?: HistoricalAutoIssuedReviewLane | null
   identity: PrescribingIdentityBlockerReport
   isAdmin: boolean
   invariants: OperationalInvariants
@@ -357,6 +360,44 @@ export function buildOpsActionModel(args: {
     ...certificateActions,
     ...invariantIssues(args.invariants, args.isAdmin, generatedAt, certificateEscalations),
   ]
+
+  if (args.isAdmin && args.historicalReview?.queryFailed) {
+    issues.push({
+      action: "link",
+      certificateIntakeId: null,
+      count: 1,
+      detail: "The fixed historical review cohort could not be reconciled; a zero remaining count cannot be trusted.",
+      group: "fulfilment",
+      href: ADMIN_HISTORICAL_AUTO_ISSUED_REVIEW_HREF,
+      id: "fulfilment:historical_auto_issued_review_unavailable",
+      nextAction: "Restore the cohort check before recording any review outcome.",
+      occurredAt: generatedAt,
+      owner: "Admin",
+      severity: "critical",
+      title: "Historical review lane unavailable",
+    })
+  } else if (
+    args.isAdmin
+    && args.historicalReview
+    && args.historicalReview.unresolvedCount > 0
+  ) {
+    issues.push({
+      action: "link",
+      certificateIntakeId: null,
+      count: args.historicalReview.unresolvedCount,
+      detail: `${args.historicalReview.unresolvedCount} fixed-cohort auto-issued ${args.historicalReview.unresolvedCount === 1 ? "certificate requires" : "certificates require"} an individual human review.`,
+      group: "fulfilment",
+      href: ADMIN_HISTORICAL_AUTO_ISSUED_REVIEW_HREF,
+      id: "fulfilment:historical_auto_issued_review",
+      nextAction: "Open the oldest case and record one explicit outcome.",
+      occurredAt: oldestTimestamp(
+        args.historicalReview.cases.map((reviewCase) => reviewCase.aiApprovedAt),
+      ),
+      owner: "Medical Director",
+      severity: "warning",
+      title: "Historical auto-issued safety review",
+    })
+  }
 
   if (args.identity.queryFailed) {
     issues.push({

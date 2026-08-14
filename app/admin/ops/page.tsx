@@ -1,4 +1,5 @@
 import { getCertificateDeliveryRescueCases } from "@/lib/admin/certificate-delivery-rescue"
+import { getHistoricalAutoIssuedReviewLane } from "@/lib/admin/historical-auto-issued-review"
 import { buildOpsActionModel } from "@/lib/admin/ops-action-model"
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import { getOperationalInvariants } from "@/lib/admin/ops-invariants"
@@ -121,6 +122,7 @@ export default async function OpsDashboardPage() {
     invariants,
     googleAdsConversionHealth,
     certificateDelivery,
+    historicalReview,
   ] = await Promise.all([
     readRows<StripeDlqRow>("Stripe webhook DLQ", supabase
       .from("stripe_webhook_dead_letter")
@@ -220,6 +222,16 @@ export default async function OpsDashboardPage() {
       queryFailed: true,
       warningCount: 0,
     })),
+    isAdmin
+      ? getHistoricalAutoIssuedReviewLane(supabase).catch(() => ({
+        cases: [],
+        cohortCount: 0,
+        expectedCount: 9,
+        queryFailed: true,
+        resolvedCount: 0,
+        unresolvedCount: 0,
+      }))
+      : Promise.resolve(null),
   ])
 
   const unresolvedParchmentFailures = filterUnresolvedParchmentFailures(
@@ -282,6 +294,7 @@ export default async function OpsDashboardPage() {
     failureOverview,
     googleAdsConversionHealth,
     identity,
+    historicalReview,
     invariants,
     isAdmin,
     now,

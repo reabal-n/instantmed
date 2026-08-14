@@ -7,6 +7,10 @@ const MIGRATION_PATH = join(
   process.cwd(),
   "supabase/migrations/20260814163645_reconcile_manual_certificate_delivery.sql",
 )
+const LOCK_ORDER_MIGRATION_PATH = join(
+  process.cwd(),
+  "supabase/migrations/20260814181000_align_manual_delivery_reconciliation_lock_order.sql",
+)
 const ISSUED_CERTIFICATES_PATH = join(process.cwd(), "lib/data/issued-certificates.ts")
 const RESCUE_PATH = join(process.cwd(), "lib/admin/certificate-delivery-rescue.ts")
 
@@ -61,5 +65,39 @@ describe("manual certificate delivery reconciliation contract", () => {
     expect(rescue).toContain("deliveryReconciledAt")
     expect(rescue).toContain("Manual delivery was reconciled")
     expect(rescue).toContain('certificateStatus !== "valid"')
+    expect(rescue).toContain(
+      '.select("id, intake_id, certificate_id, email_type, status, delivery_status, sent_at, created_at, metadata")',
+    )
+    expect(rescue).toContain("certEmailByCertificateVersion")
+    expect(rescue).toContain("certificateEmailVersionKey(cert?.id, currentStorageVersion)")
+  })
+
+  it("aligns reconciliation with the intake-then-certificate correction lock order", () => {
+    const sql = readFileSync(LOCK_ORDER_MIGRATION_PATH, "utf8")
+    const intakeLock = sql.indexOf("SELECT intake.id, intake.category, intake.status")
+    const certificateLock = sql.indexOf("certificate.status,\n    certificate.created_at")
+
+    expect(sql).toContain(
+      "CREATE OR REPLACE FUNCTION public.record_manual_certificate_delivery_reconciliation",
+    )
+    expect(intakeLock).toBeGreaterThan(-1)
+    expect(certificateLock).toBeGreaterThan(intakeLock)
+    expect(sql.match(/FOR UPDATE/g)?.length).toBe(2)
+    expect(sql).toContain("v_certificate.intake_id IS DISTINCT FROM v_intake.id")
+    expect(sql).toContain("v_certificate.status <> 'valid'")
+    expect(sql).toContain("ON CONFLICT (certificate_id, certificate_storage_version) DO NOTHING")
+    expect(sql).not.toMatch(/UPDATE\s+(public\.)?(intakes|issued_certificates)/i)
+    expect(sql).toMatch(
+      /REVOKE ALL ON FUNCTION public\.record_manual_certificate_delivery_reconciliation\(uuid, uuid\)[\s\S]+FROM PUBLIC, anon, authenticated/,
+    )
+    expect(sql).toContain("TO service_role")
+    expect(sql).toContain(
+      "DROP CONSTRAINT certificate_delivery_reconciliations_recorded_by_fkey",
+    )
+    expect(sql).toMatch(
+      /ADD CONSTRAINT certificate_delivery_reconciliations_recorded_by_fkey[\s\S]+ON DELETE RESTRICT/,
+    )
+    expect(sql).not.toMatch(/UPDATE\s+public\.certificate_delivery_reconciliations/i)
+    expect(sql).not.toMatch(/DELETE\s+FROM\s+public\.certificate_delivery_reconciliations/i)
   })
 })

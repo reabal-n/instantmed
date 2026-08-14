@@ -6,11 +6,21 @@ import { getPendingDateCorrection } from "@/app/actions/request-date-correction"
 import { IntakeDetailClient } from "@/app/doctor/intakes/[id]/intake-detail-client"
 import type { DoctorFollowupRow } from "@/app/doctor/intakes/[id]/intake-detail-followups"
 import { AdminRequestSummaryButton } from "@/components/admin/admin-request-summary-button"
+import { HistoricalAutoIssuedReviewActions } from "@/components/doctor/review/historical-auto-issued-review-actions"
 import { PanelProvider } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
+import {
+  type HistoricalAutoIssuedReviewOpenOutcome,
+  openHistoricalAutoIssuedReviewCase,
+} from "@/lib/admin/historical-auto-issued-review"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireRole } from "@/lib/auth/helpers"
-import { buildStaffPatientHref,STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import {
+  ADMIN_HISTORICAL_AUTO_ISSUED_REVIEW_HREF,
+  buildStaffPatientHref,
+  HISTORICAL_AUTO_ISSUED_REVIEW_QUERY_VALUE,
+  STAFF_DASHBOARD_HREF,
+} from "@/lib/dashboard/routes"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
@@ -27,16 +37,30 @@ export const dynamic = "force-dynamic"
 
 export default async function AdminIntakeDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ review?: string | string[] }>
 }) {
   const auth = await requireRole(["admin"])
   const { id } = await params
+  const query = await searchParams
+  const reviewParam = Array.isArray(query.review) ? query.review[0] : query.review
+  const isHistoricalReview =
+    reviewParam === HISTORICAL_AUTO_ISSUED_REVIEW_QUERY_VALUE
 
   const intake = await getIntakeWithDetails(id)
   if (!intake) notFound()
 
   await logClinicianOpenedRequest(id, "intake", auth.profile.id)
+
+  const historicalOpenOutcome = isHistoricalReview
+    ? await openHistoricalAutoIssuedReviewCase(
+      createServiceRoleClient(),
+      id,
+      auth.profile.id,
+    )
+    : null
 
   const serviceType = (intake.service as { type?: string } | undefined)?.type
   const [
@@ -104,8 +128,20 @@ export default async function AdminIntakeDetailPage({
         parchmentEnabled={featureFlags.parchment_embedded_prescribing}
         patientMessages={patientMessages}
         patientNotes={patientNotes}
-        backHref={STAFF_DASHBOARD_HREF}
-        backLabel="Back to work"
+        backHref={isHistoricalReview
+          ? ADMIN_HISTORICAL_AUTO_ISSUED_REVIEW_HREF
+          : STAFF_DASHBOARD_HREF}
+        backLabel={isHistoricalReview ? "Back to historical reviews" : "Back to work"}
+        viewerCanRevokeAutoIssued
+        historicalReviewActions={isHistoricalReview ? (
+          <HistoricalAutoIssuedReviewActions
+            intakeId={id}
+            canRecord={historicalOpenOutcome === "opened"}
+            unavailableReason={historicalOpenOutcome === "opened"
+              ? undefined
+              : historicalReviewUnavailableReason(historicalOpenOutcome)}
+          />
+        ) : undefined}
         compact
         supplementaryActions={
           <>
@@ -124,4 +160,22 @@ export default async function AdminIntakeDetailPage({
       />
     </PanelProvider>
   )
+}
+
+function historicalReviewUnavailableReason(
+  outcome: HistoricalAutoIssuedReviewOpenOutcome | null,
+): string {
+  if (outcome === "already_resolved") {
+    return "This historical review already has a durable outcome. Return to the review queue."
+  }
+  if (outcome === "case_state_changed") {
+    return "The certificate state changed. Check the current record; no no-correction receipt can be added."
+  }
+  if (outcome === "case_not_found") {
+    return "This request is not an unresolved case in the fixed historical cohort."
+  }
+  if (outcome === "actor_not_authorized") {
+    return "You are not authorised to record this historical review."
+  }
+  return "The contextual review-open receipt could not be recorded. Reload before choosing an outcome."
 }

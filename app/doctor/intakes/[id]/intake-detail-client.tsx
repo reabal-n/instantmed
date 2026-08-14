@@ -82,6 +82,7 @@ interface IntakeDetailClientProps {
   backHref?: string
   backLabel?: string
   supplementaryActions?: ReactNode
+  historicalReviewActions?: ReactNode
   compact?: boolean
 }
 
@@ -129,6 +130,7 @@ function CockpitIntakeDetailClient({
   backHref = STAFF_DASHBOARD_HREF,
   backLabel = "Back to queue",
   supplementaryActions,
+  historicalReviewActions,
 }: IntakeDetailClientProps) {
   const router = useRouter()
   const { openPanel } = usePanel()
@@ -357,7 +359,7 @@ function CockpitIntakeDetailClient({
               className="mb-3"
               hideRequestFieldFlags
             />
-            <IntakeReviewCockpit />
+            <IntakeReviewCockpit historicalReviewActions={historicalReviewActions} />
           </div>
         </div>
       </IntakeReviewProvider>

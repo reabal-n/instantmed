@@ -160,7 +160,7 @@ export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
       log.info("AI-approved certificate revocation already complete", { intakeId })
     }
 
-    revalidateStaff({ intakeId })
+    revalidateStaff({ intakeId, ops: true })
     revalidatePatient({ intakeId })
 
     return { success: true }
