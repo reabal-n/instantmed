@@ -35,7 +35,6 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
 export interface CertificatePreviewData {
@@ -44,6 +43,7 @@ export interface CertificatePreviewData {
   certificateType: "work" | "study" | "carer"
   startDate: string
   endDate: string
+  /** Internal draft context used for audit comparison; never rendered in the PDF. */
   medicalReason: string
   doctorName: string
   providerNumber: string
@@ -174,7 +174,6 @@ export function CertificatePreviewDialog({
   const hasEdits = (
     editedData.startDate !== data.startDate ||
     editedData.endDate !== data.endDate ||
-    editedData.medicalReason !== data.medicalReason ||
     (mode === "reissue" && (
       editedData.patientName !== data.patientName ||
       editedData.patientDob !== data.patientDob ||
@@ -334,18 +333,18 @@ export function CertificatePreviewDialog({
             )}
           </div>
 
-          {/* Medical Reason - inline editable */}
+          {/* Certificate wording is locked by the clinical certificate contract. */}
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <Stethoscope className="h-3 w-3" />
-              Medical Reason
+              <FileText className="h-3 w-3" />
+              Certificate wording
             </div>
-            <Textarea
-              value={editedData.medicalReason}
-              onChange={(e) => setEditedData({ ...editedData, medicalReason: e.target.value })}
-              className="min-h-[60px] text-sm resize-none"
-              placeholder="e.g., Medical Illness"
-            />
+            <div className="rounded-lg border border-border/30 bg-muted/40 p-3">
+              <p className="text-sm font-medium">Standard absence wording</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                The issued PDF confirms the absence period. Diagnoses and symptom details are not printed on the certificate; record them in the clinical note.
+              </p>
+            </div>
           </div>
 
           {/* Doctor Info */}

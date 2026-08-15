@@ -214,6 +214,40 @@ test.describe("Doctor Approval Email Pipeline", () => {
       "Email should have valid status"
     ).toBe(true)
   })
+
+  test("certificate wording UI keeps diagnosis context internal", async ({ page }) => {
+    await page.goto(`/doctor/intakes/${SEEDED_INTAKE_ID}`)
+    await waitForPageLoad(page)
+
+    const approveButton = page.getByRole("button", { name: "Approve certificate" })
+    await expect(approveButton).toBeVisible({ timeout: 15_000 })
+    await expect(approveButton).toBeEnabled({ timeout: 15_000 })
+    await approveButton.click()
+
+    const confirmationDialog = page.getByRole("dialog", { name: "Confirm before sending" })
+    await expect(confirmationDialog).toBeVisible({ timeout: 15_000 })
+    await expect(confirmationDialog.getByText("Certificate wording")).toBeVisible()
+    await expect(confirmationDialog.getByText("Standard absence wording")).toBeVisible()
+    await expect(
+      confirmationDialog.getByText(/Diagnoses and symptom details are not printed on the certificate/),
+    ).toBeVisible()
+    await expect(confirmationDialog.getByText("Medical Reason", { exact: true })).toHaveCount(0)
+    await confirmationDialog.getByRole("button", { name: "Cancel" }).click()
+    await expect(confirmationDialog).toBeHidden()
+
+    await page.goto(`/doctor/intakes/${SEEDED_INTAKE_ID}/document`)
+    await waitForPageLoad(page)
+
+    await expect(page.getByText("Internal clinical context", { exact: true })).toBeVisible()
+    await expect(
+      page.getByText(/Diagnoses and symptom details are not printed on the certificate/),
+    ).toBeVisible()
+    await expect(page.getByLabel("Presenting reason")).toBeVisible()
+    await expect(page.getByLabel("Absence assessment")).toBeVisible()
+    await expect(page.getByLabel("Internal note (optional)")).toBeVisible()
+    await expect(page.getByText("Reason / Condition", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("Work Capacity", { exact: true })).toHaveCount(0)
+  })
 })
 
 // ============================================================================

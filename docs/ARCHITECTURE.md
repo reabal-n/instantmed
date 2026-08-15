@@ -339,7 +339,7 @@ app/actions/approve-cert.ts
 ### Doctor Cert Workflow
 
 1. Doctor loads draft from `document_drafts` table
-2. Edits fields (patient name, dates, reason, cert type)
+2. Edits supported certificate fields (patient name, dates, cert type); diagnosis and symptom context stay internal and are not rendered in the PDF
 3. Calls `renderMedicalCertificateToPdf(draft, logoUrl)` via `pdf-lib` (template overlay)
 4. Draft marked `status: 'issued'`, `issued_at` + `issued_by` set
 5. PDF stored; `issued_certificates` record created with template config snapshot

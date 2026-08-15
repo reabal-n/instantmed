@@ -72,7 +72,6 @@ export interface ReissueCertInput {
   certificateType: "work" | "study" | "carer"
   startDate: string    // YYYY-MM-DD
   endDate: string      // YYYY-MM-DD
-  medicalReason: string
   notifyPatient?: boolean  // defaults true
   correctionEventId?: string
 }

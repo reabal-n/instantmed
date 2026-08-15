@@ -597,7 +597,6 @@ export function useIntakeActions({
         certificateType: editedData.certificateType,
         startDate: editedData.startDate,
         endDate: editedData.endDate,
-        medicalReason: editedData.medicalReason,
         notifyPatient: notifyPatient ?? true,
       })
 

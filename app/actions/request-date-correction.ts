@@ -407,7 +407,6 @@ export async function approveDateCorrection(
     certificateType,
     startDate,
     endDate,
-    medicalReason: "date_correction",
     notifyPatient: true,
     correctionEventId,
   })

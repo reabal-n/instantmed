@@ -14,8 +14,10 @@ import type { CertReviewData } from "@/types/db"
 
 /**
  * Fetch the draft data for certificate preview before approval.
- * Returns the draft data (dates, medical reason, patient info) so the doctor
- * can review and optionally edit before confirming approval.
+ * Returns the certificate fields plus internal draft context. The doctor can
+ * edit supported certificate fields before confirming approval; the internal
+ * reason remains available for audit comparison and is never rendered in the
+ * certificate PDF.
  */
 export async function fetchCertPreviewDataAction(
   intakeId: string,
@@ -291,8 +293,9 @@ export async function generateMedCertPdfAndApproveAction(
       return { success: false, error: "End date cannot be before start date. Please correct the dates before approving." }
     }
 
-    // Build review data from draft
-    // Handle both 'reason' and 'reason_summary' fields for compatibility
+    // Keep the internal reason for edit-history comparison only. Certificate
+    // wording is locked and diagnosis-free in lib/pdf/template-renderer.ts.
+    // Handle both 'reason' and 'reason_summary' fields for compatibility.
     const medicalReason = draftData.reason || draftData.reason_summary || "Medical Illness"
 
     // Use Australian Eastern Time for consult date (medicolegal requirement)
@@ -343,7 +346,8 @@ export async function generateMedCertPdfAndApproveAction(
 
 /**
  * Approve a med cert using edited preview data (from CertificatePreviewDialog).
- * This allows the doctor to modify dates / medical reason before sending.
+ * The dialog may modify supported certificate fields such as dates. The
+ * medical reason is internal audit context only and is not rendered in the PDF.
  */
 export async function approveWithPreviewDataAction(
   intakeId: string,

@@ -12,6 +12,7 @@ import {
   Heart,
   Loader2,
   Save,
+  Stethoscope,
   User,
   X,
 } from "lucide-react"
@@ -384,11 +385,27 @@ export function DocumentBuilderClient({
               minDate={formData.dateFrom || undefined}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Internal clinical context */}
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Stethoscope className="h-4 w-4" />
+            Internal clinical context
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            These details stay in the internal draft. Diagnoses and symptom details are not printed on the certificate.
+          </p>
 
           <div>
-            <Label>Reason / Condition</Label>
+            <Label htmlFor="internal-presenting-reason">Presenting reason</Label>
             <Textarea
-              placeholder="Brief description of the medical condition..."
+              id="internal-presenting-reason"
+              placeholder="Brief internal summary of the presentation..."
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
               className="min-h-[80px]"
@@ -396,18 +413,20 @@ export function DocumentBuilderClient({
           </div>
 
           <div>
-            <Label>Work Capacity</Label>
+            <Label htmlFor="internal-absence-assessment">Absence assessment</Label>
             <Input
+              id="internal-absence-assessment"
               value={formData.workCapacity}
               onChange={(e) => setFormData({ ...formData, workCapacity: e.target.value })}
-              placeholder="e.g., Unable to work, Reduced duties"
+              placeholder="e.g., Unable to attend usual duties"
             />
           </div>
 
           <div>
-            <Label>Additional Notes (Optional)</Label>
+            <Label htmlFor="internal-note">Internal note (optional)</Label>
             <Textarea
-              placeholder="Any additional notes for the certificate..."
+              id="internal-note"
+              placeholder="Any additional internal context..."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="min-h-[60px]"

@@ -515,7 +515,6 @@ describe("certificate reissue clinical authorization", () => {
       certificateType: "work",
       startDate: "2026-07-10",
       endDate: "2026-07-10",
-      medicalReason: "date correction",
     })
 
     expect(result).toEqual({
@@ -550,7 +549,6 @@ describe("certificate reissue clinical authorization", () => {
       certificateType: "work",
       startDate: "2026-07-10",
       endDate: "2026-07-10",
-      medicalReason: "date correction",
     })
 
     expect(result).toEqual({
@@ -573,7 +571,6 @@ describe("certificate reissue clinical authorization", () => {
       certificateType: "work",
       startDate: "2026-07-10",
       endDate: "2026-07-10",
-      medicalReason: "date correction",
     })
 
     expect(result).toEqual({ success: true, certificateId: CERTIFICATE_ID })
@@ -620,7 +617,6 @@ describe("certificate reissue clinical authorization", () => {
       certificateType: "work",
       startDate: "2026-07-10",
       endDate: "2026-07-10",
-      medicalReason: "date correction",
     })
 
     expect(result).toEqual({
@@ -644,7 +640,6 @@ describe("certificate reissue clinical authorization", () => {
       certificateType: "work",
       startDate: "2026-07-10",
       endDate: "2026-07-10",
-      medicalReason: "date correction",
     })
 
     expect(result).toEqual({ success: false, error: "Failed to update certificate record" })
@@ -665,7 +660,6 @@ describe("certificate reissue clinical authorization", () => {
       certificateType: "work",
       startDate: "2026-07-10",
       endDate: "2026-07-10",
-      medicalReason: "date correction",
       notifyPatient: true,
     })
 
@@ -698,7 +692,6 @@ describe("certificate reissue clinical authorization", () => {
       certificateType: "work",
       startDate: "2026-07-10",
       endDate: "2026-07-10",
-      medicalReason: "date correction",
       notifyPatient: true,
     })
 
@@ -719,7 +712,6 @@ describe("certificate reissue clinical authorization", () => {
       certificateType: "work",
       startDate: "2026-07-10",
       endDate: "2026-07-10",
-      medicalReason: "date correction",
       notifyPatient: true,
     })
 
@@ -753,7 +745,6 @@ describe("certificate reissue clinical authorization", () => {
       certificateType: "work",
       startDate: "2026-07-10",
       endDate: "2026-07-10",
-      medicalReason: "date correction",
     })
 
     expect(result).toEqual({ success: true, certificateId: CERTIFICATE_ID })

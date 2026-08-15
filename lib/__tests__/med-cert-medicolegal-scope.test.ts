@@ -173,6 +173,31 @@ function hasPdfToText() {
 }
 
 describe("medical certificate medicolegal scope", () => {
+  it("does not present diagnosis text as editable certificate content to doctors", () => {
+    const confirmationDialog = readFileSync(
+      path.join(ROOT, "components/doctor/certificate-preview-dialog.tsx"),
+      "utf8",
+    )
+    const documentBuilder = readFileSync(
+      path.join(ROOT, "app/doctor/intakes/[id]/document/document-builder-client.tsx"),
+      "utf8",
+    )
+    const reissueAction = readFileSync(
+      path.join(ROOT, "app/actions/reissue-cert.ts"),
+      "utf8",
+    )
+
+    expect(confirmationDialog).not.toContain("Medical Reason")
+    expect(confirmationDialog).not.toContain("value={editedData.medicalReason}")
+    expect(confirmationDialog).toContain("Diagnoses and symptom details are not printed on the certificate")
+
+    expect(documentBuilder).not.toContain("<Label>Reason / Condition</Label>")
+    expect(documentBuilder).not.toContain("<Label>Work Capacity</Label>")
+    expect(documentBuilder).toContain("Internal clinical context")
+    expect(documentBuilder).toContain("Diagnoses and symptom details are not printed on the certificate")
+    expect(reissueAction).not.toContain("medicalReason")
+  })
+
   it("keeps public med-cert claims away from guaranteed acceptance or legal-equivalence language", () => {
     expectNoPublicHits("Unsupported certificate acceptance claim", UNSUPPORTED_ACCEPTANCE_PATTERNS)
   })
