@@ -123,6 +123,12 @@ function buildChargeRefundedEvent(overrides: {
   amountRefunded?: number
 }) {
   const amount = overrides.amount || 1995
+  const amountRefunded = overrides.amountRefunded ?? amount
+  const chargeId = overrides.chargeId || `ch_test_${randomUUID()}`
+  const paymentIntentId = overrides.paymentIntentId || `pi_test_${randomUUID()}`
+  const refundId = `re_test_${randomUUID()}`
+  const balanceTransactionId = `txn_test_${randomUUID()}`
+  const created = Math.floor(Date.now() / 1000)
   return {
     id: overrides.eventId || `evt_test_${randomUUID()}`,
     object: "event",
@@ -130,15 +136,53 @@ function buildChargeRefundedEvent(overrides: {
     type: "charge.refunded",
     data: {
       object: {
-        id: overrides.chargeId || `ch_test_${randomUUID()}`,
+        id: chargeId,
         object: "charge",
         amount,
-        amount_refunded: overrides.amountRefunded ?? amount,
-        payment_intent: overrides.paymentIntentId || `pi_test_${randomUUID()}`,
+        amount_refunded: amountRefunded,
+        payment_intent: paymentIntentId,
+        refunds: {
+          object: "list",
+          data: [{
+            id: refundId,
+            object: "refund",
+            amount: amountRefunded,
+            balance_transaction: {
+              id: balanceTransactionId,
+              object: "balance_transaction",
+              amount: -amountRefunded,
+              available_on: created,
+              balance_type: "payments",
+              created,
+              currency: "aud",
+              description: null,
+              exchange_rate: null,
+              fee: 0,
+              fee_details: [],
+              net: -amountRefunded,
+              reporting_category: "refund",
+              source: refundId,
+              status: "available",
+              type: "refund",
+            },
+            charge: chargeId,
+            created,
+            currency: "aud",
+            metadata: {},
+            payment_intent: paymentIntentId,
+            reason: "requested_by_customer",
+            receipt_number: null,
+            source_transfer_reversal: null,
+            status: "succeeded",
+            transfer_reversal: null,
+          }],
+          has_more: false,
+          url: `/v1/charges/${chargeId}/refunds`,
+        },
         status: "succeeded",
       },
     },
-    created: Math.floor(Date.now() / 1000),
+    created,
     livemode: false,
     pending_webhooks: 1,
     request: { id: `req_test_${randomUUID()}`, idempotency_key: null },
@@ -402,7 +446,10 @@ test.describe("Stripe Webhook: charge.refunded", () => {
     const supabase = getSupabaseClient()
     await supabase
       .from("intakes")
-      .update({ stripe_payment_intent_id: paymentIntentId })
+      .update({
+        amount_cents: 1995,
+        stripe_payment_intent_id: paymentIntentId,
+      })
       .eq("id", seed.intakeId!)
 
     // Send refund webhook
@@ -437,7 +484,10 @@ test.describe("Stripe Webhook: charge.refunded", () => {
     const supabase = getSupabaseClient()
     await supabase
       .from("intakes")
-      .update({ stripe_payment_intent_id: paymentIntentId })
+      .update({
+        amount_cents: 1995,
+        stripe_payment_intent_id: paymentIntentId,
+      })
       .eq("id", seed.intakeId!)
 
     // Send partial refund webhook

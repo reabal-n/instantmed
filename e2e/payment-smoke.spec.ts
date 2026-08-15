@@ -258,12 +258,19 @@ test.describe("Smoke: Decline flow marks intake as declined", () => {
     expect(seed.success, `Seed failed: ${seed.error}`).toBe(true)
 
     const paymentIntentId = `pi_smoke_refund_${randomUUID()}`
+    const chargeId = `ch_smoke_${randomUUID()}`
+    const refundId = `re_smoke_${randomUUID()}`
+    const balanceTransactionId = `txn_smoke_${randomUUID()}`
+    const created = Math.floor(Date.now() / 1000)
 
     // Set stripe_payment_intent_id on intake so refund lookup works
     const supabase = getSupabaseClient()
     await supabase
       .from("intakes")
-      .update({ stripe_payment_intent_id: paymentIntentId })
+      .update({
+        amount_cents: 1995,
+        stripe_payment_intent_id: paymentIntentId,
+      })
       .eq("id", seed.intakeId!)
 
     const refundEvent = {
@@ -273,15 +280,53 @@ test.describe("Smoke: Decline flow marks intake as declined", () => {
       type: "charge.refunded",
       data: {
         object: {
-          id: `ch_smoke_${randomUUID()}`,
+          id: chargeId,
           object: "charge",
           amount: 1995,
           amount_refunded: 1995,
           payment_intent: paymentIntentId,
+          refunds: {
+            object: "list",
+            data: [{
+              id: refundId,
+              object: "refund",
+              amount: 1995,
+              balance_transaction: {
+                id: balanceTransactionId,
+                object: "balance_transaction",
+                amount: -1995,
+                available_on: created,
+                balance_type: "payments",
+                created,
+                currency: "aud",
+                description: null,
+                exchange_rate: null,
+                fee: 0,
+                fee_details: [],
+                net: -1995,
+                reporting_category: "refund",
+                source: refundId,
+                status: "available",
+                type: "refund",
+              },
+              charge: chargeId,
+              created,
+              currency: "aud",
+              metadata: {},
+              payment_intent: paymentIntentId,
+              reason: "requested_by_customer",
+              receipt_number: null,
+              source_transfer_reversal: null,
+              status: "succeeded",
+              transfer_reversal: null,
+            }],
+            has_more: false,
+            url: `/v1/charges/${chargeId}/refunds`,
+          },
           status: "succeeded",
         },
       },
-      created: Math.floor(Date.now() / 1000),
+      created,
       livemode: false,
       pending_webhooks: 1,
       request: { id: `req_smoke_${randomUUID()}`, idempotency_key: null },
