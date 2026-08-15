@@ -22,8 +22,9 @@
 # risky UI/clinical change)? Put `[preview]` anywhere in the latest commit
 # message and this step will build that preview.
 #
-# Vercel exposes VERCEL_GIT_COMMIT_REF (branch) and VERCEL_GIT_COMMIT_MESSAGE
-# to this step. Docs: https://vercel.com/docs/project-configuration/vercel-json
+# Vercel exposes VERCEL_GIT_COMMIT_REF (branch), VERCEL_GIT_COMMIT_MESSAGE, and
+# VERCEL_GIT_PREVIOUS_SHA (last successful branch deployment) to this step.
+# Docs: https://vercel.com/docs/project-configuration/vercel-json
 #
 # One-line revert: delete the "ignoreCommand" line from vercel.json. This
 # script then goes inert and Vercel rebuilds every branch as before.
@@ -33,6 +34,7 @@ set -eu
 PROD_BRANCH="main"
 ref="${VERCEL_GIT_COMMIT_REF:-}"
 msg="${VERCEL_GIT_COMMIT_MESSAGE:-}"
+previous_sha="${VERCEL_GIT_PREVIOUS_SHA:-}"
 
 if [ "$ref" = "$PROD_BRANCH" ]; then
   # Force a prod build/deploy for an otherwise-skippable commit with [deploy].
@@ -45,26 +47,40 @@ if [ "$ref" = "$PROD_BRANCH" ]; then
       ;;
   esac
 
-  # Cost control: even on main, skip the full prod build when the commit ONLY
-  # touches paths that never reach the built/served app — docs, markdown, e2e
-  # specs, unit tests, CI config. The change still lands in the repo and ships
-  # with the next runtime deploy; prod runtime is unchanged by these files.
+  # Cost control: even on main, skip the full prod build when the complete range
+  # since the last successful deployment ONLY touches paths that never reach the
+  # built/served app — docs, markdown, e2e specs, unit tests, CI config. Comparing
+  # the deployed SHA (not merely HEAD^) is essential for batched pushes whose
+  # final commit is docs-only but whose earlier commits contain runtime changes.
   # ~26% of recent main commits (73/284 in 30d) were docs/test-only = wasted
   # Build CPU Minutes. FAIL-SAFE: if the diff can't be computed (shallow clone,
   # root commit, empty), we BUILD. Allowlist is conservative — scripts/, public/,
   # supabase/, package.json, the lockfile, and all of app|components|lib
   # (non-test) are treated as runtime and always build.
   #
-  # Vercel's Ignored Build Step runs in a shallow clone (often depth 1) where
-  # HEAD^ is absent — without this the diff is empty and we fail safe to BUILD
-  # every time, silently defeating the skip. Deepen by one commit so HEAD^
-  # resolves; if the fetch can't run, `changed` stays empty and we still build.
-  git rev-parse --verify -q HEAD^ >/dev/null 2>&1 || git fetch --deepen=1 --quiet >/dev/null 2>&1 || true
-  changed="$(git diff --name-only HEAD^ HEAD 2>/dev/null || true)"
-  if [ -n "$changed" ]; then
+  # Vercel exposes VERCEL_GIT_PREVIOUS_SHA as the last successful deployment for
+  # this project and branch. Its shallow clone may not contain that commit, so
+  # fetch the exact object when needed. A missing/malformed/unreadable SHA or an
+  # unreadable/empty diff always fails safe to BUILD.
+  changed=""
+  diff_ready="false"
+  if printf '%s' "$previous_sha" | grep -Eq '^[0-9a-fA-F]{40}$' &&
+    [ "$previous_sha" != "0000000000000000000000000000000000000000" ]; then
+    git cat-file -e "${previous_sha}^{commit}" >/dev/null 2>&1 ||
+      git fetch --depth=1 --quiet origin "$previous_sha" >/dev/null 2>&1 || true
+    if git cat-file -e "${previous_sha}^{commit}" >/dev/null 2>&1; then
+      # Disable rename detection so moving runtime code into an ignored path
+      # still exposes the runtime deletion as well as the ignored addition.
+      if changed="$(git diff --no-renames --name-only "$previous_sha" HEAD 2>/dev/null)"; then
+        diff_ready="true"
+      fi
+    fi
+  fi
+
+  if [ "$diff_ready" = "true" ] && [ -n "$changed" ]; then
     runtime="$(printf '%s\n' "$changed" | grep -vE '(^docs/)|(^\.github/)|(^e2e/)|(\.md$)|(/__tests__/)|(\.test\.)|(\.spec\.)' || true)"
     if [ -z "$runtime" ]; then
-      echo "⏭ main commit touches only non-runtime paths — skipping prod build to save Build CPU Minutes:"
+      echo "⏭ main changes since the last successful deployment touch only non-runtime paths — skipping prod build to save Build CPU Minutes:"
       printf '%s\n' "$changed" | sed 's/^/    /'
       exit 0
     fi
