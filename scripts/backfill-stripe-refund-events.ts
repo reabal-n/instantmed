@@ -38,6 +38,7 @@ import {
  */
 const READ_BATCH_SIZE = 200
 const WRITE_BATCH_SIZE = 200
+let failureStage = "initialization"
 
 type IntakeLink = {
   id: string
@@ -69,43 +70,56 @@ async function main(): Promise<void> {
     timeout: 15_000,
   })
 
+  failureStage = "read_target_window"
   const refunds = await readExactRefunds(stripe, options)
+  failureStage = "link_target_window"
   const intakeIdsByPaymentIntent = await readIntakeLinks(supabase, refunds)
   const linkedRefunds = refunds
     .map((refund) => linkRefund(refund, options, intakeIdsByPaymentIntent))
     .filter((row) => isMovementWithinTargetWindow(row.summary, options))
   let insertedCount: number | undefined
+  let legacyConstraintEvidenceOnlyCount: number | undefined
   let reconciledIntakeCount: number | undefined
   if (options.apply) {
+    failureStage = "validate_charge_identity"
     const chargeIds = [...new Set(linkedRefunds.map((row) => row.evidence.charge_id))]
     if (chargeIds.some((chargeId) => !chargeId)) {
       throw new Error("Refund ledger apply requires a durable Charge identity")
     }
+    failureStage = "read_complete_charge_lifecycle"
     const completeRefunds = await readCompleteChargeRefunds(
       stripe,
       chargeIds as string[],
     )
+    failureStage = "link_complete_charge_lifecycle"
     const completeLinks = await readIntakeLinks(supabase, completeRefunds)
     const completeLinkedRefunds = completeRefunds.map((refund) =>
       linkRefund(refund, options, completeLinks),
     )
+    failureStage = "validate_complete_charge_lifecycle"
     assertStripeRefundBackfillApplySafe({
       apply: true,
       rows: completeLinkedRefunds.map((row) => row.summary),
     })
     const completeEvidence = completeLinkedRefunds.map((row) => row.evidence)
+    failureStage = "insert_exact_evidence"
     insertedCount = await insertEvidence(supabase, completeEvidence)
-    reconciledIntakeCount = await reconcileStripeRefundBackfill({
+    failureStage = "reconcile_intake_cash_state"
+    const reconciliation = await reconcileStripeRefundBackfill({
       evidence: completeEvidence,
       livemode: options.livemode,
       supabase,
     })
+    legacyConstraintEvidenceOnlyCount = reconciliation.legacyConstraintEvidenceOnlyCount
+    reconciledIntakeCount = reconciliation.reconciledIntakeCount
   }
+  failureStage = "summarize"
   const summary = summarizeStripeRefundBackfill({
     apply: options.apply,
     createdFromIso: options.createdFromIso,
     fromIso: options.fromIso,
     insertedCount,
+    legacyConstraintEvidenceOnlyCount,
     mode: options.mode,
     rows: linkedRefunds.map((row) => row.summary),
     reconciledIntakeCount,
@@ -325,7 +339,7 @@ const entryPath = process.argv[1]
 if (entryPath === import.meta.url) {
   main().catch(() => {
     process.stderr.write(
-      "Stripe refund ledger backfill failed; no identifiers were printed. " +
+      `Stripe refund ledger backfill failed at ${failureStage}; no identifiers were printed. ` +
       "An --apply run may have inserted earlier append-only batches and is safe to rerun.\n",
     )
     process.exitCode = 1

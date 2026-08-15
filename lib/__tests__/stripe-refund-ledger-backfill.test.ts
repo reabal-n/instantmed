@@ -128,13 +128,92 @@ describe("Stripe refund ledger backfill safety", () => {
       ],
       livemode: true,
       supabase: { rpc } as never,
-    })).resolves.toBe(1)
+    })).resolves.toEqual({
+      legacyConstraintEvidenceOnlyCount: 0,
+      reconciledIntakeCount: 1,
+    })
     expect(rpc).toHaveBeenCalledTimes(1)
     expect(rpc).toHaveBeenCalledWith("reconcile_intake_refund_cash_state", {
       p_intake_id: "intake-1",
       p_livemode: true,
       p_trigger_status: null,
     })
+  })
+
+  it("verifies but does not rewrite the documented immutable legacy general consult", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: {
+        code: "23514",
+        message: 'new row violates check constraint "intakes_consult_subtype_not_general"',
+      },
+    })
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        amount_cents: 4995,
+        payment_status: "refunded",
+        priority_fee_refunded_at: null,
+        refund_amount_cents: 4995,
+        refund_status: "succeeded",
+        refund_stripe_id: "refund-legacy",
+        refunded_at: "2026-05-20T07:01:00.000Z",
+      },
+      error: null,
+    })
+    const eq = vi.fn(() => ({ maybeSingle }))
+    const select = vi.fn(() => ({ eq }))
+    const from = vi.fn(() => ({ select }))
+    const evidence = [{
+      amount_cents: 4995,
+      balance_transaction_id: "txn-refund",
+      charge_id: "charge-1",
+      currency: "aud",
+      evidence_key: "live:refund:refund-legacy:observation:txn-refund:none:succeeded",
+      evidence_source: "refund.list.backfill" as const,
+      failure_balance_transaction_id: null,
+      intake_id: "intake-legacy",
+      is_priority_fee_refund: false,
+      livemode: true,
+      payment_intent_id: "pi-1",
+      refund_cash_at: "2026-05-20T07:01:00.000Z",
+      refund_created_at: "2026-05-20T06:58:52.000Z",
+      refund_reversed_at: null,
+      refund_status: "succeeded",
+      stripe_event_created_at: null,
+      stripe_event_id: null,
+      stripe_refund_id: "refund-legacy",
+    }]
+
+    await expect(reconcileStripeRefundBackfill({
+      evidence,
+      livemode: true,
+      supabase: { from, rpc } as never,
+    })).resolves.toEqual({
+      legacyConstraintEvidenceOnlyCount: 1,
+      reconciledIntakeCount: 0,
+    })
+    expect(select).toHaveBeenCalledWith(
+      "amount_cents, payment_status, priority_fee_refunded_at, " +
+      "refund_amount_cents, refund_status",
+    )
+
+    maybeSingle.mockResolvedValueOnce({
+      data: {
+        amount_cents: 4995,
+        payment_status: "refunded",
+        priority_fee_refunded_at: null,
+        refund_amount_cents: 4000,
+        refund_status: "succeeded",
+        refund_stripe_id: "refund-legacy",
+        refunded_at: "2026-05-20T07:01:00.000Z",
+      },
+      error: null,
+    })
+    await expect(reconcileStripeRefundBackfill({
+      evidence,
+      livemode: true,
+      supabase: { from, rpc } as never,
+    })).rejects.toThrow("Refund backfill intake reconciliation failed")
   })
 
   it("accepts exactly one conventional package-manager argument separator", () => {
