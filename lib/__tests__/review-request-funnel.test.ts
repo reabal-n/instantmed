@@ -146,6 +146,33 @@ describe("getReviewRequestFunnelSnapshot", () => {
     })
   })
 
+  it("keeps future-scheduled work in the awaiting bucket without raising an action state", async () => {
+    const futureScheduled = createClient({
+      funnelData: {
+        eligible: 1,
+        sent: 0,
+        delivered: 0,
+        trackable_sent: 0,
+        unique_redirect_traversals: 0,
+        awaiting_next_run: 1,
+        cooldown_deferred: 0,
+        policy_suppressed: 0,
+        legacy_handled_unverifiable: 0,
+        actionable_backlog: 0,
+      },
+    })
+
+    await expect(
+      getReviewRequestFunnelSnapshot(futureScheduled.client, NOW),
+    ).resolves.toMatchObject({
+      funnel: {
+        status: "no_sends",
+        awaitingNextRun: 1,
+        actionableBacklog: 0,
+      },
+    })
+  })
+
   it("degrades only the failed axis and never fabricates zero counts", async () => {
     const funnelFailure = createClient({
       funnelError: { message: "rpc unavailable" },
