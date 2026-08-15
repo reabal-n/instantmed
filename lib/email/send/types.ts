@@ -28,6 +28,7 @@ export type EmailType =
   // Merged email (replaces payment_confirmed + intake_submitted for new sends)
   | "request_received"
   | "refund_issued"
+  | "refund-failed"
   | "still_reviewing"
   // Priority breach auto-refund notice (stale-queue cron, transactional)
   | "priority_fee_refunded"

@@ -5,6 +5,9 @@ export type StripeRefundBackfillMode = "live" | "test"
 
 export type StripeRefundBackfillOptions = {
   apply: boolean
+  createdFromEpochSeconds: number
+  createdFromExplicit: boolean
+  createdFromIso: string
   fromEpochSeconds: number
   fromIso: string
   livemode: boolean
@@ -29,11 +32,12 @@ export function parseStripeRefundBackfillArgs(
   args: string[],
 ): StripeRefundBackfillOptions {
   const allowedFlags = new Set(["--apply"])
-  const allowedValues = new Set(["--from", "--mode", "--to"])
+  const allowedValues = new Set(["--created-from", "--from", "--mode", "--to"])
   const values = new Map<string, string>()
   let apply = false
 
-  for (const arg of args) {
+  const normalizedArgs = args[0] === "--" ? args.slice(1) : args
+  for (const arg of normalizedArgs) {
     if (allowedFlags.has(arg)) {
       if (arg === "--apply") apply = true
       continue
@@ -57,15 +61,31 @@ export function parseStripeRefundBackfillArgs(
 
   const from = parseBoundedIso("--from", values.get("--from"))
   const to = parseBoundedIso("--to", values.get("--to"))
+  const createdFromExplicit = values.has("--created-from")
+  const createdFrom = createdFromExplicit
+    ? parseBoundedIso("--created-from", values.get("--created-from"))
+    : from
   if (from >= to) {
     throw new Error("--from must be earlier than the exclusive --to bound")
   }
   if (to.getTime() - from.getTime() > MAX_BACKFILL_WINDOW_DAYS * DAY_MS) {
     throw new Error(`Backfill windows must not exceed ${MAX_BACKFILL_WINDOW_DAYS} days`)
   }
+  if (createdFrom > from) {
+    throw new Error("--created-from must be at or before the cash-event --from bound")
+  }
+  if (apply && !createdFromExplicit) {
+    throw new Error("--apply requires explicit --created-from lifecycle coverage")
+  }
+  if (to.getTime() - createdFrom.getTime() > MAX_BACKFILL_WINDOW_DAYS * DAY_MS) {
+    throw new Error(`Refund creation reads must not exceed ${MAX_BACKFILL_WINDOW_DAYS} days`)
+  }
 
   return {
     apply,
+    createdFromEpochSeconds: Math.floor(createdFrom.getTime() / 1000),
+    createdFromExplicit,
+    createdFromIso: createdFrom.toISOString(),
     fromEpochSeconds: Math.floor(from.getTime() / 1000),
     fromIso: from.toISOString(),
     livemode: mode === "live",
@@ -75,10 +95,60 @@ export function parseStripeRefundBackfillArgs(
   }
 }
 
+export function assertStripeRefundBackfillApplySafe(input: {
+  apply: boolean
+  rows: StripeRefundBackfillSummaryRow[]
+}): void {
+  if (!input.apply) return
+  if (input.rows.some((row) => row.linkage !== "linked")) {
+    throw new Error("Refund ledger apply requires every selected observation to link uniquely")
+  }
+  if (input.rows.some((row) =>
+    !row.cashAt || !["succeeded", "failed", "canceled"].includes(row.status ?? ""),
+  )) {
+    throw new Error("Refund ledger apply rejects pending or unstable observations")
+  }
+  if (input.rows.some((row) => row.currency.toLowerCase() !== "aud")) {
+    throw new Error("Refund ledger apply rejects non-AUD observations")
+  }
+}
+
+export async function reconcileStripeRefundBackfill(input: {
+  evidence: StripeRefundEvidenceRow[]
+  livemode: boolean
+  supabase: SupabaseClient
+}): Promise<number> {
+  const intakeIds = [...new Set(input.evidence.map((row) => row.intake_id))]
+  if (intakeIds.some((id) => !id)) {
+    throw new Error("Refund ledger reconciliation requires complete unique linkage")
+  }
+
+  for (const intakeId of intakeIds as string[]) {
+    const { data, error } = await input.supabase.rpc("reconcile_intake_refund_cash_state", {
+      p_intake_id: intakeId,
+      p_livemode: input.livemode,
+      p_trigger_status: null,
+    })
+    if (error) throw new Error("Refund backfill intake reconciliation failed")
+    const result = (data ?? {}) as { applied?: unknown; intake_id?: unknown }
+    if (result.applied !== true || result.intake_id !== intakeId) {
+      throw new Error("Refund backfill intake reconciliation returned incomplete evidence")
+    }
+  }
+  return intakeIds.length
+}
+
+export function isStripeRefundBackfillHelpRequest(args: string[]): boolean {
+  const normalizedArgs = args[0] === "--" ? args.slice(1) : args
+  return normalizedArgs.length === 1 && normalizedArgs[0] === "--help"
+}
+
 export function summarizeStripeRefundBackfill(input: {
   apply: boolean
+  createdFromIso?: string
   fromIso: string
   insertedCount?: number
+  reconciledIntakeCount?: number
   mode: StripeRefundBackfillMode
   rows: StripeRefundBackfillSummaryRow[]
   toIso: string
@@ -139,12 +209,16 @@ export function summarizeStripeRefundBackfill(input: {
   return {
     apply: input.apply,
     cashMovementCount,
+    createdFrom: input.createdFromIso ?? input.fromIso,
     earliestRefundCashAt,
     earliestRefundCreatedAt,
     earliestRefundReversedAt,
     evidenceRowsAttempted: input.rows.length,
     from: input.fromIso,
     ...(input.insertedCount === undefined ? {} : { evidenceRowsInserted: input.insertedCount }),
+    ...(input.reconciledIntakeCount === undefined
+      ? {}
+      : { reconciledIntakeCount: input.reconciledIntakeCount }),
     latestRefundCashAt,
     latestRefundCreatedAt,
     latestRefundReversedAt,
@@ -159,7 +233,10 @@ export function summarizeStripeRefundBackfill(input: {
   }
 }
 
-function parseBoundedIso(name: "--from" | "--to", value: string | undefined): Date {
+function parseBoundedIso(
+  name: "--created-from" | "--from" | "--to",
+  value: string | undefined,
+): Date {
   if (!value) throw new Error(`${name} is required`)
   if (!/(?:Z|[+-]\d{2}:\d{2})$/.test(value)) {
     throw new Error(`${name} must include an explicit timezone`)
@@ -170,3 +247,6 @@ function parseBoundedIso(name: "--from" | "--to", value: string | undefined): Da
   }
   return parsed
 }
+import type { SupabaseClient } from "@supabase/supabase-js"
+
+import type { StripeRefundEvidenceRow } from "@/lib/stripe/refund-event-ledger"

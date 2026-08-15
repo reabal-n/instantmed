@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import {
-  buildLostDisputeTargetNetValueCents,
+  GOOGLE_ADS_ADJUSTMENT_MAX_AGE_DAYS,
   GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
   runGoogleAdsConversionAdjustment,
 } from "@/lib/analytics/google-ads-conversion-adjustments"
@@ -33,15 +33,14 @@ const LOOKBACK_DAYS = 90
 const BATCH_LIMIT = 25
 // Fully-refunded orders are deliberately NOT upload candidates. Uploading
 // (or re-uploading) a refunded order's conversion puts the backfill in a
-// tug-of-war with the retraction path below: every re-upload resets the
-// retraction's CONVERSION_NOT_FOUND 72h grace clock, which kept one April
-// refund's retraction retrying hourly for weeks (52 failed attempts,
+// tug-of-war with the adjustment path below: every re-upload resets the
+// restatement's CONVERSION_NOT_FOUND 72h grace clock, which kept one April
+// refund adjustment retrying hourly for weeks (52 failed attempts,
 // 2026-07-04). Orders refunded AFTER a successful upload are handled by the
 // adjustment finder; orders refunded before any successful upload should
 // simply never reach Google. partially_refunded stays: the order still
 // netted revenue and the conversion stands.
 const GOOGLE_ADS_BACKFILL_PAYMENT_STATUSES = ["paid", "partially_refunded"] as const
-const GOOGLE_ADS_ADJUSTMENT_PAYMENT_STATUSES = ["partially_refunded", "refunded", "disputed"] as const
 
 type GoogleAdsCandidate = GoogleAdsAttributionRow & {
   id: string
@@ -49,41 +48,25 @@ type GoogleAdsCandidate = GoogleAdsAttributionRow & {
   paid_at?: string | null
 }
 
-type GoogleAdsAdjustmentCandidate = {
-  amount_cents?: number | null
-  dispute_id?: string | null
-  id: string
+type GoogleAdsAdjustmentDueRow = {
+  adjustment_at: string
+  amount_cents: number | null
+  intake_id: string
   payment_status: string
-  refund_amount_cents?: number | null
-  refunded_at?: string | null
-  updated_at?: string | null
-}
-
-type LostDisputeAdjustmentRow = {
-  dispute_id: string
-  funds_reinstated_cents: number | null
-  funds_withdrawn_cents: number | null
-  resolved_at: string | null
-  status: string
+  refund_amount_cents: number | null
+  target_net_value_cents: number
 }
 
 type PreparedGoogleAdsAdjustment = {
   adjustmentDateTime: Date | undefined
-  row: GoogleAdsAdjustmentCandidate
-  targetNetValueCents?: number
+  row: GoogleAdsAdjustmentDueRow
+  targetNetValueCents: number
 }
 
 function parsePaidAtConversionDateTime(value?: string | null): Date | null {
   if (!value) return null
   const date = new Date(value)
   return Number.isFinite(date.getTime()) ? date : null
-}
-
-function parseAdjustmentDateTime(row: GoogleAdsAdjustmentCandidate): Date | undefined {
-  const value = row.refunded_at || row.updated_at
-  if (!value) return undefined
-  const date = new Date(value)
-  return Number.isFinite(date.getTime()) ? date : undefined
 }
 
 function shouldSkipBackfillForPreflight(
@@ -142,6 +125,9 @@ export async function GET(request: NextRequest) {
     const force = request.nextUrl.searchParams.get("force") === "1"
     const preflightOnly = request.nextUrl.searchParams.get("preflight") === "1"
     const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000).toISOString()
+    const adjustmentSince = new Date(
+      Date.now() - GOOGLE_ADS_ADJUSTMENT_MAX_AGE_DAYS * 24 * 60 * 60 * 1000,
+    ).toISOString()
 
     if (preflightOnly) {
       const preflight = await preflightGoogleAdsPurchaseConversionAction()
@@ -276,71 +262,81 @@ export async function GET(request: NextRequest) {
       new Set(results.map((result) => result.jobId).filter((jobId): jobId is number | string => jobId != null)),
     ).sort((a, b) => String(a).localeCompare(String(b)))
 
-    const adjustmentQuery = supabase
-      .from("intakes")
-      .select("id, amount_cents, dispute_id, refund_amount_cents, payment_status, refunded_at, updated_at")
-      .in("payment_status", [...GOOGLE_ADS_ADJUSTMENT_PAYMENT_STATUSES])
-      .not("paid_at", "is", null)
-      .gte("paid_at", since)
-      .order("updated_at", { ascending: true })
-      .limit(500)
-
-    const { data: adjustmentData, error: adjustmentError } = await filterReportableIntakes(adjustmentQuery)
-    if (adjustmentError) throw new Error(`Google Ads adjustment candidate query failed: ${adjustmentError.message}`)
-
-    const rawAdjustmentCandidates = (adjustmentData || []) as GoogleAdsAdjustmentCandidate[]
-    const disputedIds = Array.from(new Set(
-      rawAdjustmentCandidates
-        .filter((row) => row.payment_status === "disputed")
-        .map((row) => row.dispute_id)
-        .filter((value): value is string => Boolean(value)),
-    ))
-    const lostDisputesById = new Map<string, LostDisputeAdjustmentRow>()
-    if (disputedIds.length > 0) {
-      const { data: disputeData, error: disputeError } = await supabase
-        .from("stripe_disputes")
-        .select("dispute_id, status, resolved_at, funds_withdrawn_cents, funds_reinstated_cents")
-        .in("dispute_id", disputedIds)
-        .eq("status", "lost")
-      if (disputeError) {
-        throw new Error(`Google Ads lost-dispute adjustment query failed: ${disputeError.message}`)
-      }
-      for (const row of (disputeData || []) as LostDisputeAdjustmentRow[]) {
-        lostDisputesById.set(row.dispute_id, row)
-      }
+    const { data: adjustmentData, error: adjustmentError } = await supabase
+      .from("google_ads_conversion_adjustment_due")
+      .select(
+        "intake_id, amount_cents, refund_amount_cents, payment_status, target_net_value_cents, adjustment_at",
+      )
+      .gte("paid_at", adjustmentSince)
+      .order("adjustment_at", { ascending: true })
+      .limit(BATCH_LIMIT)
+    if (adjustmentError) {
+      throw new Error(`Google Ads exact adjustment due query failed: ${adjustmentError.message}`)
     }
 
-    const preparedAdjustmentCandidates = rawAdjustmentCandidates.reduce<
-      PreparedGoogleAdsAdjustment[]
-    >((prepared, row) => {
-      if (row.payment_status !== "disputed") {
-        prepared.push({
-          adjustmentDateTime: parseAdjustmentDateTime(row),
+    const claimHealth = await supabase
+      .from("google_ads_conversion_adjustment_claim_health")
+      .select(
+        "unknown_outcome_count, expired_reservation_count, irreversible_zero_count, " +
+        "stale_pending_count, expired_conversion_target_count, oldest_uncertain_at",
+      )
+      .single()
+    if (claimHealth.error) {
+      throw new Error(`Google Ads adjustment claim health query failed: ${claimHealth.error.message}`)
+    }
+    const adjustmentHealth = claimHealth.data as unknown as {
+      expired_reservation_count: number | string | null
+      irreversible_zero_count: number | string | null
+      stale_pending_count: number | string | null
+      expired_conversion_target_count: number | string | null
+      unknown_outcome_count: number | string | null
+    } | null
+    const uncertainAdjustmentCount = Number(adjustmentHealth?.unknown_outcome_count ?? 0) +
+      Number(adjustmentHealth?.expired_reservation_count ?? 0)
+    const blockedLegacyZeroCount = Number(adjustmentHealth?.irreversible_zero_count ?? 0)
+    const stalePendingAdjustmentCount = Number(adjustmentHealth?.stale_pending_count ?? 0)
+    const expiredConversionTargetCount = Number(
+      adjustmentHealth?.expired_conversion_target_count ?? 0,
+    )
+    if (
+      !Number.isFinite(uncertainAdjustmentCount) ||
+      !Number.isFinite(blockedLegacyZeroCount) ||
+      !Number.isFinite(stalePendingAdjustmentCount) ||
+      !Number.isFinite(expiredConversionTargetCount)
+    ) {
+      throw new Error("Google Ads adjustment claim health returned invalid counts")
+    }
+    const adjustmentHealthIssueCount = uncertainAdjustmentCount +
+      blockedLegacyZeroCount + stalePendingAdjustmentCount + expiredConversionTargetCount
+    if (adjustmentHealthIssueCount > 0) {
+      captureCronError(
+        new Error("Google Ads conversion adjustment state requires reconciliation"),
+        {
+          blockedLegacyZeroCount,
+          expiredConversionTargetCount,
+          jobName: "google-ads-conversions",
+          stalePendingAdjustmentCount,
+          uncertainAdjustmentCount,
+        },
+      )
+    }
+
+    const preparedAdjustmentCandidates = ((adjustmentData || []) as GoogleAdsAdjustmentDueRow[])
+      .map((row): PreparedGoogleAdsAdjustment => {
+        const adjustmentDateTime = new Date(row.adjustment_at)
+        if (
+          !Number.isFinite(adjustmentDateTime.getTime()) ||
+          !Number.isInteger(row.target_net_value_cents) ||
+          row.target_net_value_cents < 0
+        ) {
+          throw new Error(`Google Ads exact adjustment target is invalid for intake ${row.intake_id}`)
+        }
+        return {
+          adjustmentDateTime,
           row,
-        })
-        return prepared
-      }
-
-      const dispute = row.dispute_id ? lostDisputesById.get(row.dispute_id) : null
-      if (!dispute) return prepared
-      const targetNetValueCents = buildLostDisputeTargetNetValueCents({
-        amountCents: row.amount_cents ?? null,
-        fundsReinstatedCents: dispute.funds_reinstated_cents,
-        fundsWithdrawnCents: dispute.funds_withdrawn_cents,
-        refundAmountCents: row.refund_amount_cents ?? null,
+          targetNetValueCents: row.target_net_value_cents,
+        }
       })
-      if (targetNetValueCents === null) return prepared
-
-      const resolvedAt = dispute.resolved_at ? new Date(dispute.resolved_at) : null
-      prepared.push({
-        adjustmentDateTime: resolvedAt && Number.isFinite(resolvedAt.getTime())
-          ? resolvedAt
-          : parseAdjustmentDateTime(row),
-        row,
-        targetNetValueCents,
-      })
-      return prepared
-    }, []).slice(0, BATCH_LIMIT)
     const adjustmentResults: Array<{ id: string; status: string; ok?: boolean; error?: string }> = []
 
     for (const candidate of preparedAdjustmentCandidates) {
@@ -348,7 +344,7 @@ export async function GET(request: NextRequest) {
       const result = await runGoogleAdsConversionAdjustment({
         adjustmentDateTime: candidate.adjustmentDateTime,
         amountCents: row.amount_cents ?? null,
-        intakeId: row.id,
+        intakeId: row.intake_id,
         paymentStatus: row.payment_status,
         refundAmountCents: row.refund_amount_cents ?? null,
         requestPath: request.nextUrl.pathname,
@@ -358,7 +354,7 @@ export async function GET(request: NextRequest) {
       })
 
       adjustmentResults.push({
-        id: row.id,
+        id: row.intake_id,
         status: result.status,
         ok: result.ok,
         error: result.error,
@@ -366,7 +362,9 @@ export async function GET(request: NextRequest) {
     }
 
     const adjustmentSkipped = adjustmentResults.filter((result) => result.status.startsWith("skipped"))
-    const adjustmentFailed = adjustmentResults.filter((result) => result.status === "failed")
+    const adjustmentFailed = adjustmentResults.filter((result) =>
+      result.status === "failed" || result.status === "unknown_outcome",
+    )
     const configurationSkips = results.filter((result) => (
       result.status === "skipped_missing_env"
       || result.status === "skipped_no_access_token"
@@ -387,7 +385,7 @@ export async function GET(request: NextRequest) {
     // they do not turn a completed batch into an infrastructure outage.
     const completedStatus = configurationSkips.length > 0
       ? "configuration_error"
-      : failed.length + adjustmentFailed.length > 0
+      : failed.length + adjustmentFailed.length > 0 || adjustmentHealthIssueCount > 0
         ? "partial_failure"
         : disabledUploads.length > 0 && disabledUploads.length === results.length
           ? "disabled"
@@ -413,6 +411,9 @@ export async function GET(request: NextRequest) {
       adjustment_processed: adjustmentResults.length,
       adjustment_skipped: adjustmentSkipped.length,
       adjustment_failed: adjustmentFailed.length,
+      adjustment_uncertain: uncertainAdjustmentCount,
+      adjustment_blocked_legacy_zero: blockedLegacyZeroCount,
+      adjustment_stale_pending: stalePendingAdjustmentCount,
       upload_job_ids: uploadJobIds,
       batch_limit: BATCH_LIMIT,
     })

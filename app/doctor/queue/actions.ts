@@ -1177,47 +1177,86 @@ export async function getDeclineReasonTemplatesAction(): Promise<{
 const SUPPORT_REFUND_CAP_CENTS = 10_000 // $100
 const SUPPORT_REFUND_MAX_PER_24H = 3
 
-async function checkSupportRefundLimits(
+type SupportRefundAttemptReservation = {
+  allowed: boolean
+  denial_reason: "amount_limit" | "attempt_limit" | null
+  attempt_id: string | null
+  recent_attempt_count: number
+  reused: boolean
+}
+
+async function reserveSupportRefundAttempt(
   supabase: ReturnType<typeof createServiceRoleClient>,
   profileId: string,
+  intakeId: string,
+  attemptKey: string,
   refundAmountCents: number,
 ): Promise<{ allowed: true } | { allowed: false; error: string }> {
-  if (refundAmountCents > SUPPORT_REFUND_CAP_CENTS) {
-    return {
-      allowed: false,
-      error: `Support refunds are capped at $${(SUPPORT_REFUND_CAP_CENTS / 100).toFixed(2)} per request (this one is $${(refundAmountCents / 100).toFixed(2)}). Ask an admin to process it.`,
-    }
-  }
-
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  const { count, error } = await supabase
-    .from("intakes")
-    .select("id", { count: "exact", head: true })
-    .eq("refunded_by", profileId)
-    .gte("refunded_at", since)
+  const { data, error } = await supabase.rpc("reserve_support_refund_attempt", {
+    p_actor_profile_id: profileId,
+    p_intake_id: intakeId,
+    p_attempt_key: attemptKey,
+    p_amount_cents: refundAmountCents,
+  })
 
   if (error) {
-    logger.warn("[IssueRefund] Failed to count recent refunds", { profileId, error: error.message })
-    // Fail closed: if we can't verify the rate limit, deny the action.
+    logger.warn("[IssueRefund] Failed to reserve support refund quota", {
+      profileId,
+      error: error.message,
+    })
+    // Fail closed: if we cannot reserve a durable quota receipt, do not make
+    // the external money mutation.
     return {
       allowed: false,
       error: "Could not verify your refund quota right now. Try again in a moment or ask an admin.",
     }
   }
 
-  if ((count ?? 0) >= SUPPORT_REFUND_MAX_PER_24H) {
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | SupportRefundAttemptReservation
+    | null
+    | undefined
+  if (!row || typeof row.allowed !== "boolean") {
     return {
       allowed: false,
-      error: `You've issued ${count} refunds in the last 24h (limit ${SUPPORT_REFUND_MAX_PER_24H}). Ask an admin or wait until the limit resets.`,
+      error: "Could not verify your refund quota right now. Try again in a moment or ask an admin.",
     }
   }
 
-  return { allowed: true }
+  if (row.allowed) {
+    return { allowed: true }
+  }
+
+  if (row.denial_reason === "amount_limit") {
+    return {
+      allowed: false,
+      error: `Support refunds are capped at $${(SUPPORT_REFUND_CAP_CENTS / 100).toFixed(2)} per request (this one is $${(refundAmountCents / 100).toFixed(2)}). Ask an admin to process it.`,
+    }
+  }
+
+  if (row.denial_reason === "attempt_limit") {
+    return {
+      allowed: false,
+      error: `You've attempted ${row.recent_attempt_count} refunds in the last 24h (limit ${SUPPORT_REFUND_MAX_PER_24H}). Ask an admin or wait until the limit resets.`,
+    }
+  }
+
+  return {
+    allowed: false,
+    error: "Could not verify your refund quota right now. Try again in a moment or ask an admin.",
+  }
 }
 
 export async function issueRefundAction(
   intakeId: string,
-): Promise<{ success: boolean; error?: string; refundId?: string; amount?: number; totalRefunded?: number }> {
+): Promise<{
+  success: boolean
+  error?: string
+  refundId?: string
+  amount?: number
+  pending?: boolean
+  totalRefunded?: number
+}> {
   if (!isValidUUID(intakeId)) {
     return { success: false, error: "Invalid intake ID" }
   }
@@ -1246,6 +1285,9 @@ export async function issueRefundAction(
         stripe_payment_intent_id,
         amount_cents,
         refund_amount_cents,
+        refund_status,
+        refund_stripe_id,
+        updated_at,
         patient_id,
         patient:profiles!patient_id (
           id,
@@ -1271,6 +1313,9 @@ export async function issueRefundAction(
           : `Refund is not available for payment status '${intake.payment_status}'.`,
       }
     }
+    if (intake.refund_status === "pending") {
+      return { success: false, error: "A refund request is already pending Stripe settlement." }
+    }
 
     const paidCents = intake.amount_cents ?? 0
     const alreadyRefundedCents = intake.refund_amount_cents ?? 0
@@ -1278,14 +1323,6 @@ export async function issueRefundAction(
 
     if (remainingCents <= 0) {
       return { success: false, error: "Nothing left to refund on this request." }
-    }
-
-    // Support-role guardrails: cap per refund + rolling 24h count.
-    if (hasSupportAccess(profile) && !hasAdminAccess(profile)) {
-      const limit = await checkSupportRefundLimits(supabase, profile.id, remainingCents)
-      if (!limit.allowed) {
-        return { success: false, error: limit.error }
-      }
     }
 
     // Get payment intent ID
@@ -1313,91 +1350,128 @@ export async function issueRefundAction(
     // The key is deterministic per (intake, current_already_refunded) so a
     // retry of the same top-up doesn't double-fire.
     const isTopUp = alreadyRefundedCents > 0
-    const idempotencyKey = isTopUp
+    const baseIdempotencyKey = isTopUp
       ? `standalone_refund_topup_${intakeId}_${alreadyRefundedCents}`
       : `standalone_refund_${intakeId}`
+    const idempotencyKey =
+      intake.refund_status === "failed" && intake.refund_stripe_id
+        ? `${baseIdempotencyKey}_after_${intake.refund_stripe_id}`
+        : baseIdempotencyKey
+
+    // Support-role guardrails are reserved durably before any Stripe call.
+    // The RPC serializes per actor, counts pending/failed attempts as well as
+    // successful ones, and reuses the receipt for this idempotency generation.
+    if (hasSupportAccess(profile) && !hasAdminAccess(profile)) {
+      const limit = await reserveSupportRefundAttempt(
+        supabase,
+        profile.id,
+        intakeId,
+        idempotencyKey,
+        remainingCents,
+      )
+      if (!limit.allowed) {
+        return { success: false, error: limit.error }
+      }
+    }
+
+    const requestedReservationAt = new Date(
+      Math.max(Date.now(), Date.parse(intake.updated_at) + 1),
+    ).toISOString()
+    const { data: reserved, error: reservationError } = await supabase
+      .from("intakes")
+      .update({
+        refund_status: "pending",
+        refunded_by: profile.id,
+        refund_error: null,
+        updated_at: requestedReservationAt,
+      })
+      .eq("id", intakeId)
+      .eq("updated_at", intake.updated_at)
+      .select("id, updated_at")
+      .maybeSingle()
+    if (reservationError || !reserved || typeof reserved.updated_at !== "string") {
+      return {
+        success: false,
+        error: reservationError
+          ? `Could not reserve refund state: ${reservationError.message}`
+          : !reserved
+            ? "This request changed while the refund was being prepared. Refresh and try again."
+            : "Could not verify the reserved refund state. Refresh and try again.",
+      }
+    }
+    const reservationUpdatedAt = reserved.updated_at
 
     // Process Stripe refund. We pass an explicit amount so Stripe refunds
     // exactly the remaining unrefunded balance, not whatever it computes
     // by default.
     const { stripe } = await import("@/lib/stripe/client")
-    const refund = await stripe.refunds.create(
-      {
-        payment_intent: paymentIntentId,
-        amount: remainingCents,
-        reason: "requested_by_customer",
-        metadata: {
-          intake_id: intakeId,
-          category: intake.category || "unknown",
-          refunded_by: profile.id,
-          refunded_by_role: profile.role,
-          refund_type: isTopUp ? "standalone_topup" : "standalone",
-          already_refunded_cents: String(alreadyRefundedCents),
+    let refund
+    try {
+      refund = await stripe.refunds.create(
+        {
+          payment_intent: paymentIntentId,
+          amount: remainingCents,
+          reason: "requested_by_customer",
+          metadata: {
+            intake_id: intakeId,
+            category: intake.category || "unknown",
+            refunded_by: profile.id,
+            refunded_by_role: profile.role,
+            refund_type: isTopUp ? "standalone_topup" : "standalone",
+            already_refunded_cents: String(alreadyRefundedCents),
+          },
         },
-      },
-      { idempotencyKey }
-    )
+        { idempotencyKey },
+      )
+    } catch (refundError) {
+      await supabase
+        .from("intakes")
+        .update({
+          refund_status: "failed",
+          refund_error: refundError instanceof Error ? refundError.message : "Unknown Stripe error",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", intakeId)
+        .eq("updated_at", reservationUpdatedAt)
+        .eq("refund_status", "pending")
+      throw refundError
+    }
 
-    const newTotalRefunded = alreadyRefundedCents + (refund.amount ?? 0)
-    const isNowFullyRefunded = newTotalRefunded >= paidCents
-
-    // Update intake. We always record the LATEST Stripe refund ID; the full
-    // history is in Stripe + intake_events. `payment_status` flips to
-    // `refunded` only when the running total covers the original payment.
-    await supabase
+    // Refund.create can be pending and can later fail. Record the request only;
+    // exact balance-transaction evidence in the webhook owns cash totals,
+    // payment state, Ads restatement, and the patient notification.
+    const { data: pendingState, error: pendingStateError } = await supabase
       .from("intakes")
       .update({
-        payment_status: isNowFullyRefunded ? "refunded" : "partially_refunded",
-        refund_status: "succeeded",
+        refund_status: "pending",
         refund_stripe_id: refund.id,
-        refund_amount_cents: newTotalRefunded,
-        refunded_at: timestamp,
         refunded_by: profile.id,
+        refund_error: null,
         updated_at: timestamp,
       })
       .eq("id", intakeId)
+      .eq("updated_at", reservationUpdatedAt)
+      .eq("refund_status", "pending")
+      .select("id")
+      .maybeSingle()
+    if (pendingStateError) {
+      throw new Error(`Refund request state write failed: ${pendingStateError.message}`)
+    }
+    if (!pendingState) {
+      logger.info("[IssueRefund] Exact refund webhook state won the create-response race", {
+        intakeId,
+        refundId: refund.id,
+      })
+    }
 
-    logger.info("[IssueRefund] Refund succeeded", {
+    logger.info("[IssueRefund] Refund requested", {
       intakeId,
       refundId: refund.id,
       amount: refund.amount,
-      totalRefunded: newTotalRefunded,
+      durableTotalRefunded: alreadyRefundedCents,
       isTopUp,
       actorRole: profile.role,
     })
-
-    // Send patient email (non-critical)
-    try {
-      const patientRaw = intake.patient as unknown
-      const patient = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as {
-        id: string
-        full_name: string | null
-        email: string | null
-      } | null
-
-      if (patient?.email) {
-        const { sendRefundIssuedEmail } = await import("@/lib/email/senders")
-        const { emailRequestTypeLabel } = await import("@/lib/email/request-type-label")
-        const amountFormatted = refund.amount
-          ? `$${(refund.amount / 100).toFixed(2)}`
-          : undefined
-
-        await sendRefundIssuedEmail({
-          to: patient.email,
-          patientName: patient.full_name || "there",
-          patientId: patient.id,
-          intakeId,
-          requestType: emailRequestTypeLabel(intake.category),
-          amountFormatted,
-        })
-      }
-    } catch (emailErr) {
-      Sentry.captureException(emailErr, {
-        tags: { email_type: "refund_issued", intake_id: intakeId },
-        level: "warning",
-      })
-      logger.warn("[IssueRefund] Failed to send refund email", { intakeId })
-    }
 
     revalidateStaff({ intakeId, content: true })
     revalidatePatient({ intakeId })
@@ -1406,7 +1480,8 @@ export async function issueRefundAction(
       success: true,
       refundId: refund.id,
       amount: refund.amount ?? 0,
-      totalRefunded: newTotalRefunded,
+      pending: true,
+      totalRefunded: alreadyRefundedCents,
     }
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error"

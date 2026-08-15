@@ -12,7 +12,10 @@ import {
   type StripeRefundEvidenceRow,
 } from "@/lib/stripe/refund-event-ledger"
 import {
+  assertStripeRefundBackfillApplySafe,
+  isStripeRefundBackfillHelpRequest,
   parseStripeRefundBackfillArgs,
+  reconcileStripeRefundBackfill,
   type StripeRefundBackfillLinkage,
   type StripeRefundBackfillOptions,
   type StripeRefundBackfillSummaryRow,
@@ -24,6 +27,7 @@ import {
  *
  *   pnpm stripe:refund-ledger:backfill -- \
  *     --mode=live \
+ *     --created-from=2026-01-01T00:00:00.000Z \
  *     --from=2026-01-01T00:00:00.000Z \
  *     --to=2026-07-01T00:00:00.000Z
  *
@@ -46,8 +50,17 @@ type RefundWithLink = {
 }
 
 async function main(): Promise<void> {
+  const cliArgs = process.argv.slice(2)
+  if (isStripeRefundBackfillHelpRequest(cliArgs)) {
+    process.stdout.write(
+      "Usage: pnpm stripe:refund-ledger:backfill -- --mode=<live|test> " +
+      "--created-from=<Refund.created ISO timestamp> --from=<cash ISO timestamp> " +
+      "--to=<exclusive cash ISO timestamp> [--apply]\n",
+    )
+    return
+  }
   loadEnvironment()
-  const options = parseStripeRefundBackfillArgs(process.argv.slice(2))
+  const options = parseStripeRefundBackfillArgs(cliArgs)
   const stripeSecretKey = requiredEnvironment("STRIPE_SECRET_KEY")
   assertStripeMode(stripeSecretKey, options.mode)
   const supabase = createSupabaseClient()
@@ -58,24 +71,70 @@ async function main(): Promise<void> {
 
   const refunds = await readExactRefunds(stripe, options)
   const intakeIdsByPaymentIntent = await readIntakeLinks(supabase, refunds)
-  const linkedRefunds = refunds.map((refund) => linkRefund(
-    refund,
-    options,
-    intakeIdsByPaymentIntent,
-  ))
-  const insertedCount = options.apply
-    ? await insertEvidence(supabase, linkedRefunds.map((row) => row.evidence))
-    : undefined
+  const linkedRefunds = refunds
+    .map((refund) => linkRefund(refund, options, intakeIdsByPaymentIntent))
+    .filter((row) => isMovementWithinTargetWindow(row.summary, options))
+  let insertedCount: number | undefined
+  let reconciledIntakeCount: number | undefined
+  if (options.apply) {
+    const chargeIds = [...new Set(linkedRefunds.map((row) => row.evidence.charge_id))]
+    if (chargeIds.some((chargeId) => !chargeId)) {
+      throw new Error("Refund ledger apply requires a durable Charge identity")
+    }
+    const completeRefunds = await readCompleteChargeRefunds(
+      stripe,
+      chargeIds as string[],
+    )
+    const completeLinks = await readIntakeLinks(supabase, completeRefunds)
+    const completeLinkedRefunds = completeRefunds.map((refund) =>
+      linkRefund(refund, options, completeLinks),
+    )
+    assertStripeRefundBackfillApplySafe({
+      apply: true,
+      rows: completeLinkedRefunds.map((row) => row.summary),
+    })
+    const completeEvidence = completeLinkedRefunds.map((row) => row.evidence)
+    insertedCount = await insertEvidence(supabase, completeEvidence)
+    reconciledIntakeCount = await reconcileStripeRefundBackfill({
+      evidence: completeEvidence,
+      livemode: options.livemode,
+      supabase,
+    })
+  }
   const summary = summarizeStripeRefundBackfill({
     apply: options.apply,
+    createdFromIso: options.createdFromIso,
     fromIso: options.fromIso,
     insertedCount,
     mode: options.mode,
     rows: linkedRefunds.map((row) => row.summary),
+    reconciledIntakeCount,
     toIso: options.toIso,
   })
 
   process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`)
+}
+
+async function readCompleteChargeRefunds(
+  stripe: Stripe,
+  chargeIds: string[],
+): Promise<Stripe.Refund[]> {
+  const refundsById = new Map<string, Stripe.Refund>()
+  for (const chargeId of chargeIds) {
+    const page = await stripe.refunds.list({
+      charge: chargeId,
+      expand: [
+        "data.balance_transaction",
+        "data.failure_balance_transaction",
+      ],
+      limit: 100,
+    })
+    if (page.has_more) {
+      throw new Error("Refund ledger apply exceeds the bounded per-charge lifecycle read")
+    }
+    for (const refund of page.data) refundsById.set(refund.id, refund)
+  }
+  return [...refundsById.values()]
 }
 
 function loadEnvironment(): void {
@@ -106,7 +165,7 @@ async function readExactRefunds(
   const refunds: Stripe.Refund[] = []
   for await (const refund of stripe.refunds.list({
     created: {
-      gte: options.fromEpochSeconds,
+      gte: options.createdFromEpochSeconds,
       lt: options.toEpochSeconds,
     },
     expand: [
@@ -118,6 +177,18 @@ async function readExactRefunds(
     refunds.push(refund)
   }
   return refunds
+}
+
+function isMovementWithinTargetWindow(
+  row: StripeRefundBackfillSummaryRow,
+  options: StripeRefundBackfillOptions,
+): boolean {
+  return [row.cashAt, row.reversedAt].some((value) => {
+    if (!value) return false
+    const timestamp = Date.parse(value)
+    return timestamp >= options.fromEpochSeconds * 1000 &&
+      timestamp < options.toEpochSeconds * 1000
+  })
 }
 
 async function readIntakeLinks(

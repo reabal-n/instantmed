@@ -19,25 +19,110 @@ export type PersistStripeRefundEvidenceResult = {
   refunds: Stripe.Refund[]
 }
 
+export type StripeRefundReconciliationState = {
+  amount_cents: number | null
+  id: string
+  payment_status: string
+  priority_fee_refunded_at: string | null
+  refund_amount_cents: number | null
+  refund_status: string | null
+  refund_stripe_id: string | null
+  refunded_at: string | null
+}
+
 export async function reconcilePersistedStripeRefundState(input: {
   intakeId: string | null
   livemode: boolean
   refunds: Stripe.Refund[]
   supabase: SupabaseClient
-}): Promise<string | null> {
-  if (!input.intakeId) return null
+}): Promise<{
+  error: string | null
+  state: StripeRefundReconciliationState | null
+}> {
+  if (!input.intakeId) return { error: null, state: null }
   const triggerRefund = input.refunds.reduce<Stripe.Refund | null>(
     (latest, refund) => !latest || refund.created > latest.created ? refund : latest,
     null,
   )
-  const { error } = await input.supabase.rpc("reconcile_intake_refund_cash_state", {
+  const { data, error } = await input.supabase.rpc("reconcile_intake_refund_cash_state", {
     p_intake_id: input.intakeId,
     p_livemode: input.livemode,
     p_trigger_status: triggerRefund?.status ?? null,
   })
-  return error
-    ? `Stripe refund intake reconciliation failed: ${error.message}`
-    : null
+  if (error) {
+    return {
+      error: `Stripe refund intake reconciliation failed: ${error.message}`,
+      state: null,
+    }
+  }
+  const rpcIntakeId = data && typeof data === "object" && "intake_id" in data
+    ? data.intake_id
+    : input.intakeId
+  if (rpcIntakeId !== input.intakeId) {
+    return { error: "Stripe refund reconciliation returned a conflicting intake", state: null }
+  }
+
+  const stateRead = await input.supabase
+    .from("intakes")
+    .select(
+      "id, amount_cents, payment_status, priority_fee_refunded_at, " +
+      "refund_amount_cents, refund_status, refund_stripe_id, refunded_at",
+    )
+    .eq("id", input.intakeId)
+    .maybeSingle()
+  if (stateRead.error) {
+    return {
+      error: `Stripe refund reconciled state read failed: ${stateRead.error.message}`,
+      state: null,
+    }
+  }
+  if (!stateRead.data) {
+    return { error: "Stripe refund reconciled intake is missing", state: null }
+  }
+  return {
+    error: null,
+    state: stateRead.data as unknown as StripeRefundReconciliationState,
+  }
+}
+
+export async function readExactRefundAdjustmentTarget(input: {
+  state: StripeRefundReconciliationState | null
+  supabase: SupabaseClient
+}): Promise<{
+  adjustmentDateTime: Date | null
+  error: string | null
+  targetNetValueCents: number | null
+}> {
+  if (!input.state) {
+    return { adjustmentDateTime: null, error: null, targetNetValueCents: null }
+  }
+  const { data, error } = await input.supabase
+    .from("stripe_payment_adjustment_targets")
+    .select("target_net_value_cents, adjustment_at")
+    .eq("intake_id", input.state.id)
+    .maybeSingle()
+  if (error) {
+    return {
+      error: `Stripe refund aggregate Ads target lookup failed: ${error.message}`,
+      adjustmentDateTime: null,
+      targetNetValueCents: null,
+    }
+  }
+  if (data) {
+    const target = Number(data.target_net_value_cents)
+    const adjustmentDateTime = typeof data.adjustment_at === "string"
+      ? new Date(data.adjustment_at)
+      : null
+    return Number.isInteger(target) && target >= 0 && adjustmentDateTime &&
+      Number.isFinite(adjustmentDateTime.getTime())
+      ? { adjustmentDateTime, error: null, targetNetValueCents: target }
+      : {
+          adjustmentDateTime: null,
+          error: "Stripe refund aggregate Ads target is invalid",
+          targetNetValueCents: null,
+        }
+  }
+  return { adjustmentDateTime: null, error: null, targetNetValueCents: null }
 }
 
 export async function persistStripeRefundEventEvidence(input: {
@@ -206,7 +291,38 @@ async function findRefundIntake(
       intakeId: null,
     }
   }
-  return { error: null, intakeId: data?.id ?? null }
+  if (data?.id) return { error: null, intakeId: data.id }
+
+  let paymentIntent: Stripe.PaymentIntent
+  try {
+    paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+  } catch {
+    return { error: "Stripe refund PaymentIntent metadata lookup failed", intakeId: null }
+  }
+  const metadataIntakeId = paymentIntent.metadata?.intake_id || paymentIntent.metadata?.request_id
+  if (!metadataIntakeId) return { error: null, intakeId: null }
+
+  const metadataRead = await supabase
+    .from("intakes")
+    .select("id, stripe_payment_intent_id")
+    .eq("id", metadataIntakeId)
+    .maybeSingle()
+  if (metadataRead.error) {
+    return {
+      error: `Stripe refund metadata intake lookup failed: ${metadataRead.error.message}`,
+      intakeId: null,
+    }
+  }
+  if (!metadataRead.data) {
+    return { error: "Stripe refund PaymentIntent metadata intake is missing", intakeId: null }
+  }
+  if (
+    metadataRead.data.stripe_payment_intent_id &&
+    metadataRead.data.stripe_payment_intent_id !== paymentIntentId
+  ) {
+    return { error: "Stripe refund PaymentIntent metadata conflicts with intake", intakeId: null }
+  }
+  return { error: null, intakeId: metadataRead.data.id }
 }
 
 function refundPaymentIntentId(

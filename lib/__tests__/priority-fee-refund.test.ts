@@ -10,6 +10,7 @@ import {
 
 // Derived the same way the module does (the module keeps it unexported).
 const PRIORITY_FEE_CENTS = Math.round(PRICING.PRIORITY_FEE * 100)
+const TRIGGER_REWRITTEN_RESERVATION_AT = "2026-08-14T00:00:00.777Z"
 
 vi.mock("@sentry/nextjs", () => ({
   captureMessage: vi.fn(),
@@ -23,9 +24,13 @@ function baseIntake(overrides: Partial<PriorityBreachIntake> = {}): PriorityBrea
     payment_status: "paid",
     amount_cents: 3990,
     refund_amount_cents: 0,
+    refund_status: "not_applicable",
+    refund_stripe_id: null,
     priority_fee_refunded_at: null,
+    priority_fee_refund_retry_attempted_at: null,
     stripe_payment_intent_id: "pi_123",
     payment_id: "cs_123",
+    updated_at: "2026-08-14T00:00:00.000Z",
     ...overrides,
   }
 }
@@ -55,16 +60,40 @@ function makeStripe(overrides: {
   return { stripe, refundCreate, sessionRetrieve }
 }
 
-function makeDb(updateError: { message: string } | null = null) {
-  const updates: Array<{ values: Record<string, unknown>; id: string }> = []
+function makeDb(options: {
+  reservationError?: { message: string } | null
+  finalError?: { message: string } | null
+  finalMatched?: boolean
+} = {}) {
+  const updates: Array<{ values: Record<string, unknown>; filters: Array<[string, unknown]> }> = []
   const db: PriorityRefundDb = {
     from: () => ({
-      update: (values: Record<string, unknown>) => ({
-        eq: (_column: "id", id: string) => {
-          updates.push({ values, id })
-          return Promise.resolve({ error: updateError })
-        },
-      }),
+      update: (values: Record<string, unknown>) => {
+        const mutation = { values, filters: [] as Array<[string, unknown]> }
+        const index = updates.push(mutation) - 1
+        const chain = {
+          eq: (column: string, value: unknown) => {
+            mutation.filters.push([column, value])
+            return chain
+          },
+          select: () => ({
+            maybeSingle: async () => ({
+              data: index === 1 && options.finalMatched === false
+                ? null
+                : index === 0
+                  ? { id: "intake-1", updated_at: TRIGGER_REWRITTEN_RESERVATION_AT }
+                  : { id: "intake-1" },
+              error: index === 0
+                ? options.reservationError ?? null
+                : options.finalError ?? null,
+            }),
+          }),
+          then: (
+            onFulfilled?: (value: { error: { message: string } | null }) => unknown,
+          ) => Promise.resolve({ error: null }).then(onFulfilled),
+        }
+        return chain as never
+      },
     }),
   }
   return { db, updates }
@@ -129,12 +158,12 @@ describe("refundPriorityFeeOnBreach", () => {
     expect(refundCreate).not.toHaveBeenCalled()
   })
 
-  it("refunds exactly the fee with a fixed idempotency key and stamps the intake", async () => {
+  it("requests exactly the fee but leaves cash truth pending for the webhook", async () => {
     const { stripe, refundCreate } = makeStripe()
     const { db, updates } = makeDb()
     const result = await refundPriorityFeeOnBreach({ stripe, supabase: db }, baseIntake())
 
-    expect(result).toEqual({ status: "refunded", refundId: "re_1", amountCents: PRIORITY_FEE_CENTS })
+    expect(result).toEqual({ status: "pending", refundId: "re_1", amountCents: PRIORITY_FEE_CENTS })
     expect(refundCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         payment_intent: "pi_123",
@@ -143,16 +172,36 @@ describe("refundPriorityFeeOnBreach", () => {
       }),
       { idempotencyKey: "priority_breach_intake-1" },
     )
-    expect(updates).toHaveLength(1)
-    expect(updates[0].id).toBe("intake-1")
+    expect(updates).toHaveLength(2)
+    expect(updates[0].filters).toContainEqual(["id", "intake-1"])
     expect(updates[0].values).toMatchObject({
-      payment_status: "partially_refunded",
-      refund_status: "succeeded",
-      refund_stripe_id: "re_1",
-      refund_amount_cents: PRIORITY_FEE_CENTS,
+      refund_status: "pending",
     })
-    expect(updates[0].values.priority_fee_refunded_at).toBeTruthy()
-    expect(updates[0].values.refunded_at).toBeTruthy()
+    expect(updates[1].values).toMatchObject({
+      refund_status: "pending",
+      refund_stripe_id: "re_1",
+    })
+    expect(updates[1].values).not.toHaveProperty("payment_status")
+    expect(updates[1].values).not.toHaveProperty("refund_amount_cents")
+    expect(updates[1].values).not.toHaveProperty("priority_fee_refunded_at")
+    expect(updates[1].values).not.toHaveProperty("refunded_at")
+    expect(updates[1].filters).toContainEqual([
+      "updated_at",
+      TRIGGER_REWRITTEN_RESERVATION_AT,
+    ])
+  })
+
+  it("does not submit another refund while exact cash evidence is pending", async () => {
+    const { stripe, refundCreate } = makeStripe()
+    const { db } = makeDb()
+
+    const result = await refundPriorityFeeOnBreach(
+      { stripe, supabase: db },
+      baseIntake({ refund_status: "pending", refund_stripe_id: "re_pending" }),
+    )
+
+    expect(result).toEqual({ status: "skipped", reason: "refund_pending" })
+    expect(refundCreate).not.toHaveBeenCalled()
   })
 
   it("resolves the payment intent from the checkout session when missing", async () => {
@@ -169,7 +218,7 @@ describe("refundPriorityFeeOnBreach", () => {
       expect.objectContaining({ payment_intent: "pi_resolved" }),
       expect.anything(),
     )
-    expect(result.status).toBe("refunded")
+    expect(result.status).toBe("pending")
   })
 
   it("fails without touching state when no payment intent can be resolved", async () => {
@@ -189,14 +238,60 @@ describe("refundPriorityFeeOnBreach", () => {
     const { db, updates } = makeDb()
     const result = await refundPriorityFeeOnBreach({ stripe, supabase: db }, baseIntake())
     expect(result).toEqual({ status: "failed", error: "card_declined" })
-    expect(updates).toHaveLength(0)
+    expect(updates).toHaveLength(2)
+    expect(updates[0].values).toMatchObject({ refund_status: "pending" })
+    expect(updates[1].values).toMatchObject({ refund_status: "failed" })
   })
 
   it("reports failure (for hourly retry) when the state write fails after the refund", async () => {
     const { stripe } = makeStripe()
-    const { db, updates } = makeDb({ message: "connection reset" })
+    const { db, updates } = makeDb({ finalError: { message: "connection reset" } })
     const result = await refundPriorityFeeOnBreach({ stripe, supabase: db }, baseIntake())
     expect(result).toEqual({ status: "failed", error: "state_write_failed" })
-    expect(updates).toHaveLength(1)
+    expect(updates).toHaveLength(2)
+  })
+
+  it("does not overwrite exact webhook state when it lands before create returns", async () => {
+    const { stripe } = makeStripe({ refundResult: { id: "re_fast", amount: PRIORITY_FEE_CENTS } })
+    const { db, updates } = makeDb({ finalMatched: false })
+
+    const result = await refundPriorityFeeOnBreach({ stripe, supabase: db }, baseIntake())
+
+    expect(result).toEqual({ status: "pending", refundId: "re_fast", amountCents: PRIORITY_FEE_CENTS })
+    expect(updates[1].filters).toContainEqual(["refund_status", "pending"])
+    expect(updates[1].filters.some(([column]) => column === "updated_at")).toBe(true)
+  })
+
+  it("advances the idempotency generation once after exact failed-refund evidence", async () => {
+    const { stripe, refundCreate } = makeStripe({ refundResult: { id: "re_retry", amount: PRIORITY_FEE_CENTS } })
+    const { db, updates } = makeDb()
+
+    await refundPriorityFeeOnBreach(
+      { stripe, supabase: db },
+      baseIntake({ refund_status: "failed", refund_stripe_id: "re_failed" }),
+    )
+
+    expect(refundCreate).toHaveBeenCalledWith(
+      expect.anything(),
+      { idempotencyKey: "priority_breach_intake-1_after_re_failed" },
+    )
+    expect(updates[0].values).toHaveProperty("priority_fee_refund_retry_attempted_at")
+  })
+
+  it("does not create an unbounded third generation after the bounded retry failed", async () => {
+    const { stripe, refundCreate } = makeStripe()
+    const { db } = makeDb()
+
+    const result = await refundPriorityFeeOnBreach(
+      { stripe, supabase: db },
+      baseIntake({
+        refund_status: "failed",
+        refund_stripe_id: "re_retry_failed",
+        priority_fee_refund_retry_attempted_at: "2026-08-14T01:00:00.000Z",
+      }),
+    )
+
+    expect(result).toEqual({ status: "skipped", reason: "failed_refund_retry_exhausted" })
+    expect(refundCreate).not.toHaveBeenCalled()
   })
 })

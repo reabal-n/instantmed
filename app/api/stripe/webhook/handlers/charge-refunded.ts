@@ -1,12 +1,15 @@
 import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
-import { runGoogleAdsConversionAdjustment } from "@/lib/analytics/google-ads-conversion-adjustments"
-import { sendRefundEmail } from "@/lib/email/template-sender"
+import {
+  queueExactGoogleAdsConversionAdjustment,
+  runGoogleAdsConversionAdjustment,
+} from "@/lib/analytics/google-ads-conversion-adjustments"
+import { reserveRefundEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
-import { stripe } from "@/lib/stripe/client"
 import {
   persistStripeRefundEventEvidence,
+  readExactRefundAdjustmentTarget,
   reconcilePersistedStripeRefundState,
   reportStripeRefundEvidenceFailure,
 } from "@/lib/stripe/refund-event-persistence"
@@ -117,14 +120,14 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
     return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
   }
 
-  const reconciliationError = await reconcilePersistedStripeRefundState({
+  const reconciliation = await reconcilePersistedStripeRefundState({
     intakeId: evidence.intakeId,
     livemode: event.livemode,
     refunds: evidence.refunds,
     supabase,
   })
-  if (reconciliationError) {
-    reportStripeRefundEvidenceFailure(ctx.event, reconciliationError)
+  if (reconciliation.error) {
+    reportStripeRefundEvidenceFailure(ctx.event, reconciliation.error)
     if (!ctx.adminReplay) {
       await addToDeadLetterQueue(
         supabase,
@@ -132,7 +135,7 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
         event.type,
         charge.id,
         evidence.intakeId,
-        reconciliationError,
+        reconciliation.error,
         "REFUND_STATE_RECONCILIATION_FAILED",
         event as unknown as Record<string, unknown>,
       )
@@ -140,166 +143,162 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
     return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
   }
 
-  const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, undefined, charge.id)
+  const state = reconciliation.state
+  const target = await readExactRefundAdjustmentTarget({ state, supabase })
+  if (target.error) {
+    return failChargeRefundRetryably(
+      ctx,
+      charge.id,
+      evidence.intakeId,
+      target.error,
+      "REFUND_ADJUSTMENT_TARGET_UNAVAILABLE",
+    )
+  }
+
+  const isPriorityBreachRefund = latest.metadata?.refund_type === "priority_breach"
+  if (state && target.targetNetValueCents !== null && target.adjustmentDateTime) {
+    const queued = await queueExactGoogleAdsConversionAdjustment({
+      adjustmentDateTime: target.adjustmentDateTime,
+      amountCents: state.amount_cents,
+      intakeId: state.id,
+      source: "stripe_charge_refunded",
+      supabase,
+      targetNetValueCents: target.targetNetValueCents,
+    })
+    if (queued.error) {
+      return failChargeRefundRetryably(
+        ctx,
+        charge.id,
+        state.id,
+        queued.error,
+        "REFUND_ADJUSTMENT_QUEUE_FAILED",
+      )
+    }
+  }
+
+  if (state?.refund_status === "succeeded") {
+    const refundIsFullRefund = Number(state.refund_amount_cents ?? 0) >=
+      Number(state.amount_cents ?? charge.amount)
+    const reservationError = await reserveChargeRefundEmail({
+      ctx,
+      intakeId: state.id,
+      isPriorityBreachRefund,
+      latest,
+      refundIsFullRefund,
+    })
+    if (reservationError) {
+      return failChargeRefundRetryably(
+        ctx,
+        charge.id,
+        state.id,
+        reservationError,
+        "REFUND_NOTIFICATION_RESERVATION_FAILED",
+      )
+    }
+  }
+
+  const shouldProcess = ctx.adminReplay || await tryClaimEvent(
+    supabase,
+    event.id,
+    event.type,
+    state?.id,
+    charge.id,
+  )
   if (!shouldProcess) {
     return NextResponse.json({ received: true, skipped: true })
   }
 
-  if (paymentIntentId) {
-    // Update intake payment_status based on refund
-    const isFullRefund = charge.amount_refunded === charge.amount
-    const timestamp = new Date().toISOString()
-    const refundedAt = new Date(refundCashEpochSeconds(latest) * 1000).toISOString()
-    const refundStripeId = latest.id
-    // Record the amount actually refunded, clamped to the charge as a safe floor
-    // against malformed Stripe payloads. intakes.amount_cents is reconciled to
-    // session.amount_total on the paid transition (see checkout-session-completed.ts),
-    // so it now equals charge.amount — the historical list-price drift this clamp
-    // guarded against no longer exists for orders paid after that change.
-    const refundAmountCents = Math.min(charge.amount_refunded, charge.amount)
-    const intakeRefundUpdate = {
-      payment_status: isFullRefund ? "refunded" : "partially_refunded",
-      refund_status: "succeeded",
-      refund_stripe_id: refundStripeId,
-      refund_amount_cents: refundAmountCents,
-      refunded_at: refundedAt,
-      updated_at: timestamp,
-    }
-
-    // First try to find intake by stripe_payment_intent_id if we stored it
-    let updateResult = await supabase
-      .from("intakes")
-      .update(intakeRefundUpdate)
-      .eq("stripe_payment_intent_id", paymentIntentId)
-      .select("id")
-
-    // If no rows updated, try looking up via Stripe API to get session ID
-    if (!updateResult.data?.length) {
-      try {
-        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
-        const metadataIntakeId = paymentIntent.metadata?.intake_id || paymentIntent.metadata?.request_id
-        const sessionId = paymentIntent.metadata?.checkout_session_id
-
-        if (metadataIntakeId) {
-          updateResult = await supabase
-            .from("intakes")
-            .update(intakeRefundUpdate)
-            .eq("id", metadataIntakeId)
-            .select("id")
-        } else if (sessionId) {
-          updateResult = await supabase
-            .from("intakes")
-            .update(intakeRefundUpdate)
-            .eq("payment_id", sessionId)
-            .select("id")
-        }
-      } catch (stripeError) {
-        log.warn("Could not retrieve payment intent for refund lookup", {
-          paymentIntentId,
-          error: stripeError instanceof Error ? stripeError.message : "Unknown error",
-        })
-      }
-    }
-
-    // Also update legacy payments table if it exists
-    await supabase
-      .from("payments")
-      .update({
-        status: "refunded",
-        refund_status: "refunded",
-        refund_amount: charge.amount_refunded,
-        stripe_refund_id: refundStripeId,
-        refunded_at: refundedAt,
-        updated_at: timestamp,
+  if (state && target.targetNetValueCents !== null && target.adjustmentDateTime) {
+    after(async () => {
+      await runGoogleAdsConversionAdjustment({
+        adjustmentDateTime: target.adjustmentDateTime ?? undefined,
+        amountCents: state.amount_cents,
+        intakeId: state.id,
+        paymentStatus: state.payment_status,
+        refundAmountCents: state.refund_amount_cents,
+        requestPath: "/api/stripe/webhook",
+        source: "stripe_charge_refunded",
+        supabase,
+        targetNetValueCents: target.targetNetValueCents,
       })
-      .eq("stripe_payment_intent_id", paymentIntentId)
-
-    if (updateResult.error) {
-      log.error("Error updating intake after refund", { paymentIntentId }, updateResult.error)
-    } else if (updateResult.data?.length) {
-      const intakeId = updateResult.data[0].id
-      log.info("Intake payment status updated after refund", {
-        paymentIntentId,
-        intakeId,
-        isFullRefund,
-        amountRefunded: charge.amount_refunded,
-      })
-
-      // Send refund notification email (non-blocking to respect Stripe 3s timeout).
-      // If this fails, the email-dispatcher cron will retry from the outbox.
-      // Uses after() to keep the serverless function alive until email completes.
-      const refundIntakeId = intakeId
-      const refundAmountCents = charge.amount_refunded
-      const refundIsFullRefund = isFullRefund
-      const refundPaymentStatus = isFullRefund ? "refunded" : "partially_refunded"
-      const paidAmountCents = charge.amount
-
-      after(async () => {
-        await runGoogleAdsConversionAdjustment({
-          adjustmentDateTime: new Date(refundedAt),
-          amountCents: paidAmountCents,
-          intakeId: refundIntakeId,
-          paymentStatus: refundPaymentStatus,
-          refundAmountCents,
-          requestPath: "/api/stripe/webhook",
-          source: "stripe_charge_refunded",
-          supabase,
-        })
-      })
-
-      after(async () => {
-        try {
-          const { data: intake } = await supabase
-            .from("intakes")
-            .select("id, patient_id, priority_fee_refunded_at")
-            .eq("id", refundIntakeId)
-            .single()
-
-          // A partial refund on a breach-refunded intake is the priority-fee
-          // auto-refund echoing back through Stripe — the stale-queue cron
-          // already sent the tailored breach email, so the generic "refund
-          // processed" notice would be a duplicate. Full refunds (decline
-          // top-ups) still notify normally.
-          if (!refundIsFullRefund && intake?.priority_fee_refunded_at) {
-            log.info("Skipping refund email for priority breach partial", {
-              intakeId: refundIntakeId,
-            })
-            return
-          }
-
-          if (intake?.patient_id) {
-            const { data: patient } = await supabase
-              .from("profiles")
-              .select("id, full_name, email")
-              .eq("id", intake.patient_id)
-              .single()
-
-            if (patient?.email) {
-              const amountFormatted = `$${(refundAmountCents / 100).toFixed(2)}`
-              const emailResult = await sendRefundEmail({
-                to: patient.email,
-                patientName: greetingFirstName(patient.full_name),
-                amount: amountFormatted,
-                refundReason: refundIsFullRefund ? "Your request was declined or cancelled" : "Partial refund processed",
-                intakeId: refundIntakeId,
-                patientId: patient.id,
-              })
-              if (emailResult.success) {
-                log.info("Refund notification email sent", { intakeId: refundIntakeId })
-              } else {
-                log.error("Refund notification email failed", {
-                  intakeId: refundIntakeId,
-                  error: emailResult.error,
-                })
-              }
-            }
-          }
-        } catch (emailError) {
-          log.error("Failed to send refund notification email", { intakeId: refundIntakeId }, emailError)
-        }
-      })
-    } else {
-      log.warn("No intake found to update for refund", { paymentIntentId })
-    }
+    })
   }
+}
+
+/*
+ * Email reservation remains before the event claim because it is itself
+ * idempotent. A transient outbox failure must keep the Stripe event replayable.
+ */
+async function reserveChargeRefundEmail(input: {
+  ctx: WebhookContext
+  intakeId: string
+  isPriorityBreachRefund: boolean
+  latest: Stripe.Refund
+  refundIsFullRefund: boolean
+}): Promise<string | null> {
+  const intakeRead = await input.ctx.supabase
+    .from("intakes")
+    .select("id, patient_id, status")
+    .eq("id", input.intakeId)
+    .single()
+  if (intakeRead.error) {
+    return `Refund notification intake lookup failed: ${intakeRead.error.message}`
+  }
+  if (!intakeRead.data?.patient_id) return null
+
+  const patientRead = await input.ctx.supabase
+    .from("profiles")
+    .select("id, full_name, email")
+    .eq("id", intakeRead.data.patient_id)
+    .single()
+  if (patientRead.error) {
+    return `Refund notification patient lookup failed: ${patientRead.error.message}`
+  }
+  if (!patientRead.data?.email) return null
+
+  const wasDeclinedOrCancelled =
+    intakeRead.data.status === "declined" || intakeRead.data.status === "cancelled"
+
+  const reservation = await reserveRefundEmail({
+    amountCents: input.latest.amount,
+    intakeId: input.intakeId,
+    livemode: input.ctx.event.livemode,
+    patientId: patientRead.data.id,
+    patientName: greetingFirstName(patientRead.data.full_name),
+    refundReason: input.isPriorityBreachRefund
+      ? "Priority review fee refunded"
+      : input.refundIsFullRefund
+        ? wasDeclinedOrCancelled
+          ? "Your request was declined or cancelled"
+          : "Full refund processed"
+        : "Partial refund processed",
+    stripeRefundId: input.latest.id,
+    to: patientRead.data.email,
+  })
+  return reservation.success
+    ? null
+    : reservation.error || "Refund notification reservation failed"
+}
+
+async function failChargeRefundRetryably(
+  ctx: WebhookContext,
+  chargeId: string,
+  intakeId: string | null,
+  message: string,
+  errorCode: string,
+): Promise<NextResponse> {
+  reportStripeRefundEvidenceFailure(ctx.event, message)
+  if (!ctx.adminReplay) {
+    await addToDeadLetterQueue(
+      ctx.supabase,
+      ctx.event.id,
+      ctx.event.type,
+      chargeId,
+      intakeId,
+      message,
+      errorCode,
+      ctx.event as unknown as Record<string, unknown>,
+    )
+  }
+  return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
 }

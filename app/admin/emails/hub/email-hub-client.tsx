@@ -90,7 +90,7 @@ interface EmailOutboxLedgerRow {
   email_type: string
   to_email: string
   subject: string
-  status: "pending" | "sending" | "sent" | "failed" | "skipped_e2e"
+  status: "pending" | "sending" | "sent" | "failed" | "skipped_e2e" | "cancelled"
   provider_message_id: string | null
   error_message: string | null
   retry_count: number

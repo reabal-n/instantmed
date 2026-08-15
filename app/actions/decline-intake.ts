@@ -124,6 +124,8 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
         stripe_payment_intent_id,
         amount_cents,
         refund_amount_cents,
+        refund_status,
+        refund_stripe_id,
         patient_id,
         patient:profiles!patient_id (
           id,
@@ -192,7 +194,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
       // `IS NOT TRUE` keeps legacy null rows declinable while atomically
       // excluding a concurrent durable script-sent transition.
       .not("script_sent", "is", true)
-      .select("id")
+      .select("id, updated_at")
       .single()
 
     if (updateError || !updated) {
@@ -249,7 +251,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
       } else {
         // Always full refund (no partial) - consult policy was changed
         // on 2026-05-20 after operator feedback. See decline-refund.ts.
-        refundResult = await processRefund(intakeId, intake, actorId, timestamp)
+        refundResult = await processRefund(intakeId, intake, actorId, updated.updated_at)
       }
     } else if (isRefundable && !isEligible) {
       refundResult = { status: "not_eligible" }

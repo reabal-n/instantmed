@@ -468,7 +468,7 @@ export function AdminIntakesLedgerClient({
       if (result.success) {
         setRefundTarget(null)
         const amountText = result.amount ? ` ($${(result.amount / 100).toFixed(2)})` : ""
-        toast.success(`Refund processed${amountText}`)
+        toast.success(`Refund requested${amountText}. Settlement is pending.`)
         router.refresh()
       } else {
         toast.error(result.error ?? "Failed to process refund")

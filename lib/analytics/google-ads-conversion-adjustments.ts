@@ -21,28 +21,32 @@ export const GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION = "google_ads_convers
  * adjustment failure stays transient. Google processes conversion uploads
  * asynchronously (up to ~24h for click conversions; Data Manager ingests and
  * user-data matching can take longer), and InstantMed's standard decline flow
- * refunds the SAME DAY as payment — so the first retraction attempt routinely
+ * refunds the SAME DAY as payment — so the first restatement attempt routinely
  * fires before the conversion is queryable. Treating that first
- * CONVERSION_NOT_FOUND as terminal would permanently skip the retraction and
+ * CONVERSION_NOT_FOUND as terminal would permanently skip the adjustment and
  * leave a real ad-click conversion counted in Google. Past this window the
  * error is truthful ("never imported, or imported but discarded") and is
  * durably resolved as not counted rather than treated as a mutation failure.
  */
 export const GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS = 72
+/** Google rejects conversion adjustments more than 54 days after conversion. */
+export const GOOGLE_ADS_ADJUSTMENT_MAX_AGE_DAYS = 54
 
 const CONVERSION_NOT_FOUND_TERMINAL_REASON = "conversion_not_found"
 const DM_REQUEST_REJECTED_ERROR = "dm_request_rejected"
 const DM_REQUEST_PROCESSING_ERROR = "dm_request_processing"
 
-type GoogleAdsConversionAdjustmentSource =
+export type GoogleAdsConversionAdjustmentSource =
   | "cron_backfill"
   | "stripe_charge_dispute_lost"
   | "stripe_charge_refunded"
+  | "stripe_refund_lifecycle"
 
 type GoogleAdsConversionAdjustmentStatus =
   | "failed"
   | "resolved_not_counted"
   | "skipped_already_adjusted"
+  | "skipped_in_progress"
   | "skipped_terminal_error"
   | "skipped_invalid_adjustment"
   | "skipped_local_dev"
@@ -50,6 +54,7 @@ type GoogleAdsConversionAdjustmentStatus =
   | "skipped_no_adjustment"
   | "success"
   | "terminal_failed"
+  | "unknown_outcome"
 
 type GoogleAdsConversionAdjustmentAuditRow = {
   action?: string | null
@@ -58,6 +63,7 @@ type GoogleAdsConversionAdjustmentAuditRow = {
   metadata?: {
     adjustment_type?: string | null
     error_code?: string | null
+    exact_target_net_value_cents?: number | null
     has_gbraid?: boolean | null
     has_gclid?: boolean | null
     has_wbraid?: boolean | null
@@ -74,6 +80,7 @@ type GoogleAdsConversionAdjustmentAuditRow = {
 type GoogleAdsConversionAdjustmentIntent = {
   adjustmentType: GoogleAdsConversionAdjustmentType
   adjustedValue?: number
+  exactTargetNetValueCents: number
   targetNetValueCents: number
 }
 
@@ -106,44 +113,6 @@ function centsToAud(cents: number): number {
   return Math.round(cents) / 100
 }
 
-/**
- * Exact retained conversion value after a terminal lost dispute. Pending or
- * fully reinstated disputes return null because they require no irreversible
- * Google Ads adjustment.
- */
-export function buildLostDisputeTargetNetValueCents(input: {
-  amountCents: number | null
-  fundsReinstatedCents: number | null
-  fundsWithdrawnCents: number | null
-  refundAmountCents: number | null
-}): number | null {
-  if (!Number.isInteger(input.amountCents) || (input.amountCents ?? 0) <= 0) return null
-  if (!Number.isInteger(input.fundsWithdrawnCents) || (input.fundsWithdrawnCents ?? 0) <= 0) {
-    return null
-  }
-
-  const amountCents = input.amountCents as number
-  const fundsWithdrawnCents = input.fundsWithdrawnCents as number
-  const fundsReinstatedCents = Number.isInteger(input.fundsReinstatedCents) &&
-    (input.fundsReinstatedCents ?? 0) > 0
-    ? input.fundsReinstatedCents as number
-    : 0
-  const refundAmountCents = Number.isInteger(input.refundAmountCents) &&
-    (input.refundAmountCents ?? 0) > 0
-    ? input.refundAmountCents as number
-    : 0
-  const outstandingDisputeCents = Math.max(
-    fundsWithdrawnCents - fundsReinstatedCents,
-    0,
-  )
-  if (outstandingDisputeCents === 0) return null
-
-  return Math.max(
-    amountCents - Math.min(amountCents, refundAmountCents + outstandingDisputeCents),
-    0,
-  )
-}
-
 function getGoogleAdsConversionAdjustmentIntent(input: {
   amountCents: number | null
   paymentStatus: string
@@ -155,27 +124,34 @@ function getGoogleAdsConversionAdjustmentIntent(input: {
   if (typeof amountCents !== "number" || !Number.isFinite(amountCents) || amountCents <= 0) return null
 
   if (input.targetNetValueCents !== undefined && input.targetNetValueCents !== null) {
-    const targetNetValueCents = input.targetNetValueCents
+    const exactTargetNetValueCents = input.targetNetValueCents
     if (
-      !Number.isInteger(targetNetValueCents) ||
-      targetNetValueCents < 0 ||
-      targetNetValueCents > amountCents
+      !Number.isInteger(exactTargetNetValueCents) ||
+      exactTargetNetValueCents < 0 ||
+      exactTargetNetValueCents > amountCents
     ) {
       return null
     }
-    return targetNetValueCents === 0
-      ? { adjustmentType: "RETRACTION", targetNetValueCents }
-      : {
-          adjustedValue: centsToAud(targetNetValueCents),
-          adjustmentType: "RESTATEMENT",
-          targetNetValueCents,
-        }
+    // Google permanently removes conversions restated to zero and ignores a
+    // later restoration. Preserve exact zero in the cash ledger, but upload a
+    // reversible A$0.01 floor to Ads. See:
+    // https://support.google.com/google-ads/answer/7686447
+    // https://support.google.com/google-ads/answer/7686280
+    const targetNetValueCents = Math.max(exactTargetNetValueCents, 1)
+    return {
+      adjustedValue: centsToAud(targetNetValueCents),
+      adjustmentType: "RESTATEMENT",
+      exactTargetNetValueCents,
+      targetNetValueCents,
+    }
   }
 
   if (input.paymentStatus === "refunded" || input.paymentStatus === "disputed") {
     return {
-      adjustmentType: "RETRACTION",
-      targetNetValueCents: 0,
+      adjustedValue: 0.01,
+      adjustmentType: "RESTATEMENT",
+      exactTargetNetValueCents: 0,
+      targetNetValueCents: 1,
     }
   }
 
@@ -184,14 +160,17 @@ function getGoogleAdsConversionAdjustmentIntent(input: {
   const targetNetValueCents = Math.max(amountCents - Math.max(refundAmountCents, 0), 0)
   if (targetNetValueCents <= 0) {
     return {
-      adjustmentType: "RETRACTION",
-      targetNetValueCents: 0,
+      adjustedValue: 0.01,
+      adjustmentType: "RESTATEMENT",
+      exactTargetNetValueCents: 0,
+      targetNetValueCents: 1,
     }
   }
 
   return {
     adjustedValue: centsToAud(targetNetValueCents),
     adjustmentType: "RESTATEMENT",
+    exactTargetNetValueCents: targetNetValueCents,
     targetNetValueCents,
   }
 }
@@ -219,35 +198,6 @@ function successfulPurchaseUpload(rows: GoogleAdsConversionAdjustmentAuditRow[])
   return rows.find((row) => row.metadata?.status === "success") || null
 }
 
-function hasMatchingSuccessfulAdjustment(
-  rows: GoogleAdsConversionAdjustmentAuditRow[],
-  intent: GoogleAdsConversionAdjustmentIntent,
-): boolean {
-  return rows.some(
-    (row) =>
-      row.metadata?.status === "success" &&
-      row.metadata?.adjustment_type === intent.adjustmentType &&
-      row.metadata?.target_net_value_cents === intent.targetNetValueCents,
-  )
-}
-
-function getTerminalGoogleAdsAdjustmentReason(error?: string | null): string | null {
-  if (!error) return null
-  if (error.includes("CONVERSION_NOT_FOUND")) return CONVERSION_NOT_FOUND_TERMINAL_REASON
-  if (error.includes(DM_REQUEST_REJECTED_ERROR)) return DM_REQUEST_REJECTED_ERROR
-  return null
-}
-
-function isUploadPastConversionMatchGrace(
-  successfulUpload: GoogleAdsConversionAdjustmentAuditRow | null | undefined,
-  nowMs = Date.now(),
-): boolean {
-  const createdAtMs = Date.parse(successfulUpload?.created_at || "")
-  // Unknown upload age must not retry forever: treat as past grace.
-  if (!Number.isFinite(createdAtMs)) return true
-  return nowMs - createdAtMs > GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS * 60 * 60 * 1000
-}
-
 function conversionNotFoundOccurredPastGrace(
   failure: GoogleAdsConversionAdjustmentAuditRow,
   successfulUpload: GoogleAdsConversionAdjustmentAuditRow,
@@ -266,69 +216,85 @@ function matchingPostGraceConversionNotFound(
 ): GoogleAdsConversionAdjustmentAuditRow | null {
   return rows.find((row) => {
     const metadata = row.metadata
-    if (
-      metadata?.adjustment_type !== intent.adjustmentType ||
-      metadata?.target_net_value_cents !== intent.targetNetValueCents
-    ) return false
+    const legacyExactTarget = metadata?.adjustment_type === "RETRACTION"
+      ? 0
+      : metadata?.target_net_value_cents
+    const exactTarget = Number.isInteger(metadata?.exact_target_net_value_cents)
+      ? metadata?.exact_target_net_value_cents
+      : legacyExactTarget
+    if (exactTarget !== intent.exactTargetNetValueCents) return false
 
-    const errorCode = typeof metadata.error_code === "string" ? metadata.error_code : null
-    const reason =
-      (typeof metadata.terminal_reason === "string" ? metadata.terminal_reason : null) ||
-      getTerminalGoogleAdsAdjustmentReason(errorCode)
-    return reason === CONVERSION_NOT_FOUND_TERMINAL_REASON &&
+    const errorCode = typeof metadata?.error_code === "string" ? metadata.error_code : null
+    const terminalReason = typeof metadata?.terminal_reason === "string"
+      ? metadata.terminal_reason
+      : null
+    const isConversionNotFound = terminalReason === CONVERSION_NOT_FOUND_TERMINAL_REASON ||
+      errorCode?.includes("CONVERSION_NOT_FOUND")
+    return Boolean(isConversionNotFound) &&
       conversionNotFoundOccurredPastGrace(row, successfulUpload)
   }) ?? null
 }
 
-function hasMatchingResolvedNotCounted(
-  rows: GoogleAdsConversionAdjustmentAuditRow[],
-  intent: GoogleAdsConversionAdjustmentIntent,
-): boolean {
-  return rows.some((row) =>
-    row.metadata?.status === "resolved_not_counted" &&
-    row.metadata?.adjustment_type === intent.adjustmentType &&
-    row.metadata?.target_net_value_cents === intent.targetNetValueCents,
-  )
+type GoogleAdsAdjustmentErrorDisposition =
+  | { kind: "not_found"; reason: string }
+  | { kind: "terminal"; reason: string }
+  | { kind: "unknown"; reason: string }
+
+const TERMINAL_GOOGLE_ADS_ADJUSTMENT_ERRORS = [
+  "CONVERSION_EXPIRED",
+  "TOO_MANY_ADJUSTMENTS",
+  "INVALID_ADJUSTMENT_TYPE",
+  "INVALID_CONVERSION_ACTION",
+  "ORDER_ID_REQUIRED",
+  "VALUE_MUST_BE_SET_FOR_RESTATEMENT",
+  "VALUE_MUST_BE_UNSET_FOR_RETRACTION",
+  "CURRENCY_CODE_MUST_BE_SET_FOR_RESTATEMENT",
+  "CURRENCY_CODE_MUST_BE_UNSET_FOR_RETRACTION",
+] as const
+
+const UNCERTAIN_GOOGLE_ADS_ADJUSTMENT_ERRORS = [
+  "RESTATEMENT_ALREADY_EXISTS",
+  "MORE_RECENT_RESTATEMENT_FOUND",
+  "CONVERSION_ALREADY_RETRACTED",
+] as const
+
+function classifyGoogleAdsAdjustmentError(
+  error?: string | null,
+): GoogleAdsAdjustmentErrorDisposition | null {
+  if (!error) return null
+  if (error.includes("CONVERSION_NOT_FOUND")) {
+    return { kind: "not_found", reason: CONVERSION_NOT_FOUND_TERMINAL_REASON }
+  }
+  const uncertain = UNCERTAIN_GOOGLE_ADS_ADJUSTMENT_ERRORS.find((code) => error.includes(code))
+  if (uncertain) return { kind: "unknown", reason: uncertain.toLowerCase() }
+  const terminal = TERMINAL_GOOGLE_ADS_ADJUSTMENT_ERRORS.find((code) => error.includes(code))
+  if (terminal) return { kind: "terminal", reason: terminal.toLowerCase() }
+  if (error.includes(DM_REQUEST_REJECTED_ERROR)) {
+    return { kind: "terminal", reason: DM_REQUEST_REJECTED_ERROR }
+  }
+  return null
 }
 
-function hasMatchingTerminalAdjustmentFailure(
-  rows: GoogleAdsConversionAdjustmentAuditRow[],
-  intent: GoogleAdsConversionAdjustmentIntent,
+function isUploadPastConversionMatchGrace(
+  successfulUpload: GoogleAdsConversionAdjustmentAuditRow | null | undefined,
+  nowMs = Date.now(),
 ): boolean {
-  return rows.some((row) => {
-    const metadata = row.metadata
-    if (
-      metadata?.adjustment_type !== intent.adjustmentType ||
-      metadata?.target_net_value_cents !== intent.targetNetValueCents
-    ) return false
-
-    const errorCode = typeof metadata.error_code === "string" ? metadata.error_code : null
-    const reason =
-      (typeof metadata.terminal_reason === "string" ? metadata.terminal_reason : null) ||
-      getTerminalGoogleAdsAdjustmentReason(errorCode)
-
-    // CONVERSION_NOT_FOUND has its own time-aware outcome: before grace it
-    // must retry; after grace it confirms that Google did not count a
-    // conversion under this order/action. It is never a permanent mutation
-    // failure by itself.
-    if (reason === CONVERSION_NOT_FOUND_TERMINAL_REASON) return false
-
-    const isExplicitTerminal =
-      metadata.status === "terminal_failed" || (metadata.terminal === true && Boolean(metadata.terminal_reason))
-    return isExplicitTerminal
-  })
+  const createdAtMs = Date.parse(successfulUpload?.created_at || "")
+  // Unknown upload age must not retry forever: treat as past grace.
+  if (!Number.isFinite(createdAtMs)) return true
+  return nowMs - createdAtMs > GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS * 60 * 60 * 1000
 }
 
 type DataManagerAdjustmentPreflight = "proceed" | "processing" | "rejected"
 
 /**
- * The Data Manager API has NO adjustment/retraction surface (no events:remove;
+ * The Data Manager API has NO conversion-adjustment surface (no events:remove;
  * confirmed against the v1 reference + release notes, 2026-07). DM-uploaded
- * conversions are therefore still retracted through the Google Ads
+ * conversions are therefore still adjusted through the Google Ads
  * ConversionAdjustmentUploadService below, matched by order id — the
  * documented mechanism regardless of upload surface. The DM request status is
  * the one extra signal we have: a FAILED ingest means the conversion never
- * landed (nothing to retract, terminal), and PROCESSING means an adjustment
+ * landed (nothing to adjust, terminal), and PROCESSING means an adjustment
  * attempt now is guaranteed premature.
  */
 async function checkDataManagerUploadForAdjustment(
@@ -345,7 +311,7 @@ async function checkDataManagerUploadForAdjustment(
     if (result.status === "PROCESSING") return "processing"
     return "proceed"
   } catch {
-    // Status lookup must never block a retraction from reaching Google.
+    // Status lookup must never block a restatement from reaching Google.
     return "proceed"
   }
 }
@@ -394,19 +360,22 @@ async function recordGoogleAdsConversionAdjustmentAudit({
     attempted: result?.attempted ?? false,
     currency: "AUD",
     error_code: error || result?.error || null,
+    exact_target_net_value_cents: intent?.exactTargetNetValueCents ?? null,
     has_successful_purchase_upload: hasSuccessfulPurchaseUpload,
     ok: result?.ok ?? false,
     order_id: intakeId,
     refund_amount_cents: refundAmountCents,
     resolution_reason: status === "resolved_not_counted"
-      ? CONVERSION_NOT_FOUND_TERMINAL_REASON
+      ? classifyGoogleAdsAdjustmentError(error || result?.error || null)?.reason ||
+        error || result?.error || "not_counted"
       : null,
     source,
     status,
     target_net_value_cents: intent?.targetNetValueCents ?? null,
+    zero_value_floor_applied: intent?.exactTargetNetValueCents === 0,
     terminal: status === "terminal_failed",
     terminal_reason: status === "terminal_failed"
-      ? getTerminalGoogleAdsAdjustmentReason(error || result?.error || null)
+      ? classifyGoogleAdsAdjustmentError(error || result?.error || null)?.reason ?? null
       : null,
     upload_api: successfulUpload?.metadata?.upload_api || null,
     upload_identifier: successfulUpload?.metadata?.upload_identifier || null,
@@ -428,6 +397,164 @@ async function recordGoogleAdsConversionAdjustmentAudit({
       status,
     }, auditError)
   }
+}
+
+type GoogleAdsAdjustmentReservation = {
+  adjustmentDateTime: Date
+  claimId: string
+  leaseToken: string
+}
+
+async function reserveGoogleAdsConversionAdjustment(input: {
+  intakeId: string
+  intent: GoogleAdsConversionAdjustmentIntent
+  adjustmentDateTime: Date
+  source: GoogleAdsConversionAdjustmentSource
+  supabase: SupabaseClient
+}): Promise<{
+  error: string | null
+  reservation: GoogleAdsAdjustmentReservation | null
+  state: string | null
+}> {
+  const { data, error } = await input.supabase.rpc(
+    "reserve_google_ads_conversion_adjustment",
+    {
+      p_adjustment_type: input.intent.adjustmentType,
+      p_adjustment_at: input.adjustmentDateTime.toISOString(),
+      p_intake_id: input.intakeId,
+      p_lease_seconds: 600,
+      p_source: input.source,
+      p_target_net_value_cents: input.intent.targetNetValueCents,
+    },
+  )
+  if (error) {
+    return {
+      error: `Google Ads adjustment reservation failed: ${error.message}`,
+      reservation: null,
+      state: null,
+    }
+  }
+
+  const result = (data ?? {}) as {
+    claim_id?: unknown
+    adjustment_at?: unknown
+    lease_token?: unknown
+    reserved?: unknown
+    state?: unknown
+  }
+  if (result.reserved !== true) {
+    return {
+      error: null,
+      reservation: null,
+      state: typeof result.state === "string" ? result.state : null,
+    }
+  }
+  const durableAdjustmentTime = typeof result.adjustment_at === "string"
+    ? new Date(result.adjustment_at)
+    : null
+  if (
+    typeof result.claim_id !== "string" ||
+    typeof result.lease_token !== "string" ||
+    !durableAdjustmentTime ||
+    !Number.isFinite(durableAdjustmentTime.getTime())
+  ) {
+    return {
+      error: "Google Ads adjustment reservation returned incomplete evidence",
+      reservation: null,
+      state: null,
+    }
+  }
+  return {
+    error: null,
+    reservation: {
+      adjustmentDateTime: durableAdjustmentTime,
+      claimId: result.claim_id,
+      leaseToken: result.lease_token,
+    },
+    state: "reserved",
+  }
+}
+
+async function completeGoogleAdsConversionAdjustmentReservation(input: {
+  error?: string | null
+  outcome: "resolved_not_counted" | "retryable_failed" | "succeeded" | "terminal_failed" | "unknown_outcome"
+  reservation: GoogleAdsAdjustmentReservation
+  supabase: SupabaseClient
+}): Promise<void> {
+  const { data, error } = await input.supabase.rpc(
+    "complete_google_ads_conversion_adjustment_claim",
+    {
+      p_claim_id: input.reservation.claimId,
+      p_error: input.error ?? null,
+      p_lease_token: input.reservation.leaseToken,
+      p_outcome: input.outcome,
+    },
+  )
+  if (error || data !== true) {
+    log.error("Failed to complete Google Ads conversion adjustment reservation", {
+      claimId: input.reservation.claimId,
+      outcome: input.outcome,
+    }, error ?? undefined)
+  }
+}
+
+/**
+ * Persist the exact desired value before a webhook is acknowledged. The
+ * external upload remains in `after()`/cron, but a process exit cannot erase
+ * the work item. Unknown in-flight outcomes block newer generations until an
+ * operator reconciles Google.
+ */
+export async function queueExactGoogleAdsConversionAdjustment(input: {
+  adjustmentDateTime: Date
+  amountCents: number | null
+  intakeId: string
+  source: GoogleAdsConversionAdjustmentSource
+  supabase: SupabaseClient
+  targetNetValueCents: number
+}): Promise<{ error: string | null; state: string | null }> {
+  if (!shouldWriteGoogleAdsAdjustmentAudit()) {
+    return { error: null, state: "skipped_local_dev" }
+  }
+  const intent = getGoogleAdsConversionAdjustmentIntent({
+    amountCents: input.amountCents,
+    paymentStatus: "paid",
+    refundAmountCents: 0,
+    targetNetValueCents: input.targetNetValueCents,
+  })
+  if (!intent || !Number.isFinite(input.adjustmentDateTime.getTime())) {
+    return { error: "Google Ads exact desired state is invalid", state: null }
+  }
+
+  const { data, error } = await input.supabase.rpc(
+    "queue_google_ads_conversion_adjustment",
+    {
+      p_adjustment_at: input.adjustmentDateTime.toISOString(),
+      p_adjustment_type: intent.adjustmentType,
+      p_intake_id: input.intakeId,
+      p_source: input.source,
+      p_target_net_value_cents: intent.targetNetValueCents,
+    },
+  )
+  if (error) {
+    return {
+      error: `Google Ads desired-state queue failed: ${error.message}`,
+      state: null,
+    }
+  }
+  const result = (data ?? {}) as { state?: unknown }
+  const state = typeof result.state === "string" ? result.state : null
+  if (
+    state === "blocked_in_progress" ||
+    state === "blocked_unknown_outcome" ||
+    state === "blocked_irreversible_zero" ||
+    state === "unknown_outcome"
+  ) {
+    return {
+      error: `Google Ads desired-state queue is blocked by ${state}`,
+      state,
+    }
+  }
+  return { error: null, state }
 }
 
 export async function runGoogleAdsConversionAdjustment({
@@ -456,6 +583,14 @@ export async function runGoogleAdsConversionAdjustment({
   ok?: boolean
   status: GoogleAdsConversionAdjustmentStatus
 }> {
+  if (!shouldWriteGoogleAdsAdjustmentAudit()) {
+    log.info("Skipping Google Ads conversion adjustment from local development runtime", {
+      intakeId,
+      source,
+    })
+    return { attempted: false, status: "skipped_local_dev" }
+  }
+
   const intent = getGoogleAdsConversionAdjustmentIntent({
     amountCents,
     paymentStatus,
@@ -485,6 +620,54 @@ export async function runGoogleAdsConversionAdjustment({
   ])
 
   const successfulUpload = successfulPurchaseUpload(uploadAudits)
+  const claim = await reserveGoogleAdsConversionAdjustment({
+    adjustmentDateTime: adjustmentDateTime ?? new Date(),
+    intakeId,
+    intent,
+    source,
+    supabase,
+  })
+  if (claim.error) {
+    await recordGoogleAdsConversionAdjustmentAudit({
+      amountCents,
+      error: "adjustment_reservation_unavailable",
+      hasSuccessfulPurchaseUpload: Boolean(successfulUpload),
+      intakeId,
+      intent,
+      refundAmountCents,
+      requestPath,
+      source,
+      status: "failed",
+      successfulUpload,
+      supabase,
+    })
+    log.error(claim.error, { intakeId, source })
+    return {
+      attempted: false,
+      error: "adjustment_reservation_unavailable",
+      status: "failed",
+    }
+  }
+  if (!claim.reservation) {
+    if (claim.state === "succeeded") {
+      return { attempted: false, status: "skipped_already_adjusted" }
+    }
+    if (claim.state === "resolved_not_counted") {
+      return { attempted: false, status: "resolved_not_counted" }
+    }
+    if (claim.state === "terminal_failed") {
+      return { attempted: false, status: "skipped_terminal_error" }
+    }
+    if (claim.state === "unknown_outcome" || claim.state === "blocked_unknown_outcome") {
+      return {
+        attempted: false,
+        error: "adjustment_outcome_unknown",
+        status: "unknown_outcome",
+      }
+    }
+    return { attempted: false, status: "skipped_in_progress" }
+  }
+
   if (!successfulUpload) {
     // The hourly cron re-evaluates every refunded intake in its lookback
     // window; without this dedupe a never-uploaded intake wrote one identical
@@ -506,19 +689,21 @@ export async function runGoogleAdsConversionAdjustment({
         supabase,
       })
     }
+    await completeGoogleAdsConversionAdjustmentReservation({
+      error: "missing_successful_purchase_upload",
+      // Absence of a successful upload audit is not proof that Google will
+      // never count the purchase: payment finalization or the upload backfill
+      // can still persist one after this refund/dispute run. Keep every target
+      // retryable until positive external evidence proves it was not counted.
+      outcome: "retryable_failed",
+      reservation: claim.reservation,
+      supabase,
+    })
     return {
       attempted: false,
       error: "missing_successful_purchase_upload",
       status: "skipped_missing_successful_upload",
     }
-  }
-
-  if (hasMatchingSuccessfulAdjustment(adjustmentAudits, intent)) {
-    return { attempted: false, status: "skipped_already_adjusted" }
-  }
-
-  if (hasMatchingResolvedNotCounted(adjustmentAudits, intent)) {
-    return { attempted: false, status: "resolved_not_counted" }
   }
 
   const priorPostGraceNotFound = matchingPostGraceConversionNotFound(
@@ -527,9 +712,18 @@ export async function runGoogleAdsConversionAdjustment({
     successfulUpload,
   )
   if (priorPostGraceNotFound) {
+    const priorError = typeof priorPostGraceNotFound.metadata?.error_code === "string"
+      ? priorPostGraceNotFound.metadata.error_code
+      : CONVERSION_NOT_FOUND_TERMINAL_REASON
+    await completeGoogleAdsConversionAdjustmentReservation({
+      error: priorError,
+      outcome: "resolved_not_counted",
+      reservation: claim.reservation,
+      supabase,
+    })
     await recordGoogleAdsConversionAdjustmentAudit({
       amountCents,
-      error: priorPostGraceNotFound.metadata?.error_code,
+      error: priorError,
       hasSuccessfulPurchaseUpload: true,
       intakeId,
       intent,
@@ -543,12 +737,14 @@ export async function runGoogleAdsConversionAdjustment({
     return { attempted: false, status: "resolved_not_counted" }
   }
 
-  if (hasMatchingTerminalAdjustmentFailure(adjustmentAudits, intent)) {
-    return { attempted: false, status: "skipped_terminal_error" }
-  }
-
   const dmPreflight = await checkDataManagerUploadForAdjustment(successfulUpload)
   if (dmPreflight === "rejected") {
+    await completeGoogleAdsConversionAdjustmentReservation({
+      error: DM_REQUEST_REJECTED_ERROR,
+      outcome: "resolved_not_counted",
+      reservation: claim.reservation,
+      supabase,
+    })
     await recordGoogleAdsConversionAdjustmentAudit({
       amountCents,
       error: DM_REQUEST_REJECTED_ERROR,
@@ -558,15 +754,25 @@ export async function runGoogleAdsConversionAdjustment({
       refundAmountCents,
       requestPath,
       source,
-      status: "terminal_failed",
+      status: "resolved_not_counted",
       successfulUpload,
       supabase,
     })
     // No alarm here: a rejected ingest means the conversion never landed in
     // Google Ads, so the refunded order was never counted to begin with.
-    return { attempted: false, error: DM_REQUEST_REJECTED_ERROR, status: "terminal_failed" }
+    return {
+      attempted: false,
+      error: DM_REQUEST_REJECTED_ERROR,
+      status: "resolved_not_counted",
+    }
   }
   if (dmPreflight === "processing") {
+    await completeGoogleAdsConversionAdjustmentReservation({
+      error: DM_REQUEST_PROCESSING_ERROR,
+      outcome: "retryable_failed",
+      reservation: claim.reservation,
+      supabase,
+    })
     await recordGoogleAdsConversionAdjustmentAudit({
       amountCents,
       error: DM_REQUEST_PROCESSING_ERROR,
@@ -583,22 +789,66 @@ export async function runGoogleAdsConversionAdjustment({
     return { attempted: false, error: DM_REQUEST_PROCESSING_ERROR, status: "failed" }
   }
 
-  const result = await fireGoogleAdsConversionAdjustment({
-    adjustedValue: intent.adjustedValue,
-    adjustmentDateTime,
-    adjustmentType: intent.adjustmentType,
-    orderId: intakeId,
-  })
+  let result: GoogleAdsConversionUploadResult
+  try {
+    result = await fireGoogleAdsConversionAdjustment({
+      adjustedValue: intent.adjustedValue,
+      adjustmentDateTime: claim.reservation.adjustmentDateTime,
+      adjustmentType: intent.adjustmentType,
+      orderId: intakeId,
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "google_ads_adjustment_threw"
+    await completeGoogleAdsConversionAdjustmentReservation({
+      error: message,
+      outcome: "unknown_outcome",
+      reservation: claim.reservation,
+      supabase,
+    })
+    await recordGoogleAdsConversionAdjustmentAudit({
+      amountCents,
+      error: message,
+      hasSuccessfulPurchaseUpload: true,
+      intakeId,
+      intent,
+      refundAmountCents,
+      requestPath,
+      source,
+      status: "unknown_outcome",
+      successfulUpload,
+      supabase,
+    })
+    return { attempted: true, error: message, status: "unknown_outcome" }
+  }
   const uploadPastGrace = isUploadPastConversionMatchGrace(successfulUpload)
-  const terminalReason = getTerminalGoogleAdsAdjustmentReason(result.error)
+  const errorDisposition = classifyGoogleAdsAdjustmentError(result.error)
   let status: GoogleAdsConversionAdjustmentStatus = "failed"
   if (result.ok) {
     status = "success"
-  } else if (terminalReason === CONVERSION_NOT_FOUND_TERMINAL_REASON) {
+  } else if (result.unknownOutcome) {
+    status = "unknown_outcome"
+  } else if (errorDisposition?.kind === "not_found") {
     status = uploadPastGrace ? "resolved_not_counted" : "failed"
-  } else if (terminalReason) {
+  } else if (errorDisposition?.kind === "terminal") {
     status = "terminal_failed"
+  } else if (errorDisposition?.kind === "unknown") {
+    status = "unknown_outcome"
   }
+
+  await completeGoogleAdsConversionAdjustmentReservation({
+    error: result.error,
+    outcome: status === "success"
+      ? "succeeded"
+      : status === "resolved_not_counted"
+        ? "resolved_not_counted"
+        : status === "terminal_failed"
+          ? "terminal_failed"
+          : status === "unknown_outcome"
+            ? "unknown_outcome"
+          : "retryable_failed",
+    reservation: claim.reservation,
+    supabase,
+  })
 
   await recordGoogleAdsConversionAdjustmentAudit({
     amountCents,

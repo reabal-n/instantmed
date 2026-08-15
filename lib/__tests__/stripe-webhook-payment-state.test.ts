@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   },
   listCheckoutSessions: vi.fn(),
   notifyPaymentReceived: vi.fn(),
+  reserveRefundEmail: vi.fn(),
   runGoogleAdsConversionAdjustment: vi.fn(),
   sendPaymentFailedEmail: vi.fn(),
   sendPaidRequestTelegramNotification: vi.fn(),
@@ -42,7 +43,10 @@ vi.mock("@/lib/analytics/posthog-server", () => ({
   trackIntakeFunnelStep: mocks.trackIntakeFunnelStep,
 }))
 
-vi.mock("@/lib/analytics/google-ads-conversion-adjustments", () => ({
+vi.mock("@/lib/analytics/google-ads-conversion-adjustments", async () => ({
+  ...(await vi.importActual<typeof import("@/lib/analytics/google-ads-conversion-adjustments")>(
+    "@/lib/analytics/google-ads-conversion-adjustments",
+  )),
   runGoogleAdsConversionAdjustment: mocks.runGoogleAdsConversionAdjustment,
 }))
 
@@ -51,6 +55,7 @@ vi.mock("@/app/actions/generate-drafts", () => ({
 }))
 
 vi.mock("@/lib/email/template-sender", () => ({
+  reserveRefundEmail: mocks.reserveRefundEmail,
   sendPaymentFailedEmail: mocks.sendPaymentFailedEmail,
   sendSessionExpiredEmail: mocks.sendSessionExpiredEmail,
 }))
@@ -377,6 +382,60 @@ function makeEvent(type: string, object: Record<string, unknown>): Stripe.Event 
   } as unknown as Stripe.Event
 }
 
+function exactRefundSelectResult(
+  refundedAt: string,
+  refundAmountCents = 1995,
+  patientEmail: string | null = null,
+  intakeStatus = "approved",
+): SelectResultFactory {
+  return (record) => {
+    if (record.table === "stripe_payment_adjustment_targets") {
+      return {
+        data: {
+          adjustment_at: refundedAt,
+          target_net_value_cents: Math.max(4995 - refundAmountCents, 1),
+        },
+        error: null,
+      }
+    }
+    if (record.table === "intakes" && record.selected === "id") {
+      return { data: { id: "intake-1" }, error: null }
+    }
+    if (record.table === "intakes" && record.selected?.includes("amount_cents")) {
+      return {
+        data: {
+          amount_cents: 4995,
+          id: "intake-1",
+          payment_status: "partially_refunded",
+          priority_fee_refunded_at: null,
+          refund_amount_cents: refundAmountCents,
+          refund_status: "succeeded",
+          refund_stripe_id: "re_partial",
+          refunded_at: refundedAt,
+        },
+        error: null,
+      }
+    }
+    if (record.table === "intakes") {
+      return {
+        data: {
+          id: "intake-1",
+          patient_id: patientEmail ? "patient-1" : null,
+          status: intakeStatus,
+        },
+        error: null,
+      }
+    }
+    if (record.table === "profiles" && patientEmail) {
+      return {
+        data: { email: patientEmail, full_name: "patient example", id: "patient-1" },
+        error: null,
+      }
+    }
+    return { data: null, error: null }
+  }
+}
+
 async function runAfterCallbacks() {
   for (const [callback] of mocks.after.mock.calls) {
     await callback()
@@ -388,6 +447,7 @@ describe("Stripe webhook payment state transitions", () => {
     vi.clearAllMocks()
     mocks.completeConfirmedPaymentWork.mockResolvedValue(undefined)
     mocks.listCheckoutSessions.mockResolvedValue({ data: [{ id: "cs_current" }] })
+    mocks.reserveRefundEmail.mockResolvedValue({ success: true, emailId: "outbox-refund" })
     mocks.sendSessionExpiredEmail.mockResolvedValue({ success: true, emailId: "email-1" })
   })
 
@@ -1038,10 +1098,11 @@ describe("Stripe webhook payment state transitions", () => {
 
   it("records canonical refund metadata when Stripe reports a partial charge refund", async () => {
     const refundedAt = "2026-04-14T12:37:28.000Z"
-    const { supabase, updates } = createWebhookSupabaseMock({
-      data: [{ id: "intake-1" }],
-      error: null,
-    })
+    const { supabase, updates } = createWebhookSupabaseMock(
+      { data: [{ id: "intake-1" }], error: null },
+      { data: true, error: null },
+      exactRefundSelectResult(refundedAt),
+    )
 
     await handleChargeRefunded({
       event: makeEvent("charge.refunded", {
@@ -1056,6 +1117,7 @@ describe("Stripe webhook payment state transitions", () => {
               balance_transaction: {
                 amount: -1995,
                 created: Math.floor(Date.parse(refundedAt) / 1000),
+                currency: "aud",
                 id: "txn_partial",
                 net: -1995,
                 object: "balance_transaction",
@@ -1074,30 +1136,30 @@ describe("Stripe webhook payment state transitions", () => {
       supabase: supabase as never,
     })
 
-    const intakeUpdate = updates.find((update) => update.table === "intakes")
-    expect(intakeUpdate?.payload).toMatchObject({
-      payment_status: "partially_refunded",
-      refund_amount_cents: 1995,
-      refund_status: "succeeded",
-      refund_stripe_id: "re_partial",
-      refunded_at: refundedAt,
-    })
+    expect(updates.filter((update) => update.table === "intakes")).toEqual([])
 
-    const paymentUpdate = updates.find((update) => update.table === "payments")
-    expect(paymentUpdate?.payload).toMatchObject({
-      refund_amount: 1995,
-      refund_status: "refunded",
-      refunded_at: refundedAt,
-      status: "refunded",
-      stripe_refund_id: "re_partial",
+    expect(updates.filter((update) => update.table === "payments")).toEqual([])
+    expect(supabase.rpc).toHaveBeenCalledWith("reconcile_intake_refund_cash_state", {
+      p_intake_id: "intake-1",
+      p_livemode: true,
+      p_trigger_status: "succeeded",
+    })
+    expect(supabase.rpc).toHaveBeenCalledWith("queue_google_ads_conversion_adjustment", {
+      p_adjustment_at: refundedAt,
+      p_adjustment_type: "RESTATEMENT",
+      p_intake_id: "intake-1",
+      p_source: "stripe_charge_refunded",
+      p_target_net_value_cents: 3000,
     })
   })
 
   it("schedules a Google Ads retained-value adjustment after a Stripe refund", async () => {
-    const { supabase } = createWebhookSupabaseMock({
-      data: [{ id: "intake-1" }],
-      error: null,
-    })
+    const refundedAt = "2026-04-14T12:37:28.000Z"
+    const { supabase } = createWebhookSupabaseMock(
+      { data: [{ id: "intake-1" }], error: null },
+      { data: true, error: null },
+      exactRefundSelectResult(refundedAt),
+    )
 
     await handleChargeRefunded({
       event: makeEvent("charge.refunded", {
@@ -1112,6 +1174,7 @@ describe("Stripe webhook payment state transitions", () => {
               balance_transaction: {
                 amount: -1995,
                 created: Math.floor(Date.parse("2026-04-14T12:37:28.000Z") / 1000),
+                currency: "aud",
                 id: "txn_partial",
                 net: -1995,
                 object: "balance_transaction",
@@ -1143,7 +1206,170 @@ describe("Stripe webhook payment state transitions", () => {
       requestPath: "/api/stripe/webhook",
       source: "stripe_charge_refunded",
       supabase,
+      targetNetValueCents: 3000,
     })
+  })
+
+  it.each([
+    { expectedReason: "Full refund processed", intakeStatus: "approved" },
+    {
+      expectedReason: "Your request was declined or cancelled",
+      intakeStatus: "declined",
+    },
+  ])(
+    "uses a truthful full-refund reason for a $intakeStatus intake",
+    async ({ expectedReason, intakeStatus }) => {
+    const refundedAt = "2026-04-14T12:30:00.000Z"
+    const { supabase } = createWebhookSupabaseMock(
+      { data: [{ id: "intake-1" }], error: null },
+      { data: true, error: null },
+      exactRefundSelectResult(refundedAt, 4995, "patient@example.test", intakeStatus),
+    )
+    const event = makeEvent("charge.refunded", {
+      amount: 4995,
+      amount_refunded: 4995,
+      id: "ch_refunded",
+      payment_intent: "pi_refunded",
+      refunds: {
+        data: [
+          {
+            amount: 995,
+            balance_transaction: {
+              amount: -995,
+              created: Math.floor(Date.parse("2026-04-14T12:10:00.000Z") / 1000),
+              currency: "aud",
+              id: "txn_first",
+              net: -995,
+              object: "balance_transaction",
+              source: "re_first",
+              type: "refund",
+            },
+            currency: "aud",
+            created: Math.floor(Date.parse("2026-04-14T12:00:00.000Z") / 1000),
+            id: "re_first",
+            metadata: {},
+            status: "succeeded",
+          },
+          {
+            amount: 4000,
+            balance_transaction: {
+              amount: -4000,
+              created: Math.floor(Date.parse(refundedAt) / 1000),
+              currency: "aud",
+              id: "txn_topup",
+              net: -4000,
+              object: "balance_transaction",
+              source: "re_topup",
+              type: "refund",
+            },
+            currency: "aud",
+            created: Math.floor(Date.parse("2026-04-14T12:20:00.000Z") / 1000),
+            id: "re_topup",
+            metadata: {},
+            status: "succeeded",
+          },
+        ],
+      },
+    })
+
+    await handleChargeRefunded({
+      event,
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(mocks.reserveRefundEmail).toHaveBeenCalledWith({
+      amountCents: 4000,
+      intakeId: "intake-1",
+      livemode: true,
+      patientId: "patient-1",
+      patientName: "Patient",
+      refundReason: expectedReason,
+      stripeRefundId: "re_topup",
+      to: "patient@example.test",
+    })
+    const rpcCalls = vi.mocked(supabase.rpc).mock.calls as unknown as Array<[string]>
+    const claimIndex = rpcCalls.findIndex(([name]) => name === "try_process_stripe_event")
+    expect(claimIndex).toBeGreaterThanOrEqual(0)
+    expect(mocks.reserveRefundEmail.mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(supabase.rpc).mock.invocationCallOrder[claimIndex],
+    )
+
+    await handleChargeRefunded({
+      adminReplay: true,
+      event,
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+    expect(mocks.reserveRefundEmail).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        amountCents: 4000,
+        intakeId: "intake-1",
+        stripeRefundId: "re_topup",
+      }),
+    )
+    },
+  )
+
+  it("DLQs a refund notification reservation failure before claiming the event", async () => {
+    const refundedAt = "2026-04-14T12:37:28.000Z"
+    mocks.reserveRefundEmail.mockResolvedValue({
+      error: "outbox unavailable",
+      success: false,
+    })
+    const { supabase } = createWebhookSupabaseMock(
+      { data: [{ id: "intake-1" }], error: null },
+      { data: true, error: null },
+      exactRefundSelectResult(refundedAt, 1995, "patient@example.test"),
+    )
+    const event = makeEvent("charge.refunded", {
+      amount: 4995,
+      amount_refunded: 1995,
+      id: "ch_refunded",
+      payment_intent: "pi_refunded",
+      refunds: {
+        data: [{
+          amount: 1995,
+          balance_transaction: {
+            amount: -1995,
+            created: Math.floor(Date.parse(refundedAt) / 1000),
+            currency: "aud",
+            id: "txn_partial",
+            net: -1995,
+            object: "balance_transaction",
+            source: "re_partial",
+            type: "refund",
+          },
+          currency: "aud",
+          created: Math.floor(Date.parse("2026-04-14T12:00:00.000Z") / 1000),
+          id: "re_partial",
+          metadata: {},
+          status: "succeeded",
+        }],
+      },
+    })
+
+    const response = await handleChargeRefunded({
+      event,
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect((response as Response).status).toBe(500)
+    expect(vi.mocked(supabase.rpc)).not.toHaveBeenCalledWith(
+      "try_process_stripe_event",
+      expect.anything(),
+    )
+    expect(mocks.addToDeadLetterQueue).toHaveBeenCalledWith(
+      supabase,
+      event.id,
+      event.type,
+      "ch_refunded",
+      "intake-1",
+      "outbox unavailable",
+      "REFUND_NOTIFICATION_RESERVATION_FAILED",
+      event,
+    )
   })
 
   it("marks failed async checkout attempts against the current checkout session only", async () => {

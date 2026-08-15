@@ -667,4 +667,75 @@ describe("google ads conversion api", () => {
     global.fetch = originalFetch
     process.env = originalEnv
   })
+
+  it("marks an adjustment POST transport failure as an unknown external outcome", async () => {
+    const originalFetch = global.fetch
+    const originalEnv = { ...process.env }
+
+    try {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ access_token: "access-token", expires_in: 3600 }),
+        })
+        .mockRejectedValueOnce(new TypeError("connection reset after request write")) as typeof fetch
+
+      process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
+      process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+      process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
+      process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
+      process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
+      process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE = "9876543210"
+
+      await expect(fireGoogleAdsConversionAdjustment({
+        adjustedValue: 19.95,
+        adjustmentType: "RESTATEMENT",
+        orderId: "intake_123",
+      })).resolves.toMatchObject({
+        attempted: true,
+        ok: false,
+        unknownOutcome: true,
+      })
+    } finally {
+      global.fetch = originalFetch
+      process.env = originalEnv
+    }
+  })
+
+  it("marks an unreadable successful adjustment response as an unknown external outcome", async () => {
+    const originalFetch = global.fetch
+    const originalEnv = { ...process.env }
+
+    try {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ access_token: "access-token", expires_in: 3600 }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          text: async () => "not-json",
+        }) as typeof fetch
+
+      process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
+      process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+      process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
+      process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
+      process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
+      process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE = "9876543210"
+
+      await expect(fireGoogleAdsConversionAdjustment({
+        adjustedValue: 19.95,
+        adjustmentType: "RESTATEMENT",
+        orderId: "intake_123",
+      })).resolves.toMatchObject({
+        attempted: true,
+        ok: false,
+        unknownOutcome: true,
+      })
+    } finally {
+      global.fetch = originalFetch
+      process.env = originalEnv
+    }
+  })
 })

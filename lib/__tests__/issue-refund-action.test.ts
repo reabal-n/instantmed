@@ -1,6 +1,6 @@
 /**
  * Unit tests for `issueRefundAction` (and, through it, the module-private
- * `checkSupportRefundLimits`) in app/doctor/queue/actions.ts.
+ * `reserveSupportRefundAttempt`) in app/doctor/queue/actions.ts.
  *
  * This is the manual/standalone refund path — separate from the decline flow
  * (covered in decline-intake.test.ts) — and was the only untested live-money
@@ -14,49 +14,49 @@
  *      by the allowlist contract, which we pin here.)
  *   2. Support per-refund cap: support blocked above SUPPORT_REFUND_CAP_CENTS
  *      ($100); exactly $100 allowed; doctor/admin uncapped (they never hit the
- *      limits helper — pinned by asserting no count query runs for them).
+ *      quota RPC — pinned by asserting no reservation runs for them).
  *      `lib/auth/staff-capabilities` is intentionally NOT mocked so the real
  *      hasSupportAccess/hasAdminAccess logic decides who gets capped.
- *   3. Support rolling 24h limit: 4th refund in 24h blocked
- *      (SUPPORT_REFUND_MAX_PER_24H = 3); the window query is
- *      eq(refunded_by, profile) + gte(refunded_at, now - 24h); count-query
- *      failure FAILS CLOSED (deny, don't allow).
+ *   3. Support rolling 24h limit: 4th distinct attempt in 24h is blocked
+ *      (SUPPORT_REFUND_MAX_PER_24H = 3); parallel actions cannot exceed the
+ *      durable RPC reservation result; RPC failure FAILS CLOSED.
  *   4. Full refund from payment_status='paid': explicit `amount` equal to the
  *      full remaining balance, idempotency key `standalone_refund_${intakeId}`,
- *      payment_status flips to 'refunded' and refund_status to 'succeeded'
- *      (the refund_status enum has NO 'refunded' value — 'succeeded' is the
- *      correct terminal; see CLAUDE.md Gotchas).
+ *      but local cash state remains pending until exact webhook evidence.
  *   5. Top-up from payment_status='partially_refunded': refunds ONLY
  *      amount_cents - refund_amount_cents, idempotency key
  *      `standalone_refund_topup_${intakeId}_${alreadyRefundedCents}` (stable
- *      across retries of the same top-up), flips to 'refunded' only when the
- *      running total covers amount_cents.
+ *      across retries of the same top-up), without guessing a new cumulative
+ *      cash total from the create response.
  *   6. Refuses non-refundable payment states (refunded / unpaid / failed),
  *      missing intakes, and zero-remaining balances.
  *   7. Stripe failure surfaces as an error and writes NO refund state to the
  *      intake (no false-success).
  *   8. Payment-intent resolution fallback via the stored Checkout Session, and
  *      a hard error when no payment intent can be found.
- *   9. Patient email is non-critical: a failed send does not fail the refund.
+ *   9. The cash-confirmed webhook owns the patient refund email; this action
+ *      does not require a patient email address.
  *
  * Mocking notes:
  * - app/doctor/queue/actions.ts is a large "use server" module; every heavy
  *   import in its graph is mocked below so importing it stays cheap. The
  *   Supabase service-role client, Stripe client, Sentry, and logger are
  *   already mocked globally in ./setup.
- * - The support 24h count query and the post-refund UPDATE are awaited
- *   directly (no .single() terminal), so this file overrides the setup
- *   Supabase chain with a *thenable* chain whose awaited value is
- *   controllable per test via `awaitedChainResult`.
+ * - The action's optimistic intake writes use `.maybeSingle()`, so this file
+ *   overrides the setup chain to return controllable mutation receipts.
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
-import { sendRefundIssuedEmail } from "@/lib/email/senders"
 import { stripe } from "@/lib/stripe/client"
 
-import { mockSupabaseFrom, mockSupabaseSingle, resetAllMocks } from "./setup"
+import {
+  mockSupabaseFrom,
+  mockSupabaseRpc,
+  mockSupabaseSingle,
+  resetAllMocks,
+} from "./setup"
 
 // ============================================================================
 // MOCKS - must be registered BEFORE importing the actions module
@@ -151,33 +151,19 @@ vi.mock("@/lib/security/phi-field-wrappers", () => ({
   readAnswers: vi.fn(async () => ({})),
 }))
 
-vi.mock("@/lib/email/senders", () => ({
-  sendRefundIssuedEmail: vi.fn().mockResolvedValue(undefined),
-}))
-
 // Import AFTER mocks are registered
 import { issueRefundAction } from "@/app/doctor/queue/actions"
 
 // ============================================================================
-// SUPABASE THENABLE CHAIN
+// SUPABASE CHAIN
 // ============================================================================
 
-/**
- * The action awaits two query chains WITHOUT a .single() terminal:
- *   - the support 24h count:  from("intakes").select("id", {count,head}).eq().gte()
- *   - the post-refund update: from("intakes").update({...}).eq("id", id)
- * The setup.ts chain is not thenable, so awaiting it yields the chain object
- * itself ({ count: undefined, error: undefined }) — useless for testing the
- * rolling limit. This thenable variant resolves to `awaitedChainResult`,
- * which tests set per scenario. `.single()` still routes to mockSupabaseSingle.
- */
-type AwaitedChainResult = {
-  count?: number | null
-  error?: { message: string } | null
-  data?: unknown
-}
+const TRIGGER_REWRITTEN_RESERVATION_AT = "2026-08-14T00:00:00.777Z"
 
-let awaitedChainResult: AwaitedChainResult
+let mutationResults: Array<{
+  data: { id: string; updated_at?: string } | null
+  error: { message: string } | null
+}>
 
 function installThenableChain() {
   mockSupabaseFrom.mockImplementation(() => {
@@ -190,11 +176,17 @@ function installThenableChain() {
       chain[method] = vi.fn(() => chain)
     }
     chain.single = mockSupabaseSingle
-    chain.maybeSingle = mockSupabaseSingle
-    chain.then = (
-      onFulfilled?: (value: unknown) => unknown,
-      onRejected?: (reason: unknown) => unknown,
-    ) => Promise.resolve(awaitedChainResult).then(onFulfilled, onRejected)
+    chain.maybeSingle = vi.fn(async () => {
+      const explicitResult = mutationResults.shift()
+      if (explicitResult) return explicitResult
+      const selected = (chain.select as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[0]
+      return selected === "id, updated_at"
+        ? {
+            data: { id: INTAKE_ID, updated_at: TRIGGER_REWRITTEN_RESERVATION_AT },
+            error: null,
+          }
+        : { data: { id: INTAKE_ID }, error: null }
+    })
     return chain
   })
 }
@@ -208,15 +200,6 @@ function getChains(): MockChain[] {
 function getUpdatePayloads(): Array<Record<string, unknown>> {
   return getChains().flatMap(
     (chain) => chain.update?.mock?.calls.map((call) => call[0] as Record<string, unknown>) ?? [],
-  )
-}
-
-/** Find the chain used for the support 24h count query (select with count: "exact"). */
-function getCountQueryChain(): MockChain | undefined {
-  return getChains().find((chain) =>
-    chain.select?.mock?.calls.some(
-      (call) => (call[1] as { count?: string } | undefined)?.count === "exact",
-    ),
   )
 }
 
@@ -253,6 +236,9 @@ function makeIntakeRow(overrides: Record<string, unknown> = {}) {
     stripe_payment_intent_id: "pi_test_xyz",
     amount_cents: 1995,
     refund_amount_cents: null,
+    refund_status: "not_applicable",
+    refund_stripe_id: null,
+    updated_at: "2026-08-14T00:00:00.000Z",
     patient_id: "patient-1",
     patient: [{
       id: "patient-1",
@@ -279,6 +265,28 @@ function mockStripeRefundSuccess(id = "re_1", amount = 1995) {
   vi.mocked(stripe.refunds.create).mockResolvedValue({ id, amount } as never)
 }
 
+type SupportQuotaRow = {
+  allowed: boolean
+  denial_reason: "amount_limit" | "attempt_limit" | null
+  attempt_id: string | null
+  recent_attempt_count: number
+  reused: boolean
+}
+
+function mockSupportQuota(overrides: Partial<SupportQuotaRow> = {}) {
+  mockSupabaseRpc.mockResolvedValue({
+    data: [{
+      allowed: true,
+      denial_reason: null,
+      attempt_id: "ffffffff-eeee-4ddd-8ccc-bbbbbbbbbbbb",
+      recent_attempt_count: 1,
+      reused: false,
+      ...overrides,
+    }],
+    error: null,
+  })
+}
+
 // ============================================================================
 // TESTS
 // ============================================================================
@@ -287,7 +295,8 @@ describe("issueRefundAction", () => {
   beforeEach(() => {
     resetAllMocks()
     installThenableChain()
-    awaitedChainResult = { count: 0, error: null }
+    mutationResults = []
+    mockSupportQuota()
     mockRequireRole.mockReset()
     mockSupabaseSingle.mockReset()
     vi.mocked(stripe.refunds.create).mockReset()
@@ -353,7 +362,6 @@ describe("issueRefundAction", () => {
       mockActor("support")
       mockIntakeFetch(makeIntakeRow())
       mockStripeRefundSuccess()
-      awaitedChainResult = { count: 0, error: null }
 
       const result = await issueRefundAction(INTAKE_ID)
 
@@ -370,6 +378,12 @@ describe("issueRefundAction", () => {
       mockActor("support")
       // $199.95 weight-loss-tier price > 10_000-cent cap
       mockIntakeFetch(makeIntakeRow({ amount_cents: 19995 }))
+      mockSupportQuota({
+        allowed: false,
+        denial_reason: "amount_limit",
+        attempt_id: null,
+        recent_attempt_count: 0,
+      })
 
       const result = await issueRefundAction(INTAKE_ID)
 
@@ -377,8 +391,10 @@ describe("issueRefundAction", () => {
       expect(result.error).toContain("capped at $100.00")
       expect(result.error).toContain("$199.95")
       expect(stripe.refunds.create).not.toHaveBeenCalled()
-      // The cap check short-circuits before the rolling-24h count query.
-      expect(getCountQueryChain()).toBeUndefined()
+      expect(mockSupabaseRpc).toHaveBeenCalledWith(
+        "reserve_support_refund_attempt",
+        expect.objectContaining({ p_amount_cents: 19995 }),
+      )
     })
 
     it("allows support at exactly $100 (cap is exclusive)", async () => {
@@ -420,8 +436,7 @@ describe("issueRefundAction", () => {
       expect(result.success).toBe(true)
       const [params] = getRefundCall()
       expect(params.amount).toBe(19995)
-      // Doctor never hits checkSupportRefundLimits → no count query.
-      expect(getCountQueryChain()).toBeUndefined()
+      expect(mockSupabaseRpc).not.toHaveBeenCalled()
     })
 
     it("admin is uncapped (no limit checks at all)", async () => {
@@ -432,7 +447,7 @@ describe("issueRefundAction", () => {
       const result = await issueRefundAction(INTAKE_ID)
 
       expect(result.success).toBe(true)
-      expect(getCountQueryChain()).toBeUndefined()
+      expect(mockSupabaseRpc).not.toHaveBeenCalled()
     })
   })
 
@@ -441,59 +456,121 @@ describe("issueRefundAction", () => {
   // --------------------------------------------------------------------------
 
   describe("support rolling 24h limit", () => {
-    it("blocks the 4th refund in 24h (count already at 3)", async () => {
+    it("blocks the 4th distinct attempt in 24h", async () => {
       mockActor("support")
       mockIntakeFetch(makeIntakeRow())
-      awaitedChainResult = { count: 3, error: null }
+      mockSupportQuota({
+        allowed: false,
+        denial_reason: "attempt_limit",
+        attempt_id: null,
+        recent_attempt_count: 3,
+      })
 
       const result = await issueRefundAction(INTAKE_ID)
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain("3 refunds in the last 24h (limit 3)")
+      expect(result.error).toContain("attempted 3 refunds in the last 24h (limit 3)")
       expect(stripe.refunds.create).not.toHaveBeenCalled()
     })
 
-    it("allows the 3rd refund in 24h (count at 2)", async () => {
+    it("allows the 3rd attempt in 24h", async () => {
       mockActor("support")
       mockIntakeFetch(makeIntakeRow())
       mockStripeRefundSuccess()
-      awaitedChainResult = { count: 2, error: null }
+      mockSupportQuota({ recent_attempt_count: 3 })
 
       const result = await issueRefundAction(INTAKE_ID)
 
       expect(result.success).toBe(true)
     })
 
-    it("queries refunds by this profile over a rolling 24h window", async () => {
+    it("reserves the exact actor, intake, amount, and Stripe idempotency generation", async () => {
       const supportId = mockActor("support")
       mockIntakeFetch(makeIntakeRow())
       mockStripeRefundSuccess()
-      const before = Date.now()
 
       await issueRefundAction(INTAKE_ID)
 
-      const chain = getCountQueryChain()
-      expect(chain).toBeDefined()
-      expect(chain!.select).toHaveBeenCalledWith("id", { count: "exact", head: true })
-      expect(chain!.eq).toHaveBeenCalledWith("refunded_by", supportId)
-      const gteCall = chain!.gte.mock.calls.find((call) => call[0] === "refunded_at")
-      expect(gteCall).toBeDefined()
-      // The window floor must be ~24h before now (rolling, not calendar-day).
-      const since = new Date(gteCall![1] as string).getTime()
-      const expected = before - 24 * 60 * 60 * 1000
-      expect(Math.abs(since - expected)).toBeLessThan(10_000)
+      expect(mockSupabaseRpc).toHaveBeenCalledWith("reserve_support_refund_attempt", {
+        p_actor_profile_id: supportId,
+        p_intake_id: INTAKE_ID,
+        p_attempt_key: `standalone_refund_${INTAKE_ID}`,
+        p_amount_cents: 1995,
+      })
     })
 
-    it("fails CLOSED when the count query errors (deny, not allow)", async () => {
+    it("fails CLOSED when the reservation RPC errors", async () => {
       mockActor("support")
       mockIntakeFetch(makeIntakeRow())
-      awaitedChainResult = { count: null, error: { message: "db unavailable" } }
+      mockSupabaseRpc.mockResolvedValue({ data: null, error: { message: "db unavailable" } })
 
       const result = await issueRefundAction(INTAKE_ID)
 
       expect(result.success).toBe(false)
       expect(result.error).toContain("Could not verify your refund quota")
       expect(stripe.refunds.create).not.toHaveBeenCalled()
+    })
+
+    it("lets only three of four parallel distinct support attempts pass the quota gate", async () => {
+      const intakeIds = [
+        "10000000-0000-4000-8000-000000000001",
+        "10000000-0000-4000-8000-000000000002",
+        "10000000-0000-4000-8000-000000000003",
+        "10000000-0000-4000-8000-000000000004",
+      ]
+      mockActor("support")
+      for (const intakeId of intakeIds) {
+        mockIntakeFetch(makeIntakeRow({ id: intakeId }))
+      }
+      // Stop accepted calls at the following intake reservation so this test
+      // isolates the quota gate and never reaches the external Stripe mock.
+      mutationResults = [
+        { data: null, error: null },
+        { data: null, error: null },
+        { data: null, error: null },
+      ]
+
+      let acceptedAttempts = 0
+      mockSupabaseRpc.mockImplementation(async () => {
+        await Promise.resolve()
+        if (acceptedAttempts >= 3) {
+          return {
+            data: [{
+              allowed: false,
+              denial_reason: "attempt_limit",
+              attempt_id: null,
+              recent_attempt_count: 3,
+              reused: false,
+            }],
+            error: null,
+          }
+        }
+        acceptedAttempts += 1
+        return {
+          data: [{
+            allowed: true,
+            denial_reason: null,
+            attempt_id: `20000000-0000-4000-8000-00000000000${acceptedAttempts}`,
+            recent_attempt_count: acceptedAttempts,
+            reused: false,
+          }],
+          error: null,
+        }
+      })
+
+      const results = await Promise.all(intakeIds.map((id) => issueRefundAction(id)))
+
+      expect(results.filter((result) =>
+        result.error?.includes("changed while the refund was being prepared"),
+      )).toHaveLength(3)
+      expect(results.filter((result) =>
+        result.error?.includes("attempted 3 refunds in the last 24h"),
+      )).toHaveLength(1)
+      expect(getUpdatePayloads().filter((payload) =>
+        payload.refund_status === "pending",
+      )).toHaveLength(3)
+      expect(stripe.refunds.create).not.toHaveBeenCalled()
+      expect(mockSupabaseRpc).toHaveBeenCalledTimes(4)
     })
   })
 
@@ -529,11 +606,12 @@ describe("issueRefundAction", () => {
         success: true,
         refundId: "re_full",
         amount: 1995,
-        totalRefunded: 1995,
+        pending: true,
+        totalRefunded: 0,
       })
     })
 
-    it("flips payment_status to 'refunded' and refund_status to 'succeeded' (enum has no 'refunded')", async () => {
+    it("records only a pending refund request before exact cash evidence", async () => {
       mockActor("doctor")
       mockIntakeFetch(makeIntakeRow({ amount_cents: 1995 }))
       mockStripeRefundSuccess("re_full", 1995)
@@ -541,17 +619,26 @@ describe("issueRefundAction", () => {
       await issueRefundAction(INTAKE_ID)
 
       expect(getUpdatePayloads()).toContainEqual(expect.objectContaining({
-        payment_status: "refunded",
-        // The refund_status enum is not_applicable|not_eligible|pending|
-        // succeeded|failed|skipped_e2e — 'refunded' would throw at the DB.
-        refund_status: "succeeded",
+        refund_status: "pending",
         refund_stripe_id: "re_full",
-        refund_amount_cents: 1995,
         refunded_by: "doctor-1",
       }))
+      const pendingUpdate = getUpdatePayloads().find((payload) => payload.refund_stripe_id === "re_full")
+      expect(pendingUpdate).not.toHaveProperty("payment_status")
+      expect(pendingUpdate).not.toHaveProperty("refund_amount_cents")
+      expect(pendingUpdate).not.toHaveProperty("refunded_at")
+      const pendingChain = getChains().find((chain) =>
+        chain.update?.mock.calls.some((call) =>
+          (call[0] as Record<string, unknown>).refund_stripe_id === "re_full"
+        )
+      )
+      expect(pendingChain?.eq).toHaveBeenCalledWith(
+        "updated_at",
+        TRIGGER_REWRITTEN_RESERVATION_AT,
+      )
     })
 
-    it("revalidates staff + patient caches and emails the patient on success", async () => {
+    it("revalidates caches but lets the exact webhook own the patient refund email", async () => {
       mockActor("doctor")
       mockIntakeFetch(makeIntakeRow())
       mockStripeRefundSuccess()
@@ -560,12 +647,6 @@ describe("issueRefundAction", () => {
 
       expect(revalidateStaff).toHaveBeenCalledWith({ intakeId: INTAKE_ID, content: true })
       expect(revalidatePatient).toHaveBeenCalledWith({ intakeId: INTAKE_ID })
-      expect(sendRefundIssuedEmail).toHaveBeenCalledWith(expect.objectContaining({
-        to: "patient@example.com",
-        patientId: "patient-1",
-        intakeId: INTAKE_ID,
-        amountFormatted: "$19.95",
-      }))
     })
   })
 
@@ -601,11 +682,12 @@ describe("issueRefundAction", () => {
         success: true,
         refundId: "re_topup",
         amount: 2995,
-        totalRefunded: 4995,
+        pending: true,
+        totalRefunded: 2000,
       })
     })
 
-    it("flips to 'refunded' when the running total covers amount_cents", async () => {
+    it("keeps the prior cash total until the top-up webhook proves settlement", async () => {
       mockActor("admin")
       mockIntakeFetch(makeIntakeRow({
         payment_status: "partially_refunded",
@@ -617,13 +699,15 @@ describe("issueRefundAction", () => {
       await issueRefundAction(INTAKE_ID)
 
       expect(getUpdatePayloads()).toContainEqual(expect.objectContaining({
-        payment_status: "refunded",
-        refund_status: "succeeded",
-        refund_amount_cents: 4995,
+        refund_status: "pending",
+        refund_stripe_id: "re_topup",
       }))
+      const pendingUpdate = getUpdatePayloads().find((payload) => payload.refund_stripe_id === "re_topup")
+      expect(pendingUpdate).not.toHaveProperty("payment_status")
+      expect(pendingUpdate).not.toHaveProperty("refund_amount_cents")
     })
 
-    it("stays 'partially_refunded' if Stripe refunds less than the remaining balance", async () => {
+    it("does not treat a short create response as durable cash", async () => {
       mockActor("admin")
       mockIntakeFetch(makeIntakeRow({
         payment_status: "partially_refunded",
@@ -639,11 +723,12 @@ describe("issueRefundAction", () => {
         success: true,
         refundId: "re_short",
         amount: 1000,
-        totalRefunded: 3000,
+        pending: true,
+        totalRefunded: 2000,
       })
       expect(getUpdatePayloads()).toContainEqual(expect.objectContaining({
-        payment_status: "partially_refunded",
-        refund_amount_cents: 3000,
+        refund_status: "pending",
+        refund_stripe_id: "re_short",
       }))
     })
 
@@ -730,7 +815,7 @@ describe("issueRefundAction", () => {
   // --------------------------------------------------------------------------
 
   describe("Stripe failure path", () => {
-    it("surfaces the Stripe error and writes NO refund state to the intake", async () => {
+    it("surfaces the Stripe error and rolls back only its own reserved state", async () => {
       mockActor("doctor")
       mockIntakeFetch(makeIntakeRow())
       vi.mocked(stripe.refunds.create).mockRejectedValue(
@@ -741,11 +826,57 @@ describe("issueRefundAction", () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toBe("Failed to process refund: charge_already_refunded")
-      // No false-success state: the intake update only runs after Stripe succeeds.
-      expect(getUpdatePayloads()).toHaveLength(0)
+      expect(getUpdatePayloads()).toEqual([
+        expect.objectContaining({ refund_status: "pending" }),
+        expect.objectContaining({ refund_status: "failed" }),
+      ])
       expect(revalidateStaff).not.toHaveBeenCalled()
       expect(revalidatePatient).not.toHaveBeenCalled()
-      expect(sendRefundIssuedEmail).not.toHaveBeenCalled()
+    })
+  })
+
+  describe("fast webhook ordering", () => {
+    it.each(["succeeded", "failed"])(
+      "does not overwrite exact %s evidence that lands before Refund.create returns",
+      async () => {
+        mockActor("doctor")
+        mockIntakeFetch(makeIntakeRow())
+        mockStripeRefundSuccess("re_fast", 1995)
+        mutationResults = [
+          {
+            data: { id: INTAKE_ID, updated_at: TRIGGER_REWRITTEN_RESERVATION_AT },
+            error: null,
+          },
+          { data: null, error: null },
+        ]
+
+        const result = await issueRefundAction(INTAKE_ID)
+
+        expect(result.success).toBe(true)
+        const updateChains = getChains().filter((chain) => chain.update?.mock.calls.length)
+        const finalChain = updateChains.at(-1)
+        expect(finalChain?.eq).toHaveBeenCalledWith("refund_status", "pending")
+        expect(finalChain?.eq).toHaveBeenCalledWith(
+          "updated_at",
+          TRIGGER_REWRITTEN_RESERVATION_AT,
+        )
+      },
+    )
+
+    it("advances the Stripe idempotency generation after exact failed evidence", async () => {
+      mockActor("doctor")
+      mockIntakeFetch(makeIntakeRow({
+        refund_status: "failed",
+        refund_stripe_id: "re_failed",
+      }))
+      mockStripeRefundSuccess("re_retry", 1995)
+
+      await issueRefundAction(INTAKE_ID)
+
+      const [, options] = getRefundCall()
+      expect(options.idempotencyKey).toBe(
+        `standalone_refund_${INTAKE_ID}_after_re_failed`,
+      )
     })
   })
 
@@ -795,22 +926,11 @@ describe("issueRefundAction", () => {
   })
 
   // --------------------------------------------------------------------------
-  // 9. Patient email is non-critical
+  // 9. Patient email is owned by the cash-confirmed webhook
   // --------------------------------------------------------------------------
 
-  describe("patient email is non-critical", () => {
-    it("still succeeds when the refund email fails to send", async () => {
-      mockActor("doctor")
-      mockIntakeFetch(makeIntakeRow())
-      mockStripeRefundSuccess()
-      vi.mocked(sendRefundIssuedEmail).mockRejectedValueOnce(new Error("resend down") as never)
-
-      const result = await issueRefundAction(INTAKE_ID)
-
-      expect(result.success).toBe(true)
-    })
-
-    it("skips the email when the patient has no email address", async () => {
+  describe("webhook-owned patient email", () => {
+    it("does not require a patient email address", async () => {
       mockActor("doctor")
       mockIntakeFetch(makeIntakeRow({
         patient: [{ id: "patient-1", full_name: "Test Patient", email: null }],
@@ -820,7 +940,6 @@ describe("issueRefundAction", () => {
       const result = await issueRefundAction(INTAKE_ID)
 
       expect(result.success).toBe(true)
-      expect(sendRefundIssuedEmail).not.toHaveBeenCalled()
     })
   })
 })

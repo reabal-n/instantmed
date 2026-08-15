@@ -2,17 +2,31 @@ import type Stripe from "stripe"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
+  after: vi.fn(),
   captureMessage: vi.fn(),
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
   listRefunds: vi.fn(),
+  retrievePaymentIntent: vi.fn(),
   retrieveBalanceTransaction: vi.fn(),
+  runGoogleAdsConversionAdjustment: vi.fn(),
 }))
 
+vi.mock("next/server", async () => ({
+  ...(await vi.importActual<typeof import("next/server")>("next/server")),
+  after: mocks.after,
+}))
 vi.mock("@sentry/nextjs", () => ({ captureMessage: mocks.captureMessage }))
+vi.mock("@/lib/analytics/google-ads-conversion-adjustments", async () => ({
+  ...(await vi.importActual<typeof import("@/lib/analytics/google-ads-conversion-adjustments")>(
+    "@/lib/analytics/google-ads-conversion-adjustments",
+  )),
+  runGoogleAdsConversionAdjustment: mocks.runGoogleAdsConversionAdjustment,
+}))
 vi.mock("@/lib/observability/logger", () => ({ createLogger: () => mocks.logger }))
 vi.mock("@/lib/stripe/client", () => ({
   stripe: {
     balanceTransactions: { retrieve: mocks.retrieveBalanceTransaction },
+    paymentIntents: { retrieve: mocks.retrievePaymentIntent },
     refunds: { list: mocks.listRefunds },
   },
 }))
@@ -56,9 +70,11 @@ function refundEvent(
 
 function createSupabaseMock(input?: {
   intakeError?: { message: string } | null
+  intakeMissing?: boolean
   ledgerError?: { message: string } | null
   persistedEvidenceTransform?: (row: Record<string, unknown>) => Record<string, unknown>
   reconciliationError?: { message: string } | null
+  state?: Record<string, unknown>
 }) {
   const operations: string[] = []
   const deadLetters: Record<string, unknown>[] = []
@@ -69,9 +85,22 @@ function createSupabaseMock(input?: {
     return { data: null, error: input?.ledgerError ?? null }
   })
   const rpc = vi.fn(async (name: string) => {
-    operations.push(name === "reconcile_intake_refund_cash_state" ? "reconcile" : "claim")
+    const operation = name === "reconcile_intake_refund_cash_state"
+      ? "reconcile"
+      : name === "queue_google_ads_conversion_adjustment"
+        ? "queue"
+        : name === "cancel_stripe_refund_notifications"
+          ? "cancel"
+          : "claim"
+    operations.push(operation)
     return {
-      data: true,
+      data: name === "reconcile_intake_refund_cash_state"
+        ? { applied: true, intake_id: "intake-1" }
+        : name === "queue_google_ads_conversion_adjustment"
+          ? { queued: true, state: "pending" }
+          : name === "cancel_stripe_refund_notifications"
+            ? 1
+            : true,
       error: name === "reconcile_intake_refund_cash_state"
         ? input?.reconciliationError ?? null
         : null,
@@ -105,20 +134,69 @@ function createSupabaseMock(input?: {
         select: vi.fn(() => countQuery),
       }
     }
+    if (table === "stripe_payment_adjustment_targets") {
+      const target = {
+        eq: vi.fn(() => target),
+        maybeSingle: vi.fn(async () => {
+          operations.push("target")
+          const refundAmountCents = Number(input?.state?.refund_amount_cents ?? 995)
+          return {
+            data: {
+              adjustment_at: "2026-05-20T06:59:00.000Z",
+              target_net_value_cents: 4995 - refundAmountCents,
+            },
+            error: null,
+          }
+        }),
+      }
+      return { select: vi.fn(() => target) }
+    }
     const chain = {
       eq: vi.fn(() => chain),
       maybeSingle: vi.fn(async () => {
-        operations.push("intake")
+        const operation = chain.selected === "id"
+          ? "intake"
+          : chain.selected.includes("stripe_payment_intent_id")
+            ? "metadata_intake"
+            : "state"
+        operations.push(operation)
         return {
-          data: input?.intakeError ? null : { id: "intake-1" },
+          data: input?.intakeError
+            ? null
+            : input?.intakeMissing && chain.selected === "id"
+              ? null
+              : chain.selected.includes("stripe_payment_intent_id")
+                ? { id: "intake-1", stripe_payment_intent_id: "pi_refund" }
+              : {
+                amount_cents: 4995,
+                id: "intake-1",
+                payment_status: "partially_refunded",
+                priority_fee_refunded_at: null,
+                refund_amount_cents: 995,
+                refund_status: "succeeded",
+                refund_stripe_id: "re_refund",
+                refunded_at: "2026-05-20T06:59:00.000Z",
+                ...input?.state,
+              },
           error: input?.intakeError ?? null,
         }
       }),
-      select: vi.fn(() => chain),
+      selected: "",
+      select: vi.fn((selected: string) => {
+        chain.selected = selected
+        return chain
+      }),
     }
     return chain
   })
-  return { deadLetters, from, operations, rpc, supabase: { from, rpc }, upsert }
+  return {
+    deadLetters,
+    from,
+    operations,
+    rpc,
+    supabase: { from, rpc },
+    upsert,
+  }
 }
 
 describe("Stripe refund lifecycle evidence", () => {
@@ -158,7 +236,16 @@ describe("Stripe refund lifecycle evidence", () => {
 
     expect(mocks.retrieveBalanceTransaction).toHaveBeenCalledWith("txn_refund")
     expect(response).toBeUndefined()
-    expect(operations).toEqual(["intake", "ledger", "verify", "reconcile", "claim"])
+    expect(operations).toEqual([
+      "intake",
+      "ledger",
+      "verify",
+      "reconcile",
+      "state",
+      "target",
+      "queue",
+      "claim",
+    ])
     expect(upsert).toHaveBeenCalledWith([
       expect.objectContaining({
         amount_cents: 995,
@@ -168,6 +255,13 @@ describe("Stripe refund lifecycle evidence", () => {
       }),
     ], { ignoreDuplicates: true, onConflict: "evidence_key" })
     expect(rpc).toHaveBeenCalledWith("try_process_stripe_event", expect.anything())
+    expect(rpc).toHaveBeenCalledWith("queue_google_ads_conversion_adjustment", {
+      p_adjustment_at: "2026-05-20T06:59:00.000Z",
+      p_adjustment_type: "RESTATEMENT",
+      p_intake_id: "intake-1",
+      p_source: "stripe_refund_lifecycle",
+      p_target_net_value_cents: 4000,
+    })
   })
 
   it("restores failed refund state from exact reversal evidence before claiming", async () => {
@@ -197,7 +291,14 @@ describe("Stripe refund lifecycle evidence", () => {
       status: "available",
       type: id === "txn_failure" ? "refund_failure" : "refund",
     } satisfies Stripe.BalanceTransaction))
-    const { operations, rpc, supabase } = createSupabaseMock()
+    const { operations, rpc, supabase } = createSupabaseMock({
+      state: {
+        payment_status: "paid",
+        refund_amount_cents: 0,
+        refund_status: "failed",
+        refunded_at: null,
+      },
+    })
 
     await handleRefundLifecycle({
       event: failedEvent,
@@ -205,12 +306,43 @@ describe("Stripe refund lifecycle evidence", () => {
       supabase: supabase as never,
     })
 
-    expect(operations).toEqual(["intake", "ledger", "verify", "reconcile", "claim"])
+    expect(operations).toEqual([
+      "intake",
+      "ledger",
+      "verify",
+      "reconcile",
+      "state",
+      "target",
+      "cancel",
+      "queue",
+      "claim",
+    ])
     expect(rpc).toHaveBeenCalledWith("reconcile_intake_refund_cash_state", {
       p_intake_id: "intake-1",
       p_livemode: true,
       p_trigger_status: "failed",
     })
+    expect(rpc).toHaveBeenCalledWith("cancel_stripe_refund_notifications", {
+      p_intake_id: "intake-1",
+      p_refund_ids: ["re_refund"],
+    })
+    expect(rpc).toHaveBeenCalledWith("queue_google_ads_conversion_adjustment", {
+      p_adjustment_at: "2026-05-20T06:59:00.000Z",
+      p_adjustment_type: "RESTATEMENT",
+      p_intake_id: "intake-1",
+      p_source: "stripe_refund_lifecycle",
+      p_target_net_value_cents: 4995,
+    })
+    for (const [callback] of mocks.after.mock.calls) await callback()
+    expect(mocks.runGoogleAdsConversionAdjustment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        intakeId: "intake-1",
+        paymentStatus: "paid",
+        refundAmountCents: 0,
+        source: "stripe_refund_lifecycle",
+        targetNetValueCents: 4995,
+      }),
+    )
   })
 
   it("leaves the event unclaimed and retryable on an evidence write failure", async () => {
@@ -306,6 +438,27 @@ describe("Stripe refund lifecycle evidence", () => {
     expect(operations).toEqual(["intake"])
     expect(upsert).not.toHaveBeenCalled()
     expect(rpc).not.toHaveBeenCalled()
+  })
+
+  it("links legacy evidence through validated PaymentIntent metadata", async () => {
+    mocks.retrievePaymentIntent.mockResolvedValue({
+      id: "pi_refund",
+      metadata: { intake_id: "intake-1" },
+    })
+    const { operations, supabase, upsert } = createSupabaseMock({ intakeMissing: true })
+
+    const response = await handleRefundLifecycle({
+      event: refundEvent("refund.created"),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(response).toBeUndefined()
+    expect(mocks.retrievePaymentIntent).toHaveBeenCalledWith("pi_refund")
+    expect(operations.slice(0, 2)).toEqual(["intake", "metadata_intake"])
+    expect(upsert).toHaveBeenCalledWith([
+      expect.objectContaining({ intake_id: "intake-1" }),
+    ], expect.anything())
   })
 
   it("reads the complete bounded refund list when a charge snapshot is paginated", async () => {

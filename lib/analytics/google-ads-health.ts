@@ -185,7 +185,7 @@ function latestSuccessfulPurchaseUploadByIntake(
 
 // A dm_request_rejected terminal means the Data Manager ingest was rejected, so
 // the conversion never landed and nothing was ever counted — there is nothing to
-// retract and it must NOT page. A pre-grace conversion_not_found becomes
+// adjust and it must NOT page. A pre-grace conversion_not_found becomes
 // blocking only if it remains unresolved after the upload passes grace; a
 // post-grace conversion_not_found proves no conversion was counted.
 const DM_REQUEST_REJECTED_TERMINAL_REASON = "dm_request_rejected"
@@ -682,7 +682,7 @@ export async function getGoogleAdsUploadStreamHealth(
 }
 
 /**
- * DB-only adjustment/retraction health for Google Ads retained-value bidding.
+ * DB-only conversion-adjustment health for Google Ads retained-value bidding.
  * This deliberately pages only on unresolved post-grace risk for purchases that
  * had a Google click identifier. A later success/resolution receipt supersedes
  * earlier attempts, and a post-grace CONVERSION_NOT_FOUND is confirmed not

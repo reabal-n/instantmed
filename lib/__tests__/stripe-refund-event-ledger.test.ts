@@ -62,6 +62,76 @@ function event(type: Stripe.Event.Type, object: Stripe.Event.Data.Object): Strip
 }
 
 describe("Stripe refund event ledger", () => {
+  it("accepts Stripe v22 local-payment refund debits", () => {
+    const localPaymentRefund = refund({
+      balance_transaction: balanceTransaction({
+        id: "txn_payment_refund",
+        type: "payment_refund",
+      }),
+    })
+
+    expect(buildStripeRefundBackfillEvidence({
+      intakeId: "intake-payment-method",
+      livemode: true,
+      refund: localPaymentRefund,
+    })).toMatchObject({
+      balance_transaction_id: "txn_payment_refund",
+      refund_cash_at: "2026-05-20T07:01:00.000Z",
+    })
+  })
+
+  it.each(["payment_refund", "adjustment"] as const)(
+    "accepts Stripe v22 %s refund reversals with exact amount and linkage",
+    (type) => {
+      const failedRefund = refund({
+        failure_balance_transaction: balanceTransaction({
+          amount: 995,
+          created: Math.floor(Date.parse("2026-05-22T03:04:05.000Z") / 1000),
+          id: `txn_${type}_reversal`,
+          net: 995,
+          type,
+        }),
+        status: "failed",
+      })
+
+      expect(buildStripeRefundBackfillEvidence({
+        intakeId: "intake-failed",
+        livemode: true,
+        refund: failedRefund,
+      })).toMatchObject({
+        failure_balance_transaction_id: `txn_${type}_reversal`,
+        refund_reversed_at: "2026-05-22T03:04:05.000Z",
+      })
+    },
+  )
+
+  it("uses a new append-only backfill key when the same refund later reverses", () => {
+    const succeeded = refund()
+    const failed = refund({
+      failure_balance_transaction: balanceTransaction({
+        amount: 995,
+        created: Math.floor(Date.parse("2026-05-22T03:04:05.000Z") / 1000),
+        id: "txn_refund_failure",
+        net: 995,
+        type: "refund_failure",
+      }),
+      status: "failed",
+    })
+    const first = buildStripeRefundBackfillEvidence({
+      intakeId: "intake-refund",
+      livemode: true,
+      refund: succeeded,
+    })
+    const later = buildStripeRefundBackfillEvidence({
+      intakeId: "intake-refund",
+      livemode: true,
+      refund: failed,
+    })
+
+    expect(first?.evidence_key).not.toBe(later?.evidence_key)
+    expect(later?.evidence_key).toContain("txn_refund_failure:failed")
+  })
+
   it("splits a cumulative charge.refunded snapshot into exact per-refund observations", () => {
     const first = refund({
       id: "re_first",
@@ -131,7 +201,7 @@ describe("Stripe refund event ledger", () => {
       refund: refund(),
     })).toEqual(expect.objectContaining({
       amount_cents: 995,
-      evidence_key: "live:refund:re_refund",
+      evidence_key: "live:refund:re_refund:observation:txn_refund:none:succeeded",
       evidence_source: "refund.list.backfill",
       refund_cash_at: "2026-05-20T07:01:00.000Z",
       refund_created_at: "2026-05-20T06:58:52.000Z",

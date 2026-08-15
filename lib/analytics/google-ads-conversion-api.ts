@@ -149,6 +149,8 @@ export type GoogleAdsConversionUploadResult = {
   attempted: boolean
   ok?: boolean
   error?: string
+  /** The mutation may have reached Google, but its outcome could not be read. */
+  unknownOutcome?: boolean
   jobId?: number | string
   requestId?: string
   uploadApi?: "data_manager_api" | "google_ads_api"
@@ -765,7 +767,19 @@ export async function fireGoogleAdsConversionAdjustment(
     try {
       parsed = JSON.parse(responseBody)
     } catch {
-      parsed = null
+      const error = "google_ads_adjustment_response_unreadable"
+      logger.error("Google Ads conversion adjustment response was unreadable", {
+        adjustmentType: input.adjustmentType,
+        orderId: input.orderId,
+      })
+      Sentry.captureMessage("Google Ads conversion adjustment response unreadable", {
+        level: "error",
+        extra: {
+          adjustmentType: input.adjustmentType,
+          orderId: input.orderId,
+        },
+      })
+      return { attempted: true, ok: false, error, unknownOutcome: true }
     }
     const partialFailure =
       typeof parsed === "object" && parsed !== null && "partialFailureError" in parsed
@@ -803,6 +817,9 @@ export async function fireGoogleAdsConversionAdjustment(
       error: message,
     })
     Sentry.captureException(err, { tags: { route: "google-ads-conversion-adjustment-api" } })
-    return { attempted: true, ok: false, error: message }
+    // Once the POST begins, a transport/read exception cannot prove that Google
+    // did not apply the restatement. Preserve that ambiguity so the durable
+    // claim blocks later generations pending operator reconciliation.
+    return { attempted: true, ok: false, error: message, unknownOutcome: true }
   }
 }

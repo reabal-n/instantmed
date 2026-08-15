@@ -26,6 +26,9 @@ import { stripe } from "@/lib/stripe/client"
 
 import { mockSupabaseFrom, mockSupabaseSingle, resetAllMocks } from "./setup"
 
+const TRIGGER_REWRITTEN_DECLINE_AT = "2026-08-16T00:00:00.111Z"
+const TRIGGER_REWRITTEN_REFUND_RESERVATION_AT = "2026-08-16T00:00:00.222Z"
+
 // ============================================================================
 // MOCKS - must be set up BEFORE importing decline-intake
 // ============================================================================
@@ -87,6 +90,12 @@ function getSupabaseUpdatePayloads(): Array<Record<string, unknown>> {
   })
 }
 
+function getSupabaseUpdateChains() {
+  return mockSupabaseFrom.mock.results
+    .map((result) => result.value as Record<string, ReturnType<typeof vi.fn>>)
+    .filter((chain) => chain.update?.mock.calls.length)
+}
+
 // ============================================================================
 // HELPERS
 // ============================================================================
@@ -143,7 +152,15 @@ function mockDeclineFlow(intake: ReturnType<typeof makeIntakeRow>) {
   // Supabase fetch intake → Supabase update status → Supabase update refund_status
   mockSupabaseSingle
     .mockResolvedValueOnce({ data: intake, error: null }) // 1. fetch intake
-    .mockResolvedValueOnce({ data: { id: intake.id }, error: null }) // 2. status update
+    .mockResolvedValueOnce({
+      data: { id: intake.id, updated_at: TRIGGER_REWRITTEN_DECLINE_AT },
+      error: null,
+    }) // 2. status update (the DB trigger owns updated_at)
+    .mockResolvedValueOnce({
+      data: { id: intake.id, updated_at: TRIGGER_REWRITTEN_REFUND_RESERVATION_AT },
+      error: null,
+    }) // 3. refund reservation (trigger-rewritten updated_at)
+    .mockResolvedValueOnce({ data: { id: intake.id }, error: null }) // 4. accepted request mirror
 }
 
 // ============================================================================
@@ -156,6 +173,7 @@ describe("declineIntake", () => {
     delete process.env.E2E_MODE
     delete process.env.PLAYWRIGHT
     mockRequireRoleOrNull.mockReset()
+    mockSupabaseSingle.mockReset()
     vi.mocked(stripe.refunds.create).mockReset()
   })
 
@@ -339,6 +357,25 @@ describe("declineIntake", () => {
       expect(refundParams.metadata).not.toHaveProperty("partial_refund_percent")
       // Full refund idempotency key
       expect(refundOpts).toEqual({ idempotencyKey: "refund_decline_intake-123" })
+      const refundReservation = getSupabaseUpdateChains().find((chain) =>
+        chain.update.mock.calls.some((call) =>
+          (call[0] as Record<string, unknown>).refund_status === "pending" &&
+          !(call[0] as Record<string, unknown>).refund_stripe_id
+        )
+      )
+      expect(refundReservation?.eq).toHaveBeenCalledWith(
+        "updated_at",
+        TRIGGER_REWRITTEN_DECLINE_AT,
+      )
+      const acceptedRefund = getSupabaseUpdateChains().find((chain) =>
+        chain.update.mock.calls.some((call) =>
+          (call[0] as Record<string, unknown>).refund_stripe_id === "re_full"
+        )
+      )
+      expect(acceptedRefund?.eq).toHaveBeenCalledWith(
+        "updated_at",
+        TRIGGER_REWRITTEN_REFUND_RESERVATION_AT,
+      )
     })
 
     it("prescription → FULL refund (no amount in Stripe call)", async () => {
@@ -372,9 +409,8 @@ describe("declineIntake", () => {
       // Same idempotency key shape as med-cert/Rx now that consult is full too
       expect(refundOpts).toEqual({ idempotencyKey: "refund_decline_intake-consult" })
       expect(getSupabaseUpdatePayloads()).toContainEqual(expect.objectContaining({
-        payment_status: "refunded",
-        refund_amount_cents: 4995,
-        refund_status: "succeeded",
+        refund_status: "pending",
+        refund_stripe_id: "re_consult",
       }))
     })
   })

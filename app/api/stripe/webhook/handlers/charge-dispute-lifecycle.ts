@@ -3,13 +3,14 @@ import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import {
-  buildLostDisputeTargetNetValueCents,
+  queueExactGoogleAdsConversionAdjustment,
   runGoogleAdsConversionAdjustment,
 } from "@/lib/analytics/google-ads-conversion-adjustments"
 import { createLogger } from "@/lib/observability/logger"
+import { stripe } from "@/lib/stripe/client"
 
 import type { HandlerResult, WebhookContext } from "./types"
-import { tryClaimEvent } from "./utils"
+import { addToDeadLetterQueue, tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:dispute-lifecycle")
 
@@ -30,10 +31,13 @@ type DisputeCashRpcResult = {
   restored_payment_status?: string | null
 }
 
-type DisputeCashSnapshot = {
-  funds_reinstated_cents: number | null
-  funds_withdrawn_cents: number | null
-  status: string | null
+type DisputeAdsTargetRow = {
+  adjustment_at: string | null
+  amount_cents: number | null
+  intake_id: string
+  payment_status: string
+  refund_amount_cents: number | null
+  target_net_value_cents: number
 }
 
 type DisputeCashEventType =
@@ -103,117 +107,136 @@ export async function handleChargeDisputeLifecycle(
   const statusError = await recordDisputeStatus(ctx, dispute, eventAt)
   if (statusError) return failRetryably(ctx, dispute.id, statusError)
 
-  if (!cashEventType || movementCents === null) {
-    const adjustmentError = await scheduleLostDisputeAdjustment(
-      ctx,
-      dispute,
-      intake,
-      eventAt,
-    )
-    if (adjustmentError) return failRetryably(ctx, dispute.id, adjustmentError)
-    if (!ctx.adminReplay) {
-      await tryClaimEvent(
-        supabase,
-        event.id,
-        event.type,
-        intake?.id,
-        chargeId ?? undefined,
-      )
-    }
-    return
-  }
-
-  const { data, error } = await supabase.rpc("record_stripe_dispute_cash_event", {
-    p_amount_cents: movementCents,
-    p_dispute_id: dispute.id,
-    p_event_at: eventAt,
-    p_event_id: event.id,
-    p_event_type: cashEventType,
-  })
-  if (error) {
+  const persistedLink = await readPersistedDisputeLink(ctx, dispute.id)
+  if (persistedLink.error) return failRetryably(ctx, dispute.id, persistedLink.error)
+  if (
+    persistedLink.livemode !== event.livemode ||
+    (intake && persistedLink.intakeId !== intake.id)
+  ) {
     return failRetryably(
       ctx,
       dispute.id,
-      `Stripe dispute cash event write failed: ${error.message}`,
+      "Stripe dispute persisted linkage conflicts with verified PaymentIntent evidence",
     )
   }
 
-  const result = (data ?? {}) as DisputeCashRpcResult
-  const adjustmentError = await scheduleLostDisputeAdjustment(
-    ctx,
-    dispute,
-    intake ?? (result.intake_id
+  let cashResult: DisputeCashRpcResult | null = null
+  if (!cashEventType || movementCents === null) {
+    cashResult = null
+  } else {
+    const { data, error } = await supabase.rpc("record_stripe_dispute_cash_event", {
+      p_amount_cents: movementCents,
+      p_dispute_id: dispute.id,
+      p_event_at: eventAt,
+      p_event_id: event.id,
+      p_event_type: cashEventType,
+    })
+    if (error) {
+      return failRetryably(
+        ctx,
+        dispute.id,
+        `Stripe dispute cash event write failed: ${error.message}`,
+      )
+    }
+    cashResult = (data ?? {}) as DisputeCashRpcResult
+  }
+
+  if (
+    cashResult?.intake_id &&
+    persistedLink.intakeId &&
+    cashResult.intake_id !== persistedLink.intakeId
+  ) {
+    return failRetryably(
+      ctx,
+      dispute.id,
+      "Stripe dispute cash reconciliation returned a conflicting intake",
+    )
+  }
+
+  const linkedIntake = intake ?? (cashResult?.intake_id
       ? {
-          amount_cents: positiveInteger(result.amount_cents),
-          id: result.intake_id,
-          refund_amount_cents: nonNegativeInteger(result.refund_amount_cents),
+          amount_cents: positiveInteger(cashResult.amount_cents),
+          id: cashResult.intake_id,
+          refund_amount_cents: nonNegativeInteger(cashResult.refund_amount_cents),
         }
-      : null),
-    eventAt,
-  )
-  if (adjustmentError) return failRetryably(ctx, dispute.id, adjustmentError)
-
-  // Cash-event columns and the database RPC are the idempotency boundary. Claim
-  // only after the durable mutation so a transient write failure cannot poison
-  // Stripe's retry by marking the event processed first.
-  if (!ctx.adminReplay) {
-    await tryClaimEvent(
-      supabase,
-      event.id,
-      event.type,
-      intake?.id,
-      chargeId ?? undefined,
-    )
+      : null)
+  if (event.livemode && !linkedIntake) {
+    return failRetryably(ctx, dispute.id, "Live Stripe dispute is not linked to an intake")
   }
+
+  const targetResult = linkedIntake
+    ? await readAggregateDisputeAdsTarget(ctx, linkedIntake.id)
+    : { error: null, target: null }
+  if (targetResult.error) return failRetryably(ctx, dispute.id, targetResult.error)
+
+  if (targetResult.target) {
+    const adjustmentAt = targetResult.target.adjustment_at || eventAt
+    const queued = await queueExactGoogleAdsConversionAdjustment({
+      adjustmentDateTime: new Date(adjustmentAt),
+      amountCents: targetResult.target.amount_cents,
+      intakeId: targetResult.target.intake_id,
+      source: "stripe_charge_dispute_lost",
+      supabase,
+      targetNetValueCents: targetResult.target.target_net_value_cents,
+    })
+    if (queued.error) return failRetryably(ctx, dispute.id, queued.error)
+  }
+
+  const shouldProcess = ctx.adminReplay || await tryClaimEvent(
+    supabase,
+    event.id,
+    event.type,
+    linkedIntake?.id,
+    chargeId ?? undefined,
+  )
+  if (!shouldProcess) {
+    return NextResponse.json({ received: true, skipped: true })
+  }
+
+  scheduleAggregateDisputeAdjustment(ctx, targetResult.target, eventAt)
 }
 
-async function scheduleLostDisputeAdjustment(
+async function readAggregateDisputeAdsTarget(
   ctx: WebhookContext,
-  dispute: Stripe.Dispute,
-  intake: DisputeIntakeRow | null,
-  eventAt: string,
-): Promise<string | null> {
-  if (dispute.status !== "lost" || !intake) return null
-
+  intakeId: string,
+): Promise<{ error: string | null; target: DisputeAdsTargetRow | null }> {
   const { data, error } = await ctx.supabase
-    .from("stripe_disputes")
-    .select("status, funds_withdrawn_cents, funds_reinstated_cents")
-    .eq("dispute_id", dispute.id)
+    .from("stripe_payment_adjustment_targets")
+    .select(
+      "intake_id, amount_cents, refund_amount_cents, payment_status, " +
+      "target_net_value_cents, adjustment_at",
+    )
+    .eq("intake_id", intakeId)
     .maybeSingle()
-  if (error) return `Stripe lost-dispute cash lookup failed: ${error.message}`
-  if (!data) return "Stripe lost-dispute cash ledger row is missing"
+  if (error) {
+    return {
+      error: `Stripe aggregate dispute Ads target lookup failed: ${error.message}`,
+      target: null,
+    }
+  }
+  return { error: null, target: (data as DisputeAdsTargetRow | null) ?? null }
+}
 
-  const snapshot = data as DisputeCashSnapshot
-  // A newer lifecycle event may already have won. Trust the durable row rather
-  // than an out-of-order lost payload before making an irreversible retraction.
-  if (snapshot.status !== "lost") return null
-
-  const amountCents = positiveInteger(intake.amount_cents) ?? dispute.amount
-  const refundAmountCents = nonNegativeInteger(intake.refund_amount_cents) ?? 0
-  const targetNetValueCents = buildLostDisputeTargetNetValueCents({
-    amountCents,
-    fundsReinstatedCents: snapshot.funds_reinstated_cents,
-    fundsWithdrawnCents: snapshot.funds_withdrawn_cents,
-    refundAmountCents,
-  })
-  if (targetNetValueCents === null) return null
-  const intakeId = intake.id
-
+function scheduleAggregateDisputeAdjustment(
+  ctx: WebhookContext,
+  target: DisputeAdsTargetRow | null,
+  fallbackEventAt: string,
+): void {
+  if (!target) return
+  const adjustmentAt = target.adjustment_at || fallbackEventAt
   after(async () => {
     await runGoogleAdsConversionAdjustment({
-      adjustmentDateTime: new Date(eventAt),
-      amountCents,
-      intakeId,
-      paymentStatus: "disputed",
-      refundAmountCents,
+      adjustmentDateTime: new Date(adjustmentAt),
+      amountCents: target.amount_cents,
+      intakeId: target.intake_id,
+      paymentStatus: target.payment_status,
+      refundAmountCents: target.refund_amount_cents,
       requestPath: ctx.requestPath || "/api/stripe/webhook",
       source: "stripe_charge_dispute_lost",
       supabase: ctx.supabase,
-      targetNetValueCents,
+      targetNetValueCents: target.target_net_value_cents,
     })
   })
-
-  return null
 }
 
 async function findLinkedIntake(
@@ -239,6 +262,47 @@ async function findLinkedIntake(
       }
     }
     if (data) return { error: null, intake: data as DisputeIntakeRow }
+
+    let paymentIntent: Stripe.PaymentIntent
+    try {
+      paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+    } catch {
+      return {
+        error: "Stripe dispute PaymentIntent metadata lookup failed",
+        intake: null,
+      }
+    }
+    const metadataIntakeId = paymentIntent.metadata?.intake_id ||
+      paymentIntent.metadata?.request_id
+    if (metadataIntakeId) {
+      const metadataRead = await ctx.supabase
+        .from("intakes")
+        .select("id, amount_cents, refund_amount_cents, refunded_at, payment_status, stripe_payment_intent_id")
+        .eq("id", metadataIntakeId)
+        .maybeSingle()
+      if (metadataRead.error) {
+        return {
+          error: `Stripe dispute metadata intake lookup failed: ${metadataRead.error.message}`,
+          intake: null,
+        }
+      }
+      if (!metadataRead.data) {
+        return {
+          error: "Stripe dispute PaymentIntent metadata intake is missing",
+          intake: null,
+        }
+      }
+      if (
+        metadataRead.data.stripe_payment_intent_id &&
+        metadataRead.data.stripe_payment_intent_id !== paymentIntentId
+      ) {
+        return {
+          error: "Stripe dispute PaymentIntent metadata conflicts with intake",
+          intake: null,
+        }
+      }
+      return { error: null, intake: metadataRead.data as DisputeIntakeRow }
+    }
   }
 
   const { data: ledgerRow, error: ledgerError } = await ctx.supabase
@@ -281,6 +345,7 @@ async function seedDisputeSnapshot(
     currency: dispute.currency,
     dispute_id: dispute.id,
     intake_id: intakeId,
+    livemode: ctx.event.livemode,
     reason: dispute.reason,
     status: dispute.status,
   }, { onConflict: "dispute_id", ignoreDuplicates: true })
@@ -303,26 +368,37 @@ async function recordDisputeStatus(
   dispute: Stripe.Dispute,
   eventAt: string,
 ): Promise<string | null> {
-  const terminal = TERMINAL_DISPUTE_STATUSES.has(dispute.status)
-  const payload: Record<string, unknown> = {
-    dispute_status_event_at: eventAt,
-    dispute_status_event_id: ctx.event.id,
-    status: dispute.status,
-    updated_at: new Date().toISOString(),
-  }
-  if (terminal) {
-    payload.outcome = dispute.status
-    payload.resolved_at = eventAt
-  }
-
-  let query = ctx.supabase
-    .from("stripe_disputes")
-    .update(payload)
-    .eq("dispute_id", dispute.id)
-    .or(`dispute_status_event_at.is.null,dispute_status_event_at.lte.${eventAt}`)
-  if (!terminal) query = query.is("resolved_at", null)
-  const { error } = await query
+  const { error } = await ctx.supabase.rpc("record_stripe_dispute_status_event", {
+    p_dispute_id: dispute.id,
+    p_event_at: eventAt,
+    p_event_id: ctx.event.id,
+    p_livemode: ctx.event.livemode,
+    p_status: dispute.status,
+  })
   return error ? `Stripe dispute status write failed: ${error.message}` : null
+}
+
+async function readPersistedDisputeLink(
+  ctx: WebhookContext,
+  disputeId: string,
+): Promise<{ error: string | null; intakeId: string | null; livemode: boolean | null }> {
+  const { data, error } = await ctx.supabase
+    .from("stripe_disputes")
+    .select("intake_id, livemode")
+    .eq("dispute_id", disputeId)
+    .single()
+  if (error) {
+    return {
+      error: `Stripe dispute persisted link verification failed: ${error.message}`,
+      intakeId: null,
+      livemode: null,
+    }
+  }
+  return {
+    error: null,
+    intakeId: data?.intake_id ?? null,
+    livemode: typeof data?.livemode === "boolean" ? data.livemode : null,
+  }
 }
 
 function disputeCashMovementCents(
@@ -357,16 +433,28 @@ function nonNegativeInteger(value: unknown): number | null {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null
 }
 
-function failRetryably(
+async function failRetryably(
   ctx: WebhookContext,
   disputeId: string,
   message: string,
-): NextResponse {
+): Promise<NextResponse> {
   log.error(message, { disputeId, eventId: ctx.event.id, eventType: ctx.event.type })
   Sentry.captureMessage(message, {
     level: "error",
     tags: { source: "stripe-dispute-lifecycle" },
     extra: { disputeId, eventId: ctx.event.id, eventType: ctx.event.type },
   })
+  if (!ctx.adminReplay) {
+    await addToDeadLetterQueue(
+      ctx.supabase,
+      ctx.event.id,
+      ctx.event.type,
+      disputeId,
+      null,
+      message,
+      "DISPUTE_LIFECYCLE_UPDATE_FAILED",
+      ctx.event as unknown as Record<string, unknown>,
+    )
+  }
   return NextResponse.json({ error: "Dispute lifecycle update unavailable" }, { status: 500 })
 }

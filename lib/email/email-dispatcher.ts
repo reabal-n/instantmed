@@ -58,6 +58,7 @@ export const SUPPORTED_EMAIL_TYPES = [
   // leaving failed refund/receipt sends permanently unretryable).
   "payment-received",
   "refund-processed",
+  "refund-failed",
   "payment_failed",
   "session_expired",
   "dispute_alert",

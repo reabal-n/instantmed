@@ -26,7 +26,6 @@ import {
   markRefundEligible,
   markRefundNotEligible,
   type RefundFilters,
-  updateRefundStatus,
 } from "@/lib/data/refunds"
 import {
   type FlagKey,
@@ -306,7 +305,7 @@ export async function processRefundAction(
   const supabase = (await import("@/lib/supabase/service-role")).createServiceRoleClient()
   const { data: payment, error: paymentError } = await supabase
     .from("payments")
-    .select("stripe_payment_intent_id, amount")
+    .select("stripe_payment_intent_id, amount, refund_status, stripe_refund_id, updated_at")
     .eq("id", paymentId)
     .single()
 
@@ -330,8 +329,30 @@ export async function processRefundAction(
     },
   })
 
-  // First mark as processing
-  await updateRefundStatus(paymentId, "processing")
+  // Reserve one creator before touching Stripe. Exact refund webhooks also
+  // advance payments.updated_at, so the guarded response/failure writes below
+  // can never overwrite their terminal mirror.
+  const requestedReservationAt = new Date(
+    Math.max(Date.now(), Date.parse(payment.updated_at) + 1),
+  ).toISOString()
+  const { data: reserved, error: processingError } = await supabase
+    .from("payments")
+    .update({ refund_status: "processing", updated_at: requestedReservationAt })
+    .eq("id", paymentId)
+    .eq("updated_at", payment.updated_at)
+    .select("id, updated_at")
+    .maybeSingle()
+  if (processingError || !reserved || typeof reserved.updated_at !== "string") {
+    return {
+      success: false,
+      error: processingError?.message ?? (
+        !reserved
+          ? "Payment changed while the refund was being prepared. Refresh and try again."
+          : "Could not verify the reserved refund state. Refresh and try again."
+      ),
+    }
+  }
+  const reservationUpdatedAt = reserved.updated_at
 
   // Call Stripe to create the refund
   let stripeRefund
@@ -347,14 +368,21 @@ export async function processRefundAction(
         refund_type: "admin_manual",
       },
     }, {
-      idempotencyKey: `admin_refund_${paymentId}`,
+      idempotencyKey:
+        payment.refund_status === "failed" && payment.stripe_refund_id
+          ? `admin_refund_${paymentId}_after_${payment.stripe_refund_id}`
+          : `admin_refund_${paymentId}`,
     })
   } catch (stripeError) {
     const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
     log.error("Stripe refund failed", { paymentId, error: errorMessage })
 
-    // Mark as failed
-    await updateRefundStatus(paymentId, "failed")
+    await supabase
+      .from("payments")
+      .update({ refund_status: "failed", updated_at: new Date().toISOString() })
+      .eq("id", paymentId)
+      .eq("updated_at", reservationUpdatedAt)
+      .eq("refund_status", "processing")
 
     await logAuditEvent({
       action: "refund_failed",
@@ -374,17 +402,39 @@ export async function processRefundAction(
     return { success: false, error: `Stripe refund failed: ${errorMessage}` }
   }
 
-  // Mark as refunded with the real Stripe refund ID
-  const result = await updateRefundStatus(paymentId, "refunded", stripeRefund.id, stripeRefund.amount)
+  // Refund.create can be pending and later fail. Keep the legacy payment mirror
+  // processing; exact webhook evidence owns the terminal cash state.
+  const { data: acceptedState, error: acceptedStateError } = await supabase
+    .from("payments")
+    .update({
+      refund_status: "processing",
+      stripe_refund_id: stripeRefund.id,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", paymentId)
+    .eq("updated_at", reservationUpdatedAt)
+    .eq("refund_status", "processing")
+    .select("id")
+    .maybeSingle()
+  const result = acceptedStateError
+    ? { success: false, error: acceptedStateError.message }
+    : { success: true }
+
+  if (!acceptedState && !acceptedStateError) {
+    log.info("Exact refund webhook state won the admin create-response race", {
+      paymentId,
+      stripeRefundId: stripeRefund.id,
+    })
+  }
 
   if (result.success) {
     await logAuditEvent({
-      action: "refund_succeeded",
+      action: "refund_requested",
       actorId: admin.id,
       actorType: "admin",
       intakeId,
       fromState: "processing",
-      toState: "refunded",
+      toState: "processing",
       metadata: {
         paymentId,
         amount: stripeRefund.amount,
@@ -392,7 +442,7 @@ export async function processRefundAction(
       },
     })
     revalidateStaff({ content: true })
-    log.info("Refund processed", { adminId: admin.id, paymentId, stripeRefundId: stripeRefund.id, refundAmount: stripeRefund.amount })
+    log.info("Refund requested", { adminId: admin.id, paymentId, stripeRefundId: stripeRefund.id, refundAmount: stripeRefund.amount })
   } else {
     await logAuditEvent({
       action: "refund_failed",

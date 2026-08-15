@@ -23,6 +23,7 @@ import {
 } from "./components/templates/payment-failed"
 import { sendCriticalEmail, sendViaResend } from "./resend"
 import { sanitizeEmailForLog } from "./send/helpers"
+import { buildStripeRefundProcessedEmailIdempotencyKey } from "./send/idempotency"
 import {
   createPendingOutbox,
   updateOutboxStatus,
@@ -67,6 +68,18 @@ interface SendResult {
   success: boolean
   emailId?: string
   error?: string
+}
+
+type RefundEmailParams = {
+  to: string
+  patientName: string
+  amountCents: number
+  refundReason: string
+  serviceName?: string
+  intakeId: string
+  patientId?: string
+  stripeRefundId: string
+  livemode?: boolean
 }
 
 // ============================================================================
@@ -276,6 +289,12 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
         }
 
         outboxId = pending.id
+        if (!outboxId) {
+          return {
+            success: false,
+            error: "Unable to reserve a durable email outbox row",
+          }
+        }
       } else {
         const { data: pendingRow } = await supabase
           .from("email_outbox")
@@ -364,31 +383,51 @@ function buildPaymentFailedEmailIdempotencyKey(input: {
   return `email:payment_failed:${input.intakeId}:${input.checkoutSessionId}`
 }
 
-/**
- * Send refund processed notification
- */
-export async function sendRefundEmail(params: {
-  to: string
-  patientName: string
-  amount: string
-  refundReason: string
-  serviceName?: string
-  intakeId?: string
-  patientId?: string
-}): Promise<SendResult> {
-  return sendTemplateEmail({
-    to: params.to,
-    templateSlug: "refund-processed",
-    data: {
-      patient_name: params.patientName,
-      amount: params.amount,
-      service_name: params.serviceName || "your request",
+export async function reserveRefundEmail(params: RefundEmailParams): Promise<SendResult> {
+  const amount = refundAmount(params.amountCents)
+  if (!amount) return { success: false, error: "Invalid exact refund amount" }
+  const template = await getTemplate("refund-processed")
+  if (!template) return { success: false, error: "Template not found: refund-processed" }
+  const data = {
+    amount,
+    patient_name: params.patientName,
+    refund_reason: params.refundReason,
+    service_name: params.serviceName || "your request",
+  }
+  const pending = await createPendingOutbox({
+    email_type: "refund-processed",
+    idempotency_key: buildStripeRefundProcessedEmailIdempotencyKey(
+      params.intakeId,
+      params.stripeRefundId,
+    ),
+    initialStatus: "pending",
+    intake_id: params.intakeId,
+    metadata: {
+      refund_amount_cents: params.amountCents,
+      refund_livemode: params.livemode,
       refund_reason: params.refundReason,
+      stripe_refund_id: params.stripeRefundId,
     },
-    intakeId: params.intakeId,
-    patientId: params.patientId,
-    isCritical: true,
+    patient_id: params.patientId,
+    provider: "resend",
+    subject: replaceMergeTags(template.subject, data),
+    // Most successful refunds settle normally. A short durable delay narrows
+    // same-request lifecycle races; the send-time ledger gate remains the
+    // authority because Stripe can still reverse much later.
+    scheduled_for: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+    to_email: params.to,
+    to_name: params.patientName,
   })
+  if (!pending.id) {
+    return { success: false, error: "Unable to reserve a durable refund email" }
+  }
+  return { success: true, emailId: pending.id }
+}
+
+function refundAmount(amountCents: number): string | null {
+  return Number.isInteger(amountCents) && amountCents > 0
+    ? `$${(amountCents / 100).toFixed(2)}`
+    : null
 }
 
 /**

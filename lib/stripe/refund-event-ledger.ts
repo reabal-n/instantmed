@@ -1,13 +1,5 @@
 import type Stripe from "stripe"
 
-export const STRIPE_REFUND_EVIDENCE_SOURCES = [
-  "charge.refunded",
-  "refund.created",
-  "refund.failed",
-  "refund.updated",
-  "refund.list.backfill",
-] as const
-
 export const STRIPE_REFUND_EVIDENCE_SELECT = [
   "amount_cents",
   "balance_transaction_id",
@@ -17,6 +9,7 @@ export const STRIPE_REFUND_EVIDENCE_SELECT = [
   "evidence_source",
   "failure_balance_transaction_id",
   "intake_id",
+  "is_priority_fee_refund",
   "livemode",
   "payment_intent_id",
   "refund_cash_at",
@@ -28,7 +21,12 @@ export const STRIPE_REFUND_EVIDENCE_SELECT = [
   "stripe_refund_id",
 ].join(", ")
 
-export type StripeRefundEvidenceSource = typeof STRIPE_REFUND_EVIDENCE_SOURCES[number]
+type StripeRefundEvidenceSource =
+  | "charge.refunded"
+  | "refund.created"
+  | "refund.failed"
+  | "refund.list.backfill"
+  | "refund.updated"
 
 export type StripeRefundEvidenceRow = {
   amount_cents: number
@@ -39,6 +37,7 @@ export type StripeRefundEvidenceRow = {
   evidence_source: StripeRefundEvidenceSource
   failure_balance_transaction_id: string | null
   intake_id: string | null
+  is_priority_fee_refund: boolean
   livemode: boolean
   payment_intent_id: string | null
   refund_cash_at: string | null
@@ -116,7 +115,12 @@ export function buildStripeRefundBackfillEvidence(input: {
 
   return {
     ...evidence,
-    evidence_key: `${modePrefix(input.livemode)}:refund:${input.refund.id}`,
+    evidence_key: [
+      `${modePrefix(input.livemode)}:refund:${input.refund.id}:observation`,
+      evidence.balance_transaction_id ?? "none",
+      evidence.failure_balance_transaction_id ?? "none",
+      evidence.refund_status ?? "unknown",
+    ].join(":"),
     evidence_source: "refund.list.backfill",
     intake_id: input.intakeId,
     livemode: input.livemode,
@@ -179,6 +183,7 @@ function buildEvidenceFields(refund: Stripe.Refund): Omit<
     charge_id: stripeId(refund.charge),
     currency: refund.currency.toLowerCase(),
     failure_balance_transaction_id: lifecycle.failureBalanceTransactionId,
+    is_priority_fee_refund: refund.metadata?.refund_type === "priority_breach",
     refund_cash_at: lifecycle.cashAt,
     refund_created_at: refundCreatedAt,
     refund_reversed_at: lifecycle.reversedAt,
@@ -217,12 +222,19 @@ function validRefundBalanceTransaction(
 ): boolean {
   const sourceId = stripeId(transaction.source)
   const hasExpectedDirection = direction === "out"
-    ? transaction.amount === -refund.amount && transaction.type === "refund"
-    : transaction.amount === refund.amount && transaction.type === "refund_failure"
+    ? transaction.amount === -refund.amount && (
+        transaction.type === "refund" || transaction.type === "payment_refund"
+      )
+    : transaction.amount === refund.amount && (
+        transaction.type === "refund_failure" ||
+        transaction.type === "payment_refund" ||
+        transaction.type === "adjustment"
+      )
   return Boolean(
     transaction.id &&
     transaction.object === "balance_transaction" &&
     sourceId === refund.id &&
+    transaction.currency.toLowerCase() === refund.currency.toLowerCase() &&
     hasExpectedDirection,
   )
 }

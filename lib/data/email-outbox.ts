@@ -27,7 +27,7 @@ export interface EmailOutboxRow {
   to_email: string
   to_name: string | null
   subject: string
-  status: "pending" | "sending" | "sent" | "failed" | "skipped_e2e"
+  status: "pending" | "sending" | "sent" | "failed" | "skipped_e2e" | "cancelled"
   provider: string
   provider_message_id: string | null
   error_message: string | null

@@ -433,6 +433,7 @@ export async function updateOutboxStatus(
       .from("email_outbox")
       .update(updateData)
       .eq("id", outboxId)
+      .eq("status", "sending")
       .select("id")
       .maybeSingle()
 
@@ -446,6 +447,41 @@ export async function updateOutboxStatus(
     return true
   } catch (err) {
     logger.error("[Email] Outbox update error", { outboxId, error: err })
+    return false
+  }
+}
+
+/** Cancel a claimed refund notice only while this worker still owns it. */
+export async function cancelSendingOutboxRow(
+  outboxId: string,
+  reason: string,
+): Promise<boolean> {
+  try {
+    const supabase = createServiceRoleClient()
+    const { data, error } = await supabase
+      .from("email_outbox")
+      .update({
+        status: "cancelled",
+        error_message: reason,
+        last_attempt_at: new Date().toISOString(),
+      })
+      .eq("id", outboxId)
+      .eq("status", "sending")
+      .select("id")
+      .maybeSingle()
+    if (error || !data) {
+      logger.error("[Email] Failed to cancel ineligible claimed outbox row", {
+        outboxId,
+        error: error?.message ?? "status update matched no row",
+      })
+      return false
+    }
+    return true
+  } catch (error) {
+    logger.error("[Email] Claimed outbox cancellation error", {
+      outboxId,
+      error: error instanceof Error ? error.message : String(error),
+    })
     return false
   }
 }

@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
-  buildLostDisputeTargetNetValueCents,
   GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS,
   GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION,
   runGoogleAdsConversionAdjustment,
@@ -41,25 +40,81 @@ const CONVERSION_NOT_FOUND_ERROR =
 const PAST_GRACE_HOURS = GOOGLE_ADS_ADJUSTMENT_CONVERSION_MATCH_GRACE_HOURS + 24
 const WITHIN_GRACE_HOURS = 1
 
-describe("lost-dispute retained conversion value", () => {
-  it("uses only outstanding dispute cash plus durable refunds", () => {
-    expect(buildLostDisputeTargetNetValueCents({
-      amountCents: 4995,
-      fundsReinstatedCents: 1000,
-      fundsWithdrawnCents: 3000,
-      refundAmountCents: 995,
-    })).toBe(2000)
-    expect(buildLostDisputeTargetNetValueCents({
-      amountCents: 4995,
-      fundsReinstatedCents: 3000,
-      fundsWithdrawnCents: 3000,
-      refundAmountCents: 995,
-    })).toBeNull()
-  })
-})
-
-function adjustmentSupabaseMock(existingAudits: AuditRow[] = []) {
+function adjustmentSupabaseMock(
+  existingAudits: AuditRow[] = [],
+  options: { reservationError?: string } = {},
+) {
   const inserted: Array<{ table: string; payload: unknown }> = []
+  const latestDefinitiveAdjustment = existingAudits
+    .filter((row) =>
+      row.action === GOOGLE_ADS_CONVERSION_ADJUSTMENT_AUDIT_ACTION &&
+      ["success", "resolved_not_counted", "terminal_failed"].includes(
+        String(row.metadata?.status),
+      ) && !(
+        row.metadata?.status === "terminal_failed" &&
+        (
+          row.metadata?.terminal_reason === "conversion_not_found" ||
+          String(row.metadata?.error_code).includes("CONVERSION_NOT_FOUND")
+        )
+      ),
+    )
+    .sort((left, right) => Date.parse(right.created_at || "") - Date.parse(left.created_at || ""))[0]
+  let claimState:
+    | "available"
+    | "reserved"
+    | "resolved_not_counted"
+    | "succeeded"
+    | "terminal_failed"
+    | "unknown_outcome" = latestDefinitiveAdjustment?.metadata?.status === "success"
+      ? "succeeded"
+      : latestDefinitiveAdjustment?.metadata?.status === "resolved_not_counted"
+        ? "resolved_not_counted"
+        : latestDefinitiveAdjustment?.metadata?.status === "terminal_failed"
+          ? "terminal_failed"
+          : "available"
+  let lastTarget = Number.isInteger(latestDefinitiveAdjustment?.metadata?.target_net_value_cents)
+    ? Number(latestDefinitiveAdjustment?.metadata?.target_net_value_cents)
+    : null
+  const rpc = vi.fn(async (name: string, params?: Record<string, unknown>) => {
+    if (name === "reserve_google_ads_conversion_adjustment") {
+      if (options.reservationError) {
+        return { data: null, error: { message: options.reservationError } }
+      }
+      const target = Number(params?.p_target_net_value_cents)
+      if (lastTarget !== null && target !== lastTarget && claimState !== "reserved") {
+        claimState = "available"
+      }
+      if (claimState !== "available") {
+        return { data: { reserved: false, state: claimState }, error: null }
+      }
+      lastTarget = target
+      claimState = "reserved"
+      return {
+        data: {
+          adjustment_at: params?.p_adjustment_at,
+          claim_id: "11111111-1111-1111-1111-111111111111",
+          lease_token: "22222222-2222-2222-2222-222222222222",
+          reserved: true,
+          state: "reserved",
+        },
+        error: null,
+      }
+    }
+    if (name === "complete_google_ads_conversion_adjustment_claim") {
+      const outcome = params?.p_outcome
+      claimState = outcome === "succeeded"
+        ? "succeeded"
+        : outcome === "resolved_not_counted"
+          ? "resolved_not_counted"
+          : outcome === "terminal_failed"
+            ? "terminal_failed"
+            : outcome === "unknown_outcome"
+              ? "unknown_outcome"
+              : "available"
+      return { data: true, error: null }
+    }
+    return { data: null, error: null }
+  })
   const supabase = {
     from: (table: string) => ({
       insert: async (payload: unknown) => {
@@ -83,9 +138,10 @@ function adjustmentSupabaseMock(existingAudits: AuditRow[] = []) {
         }),
       }),
     }),
+    rpc,
   }
 
-  return { inserted, supabase }
+  return { inserted, rpc, supabase }
 }
 
 function hoursAgoIso(hours: number): string {
@@ -125,7 +181,7 @@ describe("Google Ads conversion adjustments", () => {
     vi.unstubAllEnvs()
   })
 
-  it("retracts a fully refunded paid conversion and audits the adjustment", async () => {
+  it("restates a fully refunded paid conversion to a reversible floor and audits exact cash", async () => {
     mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({ attempted: true, ok: true })
     const { inserted, supabase } = adjustmentSupabaseMock([successfulPurchaseUpload()])
 
@@ -141,8 +197,9 @@ describe("Google Ads conversion adjustments", () => {
 
     expect(result).toMatchObject({ attempted: true, ok: true, status: "success" })
     expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledWith({
+      adjustedValue: 0.01,
       adjustmentDateTime: new Date("2026-07-01T01:30:00.000Z"),
-      adjustmentType: "RETRACTION",
+      adjustmentType: "RESTATEMENT",
       orderId: "intake_123",
     })
     expect(inserted).toHaveLength(1)
@@ -153,15 +210,155 @@ describe("Google Ads conversion adjustments", () => {
         actor_type: "system",
         intake_id: "intake_123",
         metadata: expect.objectContaining({
-          adjustment_type: "RETRACTION",
+          adjustment_type: "RESTATEMENT",
           amount_cents: 2495,
+          exact_target_net_value_cents: 0,
           refund_amount_cents: 2495,
           source: "stripe_charge_refunded",
           status: "success",
-          target_net_value_cents: 0,
+          target_net_value_cents: 1,
+          zero_value_floor_applied: true,
         }),
       },
     })
+  })
+
+  it("atomically reserves before mutation so concurrent workers upload once", async () => {
+    let releaseUpload: (() => void) | undefined
+    mocks.fireGoogleAdsConversionAdjustment.mockImplementation(async () => {
+      await new Promise<void>((resolve) => {
+        releaseUpload = resolve
+      })
+      return { attempted: true, ok: true }
+    })
+    const { rpc, supabase } = adjustmentSupabaseMock([successfulPurchaseUpload()])
+    const input = {
+      amountCents: 2495,
+      intakeId: "intake_123",
+      paymentStatus: "refunded",
+      refundAmountCents: 2495,
+      source: "cron_backfill" as const,
+      supabase: supabase as never,
+    }
+
+    const first = runGoogleAdsConversionAdjustment(input)
+    await vi.waitFor(() => {
+      expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledTimes(1)
+    })
+    const second = await runGoogleAdsConversionAdjustment(input)
+    expect(second).toMatchObject({ attempted: false, status: "skipped_in_progress" })
+    expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledTimes(1)
+
+    releaseUpload?.()
+    await expect(first).resolves.toMatchObject({ status: "success" })
+    expect(rpc).toHaveBeenCalledWith(
+      "reserve_google_ads_conversion_adjustment",
+      expect.objectContaining({
+        p_adjustment_type: "RESTATEMENT",
+        p_target_net_value_cents: 1,
+      }),
+    )
+  })
+
+  it("keeps an explicit transport ambiguity durably blocked as unknown outcome", async () => {
+    mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({
+      attempted: true,
+      error: "connection reset after request write",
+      ok: false,
+      unknownOutcome: true,
+    })
+    const { rpc, supabase } = adjustmentSupabaseMock([successfulPurchaseUpload()])
+    const input = {
+      amountCents: 2495,
+      intakeId: "intake_123",
+      paymentStatus: "refunded",
+      refundAmountCents: 2495,
+      source: "cron_backfill" as const,
+      supabase: supabase as never,
+    }
+
+    await expect(runGoogleAdsConversionAdjustment(input)).resolves.toMatchObject({
+      attempted: true,
+      status: "unknown_outcome",
+    })
+    expect(rpc).toHaveBeenCalledWith(
+      "complete_google_ads_conversion_adjustment_claim",
+      expect.objectContaining({ p_outcome: "unknown_outcome" }),
+    )
+
+    await expect(runGoogleAdsConversionAdjustment(input)).resolves.toMatchObject({
+      attempted: false,
+      error: "adjustment_outcome_unknown",
+      status: "unknown_outcome",
+    })
+    expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledTimes(1)
+  })
+
+  it("creates a new desired-state generation when value returns to a prior target", async () => {
+    mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({ attempted: true, ok: true })
+    const { supabase } = adjustmentSupabaseMock([successfulPurchaseUpload()])
+    const base = {
+      amountCents: 4995,
+      intakeId: "intake_123",
+      paymentStatus: "partially_refunded",
+      refundAmountCents: 0,
+      source: "cron_backfill" as const,
+      supabase: supabase as never,
+    }
+
+    await runGoogleAdsConversionAdjustment({ ...base, targetNetValueCents: 4000 })
+    await runGoogleAdsConversionAdjustment({ ...base, targetNetValueCents: 4995 })
+    await runGoogleAdsConversionAdjustment({ ...base, targetNetValueCents: 4000 })
+
+    expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledTimes(3)
+    expect(mocks.fireGoogleAdsConversionAdjustment.mock.calls.map(
+      ([input]) => input.adjustedValue,
+    )).toEqual([40, 49.95, 40])
+  })
+
+  it("uses a reversible one-cent restatement for an exact zero cash target", async () => {
+    mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({ attempted: true, ok: true })
+    const { supabase } = adjustmentSupabaseMock([successfulPurchaseUpload()])
+
+    await runGoogleAdsConversionAdjustment({
+      amountCents: 4995,
+      intakeId: "intake_123",
+      paymentStatus: "refunded",
+      refundAmountCents: 4995,
+      source: "stripe_refund_lifecycle",
+      supabase: supabase as never,
+      targetNetValueCents: 0,
+    })
+
+    expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        adjustedValue: 0.01,
+        adjustmentType: "RESTATEMENT",
+      }),
+    )
+  })
+
+  it("fails closed before external mutation when the reservation store is unavailable", async () => {
+    const { supabase } = adjustmentSupabaseMock(
+      [successfulPurchaseUpload()],
+      { reservationError: "temporary database outage" },
+    )
+
+    const result = await runGoogleAdsConversionAdjustment({
+      amountCents: 2495,
+      intakeId: "intake_123",
+      paymentStatus: "refunded",
+      refundAmountCents: 2495,
+      source: "cron_backfill",
+      supabase: supabase as never,
+    })
+
+    expect(result).toMatchObject({
+      attempted: false,
+      error: "adjustment_reservation_unavailable",
+      status: "failed",
+    })
+    expect(mocks.fireGoogleAdsConversionAdjustment).not.toHaveBeenCalled()
   })
 
   it("restates a partially refunded paid conversion to retained value", async () => {
@@ -186,7 +383,7 @@ describe("Google Ads conversion adjustments", () => {
     )
   })
 
-  it("retracts a disputed conversion even when no refund amount exists yet", async () => {
+  it("uses the reversible floor for a fully lost disputed conversion", async () => {
     mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({ attempted: true, ok: true })
     const { supabase } = adjustmentSupabaseMock([successfulPurchaseUpload()])
 
@@ -201,7 +398,8 @@ describe("Google Ads conversion adjustments", () => {
 
     expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledWith(
       expect.objectContaining({
-        adjustmentType: "RETRACTION",
+        adjustedValue: 0.01,
+        adjustmentType: "RESTATEMENT",
         orderId: "intake_123",
       }),
     )
@@ -230,10 +428,11 @@ describe("Google Ads conversion adjustments", () => {
     )
   })
 
-  it("waits for a successful purchase upload before adjusting", async () => {
-    const { inserted, supabase } = adjustmentSupabaseMock([])
+  it("keeps a zero-value target retryable until a late purchase upload can be adjusted", async () => {
+    const audits: AuditRow[] = []
+    const { inserted, rpc, supabase } = adjustmentSupabaseMock(audits)
 
-    const result = await runGoogleAdsConversionAdjustment({
+    const missingUpload = await runGoogleAdsConversionAdjustment({
       amountCents: 2495,
       intakeId: "intake_missing_upload",
       paymentStatus: "refunded",
@@ -242,7 +441,7 @@ describe("Google Ads conversion adjustments", () => {
       supabase: supabase as never,
     })
 
-    expect(result).toMatchObject({
+    expect(missingUpload).toMatchObject({
       attempted: false,
       error: "missing_successful_purchase_upload",
       status: "skipped_missing_successful_upload",
@@ -256,6 +455,31 @@ describe("Google Ads conversion adjustments", () => {
         }),
       },
     })
+    expect(rpc).toHaveBeenCalledWith(
+      "complete_google_ads_conversion_adjustment_claim",
+      expect.objectContaining({ p_outcome: "retryable_failed" }),
+    )
+
+    audits.push(successfulPurchaseUpload("intake_missing_upload"))
+    mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({ attempted: true, ok: true })
+
+    const adjusted = await runGoogleAdsConversionAdjustment({
+      amountCents: 2495,
+      intakeId: "intake_missing_upload",
+      paymentStatus: "refunded",
+      refundAmountCents: 2495,
+      source: "cron_backfill",
+      supabase: supabase as never,
+    })
+
+    expect(adjusted).toMatchObject({ attempted: true, ok: true, status: "success" })
+    expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        adjustedValue: 0.01,
+        adjustmentType: "RESTATEMENT",
+        orderId: "intake_missing_upload",
+      }),
+    )
   })
 
   it("records the missing-upload skip once instead of once per cron run", async () => {
@@ -265,9 +489,9 @@ describe("Google Ads conversion adjustments", () => {
         created_at: hoursAgoIso(2),
         intake_id: "intake_missing_upload",
         metadata: {
-          adjustment_type: "RETRACTION",
+          adjustment_type: "RESTATEMENT",
           status: "skipped_missing_successful_upload",
-          target_net_value_cents: 0,
+          target_net_value_cents: 1,
         },
       },
     ])
@@ -405,10 +629,10 @@ describe("Google Ads conversion adjustments", () => {
         created_at: hoursAgoIso(0.5),
         intake_id: "intake_123",
         metadata: {
-          adjustment_type: "RETRACTION",
+          adjustment_type: "RESTATEMENT",
           error_code: CONVERSION_NOT_FOUND_ERROR,
           status: "failed",
-          target_net_value_cents: 0,
+          target_net_value_cents: 1,
         },
       },
     ])
@@ -467,10 +691,10 @@ describe("Google Ads conversion adjustments", () => {
         created_at: hoursAgoIso(PAST_GRACE_HOURS - 1),
         intake_id: "intake_123",
         metadata: {
-          adjustment_type: "RETRACTION",
+          adjustment_type: "RESTATEMENT",
           error_code: CONVERSION_NOT_FOUND_ERROR,
           status: "failed",
-          target_net_value_cents: 0,
+          target_net_value_cents: 1,
         },
       },
     ])
@@ -539,10 +763,10 @@ describe("Google Ads conversion adjustments", () => {
         created_at: hoursAgoIso(0.5),
         intake_id: "intake_123",
         metadata: {
-          adjustment_type: "RETRACTION",
+          adjustment_type: "RESTATEMENT",
           error_code: "dm_request_rejected",
           status: "terminal_failed",
-          target_net_value_cents: 0,
+          target_net_value_cents: 1,
           terminal: true,
           terminal_reason: "dm_request_rejected",
         },
@@ -587,7 +811,7 @@ describe("Google Ads conversion adjustments", () => {
     expect(result).toMatchObject({
       attempted: false,
       error: "dm_request_rejected",
-      status: "terminal_failed",
+      status: "resolved_not_counted",
     })
     expect(mocks.retrieveGoogleDataManagerRequestStatus).toHaveBeenCalledWith("request-123")
     expect(mocks.fireGoogleAdsConversionAdjustment).not.toHaveBeenCalled()
@@ -595,9 +819,10 @@ describe("Google Ads conversion adjustments", () => {
       payload: {
         metadata: expect.objectContaining({
           error_code: "dm_request_rejected",
-          status: "terminal_failed",
-          terminal: true,
-          terminal_reason: "dm_request_rejected",
+          resolution_reason: "dm_request_rejected",
+          status: "resolved_not_counted",
+          terminal: false,
+          terminal_reason: null,
           upload_api: "data_manager_api",
           upload_identifier: "request-123",
         }),
@@ -684,7 +909,7 @@ describe("Google Ads conversion adjustments", () => {
     expect(mocks.retrieveGoogleDataManagerRequestStatus).not.toHaveBeenCalled()
   })
 
-  it("skips audit writes from local development runtimes", async () => {
+  it("skips both external mutation and audit writes from local development runtimes", async () => {
     vi.stubEnv("NODE_ENV", "development")
     vi.stubEnv("VERCEL", "0")
     mocks.fireGoogleAdsConversionAdjustment.mockResolvedValue({ attempted: true, ok: true })
@@ -699,8 +924,8 @@ describe("Google Ads conversion adjustments", () => {
       supabase: supabase as never,
     })
 
-    expect(result).toMatchObject({ attempted: true, ok: true, status: "success" })
-    expect(mocks.fireGoogleAdsConversionAdjustment).toHaveBeenCalled()
+    expect(result).toMatchObject({ attempted: false, status: "skipped_local_dev" })
+    expect(mocks.fireGoogleAdsConversionAdjustment).not.toHaveBeenCalled()
     expect(inserted).toHaveLength(0)
   })
 })

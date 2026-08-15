@@ -32,6 +32,8 @@ const DAY_MS = 24 * 60 * 60 * 1000
 // prior 30-day window. Every derived readout below re-scopes to its own
 // window; nothing may consume the raw 60-day arrays wholesale.
 const FETCH_HORIZON_DAYS = 60
+const MAX_DISPUTE_BASELINE_ROWS = 5_000
+const MAX_REFUND_MOVEMENT_ROWS = 5_000
 // 32 closed Sydney days + today (partial). Two spare closed days beyond the
 // displayed 30 so a latest delivered Ads run whose rolling-30 window ends a
 // day or two back still finds every revenue bucket it needs for profit rows.
@@ -111,7 +113,16 @@ type StripeRefundMovementReadRow = {
 type StripeRefundLedgerHealthRow = {
   conflicting_refund_count: number | string | null
   incomplete_intake_count: number | string | null
+  unknown_priority_classification_count: number | string | null
+  unknown_mode_dispute_count: number | string | null
+  unsupported_currency_dispute_count: number | string | null
+  unlinked_live_dispute_count: number | string | null
+  unlinked_live_dispute_cents: number | string | null
+  unlinked_refund_count: number | string | null
+  unlinked_refund_cents: number | string | null
   unledgered_refund_cents: number | string | null
+  unsupported_currency_refund_count: number | string | null
+  unsupported_currency_refund_cents: number | string | null
 }
 
 type TimedRow = {
@@ -322,25 +333,43 @@ export async function getRevenueDashboard(
       .order("paid_at", { ascending: false })),
     supabase
       .from("stripe_refund_cash_movements")
-      .select("stripe_refund_id, intake_id, amount_cents, refund_created_at, refund_cash_at, refund_reversed_at, livemode, order_amount_cents, category, subtype, exclude_from_reporting, patient_id")
+      .select(
+        "stripe_refund_id, intake_id, amount_cents, refund_created_at, refund_cash_at, " +
+        "refund_reversed_at, livemode, order_amount_cents, category, subtype, " +
+        "exclude_from_reporting, patient_id",
+        { count: "exact" },
+      )
       .eq("currency", "aud")
       .eq("livemode", true)
       .or(
         `and(refund_cash_at.gte.${fetchSince},refund_cash_at.lte.${nowIso}),` +
         `and(refund_reversed_at.gte.${fetchSince},refund_reversed_at.lte.${nowIso})`,
-      ),
+      )
+      .limit(MAX_REFUND_MOVEMENT_ROWS),
     supabase
       .from("stripe_refund_ledger_health")
-      .select("conflicting_refund_count, incomplete_intake_count, unledgered_refund_cents")
+      .select(
+        "conflicting_refund_count, incomplete_intake_count, unledgered_refund_cents, " +
+        "unlinked_refund_count, unlinked_refund_cents, unsupported_currency_refund_count, " +
+        "unsupported_currency_refund_cents, unlinked_live_dispute_count, " +
+        "unlinked_live_dispute_cents, unknown_mode_dispute_count, " +
+        "unsupported_currency_dispute_count, unknown_priority_classification_count",
+      )
       .single(),
     supabase
       .from("stripe_disputes")
-      .select("intake_id, funds_withdrawn_at, funds_withdrawn_cents, funds_reinstated_at, funds_reinstated_cents, intake:intakes(id, amount_cents, category, subtype, refund_amount_cents, refund_status, refunded_at, exclude_from_reporting, patient_id)")
+      .select(
+        "intake_id, funds_withdrawn_at, funds_withdrawn_cents, funds_reinstated_at, funds_reinstated_cents, intake:intakes(id, amount_cents, category, subtype, refund_amount_cents, refund_status, refunded_at, exclude_from_reporting, patient_id)",
+        { count: "exact" },
+      )
       .eq("currency", "aud")
-      .or(
-        `and(funds_withdrawn_at.gte.${fetchSince},funds_withdrawn_at.lte.${nowIso}),` +
-        `and(funds_reinstated_at.gte.${fetchSince},funds_reinstated_at.lte.${nowIso})`,
-      ),
+      .eq("livemode", true)
+      // The full outstanding dispute baseline must precede current refund
+      // events, otherwise an older loss can be deducted twice in this window.
+      .not("funds_withdrawn_at", "is", null)
+      .lte("funds_withdrawn_at", nowIso)
+      .order("funds_withdrawn_at", { ascending: false })
+      .limit(MAX_DISPUTE_BASELINE_ROWS),
     filterReportableIntakes(supabase
       .from("intakes")
       .select("created_at")
@@ -373,19 +402,24 @@ export async function getRevenueDashboard(
   const refundStatsRead = results[7].status === "fulfilled" ? results[7].value : null
   const paidRowsAvailable = paidResult !== null && !paidResult.error
   const refundMovementRows = refundResult && !refundResult.error
-    ? ((refundResult.data ?? []) as StripeRefundMovementReadRow[])
+    ? ((refundResult.data ?? []) as unknown as StripeRefundMovementReadRow[])
     : []
   const refundLedgerHealth = normalizeRefundLedgerHealth(refundLedgerHealthResult?.data)
   const refundRowsAvailable =
     refundResult !== null &&
     !refundResult.error &&
+    typeof refundResult.count === "number" &&
+    refundResult.count <= refundMovementRows.length &&
     refundMovementRows.every(hasCompleteRefundMovementEvidence) &&
     refundLedgerHealthResult !== null &&
     !refundLedgerHealthResult.error &&
-    refundLedgerHealth.conflictingRefundCount === 0 &&
-    refundLedgerHealth.incompleteIntakeCount === 0 &&
-    refundLedgerHealth.unledgeredRefundCents === 0
-  const disputeRowsAvailable = disputeResult !== null && !disputeResult.error
+    refundLedgerHealth.problemCount === 0 &&
+    refundLedgerHealth.problemCents === 0
+  const disputeRowsAvailable =
+    disputeResult !== null &&
+    !disputeResult.error &&
+    typeof disputeResult.count === "number" &&
+    disputeResult.count <= (disputeResult.data?.length ?? 0)
   const createdRowsAvailable = createdResult !== null && !createdResult.error
   const checkoutRowsAvailable = checkoutResult !== null && !checkoutResult.error
   const partialDraftRowsAvailable = partialDraftResult !== null && !partialDraftResult.error
@@ -479,24 +513,33 @@ function hasCompleteRefundMovementEvidence(row: StripeRefundMovementReadRow): bo
 }
 
 function normalizeRefundLedgerHealth(data: unknown): {
-  conflictingRefundCount: number
-  incompleteIntakeCount: number
-  unledgeredRefundCents: number
+  problemCount: number
+  problemCents: number
 } {
   const value = Array.isArray(data) ? data[0] : data
   const row = value as StripeRefundLedgerHealthRow | null | undefined
-  const conflictingRefundCount = Number(row?.conflicting_refund_count)
-  const incompleteIntakeCount = Number(row?.incomplete_intake_count)
-  const unledgeredRefundCents = Number(row?.unledgered_refund_cents)
+  const counts = [
+    row?.conflicting_refund_count,
+    row?.incomplete_intake_count,
+    row?.unknown_priority_classification_count,
+    row?.unlinked_refund_count,
+    row?.unsupported_currency_refund_count,
+    row?.unlinked_live_dispute_count,
+    row?.unknown_mode_dispute_count,
+    row?.unsupported_currency_dispute_count,
+  ].map(Number)
+  const cents = [
+    row?.unledgered_refund_cents,
+    row?.unlinked_refund_cents,
+    row?.unsupported_currency_refund_cents,
+    row?.unlinked_live_dispute_cents,
+  ].map(Number)
   return {
-    conflictingRefundCount: Number.isFinite(conflictingRefundCount)
-      ? conflictingRefundCount
+    problemCount: counts.every(Number.isFinite)
+      ? counts.reduce((sum, value) => sum + value, 0)
       : Number.POSITIVE_INFINITY,
-    incompleteIntakeCount: Number.isFinite(incompleteIntakeCount)
-      ? incompleteIntakeCount
-      : Number.POSITIVE_INFINITY,
-    unledgeredRefundCents: Number.isFinite(unledgeredRefundCents)
-      ? unledgeredRefundCents
+    problemCents: cents.every(Number.isFinite)
+      ? cents.reduce((sum, value) => sum + value, 0)
       : Number.POSITIVE_INFINITY,
   }
 }
@@ -510,9 +553,12 @@ function normalizeDisputeRows(
   const currentRefundCentsByIntake = new Map<string, number>()
   for (const row of refundRows) {
     if (!row.id) continue
+    const outstandingMovementCents = row.refund_reversed_at
+      ? 0
+      : getRecordedRefundCents(row)
     currentRefundCentsByIntake.set(
       row.id,
-      (currentRefundCentsByIntake.get(row.id) ?? 0) + getRecordedRefundCents(row),
+      (currentRefundCentsByIntake.get(row.id) ?? 0) + outstandingMovementCents,
     )
   }
   const disputeRows: DisputeRevenueRow[] = []

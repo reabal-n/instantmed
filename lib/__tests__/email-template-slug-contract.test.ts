@@ -22,9 +22,15 @@ describe("email template slug contract", () => {
     expect(baselineSource).toContain("'refund-processed'")
 
     expect(templateSenderSource).toContain('templateSlug: "payment-received"')
-    expect(templateSenderSource).toContain('templateSlug: "refund-processed"')
+    expect(templateSenderSource).toContain('getTemplate("refund-processed")')
+    expect(templateSenderSource).toContain('email_type: "refund-processed"')
     expect(reconstructSource).toContain('renderDatabaseTemplate("payment-received"')
     expect(reconstructSource).toContain('renderDatabaseTemplate("refund-processed"')
+    expect(templateSenderSource).toContain("refund_amount_cents: params.amountCents")
+    expect(reconstructSource).toContain("row.metadata?.refund_amount_cents")
+    expect(reconstructSource).not.toContain(
+      "ctx.intake.refund_amount_cents || ctx.intake.amount_cents",
+    )
   })
 
   it("does not use the stale underscore slugs for active DB templates", () => {

@@ -2,7 +2,9 @@ import type Stripe from "stripe"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
+  addToDeadLetterQueue: vi.fn(),
   after: vi.fn(),
+  captureException: vi.fn(),
   captureMessage: vi.fn(),
   retrieveCharge: vi.fn(),
   runGoogleAdsConversionAdjustment: vi.fn(),
@@ -20,8 +22,16 @@ vi.mock("next/server", async () => {
 })
 
 vi.mock("@sentry/nextjs", () => ({
+  captureException: mocks.captureException,
   captureMessage: mocks.captureMessage,
 }))
+
+vi.mock("@/app/api/stripe/webhook/handlers/utils", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/app/api/stripe/webhook/handlers/utils")
+  >("@/app/api/stripe/webhook/handlers/utils")
+  return { ...actual, addToDeadLetterQueue: mocks.addToDeadLetterQueue }
+})
 
 vi.mock("@/lib/analytics/google-ads-conversion-adjustments", async () => {
   const actual = await vi.importActual<
@@ -57,15 +67,24 @@ type TableMutation = {
 }
 
 function createSupabaseMock(input?: {
+  adsTarget?: Record<string, unknown> | null
   cashResult?: { data: Record<string, unknown> | null; error: { message: string } | null }
+  claimResult?: { data: boolean; error: { message: string } | null }
+  disputeLivemode?: boolean
   disputeRow?: Record<string, unknown> | null
   intakeLookupError?: { message: string } | null
   intakeRow?: Record<string, unknown> | null
   upsertError?: { message: string } | null
+  statusResult?: { data: Record<string, unknown> | null; error: { message: string } | null }
 }) {
   const mutations: TableMutation[] = []
   const rpc = vi.fn(async (name: string) => {
-    if (name === "try_process_stripe_event") return { data: true, error: null }
+    if (name === "try_process_stripe_event") {
+      return input?.claimResult ?? { data: true, error: null }
+    }
+    if (name === "record_stripe_dispute_status_event") {
+      return input?.statusResult ?? { data: { applied: true }, error: null }
+    }
     if (name === "record_stripe_dispute_cash_event") {
       return input?.cashResult ?? { data: { applied: true }, error: null }
     }
@@ -84,7 +103,20 @@ function createSupabaseMock(input?: {
             error: input?.intakeLookupError ?? null,
           }
         }
-        if (table === "stripe_disputes") return { data: input?.disputeRow ?? null, error: null }
+        if (table === "stripe_disputes") {
+          return {
+            data: input?.disputeRow ?? {
+              intake_id: input?.intakeRow && "id" in input.intakeRow
+                ? input.intakeRow.id
+                : null,
+              livemode: input?.disputeLivemode ?? false,
+            },
+            error: null,
+          }
+        }
+        if (table === "stripe_payment_adjustment_targets") {
+          return { data: input?.adsTarget ?? null, error: null }
+        }
         return { data: null, error: null }
       }),
       not: vi.fn(() => chain),
@@ -97,7 +129,20 @@ function createSupabaseMock(input?: {
             error: input?.intakeLookupError ?? null,
           }
         }
-        if (table === "stripe_disputes") return { data: input?.disputeRow ?? null, error: null }
+        if (table === "stripe_disputes") {
+          return {
+            data: input?.disputeRow ?? {
+              intake_id: input?.intakeRow && "id" in input.intakeRow
+                ? input.intakeRow.id
+                : null,
+              livemode: input?.disputeLivemode ?? false,
+            },
+            error: null,
+          }
+        }
+        if (table === "stripe_payment_adjustment_targets") {
+          return { data: input?.adsTarget ?? null, error: null }
+        }
         return { data: null, error: null }
       }),
       then: (resolve: (value: typeof mutationResult) => unknown) =>
@@ -125,6 +170,7 @@ function createSupabaseMock(input?: {
 function disputeEvent(
   type: Stripe.Event.Type,
   overrides: Partial<Stripe.Dispute> = {},
+  livemode = false,
 ): Stripe.Event {
   return {
     created: Math.floor(Date.parse("2026-06-18T01:30:00.000Z") / 1000),
@@ -144,7 +190,7 @@ function disputeEvent(
       } as Stripe.Dispute,
     },
     id: `evt_${type.replaceAll(".", "_")}`,
-    livemode: false,
+    livemode,
     object: "event",
     pending_webhooks: 1,
     request: null,
@@ -202,6 +248,43 @@ describe("Stripe dispute lifecycle", () => {
       expect.anything(),
     )
     expect(mocks.sendDisputeAlertEmail).not.toHaveBeenCalled()
+    expect(mocks.addToDeadLetterQueue).toHaveBeenCalledWith(
+      supabase,
+      "evt_charge_dispute_created",
+      "charge.dispute.created",
+      "ch_dispute",
+      "intake-1",
+      expect.stringContaining("temporary dispute ledger outage"),
+      "DISPUTE_CREATED_PERSISTENCE_FAILED",
+      expect.objectContaining({ id: "evt_charge_dispute_created" }),
+    )
+  })
+
+  it("dead-letters a transient created-event intake lookup with replayable payload", async () => {
+    const event = disputeEvent("charge.dispute.created")
+    const { mutations, rpc, supabase } = createSupabaseMock({
+      intakeLookupError: { message: "temporary intake lookup outage" },
+    })
+
+    const response = await handleChargeDisputeCreated({
+      event,
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect((response as Response).status).toBe(500)
+    expect(mutations).toEqual([])
+    expect(rpc).not.toHaveBeenCalledWith("try_process_stripe_event", expect.anything())
+    expect(mocks.addToDeadLetterQueue).toHaveBeenCalledWith(
+      supabase,
+      event.id,
+      event.type,
+      "ch_dispute",
+      null,
+      expect.stringContaining("temporary intake lookup outage"),
+      "DISPUTE_CREATED_PERSISTENCE_FAILED",
+      event,
+    )
   })
 
   it("deducts an open dispute withdrawal without making an irreversible Ads retraction", async () => {
@@ -246,7 +329,7 @@ describe("Stripe dispute lifecycle", () => {
   })
 
   it("restores retained revenue only when Stripe durably reinstates withdrawn funds", async () => {
-    const { mutations, rpc, supabase } = createSupabaseMock({
+    const { rpc, supabase } = createSupabaseMock({
       cashResult: {
         data: {
           amount_cents: 4995,
@@ -287,21 +370,19 @@ describe("Stripe dispute lifecycle", () => {
       p_event_id: "evt_charge_dispute_funds_reinstated",
       p_event_type: "charge.dispute.funds_reinstated",
     })
-    expect(mutations).toContainEqual(expect.objectContaining({
-      payload: expect.objectContaining({
-        outcome: "won",
-        resolved_at: "2026-06-18T01:30:00.000Z",
-        status: "won",
-      }),
-      table: "stripe_disputes",
-      type: "update",
-    }))
+    expect(rpc).toHaveBeenCalledWith("record_stripe_dispute_status_event", {
+      p_dispute_id: "dp_test",
+      p_event_at: "2026-06-18T01:30:00.000Z",
+      p_event_id: "evt_charge_dispute_funds_reinstated",
+      p_livemode: false,
+      p_status: "won",
+    })
     expect(mocks.after).not.toHaveBeenCalled()
     expect(mocks.runGoogleAdsConversionAdjustment).not.toHaveBeenCalled()
   })
 
   it("records a won decision without restoring cash on charge.dispute.closed alone", async () => {
-    const { mutations, rpc, supabase } = createSupabaseMock({
+    const { rpc, supabase } = createSupabaseMock({
       intakeRow: {
         amount_cents: 4995,
         id: "intake-1",
@@ -321,27 +402,28 @@ describe("Stripe dispute lifecycle", () => {
       "record_stripe_dispute_cash_event",
       expect.anything(),
     )
-    expect(mutations).toContainEqual(expect.objectContaining({
-      payload: expect.objectContaining({
-        outcome: "won",
-        resolved_at: "2026-06-18T01:30:00.000Z",
-        status: "won",
-      }),
-      table: "stripe_disputes",
-      type: "update",
-    }))
+    expect(rpc).toHaveBeenCalledWith("record_stripe_dispute_status_event", {
+      p_dispute_id: "dp_test",
+      p_event_at: "2026-06-18T01:30:00.000Z",
+      p_event_id: "evt_charge_dispute_closed",
+      p_livemode: false,
+      p_status: "won",
+    })
     expect(mocks.after).not.toHaveBeenCalled()
     expect(mocks.runGoogleAdsConversionAdjustment).not.toHaveBeenCalled()
   })
 
-  it("retracts only after a durable lost decision with outstanding withdrawn cash", async () => {
+  it("queues the reversible Ads floor only after durable lost cash evidence", async () => {
     const { supabase } = createSupabaseMock({
-      disputeRow: {
-        funds_reinstated_cents: 0,
-        funds_withdrawn_cents: 4995,
+      adsTarget: {
+        adjustment_at: "2026-06-18T01:30:00.000Z",
+        amount_cents: 4995,
         intake_id: "intake-1",
-        status: "lost",
+        payment_status: "disputed",
+        refund_amount_cents: 0,
+        target_net_value_cents: 1,
       },
+      disputeLivemode: true,
       intakeRow: {
         amount_cents: 4995,
         id: "intake-1",
@@ -352,7 +434,7 @@ describe("Stripe dispute lifecycle", () => {
     })
 
     await handleChargeDisputeLifecycle({
-      event: disputeEvent("charge.dispute.closed", { status: "lost" }),
+      event: disputeEvent("charge.dispute.closed", { status: "lost" }, true),
       startTime: Date.now(),
       supabase: supabase as never,
     })
@@ -368,9 +450,137 @@ describe("Stripe dispute lifecycle", () => {
         refundAmountCents: 0,
         requestPath: "/api/stripe/webhook",
         source: "stripe_charge_dispute_lost",
-        targetNetValueCents: 0,
+        targetNetValueCents: 1,
       }),
     )
+  })
+
+  it("keeps the aggregate Ads loss when one of two disputes is reinstated", async () => {
+    const { supabase } = createSupabaseMock({
+      adsTarget: {
+        adjustment_at: "2026-06-18T01:30:00.000Z",
+        amount_cents: 8995,
+        intake_id: "intake-1",
+        payment_status: "disputed",
+        refund_amount_cents: 995,
+        target_net_value_cents: 3000,
+      },
+      disputeLivemode: true,
+      cashResult: {
+        data: {
+          amount_cents: 8995,
+          applied: true,
+          intake_id: "intake-1",
+          outstanding_dispute_cents: 5000,
+          refund_amount_cents: 995,
+          restored_payment_status: "disputed",
+        },
+        error: null,
+      },
+      intakeRow: {
+        amount_cents: 8995,
+        id: "intake-1",
+        payment_status: "disputed",
+        refund_amount_cents: 995,
+      },
+    })
+
+    await handleChargeDisputeLifecycle({
+      event: disputeEvent("charge.dispute.funds_reinstated", {
+        amount: 3000,
+        balance_transactions: [
+          { amount: 3000, currency: "aud" } as Stripe.BalanceTransaction,
+        ],
+        status: "won",
+      }, true),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(mocks.after).toHaveBeenCalledTimes(1)
+    await mocks.after.mock.calls[0][0]()
+    expect(mocks.runGoogleAdsConversionAdjustment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amountCents: 8995,
+        intakeId: "intake-1",
+        refundAmountCents: 995,
+        targetNetValueCents: 3000,
+      }),
+    )
+  })
+
+  it("keeps intake disputed and adjusts only to exact retained value after partial reinstatement", async () => {
+    const { supabase } = createSupabaseMock({
+      adsTarget: {
+        adjustment_at: "2026-06-18T01:30:00.000Z",
+        amount_cents: 4995,
+        intake_id: "intake-1",
+        payment_status: "disputed",
+        refund_amount_cents: 0,
+        target_net_value_cents: 3995,
+      },
+      disputeLivemode: true,
+      cashResult: {
+        data: {
+          amount_cents: 4995,
+          applied: true,
+          intake_id: "intake-1",
+          outstanding_dispute_cents: 1000,
+          refund_amount_cents: 0,
+          restored_payment_status: "disputed",
+        },
+        error: null,
+      },
+      intakeRow: {
+        amount_cents: 4995,
+        id: "intake-1",
+        payment_status: "disputed",
+        refund_amount_cents: 0,
+      },
+    })
+
+    await handleChargeDisputeLifecycle({
+      event: disputeEvent("charge.dispute.funds_reinstated", {
+        balance_transactions: [
+          { amount: -4995, currency: "aud" } as Stripe.BalanceTransaction,
+          { amount: 3995, currency: "aud" } as Stripe.BalanceTransaction,
+        ],
+        status: "won",
+      }, true),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    await mocks.after.mock.calls[0][0]()
+    expect(mocks.runGoogleAdsConversionAdjustment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        paymentStatus: "disputed",
+        targetNetValueCents: 3995,
+      }),
+    )
+  })
+
+  it("does not retract from an out-of-order lost observation skipped by durable status truth", async () => {
+    const { rpc, supabase } = createSupabaseMock({
+      adsTarget: null,
+      intakeRow: {
+        amount_cents: 4995,
+        id: "intake-1",
+        payment_status: "paid",
+        refund_amount_cents: 0,
+      },
+      statusResult: { data: { applied: false, status: "won" }, error: null },
+    })
+
+    await handleChargeDisputeLifecycle({
+      event: disputeEvent("charge.dispute.closed", { status: "lost" }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(rpc).toHaveBeenCalledWith("record_stripe_dispute_status_event", expect.anything())
+    expect(mocks.after).not.toHaveBeenCalled()
+    expect(mocks.runGoogleAdsConversionAdjustment).not.toHaveBeenCalled()
   })
 
   it("fails retryably instead of inventing cash movement from the dispute amount", async () => {
@@ -482,5 +692,22 @@ describe("Stripe dispute lifecycle", () => {
     )
     expect(mocks.after).not.toHaveBeenCalled()
     expect(mocks.runGoogleAdsConversionAdjustment).not.toHaveBeenCalled()
+  })
+
+  it("does not duplicate DLQ rows during an admin replay failure", async () => {
+    const { supabase } = createSupabaseMock({
+      intakeRow: { id: "intake-1" },
+      upsertError: { message: "temporary dispute ledger outage" },
+    })
+
+    const response = await handleChargeDisputeCreated({
+      adminReplay: true,
+      event: disputeEvent("charge.dispute.created"),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect((response as Response).status).toBe(500)
+    expect(mocks.addToDeadLetterQueue).not.toHaveBeenCalled()
   })
 })

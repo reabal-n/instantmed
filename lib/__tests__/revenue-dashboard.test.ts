@@ -21,7 +21,11 @@ type QueryCall = {
 }
 
 function queryResult(
-  result: { data: unknown[] | null; error: { message: string } | null },
+  result: {
+    count?: number | null
+    data: unknown[] | null
+    error: { message: string } | null
+  },
   table: string,
   calls?: QueryCall[],
 ) {
@@ -31,7 +35,10 @@ function queryResult(
         return (
           resolve: (value: typeof result) => unknown,
           reject: (reason: unknown) => unknown,
-        ) => Promise.resolve(result).then(resolve, reject)
+        ) => Promise.resolve({
+          ...result,
+          count: result.count ?? result.data?.length ?? 0,
+        }).then(resolve, reject)
       }
       return (...args: unknown[]) => {
         calls?.push({ args, method: String(property), table })
@@ -43,7 +50,11 @@ function queryResult(
 }
 
 function revenueDashboardClient(
-  results: Array<{ data: unknown[] | null; error: { message: string } | null }>,
+  results: Array<{
+    count?: number | null
+    data: unknown[] | null
+    error: { message: string } | null
+  }>,
   tables?: string[],
   calls?: QueryCall[],
 ) {
@@ -81,6 +92,27 @@ function refundRow(overrides: Record<string, unknown>) {
     refund_status: "succeeded",
     refunded_at: "2026-06-18T01:30:00.000Z",
     ...overrides,
+  }
+}
+
+function refundLedgerHealth(overrides: Record<string, number> = {}) {
+  return {
+    data: [{
+      conflicting_refund_count: 0,
+      incomplete_intake_count: 0,
+      unknown_mode_dispute_count: 0,
+      unknown_priority_classification_count: 0,
+      unledgered_refund_cents: 0,
+      unlinked_live_dispute_cents: 0,
+      unlinked_live_dispute_count: 0,
+      unlinked_refund_cents: 0,
+      unlinked_refund_count: 0,
+      unsupported_currency_dispute_count: 0,
+      unsupported_currency_refund_cents: 0,
+      unsupported_currency_refund_count: 0,
+      ...overrides,
+    }],
+    error: null,
   }
 }
 
@@ -132,7 +164,7 @@ describe("revenue dashboard read model", () => {
     const dashboard = await getRevenueDashboard(revenueDashboardClient([
       { data: [], error: null },
       { data: null, error: { message: "refund read unavailable" } },
-      { data: [{ conflicting_refund_count: 0, incomplete_intake_count: 0, unledgered_refund_cents: 0 }], error: null },
+      refundLedgerHealth(),
       { data: [], error: null },
       { data: [], error: null },
       { data: [], error: null },
@@ -151,7 +183,7 @@ describe("revenue dashboard read model", () => {
     const dashboard = await getRevenueDashboard(revenueDashboardClient([
       { data: [], error: null },
       { data: [], error: null },
-      { data: [{ conflicting_refund_count: 0, incomplete_intake_count: 0, unledgered_refund_cents: 0 }], error: null },
+      refundLedgerHealth(),
       { data: null, error: { message: "dispute ledger unavailable" } },
       { data: [], error: null },
       { data: [], error: null },
@@ -168,10 +200,7 @@ describe("revenue dashboard read model", () => {
     const dashboard = await getRevenueDashboard(revenueDashboardClient([
       { data: [], error: null },
       { data: [], error: null },
-      {
-        data: [{ conflicting_refund_count: 0, incomplete_intake_count: 1, unledgered_refund_cents: 2495 }],
-        error: null,
-      },
+      refundLedgerHealth({ incomplete_intake_count: 1, unledgered_refund_cents: 2495 }),
       { data: [], error: null },
       { data: [], error: null },
       { data: [], error: null },
@@ -186,14 +215,7 @@ describe("revenue dashboard read model", () => {
     const dashboard = await getRevenueDashboard(revenueDashboardClient([
       { data: [], error: null },
       { data: [], error: null },
-      {
-        data: [{
-          conflicting_refund_count: 1,
-          incomplete_intake_count: 0,
-          unledgered_refund_cents: 0,
-        }],
-        error: null,
-      },
+      refundLedgerHealth({ conflicting_refund_count: 1 }),
       { data: [], error: null },
       { data: [], error: null },
       { data: [], error: null },
@@ -216,10 +238,7 @@ describe("revenue dashboard read model", () => {
         }],
         error: null,
       },
-      {
-        data: [{ conflicting_refund_count: 0, incomplete_intake_count: 0, unledgered_refund_cents: 0 }],
-        error: null,
-      },
+      refundLedgerHealth(),
       { data: [], error: null },
       { data: [], error: null },
       { data: [], error: null },
@@ -230,12 +249,12 @@ describe("revenue dashboard read model", () => {
     expect(dashboard.sourceAvailability.revenue).toBe("unavailable")
   })
 
-  it("loads a reinstatement for an older dispute by either durable cash timestamp", async () => {
+  it("loads the complete dispute baseline before applying windowed cash events", async () => {
     const calls: QueryCall[] = []
     const dashboard = await getRevenueDashboard(revenueDashboardClient([
       { data: [], error: null },
       { data: [], error: null },
-      { data: [{ conflicting_refund_count: 0, incomplete_intake_count: 0, unledgered_refund_cents: 0 }], error: null },
+      refundLedgerHealth(),
       {
         data: [{
           amount: 4995,
@@ -267,11 +286,16 @@ describe("revenue dashboard read model", () => {
       disputeCents: -4995,
       netCents: 4995,
     })
-    expect(calls).toContainEqual(expect.objectContaining({
-      args: [expect.stringContaining("funds_withdrawn_at.gte.")],
-      method: "or",
+    expect(calls).toContainEqual({
+      args: ["funds_withdrawn_at", "is", null],
+      method: "not",
       table: "stripe_disputes",
-    }))
+    })
+    expect(calls).toContainEqual({
+      args: [5_000],
+      method: "limit",
+      table: "stripe_disputes",
+    })
     expect(calls).toContainEqual({
       args: ["livemode", true],
       method: "eq",
@@ -287,6 +311,131 @@ describe("revenue dashboard read model", () => {
       method: "eq",
       table: "stripe_refund_ledger_health",
     }))
+  })
+
+  it("fails closed when the bounded dispute baseline is incomplete", async () => {
+    const dashboard = await getRevenueDashboard(revenueDashboardClient([
+      { data: [], error: null },
+      { data: [], error: null },
+      refundLedgerHealth(),
+      { count: 5_001, data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+    ]), NOW)
+
+    expect(dashboard.sourceAvailability.revenue).toBe("unavailable")
+  })
+
+  it("uses an older outstanding dispute as the baseline for a current refund", async () => {
+    const dashboard = await getRevenueDashboard(revenueDashboardClient([
+      { data: [], error: null },
+      {
+        data: [{
+          amount_cents: 4995,
+          category: "consult",
+          exclude_from_reporting: false,
+          intake_id: "old-dispute-current-refund",
+          livemode: true,
+          order_amount_cents: 4995,
+          patient_id: "patient-1",
+          refund_cash_at: "2026-06-18T01:00:00.000Z",
+          refund_created_at: "2026-06-18T00:50:00.000Z",
+          refund_reversed_at: null,
+          stripe_refund_id: "re_current",
+          subtype: "ed",
+        }],
+        error: null,
+      },
+      refundLedgerHealth(),
+      {
+        data: [{
+          funds_reinstated_at: null,
+          funds_reinstated_cents: 0,
+          funds_withdrawn_at: "2026-03-01T01:00:00.000Z",
+          funds_withdrawn_cents: 4995,
+          intake_id: "old-dispute-current-refund",
+          intake: {
+            amount_cents: 4995,
+            category: "consult",
+            exclude_from_reporting: false,
+            id: "old-dispute-current-refund",
+            patient_id: "patient-1",
+            refund_amount_cents: 4995,
+            refund_status: "succeeded",
+            refunded_at: "2026-06-18T01:00:00.000Z",
+            subtype: "ed",
+          },
+        }],
+        error: null,
+      },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+    ]), NOW)
+
+    expect(dashboard.windows.find((window) => window.key === "today")).toMatchObject({
+      disputeCents: 0,
+      netCents: 0,
+      refundCents: 0,
+    })
+  })
+
+  it("nets a reversed current refund before calculating the dispute cap", async () => {
+    const dashboard = await getRevenueDashboard(revenueDashboardClient([
+      { data: [], error: null },
+      {
+        data: [{
+          amount_cents: 4000,
+          category: "medical_certificate",
+          exclude_from_reporting: false,
+          intake_id: "reversed-refund-dispute-cap",
+          livemode: true,
+          order_amount_cents: 4995,
+          patient_id: "patient-1",
+          refund_cash_at: "2026-06-10T01:00:00.000Z",
+          refund_created_at: "2026-06-10T00:50:00.000Z",
+          refund_reversed_at: "2026-06-18T01:00:00.000Z",
+          stripe_refund_id: "re_reversed",
+          subtype: null,
+        }],
+        error: null,
+      },
+      refundLedgerHealth(),
+      {
+        data: [{
+          funds_reinstated_at: null,
+          funds_reinstated_cents: 0,
+          funds_withdrawn_at: "2026-06-18T01:30:00.000Z",
+          funds_withdrawn_cents: 4995,
+          intake_id: "reversed-refund-dispute-cap",
+          intake: {
+            amount_cents: 4995,
+            category: "medical_certificate",
+            exclude_from_reporting: false,
+            id: "reversed-refund-dispute-cap",
+            patient_id: "patient-1",
+            refund_amount_cents: 995,
+            refund_status: "succeeded",
+            refunded_at: "2026-05-01T01:00:00.000Z",
+            subtype: null,
+          },
+        }],
+        error: null,
+      },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+    ]), NOW)
+
+    expect(dashboard.windows.find((window) => window.key === "last30Days")).toMatchObject({
+      disputeCents: 4000,
+      netCents: -4000,
+      refundCents: 0,
+    })
   })
 
   it("summarizes reportable revenue, refunds, service mix, and checkout pressure", () => {

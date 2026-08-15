@@ -251,7 +251,7 @@ export async function GET(request: NextRequest) {
     // patients hear the honest outcome while no operator is awake. Once-only
     // via priority_fee_refunded_at; Stripe-idempotent per intake. The later
     // approval email acknowledges the refund (med-cert-patient / script-sent).
-    let priorityBreachRefunds = 0
+    let priorityBreachRefundRequests = 0
     try {
       const { PRIORITY_BREACH_HOURS, refundPriorityFeeOnBreach } = await import(
         "@/lib/stripe/priority-fee-refund"
@@ -262,12 +262,16 @@ export async function GET(request: NextRequest) {
           .from("intakes")
           .select(`
             id, category, subtype, is_priority, payment_status, amount_cents,
-            refund_amount_cents, priority_fee_refunded_at,
+            refund_amount_cents, refund_status, refund_stripe_id,
+            priority_fee_refunded_at, priority_fee_refund_retry_attempted_at,
             stripe_payment_intent_id, payment_id, patient_id,
+            updated_at,
             patient:profiles!patient_id(full_name, email)
           `)
           .eq("is_priority", true)
           .eq("payment_status", "paid")
+          .neq("refund_status", "pending")
+          .or("refund_status.neq.failed,priority_fee_refund_retry_attempted_at.is.null")
           // paid/in_review only: a decision (approved/declined/awaiting_script)
           // or a doctor info-request means the review engaged inside the window.
           .in("status", ["paid", "in_review"])
@@ -281,16 +285,11 @@ export async function GET(request: NextRequest) {
       }
 
       if (breachCandidates && breachCandidates.length > 0) {
-        const [{ stripe }, { sendEmail }, templates, React] = await Promise.all([
-          import("@/lib/stripe/client"),
-          import("@/lib/email/send-email"),
-          import("@/lib/email/components/templates/priority-fee-refunded"),
-          import("react"),
-        ])
+        const { stripe } = await import("@/lib/stripe/client")
 
         for (const intake of breachCandidates) {
           const result = await refundPriorityFeeOnBreach({ stripe, supabase }, intake)
-          if (result.status !== "refunded") {
+          if (result.status !== "pending") {
             if (result.status === "failed") {
               handledFailures++
               logger.error("Priority breach refund failed", { intakeId: intake.id, error: result.error })
@@ -298,54 +297,9 @@ export async function GET(request: NextRequest) {
             continue
           }
 
-          priorityBreachRefunds++
-          trackBusinessMetric({
-            metric: "priority_fee_breach_refund",
-            severity: "warning",
-            metadata: { amount_cents: result.amountCents },
-          })
-
-          try {
-            const patientRaw = intake.patient as
-              | { full_name: string; email: string }[]
-              | { full_name: string; email: string }
-              | null
-            const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
-            if (!patient?.email) continue
-
-            const requestType = emailRequestTypeLabel(
-              intake.category as string | null,
-              intake.subtype as string | null,
-            )
-            const emailResult = await sendEmail({
-              to: patient.email,
-              toName: patient.full_name || undefined,
-              subject: templates.priorityFeeRefundedSubject(),
-              template: React.createElement(templates.PriorityFeeRefundedEmail, {
-                patientName: patient.full_name || "there",
-                requestType,
-                requestId: intake.id,
-                requestAccessUrl: buildPatientRequestAccessUrl({
-                  appUrl: env.appUrl,
-                  intakeId: intake.id,
-                }),
-              }),
-              emailType: "priority_fee_refunded",
-              intakeId: intake.id,
-              patientId: intake.patient_id,
-              idempotencyKey: `priority-fee-refunded:${intake.id}`,
-            })
-            if (!emailResult.success && !emailResult.outboxId) {
-              handledFailures++
-            }
-          } catch (emailError) {
-            handledFailures++
-            logger.error(
-              "Priority breach refund email failed",
-              { intakeId: intake.id },
-              emailError as Error,
-            )
-          }
+          // Exact balance evidence owns the durable refund stamp, metric, and
+          // patient notification. Creation alone can still be pending/fail.
+          priorityBreachRefundRequests++
         }
       }
     } catch (breachError) {
@@ -387,7 +341,7 @@ export async function GET(request: NextRequest) {
       success: true,
       stale_count: totalStale,
       delay_emails_sent: delayEmailsSent,
-      priority_breach_refunds: priorityBreachRefunds,
+      priority_breach_refund_requests: priorityBreachRefundRequests,
       stuck_awaiting_script: stuckScriptCount ?? 0,
       checked_at: now.toISOString(),
     })

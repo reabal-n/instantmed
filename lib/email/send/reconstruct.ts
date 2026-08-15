@@ -19,6 +19,7 @@ import {
   buildExpiredCheckoutStartUrl,
 } from "@/lib/email/recovery-links"
 import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
+import { hasConsistentCertificateIssuedDate } from "@/lib/medical-certificates/issued-date-integrity"
 import { logger } from "@/lib/observability/logger"
 import { getGuestCertificateAccessHref, getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -64,7 +65,11 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     if (metadata?.needs_pdf_generation) {
       const pdfResult = await generateAndUploadPdfForCertificate(row.certificate_id, row.metadata)
       if (!pdfResult.success) {
-        return { success: false, error: pdfResult.error || "PDF generation failed" }
+        return {
+          success: false,
+          error: pdfResult.error || "PDF generation failed",
+          ...(pdfResult.terminal ? { terminal: true } : {}),
+        }
       }
     }
 
@@ -327,9 +332,15 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     const ctx = await fetchIntakeContext(row.intake_id)
     if ("error" in ctx) return { success: false, error: ctx.error }
 
-    const refundCents = ctx.intake.refund_amount_cents || ctx.intake.amount_cents || 0
+    const refundCents = Number(row.metadata?.refund_amount_cents)
+    const exactReason = row.metadata?.refund_reason
+    if (!Number.isInteger(refundCents) || refundCents <= 0) {
+      return { success: false, error: "refund-processed is missing exact refund amount evidence" }
+    }
+    if (typeof exactReason !== "string" || !exactReason.trim()) {
+      return { success: false, error: "refund-processed is missing its exact refund reason" }
+    }
     const amount = `$${(refundCents / 100).toFixed(2)}`
-    const reason = ctx.intake.decline_reason || "Refund processed"
 
     const serviceName = ctx.service.short_name || ctx.service.name
 
@@ -337,7 +348,26 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       patient_name: ctx.patient.full_name || row.to_name || "there",
       amount,
       service_name: serviceName,
-      refund_reason: reason,
+      refund_reason: exactReason,
+    })
+  }
+
+  // A live refund can rarely be returned after Stripe initially reports it as
+  // succeeded. If the success notice already reached the provider, the
+  // lifecycle RPC queues this corrective notice instead of pretending the
+  // earlier communication can be recalled.
+  if (row.email_type === "refund-failed") {
+    if (!row.intake_id) {
+      return { success: false, error: "refund-failed requires intake_id for reconstruction" }
+    }
+    const refundId = row.metadata?.stripe_refund_id
+    if (typeof refundId !== "string" || !refundId) {
+      return { success: false, error: "refund-failed is missing Stripe refund identity" }
+    }
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+    return renderDatabaseTemplate("refund-failed", {
+      patient_name: ctx.patient.full_name || row.to_name || "there",
     })
   }
 
@@ -778,14 +808,14 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
 async function generateAndUploadPdfForCertificate(
   certificateId: string,
   _metadata: Record<string, unknown> | null // Data now fetched from certificate record
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; terminal?: boolean }> {
   const supabase = createServiceRoleClient()
 
   try {
     // Fetch certificate with fields needed for template rendering
     const { data: cert, error: certError } = await supabase
       .from("issued_certificates")
-      .select("id, certificate_number, certificate_type, certificate_ref, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, storage_path")
+      .select("id, certificate_number, certificate_type, certificate_ref, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, storage_path, created_at, template_config_snapshot")
       .eq("id", certificateId)
       .single()
 
@@ -805,16 +835,36 @@ async function generateAndUploadPdfForCertificate(
       return { success: false, error: "Certificate missing required date fields" }
     }
 
+    if (!hasConsistentCertificateIssuedDate({
+      createdAt: cert.created_at,
+      issueDate: cert.issue_date,
+      templateConfigSnapshot: cert.template_config_snapshot,
+    })) {
+      logger.error("[Email Dispatcher] Certificate issue-date history is inconsistent", {
+        certificateId,
+      })
+      return {
+        success: false,
+        error: "Certificate issue-date history is inconsistent",
+        terminal: true,
+      }
+    }
+
     const { formatDateLong, formatShortDate, formatShortDateSafe } = await import("@/lib/format")
 
     const certificateType = cert.certificate_type as "work" | "study" | "carer"
 
-    // Use stored certificate_ref, or generate one as fallback
-    let certificateRef = cert.certificate_ref
+    // A reference printed on a certificate is a persisted identity. Inventing
+    // a replacement during retry reconstruction would produce a PDF whose ref
+    // cannot be verified against the issued row, so permanent data gaps stop.
+    const certificateRef = cert.certificate_ref
     if (!certificateRef) {
-      logger.warn("[Email Dispatcher] Certificate missing certificate_ref, generating fallback", { certificateId })
-      const { generateCertificateRef } = await import("@/lib/pdf/cert-identifiers")
-      certificateRef = generateCertificateRef(certificateType)
+      logger.error("[Email Dispatcher] Certificate missing persisted reference", { certificateId })
+      return {
+        success: false,
+        error: "Certificate is missing its persisted reference",
+        terminal: true,
+      }
     }
 
     // Generate PDF using template renderer (same pipeline as approve-cert.ts)

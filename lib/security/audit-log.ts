@@ -28,6 +28,7 @@ export type AuditAction =
   | "settings_changed"
   | "state_change"
   | "refund_attempted"
+  | "refund_requested"
   | "refund_succeeded"
   | "refund_failed"
   | "webhook_failed"

@@ -7,6 +7,8 @@ const config: KnipConfig = {
     "public/sw.js!",
     // Google Ads operations run through this standalone operator CLI entrypoint.
     "scripts/google-ads-agent.ts",
+    // Refund-ledger reconciliation runs through this standalone operator CLI.
+    "scripts/backfill-stripe-refund-events.ts!",
     // Preview and fixture tooling belongs to the comprehensive scan only.
     "playwright.preview.config.ts",
     "scripts/e2e/{seed,teardown}.ts",

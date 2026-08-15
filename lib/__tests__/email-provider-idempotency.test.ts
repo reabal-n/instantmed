@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildEmailOutboxIdempotencyKey,
   buildResendEmailIdempotencyKey,
+  buildStripeRefundProcessedEmailIdempotencyKey,
 } from "@/lib/email/send/idempotency"
 import {
   freezeResendProviderPayload,
@@ -20,6 +21,16 @@ describe("email provider idempotency", () => {
 
   it("rejects a missing outbox id", () => {
     expect(() => buildResendEmailIdempotencyKey(" ")).toThrow("outbox id")
+  })
+
+  it("reserves one refund notification per exact Stripe refund identity", () => {
+    const first = buildStripeRefundProcessedEmailIdempotencyKey("intake-1", "re_1")
+    const replay = buildStripeRefundProcessedEmailIdempotencyKey("intake-1", "re_1")
+    const topup = buildStripeRefundProcessedEmailIdempotencyKey("intake-1", "re_2")
+
+    expect(replay).toBe(first)
+    expect(topup).not.toBe(first)
+    expect(first).toBe("stripe-refund-processed:intake-1:re_1")
   })
 
   it("uses the same durable key for the immediate sender and outbox dispatcher", () => {

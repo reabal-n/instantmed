@@ -20,6 +20,18 @@ export function buildResendEmailIdempotencyKey(outboxId: string): string {
   return `instantmed-email/${normalizedOutboxId}`
 }
 
+export function buildStripeRefundProcessedEmailIdempotencyKey(
+  intakeId: string,
+  stripeRefundId: string,
+): string {
+  const normalizedIntakeId = intakeId.trim()
+  const normalizedRefundId = stripeRefundId.trim()
+  if (!normalizedIntakeId || !normalizedRefundId) {
+    throw new Error("Intake and Stripe refund ids are required for refund email idempotency")
+  }
+  return `stripe-refund-processed:${normalizedIntakeId}:${normalizedRefundId}`
+}
+
 const METADATA_SCOPE_KEYS = [
   "recovery_tracking_id",
   "followup_id",

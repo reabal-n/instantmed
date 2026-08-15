@@ -43,22 +43,48 @@ export async function processRefund(
     stripe_payment_intent_id: string | null
     amount_cents: number | null
     refund_amount_cents?: number | null
+    refund_status?: string | null
+    refund_stripe_id?: string | null
     category: string | null
   },
   actorId: string,
-  timestamp: string,
+  declineUpdatedAt: string,
 ): Promise<DeclineResult["refund"]> {
   const supabase = createServiceRoleClient()
+  const requestedReservationAt = new Date(
+    Math.max(Date.now(), Date.parse(declineUpdatedAt) + 1),
+  ).toISOString()
+  let reservationUpdatedAt: string | null = null
 
   try {
-    // Mark as pending
-    await supabase
+    // Reserve this request before touching Stripe. The decline transition just
+    // returned `declineUpdatedAt`, so this optimistic lock permits exactly one
+    // creator. The intakes trigger owns the persisted version timestamp; always
+    // use its returned value for later compare-and-swap writes.
+    // A webhook that lands while Refund.create is in flight advances
+    // `updated_at`; every later local write is guarded by that persisted value
+    // and therefore cannot overwrite exact succeeded/failed cash evidence.
+    const { data: reserved, error: pendingError } = await supabase
       .from("intakes")
       .update({
         refund_status: "pending",
-        updated_at: timestamp,
+        refund_error: null,
+        updated_at: requestedReservationAt,
       })
       .eq("id", intakeId)
+      .eq("updated_at", declineUpdatedAt)
+      .select("id, updated_at")
+      .maybeSingle()
+    if (pendingError || !reserved || typeof reserved.updated_at !== "string") {
+      throw new Error(
+        pendingError
+          ? `Could not reserve refund state: ${pendingError.message}`
+          : !reserved
+            ? "Could not reserve refund state because the intake changed"
+            : "Could not reserve refund state because the persisted version is unavailable",
+      )
+    }
+    reservationUpdatedAt = reserved.updated_at
 
     // Get payment intent ID
     let paymentIntentId = intake.stripe_payment_intent_id
@@ -83,9 +109,10 @@ export async function processRefund(
         .update({
           refund_status: "failed",
           refund_error: error,
-          updated_at: timestamp,
+          updated_at: new Date().toISOString(),
         })
         .eq("id", intakeId)
+        .eq("updated_at", reservationUpdatedAt)
 
       captureRefundError(intakeId, intake.payment_id, error)
 
@@ -110,39 +137,48 @@ export async function processRefund(
           refund_type: "decline",
         },
       },
-      { idempotencyKey: `refund_decline_${intakeId}` }
+      {
+        idempotencyKey:
+          intake.refund_status === "failed" && intake.refund_stripe_id
+            ? `refund_decline_${intakeId}_after_${intake.refund_stripe_id}`
+            : `refund_decline_${intakeId}`,
+      }
     )
 
-    // Update intake with success. `refund.amount` is only THIS refund's chunk,
-    // so accumulate on top of any prior partial (e.g. the priority breach fee)
-    // and cap at the original charge — a replayed Stripe idempotent response
-    // must not inflate the running total past what was actually paid.
-    const alreadyRefundedCents = intake.refund_amount_cents ?? 0
-    const paidCents = intake.amount_cents ?? 0
-    const uncappedTotal = alreadyRefundedCents + (refund.amount ?? 0)
-    const totalRefundedCents = paidCents > 0 ? Math.min(paidCents, uncappedTotal) : uncappedTotal
-
-    await supabase
+    // Refund.create only proves that Stripe accepted the request. Exact balance
+    // evidence in the webhook is the sole authority for cash and payment state.
+    const { data: acceptedState, error: acceptedStateError } = await supabase
       .from("intakes")
       .update({
-        payment_status: "refunded",
-        refund_status: "succeeded",
+        refund_status: "pending",
         refund_stripe_id: refund.id,
-        refund_amount_cents: totalRefundedCents,
-        refunded_at: timestamp,
         refunded_by: actorId,
-        updated_at: timestamp,
+        refund_error: null,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
+      .eq("updated_at", reservationUpdatedAt)
+      .eq("refund_status", "pending")
+      .select("id")
+      .maybeSingle()
+    if (acceptedStateError) {
+      throw new Error(`Refund request state write failed: ${acceptedStateError.message}`)
+    }
+    if (!acceptedState) {
+      logger.info("[Decline] Exact refund webhook state won the create-response race", {
+        intakeId,
+        refundId: refund.id,
+      })
+    }
 
-    logger.info("[Decline] Refund succeeded", {
+    logger.info("[Decline] Refund requested", {
       intakeId,
       refundId: refund.id,
       amount: refund.amount,
     })
 
     return {
-      status: "succeeded",
+      status: "pending",
       stripeRefundId: refund.id,
       amount: refund.amount,
     }
@@ -150,14 +186,18 @@ export async function processRefund(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown Stripe error"
 
-    await supabase
-      .from("intakes")
-      .update({
-        refund_status: "failed",
-        refund_error: errorMessage,
-        updated_at: timestamp,
-      })
-      .eq("id", intakeId)
+    if (reservationUpdatedAt) {
+      await supabase
+        .from("intakes")
+        .update({
+          refund_status: "failed",
+          refund_error: errorMessage,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", intakeId)
+        .eq("updated_at", reservationUpdatedAt)
+        .eq("refund_status", "pending")
+    }
 
     captureRefundError(intakeId, intake.payment_id, errorMessage)
 

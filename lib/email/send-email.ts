@@ -28,6 +28,7 @@ import {
   validatePartialIntakeRecoveryProviderPayload,
 } from "@/lib/email/partial-intake-recovery-policy"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
+import { evaluateRefundNotificationEligibility } from "@/lib/email/refund-notification-eligibility"
 import { EMAIL_DISPATCHER_MAX_RETRIES } from "@/lib/email/retry-policy"
 import {
   evaluateReviewRequestPolicy,
@@ -66,6 +67,7 @@ import {
 } from "./send/helpers"
 import { buildResendEmailIdempotencyKey } from "./send/idempotency"
 import {
+  cancelSendingOutboxRow,
   createPendingOutbox,
   deferOutboxRow,
   logToOutbox,
@@ -1805,6 +1807,28 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
         emailType: row.email_type,
       })
       return { success: false, error, suppressed: true }
+    }
+
+    // Exact refund notices are uniquely reversible after Stripe initially
+    // reports success. This is the final pre-provider evidence check. A later
+    // reversal that races an in-flight provider request is reconciled by the
+    // lifecycle RPC with a separate corrective notice.
+    const refundEligibility = await evaluateRefundNotificationEligibility(row)
+    if (!refundEligibility.allowed) {
+      if (refundEligibility.retryable) {
+        const attempts = row.retry_count + 1
+        await updateOutboxStatus(row.id, "failed", {
+          error_message: refundEligibility.reason,
+          attempts,
+        })
+      } else {
+        await cancelSendingOutboxRow(row.id, refundEligibility.reason)
+      }
+      return {
+        success: false,
+        error: refundEligibility.reason,
+        retryable: refundEligibility.retryable,
+      }
     }
 
     const response = await fetch("https://api.resend.com/emails", {

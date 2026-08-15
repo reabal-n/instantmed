@@ -32,7 +32,7 @@ vi.mock('@/lib/notifications/service', () => ({
 
 // Mock email
 vi.mock('@/lib/email/template-sender', () => ({
-  sendRefundEmail: vi.fn(),
+  reserveRefundEmail: vi.fn(),
 }))
 
 // Mock logger
