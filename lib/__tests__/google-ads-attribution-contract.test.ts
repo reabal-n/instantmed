@@ -81,10 +81,11 @@ describe("Google Ads attribution contract", () => {
     expect(disputed).toContain('source: "stripe_charge_dispute_lost"')
     expect(disputed).toContain('ctx.requestPath || "/api/stripe/webhook"')
 
-    expect(cron).toContain('.from("stripe_disputes")')
-    expect(cron).toContain('.eq("status", "lost")')
-    expect(cron).toContain("funds_withdrawn_cents")
-    expect(cron).toContain("funds_reinstated_cents")
+    expect(cron).toContain('.from("google_ads_conversion_adjustment_due")')
+    expect(cron).toContain('.from("google_ads_conversion_adjustment_claim_health")')
+    expect(cron).not.toContain("row.dispute_id")
+    expect(cron).toContain("target_net_value_cents")
+    expect(cron).toContain("GOOGLE_ADS_ADJUSTMENT_MAX_AGE_DAYS")
     expect(cron).toContain("targetNetValueCents")
   })
 
@@ -100,12 +101,15 @@ describe("Google Ads attribution contract", () => {
       expect(source).toContain("google_ads_conversion_adjustment")
     }
 
-    expect(adr).toContain("RETRACTION")
-    expect(adr).toContain("RESTATEMENT")
+    expect(adr).toContain("aggregate `RESTATEMENT`s")
+    expect(adr).toContain("reversible A$0.01 floor")
     expect(advertising).toContain("Primary")
     expect(advertising).toContain("Secondary")
-    expect(architecture).toContain("refunds and disputes adjust that same Google Ads order")
-    expect(operations).toContain("partial refunds restate the retained AUD value")
+    expect(advertising).toContain("Missing purchase-upload evidence stays retryable")
+    expect(architecture).toContain(
+      "Stripe refund cash and durably terminal-lost dispute cash adjust that same Google Ads order"
+    )
+    expect(operations).toContain("reversible A$0.01 floor")
   })
 
   it("does not expose Google Ads account mutation from the scheduled backfill route", () => {

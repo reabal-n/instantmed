@@ -56,6 +56,7 @@ const brand = readProjectFile("docs/BRAND.md")
 const doctorOnboarding = readProjectFile("docs/DOCTOR_ONBOARDING.md")
 const primitives = readProjectFile("docs/PRIMITIVES.md")
 const bookkeepingFileMap = readProjectFile("docs/bookkeeping/file-map.md")
+const roadmap = readProjectFile("docs/ROADMAP.md")
 const clinical = readProjectFile("docs/CLINICAL.md")
 const advertisingCompliance = readProjectFile("docs/ADVERTISING_COMPLIANCE.md")
 const seoContentPolicy = readProjectFile("docs/SEO_CONTENT_POLICY.md")
@@ -112,13 +113,13 @@ describe("project docs drift contract", () => {
     }
   })
 
-  it("keeps root migration canon aligned with the applied audit follow-ups", () => {
+  it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **118 migration files**")
+      expect(source).toContain("Current count on disk: **126 migration files**")
       expect(source).toContain("`20260814163645_reconcile_manual_certificate_delivery.sql`")
       expect(source).toContain("`20260814171919_harden_audit_function_search_paths.sql`")
-      expect(source).not.toContain("Newest on disk is the pending `20260814123000")
-      expect(source).not.toContain("Immediately before it, the pending `20260814120000")
+      expect(source).toContain("`20260814187000_classify_future_review_request_retries.sql`")
+      expect(source).toContain("on-disk presence is not deployment proof")
     }
   })
 
@@ -170,10 +171,18 @@ describe("project docs drift contract", () => {
     )
     expect(operations).toContain("Below 2 hours across the 24/7 operating window")
     expect(operations).not.toContain("Below 2 hours during operating hours")
+    expect(operations).not.toContain("during operating hours")
+    expect(operations).toContain("Record the cause as unrecoverable rather than inventing one")
     expect(brand).toContain("| Weight management |")
     expect(brand).not.toContain("Weight loss (future)")
     expect(bookkeepingFileMap).toContain("production go-live PR #447 on 2026-08-10")
     expect(bookkeepingFileMap).not.toContain("Phases 1-5 blocked on five operator decisions")
+    expect(roadmap).toContain("**Numeric threshold crossed; formal rung remains open.**")
+    expect(roadmap).toContain("`$5,125.95` net-retained revenue")
+    expect(roadmap).toContain("first-review P95 5.27h")
+    expect(roadmap).toContain("no message bodies were inspected")
+    expect(roadmap).toContain("**Weight management — 2026-09-09:**")
+    expect(roadmap).toContain("This checkpoint does not authorise paid advertising")
     expect(brand).not.toContain("First review at 6am")
     expect(brand).not.toContain("Pre-6am / post-10pm")
     expect(citationKit).not.toContain("doctor consults")
