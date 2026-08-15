@@ -885,11 +885,13 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
 | `e2e/` | 78 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 126 SQL migration files (1 squashed baseline + 125 incremental). Latest: `20260814187000_classify_future_review_request_retries.sql`. The current release tranche also includes `20260814182000_track_stripe_dispute_cash_lifecycle.sql`, `20260814183000_harden_cron_watchdog_alert_claims.sql`, `20260814184000_add_stripe_refund_event_ledger.sql`, `20260814185000_record_truthful_cron_outcomes.sql`, and `20260814186000_correct_stripe_dispute_aggregation.sql`. On-disk presence is not deployment proof; linked migration history and post-apply receipts own production status. |
+| `supabase/migrations/` | 127 SQL migration files (1 squashed baseline + 126 incremental). Latest: `20260814190000_fix_support_refund_attempt_role_cast.sql`. The current release tranche spans the Stripe dispute/refund, cron-outcome, future-review retry, and support-refund role-cast migrations from `20260814182000` through `20260814190000`. On-disk presence is not deployment proof; linked migration history and post-apply receipts own production status. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |
 | `scripts/audit-health-guides.mjs` | Content QA backlog for guide-only copy, minimum visual depth, local images, rendering defects, source depth, article depth, and safety-boundary gaps |
+
+Production receipt (2026-08-16): linked migration history is aligned through `20260814190000`; the linked DB lint error gate passed; and `security_definer_acl_violations()` returned zero. The exact live refund-ledger backfill observed 17 refunds and 17 cash movements totalling A$549.00 (54,900 cents), all succeeded, with 17 linked, 0 ambiguous, and 0 unlinked. It reconciled 15 mutable intake mirrors, verified one immutable retired-general-consult row as `legacyConstraintEvidenceOnly`, and left every ledger-health anomaly count at zero.
 
 ---
 
