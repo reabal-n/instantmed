@@ -7,9 +7,12 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 
 export const metadata: Metadata = {
   robots: ICEBOX_ROBOTS,
@@ -261,7 +264,7 @@ export default function StudentsPage() {
                     },
                     {
                       q: "Does it say what I was sick with?",
-                      a: "By default, certificates say 'medical condition' without specific details - protecting your privacy. If your uni requires more detail, let us know.",
+                      a: `${MED_CERT_DOCUMENT_SCOPE} If your institution requires a different form or more detailed evidence, check its requirements before requesting.`,
                     },
                     {
                       q: "How long can the certificate cover?",

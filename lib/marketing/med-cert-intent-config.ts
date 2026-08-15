@@ -8,6 +8,7 @@ import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import type { CertCategory } from "@/lib/marketing/med-cert-selector"
 
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 
 export const MED_CERT_INTENT_SLUGS = [
   "work",
@@ -1045,8 +1046,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       },
       {
         question: "Does the certificate list anxiety as the diagnosis?",
-        answer:
-          "A routine certificate focuses on the absence period and does not usually need to list private symptom or diagnosis detail. The doctor decides what detail is clinically appropriate for the certificate.",
+        answer: MED_CERT_DOCUMENT_SCOPE,
       },
       {
         question: "Can I get a certificate for stress or burnout?",
@@ -1096,8 +1096,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       },
       {
         title: "What the certificate includes",
-        body:
-          "A routine flu certificate focuses on the absence period. It does not need to list private symptom detail unless the doctor decides it is clinically relevant.",
+        body: MED_CERT_DOCUMENT_SCOPE,
         items: [
           "Your name, the doctor's details, the review date, and the medically appropriate absence period",
           "A statement that you were unfit for work, study, or usual duties for the stated period",
@@ -1405,8 +1404,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       },
       {
         question: "Will the certificate show my migraine diagnosis?",
-        answer:
-          "Routine certificates usually state the period you were medically unfit for work or study. They do not need to disclose your diagnosis unless there is a specific clinical or administrative reason.",
+        answer: MED_CERT_DOCUMENT_SCOPE,
       },
       {
         question: "What if I drive or do safety-critical work?",
@@ -1707,8 +1705,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       },
       {
         title: "What the certificate includes",
-        body:
-          "A routine COVID certificate focuses on the absence period. It does not need to include private symptom or test detail unless the doctor decides that detail is clinically relevant.",
+        body: MED_CERT_DOCUMENT_SCOPE,
         items: [
           "Your name, the doctor's details, the review date, and the medically appropriate absence period",
           "A statement that you were unfit for work, study, or usual duties for the stated period",

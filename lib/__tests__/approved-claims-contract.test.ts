@@ -83,6 +83,9 @@ describe("approved claims registry", () => {
     expect(getApprovedClaim("clinical_review_sequence")).toBe(
       "Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.",
     )
+    expect(getApprovedClaim("med_cert_document_scope")).toBe(
+      "If approved, the standard certificate confirms the absence dates and does not include a diagnosis or symptom details.",
+    )
     expect(getApprovedClaim("complaints_timing")).toBe(
       "We acknowledge complaints within 24 hours. Clinical complaints target resolution within 14 days.",
     )

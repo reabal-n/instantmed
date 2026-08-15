@@ -10,8 +10,11 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 
 export const metadata: Metadata = {
   robots: ICEBOX_ROBOTS,
@@ -158,7 +161,7 @@ export default function CorporatePage() {
                     {
                       icon: Lock,
                       title: "Discreet and private",
-                      desc: "Certificate shows 'medical condition' - no specific diagnosis shared. Your privacy protected.",
+                      desc: MED_CERT_DOCUMENT_SCOPE,
                     },
                     {
                       icon: Briefcase,
@@ -243,11 +246,11 @@ export default function CorporatePage() {
                     },
                     {
                       q: "Does it say what I was sick with?",
-                      a: "By default, certificates say 'medical condition' - protecting your privacy. Specific diagnoses are only included if you request it or if legally required.",
+                      a: MED_CERT_DOCUMENT_SCOPE,
                     },
                     {
                       q: "Can I get a certificate for mental health?",
-                      a: "Yes. Mental health conditions (stress, anxiety, burnout) are valid medical reasons for sick leave. The certificate won&apos;t specify 'mental health' unless you want it to.",
+                      a: `Suitable mental health symptoms can be assessed for routine absence evidence. ${MED_CERT_DOCUMENT_SCOPE}`,
                     },
                     {
                       q: "What if I need a certificate for carer's leave?",

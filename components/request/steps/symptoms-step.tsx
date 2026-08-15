@@ -23,6 +23,7 @@ import { checkHighStakesUseCase, type HighStakesCheck } from "@/lib/clinical/int
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 import { checkEmergencySymptoms } from "@/lib/clinical/triage-rules-engine"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { recordStepCompletion } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -56,6 +57,8 @@ const COMMON_SYMPTOM_STARTERS = [
   { key: "cough_sore_throat", label: "Cough or sore throat" },
   { key: "back_muscle_pain", label: "Back or muscle pain" },
 ] as const
+
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 
 function escapeForRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
@@ -230,7 +233,7 @@ export default function SymptomsStep({ serviceType, onNext, hideIntro = false }:
       {!hideIntro && (
         <IntakeStepIntro
           title={isCarer ? "What is happening?" : "What is stopping you today?"}
-          description="A short, specific sentence is enough for the doctor to review."
+          description={`Tell the doctor what is happening. ${MED_CERT_DOCUMENT_SCOPE}`}
         />
       )}
 

@@ -18,6 +18,9 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 const REQUEST_AVAILABILITY = "24/7"
 
 export type StateSlug = "nsw" | "vic" | "qld" | "wa" | "sa" | "tas" | "act" | "nt"
@@ -73,7 +76,7 @@ export const statesData: Record<StateSlug, StateData> = {
       },
       {
         title: "University & TAFE certificates",
-        body: "Major NSW institutions - UNSW, USYD, UTS, Macquarie, Newcastle, Wollongong, Western Sydney, Charles Sturt - all assess telehealth medical certificates under their own policies for academic support requests and absence documentation. The certificate covers the medical condition and affected dates without disclosing diagnosis details unless the student requests disclosure.",
+        body: `Major NSW institutions - UNSW, USYD, UTS, Macquarie, Newcastle, Wollongong, Western Sydney, Charles Sturt - all assess telehealth medical certificates under their own policies for academic support requests and absence documentation. ${MED_CERT_DOCUMENT_SCOPE}`,
       },
       {
         title: "Regional NSW access gaps",

@@ -35,6 +35,7 @@ export type ApprovedClaimId =
   | "availability_24_7"
   | "clinical_decision_model"
   | "clinical_review_sequence"
+  | "med_cert_document_scope"
   | "clinical_access_scope"
   | "complaints_timing"
   | "doctor_registration"
@@ -196,6 +197,14 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
     risk: "high",
     sources: CLINICAL_RECEIPTS,
     notes: "Current public process order for the active bounded certificate protocol and the individually reviewed prescribing pathway.",
+  },
+  med_cert_document_scope: {
+    id: "med_cert_document_scope",
+    text: "If approved, the standard certificate confirms the absence dates and does not include a diagnosis or symptom details.",
+    contexts: ["medical_certificate", "checkout", "privacy"],
+    risk: "high",
+    sources: ["docs/CLINICAL.md", "lib/pdf/template-renderer.ts"],
+    notes: "Patient-facing summary of the locked absence-only certificate template. Symptoms and diagnoses remain clinical assessment context only.",
   },
   clinical_access_scope: {
     id: "clinical_access_scope",

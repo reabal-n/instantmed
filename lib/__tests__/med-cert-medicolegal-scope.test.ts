@@ -65,6 +65,20 @@ const HIGH_STAKES_CLAIM_PATTERNS = [
   /\bmedical certificates?.{0,120}(?:Centrelink mutual obligation|insurance claims?|platform compliance|official summons|court purposes|fitness[- ]?for[- ]?duty)/i,
 ]
 
+const DIAGNOSIS_CUSTOMISATION_PROMISE_PATTERNS = [
+  /\bspecific diagnoses? (?:are|is) only included if\b/i,
+  /\byou can choose whether to disclose more detail\b/i,
+  /\bif your uni requires more detail, let us know\b/i,
+  /\bdoctor decides what detail is clinically appropriate for the certificate\b/i,
+  /\bunless the doctor decides (?:it|that detail) is clinically relevant\b/i,
+  /\bunless there is a specific clinical or administrative reason\b/i,
+  /\bunless the student requests disclosure\b/i,
+  /\bunless you specifically (?:request|need).{0,80}(?:this|documented)\b/i,
+  /\bwant (?:the diagnosis|it) included\b/i,
+  /\bcertificate won(?:'t|&apos;t) specify.{0,60}\bunless you want it to\b/i,
+  /\bask whether the certificate can specify fitness for duties\b/i,
+]
+
 function walk(target: string, acc: string[] = []): string[] {
   const full = path.join(ROOT, target)
   let st
@@ -204,6 +218,13 @@ describe("medical certificate medicolegal scope", () => {
 
   it("keeps InstantMed out of high-stakes certificate use-case claims", () => {
     expectNoPublicHits("High-stakes certificate claim", HIGH_STAKES_CLAIM_PATTERNS)
+  })
+
+  it("does not promise diagnosis or symptom customisation on InstantMed certificates", () => {
+    expectNoPublicHits(
+      "Diagnosis or symptom customisation promise",
+      DIAGNOSIS_CUSTOMISATION_PROMISE_PATTERNS,
+    )
   })
 
   it("renders certificate body text as simple absence evidence, not a fitness clearance", () => {

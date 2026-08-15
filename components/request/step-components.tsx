@@ -25,7 +25,11 @@
 import dynamic from "next/dynamic"
 import type { ComponentType } from "react"
 
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
 import type { StepComponentProps } from "./step-loaders"
+
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 
 const loadingCopy: Partial<Record<string, { eyebrow?: string; title: string; description: string }>> = {
   "certificate-step": {
@@ -34,7 +38,7 @@ const loadingCopy: Partial<Record<string, { eyebrow?: string; title: string; des
   },
   "symptoms-step": {
     title: "What is stopping you today?",
-    description: "A short, specific sentence is enough for the doctor to review.",
+    description: `Tell the doctor what is happening. ${MED_CERT_DOCUMENT_SCOPE}`,
   },
   "medication-step": {
     title: "Your medication",

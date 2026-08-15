@@ -48,6 +48,7 @@ const CERT_TYPE_LABELS: Record<string, string> = {
 }
 
 const CHECKOUT_REFUND_GUARANTEE = getApprovedClaim("refund_guarantee")
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 
 const SYMPTOM_DURATION_LABELS: Record<string, string> = {
   'today': 'Today',
@@ -1052,6 +1053,16 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         sections={displaySections}
         onEditStep={(stepId) => goToStep(stepId as Parameters<typeof goToStep>[0])}
       />
+
+      {serviceType === "med-cert" && (
+        <p
+          className="px-1 text-base leading-snug text-muted-foreground"
+          data-med-cert-document-scope="true"
+        >
+          <span className="font-medium text-foreground">Certificate wording: </span>
+          {MED_CERT_DOCUMENT_SCOPE}
+        </p>
+      )}
 
       {/* Safety consent + Continue */}
       <div className="space-y-3 pt-1">

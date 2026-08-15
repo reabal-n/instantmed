@@ -2,6 +2,20 @@ import { expect, type Page, test } from "@playwright/test"
 
 import { waitForPageLoad } from "./helpers/test-utils"
 
+async function clickReadyPrimaryAction(page: Page) {
+  const stickyBar = page.locator('[data-intake-mobile-action-bar="true"]')
+  if (await stickyBar.isVisible().catch(() => false)) {
+    const stickyAction = stickyBar.getByRole("button", { name: /^Continue( to payment)?$/i }).last()
+    await expect(stickyAction).toHaveAttribute("data-intake-mobile-action-ready", "true")
+    await stickyAction.click()
+    return
+  }
+
+  const primaryAction = page.locator('button[data-intake-primary-action="true"]').last()
+  await expect(primaryAction).toHaveAttribute("data-intake-primary-ready", "true")
+  await primaryAction.click()
+}
+
 async function advanceMedCertToSymptoms(page: Page) {
   await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
   await page.getByRole("radio", { name: /Work/i }).click()
@@ -14,16 +28,7 @@ async function advanceMedCertToSymptoms(page: Page) {
   const today = page.getByRole("radio", { name: /^Today/i })
   if (await today.isVisible().catch(() => false)) await today.click()
 
-  const stickyBar = page.locator('[data-intake-mobile-action-bar="true"]')
-  if (await stickyBar.isVisible().catch(() => false)) {
-    const stickyContinue = stickyBar.getByRole("button", { name: /^Continue$/i })
-    await expect(stickyContinue).toHaveAttribute("data-intake-mobile-action-ready", "true")
-    await stickyContinue.click()
-  } else {
-    const primaryContinue = page.locator('button[data-intake-primary-action="true"]').last()
-    await expect(primaryContinue).toHaveAttribute("data-intake-primary-ready", "true")
-    await primaryContinue.click()
-  }
+  await clickReadyPrimaryAction(page)
 
   await expect(page.locator("#symptom-details")).toBeVisible({ timeout: 15000 })
 }
@@ -126,6 +131,28 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     await expect(primaryContinue).toHaveAttribute("data-intake-primary-ready", "true")
     await primaryContinue.click()
     await expect(details).toHaveCount(0)
+  })
+
+  test("explains the absence-only certificate scope before payment", async ({ page }) => {
+    await advanceMedCertToSymptoms(page)
+
+    const documentScope = /If approved, the standard certificate confirms the absence dates and does not include a diagnosis or symptom details\./i
+    await expect(page.getByText(documentScope)).toBeVisible()
+
+    await page.locator("#symptom-details").fill("Fever and sore throat since yesterday")
+    await clickReadyPrimaryAction(page)
+
+    await expect(page.getByRole("heading", { name: "Your details", level: 2 })).toBeVisible()
+    await page.locator('input[placeholder="Jane"]').fill("Test")
+    await page.locator('input[placeholder="Smith"]').fill("Patient")
+    await page.locator('input[placeholder="jane@example.com"]').fill("test.patient@example.com")
+    await page.locator('input[placeholder="DD/MM/YYYY"]').fill("01/04/1985")
+    await clickReadyPrimaryAction(page)
+
+    await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible()
+    const reviewDisclosure = page.locator('[data-med-cert-document-scope="true"]')
+    await expect(reviewDisclosure).toContainText(documentScope)
+    await expect(page.getByRole("button", { name: /^Pay \$/ }).last()).toBeVisible()
   })
 })
 

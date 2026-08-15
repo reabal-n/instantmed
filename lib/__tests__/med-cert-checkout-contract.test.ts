@@ -110,6 +110,26 @@ describe("medical certificate checkout contract", () => {
     expect(symptomsStepSource).not.toContain("Previously selected")
   })
 
+  it("sets the absence-only document expectation during symptoms and before payment", () => {
+    const stepComponentsSource = readFileSync(
+      join(process.cwd(), "components/request/step-components.tsx"),
+      "utf8",
+    )
+    const symptomsStepSource = readFileSync(
+      join(process.cwd(), "components/request/steps/symptoms-step.tsx"),
+      "utf8",
+    )
+    const reviewStepSource = readFileSync(
+      join(process.cwd(), "components/request/steps/review-step.tsx"),
+      "utf8",
+    )
+
+    expect(stepComponentsSource).toContain('getApprovedClaim("med_cert_document_scope")')
+    expect(symptomsStepSource).toContain('getApprovedClaim("med_cert_document_scope")')
+    expect(reviewStepSource).toContain('getApprovedClaim("med_cert_document_scope")')
+    expect(reviewStepSource).toContain('data-med-cert-document-scope="true"')
+  })
+
   // The pay-surface CTA + trust contracts (single Pay button, one quiet trust
   // cluster, no auto-approval implication) now live in
   // review-step-priority-contract.test.ts, since review-step is the single
