@@ -1,14 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-export const HISTORICAL_AUTO_ISSUED_REVIEW_CONTEXT =
-  "historical_auto_issued_draft_review" as const
-export const HISTORICAL_AUTO_ISSUED_REVIEW_EXPECTED_COUNT = 9
+const HISTORICAL_AUTO_ISSUED_REVIEW_EXPECTED_COUNT = 9
 
-export type HistoricalAutoIssuedReviewCaseState =
+type HistoricalAutoIssuedReviewCaseState =
   | "ready_for_review"
   | "state_changed"
 
-export interface HistoricalAutoIssuedReviewCase {
+interface HistoricalAutoIssuedReviewCase {
   intakeId: string
   referenceNumber: string | null
   aiApprovedAt: string

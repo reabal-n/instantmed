@@ -38,7 +38,7 @@ describe("critical cron terminal outcome contract", () => {
   it("keeps the audited route inventory identical to CRITICAL_CRONS", () => {
     const heartbeat = read("lib/monitoring/cron-heartbeat.ts")
     const registry = heartbeat.match(
-      /export const CRITICAL_CRONS:[\s\S]*?^}/m,
+      /const CRITICAL_CRONS:[\s\S]*?^}/m,
     )?.[0]
     expect(registry).toBeTruthy()
 

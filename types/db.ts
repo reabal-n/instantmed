@@ -671,52 +671,6 @@ export interface DashboardAnalytics {
   requests_by_hour: { hour: number; count: number }[]
   requests_by_day: { date: string; count: number }[]
 }
-// ============================================================================
-// MEDICAL CERTIFICATE DRAFT
-// ============================================================================
-
-export type MedCertDraftStatus = "draft" | "issued"
-
-export interface MedCertDraft {
-  id: string // uuid, PK
-  intake_id: string // uuid, FK to intakes.id
-  
-  // Patient information (editable by doctor)
-  patient_full_name: string | null
-  patient_dob: string | null // ISO date string
-  
-  // Certificate dates
-  date_from: string | null // ISO date string
-  date_to: string | null // ISO date string
-  
-  // Certificate type
-  certificate_type: MedicalCertificateSubtype | null
-  
-  // Doctor-editable summary
-  reason_summary: string | null
-  
-  // Doctor details (populated from doctor_profiles at approval time)
-  doctor_typed_name: string
-  doctor_ahpra: string
-  provider_name: string // Default: "InstantMed"
-  provider_address: string // Default: "Level 1/457-459 Elizabeth Street, Surry Hills 2010, Sydney, Australia"
-  
-  // Signature asset
-  signature_asset_url: string | null
-  
-  // Status tracking
-  status: MedCertDraftStatus
-  issued_at: string | null // ISO timestamp
-  issued_by: string | null // uuid, FK to profiles.id
-  
-  // Timestamps
-  created_at: string // ISO timestamp
-  updated_at: string // ISO timestamp
-}
-
-export type MedCertDraftInsert = Omit<MedCertDraft, "id" | "created_at" | "updated_at">
-export type MedCertDraftUpdate = Partial<Omit<MedCertDraft, "id" | "created_at" | "updated_at">>
-
 // ============================================
 // AI DOCUMENT DRAFTS (for AI-generated content)
 // ============================================

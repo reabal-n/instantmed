@@ -140,7 +140,6 @@ vi.mock('@/lib/notifications/service', () => ({
 }))
 
 vi.mock('@/lib/email/template-sender', () => ({
-  sendRefundEmail: vi.fn(),
   sendCertificateEmail: vi.fn(),
 }))
 

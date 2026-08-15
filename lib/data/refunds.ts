@@ -198,47 +198,6 @@ export async function markRefundEligible(
 }
 
 /**
- * Process a refund (updates local state - actual Stripe refund handled separately)
- */
-export async function updateRefundStatus(
-  paymentId: string,
-  status: "processing" | "refunded" | "failed",
-  stripeRefundId?: string,
-  refundAmount?: number
-): Promise<{ success: boolean; error?: string }> {
-  const supabase = createServiceRoleClient()
-
-  const updateData: Record<string, unknown> = {
-    refund_status: status,
-    updated_at: new Date().toISOString(),
-  }
-
-  if (stripeRefundId) {
-    updateData.stripe_refund_id = stripeRefundId
-  }
-
-  if (status === "refunded") {
-    updateData.refunded_at = new Date().toISOString()
-    if (refundAmount !== undefined) {
-      updateData.refund_amount = refundAmount
-    }
-  }
-
-  const { error } = await supabase
-    .from("payments")
-    .update(updateData)
-    .eq("id", paymentId)
-
-  if (error) {
-    log.error("Failed to update refund status", { paymentId, status }, error)
-    return { success: false, error: error.message }
-  }
-
-  log.info("Refund status updated", { paymentId, status, stripeRefundId })
-  return { success: true }
-}
-
-/**
  * Mark payment as not eligible for refund
  */
 export async function markRefundNotEligible(

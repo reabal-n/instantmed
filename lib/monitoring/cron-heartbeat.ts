@@ -55,7 +55,7 @@ function parseClaimedOutageKeys(
  * maxDelayMinutes is how late a cron can be before we alert.
  * Set to ~2x the schedule interval to account for cold starts and jitter.
  */
-export const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number }> = {
+const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number }> = {
   "email-dispatcher":       { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "telegram-notifications":  { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "retry-auto-approval":    { schedule: "*/3 * * * *",   maxDelayMinutes: 10 },

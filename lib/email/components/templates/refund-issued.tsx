@@ -73,6 +73,3 @@ export function RefundIssuedEmail({
     </BaseEmail>
   )
 }
-
-export const refundIssuedEmailSubject = (requestType: string) =>
-  `Your ${requestType} refund is on its way`

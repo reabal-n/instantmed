@@ -42,7 +42,6 @@ import {
   PaymentFailedEmail,
   paymentFailedSubject,
   RefundIssuedEmail,
-  refundIssuedEmailSubject,
   RequestDeclinedEmail,
   requestDeclinedEmailSubject,
   RequestReceivedEmail,
@@ -696,10 +695,6 @@ describe("Email Templates", () => {
         />
       )
       expectBaseEmailStructure(html)
-    })
-
-    it("subject is non-empty", () => {
-      expect(refundIssuedEmailSubject).toBeTruthy()
     })
 
     it("matches snapshot", () => {

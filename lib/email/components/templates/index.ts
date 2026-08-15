@@ -61,7 +61,7 @@ export { RequestReceivedEmail, requestReceivedSubject } from "./request-received
 
 // --- Refund Issued ---
 export type { RefundIssuedEmailProps } from "./refund-issued"
-export { RefundIssuedEmail, refundIssuedEmailSubject } from "./refund-issued"
+export { RefundIssuedEmail } from "./refund-issued"
 
 // --- Still Reviewing (45-min follow-up for pending requests) ---
 export type { StillReviewingEmailProps } from "./still-reviewing"

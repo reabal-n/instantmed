@@ -8,7 +8,7 @@
  * - E2E_SECRET: Secret key for test auth endpoint
  */
 
-import { APIRequestContext,Page } from "@playwright/test"
+import type { Page } from "@playwright/test"
 
 const E2E_SECRET = process.env.E2E_SECRET || "e2e-test-secret-local"
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
@@ -105,37 +105,4 @@ export async function loginAsSupport(page: Page): Promise<{ success: boolean; er
  */
 export async function loginAsPatient(page: Page): Promise<{ success: boolean; error?: string }> {
   return loginAsTestUser(page, "patient")
-}
-
-/**
- * Helper to use with API request context directly.
- */
-export async function loginWithRequest(
-  request: APIRequestContext,
-  userType: TestUserType
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const response = await request.post(`${BASE_URL}/api/test/login`, {
-      headers: {
-        "X-E2E-SECRET": E2E_SECRET,
-        "Content-Type": "application/json",
-      },
-      data: { userType },
-    })
-
-    if (!response.ok()) {
-      const body = await response.json().catch(() => ({}))
-      return { 
-        success: false, 
-        error: body.error || `Login failed with status ${response.status()}` 
-      }
-    }
-
-    return { success: true }
-  } catch (error) {
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Unknown error" 
-    }
-  }
 }

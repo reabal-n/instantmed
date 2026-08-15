@@ -9,8 +9,6 @@
 
 import { env } from "@/lib/config/env"
 import {
-  RefundIssuedEmail,
-  refundIssuedEmailSubject,
   RequestDeclinedEmail,
   requestDeclinedEmailSubject,
 } from "@/lib/email/components/templates"
@@ -59,48 +57,6 @@ export async function sendRequestDeclinedEmail(params: SendRequestDeclinedEmailP
     },
     tags: [
       { name: "category", value: "request_declined" },
-      { name: "intake_id", value: intakeId },
-    ],
-  })
-}
-
-// ============================================
-// REFUND ISSUED
-// ============================================
-
-interface SendRefundIssuedEmailParams {
-  to: string
-  patientName: string
-  patientId: string
-  intakeId: string
-  requestType: string
-  amountFormatted?: string
-}
-
-export async function sendRefundIssuedEmail(params: SendRefundIssuedEmailParams) {
-  const { to, patientName, patientId, intakeId, requestType, amountFormatted } = params
-
-  return sendEmail({
-    to,
-    toName: patientName,
-    subject: refundIssuedEmailSubject(requestType),
-    template: RefundIssuedEmail({
-      patientName,
-      requestType,
-      requestId: intakeId,
-      requestAccessUrl: buildPatientRequestAccessUrl({ appUrl: env.appUrl, intakeId }),
-      amountFormatted,
-      appUrl: env.appUrl,
-    }),
-    emailType: "refund_issued",
-    intakeId,
-    patientId,
-    metadata: {
-      request_type: requestType,
-      has_amount: !!amountFormatted,
-    },
-    tags: [
-      { name: "category", value: "refund_issued" },
       { name: "intake_id", value: intakeId },
     ],
   })

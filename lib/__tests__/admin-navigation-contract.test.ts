@@ -454,6 +454,7 @@ describe("admin navigation contract", () => {
       ],
       ops: [
         "app/admin/audit/page.tsx",
+        "app/admin/ops/historical-auto-issued-review/page.tsx",
         "app/admin/ops/intakes-stuck/page.tsx",
         "app/admin/ops/page.tsx",
         "app/admin/ops/parchment/page.tsx",
