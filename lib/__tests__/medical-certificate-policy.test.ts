@@ -6,14 +6,24 @@ import { validateCertificateStartDate } from "@/lib/medical-certificates/date-po
 const CERTIFICATE_DATE_WRITERS = [
   "app/actions/reissue-cert.ts",
   "app/actions/request-date-correction.ts",
-  "app/api/med-cert/render/route.ts",
-  "app/api/med-cert/preview/route.ts",
   "lib/clinical/execute-cert-approval.ts",
   "lib/request/validation.ts",
   "lib/validation/med-cert-schema.ts",
 ]
 
 describe("medical certificate policy contract", () => {
+  it("keeps the surviving staff preview on a server-owned Sydney issue date", () => {
+    const source = readFileSync("app/doctor/intakes/[id]/document/actions.ts", "utf8")
+    const previewAction = source.slice(source.indexOf("export async function generatePreviewPdfAction"))
+
+    expect(previewAction).toContain("const issuedOn = getSydneyDateOnly()")
+    expect(previewAction).toContain(
+      "generateCertificateRef(previewData.certificateType, issuedOn)",
+    )
+    expect(previewAction).toContain("consultationDate: formatDateLong(issuedOn)")
+    expect(previewAction).toContain("issueDate: formatShortDate(issuedOn)")
+  })
+
   it("keeps every certificate date writer on the shared date policy", () => {
     for (const path of CERTIFICATE_DATE_WRITERS) {
       const source = readFileSync(path, "utf8")

@@ -5,6 +5,7 @@ import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getCurrentProfile } from "@/lib/data/profiles"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { getSydneyDateOnly } from "@/lib/medical-certificates/date-policy"
 import { logger } from "@/lib/observability/logger"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
@@ -433,7 +434,8 @@ export async function generatePreviewPdfAction(
       return { success: false, error: "Unauthorized" }
     }
 
-    const certificateRef = generateCertificateRef(previewData.certificateType)
+    const issuedOn = getSydneyDateOnly()
+    const certificateRef = generateCertificateRef(previewData.certificateType, issuedOn)
 
     const patientDob = formatShortDateSafe(previewData.patientDob)
 
@@ -441,11 +443,11 @@ export async function generatePreviewPdfAction(
       certificateType: previewData.certificateType,
       patientName: previewData.patientName,
       patientDateOfBirth: patientDob,
-      consultationDate: formatDateLong(previewData.consultDate),
+      consultationDate: formatDateLong(issuedOn),
       startDate: formatDateLong(previewData.startDate),
       endDate: formatDateLong(previewData.endDate),
       certificateRef,
-      issueDate: formatShortDate(previewData.consultDate),
+      issueDate: formatShortDate(issuedOn),
       isPreview: true,
     })
 

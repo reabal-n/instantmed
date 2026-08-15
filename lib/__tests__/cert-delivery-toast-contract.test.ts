@@ -31,11 +31,14 @@ describe("Cert delivery toast contract", () => {
 
   it("executeCertApproval populates emailSentTo from the patient profile on a successful send", () => {
     expect(executeCertApprovalSource).toMatch(/emailSentTo\?:\s*string/)
-    // After the 30s undo window landed (2026-05-26), emailSentTo is only set
-    // for sends that actually fired, not for deferred sends still sitting in
-    // the outbox queue. The ternary now guards on `!emailScheduledFor` too.
+    // Deferred sends and idempotently skipped duplicates both have durable
+    // outbox ownership, but neither proves this invocation contacted the
+    // provider. Keep the doctor toast tied to an actual provider send.
     expect(executeCertApprovalSource).toMatch(
-      /emailSentTo:\s*emailResult\.success\s*&&\s*!emailScheduledFor\s*\?\s*patient\.email/
+      /const providerActuallySent = emailResult\.success && !emailResult\.skipped && !emailScheduledFor/,
+    )
+    expect(executeCertApprovalSource).toMatch(
+      /emailSentTo:\s*providerActuallySent\s*\?\s*patient\.email/,
     )
   })
 

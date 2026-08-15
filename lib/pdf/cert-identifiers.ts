@@ -10,6 +10,26 @@
 
 import crypto from "crypto"
 
+interface IssuedOnParts {
+  year: string
+  compact: string
+}
+
+function parseIssuedOn(issuedOn: string): IssuedOnParts {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(issuedOn)
+  if (!match) {
+    throw new Error("issuedOn must be a valid date in YYYY-MM-DD format")
+  }
+
+  const [, year, month, day] = match
+  const parsed = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
+  if (parsed.toISOString().slice(0, 10) !== issuedOn) {
+    throw new Error("issuedOn must be a valid date in YYYY-MM-DD format")
+  }
+
+  return { year: year!, compact: `${year}${month}${day}` }
+}
+
 // ============================================================================
 // VERIFICATION CODE
 // ============================================================================
@@ -42,8 +62,8 @@ export function generateVerificationCode(_certificateNumber?: string): string {
  * Generate a unique certificate number
  * Format: MC-YYYY-XXXXXXXX (year + random hex)
  */
-export function generateCertificateNumber(): string {
-  const year = new Date().getFullYear()
+export function generateCertificateNumber(issuedOn: string): string {
+  const { year } = parseIssuedOn(issuedOn)
   const random = crypto.randomBytes(4).toString("hex").toUpperCase()
   return `MC-${year}-${random}`
 }
@@ -61,9 +81,12 @@ export function generateCertificateNumber(): string {
  * birthday-paradox collisions. DB UNIQUE constraint on certificate_ref
  * provides a hard safety net (see migration 20260218000001).
  */
-export function generateCertificateRef(type: "work" | "study" | "carer"): string {
+export function generateCertificateRef(
+  type: "work" | "study" | "carer",
+  issuedOn: string,
+): string {
   const typeCode = type.toUpperCase()
-  const date = new Date().toISOString().split("T")[0]!.replace(/-/g, "")
+  const { compact } = parseIssuedOn(issuedOn)
   const random = String(crypto.randomInt(100_000_000)).padStart(8, "0")
-  return `IM-${typeCode}-${date}-${random}`
+  return `IM-${typeCode}-${compact}-${random}`
 }

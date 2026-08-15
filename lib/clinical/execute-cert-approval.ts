@@ -27,8 +27,17 @@ import {
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
-import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
+import {
+  getSydneyDateOnly,
+  validateCertificateDateRange,
+} from "@/lib/medical-certificates/date-policy"
 import { reconcileCertificateEmailDelivery } from "@/lib/medical-certificates/email-delivery-reconciliation"
+import {
+  buildCertificateIssuedDateSnapshot,
+  CERTIFICATE_ISSUED_AT_SNAPSHOT_KEY,
+  CERTIFICATE_ISSUED_ON_SNAPSHOT_KEY,
+  hasConsistentCertificateIssuedDate,
+} from "@/lib/medical-certificates/issued-date-integrity"
 import { editPaidRequestTelegramMessageToApproved } from "@/lib/notifications/edit-paid-request-telegram"
 import { createNotification } from "@/lib/notifications/service"
 import { logger } from "@/lib/observability/logger"
@@ -78,6 +87,291 @@ export interface ExecuteCertApprovalInput {
   aiApproved?: boolean
   /** Reason for AI auto-approval (stored for audit) */
   aiApprovalReason?: string
+}
+
+async function removeUncommittedCertificatePdf(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  storagePath: string,
+  context: { intakeId: string; reason: string },
+): Promise<boolean> {
+  try {
+    const { error } = await supabase.storage.from("documents").remove([storagePath])
+    if (!error) return true
+
+    logger.error("Failed to remove uncommitted certificate PDF", {
+      intakeId: context.intakeId,
+      storagePath,
+      reason: context.reason,
+    }, error)
+    Sentry.captureException(error, {
+      tags: {
+        subsystem: "cert-pipeline-cleanup",
+        intake_id: context.intakeId,
+        cleanup_reason: context.reason,
+      },
+      extra: { storagePath },
+    })
+    return false
+  } catch (error) {
+    logger.error(
+      "Failed to remove uncommitted certificate PDF",
+      {
+        intakeId: context.intakeId,
+        storagePath,
+        reason: context.reason,
+      },
+      error instanceof Error ? error : undefined,
+    )
+    Sentry.captureException(error, {
+      tags: {
+        subsystem: "cert-pipeline-cleanup",
+        intake_id: context.intakeId,
+        cleanup_reason: context.reason,
+      },
+      extra: { storagePath },
+    })
+    return false
+  }
+}
+
+type PersistedCertificateDelivery = {
+  id: string
+  certificate_type: "work" | "study" | "carer"
+  verification_code: string
+  storage_path: string
+  created_at: string
+  issue_date: string
+  template_config_snapshot: unknown
+  email_sent_at: string | null
+}
+
+type CertificateDeliveryPatient = {
+  id: string
+  full_name: string
+  email: string
+  auth_user_id: string | null
+}
+
+function buildInitialCertificateDeliveryIdempotencyKey(
+  certificateId: string,
+  storageVersion: string,
+): string {
+  return `certificate-initial:${certificateId}:${storageVersion}`
+}
+
+function getPersistedDeliveryRepairEligibility(
+  certificate: PersistedCertificateDelivery,
+): "eligible" | "legacy" | "correction" | "invalid" {
+  const snapshot = certificate.template_config_snapshot
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
+    return "legacy"
+  }
+
+  const record = snapshot as Record<string, unknown>
+  const hasAnyIssuedDateSnapshot =
+    CERTIFICATE_ISSUED_AT_SNAPSHOT_KEY in record ||
+    CERTIFICATE_ISSUED_ON_SNAPSHOT_KEY in record
+  if (!hasAnyIssuedDateSnapshot) return "legacy"
+
+  const hasConsistentIssueDate = hasConsistentCertificateIssuedDate({
+    createdAt: certificate.created_at,
+    issueDate: certificate.issue_date,
+    templateConfigSnapshot: snapshot,
+  })
+  if (!hasConsistentIssueDate) return "invalid"
+
+  // Correction notifications are independently owned by the transactional
+  // correction workflow. Its outbox rows predate this initial-delivery key,
+  // so trying to repair them here could create a second provider send.
+  if (certificate.storage_path.startsWith("certificates/corrections/")) {
+    return "correction"
+  }
+
+  // Every certificate created by the current atomic approval path has one
+  // flat, immutable object path. Do not mint delivery ownership for an
+  // unexpected persisted location.
+  return /^certificates\/[^/]+\.pdf$/.test(certificate.storage_path)
+    ? "eligible"
+    : "invalid"
+}
+
+function getCertificateDeliveryRepairSchedule(createdAt: string): string | null | undefined {
+  const createdAtMs = new Date(createdAt).getTime()
+  if (!Number.isFinite(createdAtMs)) return null
+
+  const undoDeadlineMs = createdAtMs + UNDO_CERT_WINDOW_SECONDS * 1000
+  return undoDeadlineMs > Date.now()
+    ? new Date(undoDeadlineMs).toISOString()
+    : undefined
+}
+
+async function repairPersistedCertificateDelivery(input: {
+  intakeId: string
+  patient: CertificateDeliveryPatient
+  certificate: PersistedCertificateDelivery
+  priorityFeeRefunded: boolean
+}): Promise<ApproveCertResult> {
+  const { certificate, intakeId, patient } = input
+  const repairEligibility = getPersistedDeliveryRepairEligibility(certificate)
+  if (repairEligibility === "legacy") {
+    // Older sends did not carry the deterministic certificate delivery key.
+    // Re-sending automatically could duplicate a provider delivery whose
+    // certificate-level reconciliation was the only step that crashed.
+    logger.warn("Legacy certificate delivery requires the existing ops rescue lane", {
+      intakeId,
+      certificateId: certificate.id,
+    })
+    return {
+      success: true,
+      certificateId: certificate.id,
+      isExisting: true,
+    }
+  }
+
+  if (repairEligibility === "correction") {
+    logger.info("Corrected certificate delivery remains owned by the correction workflow", {
+      intakeId,
+      certificateId: certificate.id,
+    })
+    return {
+      success: true,
+      certificateId: certificate.id,
+      isExisting: true,
+    }
+  }
+
+  if (repairEligibility === "invalid") {
+    logger.error("Persisted certificate delivery issue-date evidence is inconsistent", {
+      intakeId,
+      certificateId: certificate.id,
+    })
+    Sentry.captureMessage("Persisted certificate delivery issue-date evidence is inconsistent", {
+      level: "error",
+      tags: { subsystem: "cert-delivery-repair", intake_id: intakeId },
+      extra: { certificateId: certificate.id },
+    })
+    return {
+      success: false,
+      error: "Certificate delivery evidence is inconsistent. Contact support before retrying.",
+    }
+  }
+
+  const scheduledFor = getCertificateDeliveryRepairSchedule(certificate.created_at)
+  if (scheduledFor === null) {
+    logger.error("Persisted certificate has an invalid creation timestamp", {
+      intakeId,
+      certificateId: certificate.id,
+    })
+    return {
+      success: false,
+      error: "Certificate delivery evidence is invalid. Contact support before retrying.",
+    }
+  }
+
+  const isGuest = !patient.auth_user_id
+  const dashboardUrl = isGuest
+    ? `${env.appUrl}${getGuestCertificateAccessHref(intakeId)}`
+    : `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
+  const storageVersion = getEmployerCertificateStorageVersion(certificate.storage_path)
+  const certificateType = certificate.certificate_type
+
+  const emailResult = await sendEmail({
+    to: patient.email,
+    toName: patient.full_name,
+    subject: medCertPatientEmailSubject(patient.full_name?.split(" ")[0]),
+    template: MedCertPatientEmail({
+      patientName: patient.full_name,
+      dashboardUrl,
+      verificationCode: certificate.verification_code,
+      certType: certificateType,
+      appUrl: env.appUrl,
+      isGuest,
+      priorityFeeRefunded: input.priorityFeeRefunded,
+    }),
+    emailType: "med_cert_patient",
+    intakeId,
+    patientId: patient.id,
+    certificateId: certificate.id,
+    metadata: {
+      certificate_storage_version: storageVersion,
+      cert_type: certificateType,
+      delivery_repair: true,
+      ...(scheduledFor ? { undo_window: true } : {}),
+    },
+    tags: [
+      { name: "category", value: "med_cert_approved" },
+      { name: "intake_id", value: intakeId },
+      { name: "cert_type", value: certificateType },
+    ],
+    idempotencyKey: buildInitialCertificateDeliveryIdempotencyKey(
+      certificate.id,
+      storageVersion,
+    ),
+    scheduledFor,
+  })
+
+  const providerActuallySent = emailResult.success && !emailResult.skipped && !scheduledFor
+  let hasDurableRecoveryOwner = Boolean(emailResult.outboxId)
+
+  if (providerActuallySent) {
+    const reconciliation = await reconcileCertificateEmailDelivery({
+      intakeId,
+      certificateId: certificate.id,
+      expectedStorageVersion: storageVersion,
+      outcome: "sent",
+      providerMessageId: emailResult.messageId,
+      outboxId: emailResult.outboxId,
+      actorId: null,
+      actorRole: "system",
+      source: "initial_approval",
+      eventData: { delivery_repair: true },
+    })
+    hasDurableRecoveryOwner = hasDurableRecoveryOwner || reconciliation.success
+  } else if (!emailResult.success) {
+    await reconcileCertificateEmailDelivery({
+      intakeId,
+      certificateId: certificate.id,
+      expectedStorageVersion: storageVersion,
+      outcome: "failed",
+      failureReason: emailResult.error,
+      outboxId: emailResult.outboxId,
+      actorId: null,
+      actorRole: "system",
+      source: "initial_approval",
+      eventData: { delivery_repair: true },
+    })
+  }
+
+  if (!hasDurableRecoveryOwner) {
+    logger.error("Persisted certificate delivery repair has no durable owner", {
+      intakeId,
+      certificateId: certificate.id,
+    })
+    Sentry.captureMessage("Persisted certificate delivery repair has no durable owner", {
+      level: "error",
+      tags: { subsystem: "cert-delivery-repair", intake_id: intakeId },
+      extra: { certificateId: certificate.id },
+    })
+    return {
+      success: false,
+      error: "Certificate exists, but delivery could not be queued. Please retry.",
+    }
+  }
+
+  logger.info("Persisted certificate delivery is owned durably", {
+    intakeId,
+    certificateId: certificate.id,
+    outboxId: emailResult.outboxId,
+    providerActuallySent,
+    scheduledFor,
+  })
+  return {
+    success: true,
+    certificateId: certificate.id,
+    isExisting: true,
+    ...(providerActuallySent ? { emailSent: true, emailSentTo: patient.email } : {}),
+    ...(emailResult.success && scheduledFor ? { emailScheduledFor: scheduledFor } : {}),
+  }
 }
 
 // Doctor undo window after approving a med cert. The patient email is queued
@@ -155,20 +449,48 @@ export async function executeCertApproval(
     return { success: false, error: `Intake is already ${intake.status}` }
   }
 
-  // IDEMPOTENCY CHECK: If already approved, return existing certificate
+  // IDEMPOTENCY CHECK: an approved certificate is never re-rendered. New
+  // snapshot-bearing certificates also own a deterministic delivery repair:
+  // if the winner committed and crashed before creating its outbox row, a
+  // later invocation recreates delivery from the persisted certificate only.
   if (intake.status === "approved") {
     const existingCert = await findExistingCertificate(intakeId)
     if (existingCert) {
+      const existingPatient = intake.patient as CertificateDeliveryPatient | null
       logger.info("Returning existing certificate (idempotent approval)", {
         intakeId,
         certificateId: existingCert.id,
         certificateNumber: existingCert.certificate_number,
       })
-      return {
-        success: true,
-        certificateId: existingCert.id,
-        isExisting: true,
+
+      if (existingCert.email_sent_at) {
+        return {
+          success: true,
+          certificateId: existingCert.id,
+          isExisting: true,
+          emailSent: true,
+        }
       }
+
+      if (!existingPatient?.email || existingCert.patient_id !== existingPatient.id) {
+        logger.error("Persisted certificate delivery patient does not match the intake", {
+          intakeId,
+          certificateId: existingCert.id,
+        })
+        return {
+          success: false,
+          error: "Certificate delivery identity could not be verified. Contact support.",
+        }
+      }
+
+      return repairPersistedCertificateDelivery({
+        intakeId,
+        patient: existingPatient,
+        certificate: existingCert,
+        priorityFeeRefunded: Boolean(
+          intake.is_priority && intake.priority_fee_refunded_at,
+        ),
+      })
     }
     logger.info("Regenerating certificate for approved intake (no valid cert found)", { intakeId })
   } else if (!skipClaim) {
@@ -219,9 +541,6 @@ export async function executeCertApproval(
   const certificateType = normalizeMedicalCertificateType(answerCertificateType)
     ?? normalizeMedicalCertificateType(intakeSubtype)
     ?? (service.slug.includes("carer") ? "carer" : "work")
-
-  const certificateNumber = generateCertificateNumber()
-  const generatedAt = new Date().toISOString()
 
   // Validate and calculate duration days
   const dateRangeValidation = validateCertificateDateRange(reviewData.startDate, reviewData.endDate, {
@@ -285,8 +604,6 @@ export async function executeCertApproval(
 
   const patientDob = patient.date_of_birth || null
 
-  const verificationCode = generateVerificationCode(certificateNumber)
-
   // 3. Fetch doctor identity (outside the ref-retry loop - doesn't vary per attempt)
   const doctorIdentityForPdf = await getDoctorIdentity(doctorProfile.id)
   if (!doctorIdentityForPdf) {
@@ -296,6 +613,15 @@ export async function executeCertApproval(
     }
     return { success: false, error: "Doctor identity not found" }
   }
+
+  // Capture the civil issue day once, after all pre-issuance guards and as
+  // close as possible to the first render/upload side effect. Every generated
+  // certificate identifier, visible issue date, persistence field, collision
+  // retry, and idempotency input below reuses this immutable Sydney date.
+  const issuedAt = new Date()
+  const issuedOn = getSydneyDateOnly(issuedAt)
+  const certificateNumber = generateCertificateNumber(issuedOn)
+  const verificationCode = generateVerificationCode(certificateNumber)
 
   // 3+4. Generate PDF + upload with certificateRef collision retry.
   //
@@ -307,7 +633,7 @@ export async function executeCertApproval(
   // upsert: false, a collision surfaces as a 409 and we regenerate the ref and re-render
   // on the next iteration. The DB UNIQUE constraint on certificate_ref is the hard guard.
   const MAX_CERT_REF_ATTEMPTS = 3
-  let certificateRef = generateCertificateRef(certificateType)
+  let certificateRef = generateCertificateRef(certificateType, issuedOn)
   let pdfBuffer: Buffer | undefined
   let storagePath = ""
 
@@ -322,11 +648,11 @@ export async function executeCertApproval(
       certificateType,
       patientName: patient.full_name,
       patientDateOfBirth: formatShortDateSafe(patientDob),
-      consultationDate: formatDateLong(generatedAt),
+      consultationDate: formatDateLong(issuedOn),
       startDate: formatDateLong(reviewData.startDate),
       endDate: formatDateLong(reviewData.endDate),
       certificateRef,
-      issueDate: formatShortDate(generatedAt),
+      issueDate: formatShortDate(issuedOn),
     })
 
     if (!pdfResult.success || !pdfResult.buffer) {
@@ -377,7 +703,7 @@ export async function executeCertApproval(
         tags: { subsystem: "cert-pipeline", intake_id: intakeId },
         extra: { collidedRef: certificateRef, attempt: certAttempt },
       })
-      certificateRef = generateCertificateRef(certificateType)
+      certificateRef = generateCertificateRef(certificateType, issuedOn)
       continue
     }
 
@@ -420,7 +746,7 @@ export async function executeCertApproval(
     verification_code: verificationCode,
     certificate_type: certificateType,
     certificate_ref: certificateRef,
-    issue_date: generatedAt.split("T")[0],
+    issue_date: issuedOn,
     start_date: reviewData.startDate,
     end_date: reviewData.endDate,
     patient_id: patient.id,
@@ -431,7 +757,10 @@ export async function executeCertApproval(
     doctor_nominals: doctorIdentityForPdf?.nominals || null,
     doctor_provider_number: doctorProfile.provider_number,
     doctor_ahpra_number: doctorProfile.ahpra_number,
-    template_config_snapshot: DEFAULT_TEMPLATE_CONFIG as unknown as Record<string, unknown>,
+    template_config_snapshot: {
+      ...(DEFAULT_TEMPLATE_CONFIG as unknown as Record<string, unknown>),
+      ...buildCertificateIssuedDateSnapshot(issuedAt, issuedOn),
+    },
     clinic_identity_snapshot: {
       name: COMPANY_NAME,
       abn: ABN,
@@ -451,18 +780,101 @@ export async function executeCertApproval(
       await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
         .then(({ error }) => { if (error) logger.warn("Failed to release claim after atomic failure", { intakeId, error: error.message }) })
     }
-    try {
-      await supabase.storage.from("documents").remove([storagePath])
-    } catch (cleanupErr) {
-      logger.warn("Failed to clean up orphaned PDF", { intakeId, storagePath, error: String(cleanupErr) })
-    }
+    await removeUncommittedCertificatePdf(supabase, storagePath, {
+      intakeId,
+      reason: "atomic_approval_failed",
+    })
     return { success: false, error: atomicResult.error || "Failed to create certificate records" }
   }
 
   const certificateId = atomicResult.certificateId
   if (!certificateId) {
     logger.error("Atomic approval succeeded but returned no certificateId", { intakeId })
+    await removeUncommittedCertificatePdf(supabase, storagePath, {
+      intakeId,
+      reason: "atomic_approval_missing_certificate_id",
+    })
     return { success: false, error: "Certificate creation failed - missing certificate ID" }
+  }
+
+  // A concurrent approval can render and upload a candidate before the atomic
+  // RPC observes that another request already committed the certificate. The
+  // candidate is not part of the persisted certificate identity and must never
+  // reach email metadata, reconciliation, or analytics. Remove it and return
+  // the persisted certificate as the sole idempotent result.
+  if (atomicResult.isExisting) {
+    const existingCert = await findExistingCertificate(intakeId)
+    const isExpectedExistingCertificate = existingCert?.id === certificateId
+    const candidateIsPersistedArtifact = Boolean(
+      isExpectedExistingCertificate &&
+      existingCert.storage_path === storagePath &&
+      existingCert.pdf_hash === pdfHash,
+    )
+
+    if (!candidateIsPersistedArtifact) {
+      const candidateRemoved = await removeUncommittedCertificatePdf(supabase, storagePath, {
+        intakeId,
+        reason: "idempotent_existing_certificate",
+      })
+      if (!candidateRemoved) {
+        return {
+          success: false,
+          error: "Certificate already exists, but duplicate PDF cleanup failed. Contact support before retrying.",
+        }
+      }
+    }
+
+    if (!isExpectedExistingCertificate) {
+      logger.error("Atomic approval returned an existing certificate that is no longer current", {
+        intakeId,
+        certificateId,
+        currentCertificateId: existingCert?.id,
+      })
+      Sentry.captureMessage("Idempotent certificate result no longer matches the current certificate", {
+        level: "error",
+        tags: { subsystem: "cert-pipeline-idempotency", intake_id: intakeId },
+        extra: { certificateId, currentCertificateId: existingCert?.id },
+      })
+      return {
+        success: false,
+        error: "Certificate identity changed during approval. Refresh before retrying.",
+      }
+    }
+
+    logger.info("Returning persisted certificate after concurrent idempotent approval", {
+      intakeId,
+      certificateId: existingCert.id,
+      emailAlreadySent: Boolean(existingCert.email_sent_at),
+    })
+
+    if (existingCert.patient_id !== patient.id) {
+      logger.error("Concurrent idempotent certificate patient does not match the intake", {
+        intakeId,
+        certificateId: existingCert.id,
+      })
+      return {
+        success: false,
+        error: "Certificate delivery identity could not be verified. Contact support.",
+      }
+    }
+
+    if (!existingCert.email_sent_at) {
+      return repairPersistedCertificateDelivery({
+        intakeId,
+        patient,
+        certificate: existingCert,
+        priorityFeeRefunded: Boolean(
+          intake.is_priority && intake.priority_fee_refunded_at,
+        ),
+      })
+    }
+
+    return {
+      success: true,
+      certificateId: existingCert.id,
+      isExisting: true,
+      emailSent: true,
+    }
   }
 
   // 5.5 Mark as AI-approved if applicable
@@ -491,40 +903,29 @@ export async function executeCertApproval(
     }
   }
 
-  // Idempotent re-approval check
-  if (atomicResult.isExisting) {
-    const existingCert = await findExistingCertificate(intakeId)
-    if (existingCert?.email_sent_at) {
-      logger.info("Certificate already issued and email sent (idempotent)", { intakeId, certificateId })
-      return { success: true, certificateId, isExisting: true }
-    }
-  }
-
   // 6. Log certificate edits for audit trail
-  if (!atomicResult.isExisting) {
-    const edits = compareForEdits(answersData, reviewData)
-    if (edits.length > 0) {
-      const editResult = await logCertificateEdits(certificateId, intakeId, doctorProfile.id, edits)
+  const edits = compareForEdits(answersData, reviewData)
+  if (edits.length > 0) {
+    const editResult = await logCertificateEdits(certificateId, intakeId, doctorProfile.id, edits)
 
-      if (editResult.errors.length > 0 && editResult.editCount === 0) {
-        logger.error("CRITICAL: Certificate edit audit trail completely failed", {
-          intakeId, certificateId, errors: editResult.errors, attemptedEdits: edits.length,
-        })
-        Sentry.captureMessage(
-          `CRITICAL: Certificate audit trail write failed completely for intake ${intakeId}`,
-          {
-            level: "fatal",
-            tags: { subsystem: "cert-audit-trail", intakeId },
-            extra: { certificateId, attemptedEdits: edits.length, errors: editResult.errors },
-          }
-        )
-      }
+    if (editResult.errors.length > 0 && editResult.editCount === 0) {
+      logger.error("CRITICAL: Certificate edit audit trail completely failed", {
+        intakeId, certificateId, errors: editResult.errors, attemptedEdits: edits.length,
+      })
+      Sentry.captureMessage(
+        `CRITICAL: Certificate audit trail write failed completely for intake ${intakeId}`,
+        {
+          level: "fatal",
+          tags: { subsystem: "cert-audit-trail", intakeId },
+          extra: { certificateId, attemptedEdits: edits.length, errors: editResult.errors },
+        }
+      )
+    }
 
-      if (editResult.editCount > 0) {
-        logger.info("Certificate edits logged for audit", {
-          intakeId, certificateId, editCount: editResult.editCount, failedEdits: editResult.errors.length,
-        })
-      }
+    if (editResult.editCount > 0) {
+      logger.info("Certificate edits logged for audit", {
+        intakeId, certificateId, editCount: editResult.editCount, failedEdits: editResult.errors.length,
+      })
     }
   }
 
@@ -552,6 +953,7 @@ export async function executeCertApproval(
   const emailScheduledFor = deferEmail
     ? new Date(Date.now() + UNDO_CERT_WINDOW_SECONDS * 1000).toISOString()
     : undefined
+  const certificateStorageVersion = getEmployerCertificateStorageVersion(storagePath)
 
   const emailResult = await sendEmail({
     to: patient.email,
@@ -571,7 +973,7 @@ export async function executeCertApproval(
     patientId: patient.id,
     certificateId,
     metadata: {
-      certificate_storage_version: getEmployerCertificateStorageVersion(storagePath),
+      certificate_storage_version: certificateStorageVersion,
       cert_type: certificateType,
       ...(emailScheduledFor ? { undo_window: true } : {}),
     },
@@ -580,6 +982,10 @@ export async function executeCertApproval(
       { name: "intake_id", value: intakeId },
       { name: "cert_type", value: certificateType },
     ],
+    idempotencyKey: buildInitialCertificateDeliveryIdempotencyKey(
+      certificateId,
+      certificateStorageVersion,
+    ),
     scheduledFor: emailScheduledFor,
     // No PDF attachment and no storage signed URL in email. Patients download
     // through the app route so auth, ownership checks, and audit logging stay intact.
@@ -591,11 +997,11 @@ export async function executeCertApproval(
   // our queue intent. We do log a "scheduled" audit event so the doctor
   // timeline records the queue action.
   if (certificateId) {
-    if (emailResult.success && !emailScheduledFor) {
+    if (emailResult.success && !emailResult.skipped && !emailScheduledFor) {
       await reconcileCertificateEmailDelivery({
         intakeId,
         certificateId,
-        expectedStorageVersion: getEmployerCertificateStorageVersion(storagePath),
+        expectedStorageVersion: certificateStorageVersion,
         outcome: "sent",
         providerMessageId: emailResult.messageId,
         outboxId: emailResult.outboxId,
@@ -608,13 +1014,19 @@ export async function executeCertApproval(
         outbox_id: emailResult.outboxId,
         scheduled_for: emailScheduledFor,
         deferred: true,
-        certificate_storage_version: getEmployerCertificateStorageVersion(storagePath),
+        certificate_storage_version: certificateStorageVersion,
+      })
+    } else if (emailResult.success && emailResult.skipped) {
+      logger.info("Initial certificate delivery already has a durable outbox owner", {
+        intakeId,
+        certificateId,
+        outboxId: emailResult.outboxId,
       })
     } else if (!emailResult.success) {
       await reconcileCertificateEmailDelivery({
         intakeId,
         certificateId,
-        expectedStorageVersion: getEmployerCertificateStorageVersion(storagePath),
+        expectedStorageVersion: certificateStorageVersion,
         outcome: "failed",
         failureReason: emailResult.error,
         outboxId: emailResult.outboxId,
@@ -626,7 +1038,8 @@ export async function executeCertApproval(
     }
   }
 
-  logger.info("Certificate issuance complete", { intakeId, certificateId, emailSent: emailResult.success, approvalMethod: aiApproved ? "ai_assisted" : "manual" })
+  const providerActuallySent = emailResult.success && !emailResult.skipped && !emailScheduledFor
+  logger.info("Certificate issuance complete", { intakeId, certificateId, emailSent: providerActuallySent, approvalMethod: aiApproved ? "ai_assisted" : "manual" })
 
   // 9. In-app notification
   await createNotification({
@@ -661,7 +1074,7 @@ export async function executeCertApproval(
       approval_method: aiApproved ? "ai_assisted" : "manual",
     },
   })
-  if (emailResult.success) {
+  if (providerActuallySent) {
     trackIntakeFunnelStep({
       step: 'document_delivered',
       intakeId,
@@ -683,12 +1096,12 @@ export async function executeCertApproval(
   return {
     success: true,
     certificateId,
-    emailSent: emailResult.success,
+    ...(emailResult.skipped ? {} : { emailSent: emailResult.success }),
     // When the email is deferred, `emailResult.success` is still true (the
     // outbox row was queued) but the patient has not been contacted yet.
     // We only surface `emailSentTo` for sends that actually fired, so the
     // doctor toast can stay honest about delivery state.
-    emailSentTo: emailResult.success && !emailScheduledFor ? patient.email : undefined,
+    emailSentTo: providerActuallySent ? patient.email : undefined,
     emailScheduledFor: emailResult.success ? emailScheduledFor : undefined,
   }
 }

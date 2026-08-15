@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   sendEmail: vi.fn(),
   employerTemplate: vi.fn(),
   renderEmailToHtml: vi.fn(),
+  renderTemplatePdf: vi.fn(),
+  generateCertificateRef: vi.fn(),
 }))
 
 vi.mock("@/lib/auth/helpers", () => ({
@@ -50,6 +52,14 @@ vi.mock("@/lib/email/components/templates/med-cert-employer", () => ({
 
 vi.mock("@/lib/email/react-renderer-server", () => ({
   renderEmailToHtml: mocks.renderEmailToHtml,
+}))
+
+vi.mock("@/lib/pdf/template-renderer", () => ({
+  renderTemplatePdf: mocks.renderTemplatePdf,
+}))
+
+vi.mock("@/lib/pdf/cert-identifiers", () => ({
+  generateCertificateRef: mocks.generateCertificateRef,
 }))
 
 vi.mock("@/lib/supabase/service-role", () => ({
@@ -246,5 +256,108 @@ describe("employer certificate email current-version access", () => {
       terminal: true,
     })
     expect(mocks.renderEmailToHtml).not.toHaveBeenCalled()
+  })
+
+  it("fails closed instead of inventing a reference for pending certificate reconstruction", async () => {
+    const pendingCertificate = {
+      id: CERTIFICATE_ID,
+      certificate_number: "MC-2026-12345678",
+      certificate_type: "work",
+      certificate_ref: null,
+      issue_date: "2026-08-16",
+      start_date: "2026-08-16",
+      end_date: "2026-08-16",
+      patient_id: PATIENT_ID,
+      patient_name: "Test Patient",
+      patient_dob: "1990-01-01",
+      storage_path: "pending:certificate",
+      created_at: "2026-08-16T00:05:00.000Z",
+    }
+    mocks.createServiceRoleClient.mockReturnValue({
+      from: vi.fn((table: string) => {
+        if (table !== "issued_certificates") throw new Error(`Unexpected table ${table}`)
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              single: vi.fn(async () => ({ data: pendingCertificate, error: null })),
+            })),
+          })),
+        }
+      }),
+    })
+
+    const result = await reconstructEmailContent({
+      id: "outbox-pending-certificate",
+      email_type: "med_cert_patient",
+      to_email: "patient@example.test",
+      to_name: "Test Patient",
+      subject: "Your certificate",
+      status: "failed",
+      retry_count: 1,
+      last_attempt_at: null,
+      intake_id: INTAKE_ID,
+      patient_id: PATIENT_ID,
+      certificate_id: CERTIFICATE_ID,
+      metadata: { needs_pdf_generation: true },
+    } satisfies OutboxRow)
+
+    expect(result).toEqual({
+      success: false,
+      error: "Certificate is missing its persisted reference",
+      terminal: true,
+    })
+    expect(mocks.generateCertificateRef).not.toHaveBeenCalled()
+    expect(mocks.renderTemplatePdf).not.toHaveBeenCalled()
+  })
+
+  it("fails terminally when pending reconstruction has UTC/Sydney issue-date drift", async () => {
+    const pendingCertificate = {
+      id: CERTIFICATE_ID,
+      certificate_number: "MC-2026-12345678",
+      certificate_type: "work",
+      certificate_ref: "IM-WORK-20260815-12345678",
+      issue_date: "2026-08-15",
+      start_date: "2026-08-16",
+      end_date: "2026-08-16",
+      patient_id: PATIENT_ID,
+      patient_name: "Test Patient",
+      patient_dob: "1990-01-01",
+      storage_path: "pending:certificate",
+      created_at: "2026-08-15T15:02:00.000Z",
+    }
+    mocks.createServiceRoleClient.mockReturnValue({
+      from: vi.fn((table: string) => {
+        if (table !== "issued_certificates") throw new Error(`Unexpected table ${table}`)
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              single: vi.fn(async () => ({ data: pendingCertificate, error: null })),
+            })),
+          })),
+        }
+      }),
+    })
+
+    const result = await reconstructEmailContent({
+      id: "outbox-drifted-certificate",
+      email_type: "med_cert_patient",
+      to_email: "patient@example.test",
+      to_name: "Test Patient",
+      subject: "Your certificate",
+      status: "failed",
+      retry_count: 1,
+      last_attempt_at: null,
+      intake_id: INTAKE_ID,
+      patient_id: PATIENT_ID,
+      certificate_id: CERTIFICATE_ID,
+      metadata: { needs_pdf_generation: true },
+    } satisfies OutboxRow)
+
+    expect(result).toEqual({
+      success: false,
+      error: "Certificate issue-date history is inconsistent",
+      terminal: true,
+    })
+    expect(mocks.renderTemplatePdf).not.toHaveBeenCalled()
   })
 })

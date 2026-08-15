@@ -422,7 +422,7 @@ function RequestTimelineRow({ request, admin }: { request: PatientTimelineReques
       if (result.success) {
         setShowRefundDialog(false)
         const amountText = result.amount ? ` ($${(result.amount / 100).toFixed(2)})` : ""
-        toast.success(`Refund processed${amountText}`)
+        toast.success(`Refund requested${amountText}. Settlement is pending.`)
       } else {
         toast.error(result.error ?? "Failed to process refund")
       }

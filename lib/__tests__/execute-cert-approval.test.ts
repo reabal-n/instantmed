@@ -1,3 +1,4 @@
+import crypto from "crypto"
 import { beforeEach, describe, expect, it, type Mock,vi } from "vitest"
 
 // ---------------------------------------------------------------------------
@@ -21,6 +22,9 @@ const h = vi.hoisted(() => ({
     phProfile: null as Record<string, unknown> | null,
     uploadResults: [] as Array<{ error: unknown }>,
     uploadIndex: 0,
+    removeResults: [] as Array<{ error: unknown }>,
+    removeIndex: 0,
+    removeCalls: [] as string[][],
     updateCalls: [] as Array<Record<string, unknown>>,
     rpcCalls: [] as Array<{ name: string; args: unknown }>,
   },
@@ -58,7 +62,12 @@ vi.mock("@/lib/supabase/service-role", () => {
         h.state.uploadIndex += 1
         return result
       },
-      remove: async () => ({ error: null }),
+      remove: async (paths: string[]) => {
+        h.state.removeCalls.push(paths)
+        const result = h.state.removeResults[h.state.removeIndex] ?? { error: null }
+        h.state.removeIndex += 1
+        return result
+      },
     }),
   }
   return {
@@ -207,6 +216,9 @@ beforeEach(() => {
   h.state.phProfile = { auth_user_id: "auth-1" }
   h.state.uploadResults = []
   h.state.uploadIndex = 0
+  h.state.removeResults = []
+  h.state.removeIndex = 0
+  h.state.removeCalls = []
   h.state.updateCalls = []
   h.state.rpcCalls = []
 
@@ -266,7 +278,11 @@ describe("executeCertApproval — guard branches", () => {
 
   it("returns the existing certificate idempotently when already approved", async () => {
     h.state.intake = baseIntake({ status: "approved" })
-    mock(findExistingCertificate).mockResolvedValue({ id: "existing-cert", certificate_number: "IM-OLD" })
+    mock(findExistingCertificate).mockResolvedValue({
+      id: "existing-cert",
+      certificate_number: "IM-OLD",
+      patient_id: "pat-1",
+    })
 
     const result = await run()
 
@@ -274,6 +290,187 @@ describe("executeCertApproval — guard branches", () => {
     // Idempotent short-circuit: never re-issues or re-emails.
     expect(atomicApproveCertificate).not.toHaveBeenCalled()
     expect(sendEmail).not.toHaveBeenCalled()
+  })
+
+  it("repairs winner-crash delivery from the persisted approved certificate", async () => {
+    h.state.intake = baseIntake({ status: "approved" })
+    mock(findExistingCertificate).mockResolvedValue({
+      id: "persisted-cert",
+      certificate_number: "MC-2026-PERSISTED",
+      certificate_type: "study",
+      verification_code: "PERSISTED-CODE",
+      storage_path: "certificates/persisted-cert.pdf",
+      patient_id: "pat-1",
+      created_at: "2026-01-01T00:00:00.000Z",
+      issue_date: "2026-01-01",
+      email_sent_at: null,
+      template_config_snapshot: {
+        certificate_issued_at_utc: "2026-01-01T00:00:00.000Z",
+        certificate_issued_on_sydney: "2026-01-01",
+      },
+    })
+
+    const result = await run()
+
+    expect(result).toMatchObject({
+      success: true,
+      certificateId: "persisted-cert",
+      isExisting: true,
+      emailSent: true,
+      emailSentTo: "jane@example.com",
+    })
+    expect(renderTemplatePdf).not.toHaveBeenCalled()
+    expect(atomicApproveCertificate).not.toHaveBeenCalled()
+    expect(MedCertPatientEmail).toHaveBeenCalledWith(expect.objectContaining({
+      verificationCode: "PERSISTED-CODE",
+      certType: "study",
+    }))
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
+      certificateId: "persisted-cert",
+      idempotencyKey: expect.stringMatching(/^certificate-initial:persisted-cert:/),
+      metadata: expect.objectContaining({
+        certificate_storage_version: expect.any(String),
+        cert_type: "study",
+        delivery_repair: true,
+      }),
+    }))
+    expect(reconcileCertificateEmailDelivery).toHaveBeenCalledWith(expect.objectContaining({
+      certificateId: "persisted-cert",
+      outcome: "sent",
+      eventData: { delivery_repair: true },
+    }))
+  })
+
+  it("accepts a concurrent repair only when the same durable outbox already owns delivery", async () => {
+    h.state.intake = baseIntake({ status: "approved" })
+    mock(findExistingCertificate).mockResolvedValue({
+      id: "persisted-cert",
+      certificate_number: "MC-2026-PERSISTED",
+      certificate_type: "work",
+      verification_code: "PERSISTED-CODE",
+      storage_path: "certificates/persisted-cert.pdf",
+      patient_id: "pat-1",
+      created_at: "2026-01-01T00:00:00.000Z",
+      issue_date: "2026-01-01",
+      email_sent_at: null,
+      template_config_snapshot: {
+        certificate_issued_at_utc: "2026-01-01T00:00:00.000Z",
+        certificate_issued_on_sydney: "2026-01-01",
+      },
+    })
+    mock(sendEmail).mockResolvedValue({
+      success: true,
+      skipped: true,
+      outboxId: "existing-outbox",
+    })
+
+    const result = await run()
+
+    expect(result).toEqual({
+      success: true,
+      certificateId: "persisted-cert",
+      isExisting: true,
+    })
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
+      certificateId: "persisted-cert",
+      idempotencyKey: expect.stringMatching(/^certificate-initial:persisted-cert:/),
+    }))
+    expect(reconcileCertificateEmailDelivery).not.toHaveBeenCalled()
+  })
+
+  it("does not accept a persisted failure alert as the winner-crash delivery owner", async () => {
+    h.state.intake = baseIntake({ status: "approved" })
+    mock(findExistingCertificate).mockResolvedValue({
+      id: "persisted-cert",
+      certificate_number: "MC-2026-PERSISTED",
+      certificate_type: "work",
+      verification_code: "PERSISTED-CODE",
+      storage_path: "certificates/persisted-cert.pdf",
+      patient_id: "pat-1",
+      created_at: "2026-01-01T00:00:00.000Z",
+      issue_date: "2026-01-01",
+      email_sent_at: null,
+      template_config_snapshot: {
+        certificate_issued_at_utc: "2026-01-01T00:00:00.000Z",
+        certificate_issued_on_sydney: "2026-01-01",
+      },
+    })
+    mock(sendEmail).mockResolvedValue({ success: false, error: "outbox unavailable" })
+    mock(reconcileCertificateEmailDelivery).mockResolvedValue({
+      success: true,
+      failedSteps: [],
+    })
+
+    const result = await run()
+
+    expect(result).toEqual({
+      success: false,
+      error: "Certificate exists, but delivery could not be queued. Please retry.",
+    })
+    expect(renderTemplatePdf).not.toHaveBeenCalled()
+    expect(atomicApproveCertificate).not.toHaveBeenCalled()
+    expect(reconcileCertificateEmailDelivery).toHaveBeenCalledWith(expect.objectContaining({
+      certificateId: "persisted-cert",
+      outcome: "failed",
+      failureReason: "outbox unavailable",
+    }))
+  })
+
+  it("fails closed instead of repairing from inconsistent persisted issue-date evidence", async () => {
+    h.state.intake = baseIntake({ status: "approved" })
+    mock(findExistingCertificate).mockResolvedValue({
+      id: "persisted-cert",
+      certificate_number: "MC-2026-PERSISTED",
+      certificate_type: "work",
+      verification_code: "PERSISTED-CODE",
+      storage_path: "certificates/persisted-cert.pdf",
+      patient_id: "pat-1",
+      created_at: "2026-01-01T00:00:00.000Z",
+      issue_date: "2026-01-01",
+      email_sent_at: null,
+      template_config_snapshot: {
+        certificate_issued_at_utc: "2026-01-01T00:00:00.000Z",
+        certificate_issued_on_sydney: "2026-01-02",
+      },
+    })
+
+    const result = await run()
+
+    expect(result).toEqual({
+      success: false,
+      error: "Certificate delivery evidence is inconsistent. Contact support before retrying.",
+    })
+    expect(sendEmail).not.toHaveBeenCalled()
+    expect(reconcileCertificateEmailDelivery).not.toHaveBeenCalled()
+  })
+
+  it("leaves corrected-certificate delivery with the correction workflow", async () => {
+    h.state.intake = baseIntake({ status: "approved" })
+    mock(findExistingCertificate).mockResolvedValue({
+      id: "persisted-cert",
+      certificate_number: "MC-2026-PERSISTED",
+      certificate_type: "work",
+      verification_code: "PERSISTED-CODE",
+      storage_path: "certificates/corrections/persisted-cert/version-2.pdf",
+      patient_id: "pat-1",
+      created_at: "2026-01-01T00:00:00.000Z",
+      issue_date: "2026-01-01",
+      email_sent_at: null,
+      template_config_snapshot: {
+        certificate_issued_at_utc: "2026-01-01T00:00:00.000Z",
+        certificate_issued_on_sydney: "2026-01-01",
+      },
+    })
+
+    const result = await run()
+
+    expect(result).toEqual({
+      success: true,
+      certificateId: "persisted-cert",
+      isExisting: true,
+    })
+    expect(sendEmail).not.toHaveBeenCalled()
+    expect(reconcileCertificateEmailDelivery).not.toHaveBeenCalled()
   })
 
   it("regenerates a certificate for an approved intake with no valid cert", async () => {
@@ -342,6 +539,32 @@ describe("executeCertApproval — guard branches", () => {
 })
 
 describe("executeCertApproval — PDF + storage", () => {
+  it("uses one Sydney civil issue date for identifiers, PDF fields, and persistence", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-08-15T15:02:00.000Z"))
+
+    try {
+      const result = await run({ skipClaim: true, aiApproved: true })
+
+      expect(result.success).toBe(true)
+      expect(generateCertificateNumber).toHaveBeenCalledWith("2026-08-16")
+      expect(generateCertificateRef).toHaveBeenCalledWith("work", "2026-08-16")
+      expect(renderTemplatePdf).toHaveBeenCalledWith(expect.objectContaining({
+        consultationDate: "16 August 2026",
+        issueDate: "16/08/2026",
+      }))
+      expect(atomicApproveCertificate).toHaveBeenCalledWith(expect.objectContaining({
+        issue_date: "2026-08-16",
+        template_config_snapshot: expect.objectContaining({
+          certificate_issued_at_utc: "2026-08-15T15:02:00.000Z",
+          certificate_issued_on_sydney: "2026-08-16",
+        }),
+      }))
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it("aborts when PDF generation fails", async () => {
     mock(renderTemplatePdf).mockResolvedValue({ success: false, error: "renderer exploded" })
 
@@ -361,7 +584,9 @@ describe("executeCertApproval — PDF + storage", () => {
 
     expect(result.success).toBe(true)
     // First ref collided, so a second ref was generated.
-    expect((generateCertificateRef as Mock).mock.calls.length).toBeGreaterThanOrEqual(2)
+    const refCalls = (generateCertificateRef as Mock).mock.calls
+    expect(refCalls.length).toBeGreaterThanOrEqual(2)
+    expect(new Set(refCalls.map((call) => call[1])).size).toBe(1)
   })
 
   it("aborts on a non-collision storage error", async () => {
@@ -445,6 +670,10 @@ describe("executeCertApproval — atomic approval + delivery", () => {
     expect(result.success).toBe(true)
     expect(result.emailScheduledFor).toBeUndefined()
     expect(result.emailSentTo).toBe("jane@example.com")
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
+      certificateId: "cert-1",
+      idempotencyKey: expect.stringMatching(/^certificate-initial:cert-1:/),
+    }))
     expect(reconcileCertificateEmailDelivery).toHaveBeenCalledWith(expect.objectContaining({
       intakeId: INTAKE_ID,
       certificateId: "cert-1",
@@ -519,13 +748,116 @@ describe("executeCertApproval — atomic approval + delivery", () => {
     expect(logCertificateEdits).toHaveBeenCalled()
   })
 
-  it("short-circuits an idempotent re-approval whose email already sent", async () => {
+  it("discards the uncommitted candidate and returns persisted delivery state after an idempotent race", async () => {
     mock(atomicApproveCertificate).mockResolvedValue({ success: true, certificateId: "cert-1", isExisting: true })
-    mock(findExistingCertificate).mockResolvedValue({ id: "cert-1", email_sent_at: "2026-01-01T00:00:00Z" })
+    mock(findExistingCertificate).mockResolvedValue({
+      id: "cert-1",
+      email_sent_at: "2026-01-01T00:00:00Z",
+      storage_path: "certificates/persisted.pdf",
+      pdf_hash: "persisted-hash",
+      patient_id: "pat-1",
+    })
+
+    const result = await run()
+
+    expect(result).toMatchObject({
+      success: true,
+      certificateId: "cert-1",
+      isExisting: true,
+      emailSent: true,
+    })
+    expect(h.state.removeCalls).toEqual([["certificates/IM-WORK-REF-1.pdf"]])
+    expect(sendEmail).not.toHaveBeenCalled()
+    expect(reconcileCertificateEmailDelivery).not.toHaveBeenCalled()
+  })
+
+  it("does not deliver candidate credentials when the persisted idempotent certificate is unsent", async () => {
+    mock(atomicApproveCertificate).mockResolvedValue({ success: true, certificateId: "cert-1", isExisting: true })
+    mock(findExistingCertificate).mockResolvedValue({
+      id: "cert-1",
+      email_sent_at: null,
+      storage_path: "certificates/persisted.pdf",
+      pdf_hash: "persisted-hash",
+      patient_id: "pat-1",
+      created_at: "2026-01-01T00:00:00.000Z",
+      issue_date: "2026-01-01",
+      verification_code: "PERSISTED-CODE",
+      certificate_type: "study",
+      template_config_snapshot: {
+        certificate_issued_at_utc: "2025-12-31T13:00:00.000Z",
+        certificate_issued_on_sydney: "2026-01-01",
+      },
+    })
+
+    const result = await run({ aiApproved: true, skipClaim: true })
+
+    expect(result).toMatchObject({
+      success: true,
+      certificateId: "cert-1",
+      isExisting: true,
+      emailSent: true,
+      emailSentTo: "jane@example.com",
+    })
+    expect(h.state.removeCalls).toEqual([["certificates/IM-WORK-REF-1.pdf"]])
+    expect(h.state.updateCalls).toEqual([])
+    expect(MedCertPatientEmail).toHaveBeenCalledWith(expect.objectContaining({
+      verificationCode: "PERSISTED-CODE",
+      certType: "study",
+    }))
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
+      certificateId: "cert-1",
+      idempotencyKey: expect.stringMatching(/^certificate-initial:cert-1:/),
+      metadata: expect.objectContaining({
+        certificate_storage_version: expect.any(String),
+        cert_type: "study",
+        delivery_repair: true,
+      }),
+    }))
+    expect(reconcileCertificateEmailDelivery).toHaveBeenCalledWith(expect.objectContaining({
+      certificateId: "cert-1",
+      outcome: "sent",
+      eventData: { delivery_repair: true },
+    }))
+  })
+
+  it("keeps an exact persisted artifact when an idempotent repair converges on the same bytes", async () => {
+    const candidateHash = crypto.createHash("sha256").update(Buffer.from("PDF-BYTES")).digest("hex")
+    mock(atomicApproveCertificate).mockResolvedValue({ success: true, certificateId: "cert-1", isExisting: true })
+    mock(findExistingCertificate).mockResolvedValue({
+      id: "cert-1",
+      email_sent_at: "2026-01-01T00:00:01.000Z",
+      storage_path: "certificates/IM-WORK-REF-1.pdf",
+      pdf_hash: candidateHash,
+      patient_id: "pat-1",
+    })
 
     const result = await run()
 
     expect(result).toMatchObject({ success: true, certificateId: "cert-1", isExisting: true })
+    expect(h.state.removeCalls).toEqual([])
     expect(sendEmail).not.toHaveBeenCalled()
+    expect(reconcileCertificateEmailDelivery).not.toHaveBeenCalled()
+  })
+
+  it("fails closed when an idempotent race candidate cannot be removed", async () => {
+    mock(atomicApproveCertificate).mockResolvedValue({ success: true, certificateId: "cert-1", isExisting: true })
+    mock(findExistingCertificate).mockResolvedValue({
+      id: "cert-1",
+      email_sent_at: null,
+      storage_path: "certificates/persisted.pdf",
+      pdf_hash: "persisted-hash",
+    })
+    h.state.removeResults = [{ error: { message: "storage unavailable" } }]
+
+    const result = await run()
+
+    expect(result).toEqual({
+      success: false,
+      error: "Certificate already exists, but duplicate PDF cleanup failed. Contact support before retrying.",
+    })
+    expect(h.state.removeCalls).toEqual([["certificates/IM-WORK-REF-1.pdf"]])
+    expect(MedCertPatientEmail).not.toHaveBeenCalled()
+    expect(sendEmail).not.toHaveBeenCalled()
+    expect(reconcileCertificateEmailDelivery).not.toHaveBeenCalled()
   })
 })

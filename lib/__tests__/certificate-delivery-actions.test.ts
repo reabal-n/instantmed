@@ -486,6 +486,7 @@ describe("certificate reissue clinical authorization", () => {
       certificate_number: "IM-WORK-TEST",
       verification_code: "VERIFY123",
       storage_path: "certificates/test.pdf",
+      created_at: "2026-07-10T00:05:00.000Z",
     })
     mocks.getAbsenceDays.mockReturnValue(1)
     mocks.getDoctorIdentity.mockResolvedValue({ id: DOCTOR_ID })
@@ -558,6 +559,32 @@ describe("certificate reissue clinical authorization", () => {
     expect(mocks.getCertificateForIntake).not.toHaveBeenCalled()
   })
 
+  it("fails closed when the persisted issue date disagrees with the Sydney creation date", async () => {
+    mocks.getCertificateForIntake.mockResolvedValueOnce({
+      ...await mocks.getCertificateForIntake(),
+      issue_date: "2026-08-15",
+      created_at: "2026-08-15T15:02:00.000Z",
+    })
+
+    const result = await reissueCertificateAction({
+      intakeId: INTAKE_ID,
+      patientName: "Test Patient",
+      patientDob: "1990-01-01",
+      certificateType: "work",
+      startDate: "2026-07-10",
+      endDate: "2026-07-10",
+    })
+
+    expect(result).toEqual({
+      success: false,
+      error: "Certificate issue-date history is inconsistent. Contact support before reissuing.",
+    })
+    expect(mocks.getCertificateCorrectionCount).not.toHaveBeenCalled()
+    expect(mocks.renderTemplatePdf).not.toHaveBeenCalled()
+    expect(mocks.storageUpload).not.toHaveBeenCalled()
+    expect(mocks.commitCertificateCorrection).not.toHaveBeenCalled()
+  })
+
   it("uses durable correction events instead of resend_count and atomically switches to a versioned PDF", async () => {
     mocks.getCertificateForIntake.mockResolvedValueOnce({
       ...await mocks.getCertificateForIntake(),
@@ -604,6 +631,11 @@ describe("certificate reissue clinical authorization", () => {
       metadata: expect.objectContaining({
         certificate_storage_version: expect.any(String),
       }),
+    }))
+    expect(mocks.renderTemplatePdf).toHaveBeenCalledWith(expect.objectContaining({
+      certificateRef: "IM-WORK-TEST",
+      consultationDate: "10 July 2026",
+      issueDate: "10/07/2026",
     }))
   })
 

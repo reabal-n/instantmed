@@ -30,8 +30,11 @@ import {
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
-import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
+import {
+  validateCertificateDateRange,
+} from "@/lib/medical-certificates/date-policy"
 import { reconcileCertificateEmailDelivery } from "@/lib/medical-certificates/email-delivery-reconciliation"
+import { hasConsistentCertificateIssuedDate } from "@/lib/medical-certificates/issued-date-integrity"
 import { createLogger } from "@/lib/observability/logger"
 import {
   getGuestCertificateAccessHref,
@@ -161,6 +164,25 @@ export async function reissueCertificateAction(
       return {
         success: false,
         error: `Certificate cannot be reissued - current status is "${cert.status}"`,
+      }
+    }
+
+    if (!hasConsistentCertificateIssuedDate({
+      createdAt: cert.created_at,
+      issueDate: cert.issue_date,
+      templateConfigSnapshot: cert.template_config_snapshot,
+    })) {
+      logger.error("[ReissueCert] Certificate issue-date history is inconsistent", {
+        intakeId,
+        certId: cert.id,
+      })
+      Sentry.captureMessage("[ReissueCert] Certificate issue-date history is inconsistent", {
+        level: "error",
+        tags: { subsystem: "reissue-cert-date-integrity", intakeId, certId: cert.id },
+      })
+      return {
+        success: false,
+        error: "Certificate issue-date history is inconsistent. Contact support before reissuing.",
       }
     }
 

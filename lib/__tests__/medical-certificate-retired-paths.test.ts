@@ -6,6 +6,11 @@ function readFile(path: string): string {
 }
 
 describe("medical certificate retired paths", () => {
+  it("does not ship the duplicate medical-certificate render APIs", () => {
+    expect(existsSync("app/api/med-cert/render/route.ts")).toBe(false)
+    expect(existsSync("app/api/med-cert/preview/route.ts")).toBe(false)
+  })
+
   it("does not ship the retired certificate expiry cron", () => {
     expect(existsSync("app/api/cron/expire-certificates/route.ts")).toBe(false)
     expect(existsSync("lib/__tests__/expire-certificates-route.test.ts")).toBe(false)
