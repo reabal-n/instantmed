@@ -265,9 +265,9 @@ Entry points (doctor queue | admin panel | API)
      5. Log: intake_events + compliance_audit_log
 ```
 
-**Refund tracking** on `intakes`: `refund_status` (not_applicable | not_eligible | pending | succeeded | failed | skipped_e2e), `refund_stripe_id`, `refunded_at`, `refunded_by`. `Refund.create` proves only that Stripe accepted a request, so decline, standalone, and priority paths reserve `refund_status = pending` and do not claim settled cash. Append-only `stripe_refund_events` evidence is reduced through `stripe_refund_cash_movements`; `reconcile_intake_refund_cash_state` alone owns `refund_amount_cents`, `payment_status`, `refund_status`, `refunded_at`, the Ads target, and cash-confirmed patient notification. Full outstanding cash maps to `payment_status = refunded`, partial cash to `partially_refunded`, and an exact reversal restores the remaining paid state. Standalone refunds accept only paid/partially-refunded intakes and reject a second request while settlement is pending. Support refund limits are serialized per actor in `reserve_support_refund_attempt`; its private receipt ledger counts distinct pending, failed, and successful external-money attempts without relying on cash-settlement timestamps.
+**Refund tracking** on `intakes`: `refund_status` (not_applicable | not_eligible | pending | succeeded | failed | skipped_e2e), `refund_stripe_id`, `refunded_at`, `refunded_by`. Every decline, standalone, admin, and priority path first reserves a row in the private `stripe_refund_attempts` ledger, then calls Stripe with that row's immutable idempotency key. The attempt owns pre-Stripe crashes, submitted/unknown outcomes, downstream notification completion, and at most one evidence-backed successor; it never owns settled cash. The five-minute `refund-reconciliation` cron safely retrieves or replays the same generation inside the bounded idempotency window, finishes exact notification work, and surfaces unsafe identity/mode cases for manual review without guessing. Append-only `stripe_refund_events` evidence is reduced per Refund through `stripe_refund_current_lifecycle` and `stripe_refund_cash_movements`; `reconcile_intake_refund_cash_state` alone owns `refund_amount_cents`, `payment_status`, `refund_status`, `refunded_at`, and the Ads target. Full outstanding cash maps to `payment_status = refunded`, partial cash to `partially_refunded`, and an exact reversal restores the remaining paid state. Patient notification is reserved once per exact settled Refund before the attempt is finalized; optional Ads work has independent retry ownership and cannot block an owed successor. Support refund limits are serialized per actor in `reserve_support_refund_attempt`; every external-money generation consumes its own private quota receipt.
 
-**Priority breach auto-refund (2026-08-03):** the hourly stale-queue cron requests a fee-only $9.95 Stripe refund when a priority intake is still undecided 3h+ after payment. Creation remains pending; exact Stripe balance evidence stamps `priority_fee_refunded_at`, moves the payment to `partially_refunded`, and queues the patient notice. A durably failed Refund permits one bounded successor request via `priority_fee_refund_retry_attempted_at`; it cannot create an unbounded retry series. A later decline or standalone refund tops up only the remaining cash balance. Core: `lib/stripe/priority-fee-refund.ts` (guards: priority + `paid` + zero prior settled refund cents + fee strictly inside the charge).
+**Priority breach auto-refund (2026-08-03):** the hourly stale-queue cron initiates generation 1 for a fee-only $9.95 Stripe refund when a priority intake is still undecided 3h+ after payment. Creation remains pending; exact Stripe balance evidence stamps `priority_fee_refunded_at`, moves the payment to `partially_refunded`, and reserves the exact per-refund patient notice. The refund-reconciliation cron owns same-key recovery and the single evidence-backed successor; no mutable intake retry flag or unbounded retry series exists. A later decline or standalone refund tops up only the remaining cash balance. Core: `lib/stripe/priority-fee-refund.ts` (guards: priority + `paid` + zero prior settled refund cents + fee strictly inside the charge).
 
 **Dispute cash:** `charge.dispute.created`, `.updated`, and `.closed` persist lifecycle/status evidence only. Payment and retained-revenue state changes only from exact `funds_withdrawn` / `funds_reinstated` balance movements, aggregated across every dispute linked to the intake. `intakes.dispute_id` is compatibility metadata, not the aggregate authority.
 
@@ -517,6 +517,7 @@ Role assignment methods: SQL update on `profiles` table (production) via Supabas
 | `fraud_flags` | Risk management flags | `intakes.id`, `profiles.id` |
 | `stripe_disputes` | Stripe dispute lifecycle plus exact withdrawal/reinstatement evidence | `intakes.id` |
 | `stripe_refund_events` | Append-only exact Stripe refund lifecycle and balance evidence | Nullable verified link to `intakes.id` |
+| `stripe_refund_attempts` | Private durable ownership for each bounded Stripe Refund.create generation, recovery lease, and downstream-finalization state | `intakes.id`; optional actor `profiles.id`; immutable PaymentIntent/Refund identity |
 | `support_refund_attempts` | Private non-PHI receipts for atomic support-role refund amount/rate enforcement | `profiles.id` actor + `intakes.id` request |
 | `google_ads_conversion_adjustment_claims` | Durable desired-state generations and leases for external Ads restatements | `intakes.id` |
 | `email_preferences` | Unsubscribe / email prefs | `profiles.id` |
@@ -540,6 +541,7 @@ profiles
   |     +-- fraud_flags (intake_id, patient_id)
   |     +-- stripe_disputes (intake_id)
   |     +-- stripe_refund_events (intake_id, nullable until verified linkage)
+  |     +-- stripe_refund_attempts (intake_id; actor_profile_id links profiles)
   |     +-- support_refund_attempts (intake_id; actor_profile_id links profiles)
   |     +-- google_ads_conversion_adjustment_claims (intake_id)
   |     +-- intake_followups (intake_id, patient_id)
@@ -797,7 +799,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 558 files, 238 route files
+### `app/` — 559 files, 239 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -807,8 +809,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (87 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` diagnostic bridge |
-| `app/api/cron/` | Scheduled jobs (28) | `stale-queue/`, `telegram-notifications/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `google-ads-daily-brief`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
+| `app/api/` | API routes (88 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` diagnostic bridge |
+| `app/api/cron/` | Scheduled jobs (29) | `refund-reconciliation/`, `stale-queue/`, `telegram-notifications/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `google-ads-daily-brief`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 9 registered handler modules cover 14 event types: Checkout completed/expired/async success/async failure; `charge.refunded`; Refund created/updated/failed; PaymentIntent failure; and dispute created/updated/closed/funds withdrawn/funds reinstated. Repeat Rx subscription handlers are retired; unsupported events are acknowledged and claimed without business logic. `handlers/index.ts` is the registry. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |
@@ -862,7 +864,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `lib/rate-limit/` | Rate limiting | `redis.ts` (Upstash), `doctor.ts` (auto-approval limits). Fallback: in-memory Map |
 | `lib/request/` | Step registry | `step-registry.ts` (step definitions), `validation.ts` (per-step Zod schemas) |
 | `lib/security/` | Encryption | `phi-encryption.ts` (AES-256-GCM), `phi-field-wrappers.ts` (data layer wrappers) |
-| `lib/stripe/` | Payments | `checkout.ts`, `guest-checkout.ts`, `price-mapping.ts`, `client.ts` |
+| `lib/stripe/` | Payments | Checkout/session owners plus exact refund evidence, durable attempts, intake resolution, notification finalization, and bounded recovery |
 | `lib/seo/data/` | SEO content | `conditions.ts`, `symptoms.ts`, `guides.ts`, `comparisons.ts`, `audience-pages.ts`, `condition-location-combos.ts`, `deep-city-content.ts` — drive programmatic pages |
 | `lib/blog/` | Health guide content system | MDX loader/parser, article registry, shared heading slugs, visual registry |
 | `lib/notifications/` | Alerts | `telegram.ts` + `paid-request-telegram.ts` (broad-service-class request pager), `service.ts` (payment notifications), `support-inbox-alert.ts` + processor (manual aggregate-only support count diagnostics) |
@@ -885,7 +887,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
 | `e2e/` | 78 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 127 SQL migration files (1 squashed baseline + 126 incremental). Latest: `20260814190000_fix_support_refund_attempt_role_cast.sql`. The current release tranche spans the Stripe dispute/refund, cron-outcome, future-review retry, and support-refund role-cast migrations from `20260814182000` through `20260814190000`. On-disk presence is not deployment proof; linked migration history and post-apply receipts own production status. |
+| `supabase/migrations/` | 128 SQL migration files (1 squashed baseline + 127 incremental). Newest on disk: `20260816101752_harden_stripe_refund_recovery.sql` (pending until its release receipt is recorded). Latest applied and verified production migration remains `20260814190000_fix_support_refund_attempt_role_cast.sql`. On-disk presence is not deployment proof; linked migration history and post-apply receipts own production status. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |

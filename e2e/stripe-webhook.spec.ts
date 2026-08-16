@@ -189,6 +189,85 @@ function buildChargeRefundedEvent(overrides: {
   }
 }
 
+function buildRefundLifecycleEvent(input: {
+  amount: number
+  balanceTransactionId: string
+  chargeId: string
+  eventCreated: number
+  eventId: string
+  eventType: "refund.created" | "refund.updated"
+  intakeId: string
+  paymentId: string
+  paymentIntentId: string
+  refundCreated: number
+  refundId: string
+  status: "pending" | "succeeded"
+}) {
+  const paymentIntent = {
+    id: input.paymentIntentId,
+    object: "payment_intent",
+    metadata: {},
+  }
+  const balanceTransaction = input.status === "succeeded"
+    ? {
+        id: input.balanceTransactionId,
+        object: "balance_transaction",
+        amount: -input.amount,
+        available_on: input.eventCreated,
+        balance_type: "payments",
+        created: input.eventCreated,
+        currency: "aud",
+        description: null,
+        exchange_rate: null,
+        fee: 0,
+        fee_details: [],
+        net: -input.amount,
+        reporting_category: "refund",
+        source: input.refundId,
+        status: "available",
+        type: "refund",
+      }
+    : null
+
+  return {
+    id: input.eventId,
+    object: "event",
+    api_version: "2024-12-18.acacia",
+    type: input.eventType,
+    data: {
+      object: {
+        id: input.refundId,
+        object: "refund",
+        amount: input.amount,
+        balance_transaction: balanceTransaction,
+        charge: {
+          id: input.chargeId,
+          object: "charge",
+          payment_intent: paymentIntent,
+        },
+        created: input.refundCreated,
+        currency: "aud",
+        failure_balance_transaction: null,
+        metadata: {
+          intake_id: input.intakeId,
+          payment_id: input.paymentId,
+          refund_type: "admin_manual",
+        },
+        payment_intent: paymentIntent,
+        reason: "requested_by_customer",
+        receipt_number: null,
+        source_transfer_reversal: null,
+        status: input.status,
+        transfer_reversal: null,
+      },
+    },
+    created: input.eventCreated,
+    livemode: false,
+    pending_webhooks: 1,
+    request: { id: `req_test_${randomUUID()}`, idempotency_key: null },
+  }
+}
+
 // ============================================================================
 // HELPER: POST to webhook endpoint
 // ============================================================================
@@ -504,6 +583,208 @@ test.describe("Stripe Webhook: charge.refunded", () => {
     const intake = await getIntakeById(seed.intakeId!)
     expect(intake).not.toBeNull()
     expect(intake!.payment_status).toBe("partially_refunded")
+  })
+})
+
+test.describe("Stripe Webhook: refund lifecycle fallback", () => {
+  const fixtures: Array<{
+    eventIds: string[]
+    intakeId: string
+    paymentId: string
+  }> = []
+
+  test.afterAll(async () => {
+    if (!isDbAvailable()) return
+    const supabase = getSupabaseClient()
+    for (const fixture of fixtures) {
+      await supabase
+        .from("stripe_webhook_events")
+        .delete()
+        .in("event_id", fixture.eventIds)
+      await supabase.from("payments").delete().eq("id", fixture.paymentId)
+      await cleanupTestIntake(fixture.intakeId)
+    }
+  })
+
+  test("settles and emails once when only payment linkage and Refund metadata identify the intake", async ({ request }) => {
+    test.skip(!STRIPE_WEBHOOK_SECRET, "STRIPE_WEBHOOK_SECRET required")
+    test.skip(!isDbAvailable(), "Supabase credentials required for DB assertions")
+
+    const amount = 1_995
+    const balanceTransactionId = `txn_test_${randomUUID()}`
+    const chargeId = `ch_test_${randomUUID()}`
+    const pendingEventId = `evt_test_${randomUUID()}`
+    const succeededEventId = `evt_test_${randomUUID()}`
+    const paymentId = randomUUID()
+    const paymentIntentId = `pi_test_refund_fallback_${randomUUID()}`
+    const refundId = `re_test_${randomUUID()}`
+    const sessionId = `cs_test_${randomUUID()}`
+    const refundCreated = Math.floor(Date.now() / 1000) - 60
+
+    const seed = await seedTestIntake({
+      payment_id: sessionId,
+      payment_status: "paid",
+      refund_status: "not_applicable",
+      status: "paid",
+    })
+    expect(seed.success, `Seed should succeed: ${seed.error}`).toBe(true)
+    const intakeId = seed.intakeId!
+    fixtures.push({
+      eventIds: [pendingEventId, succeededEventId],
+      intakeId,
+      paymentId,
+    })
+
+    const supabase = getSupabaseClient()
+    const { error: intakeSetupError } = await supabase
+      .from("intakes")
+      .update({
+        amount_cents: amount,
+        refund_amount_cents: 0,
+        refund_status: "not_applicable",
+        refund_stripe_id: null,
+        refunded_at: null,
+        stripe_payment_intent_id: null,
+      })
+      .eq("id", intakeId)
+    expect(intakeSetupError, "Intake fallback fixture should be writable").toBeNull()
+
+    const { error: paymentSetupError } = await supabase.from("payments").insert({
+      id: paymentId,
+      amount,
+      currency: "aud",
+      intake_id: intakeId,
+      metadata: {},
+      refund_amount: 0,
+      refund_status: "not_applicable",
+      status: "paid",
+      stripe_payment_intent_id: paymentIntentId,
+      stripe_session_id: sessionId,
+    })
+    expect(paymentSetupError, "Linked payment fixture should be writable").toBeNull()
+
+    const { data: beforeRefund, error: beforeRefundError } = await supabase
+      .from("intakes")
+      .select("stripe_payment_intent_id")
+      .eq("id", intakeId)
+      .single()
+    expect(beforeRefundError).toBeNull()
+    expect(beforeRefund?.stripe_payment_intent_id).toBeNull()
+
+    const exactOutboxKey = `stripe-refund-processed:${intakeId}:${refundId}`
+    const pendingEvent = buildRefundLifecycleEvent({
+      amount,
+      balanceTransactionId,
+      chargeId,
+      eventCreated: refundCreated,
+      eventId: pendingEventId,
+      eventType: "refund.created",
+      intakeId,
+      paymentId,
+      paymentIntentId,
+      refundCreated,
+      refundId,
+      status: "pending",
+    })
+    const pendingResponse = await postWebhook(request, pendingEvent)
+    expect(pendingResponse.status()).toBe(200)
+
+    const { data: pendingEmails, error: pendingEmailError } = await supabase
+      .from("email_outbox")
+      .select("id")
+      .eq("idempotency_key", exactOutboxKey)
+    expect(pendingEmailError).toBeNull()
+    expect(pendingEmails).toEqual([])
+
+    const succeededEvent = buildRefundLifecycleEvent({
+      amount,
+      balanceTransactionId,
+      chargeId,
+      eventCreated: refundCreated + 30,
+      eventId: succeededEventId,
+      eventType: "refund.updated",
+      intakeId,
+      paymentId,
+      paymentIntentId,
+      refundCreated,
+      refundId,
+      status: "succeeded",
+    })
+    const succeededResponse = await postWebhook(request, succeededEvent)
+    expect(succeededResponse.status()).toBe(200)
+
+    const { data: intake, error: intakeError } = await supabase
+      .from("intakes")
+      .select(
+        "payment_status, refund_amount_cents, refund_status, " +
+        "refund_stripe_id, refunded_at, stripe_payment_intent_id",
+      )
+      .eq("id", intakeId)
+      .single()
+    expect(intakeError).toBeNull()
+    const intakeMirror = intake as unknown as {
+      payment_status: string
+      refund_amount_cents: number
+      refund_status: string
+      refund_stripe_id: string
+      refunded_at: string | null
+      stripe_payment_intent_id: string
+    } | null
+    expect(intakeMirror).toMatchObject({
+      payment_status: "refunded",
+      refund_amount_cents: amount,
+      refund_status: "succeeded",
+      refund_stripe_id: refundId,
+      stripe_payment_intent_id: paymentIntentId,
+    })
+    expect(intakeMirror?.refunded_at).toBeTruthy()
+
+    const { data: payment, error: paymentError } = await supabase
+      .from("payments")
+      .select("status, refund_amount, refund_status, stripe_refund_id, refunded_at")
+      .eq("id", paymentId)
+      .single()
+    expect(paymentError).toBeNull()
+    const paymentMirror = payment as unknown as {
+      refund_amount: number
+      refund_status: string
+      refunded_at: string | null
+      status: string
+      stripe_refund_id: string
+    } | null
+    expect(paymentMirror).toMatchObject({
+      refund_amount: amount,
+      refund_status: "refunded",
+      status: "refunded",
+      stripe_refund_id: refundId,
+    })
+    expect(paymentMirror?.refunded_at).toBeTruthy()
+
+    const readExactOutbox = () => supabase
+      .from("email_outbox")
+      .select("email_type, idempotency_key, metadata, status")
+      .eq("idempotency_key", exactOutboxKey)
+    const firstOutboxRead = await readExactOutbox()
+    expect(firstOutboxRead.error).toBeNull()
+    expect(firstOutboxRead.data).toHaveLength(1)
+    expect(firstOutboxRead.data?.[0]).toMatchObject({
+      email_type: "refund-processed",
+      idempotency_key: exactOutboxKey,
+      metadata: {
+        refund_amount_cents: amount,
+        refund_livemode: false,
+        stripe_refund_id: refundId,
+      },
+      status: "pending",
+    })
+
+    const replayResponse = await postWebhook(request, succeededEvent)
+    expect(replayResponse.status()).toBe(200)
+    await expect(replayResponse.json()).resolves.toMatchObject({ skipped: true })
+
+    const replayOutboxRead = await readExactOutbox()
+    expect(replayOutboxRead.error).toBeNull()
+    expect(replayOutboxRead.data).toHaveLength(1)
   })
 })
 

@@ -5,15 +5,20 @@ import type Stripe from "stripe"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
 import {
+  buildStripeRefundApiEvidence,
   buildStripeRefundEventEvidence,
   hasSameStripeRefundEvidence,
   STRIPE_REFUND_EVIDENCE_SELECT,
   type StripeRefundEvidenceRow,
 } from "@/lib/stripe/refund-event-ledger"
+import { resolveStripeRefundIntake } from "@/lib/stripe/refund-intake-resolution"
 
 const log = createLogger("stripe-webhook:refund-ledger")
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export type PersistStripeRefundEvidenceResult = {
+  evidence: StripeRefundEvidenceRow[]
   error: string | null
   intakeId: string | null
   refunds: Stripe.Refund[]
@@ -131,18 +136,113 @@ export async function persistStripeRefundEventEvidence(input: {
 }): Promise<PersistStripeRefundEvidenceResult> {
   const refundsResult = await exactRefundsForEvent(input.event)
   if (refundsResult.error) {
-    return { error: refundsResult.error, intakeId: null, refunds: [] }
+    return { evidence: [], error: refundsResult.error, intakeId: null, refunds: [] }
   }
 
-  const paymentIntentId = refundPaymentIntentId(input.event, refundsResult.refunds)
-  const intakeResult = await findRefundIntake(input.supabase, paymentIntentId)
-  if (intakeResult.error) {
-    return { error: intakeResult.error, intakeId: null, refunds: refundsResult.refunds }
+  const eventPaymentIntentId = input.event.type === "charge.refunded"
+    ? stripeId((input.event.data.object as Stripe.Charge).payment_intent)
+    : null
+  const resolutions = []
+  for (const refund of refundsResult.refunds) {
+    const resolution = await resolveStripeRefundIntake(
+      { stripe, supabase: input.supabase },
+      { eventPaymentIntentId, refund },
+    )
+    if (resolution.error) {
+      return {
+        evidence: [],
+        error: resolution.error,
+        intakeId: null,
+        refunds: refundsResult.refunds,
+      }
+    }
+    if (!resolution.intakeId) {
+      return {
+        evidence: [],
+        error: "Stripe refund could not be linked to one intake",
+        intakeId: null,
+        refunds: refundsResult.refunds,
+      }
+    }
+    resolutions.push({ refund, resolution })
+  }
+
+  if (resolutions.length === 0) {
+    return {
+      evidence: [],
+      error: "Stripe refund event contains no refunds",
+      intakeId: null,
+      refunds: refundsResult.refunds,
+    }
+  }
+  const intakeIds = new Set(
+    resolutions.map(({ resolution }) => resolution.intakeId),
+  )
+  if (intakeIds.size !== 1) {
+    return {
+      evidence: [],
+      error: "Stripe refunds in one event resolve to different intakes",
+      intakeId: null,
+      refunds: refundsResult.refunds,
+    }
+  }
+  const intakeId = resolutions[0]?.resolution.intakeId ?? null
+  if (!intakeId) {
+    return {
+      evidence: [],
+      error: "Stripe refund event has no resolved intake",
+      intakeId: null,
+      refunds: refundsResult.refunds,
+    }
+  }
+
+  for (const { refund, resolution } of resolutions) {
+    const attemptId = refund.metadata?.refund_attempt_id?.trim()
+    if (!attemptId) continue
+    if (!UUID_PATTERN.test(attemptId)) {
+      return {
+        evidence: [],
+        error: "Stripe refund attempt metadata is invalid",
+        intakeId,
+        refunds: refundsResult.refunds,
+      }
+    }
+    if (!resolution.paymentIntentId) {
+      return {
+        evidence: [],
+        error: "Stripe refund attempt metadata has no resolved PaymentIntent",
+        intakeId,
+        refunds: refundsResult.refunds,
+      }
+    }
+    const binding = await input.supabase.rpc(
+      "bind_stripe_refund_attempt_from_webhook",
+      {
+        p_amount_cents: refund.amount,
+        p_attempt_id: attemptId,
+        p_intake_id: intakeId,
+        p_livemode: input.event.livemode,
+        p_payment_intent_id: resolution.paymentIntentId,
+        p_refund_type: refund.metadata?.refund_type ?? null,
+        p_stripe_refund_id: refund.id,
+        p_stripe_status: refund.status ?? null,
+      },
+    )
+    if (binding.error || binding.data !== true) {
+      return {
+        evidence: [],
+        error: binding.error
+          ? `Stripe refund attempt binding failed: ${binding.error.message}`
+          : "Stripe refund attempt binding returned incomplete evidence",
+        intakeId,
+        refunds: refundsResult.refunds,
+      }
+    }
   }
 
   const evidence = buildStripeRefundEventEvidence({
     event: input.event,
-    intakeId: intakeResult.intakeId,
+    intakeId,
     refunds: refundsResult.refunds,
   })
   const expectedEvidenceCount = new Set(
@@ -150,53 +250,138 @@ export async function persistStripeRefundEventEvidence(input: {
   ).size
   if (evidence.length !== expectedEvidenceCount || evidence.length === 0) {
     return {
+      evidence: [],
       error: "Stripe refund event contains no valid exact refund evidence",
-      intakeId: intakeResult.intakeId,
+      intakeId,
       refunds: refundsResult.refunds,
     }
   }
 
-  const { error } = await input.supabase
-    .from("stripe_refund_events")
-    .upsert(evidence satisfies StripeRefundEvidenceRow[], {
-      ignoreDuplicates: true,
-      onConflict: "evidence_key",
-    })
-  if (error) {
-    return {
-      error: `Stripe refund evidence write failed: ${error.message}`,
-      intakeId: intakeResult.intakeId,
-      refunds: refundsResult.refunds,
-    }
-  }
-
-  const verification = await input.supabase
-    .from("stripe_refund_events")
-    .select(STRIPE_REFUND_EVIDENCE_SELECT)
-    .in("evidence_key", evidence.map((row) => row.evidence_key))
-  if (verification.error) {
-    return {
-      error: `Stripe refund evidence verification failed: ${verification.error.message}`,
-      intakeId: intakeResult.intakeId,
-      refunds: refundsResult.refunds,
-    }
-  }
-  const persistedByKey = new Map(
-    ((verification.data ?? []) as unknown as StripeRefundEvidenceRow[])
-      .map((row) => [row.evidence_key, row]),
+  const persistence = await persistAndVerifyRefundEvidence(
+    input.supabase,
+    evidence,
   )
-  if (evidence.some((row) => !hasSameStripeRefundEvidence(
-    row,
-    persistedByKey.get(row.evidence_key),
-  ))) {
+  if (persistence.error) {
     return {
-      error: "Stripe refund evidence conflicts with an immutable observation",
-      intakeId: intakeResult.intakeId,
+      evidence: [],
+      error: persistence.error,
+      intakeId,
       refunds: refundsResult.refunds,
     }
   }
 
-  return { error: null, intakeId: intakeResult.intakeId, refunds: refundsResult.refunds }
+  return {
+    evidence: persistence.evidence,
+    error: null,
+    intakeId,
+    refunds: refundsResult.refunds,
+  }
+}
+
+export async function persistStripeRefundApiObservation(input: {
+  intakeId: string
+  livemode: boolean
+  refund: Stripe.Refund
+  supabase: SupabaseClient
+}): Promise<{ evidence: StripeRefundEvidenceRow[]; error: string | null }> {
+  const evidence = buildStripeRefundApiEvidence(input)
+  if (!evidence) {
+    return {
+      evidence: [],
+      error: "Stripe refund recovery contains no valid exact evidence",
+    }
+  }
+  return persistAndVerifyRefundEvidence(input.supabase, [evidence])
+}
+
+/**
+ * Mark durable refund attempts downstream-complete only after exact evidence
+ * has been persisted and patient notification work has succeeded. Pending
+ * invocation-local evidence skips finalization and remains recovery-owned;
+ * terminal exact evidence must win its semantic lifecycle CAS or stay retryable.
+ */
+export async function finalizePersistedStripeRefundAttempts(input: {
+  evidence: StripeRefundEvidenceRow[]
+  livemode: boolean
+  refunds: Stripe.Refund[]
+  supabase: SupabaseClient
+}): Promise<{ error: string | null }> {
+  const attemptRefundIds = new Map<string, string>()
+  const refundAttemptIds = new Map<string, string>()
+  const candidates = new Map<string, {
+    attemptId: string
+    expectedOutcome: "failed" | "succeeded"
+    refundCashAt: string | null
+    refundId: string
+    refundReversedAt: string | null
+  }>()
+
+  for (const refund of input.refunds) {
+    const attemptId = refund.metadata?.refund_attempt_id?.trim()
+    if (!attemptId) continue
+    if (!UUID_PATTERN.test(attemptId)) {
+      return { error: "Stripe refund attempt metadata is invalid" }
+    }
+
+    const priorRefundId = attemptRefundIds.get(attemptId)
+    if (priorRefundId && priorRefundId !== refund.id) {
+      return { error: "Stripe refund attempt metadata conflicts across refunds" }
+    }
+    attemptRefundIds.set(attemptId, refund.id)
+    const priorAttemptId = refundAttemptIds.get(refund.id)
+    if (priorAttemptId && priorAttemptId !== attemptId) {
+      return { error: "Stripe refund metadata maps one refund to multiple attempts" }
+    }
+    refundAttemptIds.set(refund.id, attemptId)
+
+    const exactEvidence = input.evidence.filter(
+      (row) => row.stripe_refund_id === refund.id,
+    )
+    if (exactEvidence.length === 0) {
+      return { error: "Stripe refund attempt finalization evidence is missing" }
+    }
+    if (exactEvidence.some((row) => row.livemode !== input.livemode)) {
+      return { error: "Stripe refund attempt finalization evidence conflicts with Stripe mode" }
+    }
+    const localLifecycle = currentLocalRefundEvidence(exactEvidence)
+    if (!localLifecycle || !isTerminalRefundEvidence(localLifecycle)) continue
+    candidates.set(attemptId, {
+      attemptId,
+      expectedOutcome: terminalRefundOutcome(localLifecycle),
+      refundCashAt: localLifecycle.refund_cash_at,
+      refundId: refund.id,
+      refundReversedAt: localLifecycle.refund_reversed_at,
+    })
+  }
+
+  for (const candidate of candidates.values()) {
+    let finalization: Awaited<ReturnType<SupabaseClient["rpc"]>>
+    try {
+      finalization = await input.supabase.rpc("finalize_stripe_refund_attempt", {
+        p_attempt_id: candidate.attemptId,
+        p_expected_outcome: candidate.expectedOutcome,
+        p_expected_refund_cash_at: candidate.refundCashAt,
+        p_expected_refund_reversed_at: candidate.refundReversedAt,
+        p_livemode: input.livemode,
+        p_stripe_refund_id: candidate.refundId,
+      })
+    } catch {
+      return { error: "Stripe refund attempt finalization failed" }
+    }
+    if (finalization.error) {
+      return {
+        error: `Stripe refund attempt finalization failed: ${finalization.error.message}`,
+      }
+    }
+    if (finalization.data === true) continue
+    return {
+      error: finalization.data === false
+        ? "Stripe refund attempt finalization returned false for terminal evidence"
+        : "Stripe refund attempt finalization returned an invalid result",
+    }
+  }
+
+  return { error: null }
 }
 
 export function reportStripeRefundEvidenceFailure(
@@ -209,6 +394,67 @@ export function reportStripeRefundEvidenceFailure(
     tags: { source: "stripe-refund-event-ledger" },
     extra: { eventId: event.id, eventType: event.type },
   })
+}
+
+function currentLocalRefundEvidence(
+  evidence: StripeRefundEvidenceRow[],
+): StripeRefundEvidenceRow | null {
+  return [...evidence].sort((left, right) => {
+    const timestampDifference = refundEvidenceLifecycleAt(right) -
+      refundEvidenceLifecycleAt(left)
+    if (timestampDifference !== 0) return timestampDifference
+    const statusDifference = refundStatusPriority(right.refund_status) -
+      refundStatusPriority(left.refund_status)
+    if (statusDifference !== 0) return statusDifference
+    return right.evidence_key.localeCompare(left.evidence_key)
+  })[0] ?? null
+}
+
+function isTerminalRefundEvidence(row: StripeRefundEvidenceRow): boolean {
+  return Boolean(
+    row.refund_cash_at ||
+    row.refund_reversed_at ||
+    row.refund_status === "failed" ||
+    row.refund_status === "canceled",
+  )
+}
+
+function terminalRefundOutcome(
+  row: StripeRefundEvidenceRow,
+): "failed" | "succeeded" {
+  return row.refund_reversed_at ||
+    row.refund_status === "failed" ||
+    row.refund_status === "canceled"
+    ? "failed"
+    : "succeeded"
+}
+
+function refundEvidenceLifecycleAt(row: StripeRefundEvidenceRow): number {
+  if (
+    row.evidence_source === "refund.created" ||
+    row.evidence_source === "refund.updated" ||
+    row.evidence_source === "refund.failed"
+  ) {
+    return parsedTimestamp(row.stripe_event_created_at)
+  }
+  return Math.max(
+    parsedTimestamp(row.refund_reversed_at),
+    parsedTimestamp(row.refund_cash_at),
+    parsedTimestamp(row.refund_created_at),
+  )
+}
+
+function refundStatusPriority(status: string | null): number {
+  if (status === "failed" || status === "canceled") return 50
+  if (status === "succeeded") return 40
+  if (status === "requires_action" || status === "pending") return 30
+  return 10
+}
+
+function parsedTimestamp(value: string | null): number {
+  if (!value) return Number.NEGATIVE_INFINITY
+  const timestamp = Date.parse(value)
+  return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY
 }
 
 async function exactRefundsForEvent(event: Stripe.Event): Promise<{
@@ -275,68 +521,55 @@ async function hydrateRefundBalanceTransactions(
   return hydrated
 }
 
-async function findRefundIntake(
+function stripeId(
+  value: { id: string } | string | null | undefined,
+): string | null {
+  if (typeof value === "string") return value.trim() || null
+  return value?.id?.trim() || null
+}
+
+async function persistAndVerifyRefundEvidence(
   supabase: SupabaseClient,
-  paymentIntentId: string | null,
-): Promise<{ error: string | null; intakeId: string | null }> {
-  if (!paymentIntentId) return { error: null, intakeId: null }
-  const { data, error } = await supabase
-    .from("intakes")
-    .select("id")
-    .eq("stripe_payment_intent_id", paymentIntentId)
-    .maybeSingle()
+  evidence: StripeRefundEvidenceRow[],
+): Promise<{ evidence: StripeRefundEvidenceRow[]; error: string | null }> {
+  const { error } = await supabase
+    .from("stripe_refund_events")
+    .upsert(evidence satisfies StripeRefundEvidenceRow[], {
+      ignoreDuplicates: true,
+      onConflict: "evidence_key",
+    })
   if (error) {
     return {
-      error: `Stripe refund intake lookup failed: ${error.message}`,
-      intakeId: null,
+      evidence: [],
+      error: `Stripe refund evidence write failed: ${error.message}`,
     }
   }
-  if (data?.id) return { error: null, intakeId: data.id }
 
-  let paymentIntent: Stripe.PaymentIntent
-  try {
-    paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
-  } catch {
-    return { error: "Stripe refund PaymentIntent metadata lookup failed", intakeId: null }
-  }
-  const metadataIntakeId = paymentIntent.metadata?.intake_id || paymentIntent.metadata?.request_id
-  if (!metadataIntakeId) return { error: null, intakeId: null }
-
-  const metadataRead = await supabase
-    .from("intakes")
-    .select("id, stripe_payment_intent_id")
-    .eq("id", metadataIntakeId)
-    .maybeSingle()
-  if (metadataRead.error) {
+  const verification = await supabase
+    .from("stripe_refund_events")
+    .select(STRIPE_REFUND_EVIDENCE_SELECT)
+    .in("evidence_key", evidence.map((row) => row.evidence_key))
+  if (verification.error) {
     return {
-      error: `Stripe refund metadata intake lookup failed: ${metadataRead.error.message}`,
-      intakeId: null,
+      evidence: [],
+      error: `Stripe refund evidence verification failed: ${verification.error.message}`,
     }
   }
-  if (!metadataRead.data) {
-    return { error: "Stripe refund PaymentIntent metadata intake is missing", intakeId: null }
+  const persistedByKey = new Map(
+    ((verification.data ?? []) as unknown as StripeRefundEvidenceRow[])
+      .map((row) => [row.evidence_key, row]),
+  )
+  if (evidence.some((row) => !hasSameStripeRefundEvidence(
+    row,
+    persistedByKey.get(row.evidence_key),
+  ))) {
+    return {
+      evidence: [],
+      error: "Stripe refund evidence conflicts with an immutable observation",
+    }
   }
-  if (
-    metadataRead.data.stripe_payment_intent_id &&
-    metadataRead.data.stripe_payment_intent_id !== paymentIntentId
-  ) {
-    return { error: "Stripe refund PaymentIntent metadata conflicts with intake", intakeId: null }
+  return {
+    evidence: evidence.map((row) => persistedByKey.get(row.evidence_key)!),
+    error: null,
   }
-  return { error: null, intakeId: metadataRead.data.id }
-}
-
-function refundPaymentIntentId(
-  event: Stripe.Event,
-  refunds: Stripe.Refund[],
-): string | null {
-  const refundPaymentIntent = refunds
-    .map((refund) => stripeId(refund.payment_intent))
-    .find((value): value is string => Boolean(value))
-  if (refundPaymentIntent) return refundPaymentIntent
-  if (event.type !== "charge.refunded") return null
-  return stripeId((event.data.object as Stripe.Charge).payment_intent)
-}
-
-function stripeId(value: { id: string } | string | null): string | null {
-  return typeof value === "string" ? value : value?.id ?? null
 }

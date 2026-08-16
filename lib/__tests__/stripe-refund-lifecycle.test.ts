@@ -6,7 +6,8 @@ const mocks = vi.hoisted(() => ({
   captureMessage: vi.fn(),
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
   listRefunds: vi.fn(),
-  retrievePaymentIntent: vi.fn(),
+  reserveRefundEmail: vi.fn(),
+  resolveRefundIntake: vi.fn(),
   retrieveBalanceTransaction: vi.fn(),
   runGoogleAdsConversionAdjustment: vi.fn(),
 }))
@@ -23,16 +24,24 @@ vi.mock("@/lib/analytics/google-ads-conversion-adjustments", async () => ({
   runGoogleAdsConversionAdjustment: mocks.runGoogleAdsConversionAdjustment,
 }))
 vi.mock("@/lib/observability/logger", () => ({ createLogger: () => mocks.logger }))
+vi.mock("@/lib/email/template-sender", () => ({
+  reserveRefundEmail: mocks.reserveRefundEmail,
+}))
+vi.mock("@/lib/stripe/refund-intake-resolution", () => ({
+  resolveStripeRefundIntake: mocks.resolveRefundIntake,
+}))
 vi.mock("@/lib/stripe/client", () => ({
   stripe: {
     balanceTransactions: { retrieve: mocks.retrieveBalanceTransaction },
-    paymentIntents: { retrieve: mocks.retrievePaymentIntent },
     refunds: { list: mocks.listRefunds },
   },
 }))
 
 import { handleRefundLifecycle } from "@/app/api/stripe/webhook/handlers/refund-lifecycle"
-import { persistStripeRefundEventEvidence } from "@/lib/stripe/refund-event-persistence"
+import {
+  persistStripeRefundApiObservation,
+  persistStripeRefundEventEvidence,
+} from "@/lib/stripe/refund-event-persistence"
 
 function refundEvent(
   type: "refund.created" | "refund.failed" | "refund.updated",
@@ -71,6 +80,7 @@ function refundEvent(
 function createSupabaseMock(input?: {
   intakeError?: { message: string } | null
   intakeMissing?: boolean
+  bindingError?: { message: string } | null
   ledgerError?: { message: string } | null
   persistedEvidenceTransform?: (row: Record<string, unknown>) => Record<string, unknown>
   reconciliationError?: { message: string } | null
@@ -87,6 +97,8 @@ function createSupabaseMock(input?: {
   const rpc = vi.fn(async (name: string) => {
     const operation = name === "reconcile_intake_refund_cash_state"
       ? "reconcile"
+      : name === "bind_stripe_refund_attempt_from_webhook"
+        ? "bind"
       : name === "queue_google_ads_conversion_adjustment"
         ? "queue"
         : name === "cancel_stripe_refund_notifications"
@@ -103,6 +115,8 @@ function createSupabaseMock(input?: {
             : true,
       error: name === "reconcile_intake_refund_cash_state"
         ? input?.reconciliationError ?? null
+        : name === "bind_stripe_refund_attempt_from_webhook"
+          ? input?.bindingError ?? null
         : null,
     }
   })
@@ -181,6 +195,27 @@ function createSupabaseMock(input?: {
           error: input?.intakeError ?? null,
         }
       }),
+      single: vi.fn(async () => {
+        if (chain.selected === "id, patient_id") {
+          operations.push("notification_intake")
+          return {
+            data: { id: "intake-1", patient_id: "patient-1" },
+            error: null,
+          }
+        }
+        if (chain.selected === "id, full_name, email") {
+          operations.push("notification_patient")
+          return {
+            data: {
+              email: "patient@example.test",
+              full_name: "patient example",
+              id: "patient-1",
+            },
+            error: null,
+          }
+        }
+        return { data: null, error: null }
+      }),
       selected: "",
       select: vi.fn((selected: string) => {
         chain.selected = selected
@@ -202,6 +237,15 @@ function createSupabaseMock(input?: {
 describe("Stripe refund lifecycle evidence", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.resolveRefundIntake.mockResolvedValue({
+      error: null,
+      intakeId: "intake-1",
+      paymentIntentId: "pi_refund",
+    })
+    mocks.reserveRefundEmail.mockResolvedValue({
+      emailId: "outbox-refund",
+      success: true,
+    })
     mocks.retrieveBalanceTransaction.mockImplementation(async (id: string) => {
       const topup = id === "txn_topup"
       return {
@@ -237,11 +281,12 @@ describe("Stripe refund lifecycle evidence", () => {
     expect(mocks.retrieveBalanceTransaction).toHaveBeenCalledWith("txn_refund")
     expect(response).toBeUndefined()
     expect(operations).toEqual([
-      "intake",
       "ledger",
       "verify",
       "reconcile",
       "state",
+      "notification_intake",
+      "notification_patient",
       "target",
       "queue",
       "claim",
@@ -307,13 +352,12 @@ describe("Stripe refund lifecycle evidence", () => {
     })
 
     expect(operations).toEqual([
-      "intake",
       "ledger",
       "verify",
       "reconcile",
       "state",
-      "target",
       "cancel",
+      "target",
       "queue",
       "claim",
     ])
@@ -378,7 +422,7 @@ describe("Stripe refund lifecycle evidence", () => {
     })
 
     expect((response as Response).status).toBe(500)
-    expect(operations).toEqual(["intake", "ledger", "verify", "reconcile"])
+    expect(operations).toEqual(["ledger", "verify", "reconcile"])
     expect(deadLetters).toContainEqual(expect.objectContaining({
       error_code: "REFUND_STATE_RECONCILIATION_FAILED",
       event_id: "evt_refund_updated",
@@ -415,7 +459,7 @@ describe("Stripe refund lifecycle evidence", () => {
     })
 
     expect((response as Response).status).toBe(500)
-    expect(operations).toEqual(["intake", "ledger", "verify"])
+    expect(operations).toEqual(["ledger", "verify"])
     expect(deadLetters).toContainEqual(expect.objectContaining({
       error_code: "REFUND_EVIDENCE_UNAVAILABLE",
       event_id: "evt_refund_updated",
@@ -424,9 +468,12 @@ describe("Stripe refund lifecycle evidence", () => {
   })
 
   it("does not persist unlinked evidence after a transient intake query failure", async () => {
-    const { operations, rpc, supabase, upsert } = createSupabaseMock({
-      intakeError: { message: "temporary intake lookup outage" },
+    mocks.resolveRefundIntake.mockResolvedValue({
+      error: "Stripe refund intake lookup failed: temporary intake lookup outage",
+      intakeId: null,
+      paymentIntentId: "pi_refund",
     })
+    const { operations, rpc, supabase, upsert } = createSupabaseMock()
 
     const response = await handleRefundLifecycle({
       event: refundEvent("refund.created"),
@@ -435,15 +482,16 @@ describe("Stripe refund lifecycle evidence", () => {
     })
 
     expect((response as Response).status).toBe(500)
-    expect(operations).toEqual(["intake"])
+    expect(operations).toEqual([])
     expect(upsert).not.toHaveBeenCalled()
     expect(rpc).not.toHaveBeenCalled()
   })
 
-  it("links legacy evidence through validated PaymentIntent metadata", async () => {
-    mocks.retrievePaymentIntent.mockResolvedValue({
-      id: "pi_refund",
-      metadata: { intake_id: "intake-1" },
+  it("persists legacy evidence only after the shared resolver returns a linked intake", async () => {
+    mocks.resolveRefundIntake.mockResolvedValue({
+      error: null,
+      intakeId: "intake-1",
+      paymentIntentId: "pi_refund",
     })
     const { operations, supabase, upsert } = createSupabaseMock({ intakeMissing: true })
 
@@ -454,11 +502,117 @@ describe("Stripe refund lifecycle evidence", () => {
     })
 
     expect(response).toBeUndefined()
-    expect(mocks.retrievePaymentIntent).toHaveBeenCalledWith("pi_refund")
-    expect(operations.slice(0, 2)).toEqual(["intake", "metadata_intake"])
+    expect(mocks.resolveRefundIntake).toHaveBeenCalledWith(
+      expect.objectContaining({ supabase }),
+      {
+        eventPaymentIntentId: null,
+        refund: expect.objectContaining({ id: "re_refund" }),
+      },
+    )
+    expect(operations.slice(0, 2)).toEqual(["ledger", "verify"])
     expect(upsert).toHaveBeenCalledWith([
       expect.objectContaining({ intake_id: "intake-1" }),
     ], expect.anything())
+  })
+
+  it("binds valid durable-attempt metadata before persisting and returns verified evidence", async () => {
+    const attemptId = "11111111-1111-4111-8111-111111111111"
+    const event = refundEvent("refund.updated", {
+      metadata: {
+        intake_id: "intake-1",
+        refund_attempt_id: attemptId,
+        refund_type: "decline",
+      },
+      status: "pending",
+    })
+    const { operations, rpc, supabase } = createSupabaseMock()
+
+    const result = await persistStripeRefundEventEvidence({
+      event,
+      supabase: supabase as never,
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.evidence).toEqual([
+      expect.objectContaining({
+        evidence_key: "live:event:evt_refund_updated:refund:re_refund",
+        intake_id: "intake-1",
+        stripe_refund_id: "re_refund",
+      }),
+    ])
+    expect(rpc).toHaveBeenCalledWith("bind_stripe_refund_attempt_from_webhook", {
+      p_amount_cents: 995,
+      p_attempt_id: attemptId,
+      p_intake_id: "intake-1",
+      p_livemode: true,
+      p_payment_intent_id: "pi_refund",
+      p_refund_type: "decline",
+      p_stripe_refund_id: "re_refund",
+      p_stripe_status: "pending",
+    })
+    expect(operations.slice(0, 3)).toEqual(["bind", "ledger", "verify"])
+  })
+
+  it("does not persist evidence when durable-attempt binding fails", async () => {
+    const event = refundEvent("refund.updated", {
+      metadata: {
+        refund_attempt_id: "11111111-1111-4111-8111-111111111111",
+      },
+    })
+    const { operations, supabase, upsert } = createSupabaseMock({
+      bindingError: { message: "temporary attempt ledger outage" },
+    })
+
+    const result = await persistStripeRefundEventEvidence({
+      event,
+      supabase: supabase as never,
+    })
+
+    expect(result.error).toMatch(/attempt binding failed/i)
+    expect(result.evidence).toEqual([])
+    expect(operations).toEqual(["bind"])
+    expect(upsert).not.toHaveBeenCalled()
+  })
+
+  it("fails closed on malformed durable-attempt metadata", async () => {
+    const event = refundEvent("refund.updated", {
+      metadata: { refund_attempt_id: "not-a-uuid" },
+    })
+    const { supabase, upsert } = createSupabaseMock()
+
+    const result = await persistStripeRefundEventEvidence({
+      event,
+      supabase: supabase as never,
+    })
+
+    expect(result.error).toMatch(/attempt metadata is invalid/i)
+    expect(upsert).not.toHaveBeenCalled()
+  })
+
+  it("persists a verified recovery observation without inventing a webhook event", async () => {
+    const recovered = refundEvent("refund.updated").data.object as Stripe.Refund
+    const { operations, supabase, upsert } = createSupabaseMock()
+
+    const result = await persistStripeRefundApiObservation({
+      intakeId: "intake-1",
+      livemode: true,
+      refund: {
+        ...recovered,
+        balance_transaction: await mocks.retrieveBalanceTransaction("txn_refund"),
+      },
+      supabase: supabase as never,
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.evidence).toEqual([
+      expect.objectContaining({
+        evidence_key: "live:refund:re_refund:api:txn_refund:none:succeeded",
+        evidence_source: "refund.api.reconcile",
+        stripe_event_id: null,
+      }),
+    ])
+    expect(operations).toEqual(["ledger", "verify"])
+    expect(upsert).toHaveBeenCalledOnce()
   })
 
   it("reads the complete bounded refund list when a charge snapshot is paginated", async () => {
@@ -500,6 +654,7 @@ describe("Stripe refund lifecycle evidence", () => {
     })
 
     expect(result.error).toBeNull()
+    expect(result.evidence).toHaveLength(2)
     expect(mocks.listRefunds).toHaveBeenCalledWith({
       charge: "ch_refund",
       expand: ["data.balance_transaction", "data.failure_balance_transaction"],
@@ -509,5 +664,60 @@ describe("Stripe refund lifecycle evidence", () => {
       expect.objectContaining({ stripe_refund_id: "re_refund" }),
       expect.objectContaining({ stripe_refund_id: "re_topup" }),
     ]), expect.anything())
+    expect(mocks.resolveRefundIntake).toHaveBeenCalledTimes(2)
+    expect(mocks.resolveRefundIntake).toHaveBeenNthCalledWith(
+      1,
+      expect.anything(),
+      expect.objectContaining({ eventPaymentIntentId: "pi_refund" }),
+    )
+  })
+
+  it("fails closed before insertion when refunds in one event resolve to different intakes", async () => {
+    const firstRefund = refundEvent("refund.created").data.object as Stripe.Refund
+    const secondRefund = {
+      ...firstRefund,
+      amount: 4000,
+      balance_transaction: "txn_topup",
+      id: "re_topup",
+    }
+    mocks.listRefunds.mockResolvedValue({
+      data: [firstRefund, secondRefund],
+      has_more: false,
+    })
+    mocks.resolveRefundIntake
+      .mockResolvedValueOnce({
+        error: null,
+        intakeId: "intake-1",
+        paymentIntentId: "pi_refund",
+      })
+      .mockResolvedValueOnce({
+        error: null,
+        intakeId: "intake-2",
+        paymentIntentId: "pi_refund",
+      })
+    const chargeEvent = {
+      ...refundEvent("refund.created"),
+      data: {
+        object: {
+          id: "ch_refund",
+          object: "charge",
+          payment_intent: "pi_refund",
+          refunds: { data: [], has_more: true },
+        } as unknown as Stripe.Charge,
+      },
+      id: "evt_charge_refunded_conflict",
+      type: "charge.refunded",
+    } as Stripe.Event
+    const { operations, supabase, upsert } = createSupabaseMock()
+
+    const result = await persistStripeRefundEventEvidence({
+      event: chargeEvent,
+      supabase: supabase as never,
+    })
+
+    expect(result.error).toMatch(/different intakes/i)
+    expect(result.evidence).toEqual([])
+    expect(operations).toEqual([])
+    expect(upsert).not.toHaveBeenCalled()
   })
 })

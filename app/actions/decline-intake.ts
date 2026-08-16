@@ -19,8 +19,10 @@ import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import type { RequestType } from "@/lib/audit/compliance-audit"
 import { logTriageDeclined } from "@/lib/audit/compliance-audit"
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { getStripeLivemode } from "@/lib/config/env"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { logStatusChange } from "@/lib/data/intake-events"
+import { isE2ETestModeEnabled } from "@/lib/dev-only-routes"
 import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import { createLogger } from "@/lib/observability/logger"
@@ -52,7 +54,6 @@ export interface DeclineInput {
   intakeId: string
   reason?: string
   reasonCode?: string
-  skipRefund?: boolean // For testing
 }
 
 export interface DeclineResult {
@@ -90,7 +91,7 @@ const DECLINABLE_STATUSES = ["paid", "in_review", "pending_info", "escalated", "
  * @returns DeclineResult with status and refund info
  */
 export async function declineIntake(input: DeclineInput): Promise<DeclineResult> {
-  const { intakeId, reason, reasonCode, skipRefund } = input
+  const { intakeId, reason, reasonCode } = input
   let actorId: string
 
   // Add Sentry context
@@ -166,6 +167,35 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
       }
     }
 
+    const isRefundable =
+      intake.payment_status === "paid" ||
+      intake.payment_status === "partially_refunded"
+    const category = intake.category || ""
+    const isEligible = REFUND_ON_DECLINE_CATEGORIES.includes(category)
+    const isE2E = isE2ETestModeEnabled() && (
+      process.env.E2E_MODE === "true" || process.env.PLAYWRIGHT === "1"
+    )
+    let refundObligationLivemode: boolean | undefined
+
+    if (isRefundable && isEligible && !isE2E) {
+      try {
+        refundObligationLivemode = getStripeLivemode()
+      } catch (modeError) {
+        logger.error(
+          "[Decline] Stripe mode unavailable before durable refund obligation",
+          { intakeId },
+          modeError instanceof Error ? modeError : undefined,
+        )
+        Sentry.captureException(modeError, {
+          tags: { action: "decline_refund_mode_snapshot", intake_id: intakeId },
+        })
+        return {
+          success: false,
+          error: "Refund processing is temporarily unavailable. The request was not declined.",
+        }
+      }
+    }
+
     // 3. ATOMIC STATUS UPDATE
     const declineNotes = reason ? `Declined: ${reason}` : "Declined"
     // Dual-write (plaintext + doctor_notes_enc) through the PHI wrapper; a raw
@@ -187,6 +217,9 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
         reviewed_at: timestamp,
         decided_at: timestamp,
         declined_at: timestamp,
+        ...(refundObligationLivemode === undefined
+          ? {}
+          : { refund_obligation_livemode: refundObligationLivemode }),
         updated_at: timestamp,
       })
       .eq("id", intakeId)
@@ -228,13 +261,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     // auto-refund (lib/stripe/priority-fee-refund.ts) returns only the $9.95
     // fee before any decision, and decline policy is a FULL refund — so the
     // decline must top up the remaining balance, not skip it.
-    const isRefundable =
-      intake.payment_status === "paid" || intake.payment_status === "partially_refunded"
-    const category = intake.category || ""
-    const isEligible = REFUND_ON_DECLINE_CATEGORIES.includes(category)
-    const isE2E = process.env.E2E_MODE === "true" || process.env.PLAYWRIGHT === "1"
-
-    if (isRefundable && isEligible && !skipRefund) {
+    if (isRefundable && isEligible) {
       if (isE2E) {
         // Skip actual Stripe call in E2E mode
         refundResult = { status: "skipped_e2e" }

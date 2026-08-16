@@ -5,11 +5,13 @@ import {
   runGoogleAdsConversionAdjustment,
 } from "@/lib/analytics/google-ads-conversion-adjustments"
 import {
+  finalizePersistedStripeRefundAttempts,
   persistStripeRefundEventEvidence,
   readExactRefundAdjustmentTarget,
   reconcilePersistedStripeRefundState,
   reportStripeRefundEvidenceFailure,
 } from "@/lib/stripe/refund-event-persistence"
+import { finalizeRefundNotifications } from "@/lib/stripe/refund-notification-finalizer"
 
 import type { HandlerResult, WebhookContext } from "./types"
 import { addToDeadLetterQueue, tryClaimEvent } from "./utils"
@@ -56,6 +58,58 @@ export async function handleRefundLifecycle(ctx: WebhookContext): Promise<Handle
     return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
   }
 
+  if (!evidence.intakeId || !reconciliation.state) {
+    return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
+  }
+  const notification = await finalizeRefundNotifications({
+    evidence: evidence.evidence,
+    intakeId: evidence.intakeId,
+    livemode: ctx.event.livemode,
+    supabase: ctx.supabase,
+  })
+  if (notification.error) {
+    reportStripeRefundEvidenceFailure(ctx.event, notification.error)
+    if (!ctx.adminReplay) {
+      await addToDeadLetterQueue(
+        ctx.supabase,
+        ctx.event.id,
+        ctx.event.type,
+        null,
+        evidence.intakeId,
+        notification.error,
+        "REFUND_NOTIFICATION_FINALIZATION_FAILED",
+        ctx.event as unknown as Record<string, unknown>,
+      )
+    }
+    return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
+  }
+
+  const attemptFinalization = await finalizePersistedStripeRefundAttempts({
+    evidence: evidence.evidence,
+    livemode: ctx.event.livemode,
+    refunds: evidence.refunds,
+    supabase: ctx.supabase,
+  })
+  if (attemptFinalization.error) {
+    reportStripeRefundEvidenceFailure(ctx.event, attemptFinalization.error)
+    if (!ctx.adminReplay) {
+      await addToDeadLetterQueue(
+        ctx.supabase,
+        ctx.event.id,
+        ctx.event.type,
+        null,
+        evidence.intakeId,
+        attemptFinalization.error,
+        "REFUND_ATTEMPT_FINALIZATION_FAILED",
+        ctx.event as unknown as Record<string, unknown>,
+      )
+    }
+    return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
+  }
+
+  // Patient communication is a cash-settlement obligation. Reserve it before
+  // optional acquisition reconciliation so an Ads outage cannot suppress a
+  // truthful refund notice.
   const target = await readExactRefundAdjustmentTarget({
     state: reconciliation.state,
     supabase: ctx.supabase,
@@ -77,35 +131,7 @@ export async function handleRefundLifecycle(ctx: WebhookContext): Promise<Handle
     return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
   }
 
-  const reversedRefundIds = evidence.refunds
-    .filter((refund) => Boolean(refund.failure_balance_transaction))
-    .map((refund) => refund.id)
-  if (evidence.intakeId && reversedRefundIds.length > 0) {
-    const cancellation = await ctx.supabase.rpc("cancel_stripe_refund_notifications", {
-      p_intake_id: evidence.intakeId,
-      p_refund_ids: reversedRefundIds,
-    })
-    if (cancellation.error) {
-      const message = `Stripe refund notification cancellation failed: ${cancellation.error.message}`
-      reportStripeRefundEvidenceFailure(ctx.event, message)
-      if (!ctx.adminReplay) {
-        await addToDeadLetterQueue(
-          ctx.supabase,
-          ctx.event.id,
-          ctx.event.type,
-          null,
-          evidence.intakeId,
-          message,
-          "REFUND_NOTIFICATION_CANCELLATION_FAILED",
-          ctx.event as unknown as Record<string, unknown>,
-        )
-      }
-      return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
-    }
-  }
-
   if (
-    reconciliation.state &&
     target.targetNetValueCents !== null &&
     target.adjustmentDateTime
   ) {
@@ -146,7 +172,6 @@ export async function handleRefundLifecycle(ctx: WebhookContext): Promise<Handle
   }
 
   if (
-    reconciliation.state &&
     target.targetNetValueCents !== null &&
     target.adjustmentDateTime
   ) {

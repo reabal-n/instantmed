@@ -6,17 +6,17 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 
 | Area | Current count |
 |------|---------------|
-| `app/` | 558 files |
-| Route-like files under `app/` | 238 |
-| API route files under `app/api/` | 87 |
-| Cron route files under `app/api/cron/` | 28 |
+| `app/` | 559 files |
+| Route-like files under `app/` | 239 |
+| API route files under `app/api/` | 88 |
+| Cron route files under `app/api/cron/` | 29 |
 | `components/` | 406 files |
-| `lib/` | 1,254 files |
+| `lib/` | 1,270 files |
 | E2E TypeScript files under `e2e/` | 78 (68 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 127 |
+| SQL migrations under `supabase/migrations/` | 128 |
 
-Latest applied and verified production migration (2026-08-16): `20260814190000_fix_support_refund_attempt_role_cast.sql`. Linked migration history is aligned through that version; the detailed DB lint, ACL, and refund-ledger receipt lives in `docs/ARCHITECTURE.md`.
+Newest migration on disk: `20260816101752_harden_stripe_refund_recovery.sql` (pending until a production receipt is recorded). Latest applied and verified production migration (2026-08-16): `20260814190000_fix_support_refund_attempt_role_cast.sql`. Linked migration history is aligned through that applied version; the detailed DB lint, ACL, and refund-ledger receipt lives in `docs/ARCHITECTURE.md`.
 
 ## Runtime Shape
 

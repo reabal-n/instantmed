@@ -169,7 +169,11 @@ export function RefundsClient({
       )
 
       if (result.success) {
-        toast.success("Refund processed")
+        toast.success(
+          "pending" in result && result.pending
+            ? "Refund requested; settlement pending"
+            : "Refund already settled",
+        )
         setIsProcessDialogOpen(false)
         fetchPayments(filters, page)
         router.refresh()
@@ -445,10 +449,11 @@ export function RefundsClient({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
-              Process refund
+              Request refund
             </DialogTitle>
             <DialogDescription>
-              This refunds the full payment amount to the original payment method.
+              Requests the full payment amount from Stripe. InstantMed marks it
+              refunded only after Stripe confirms settlement.
             </DialogDescription>
           </DialogHeader>
           {selectedPayment ? (
@@ -465,7 +470,9 @@ export function RefundsClient({
               </div>
               <div className="flex items-start gap-3 rounded-lg border border-warning-border bg-warning-light p-3">
                 <AlertTriangle className="mt-0.5 h-5 w-5 text-warning" />
-                <p className="text-sm text-warning">This action cannot be undone in InstantMed.</p>
+                <p className="text-sm text-warning">
+                  Stripe refund requests cannot be undone from InstantMed.
+                </p>
               </div>
             </div>
           ) : null}
@@ -479,7 +486,7 @@ export function RefundsClient({
               ) : (
                 <CheckCircle className="mr-2 h-4 w-4" />
               )}
-              Process refund
+              {isProcessing ? "Requesting refund" : "Request refund"}
             </Button>
           </DialogFooter>
         </DialogContent>

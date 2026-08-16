@@ -1,46 +1,35 @@
-/**
- * Unit tests for app/actions/decline-intake.ts
- *
- * The canonical decline + refund action. Covers the high-value branches:
- *   1. Actor gate (null profile, wrong role)
- *   2. Intake lookup (not found)
- *   3. Idempotency (already declined)
- *   4. Status validation (can't decline from wrong status)
- *   5. Refund per category (full refund for every refundable category since
- *      2026-05-20; consult was previously 50% partial):
- *      - medical_certificate → FULL refund (no `amount` in Stripe call)
- *      - prescription       → FULL refund (no `amount` in Stripe call)
- *      - consult            → FULL refund (no `amount` in Stripe call)
- *      - other categories   → not_eligible (no Stripe call)
- *   6. Idempotency key: `refund_decline_${id}`
- *   7. E2E short-circuit (PLAYWRIGHT=1 skips Stripe)
- *   8. skipRefund flag (for testing pathways that don't need refund)
- *
- * Tests rely heavily on mocking external deps (auth, email, compliance,
- * event logging) so we can isolate the refund logic.
- */
-
 import { beforeEach, describe, expect, it, vi } from "vitest"
-
-import { stripe } from "@/lib/stripe/client"
 
 import { mockSupabaseFrom, mockSupabaseSingle, resetAllMocks } from "./setup"
 
-const TRIGGER_REWRITTEN_DECLINE_AT = "2026-08-16T00:00:00.111Z"
-const TRIGGER_REWRITTEN_REFUND_RESERVATION_AT = "2026-08-16T00:00:00.222Z"
+const DECLINE_UPDATED_AT = "2026-08-16T00:00:00.111Z"
 
-// ============================================================================
-// MOCKS - must be set up BEFORE importing decline-intake
-// ============================================================================
+const mocks = vi.hoisted(() => ({
+  getStripeLivemode: vi.fn(),
+  processRefund: vi.fn(),
+  requireRoleOrNull: vi.fn(),
+}))
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
 }))
 
-const mockRequireRoleOrNull = vi.fn()
 vi.mock("@/lib/auth/helpers", () => ({
-  requireRoleOrNull: (...args: unknown[]) => mockRequireRoleOrNull(...args),
+  requireRoleOrNull: (...args: unknown[]) => mocks.requireRoleOrNull(...args),
+}))
+
+vi.mock("@/lib/config/env", () => ({
+  getStripeLivemode: () => mocks.getStripeLivemode(),
+}))
+
+vi.mock("@/app/actions/decline-refund", () => ({
+  processRefund: (...args: unknown[]) => mocks.processRefund(...args),
+  REFUND_ON_DECLINE_CATEGORIES: [
+    "medical_certificate",
+    "prescription",
+    "consult",
+  ],
 }))
 
 vi.mock("@/lib/analytics/posthog-server", () => ({
@@ -59,189 +48,140 @@ vi.mock("@/lib/email/senders", () => ({
   sendRequestDeclinedEmail: vi.fn().mockResolvedValue(undefined),
 }))
 
-// Import AFTER mocks are registered
+vi.mock("@/lib/security/phi-field-wrappers", () => ({
+  prepareDoctorNotesWrite: vi.fn(async (notes: string) => ({
+    doctor_notes: notes,
+    doctor_notes_enc: `encrypted:${notes}`,
+  })),
+}))
+
 import { declineIntake } from "@/app/actions/decline-intake"
 
-/**
- * Loose typing for Stripe refund call inspection. The real Stripe type
- * has many optional/nullable fields - for tests we just want to read
- * back what was passed, so a Record is simpler.
- */
-type RefundCallParams = {
-  payment_intent?: string
-  amount?: number
-  reason?: string
-  metadata?: Record<string, string>
-}
-type RefundCallOpts = { idempotencyKey?: string }
+type UpdateChain = Record<string, ReturnType<typeof vi.fn>>
 
-function getRefundCall(index = 0): [RefundCallParams, RefundCallOpts] {
-  const calls = vi.mocked(stripe.refunds.create).mock.calls
-  if (!calls[index]) {
-    throw new Error(`Expected stripe.refunds.create to have been called at least ${index + 1} time(s)`)
-  }
-  return [calls[index][0] as RefundCallParams, (calls[index][1] || {}) as RefundCallOpts]
-}
-
-function getSupabaseUpdatePayloads(): Array<Record<string, unknown>> {
-  return mockSupabaseFrom.mock.results.flatMap((result) => {
-    const chain = result.value as { update?: { mock?: { calls: unknown[][] } } }
-    return chain.update?.mock?.calls.map((call) => call[0] as Record<string, unknown>) || []
-  })
-}
-
-function getSupabaseUpdateChains() {
-  return mockSupabaseFrom.mock.results
-    .map((result) => result.value as Record<string, ReturnType<typeof vi.fn>>)
-    .filter((chain) => chain.update?.mock.calls.length)
-}
-
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-/**
- * Build a minimal intake row that the declineIntake action will read.
- * The `patient` join is shaped as an array because Supabase returns joins
- * that way by default - the action normalizes with `Array.isArray` check.
- */
 function makeIntakeRow(overrides: Record<string, unknown> = {}) {
   return {
-    id: "intake-123",
-    status: "paid",
-    script_sent: false,
+    amount_cents: 1_995,
     category: "medical_certificate",
-    subtype: "work",
-    payment_status: "paid",
-    payment_id: "cs_test_abc",
-    stripe_payment_intent_id: "pi_test_xyz",
-    amount_cents: 1995,
-    patient_id: "patient-1",
+    id: "intake-123",
     patient: [{
-      id: "patient-1",
-      full_name: "Test Patient",
-      email: "patient@example.com",
       auth_user_id: "test-auth-user-id",
+      email: "patient@example.test",
+      full_name: "Test Patient",
+      id: "patient-1",
     }],
+    patient_id: "patient-1",
+    payment_id: "cs_test_abc",
+    payment_status: "paid",
+    refund_amount_cents: 0,
+    refund_status: "not_applicable",
+    refund_stripe_id: null,
+    script_sent: false,
+    status: "paid",
+    stripe_payment_intent_id: "pi_test_xyz",
+    subtype: "work",
     ...overrides,
   }
 }
 
-function mockDoctorProfile() {
-  mockRequireRoleOrNull.mockResolvedValue({
-    user: { id: "auth-doctor-1" },
-    profile: { id: "doctor-1", role: "doctor", email: "doctor@example.com" },
+function mockActor(role: "admin" | "doctor" = "doctor") {
+  mocks.requireRoleOrNull.mockResolvedValue({
+    profile: {
+      email: `${role}@example.test`,
+      id: `${role}-1`,
+      role,
+    },
+    user: { id: `auth-${role}-1` },
   })
 }
 
-function mockAdminProfile() {
-  mockRequireRoleOrNull.mockResolvedValue({
-    user: { id: "auth-admin-1" },
-    profile: { id: "admin-1", role: "admin", email: "admin@example.com" },
-  })
-}
-
-/**
- * Wire up the Supabase mock for a complete decline flow:
- *   1. SELECT intake → returns the row
- *   2. UPDATE status → returns { id } (update confirmation)
- * The refund update chain doesn't need a terminal mock since it's
- * awaited without destructuring.
- */
 function mockDeclineFlow(intake: ReturnType<typeof makeIntakeRow>) {
-  // Supabase fetch intake → Supabase update status → Supabase update refund_status
   mockSupabaseSingle
-    .mockResolvedValueOnce({ data: intake, error: null }) // 1. fetch intake
+    .mockResolvedValueOnce({ data: intake, error: null })
     .mockResolvedValueOnce({
-      data: { id: intake.id, updated_at: TRIGGER_REWRITTEN_DECLINE_AT },
+      data: { id: intake.id, updated_at: DECLINE_UPDATED_AT },
       error: null,
-    }) // 2. status update (the DB trigger owns updated_at)
-    .mockResolvedValueOnce({
-      data: { id: intake.id, updated_at: TRIGGER_REWRITTEN_REFUND_RESERVATION_AT },
-      error: null,
-    }) // 3. refund reservation (trigger-rewritten updated_at)
-    .mockResolvedValueOnce({ data: { id: intake.id }, error: null }) // 4. accepted request mirror
+    })
 }
 
-// ============================================================================
-// TESTS
-// ============================================================================
+function updateEntries(): Array<{
+  chain: UpdateChain
+  payload: Record<string, unknown>
+}> {
+  return mockSupabaseFrom.mock.results.flatMap((result) => {
+    const chain = result.value as UpdateChain
+    return (chain.update?.mock.calls ?? []).map((call) => ({
+      chain,
+      payload: call[0] as Record<string, unknown>,
+    }))
+  })
+}
+
+function declineUpdate() {
+  return updateEntries().find(({ payload }) => payload.status === "declined")
+}
 
 describe("declineIntake", () => {
   beforeEach(() => {
     resetAllMocks()
     delete process.env.E2E_MODE
     delete process.env.PLAYWRIGHT
-    mockRequireRoleOrNull.mockReset()
+    delete process.env.VERCEL_ENV
     mockSupabaseSingle.mockReset()
-    vi.mocked(stripe.refunds.create).mockReset()
+    mocks.getStripeLivemode.mockReset()
+    mocks.getStripeLivemode.mockReturnValue(false)
+    mocks.processRefund.mockReset()
+    mocks.processRefund.mockResolvedValue({
+      amount: 1_995,
+      status: "pending",
+      stripeRefundId: "re_decline",
+    })
+    mocks.requireRoleOrNull.mockReset()
   })
 
-  // --------------------------------------------------------------------------
-  // Actor gate
-  // --------------------------------------------------------------------------
-
-  describe("actor gate", () => {
-    it("rejects when no profile is present", async () => {
-      mockRequireRoleOrNull.mockResolvedValue(null)
+  describe("actor and intake gates", () => {
+    it("rejects unauthenticated or unauthorized actors before reading the intake", async () => {
+      mocks.requireRoleOrNull.mockResolvedValue(null)
 
       const result = await declineIntake({ intakeId: "intake-123" })
 
+      expect(mocks.requireRoleOrNull).toHaveBeenCalledWith(["doctor", "admin"])
       expect(result).toEqual({
-        success: false,
         error: "Only doctors and admins can decline requests",
+        success: false,
       })
       expect(mockSupabaseFrom).not.toHaveBeenCalled()
     })
 
-    it("rejects patient role", async () => {
-      mockRequireRoleOrNull.mockResolvedValue(null) // requireRoleOrNull(["doctor","admin"]) returns null for patients
+    it.each(["doctor", "admin"] as const)(
+      "accepts an authenticated %s",
+      async (role) => {
+        mockActor(role)
+        mockDeclineFlow(makeIntakeRow())
 
-      const result = await declineIntake({ intakeId: "intake-123" })
+        const result = await declineIntake({ intakeId: "intake-123" })
 
-      expect(result).toEqual({
-        success: false,
-        error: "Only doctors and admins can decline requests",
+        expect(result.success).toBe(true)
+        expect(mocks.processRefund).toHaveBeenCalledOnce()
+      },
+    )
+
+    it("returns not found without committing a decline", async () => {
+      mockActor()
+      mockSupabaseSingle.mockResolvedValueOnce({
+        data: null,
+        error: { message: "not found" },
       })
-    })
-
-    it("accepts doctor role", async () => {
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow())
-      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_1", amount: 1995 } as never)
-
-      const result = await declineIntake({ intakeId: "intake-123" })
-
-      expect(result.success).toBe(true)
-    })
-
-    it("accepts admin role", async () => {
-      mockAdminProfile()
-      mockDeclineFlow(makeIntakeRow())
-      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_1", amount: 1995 } as never)
-
-      const result = await declineIntake({ intakeId: "intake-123" })
-
-      expect(result.success).toBe(true)
-    })
-  })
-
-  // --------------------------------------------------------------------------
-  // Intake lookup + idempotency
-  // --------------------------------------------------------------------------
-
-  describe("intake lookup", () => {
-    it("returns error when intake not found", async () => {
-      mockDoctorProfile()
-      mockSupabaseSingle.mockResolvedValueOnce({ data: null, error: { message: "not found" } })
 
       const result = await declineIntake({ intakeId: "missing" })
 
-      expect(result).toEqual({ success: false, error: "Request not found" })
+      expect(result).toEqual({ error: "Request not found", success: false })
+      expect(declineUpdate()).toBeUndefined()
+      expect(mocks.processRefund).not.toHaveBeenCalled()
     })
 
-    it("returns alreadyDeclined: true when intake is already declined (idempotent)", async () => {
-      mockDoctorProfile()
+    it("returns idempotently when the intake is already declined", async () => {
+      mockActor()
       mockSupabaseSingle.mockResolvedValueOnce({
         data: makeIntakeRow({ status: "declined" }),
         error: null,
@@ -249,12 +189,14 @@ describe("declineIntake", () => {
 
       const result = await declineIntake({ intakeId: "intake-123" })
 
-      expect(result).toEqual({ success: true, alreadyDeclined: true })
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
+      expect(result).toEqual({ alreadyDeclined: true, success: true })
+      expect(declineUpdate()).toBeUndefined()
+      expect(mocks.getStripeLivemode).not.toHaveBeenCalled()
+      expect(mocks.processRefund).not.toHaveBeenCalled()
     })
 
-    it("rejects declining from a non-declinable status (e.g. approved)", async () => {
-      mockDoctorProfile()
+    it("rejects a non-declinable status before refund routing", async () => {
+      mockActor()
       mockSupabaseSingle.mockResolvedValueOnce({
         data: makeIntakeRow({ status: "approved" }),
         error: null,
@@ -262,18 +204,23 @@ describe("declineIntake", () => {
 
       const result = await declineIntake({ intakeId: "intake-123" })
 
-      expect(result.success).toBe(false)
-      expect(result.error).toContain("Cannot decline request in 'approved' status")
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
+      expect(result).toEqual({
+        error: "Cannot decline request in 'approved' status",
+        success: false,
+      })
+      expect(declineUpdate()).toBeUndefined()
+      expect(mocks.processRefund).not.toHaveBeenCalled()
     })
+  })
 
-    it("rejects a fulfilled prescription before status change or refund", async () => {
-      mockDoctorProfile()
+  describe("prescription fulfilment boundary", () => {
+    it("rejects a prescription with durable script-sent evidence", async () => {
+      mockActor()
       mockSupabaseSingle.mockResolvedValueOnce({
         data: makeIntakeRow({
           category: "prescription",
-          status: "awaiting_script",
           script_sent: true,
+          status: "awaiting_script",
         }),
         error: null,
       })
@@ -281,40 +228,21 @@ describe("declineIntake", () => {
       const result = await declineIntake({ intakeId: "intake-123" })
 
       expect(result).toEqual({
-        success: false,
         error: "Cannot decline this request after the prescription has been recorded.",
+        success: false,
       })
-      expect(getSupabaseUpdatePayloads()).toEqual([])
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
-    })
-  })
-
-  describe("atomic fulfilment guard", () => {
-    it("guards the status update with script_sent IS NOT TRUE", async () => {
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow({
-        category: "prescription",
-        status: "awaiting_script",
-        script_sent: false,
-      }))
-
-      const result = await declineIntake({ intakeId: "intake-123", skipRefund: true })
-      const updateChain = mockSupabaseFrom.mock.results[1]?.value as {
-        not: ReturnType<typeof vi.fn>
-      }
-
-      expect(result.success).toBe(true)
-      expect(updateChain.not).toHaveBeenCalledWith("script_sent", "is", true)
+      expect(declineUpdate()).toBeUndefined()
+      expect(mocks.processRefund).not.toHaveBeenCalled()
     })
 
-    it("does not refund when durable fulfilment wins the update race", async () => {
-      mockDoctorProfile()
+    it("fails without refunding when fulfilment wins the optimistic update race", async () => {
+      mockActor()
       mockSupabaseSingle
         .mockResolvedValueOnce({
           data: makeIntakeRow({
             category: "prescription",
-            status: "awaiting_script",
             script_sent: false,
+            status: "awaiting_script",
           }),
           error: null,
         })
@@ -324,192 +252,209 @@ describe("declineIntake", () => {
         })
 
       const result = await declineIntake({ intakeId: "intake-123" })
+      const update = declineUpdate()
 
       expect(result).toEqual({
-        success: false,
         error: "Request status or prescription fulfilment changed. Please refresh and try again.",
+        success: false,
       })
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
+      expect(update?.chain.not).toHaveBeenCalledWith("script_sent", "is", true)
+      expect(mocks.processRefund).not.toHaveBeenCalled()
     })
   })
 
-  // --------------------------------------------------------------------------
-  // Refund amount math per category (the core of this test file)
-  // --------------------------------------------------------------------------
-
-  describe("refund amount calculation", () => {
-    it("medical_certificate → FULL refund (no amount in Stripe call)", async () => {
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow({ category: "medical_certificate", amount_cents: 1995 }))
-      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_full", amount: 1995 } as never)
-
-      await declineIntake({ intakeId: "intake-123" })
-
-      expect(stripe.refunds.create).toHaveBeenCalledOnce()
-      const [refundParams, refundOpts] = getRefundCall()
-      // Full refund → no `amount` field (Stripe defaults to full charge)
-      expect(refundParams).not.toHaveProperty("amount")
-      // Full refund metadata
-      expect(refundParams.metadata).toMatchObject({
-        refund_type: "decline",
-        category: "medical_certificate",
+  describe("refund entitlement", () => {
+    it.each([
+      { amountCents: 1_995, category: "medical_certificate" },
+      { amountCents: 2_995, category: "prescription" },
+      { amountCents: 4_995, category: "consult" },
+    ])("routes a full $category entitlement to the refund owner", async ({
+      amountCents,
+      category,
+    }) => {
+      mockActor()
+      const intake = makeIntakeRow({ amount_cents: amountCents, category })
+      mockDeclineFlow(intake)
+      mocks.processRefund.mockResolvedValueOnce({
+        amount: amountCents,
+        status: "pending",
+        stripeRefundId: `re_${category}`,
       })
-      expect(refundParams.metadata).not.toHaveProperty("partial_refund_percent")
-      // Full refund idempotency key
-      expect(refundOpts).toEqual({ idempotencyKey: "refund_decline_intake-123" })
-      const refundReservation = getSupabaseUpdateChains().find((chain) =>
-        chain.update.mock.calls.some((call) =>
-          (call[0] as Record<string, unknown>).refund_status === "pending" &&
-          !(call[0] as Record<string, unknown>).refund_stripe_id
-        )
+
+      const result = await declineIntake({ intakeId: "intake-123" })
+
+      expect(mocks.processRefund).toHaveBeenCalledWith(
+        "intake-123",
+        expect.objectContaining({
+          amount_cents: amountCents,
+          category,
+          refund_amount_cents: 0,
+        }),
+        "doctor-1",
+        DECLINE_UPDATED_AT,
       )
-      expect(refundReservation?.eq).toHaveBeenCalledWith(
-        "updated_at",
-        TRIGGER_REWRITTEN_DECLINE_AT,
-      )
-      const acceptedRefund = getSupabaseUpdateChains().find((chain) =>
-        chain.update.mock.calls.some((call) =>
-          (call[0] as Record<string, unknown>).refund_stripe_id === "re_full"
-        )
-      )
-      expect(acceptedRefund?.eq).toHaveBeenCalledWith(
-        "updated_at",
-        TRIGGER_REWRITTEN_REFUND_RESERVATION_AT,
-      )
+      expect(result.refund).toEqual({
+        amount: amountCents,
+        status: "pending",
+        stripeRefundId: `re_${category}`,
+      })
     })
 
-    it("prescription → FULL refund (no amount in Stripe call)", async () => {
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow({ category: "prescription", amount_cents: 2995 }))
-      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_full", amount: 2995 } as never)
-
-      await declineIntake({ intakeId: "intake-rx" })
-
-      const [refundParams, refundOpts] = getRefundCall()
-      expect(refundParams).not.toHaveProperty("amount")
-      expect(refundOpts).toEqual({ idempotencyKey: "refund_decline_intake-rx" })
-    })
-
-    it("consult → FULL refund (no amount in Stripe call) — partial policy retired 2026-05-20", async () => {
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow({ category: "consult", amount_cents: 4995 }))
-      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_consult", amount: 4995 } as never)
-
-      await declineIntake({ intakeId: "intake-consult" })
-
-      expect(stripe.refunds.create).toHaveBeenCalledOnce()
-      const [refundParams, refundOpts] = getRefundCall()
-      // Full refund → no `amount` field
-      expect(refundParams).not.toHaveProperty("amount")
-      expect(refundParams.metadata).toMatchObject({
-        refund_type: "decline",
+    it("preserves the full target entitlement after a prior partial refund", async () => {
+      mockActor()
+      const intake = makeIntakeRow({
+        amount_cents: 4_995,
         category: "consult",
+        payment_status: "partially_refunded",
+        refund_amount_cents: 995,
+        refund_status: "succeeded",
+        refund_stripe_id: "re_priority_fee",
       })
-      expect(refundParams.metadata).not.toHaveProperty("partial_refund_percent")
-      // Same idempotency key shape as med-cert/Rx now that consult is full too
-      expect(refundOpts).toEqual({ idempotencyKey: "refund_decline_intake-consult" })
-      expect(getSupabaseUpdatePayloads()).toContainEqual(expect.objectContaining({
-        refund_status: "pending",
-        refund_stripe_id: "re_consult",
-      }))
-    })
-  })
+      mockDeclineFlow(intake)
+      mocks.processRefund.mockResolvedValueOnce({
+        amount: 4_000,
+        status: "pending",
+        stripeRefundId: "re_decline_topup",
+      })
 
-  // --------------------------------------------------------------------------
-  // Non-eligible categories
-  // --------------------------------------------------------------------------
+      const result = await declineIntake({ intakeId: "intake-123" })
 
-  describe("non-eligible categories", () => {
-    it("referral_letter → no refund, status recorded as not_eligible", async () => {
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow({ category: "referral_letter" }))
-
-      const result = await declineIntake({ intakeId: "intake-referral" })
-
-      expect(result.success).toBe(true)
-      expect(result.refund?.status).toBe("not_eligible")
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
-    })
-
-    it("pathology → no refund, status recorded as not_eligible", async () => {
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow({ category: "pathology" }))
-
-      const result = await declineIntake({ intakeId: "intake-path" })
-
-      expect(result.refund?.status).toBe("not_eligible")
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
+      expect(mocks.processRefund).toHaveBeenCalledWith(
+        "intake-123",
+        expect.objectContaining({
+          amount_cents: 4_995,
+          payment_status: "partially_refunded",
+          refund_amount_cents: 995,
+        }),
+        "doctor-1",
+        DECLINE_UPDATED_AT,
+      )
+      expect(result.refund).toEqual({
+        amount: 4_000,
+        status: "pending",
+        stripeRefundId: "re_decline_topup",
+      })
     })
 
-    it("null category → no refund attempted", async () => {
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow({ category: null }))
+    it.each(["referral_letter", "pathology", null])(
+      "marks refundable category=%s as ineligible without invoking the refund owner",
+      async (category) => {
+        mockActor()
+        mockDeclineFlow(makeIntakeRow({ category }))
 
-      const result = await declineIntake({ intakeId: "intake-nullcat" })
+        const result = await declineIntake({ intakeId: "intake-123" })
 
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
-      expect(result.success).toBe(true)
-    })
-  })
+        expect(result.refund).toEqual({ status: "not_eligible" })
+        expect(mocks.getStripeLivemode).not.toHaveBeenCalled()
+        expect(mocks.processRefund).not.toHaveBeenCalled()
+        expect(updateEntries().map(({ payload }) => payload)).toContainEqual(
+          expect.objectContaining({ refund_status: "not_eligible" }),
+        )
+      },
+    )
 
-  // --------------------------------------------------------------------------
-  // Payment status gate
-  // --------------------------------------------------------------------------
-
-  describe("payment status gate", () => {
-    it("does NOT refund when payment_status is not 'paid' (e.g. pending_payment)", async () => {
-      mockDoctorProfile()
+    it("does not create a refund obligation for an unpaid intake", async () => {
+      mockActor()
       mockDeclineFlow(makeIntakeRow({ payment_status: "pending_payment" }))
 
-      const result = await declineIntake({ intakeId: "intake-unpaid" })
+      const result = await declineIntake({ intakeId: "intake-123" })
 
-      expect(result.success).toBe(true)
-      expect(result.refund?.status).toBe("not_applicable")
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
+      expect(result.refund).toEqual({ status: "not_applicable" })
+      expect(declineUpdate()?.payload).not.toHaveProperty(
+        "refund_obligation_livemode",
+      )
+      expect(mocks.getStripeLivemode).not.toHaveBeenCalled()
+      expect(mocks.processRefund).not.toHaveBeenCalled()
     })
   })
 
-  // --------------------------------------------------------------------------
-  // E2E short-circuit
-  // --------------------------------------------------------------------------
+  describe("durable Stripe mode snapshot", () => {
+    it.each([false, true])(
+      "atomically records refund_obligation_livemode=%s before a real refund",
+      async (livemode) => {
+        mockActor()
+        mocks.getStripeLivemode.mockReturnValue(livemode)
+        mockDeclineFlow(makeIntakeRow())
 
-  describe("E2E short-circuit", () => {
-    it("PLAYWRIGHT=1 → refund skipped, status=skipped_e2e", async () => {
-      process.env.PLAYWRIGHT = "1"
-      mockDoctorProfile()
+        const result = await declineIntake({ intakeId: "intake-123" })
+        const update = declineUpdate()
+
+        expect(result.success).toBe(true)
+        expect(update?.payload).toEqual(expect.objectContaining({
+          refund_obligation_livemode: livemode,
+          status: "declined",
+        }))
+        expect(update?.chain.update.mock.invocationCallOrder[0]).toBeLessThan(
+          mocks.processRefund.mock.invocationCallOrder[0],
+        )
+      },
+    )
+
+    it("stops before the decline commit when Stripe mode cannot be determined", async () => {
+      mockActor()
+      mocks.getStripeLivemode.mockImplementation(() => {
+        throw new Error("STRIPE_SECRET_KEY mode is invalid")
+      })
+      mockSupabaseSingle.mockResolvedValueOnce({
+        data: makeIntakeRow(),
+        error: null,
+      })
+
+      const result = await declineIntake({ intakeId: "intake-123" })
+
+      expect(result).toEqual({
+        error: "Refund processing is temporarily unavailable. The request was not declined.",
+        success: false,
+      })
+      expect(declineUpdate()).toBeUndefined()
+      expect(mocks.processRefund).not.toHaveBeenCalled()
+    })
+  })
+
+  describe("E2E-only refund skip", () => {
+    it.each([
+      ["PLAYWRIGHT", "1"],
+      ["E2E_MODE", "true"],
+    ] as const)("skips Stripe only when %s=%s", async (key, value) => {
+      process.env[key] = value
+      mockActor()
       mockDeclineFlow(makeIntakeRow({ category: "consult" }))
 
-      const result = await declineIntake({ intakeId: "intake-e2e" })
+      const result = await declineIntake({ intakeId: "intake-123" })
 
-      expect(result.refund?.status).toBe("skipped_e2e")
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
+      expect(result.refund).toEqual({ status: "skipped_e2e" })
+      expect(declineUpdate()?.payload).not.toHaveProperty(
+        "refund_obligation_livemode",
+      )
+      expect(mocks.getStripeLivemode).not.toHaveBeenCalled()
+      expect(mocks.processRefund).not.toHaveBeenCalled()
+      expect(updateEntries().map(({ payload }) => payload)).toContainEqual(
+        expect.objectContaining({ refund_status: "skipped_e2e" }),
+      )
     })
 
-    it("E2E_MODE=true → refund skipped", async () => {
-      process.env.E2E_MODE = "true"
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow())
+    it.each(["production", "preview"] as const)(
+      "never skips a refund in the Vercel %s environment",
+      async (vercelEnv) => {
+        process.env.PLAYWRIGHT = "1"
+        process.env.VERCEL_ENV = vercelEnv
+        mockActor()
+        mockDeclineFlow(makeIntakeRow({ category: "consult" }))
 
-      const result = await declineIntake({ intakeId: "intake-e2e" })
+        const result = await declineIntake({ intakeId: "intake-123" })
 
-      expect(result.refund?.status).toBe("skipped_e2e")
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
-    })
-  })
-
-  // --------------------------------------------------------------------------
-  // skipRefund flag
-  // --------------------------------------------------------------------------
-
-  describe("skipRefund flag", () => {
-    it("skipRefund=true bypasses the refund entirely", async () => {
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow())
-
-      const result = await declineIntake({ intakeId: "intake-skip", skipRefund: true })
-
-      expect(result.success).toBe(true)
-      expect(stripe.refunds.create).not.toHaveBeenCalled()
-    })
+        expect(result.refund).toEqual({
+          amount: 1_995,
+          status: "pending",
+          stripeRefundId: "re_decline",
+        })
+        expect(declineUpdate()?.payload).toEqual(expect.objectContaining({
+          refund_obligation_livemode: false,
+          status: "declined",
+        }))
+        expect(mocks.getStripeLivemode).toHaveBeenCalledOnce()
+        expect(mocks.processRefund).toHaveBeenCalledOnce()
+      },
+    )
   })
 })

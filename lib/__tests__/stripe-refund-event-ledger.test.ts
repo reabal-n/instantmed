@@ -2,6 +2,7 @@ import type Stripe from "stripe"
 import { describe, expect, it } from "vitest"
 
 import {
+  buildStripeRefundApiEvidence,
   buildStripeRefundBackfillEvidence,
   buildStripeRefundEventEvidence,
 } from "@/lib/stripe/refund-event-ledger"
@@ -207,6 +208,22 @@ describe("Stripe refund event ledger", () => {
       refund_created_at: "2026-05-20T06:58:52.000Z",
       stripe_event_id: null,
       stripe_refund_id: "re_refund",
+    }))
+  })
+
+  it("uses a lifecycle-specific append-only key for a recovery observation", () => {
+    expect(buildStripeRefundApiEvidence({
+      intakeId: "intake-1",
+      livemode: true,
+      refund: refund(),
+    })).toEqual(expect.objectContaining({
+      evidence_key: "live:refund:re_refund:api:txn_refund:none:succeeded",
+      evidence_source: "refund.api.reconcile",
+      intake_id: "intake-1",
+      payment_intent_id: "pi_refund",
+      refund_cash_at: "2026-05-20T07:01:00.000Z",
+      stripe_event_created_at: null,
+      stripe_event_id: null,
     }))
   })
 
