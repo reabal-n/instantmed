@@ -13,6 +13,7 @@
     "check:cron-routes": "node scripts/check-vercel-cron-routes.mjs",
     "check:placeholder-env": "node scripts/check-placeholder-env-values.mjs",
     "check:integrations": "tsx scripts/check-integrations.ts",
+    "check:main-protection": "node scripts/check-main-protection.mjs",
     "security:audit": "pnpm dlx pnpm@11.4.0 --pm-on-fail=ignore audit --audit-level=high",
     "release:check": "pnpm check:node && bash scripts/check-stack-pins.sh && bash scripts/check-route-conflicts.sh && pnpm check:cron-routes && pnpm check:placeholder-env && CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations && bash scripts/check-orphaned-files.sh && pnpm dedupe --check && pnpm security:audit && pnpm deadcode:check && pnpm lint && pnpm typecheck && pnpm test run && pnpm build:release && bash scripts/check-bundle-size.sh",
     "check:staff-roles": "tsx scripts/check-staff-role-readiness.ts",

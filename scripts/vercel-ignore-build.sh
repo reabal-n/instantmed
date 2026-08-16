@@ -14,8 +14,8 @@
 # validates every PR with lint, typecheck, unit tests, and a production build
 # without depending on a Vercel preview URL. Lighthouse is a separate local
 # gate; shared-fixture Playwright E2E runs for every non-Markdown change and
-# fails closed when change scope is unknown. Branch protection on `main`
-# requires only the `build` check.
+# fails closed when change scope is unknown. The main ruleset requires strict,
+# up-to-date `build` and `e2e` checks; Vercel status is not a merge gate.
 #
 # Need a real preview deployment for a specific PR (e.g. to exercise the
 # preview-only `e2e-preview.yml` gate against the live URL, or to eyeball a
