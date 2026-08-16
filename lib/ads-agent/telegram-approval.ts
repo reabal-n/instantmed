@@ -13,6 +13,7 @@ import {
   isAdsProposalExpired,
   markAdsProposalAwaitingTelegramApproval,
 } from "@/lib/ads-agent/proposals"
+import { formatTrustedAdsOperationSummary } from "@/lib/ads-agent/trusted-operation-summary"
 import { sendGoogleAdsProposalCardViaTelegram } from "@/lib/notifications/telegram"
 
 type TelegramAdsDecision = "approve" | "reject"
@@ -82,6 +83,7 @@ interface ParsedCallbackData {
 }
 
 const CALLBACK_PATTERN = /^ads:([ar]):(ADS-\d{8}-\d{2}):([a-f0-9]{16})$/
+const TELEGRAM_MESSAGE_CHARACTER_LIMIT = 4096
 const SERVICE_LABELS: Record<AdsChangeProposal["rationale"]["service"], string> = {
   account: "Account",
   ed: "ED",
@@ -156,6 +158,10 @@ export function formatTelegramAdsProposalCard(
   proposal: AdsChangeProposal,
   experiment?: AdsExperimentApprovalSummary | null,
 ): string {
+  assertAdsProposalOperationsUnchanged(proposal)
+  const trustedOperations = formatTrustedAdsOperationSummary(
+    proposal.operations,
+  )
   const expiresAt = new Date(proposal.expiresAt)
   if (!Number.isFinite(expiresAt.getTime())) {
     throw new Error("Invalid Ads proposal expiry")
@@ -169,6 +175,8 @@ export function formatTelegramAdsProposalCard(
 
   const lines = [
     `${proposal.proposalKey} · expires ${expiry} Sydney`,
+    `Trusted operations · SHA-256 ${trustedOperations.operationHash}`,
+    ...trustedOperations.lines,
     `${SERVICE_LABELS[proposal.rationale.service]} · ${proposal.rationale.campaign}: ${proposal.rationale.currentValue} → ${proposal.rationale.requestedValue}`,
     `Bounded impact: ${proposal.rationale.boundedImpact}`,
     ...(experiment
@@ -186,7 +194,11 @@ export function formatTelegramAdsProposalCard(
     `Validation: ${proposal.validationReceipt?.ok ? "PASSED" : "NOT PASSED"}`,
     `Rollback: ${proposal.rationale.requestedValue} → ${proposal.rollbackPlan.value}`,
   ]
-  return lines.join("\n")
+  const message = lines.join("\n")
+  if (Array.from(message).length > TELEGRAM_MESSAGE_CHARACTER_LIMIT) {
+    throw new Error("telegram_ads_proposal_card_too_long")
+  }
+  return message
 }
 
 async function getExperimentApprovalSummary(args: {
