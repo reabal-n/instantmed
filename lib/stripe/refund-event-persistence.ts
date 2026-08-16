@@ -139,14 +139,15 @@ export async function persistStripeRefundEventEvidence(input: {
     return { evidence: [], error: refundsResult.error, intakeId: null, refunds: [] }
   }
 
-  const eventPaymentIntentId = input.event.type === "charge.refunded"
-    ? stripeId((input.event.data.object as Stripe.Charge).payment_intent)
+  const eventCharge = input.event.type === "charge.refunded"
+    ? input.event.data.object as Stripe.Charge
     : null
+  const eventPaymentIntentId = stripeId(eventCharge?.payment_intent)
   const resolutions = []
   for (const refund of refundsResult.refunds) {
     const resolution = await resolveStripeRefundIntake(
       { stripe, supabase: input.supabase },
-      { eventPaymentIntentId, refund },
+      { eventCharge, eventPaymentIntentId, refund },
     )
     if (resolution.error) {
       return {

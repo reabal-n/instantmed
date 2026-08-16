@@ -654,7 +654,6 @@ test.describe("Stripe Webhook: refund lifecycle fallback", () => {
       amount,
       currency: "aud",
       intake_id: intakeId,
-      metadata: {},
       refund_amount: 0,
       refund_status: "not_applicable",
       status: "paid",

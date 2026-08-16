@@ -49,7 +49,11 @@ type RefundAttemptIdentityRow = {
  */
 export async function resolveStripeRefundIntake(
   deps: { stripe: RefundResolutionStripe; supabase: SupabaseClient },
-  input: { refund: Stripe.Refund; eventPaymentIntentId?: string | null },
+  input: {
+    eventCharge?: Stripe.Charge | null
+    eventPaymentIntentId?: string | null
+    refund: Stripe.Refund
+  },
 ): Promise<StripeRefundIntakeResolution> {
   const intakeCandidates: IdentityCandidate[] = []
   const paymentIntentCandidates: IdentityCandidate[] = []
@@ -103,7 +107,11 @@ export async function resolveStripeRefundIntake(
     )
   }
 
-  const chargeResult = await refundCharge(deps.stripe, input.refund.charge)
+  const chargeResult = await refundCharge(
+    deps.stripe,
+    input.refund.charge,
+    input.eventCharge ?? null,
+  )
   if (chargeResult.error) return resolutionError(chargeResult.error, null)
   addCandidate(
     paymentIntentCandidates,
@@ -334,7 +342,18 @@ async function readIntakeById(
 async function refundCharge(
   stripe: RefundResolutionStripe,
   value: Stripe.Refund["charge"],
+  eventCharge: Stripe.Charge | null,
 ): Promise<{ charge: Stripe.Charge | null; error: string | null }> {
+  if (eventCharge) {
+    const refundChargeId = stripeId(value)
+    if (!eventCharge.id || (refundChargeId && refundChargeId !== eventCharge.id)) {
+      return {
+        charge: null,
+        error: "Stripe refund Charge conflicts with event Charge identity",
+      }
+    }
+    return { charge: eventCharge, error: null }
+  }
   if (!value) return { charge: null, error: null }
   if (typeof value !== "string") return { charge: value, error: null }
   try {

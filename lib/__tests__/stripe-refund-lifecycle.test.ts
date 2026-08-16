@@ -505,6 +505,7 @@ describe("Stripe refund lifecycle evidence", () => {
     expect(mocks.resolveRefundIntake).toHaveBeenCalledWith(
       expect.objectContaining({ supabase }),
       {
+        eventCharge: null,
         eventPaymentIntentId: null,
         refund: expect.objectContaining({ id: "re_refund" }),
       },

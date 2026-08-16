@@ -181,6 +181,59 @@ describe("resolveStripeRefundIntake", () => {
     })
   })
 
+  it("reuses the signed event Charge instead of retrieving an embedded refund Charge id", async () => {
+    const { supabase } = createSupabaseMock({
+      rows: {
+        intakes: [{ id: "intake-event-charge", stripe_payment_intent_id: "pi_event" }],
+      },
+    })
+    const { retrieveCharge, stripe } = createStripeMock()
+
+    const result = await resolveStripeRefundIntake(
+      { stripe: stripe as never, supabase: supabase as never },
+      {
+        eventCharge: {
+          id: "ch_event",
+          object: "charge",
+          payment_intent: "pi_event",
+        } as Stripe.Charge,
+        eventPaymentIntentId: "pi_event",
+        refund: refund({ charge: "ch_event", payment_intent: "pi_event" }),
+      },
+    )
+
+    expect(retrieveCharge).not.toHaveBeenCalled()
+    expect(result).toEqual({
+      error: null,
+      intakeId: "intake-event-charge",
+      paymentIntentId: "pi_event",
+    })
+  })
+
+  it("fails closed when a refund names a different Charge than the signed event", async () => {
+    const { supabase } = createSupabaseMock()
+    const { retrieveCharge, stripe } = createStripeMock()
+
+    const result = await resolveStripeRefundIntake(
+      { stripe: stripe as never, supabase: supabase as never },
+      {
+        eventCharge: {
+          id: "ch_event",
+          object: "charge",
+          payment_intent: "pi_event",
+        } as Stripe.Charge,
+        refund: refund({ charge: "ch_other", payment_intent: "pi_event" }),
+      },
+    )
+
+    expect(retrieveCharge).not.toHaveBeenCalled()
+    expect(result).toEqual({
+      error: "Stripe refund Charge conflicts with event Charge identity",
+      intakeId: null,
+      paymentIntentId: null,
+    })
+  })
+
   it("falls back to verified PaymentIntent metadata", async () => {
     const { supabase } = createSupabaseMock({
       rows: {
