@@ -120,7 +120,8 @@ describe("project docs drift contract", () => {
       expect(source).toContain("`20260814171919_harden_audit_function_search_paths.sql`")
       expect(source).toContain("`20260814190000_fix_support_refund_attempt_role_cast.sql`")
       expect(source).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
-      expect(source).toContain("linked migration history is aligned through `20260814190000`")
+      expect(source).toContain("linked migration history is aligned through `20260816101752`")
+      expect(source).toContain("recovery issue count was zero in both test and live mode")
       expect(source).toContain("17 refunds and 17 cash movements totalling A$549.00 (54,900 cents)")
       expect(source).toContain("17 linked, 0 ambiguous, and 0 unlinked")
       expect(source).toContain("15 mutable intake mirrors")
@@ -129,15 +130,18 @@ describe("project docs drift contract", () => {
       expect(source).toContain("On-disk presence is not deployment proof")
     }
 
-    expect(architecture).toContain("Newest on disk: `20260816101752_harden_stripe_refund_recovery.sql`")
+    expect(architecture).toContain(
+      "Newest on disk and latest applied and verified production migration: `20260816101752_harden_stripe_refund_recovery.sql`",
+    )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("the linked DB lint error gate passed")
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
+    expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Latest applied and verified production migration (2026-08-16): `20260814190000_fix_support_refund_attempt_role_cast.sql`",
+      "latest applied and verified production migration (2026-08-16): `20260816101752_harden_stripe_refund_recovery.sql`",
     )
     expect(wikiArchitecture).toContain(
-      "Newest migration on disk: `20260816101752_harden_stripe_refund_recovery.sql`",
+      "Linked migration history is aligned through that version",
     )
   })
 

@@ -16,7 +16,7 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 | Health guide MDX files under `content/blog/` | 107 |
 | SQL migrations under `supabase/migrations/` | 128 |
 
-Newest migration on disk: `20260816101752_harden_stripe_refund_recovery.sql` (pending until a production receipt is recorded). Latest applied and verified production migration (2026-08-16): `20260814190000_fix_support_refund_attempt_role_cast.sql`. Linked migration history is aligned through that applied version; the detailed DB lint, ACL, and refund-ledger receipt lives in `docs/ARCHITECTURE.md`.
+Newest migration on disk and latest applied and verified production migration (2026-08-16): `20260816101752_harden_stripe_refund_recovery.sql`. Linked migration history is aligned through that version; the linked DB lint error gate and SECURITY DEFINER ACL check passed, and the aggregate-only recovery issue count was zero in both test and live mode immediately after apply. The detailed receipt lives in `docs/ARCHITECTURE.md`.
 
 ## Runtime Shape
 
