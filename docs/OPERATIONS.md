@@ -562,7 +562,7 @@ The Codex app automation **InstantMed Ads daily manager** runs shortly after the
 pnpm ads:agent deep-audit --days=30
 ```
 
-The deep audit covers date-segmented search terms, keyword and Quality Score diagnostics, RSA and asset exposure, device/daypart/location performance, policy status, manager and user access, passkey readiness, and change history. Its detailed output is restricted to the authorised Codex task: it is not persisted and is explicitly not Telegram-safe. Possible personal search queries are suppressed. Telegram receives only the aggregate daily brief, a short aggregate exception, or an immutable approval card. Historical rows are context and never prove that a current negative, targeting control, or asset is broken.
+The deep audit covers date-segmented search terms, keyword and Quality Score diagnostics, RSA and asset exposure, configured campaign schedules, device/daypart/location performance, policy status, manager and user access, passkey readiness, and change history. Each enabled Search campaign reports either its exact configured schedule or `ALL_DAYS_24H` with `GOOGLE_DEFAULT`; a limited schedule emits an investigation signal so it cannot disappear inside a summary-level read. Its detailed output is restricted to the authorised Codex task: it is not persisted and is explicitly not Telegram-safe. Possible personal search queries are suppressed. Telegram receives only the aggregate daily brief, a short aggregate exception, or an immutable approval card. Historical rows are context and never prove that a current negative, targeting control, or asset is broken.
 
 Telegram has exactly two PHI-free Google Ads message classes:
 

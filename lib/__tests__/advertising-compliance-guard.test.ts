@@ -107,6 +107,8 @@ const PAID_PRESCRIPTION_DESTINATION_SURFACES = [
   "components/marketing/womens-health-landing.tsx",
   "components/marketing/prescriptions-landing.tsx",
   "components/marketing/mockups/escript-hero-mockup.tsx",
+  // This shared block is rendered inside paid specialty destinations. Scan the
+  // resolved link registry too, not just the top-level landing components.
   "components/seo/content-hub-links.tsx",
   "components/shared/navbar/services-dropdown.tsx",
   "lib/data/ed-faq.ts",

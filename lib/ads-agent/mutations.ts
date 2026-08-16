@@ -11,8 +11,11 @@ import {
   type NormalizedGoogleAdsResource,
 } from "@/lib/ads-agent/account-state"
 import {
+  authorizeScriptsBudgetScale,
+  authorizeScriptsScaleEligibility,
   containsProhibitedPaidMedicineTerm,
   POLICY,
+  resolveAdsCampaignService,
 } from "@/lib/ads-agent/policy"
 import {
   type AdsChangeProposal,
@@ -31,6 +34,8 @@ import {
   normalizeAdsMutationOperations,
   recordAdsProposalValidation,
 } from "@/lib/ads-agent/proposals"
+import { isAdsAgentSnapshot } from "@/lib/ads-agent/runs"
+import type { AdsAgentSnapshot, AdsService } from "@/lib/ads-agent/types"
 import {
   type GoogleAdsMutateOperation,
   type GoogleAdsMutateResponse,
@@ -58,6 +63,14 @@ export interface AdsTrackingGateReceipt {
   state: "GREEN" | "AMBER" | "RED"
 }
 
+export interface AdsScaleAuthorizationEvidence {
+  previousMaterialChange: {
+    attributedOrders: number
+    closedDays: number
+  } | null
+  snapshot: AdsAgentSnapshot
+}
+
 export interface AdsMutationGatewayRepository {
   appendAudit(receipt: AdsMutationAuditReceipt): Promise<void>
   claimApply(args: {
@@ -80,6 +93,13 @@ export interface AdsMutationGatewayRepository {
     stopProposalKey: string | null
   } | null>
   getProposalByKey(proposalKey: string): Promise<AdsChangeProposal | null>
+  getScaleAuthorizationEvidence(args: {
+    budgetResourceName: string
+    campaignResourceName: string
+    liveMaterialChangeAt: string | null
+    runId: string | null
+    service: AdsService
+  }): Promise<AdsScaleAuthorizationEvidence | null>
   recordApplyOutcome(args: {
     expectedStatus: "approved" | "applying"
     proposalId: string
@@ -142,6 +162,13 @@ function asString(value: unknown): string | null {
   if (typeof value === "string") return value.trim() || null
   if (typeof value === "number" && Number.isFinite(value)) return String(value)
   return null
+}
+
+function normalizedCampaignLabel(value: unknown): string | null {
+  const label = asString(value)
+  return label
+    ? label.normalize("NFKC").replace(/\s+/g, " ").toLowerCase()
+    : null
 }
 
 function asNumber(value: unknown): number | null {
@@ -1067,63 +1094,6 @@ function assertKeywordAndAudienceSafety(
   }
 }
 
-function assertBudgetEnvelope(
-  operations: AdsMutationOperation[],
-  state: GoogleAdsAccountState,
-): void {
-  const nextCampaignStatuses = new Map<string, string>()
-  const nextBudgetMicros = new Map<string, number>()
-
-  for (const resource of state.campaigns) {
-    if (!resource.resourceName) continue
-    const campaign = asRecord(resource.values.campaign)
-    const status = asString(campaign?.status)
-    if (status) nextCampaignStatuses.set(resource.resourceName, status)
-  }
-  for (const resource of state.campaignBudgets) {
-    if (!resource.resourceName) continue
-    const budget = asRecord(resource.values.campaignBudget)
-    const amount = asNumber(budget?.amountMicros)
-    if (amount != null) nextBudgetMicros.set(resource.resourceName, amount)
-  }
-  for (const operation of operations) {
-    if (operation.kind === "campaign_status") {
-      nextCampaignStatuses.set(operation.resourceName, operation.next)
-    }
-    if (operation.kind === "campaign_budget") {
-      nextBudgetMicros.set(operation.resourceName, operation.nextMicros)
-    }
-  }
-
-  const enabledBudgetNames = new Set<string>()
-  for (const resource of state.campaigns) {
-    if (!resource.resourceName) continue
-    const campaign = asRecord(resource.values.campaign)
-    if (
-      nextCampaignStatuses.get(resource.resourceName) !== "ENABLED"
-      || asString(campaign?.advertisingChannelType) !== "SEARCH"
-    ) {
-      continue
-    }
-    const budgetName = asString(campaign?.campaignBudget)
-    if (!budgetName || !nextBudgetMicros.has(budgetName)) {
-      throw new Error("account_budget_envelope_unavailable")
-    }
-    enabledBudgetNames.add(budgetName)
-  }
-  const totalCents = Array.from(enabledBudgetNames).reduce(
-    (total, budgetName) =>
-      total + Math.round((nextBudgetMicros.get(budgetName) ?? 0) / 10_000),
-    0,
-  )
-  if (
-    totalCents > POLICY.account.dailyBudgetEnvelopeCents
-    && isScalingProposal(operations)
-  ) {
-    throw new Error("account_budget_envelope_exceeded")
-  }
-}
-
 function assertGovernedCampaignConstitution(
   operations: AdsMutationOperation[],
   state: GoogleAdsAccountState,
@@ -1208,7 +1178,6 @@ export function validateAdsMutationPolicy(args: {
   state: GoogleAdsAccountState
 }): AdsMutationOperation[] {
   const operations = normalizeAdsMutationOperations(args.operations)
-  assertBudgetEnvelope(operations, args.state)
   assertGovernedCampaignConstitution(operations, args.state)
   assertSpecialtyCpcCeiling(operations, args.state)
   assertCreateOperationsSafe(operations, args.state)
@@ -1309,6 +1278,198 @@ function errorCode(error: unknown): string {
   return normalized || "unknown_error"
 }
 
+function sydneyDateKey(value: string): string | null {
+  const date = new Date(value)
+  if (!Number.isFinite(date.getTime())) return null
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Australia/Sydney",
+    year: "numeric",
+  }).formatToParts(date)
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  )
+  return `${values.year}-${values.month}-${values.day}`
+}
+
+function previousSydneyDateKey(value: string): string | null {
+  const key = sydneyDateKey(value)
+  if (!key) return null
+  const [year, month, day] = key.split("-").map(Number)
+  const previous = new Date(Date.UTC(year, month - 1, day - 1))
+  return previous.toISOString().slice(0, 10)
+}
+
+interface StoredScaleProposalEvidence {
+  apply_receipt: unknown
+  operations: unknown
+  status: unknown
+  verification_receipt: unknown
+}
+
+interface StoredScaleRunEvidence {
+  report_date: unknown
+  snapshot: unknown
+  status: unknown
+}
+
+export function deriveScriptsScaleAuthorizationEvidence(args: {
+  budgetResourceName: string
+  campaignResourceName: string
+  historyComplete: boolean
+  latestReportDate: string
+  latestSnapshot: unknown
+  liveMaterialChangeAt: string | null
+  proposals: StoredScaleProposalEvidence[]
+  runs: StoredScaleRunEvidence[]
+}): AdsScaleAuthorizationEvidence | null {
+  if (
+    !args.historyComplete
+    || !isAdsAgentSnapshot(args.latestSnapshot)
+    || args.latestSnapshot.reportDate !== args.latestReportDate
+  ) {
+    return null
+  }
+  const touchesTarget = (value: unknown): boolean => {
+    if (!Array.isArray(value)) return false
+    return value.some((operation) => {
+      const record = asRecord(operation)
+      const kind = asString(record?.kind)
+      const resourceName = asString(record?.resourceName)
+      return (
+        kind === "campaign_budget"
+        && resourceName === args.budgetResourceName
+      ) || (
+        kind === "campaign_bidding"
+        && resourceName === args.campaignResourceName
+      )
+    })
+  }
+
+  const appliedAt: string[] = []
+  for (const row of args.proposals.filter((proposal) =>
+    touchesTarget(proposal.operations))) {
+    const status = asString(row.status)
+    const receipt = asRecord(row.apply_receipt)
+    const verification = asRecord(row.verification_receipt)
+    const outcome = asString(receipt?.outcome)
+    const verificationOutcome = asString(verification?.outcome)
+    if (status === "applying") return null
+    if (outcome === "ambiguous") {
+      if (status === "failed" && verificationOutcome === "not_applied") {
+        continue
+      }
+      if (!(status === "verified" && verificationOutcome === "verified")) {
+        return null
+      }
+    } else if (outcome === "applied") {
+      if (!(status === "verified" && verificationOutcome === "verified")) {
+        return null
+      }
+    } else {
+      continue
+    }
+    const value = asString(receipt?.appliedAt)
+    if (!value || !Number.isFinite(Date.parse(value))) return null
+    appliedAt.push(value)
+  }
+  if (
+    args.liveMaterialChangeAt
+    && Number.isFinite(Date.parse(args.liveMaterialChangeAt))
+  ) {
+    appliedAt.push(args.liveMaterialChangeAt)
+  }
+  appliedAt.sort((left, right) => Date.parse(right) - Date.parse(left))
+  const previousChangeAt = appliedAt[0] ?? null
+  if (!previousChangeAt) {
+    return {
+      previousMaterialChange: null,
+      snapshot: args.latestSnapshot,
+    }
+  }
+
+  const changeDate = sydneyDateKey(previousChangeAt)
+  if (!changeDate) return null
+  let attributedOrders = 0
+  let totalOrdersAfterChange = 0
+  const closedDates = new Set<string>()
+  for (const row of args.runs) {
+    if (
+      row.status !== "delivered"
+      || typeof row.report_date !== "string"
+      || row.report_date > args.latestReportDate
+      || !isAdsAgentSnapshot(row.snapshot)
+      || row.snapshot.reportDate !== row.report_date
+      || !Array.isArray(row.snapshot.daily)
+      || closedDates.has(row.report_date)
+    ) {
+      return null
+    }
+    if (row.report_date <= changeDate) continue
+    const campaigns = row.snapshot.daily.filter((campaign) =>
+      campaign.campaignResourceName === args.campaignResourceName
+      && resolveAdsCampaignService(campaign) === "scripts")
+    const totalOrders = campaigns[0]?.orders
+    const scriptsOrders = campaigns[0]?.serviceOrders.scripts ?? 0
+    if (
+      campaigns.length !== 1
+      || totalOrders == null
+      || totalOrders < 0
+      || scriptsOrders < 0
+      || scriptsOrders > totalOrders
+    ) {
+      return null
+    }
+    closedDates.add(row.report_date)
+    attributedOrders += scriptsOrders
+    totalOrdersAfterChange += totalOrders
+  }
+  if (
+    totalOrdersAfterChange > 0
+    && attributedOrders / totalOrdersAfterChange
+      < POLICY.attribution.minimumExpectedServiceOrderShare
+  ) return null
+  return {
+    previousMaterialChange: {
+      attributedOrders,
+      closedDays: closedDates.size,
+    },
+    snapshot: args.latestSnapshot,
+  }
+}
+
+export function resolveLatestAdsMaterialChangeAt(args: {
+  budgetResourceName: string
+  campaignResourceName: string
+  state: GoogleAdsAccountState
+}): string | null {
+  const relevantCampaignField = (fields: unknown): boolean => {
+    const value = JSON.stringify(fields)
+      .toLowerCase()
+      .replace(/[_\-.]/g, "")
+    return [
+      "bidding",
+      "campaignbudget",
+      "maximizeconversionvalue",
+      "targetroas",
+    ].some((field) => value.includes(field))
+  }
+  const candidates = args.state.changeEvents
+    .filter((event) => {
+      if (event.changeResourceName === args.budgetResourceName) return true
+      return event.changeResourceName === args.campaignResourceName
+        && relevantCampaignField(event.changedFields)
+    })
+    .map((event) => event.changeDateTime)
+    .filter((value): value is string =>
+      value != null && Number.isFinite(Date.parse(value)))
+    .sort((left, right) => Date.parse(right) - Date.parse(left))
+  return candidates[0] ?? null
+}
+
 function fallbackGoogleOperationsHash(proposal: AdsChangeProposal): string {
   return proposal.validationReceipt?.googleOperationsHash
     ?? hashAdsMutationOperations(proposal.operations)
@@ -1327,6 +1488,138 @@ async function requireTrackingGreen(args: {
   })
   if (!tracking.fresh || tracking.state !== "GREEN") {
     throw new Error("tracking_not_green")
+  }
+}
+
+async function requireScaleAuthorization(args: {
+  operations: AdsMutationOperation[]
+  proposal: AdsChangeProposal
+  repository: AdsMutationGatewayRepository
+  state: GoogleAdsAccountState
+}): Promise<void> {
+  const budgetIncreases = args.operations.filter(
+    (operation): operation is Extract<
+      AdsMutationOperation,
+      { kind: "campaign_budget" }
+    > => operation.kind === "campaign_budget"
+      && operation.nextMicros > operation.expectedMicros,
+  )
+  const biddingChanges = args.operations.filter(
+    (operation): operation is Extract<
+      AdsMutationOperation,
+      { kind: "campaign_bidding" }
+    > => operation.kind === "campaign_bidding",
+  )
+  if (budgetIncreases.length === 0 && biddingChanges.length === 0) return
+
+  const governedChanges = [
+    ...budgetIncreases.map((operation) => ({ operation, type: "budget" as const })),
+    ...biddingChanges.map((operation) => ({ operation, type: "bidding" as const })),
+  ]
+  for (const change of governedChanges) {
+    const owners = args.state.campaigns
+      .map((resource) => ({
+        campaign: asRecord(resource.values.campaign),
+        resourceName: resource.resourceName,
+      }))
+      .filter(({ campaign, resourceName }) =>
+        change.type === "budget"
+          ? asString(campaign?.campaignBudget) === change.operation.resourceName
+          : resourceName === change.operation.resourceName)
+    if (owners.length !== 1 || !owners[0].resourceName) {
+      throw new Error(
+        change.type === "budget"
+          ? "campaign_budget_owner_ambiguous"
+          : "campaign_bidding_owner_ambiguous",
+      )
+    }
+    const service = resolveAdsCampaignService({
+      campaignName: asString(owners[0].campaign?.name) ?? "",
+    })
+    if (!service) throw new Error("ungoverned_campaign_service")
+    if (
+      normalizedCampaignLabel(args.proposal.rationale.campaign)
+        !== normalizedCampaignLabel(owners[0].campaign?.name)
+    ) {
+      throw new Error("proposal_campaign_mismatch")
+    }
+    if (args.proposal.rationale.service !== service) {
+      throw new Error("proposal_service_mismatch")
+    }
+    if (service !== "scripts") continue
+    if (
+      args.state.changeEventHistorySaturated === true
+      || args.state.changeEvents.length >= 20_000
+    ) {
+      throw new Error("scripts_change_history_saturated")
+    }
+    const budgetResourceName = asString(owners[0].campaign?.campaignBudget)
+    if (!budgetResourceName) {
+      throw new Error("scripts_budget_owner_unavailable")
+    }
+    const liveTargetRoas = asNumber(
+      asRecord(owners[0].campaign?.maximizeConversionValue)?.targetRoas,
+    )
+    const liveStrategy = asString(owners[0].campaign?.biddingStrategyType)
+    if (change.type === "budget") {
+      if (
+        liveStrategy !== "MAXIMIZE_CONVERSION_VALUE"
+        || liveTargetRoas == null
+        || liveTargetRoas < POLICY.scripts.scale.initialTargetRoas
+      ) {
+        throw new Error("scripts_live_troas_floor_missing")
+      }
+    } else if (
+      liveStrategy !== "MAXIMIZE_CONVERSION_VALUE"
+      || change.operation.next.strategy !== "MAXIMIZE_CONVERSION_VALUE"
+      || change.operation.next.targetRoas == null
+      || change.operation.next.targetRoas
+        < POLICY.scripts.scale.initialTargetRoas
+    ) {
+      throw new Error("scripts_bidding_authorization_rejected")
+    }
+
+    const evidence = await args.repository.getScaleAuthorizationEvidence({
+      budgetResourceName,
+      campaignResourceName: owners[0].resourceName,
+      liveMaterialChangeAt: resolveLatestAdsMaterialChangeAt({
+        budgetResourceName,
+        campaignResourceName: owners[0].resourceName,
+        state: args.state,
+      }),
+      runId: args.proposal.runId,
+      service,
+    })
+    if (!evidence) throw new Error("scripts_scale_authorization_unavailable")
+    if (
+      evidence.snapshot.reportDate
+        !== previousSydneyDateKey(args.state.readAt)
+    ) {
+      throw new Error("scripts_scale_evidence_stale")
+    }
+
+    const campaigns = evidence.snapshot.rolling30.filter((campaign) =>
+      campaign.budgetResourceName === budgetResourceName
+      && resolveAdsCampaignService(campaign) === "scripts"
+    )
+    if (campaigns.length !== 1) {
+      throw new Error("scripts_budget_evidence_unavailable")
+    }
+    authorizeScriptsScaleEligibility(campaigns[0])
+    if (change.type === "bidding") continue
+    authorizeScriptsBudgetScale({
+      campaign: campaigns[0],
+      expectedMicros: change.operation.expectedMicros,
+      nextMicros: change.operation.nextMicros,
+      ...(evidence.previousMaterialChange
+        ? {
+            closedDaysAfterPreviousChange:
+              evidence.previousMaterialChange.closedDays,
+            ordersAfterPreviousChange:
+              evidence.previousMaterialChange.attributedOrders,
+          }
+        : {}),
+    })
   }
 }
 
@@ -1535,6 +1828,12 @@ export function createAdsMutationGateway(
         proposal,
         repository,
       })
+      await requireScaleAuthorization({
+        operations,
+        proposal,
+        repository,
+        state,
+      })
       const googleOperations = buildGoogleAdsMutateOperations(
         operations,
         state,
@@ -1635,6 +1934,12 @@ export function createAdsMutationGateway(
         operations,
         proposal,
         repository,
+      })
+      await requireScaleAuthorization({
+        operations,
+        proposal,
+        repository,
+        state,
       })
     } catch (error) {
       return abortApprovedProposal({
@@ -2130,6 +2435,112 @@ export function createSupabaseAdsMutationRepository(args: {
         fresh,
         state,
       }
+    },
+    async getScaleAuthorizationEvidence({
+      budgetResourceName,
+      campaignResourceName,
+      liveMaterialChangeAt,
+      runId,
+      service,
+    }) {
+      if (!runId) return null
+      const [source, latest] = await Promise.all([
+        supabase
+          .from("google_ads_agent_runs")
+          .select("id, report_date, status, snapshot")
+          .eq("id", runId)
+          .maybeSingle(),
+        supabase
+          .from("google_ads_agent_runs")
+          .select("id, report_date, status, snapshot")
+          .eq("status", "delivered")
+          .order("report_date", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ])
+      if (
+        source.error
+        || latest.error
+        || source.data?.status !== "delivered"
+        || latest.data?.status !== "delivered"
+        || typeof latest.data.report_date !== "string"
+        || !isAdsAgentSnapshot(latest.data.snapshot)
+      ) {
+        return null
+      }
+
+      const historyCutoff = new Date(
+        Date.parse(latest.data.snapshot.generatedAt) - 90 * 24 * 60 * 60 * 1_000,
+      ).toISOString()
+      const proposalFields =
+        "id, status, mutation_family, operations, apply_receipt, verification_receipt, updated_at" as const
+      const [recent, applying, ambiguousFailed] = await Promise.all([
+        supabase
+          .from("google_ads_change_proposals")
+          .select(proposalFields)
+          .in("mutation_family", ["campaign_budget", "campaign_bidding"])
+          .gte("updated_at", historyCutoff)
+          .order("updated_at", { ascending: false })
+          .limit(200),
+        supabase
+          .from("google_ads_change_proposals")
+          .select(proposalFields)
+          .in("mutation_family", ["campaign_budget", "campaign_bidding"])
+          .eq("status", "applying")
+          .limit(200),
+        supabase
+          .from("google_ads_change_proposals")
+          .select(proposalFields)
+          .in("mutation_family", ["campaign_budget", "campaign_bidding"])
+          .eq("status", "failed")
+          .eq("apply_receipt->>outcome", "ambiguous")
+          .limit(200),
+      ])
+      if (
+        recent.error
+        || applying.error
+        || ambiguousFailed.error
+        || (recent.data?.length ?? 0) >= 200
+        || (applying.data?.length ?? 0) >= 200
+        || (ambiguousFailed.data?.length ?? 0) >= 200
+      ) {
+        return null
+      }
+      const proposalRows = new Map<string, (typeof recent.data)[number]>()
+      for (const row of [
+        ...(recent.data ?? []),
+        ...(applying.data ?? []),
+        ...(ambiguousFailed.data ?? []),
+      ]) {
+        if (typeof row.id !== "string") return null
+        proposalRows.set(row.id, row)
+      }
+
+      const firstHistoryDate = sydneyDateKey(historyCutoff)
+      if (!firstHistoryDate) return null
+      const runs = await supabase
+        .from("google_ads_agent_runs")
+        .select("report_date, status, snapshot")
+        .eq("status", "delivered")
+        .gte("report_date", firstHistoryDate)
+        .lte("report_date", latest.data.report_date)
+        .order("report_date", { ascending: true })
+      if (runs.error) return null
+      if (service !== "scripts") return null
+      return deriveScriptsScaleAuthorizationEvidence({
+        budgetResourceName,
+        campaignResourceName,
+        historyComplete: (
+          (recent.data?.length ?? 0) < 200
+          && (applying.data?.length ?? 0) < 200
+          && (ambiguousFailed.data?.length ?? 0) < 200
+        ),
+        latestReportDate: latest.data.report_date,
+        latestSnapshot: latest.data.snapshot,
+        liveMaterialChangeAt,
+        proposals: [...proposalRows.values()],
+        runs: runs.data ?? [],
+      })
     },
     async getMaterialExperimentLock({ campaign }) {
       const result = await supabase

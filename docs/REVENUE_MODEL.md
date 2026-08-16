@@ -111,18 +111,22 @@ Material budget increases require:
 - a complete contribution calculation using retained revenue, payment fees, and attributable acquisition cost
 - positive first-order contribution for the service being scaled
 - `GREEN` deterministic tracking health; an attribution, spend, revenue, refund, or fee failure fails closed and blocks scaling
-- stable refund, chargeback, clinical, queue, fulfilment, and support metrics
+- separately reviewed refund, chargeback, clinical, queue, fulfilment, and support metrics; a recorded service-specific breach is an explicit hold, not a hidden portfolio-wide cap
 - explicit operator approval for the exact change
 
 Every budget, keyword, negative keyword, asset, sitelink, targeting, bid-strategy, pause, or enable recommendation follows the approval workflow in `docs/OPERATIONS.md`. No routine Google Ads mutation is autonomous.
 
-Use the smallest evidence window that answers the decision; do not impose a fixed seven-day delay on a high-volume, strongly profitable campaign. Each increase still requires a fresh exact approval and the same fee-aware service calculation. The operating tiers are:
+Change one material variable at a time. Budget steps are earned from the same fee-aware service economics rather than capped by one arbitrary percentage:
 
-- **Positive tier:** at least 20 orders, at least 20% contribution margin, and refund rate below 10%; up to a 20% budget step.
-- **Proven tier:** at least 30 orders, at least 30% contribution margin, and refund rate below 10%; up to a 35% budget step.
-- **Strong tier:** at least 50 orders, at least 40% contribution margin, and refund rate below 10%; up to a 50% budget step.
+| Scale tier | Closed-window evidence | Maximum budget step |
+|------------|------------------------|---------------------|
+| Positive | At least 10 attributed orders and at least 20% contribution margin | 20% |
+| Proven | At least 30 attributed orders and at least 30% contribution margin | 35% |
+| Strong | At least 50 attributed orders and at least 40% contribution margin | 50% |
 
-The mutation gateway keeps a **50% hard gateway ceiling** even when the operator approves a larger number. That ceiling is a runaway-write guard, not a recommendation to spend 50% more. Select the actual increase from current service economics, available impression share, Google's forecast, and the exact account budget envelope. Lower-volume or specialty pilots remain governed by their loss cap until they graduate on retained contribution evidence.
+The machine authorization enforces a refund rate below 10%, GREEN tracking, at least 90% service-attribution purity, the live tROAS floor, the earned tier, the modelled 30% contribution ceiling, and the post-change sample. Fulfilment evidence and Google forecasts remain visible operator inputs rather than silent numeric caps; an explicit service hold still blocks a packet. The **maximum 50% budget step** is a hard ceiling, not a default recommendation. There is no hidden account-wide dollar ceiling: bind the lower of the earned tier step and economic ceiling to the exact operator-approved budget packet, and use a current forecast as advisory evidence.
+
+After a material bid or budget change, wait at least three closed days **and** collect at least 10 attributed orders after the change before another increase. This replaces the previous universal seven-day/20% rule, which delayed a mature profitable campaign without adding account-specific safety.
 
 A target cost per acquisition (tCPA) is an average acquisition target. It is not a CPC limit, a guaranteed per-conversion price, or permission to ignore service-level retained contribution.
 
