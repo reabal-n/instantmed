@@ -1231,7 +1231,7 @@ BEGIN
       AND obligation.state IN ('succeeded', 'failed', 'canceled')
       AND obligation.downstream_finalized_at IS NOT NULL
       AND obligation.refund_type IN ('decline', 'priority_breach')
-      AND actor.role IS DISTINCT FROM 'support'::public.user_role
+      AND actor.role IS DISTINCT FROM 'support'
       AND disruption.trigger_at <= v_now - INTERVAL '15 minutes'
       AND COALESCE(intake.exclude_from_reporting, false) = false
       AND intake.refund_status IS DISTINCT FROM 'skipped_e2e'::public.refund_status
@@ -1787,7 +1787,7 @@ exhausted_targets AS (
     obligation.intake_id,
     obligation.livemode,
     CASE
-      WHEN actor.role = 'support'::public.user_role
+      WHEN actor.role = 'support'
         THEN 'refund_attempt_manual_retry_required'
       ELSE 'refund_attempt_retry_exhausted'
     END::text AS issue_code,
@@ -1896,7 +1896,7 @@ exhausted_targets AS (
          )
     )
     AND (
-      actor.role = 'support'::public.user_role
+      actor.role = 'support'
       OR EXISTS (
         SELECT 1
           FROM public.stripe_refund_attempts AS successor

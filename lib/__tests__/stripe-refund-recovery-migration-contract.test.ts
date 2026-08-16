@@ -56,6 +56,14 @@ function expectServiceRoleOnlyFunction(
 }
 
 describe("Stripe refund recovery migration", () => {
+  it("matches the production text role column without weakening support gates", () => {
+    const migration = readRecoveryMigration()
+
+    expect(migration).not.toContain("::public.user_role")
+    expect(migration).toContain("actor.role IS DISTINCT FROM 'support'")
+    expect(migration).toContain("actor.role = 'support'")
+  })
+
   it("creates a durable service-role-only refund-attempt ledger", () => {
     const migration = readRecoveryMigration()
 
