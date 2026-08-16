@@ -187,7 +187,12 @@ describe("resolveStripeRefundIntake", () => {
         intakes: [{ id: "intake-event-charge", stripe_payment_intent_id: "pi_event" }],
       },
     })
-    const { retrieveCharge, stripe } = createStripeMock()
+    const { retrieveCharge, retrievePaymentIntent, stripe } = createStripeMock()
+    const paymentIntent = {
+      id: "pi_event",
+      metadata: {},
+      object: "payment_intent",
+    } as Stripe.PaymentIntent
 
     const result = await resolveStripeRefundIntake(
       { stripe: stripe as never, supabase: supabase as never },
@@ -195,14 +200,15 @@ describe("resolveStripeRefundIntake", () => {
         eventCharge: {
           id: "ch_event",
           object: "charge",
-          payment_intent: "pi_event",
+          payment_intent: paymentIntent,
         } as Stripe.Charge,
         eventPaymentIntentId: "pi_event",
-        refund: refund({ charge: "ch_event", payment_intent: "pi_event" }),
+        refund: refund({ charge: "ch_event", payment_intent: paymentIntent }),
       },
     )
 
     expect(retrieveCharge).not.toHaveBeenCalled()
+    expect(retrievePaymentIntent).not.toHaveBeenCalled()
     expect(result).toEqual({
       error: null,
       intakeId: "intake-event-charge",
@@ -223,6 +229,61 @@ describe("resolveStripeRefundIntake", () => {
           payment_intent: "pi_event",
         } as Stripe.Charge,
         refund: refund({ charge: "ch_other", payment_intent: "pi_event" }),
+      },
+    )
+
+    expect(retrieveCharge).not.toHaveBeenCalled()
+    expect(result).toEqual({
+      error: "Stripe refund Charge conflicts with event Charge identity",
+      intakeId: null,
+      paymentIntentId: null,
+    })
+  })
+
+  it("fails closed when same-id expanded Charges disagree on PaymentIntent identity", async () => {
+    const { supabase } = createSupabaseMock()
+    const { retrieveCharge, stripe } = createStripeMock()
+
+    const result = await resolveStripeRefundIntake(
+      { stripe: stripe as never, supabase: supabase as never },
+      {
+        eventCharge: {
+          id: "ch_event",
+          object: "charge",
+          payment_intent: "pi_event",
+        } as Stripe.Charge,
+        refund: refund({
+          charge: {
+            id: "ch_event",
+            object: "charge",
+            payment_intent: "pi_other",
+          } as Stripe.Charge,
+          payment_intent: "pi_event",
+        }),
+      },
+    )
+
+    expect(retrieveCharge).not.toHaveBeenCalled()
+    expect(result).toEqual({
+      error: "Stripe refund Charge conflicts with event PaymentIntent identity",
+      intakeId: null,
+      paymentIntentId: null,
+    })
+  })
+
+  it("fails closed when a non-null Refund Charge has no usable identity", async () => {
+    const { supabase } = createSupabaseMock()
+    const { retrieveCharge, stripe } = createStripeMock()
+
+    const result = await resolveStripeRefundIntake(
+      { stripe: stripe as never, supabase: supabase as never },
+      {
+        eventCharge: {
+          id: "ch_event",
+          object: "charge",
+          payment_intent: "pi_event",
+        } as Stripe.Charge,
+        refund: refund({ charge: "", payment_intent: "pi_event" }),
       },
     )
 

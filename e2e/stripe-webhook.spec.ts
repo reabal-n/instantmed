@@ -129,6 +129,11 @@ function buildChargeRefundedEvent(overrides: {
   const refundId = `re_test_${randomUUID()}`
   const balanceTransactionId = `txn_test_${randomUUID()}`
   const created = Math.floor(Date.now() / 1000)
+  const paymentIntent = {
+    id: paymentIntentId,
+    object: "payment_intent",
+    metadata: {},
+  }
   return {
     id: overrides.eventId || `evt_test_${randomUUID()}`,
     object: "event",
@@ -140,7 +145,7 @@ function buildChargeRefundedEvent(overrides: {
         object: "charge",
         amount,
         amount_refunded: amountRefunded,
-        payment_intent: paymentIntentId,
+        payment_intent: paymentIntent,
         refunds: {
           object: "list",
           data: [{
@@ -169,7 +174,7 @@ function buildChargeRefundedEvent(overrides: {
             created,
             currency: "aud",
             metadata: {},
-            payment_intent: paymentIntentId,
+            payment_intent: paymentIntent,
             reason: "requested_by_customer",
             receipt_number: null,
             source_transfer_reversal: null,

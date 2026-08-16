@@ -346,10 +346,28 @@ async function refundCharge(
 ): Promise<{ charge: Stripe.Charge | null; error: string | null }> {
   if (eventCharge) {
     const refundChargeId = stripeId(value)
-    if (!eventCharge.id || (refundChargeId && refundChargeId !== eventCharge.id)) {
+    if (
+      !eventCharge.id ||
+      (value !== null && !refundChargeId) ||
+      (refundChargeId && refundChargeId !== eventCharge.id)
+    ) {
       return {
         charge: null,
         error: "Stripe refund Charge conflicts with event Charge identity",
+      }
+    }
+    if (value && typeof value !== "string") {
+      const eventPaymentIntentId = stripeId(eventCharge.payment_intent)
+      const refundChargePaymentIntentId = stripeId(value.payment_intent)
+      if (
+        eventPaymentIntentId &&
+        refundChargePaymentIntentId &&
+        eventPaymentIntentId !== refundChargePaymentIntentId
+      ) {
+        return {
+          charge: null,
+          error: "Stripe refund Charge conflicts with event PaymentIntent identity",
+        }
       }
     }
     return { charge: eventCharge, error: null }
