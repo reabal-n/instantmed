@@ -578,6 +578,19 @@ describe("Google Ads mutation gateway", () => {
     })).toBe("2026-07-30T09:31:00.000Z")
   })
 
+  it("uses the observable ChangeEvent boundary when no material event is returned", () => {
+    const state = accountState({
+      changeEventHistoryStartAt: "2026-07-01T00:00:00.000Z",
+      changeEvents: [],
+    })
+
+    expect(resolveLatestAdsMaterialChangeAt({
+      budgetResourceName,
+      campaignResourceName,
+      state,
+    })).toBe("2026-07-01T00:00:00.000Z")
+  })
+
   it("derives cooldown proof from production-shaped run and proposal rows", () => {
     const latest = eligibleScaleEvidence().snapshot
     const evidence = deriveScriptsScaleAuthorizationEvidence({
@@ -1741,6 +1754,8 @@ describe("Google Ads mutation gateway", () => {
   it("hashes mutable account truth independently of read time and change history", () => {
     const first = accountState()
     const sameConfiguration = accountState({
+      changeEventHistorySaturated: true,
+      changeEventHistoryStartAt: "2026-07-01T00:00:00.000Z",
       changeEvents: [{
         actorHash: "d".repeat(64),
         changeDateTime: "2026-07-30T09:31:00.000Z",

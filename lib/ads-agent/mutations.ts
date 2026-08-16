@@ -1467,7 +1467,13 @@ export function resolveLatestAdsMaterialChangeAt(args: {
     .filter((value): value is string =>
       value != null && Number.isFinite(Date.parse(value)))
     .sort((left, right) => Date.parse(right) - Date.parse(left))
-  return candidates[0] ?? null
+  return candidates[0]
+    ?? (
+      args.state.changeEventHistoryStartAt
+      && Number.isFinite(Date.parse(args.state.changeEventHistoryStartAt))
+        ? args.state.changeEventHistoryStartAt
+        : null
+    )
 }
 
 function fallbackGoogleOperationsHash(proposal: AdsChangeProposal): string {

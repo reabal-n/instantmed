@@ -40,6 +40,8 @@ export interface GoogleAdsAccountState {
   campaignSharedSets: NormalizedGoogleAdsResource[]
   campaigns: NormalizedGoogleAdsResource[]
   changeEvents: GoogleAdsChangeEventState[]
+  /** Conservative observable-history boundary used when no change is returned. */
+  changeEventHistoryStartAt?: string | null
   /** True when either bounded ChangeEvent query reached Google's row cap. */
   changeEventHistorySaturated?: boolean
   conversionActions: NormalizedGoogleAdsResource[]
@@ -146,7 +148,7 @@ export function buildGoogleAdsAccountStateQueries(
   if (!Number.isFinite(now.getTime())) {
     throw new Error("Cannot build Google Ads queries at an invalid time")
   }
-  const closedChangeEventStart = sydneyCalendarDate(now, -30)
+  const closedChangeEventStart = sydneyCalendarDate(now, -29)
   const today = sydneyCalendarDate(now, 0)
   const tomorrow = sydneyCalendarDate(now, 1)
   const changeEventFields = [
@@ -478,8 +480,13 @@ function normalizeValue(value: unknown): unknown {
 export function hashGoogleAdsAccountState(
   state: GoogleAdsAccountState,
 ): string {
-  const { changeEvents: _changeEvents, readAt: _readAt, ...configuration } =
-    state
+  const {
+    changeEvents: _changeEvents,
+    changeEventHistorySaturated: _changeEventHistorySaturated,
+    changeEventHistoryStartAt: _changeEventHistoryStartAt,
+    readAt: _readAt,
+    ...configuration
+  } = state
   return createHash("sha256")
     .update(JSON.stringify(normalizeValue(configuration)), "utf8")
     .digest("hex")
@@ -632,6 +639,9 @@ export async function getAdsAccountState(args: {
       ...rows.changeEvents,
       ...rows.changeEventsToday,
     ]),
+    // UTC midnight falls 10-11 hours after Sydney midnight, so it remains
+    // conservative without hard-coding a daylight-saving offset.
+    changeEventHistoryStartAt: `${sydneyCalendarDate(now, -29)}T00:00:00.000Z`,
     changeEventHistorySaturated:
       rows.changeEvents.length >= 10_000
       || rows.changeEventsToday.length >= 10_000,
