@@ -3,7 +3,7 @@ import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
 
-export const STRIPE_REFUND_SAFE_REPLAY_WINDOW_MS = 20 * 60 * 60 * 1_000
+const STRIPE_REFUND_SAFE_REPLAY_WINDOW_MS = 20 * 60 * 60 * 1_000
 
 export type ClaimedStripeRefundAttempt = {
   attempt_id: string
