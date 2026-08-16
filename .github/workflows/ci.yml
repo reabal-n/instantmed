@@ -158,7 +158,7 @@ jobs:
       - name: AGENTS.md is in sync with CLAUDE.md
         run: bash scripts/sync-agent-doc.sh --check
 
-      - name: Doc surface audit (count + plan-refs + 8 pinning contracts)
+      - name: Doc surface audit (count + plan-refs + 10 pinning contracts)
         run: pnpm doc:audit
 
       - name: Portal design-system compliance (no legacy classes)
@@ -201,10 +201,9 @@ jobs:
           PARCHMENT_SMOKE_USER_ID: ${{ secrets.PARCHMENT_SMOKE_USER_ID }}
         run: pnpm smoke:parchment
 
-      # Detection complement to the pre-push gate: a direct push to main that
-      # fails the build means production may be running unverified code AND the
-      # red can sit unnoticed (it did for days on 2026-06-18). Ping Telegram so
-      # it's seen. Only fires on push-to-main failures; PRs are gated by review.
+      # Post-merge detection complement to the PR-first ruleset. Direct pushes
+      # are rejected and build + e2e gate every merge, but an environment drift
+      # or post-merge rerun can still make main red. Keep that visible.
       - name: Alert Telegram on main build failure
         if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
