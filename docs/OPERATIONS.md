@@ -454,12 +454,12 @@ Critical paths (Stripe, approvals, prescriptions) are always sampled at 1.0.
 
 Vercel billing is dominated by **Build CPU Minutes**, not runtime compute. Two config-only levers keep it down; each reverts in one line.
 
-**1. Previews are skipped on non-production branches, and docs/test-only `main` ranges are skipped too.** `vercel.json` sets `"ignoreCommand": "bash scripts/vercel-ignore-build.sh"`. The script builds when `VERCEL_GIT_COMMIT_REF` is `main` **and the full range since `VERCEL_GIT_PREVIOUS_SHA` (Vercel's last successful deployment for the branch) contains a runtime path**; it skips (a) every non-`main` branch (a feature/PR push no longer burns a full preview build — previews were ~half of all builds), and (b) `main` ranges that touch only non-runtime paths (`*.md`, `docs/`, `e2e/`, `**/__tests__/`, `*.test.*`/`*.spec.*`, `.github/`) — these were ~26% of `main` builds (73/284 in 30d) and change nothing the server runs, so the edit just ships with the next runtime deploy. Comparing the deployed SHA rather than `HEAD^` is a release-integrity invariant: a batched push may end with a docs-only commit while carrying earlier runtime commits. Runtime paths (`app`/`components`/`lib`-non-test/`public`/`scripts`/`supabase`/`package.json`/lockfile) always build. The script fetches the exact deployed commit into Vercel's shallow clone when needed and **fails safe** (builds) if the SHA is absent/malformed, the commit cannot be read, or the diff is unreadable/empty. Safe because the required CI `build` job validates every PR with lint, typecheck, unit tests, and a production build without consuming a Vercel preview URL. Lighthouse is a separate localhost gate; shared-fixture Playwright E2E runs for every non-Markdown change and fails closed when change scope is unknown. Branch protection on `main` requires only `build`, not a deployment status.
+**1. Previews are skipped on non-production branches, and docs/test-only `main` ranges are skipped too.** `vercel.json` sets `"ignoreCommand": "bash scripts/vercel-ignore-build.sh"`. The script builds when `VERCEL_GIT_COMMIT_REF` is `main` **and the full range since `VERCEL_GIT_PREVIOUS_SHA` (Vercel's last successful deployment for the branch) contains a runtime path**; it skips (a) every non-`main` branch (a feature/PR push no longer burns a full preview build — previews were ~half of all builds), and (b) `main` ranges that touch only non-runtime paths (`*.md`, `docs/`, `e2e/`, `**/__tests__/`, `*.test.*`/`*.spec.*`, `.github/`) — these were ~26% of `main` builds (73/284 in 30d) and change nothing the server runs, so the edit just ships with the next runtime deploy. Comparing the deployed SHA rather than `HEAD^` is a release-integrity invariant: a batched push may end with a docs-only commit while carrying earlier runtime commits. Runtime paths (`app`/`components`/`lib`-non-test/`public`/`scripts`/`supabase`/`package.json`/lockfile) always build. The script fetches the exact deployed commit into Vercel's shallow clone when needed and **fails safe** (builds) if the SHA is absent/malformed, the commit cannot be read, or the diff is unreadable/empty. Safe because strict main protection requires every PR to resolve both GitHub Actions `build` (lint, typecheck, unit tests, production build) and `e2e`; Lighthouse is a separate localhost gate and Vercel deployment status is not a merge requirement.
 - **Force a build for one commit:** `[deploy]` in the latest commit message builds a `main` commit that would otherwise be skipped as non-runtime; `[preview]` builds a preview for a non-`main` branch (and Vercel's `deployment_status` re-fires the preview-only `e2e-preview.yml` smoke against the live URL).
 - **Revert:** delete the `ignoreCommand` line from `vercel.json` (the script goes inert).
 
 **2. Lint + type-check are not re-run inside `next build`.** `next.config.mjs` sets `typescript.ignoreBuildErrors: true` and `eslint.ignoreDuringBuilds: true`. CI (`pnpm lint` + `pnpm typecheck`) and `pnpm ci` already gate every merge, so re-running them inside the Vercel build was duplicated Build CPU Minutes — measured at **48.9s of a 186s production build**; local `pnpm build` dropped 88s → 67s.
-- **Caveat:** a direct `git push origin main` that bypasses CI (owner has `enforce_admins: false`) would not get an in-build type/lint check. Keep shipping via PR so CI runs — the normal auto-merge flow.
+- **Governance:** `.github/rulesets/main-pr-first.json` is the declarative policy, while `scripts/hooks/pre-push` is a local convenience guard; GitHub remains authoritative. Direct pushes to `main` are rejected by the active `main-pr-first` ruleset. The owner has PR-only emergency bypass, never direct-push bypass. Run `pnpm check:main-protection` before a production release and after any GitHub policy change. Activate the `main-pr-first` ruleset before retiring classic branch protection, verify the overlap with `ALLOW_CLASSIC_PROTECTION=1 pnpm check:main-protection`, then remove the classic rule and run the default check—never create a protection gap.
 - **Revert:** set both flags back to `false`.
 
 **Build machine tier (dashboard only).** Production builds run on the **Enhanced** machine (more vCPUs ≈ 2× Build CPU Minutes/build). Builds are not patient-facing, so downgrading to **Standard** in Settings → Build & Deployment roughly halves billed CPU-minutes/build for a longer wall time — recommended for cost. Dashboard-only; not settable via `vercel.json`.
@@ -723,12 +723,14 @@ ROLLBACK  ROLLBACK    ROLLBACK
 1. **Identify the last known-good deployment** — Vercel Dashboard → instantmed → Deployments → find the deployment tagged READY with a commit SHA *before* the bad one. Note its deployment URL.
 2. **Promote it** — click the three-dot menu on that deployment → **"Promote to Production"**. This takes ~10 seconds and switches the production alias (`instantmed.com.au`) back to the old build. No rebuild required.
 3. **Verify** — curl `https://instantmed.com.au/api/health` returns 200 within 30 seconds of promotion. Check Sentry error rate drops within 2 minutes.
-4. **Revert the bad commit on main** — so the next deploy doesn't reintroduce it:
+4. **Revert the bad commit through a PR** — so the next deploy doesn't reintroduce it:
    ```bash
+   git switch -c codex/revert-<incident-id> origin/main
    git revert <bad-commit-sha>
-   git push origin main
+   git push -u origin codex/revert-<incident-id>
+   gh pr create --title "revert: <incident summary>" --body-file <incident-pr-body.md>
    ```
-   This triggers a new deploy with the revert — verify it goes green in Vercel and CI before closing the incident.
+   Use the normal strict `build` + `e2e` checks, or the ruleset's PR-only owner bypass when waiting would extend a P0/P1 incident. Never direct-push the revert. Merge the PR, then verify the new production deployment and post-merge CI before closing the incident.
 5. **Post-incident** — create a Sentry issue note with the bad commit SHA, the symptom, and the rollback time.
 
 **Common gotchas:**
@@ -1222,7 +1224,7 @@ pg_restore --no-owner --dbname="$NEW_DATABASE_URL" backup-YYYYMMDD.dump
 
 **Source of truth:** GitHub (`main` branch). All deployments are from git.
 
-**Recovery:** Redeploy from Vercel dashboard or `git push` to trigger rebuild.
+**Recovery:** Redeploy the last known-good build from the Vercel dashboard for immediate mitigation. For a durable code recovery, revert on a branch and merge the PR through the required checks (or the documented PR-only emergency bypass).
 
 ### Secret Rotation Procedures
 

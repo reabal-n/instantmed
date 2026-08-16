@@ -4,6 +4,10 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 
 ## 1. Quality Gates
 
+- Release from a branch PR only; direct pushes to `main` are forbidden.
+- `pnpm check:main-protection` (live ruleset: PR required, owner bypass is PR-only, strict `build` + `e2e`, classic protection retired)
+- Confirm the exact PR head is up to date and both required GitHub checks are completed/successful before merge. A post-merge main run is supporting evidence, not a substitute for the PR receipt.
+- For an emergency ruleset bypass, stay inside a PR and record the incident reason, local verification, and rollback target. Never delete or weaken protection to ship.
 - Use Node 24 from `.nvmrc` / `.node-version` for local release checks.
 - `pnpm check:node`
 - `pnpm release:check` (Node, stack pins, route conflicts, orphaned files, audit, lint, typecheck, unit tests, production build, bundle budget)
