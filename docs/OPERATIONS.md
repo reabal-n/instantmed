@@ -605,6 +605,14 @@ The restricted operation union supports creation of responsive search ads and po
 
 Text assets and image assets are not accepted as creation packets yet. Do not place raw image bytes, transient local paths, or an unverified public URL in a proposal. Asset creation must first define durable input storage, byte hashing, campaign-link verification, and orphan cleanup; existing asset links may still be paused, enabled, or removed through the restricted asset-link family.
 
+If a local apply worker stops after Google accepts the atomic mutation but before the apply receipt is durable, do **not** run `apply` again. Confirm the proposal is still `applying` with no apply or verification receipt, then use:
+
+```bash
+pnpm ads:agent reconcile --proposal=<proposal-key>
+```
+
+`reconcile` never sends a Google mutation. It fresh-reads every approved operation and advances `applying -> applied -> verified` only when all live resources exactly match the immutable requested state. The recovered apply receipt is explicitly `ambiguous`, has no invented Google request ID, and records `worker_interrupted_after_google_mutate`. Any mismatch or incomplete decision/validation evidence fails closed and leaves the proposal `applying` for operator investigation.
+
 Approval is required for budgets, bids, bid strategies, keywords, negative keywords, match types, ads, assets, sitelinks, callouts, targeting, schedules, pauses, enables, experiments, and campaign creation/removal. No unattended Ads mutation is authorised by this workflow.
 
 Paid scaling remains governed by the fee-aware, service-level first-order contribution and bounded-learning rules in `docs/REVENUE_MODEL.md`. Attribution or tracking failures fail closed and block scaling. Compliance failures follow `docs/ADVERTISING_COMPLIANCE.md` and the incident process; they do not widen mutation authority.

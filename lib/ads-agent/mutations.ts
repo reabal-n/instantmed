@@ -102,6 +102,7 @@ export interface AdsMutationGatewayRepository {
 export interface AdsMutationGateway {
   applyProposal(proposalKey: string): Promise<ApplyReceipt>
   buildRollbackProposal(proposalKey: string): Promise<AdsChangeProposal>
+  reconcileProposal(proposalKey: string): Promise<VerificationReceipt>
   validateProposal(proposalKey: string): Promise<ValidationReceipt>
   verifyProposal(proposalKey: string): Promise<VerificationReceipt>
 }
@@ -1911,6 +1912,94 @@ export function createAdsMutationGateway(
     return verification
   }
 
+  async function reconcileProposal(
+    proposalKey: string,
+  ): Promise<VerificationReceipt> {
+    const proposal = await getProposal(proposalKey)
+    if (proposal.status !== "applying") {
+      throw new Error("proposal_not_applying")
+    }
+    if (proposal.applyReceipt || proposal.verificationReceipt) {
+      throw new Error("proposal_reconciliation_receipt_conflict")
+    }
+    if (
+      !proposal.validationReceipt?.ok
+      || !proposal.validationReceipt.googleOperationsHash
+      || proposal.validationReceipt.operationHash !== proposal.operationHash
+      || !verifiedDecisionReceipt(proposal)
+    ) {
+      throw new Error("proposal_reconciliation_evidence_invalid")
+    }
+
+    const state = await dependencies.getAccountState({
+      now: dependencies.now(),
+    })
+    const verifiedAt = dependencies.now()
+    const verification = verifyOperationState(
+      proposalKey,
+      proposal.operations,
+      state,
+      verifiedAt,
+    )
+    if (verification.outcome !== "verified") {
+      await appendAudit({
+        errorCode: "applying_reconciliation_mismatch",
+        googleOperationsHash:
+          proposal.validationReceipt.googleOperationsHash,
+        outcome: verification.outcome,
+        proposalKey,
+        requestId: null,
+        stage: "verify",
+        timestamp: verifiedAt.toISOString(),
+      })
+      throw new Error("proposal_reconciliation_mismatch")
+    }
+
+    const applyReceipt: ApplyReceipt = {
+      appliedAt: verifiedAt.toISOString(),
+      errorCode: "worker_interrupted_after_google_mutate",
+      googleOperationsHash:
+        proposal.validationReceipt.googleOperationsHash,
+      outcome: "ambiguous",
+      proposalKey,
+      requestId: null,
+    }
+    const applied = await repository.recordApplyOutcome({
+      expectedStatus: "applying",
+      proposalId: proposal.id,
+      receipt: applyReceipt,
+      status: "applied",
+    })
+    if (!applied) throw new Error("proposal_apply_receipt_cas_miss")
+    await appendAudit({
+      errorCode: applyReceipt.errorCode,
+      googleOperationsHash: applyReceipt.googleOperationsHash,
+      outcome: applyReceipt.outcome,
+      proposalKey,
+      requestId: null,
+      stage: "apply",
+      timestamp: verifiedAt.toISOString(),
+    })
+
+    const verified = await repository.recordVerification({
+      expectedStatus: "applied",
+      proposalId: proposal.id,
+      receipt: verification,
+      status: "verified",
+    })
+    if (!verified) throw new Error("proposal_verification_cas_miss")
+    await appendAudit({
+      errorCode: null,
+      googleOperationsHash: applyReceipt.googleOperationsHash,
+      outcome: verification.outcome,
+      proposalKey,
+      requestId: null,
+      stage: "verify",
+      timestamp: verifiedAt.toISOString(),
+    })
+    return verification
+  }
+
   async function buildRollbackProposal(
     proposalKey: string,
   ): Promise<AdsChangeProposal> {
@@ -1924,6 +2013,7 @@ export function createAdsMutationGateway(
   return {
     applyProposal,
     buildRollbackProposal,
+    reconcileProposal,
     validateProposal,
     verifyProposal,
   }
@@ -2178,6 +2268,12 @@ export async function verifyProposal(
   proposalKey: string,
 ): Promise<VerificationReceipt> {
   return defaultGateway().verifyProposal(proposalKey)
+}
+
+export async function reconcileProposal(
+  proposalKey: string,
+): Promise<VerificationReceipt> {
+  return defaultGateway().reconcileProposal(proposalKey)
 }
 
 export async function buildRollbackProposal(

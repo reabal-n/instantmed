@@ -1171,6 +1171,92 @@ describe("Google Ads mutation gateway", () => {
     expect(harness.store.getCurrent().status).toBe("verified")
   })
 
+  it("reconciles an interrupted applying proposal only from exact live state", async () => {
+    const before = accountState()
+    const after = stateWithBudget(before, 48_000_000)
+    const harness = gateway({
+      accountReads: [after],
+      initial: proposal(before, { status: "applying" }),
+    })
+
+    await expect(
+      harness.gateway.reconcileProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ outcome: "verified" })
+
+    expect(harness.mutate).not.toHaveBeenCalled()
+    expect(harness.store.getCurrent()).toMatchObject({
+      applyReceipt: {
+        errorCode: "worker_interrupted_after_google_mutate",
+        outcome: "ambiguous",
+        requestId: null,
+      },
+      status: "verified",
+      verificationReceipt: { outcome: "verified" },
+    })
+    expect(harness.store.audits.map(({ stage }) => stage)).toEqual([
+      "apply",
+      "verify",
+    ])
+  })
+
+  it("leaves an interrupted proposal applying when live state does not match", async () => {
+    const state = accountState()
+    const harness = gateway({
+      accountReads: [state],
+      initial: proposal(state, { status: "applying" }),
+    })
+
+    await expect(
+      harness.gateway.reconcileProposal("ADS-20260730-01"),
+    ).rejects.toThrow("proposal_reconciliation_mismatch")
+
+    expect(harness.mutate).not.toHaveBeenCalled()
+    expect(harness.store.getCurrent()).toMatchObject({
+      applyReceipt: null,
+      status: "applying",
+      verificationReceipt: null,
+    })
+    expect(harness.store.audits).toEqual([
+      expect.objectContaining({
+        errorCode: "applying_reconciliation_mismatch",
+        outcome: "mismatch",
+        stage: "verify",
+      }),
+    ])
+  })
+
+  it("refuses reconciliation outside the receipt-free applying state", async () => {
+    const state = accountState()
+    const approved = gateway({
+      accountReads: [state],
+      initial: proposal(state, { status: "approved" }),
+    })
+    await expect(
+      approved.gateway.reconcileProposal("ADS-20260730-01"),
+    ).rejects.toThrow("proposal_not_applying")
+    expect(approved.getAccountState).not.toHaveBeenCalled()
+
+    const withReceipt = gateway({
+      accountReads: [state],
+      initial: proposal(state, {
+        applyReceipt: {
+          appliedAt: "2026-07-30T09:55:00.000Z",
+          errorCode: null,
+          googleOperationsHash:
+            proposal(state).validationReceipt!.googleOperationsHash!,
+          outcome: "applied",
+          proposalKey: "ADS-20260730-01",
+          requestId: "apply-request",
+        },
+        status: "applying",
+      }),
+    })
+    await expect(
+      withReceipt.gateway.reconcileProposal("ADS-20260730-01"),
+    ).rejects.toThrow("proposal_reconciliation_receipt_conflict")
+    expect(withReceipt.getAccountState).not.toHaveBeenCalled()
+  })
+
   it("stops before apply when the durable apply-start audit is unavailable", async () => {
     const before = accountState()
     const after = stateWithBudget(before, 48_000_000)
