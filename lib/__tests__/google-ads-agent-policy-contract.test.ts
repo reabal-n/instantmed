@@ -19,7 +19,8 @@ describe("Google Ads Agent policy documentation", () => {
     expect(operations).toContain("09:00 Australia/Sydney")
     expect(operations).toContain("Telegram Ads approval requires an immutable proposal")
     expect(operations).toContain("authorised Telegram user ID")
-    expect(revenue).toContain("maximum 20% budget step")
+    expect(revenue).toContain("Strong tier")
+    expect(revenue).toContain("50% hard gateway ceiling")
     expect(revenue).not.toContain("tCPA cap")
   })
 

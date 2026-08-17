@@ -19,7 +19,7 @@ const SERVICE_ORDER = [
 
 export const POLICY = {
   account: {
-    dailyBudgetEnvelopeCents: 8_400,
+    dailyBudgetEnvelopeCents: 10_000,
   },
   attribution: {
     minimumExpectedServiceOrderShare: 0.90,
@@ -56,11 +56,27 @@ export const POLICY = {
     dailyBudgetCents: 4_000,
     scale: {
       initialTargetRoas: 1.35,
-      maximumBudgetStep: 0.20,
+      maximumBudgetStep: 0.50,
       maximumRefundRate: 0.10,
       minimumContributionMargin: 0.20,
       minimumMatureOrders: 10,
-      observationDaysAfterBidChange: 7,
+      tiers: {
+        positive: {
+          maximumBudgetStep: 0.20,
+          minimumContributionMargin: 0.20,
+          minimumOrders: 20,
+        },
+        proven: {
+          maximumBudgetStep: 0.35,
+          minimumContributionMargin: 0.30,
+          minimumOrders: 30,
+        },
+        strong: {
+          maximumBudgetStep: 0.50,
+          minimumContributionMargin: 0.40,
+          minimumOrders: 50,
+        },
+      },
     },
   },
   womensHealth: {

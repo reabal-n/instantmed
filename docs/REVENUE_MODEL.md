@@ -116,7 +116,13 @@ Material budget increases require:
 
 Every budget, keyword, negative keyword, asset, sitelink, targeting, bid-strategy, pause, or enable recommendation follows the approval workflow in `docs/OPERATIONS.md`. No routine Google Ads mutation is autonomous.
 
-Change one material variable at a time. After a service passes every gate, hold the approved baseline for at least seven closed days before another scale decision. Any follow-on increase uses a **maximum 20% budget step**, keeps the same fee-aware service calculation, and requires a fresh exact approval.
+Use the smallest evidence window that answers the decision; do not impose a fixed seven-day delay on a high-volume, strongly profitable campaign. Each increase still requires a fresh exact approval and the same fee-aware service calculation. The operating tiers are:
+
+- **Positive tier:** at least 20 orders, at least 20% contribution margin, and refund rate below 10%; up to a 20% budget step.
+- **Proven tier:** at least 30 orders, at least 30% contribution margin, and refund rate below 10%; up to a 35% budget step.
+- **Strong tier:** at least 50 orders, at least 40% contribution margin, and refund rate below 10%; up to a 50% budget step.
+
+The mutation gateway keeps a **50% hard gateway ceiling** even when the operator approves a larger number. That ceiling is a runaway-write guard, not a recommendation to spend 50% more. Select the actual increase from current service economics, available impression share, Google's forecast, and the exact account budget envelope. Lower-volume or specialty pilots remain governed by their loss cap until they graduate on retained contribution evidence.
 
 A target cost per acquisition (tCPA) is an average acquisition target. It is not a CPC limit, a guaranteed per-conversion price, or permission to ignore service-level retained contribution.
 

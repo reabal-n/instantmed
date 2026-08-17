@@ -689,18 +689,25 @@ describe("Google Ads mutation gateway", () => {
     expect(() => validateAdsMutationPolicy({
       operations: [{
         ...budgetOperation,
-        nextMicros: 85_000_000,
+        nextMicros: 101_000_000,
       }],
       state,
     })).toThrow("account_budget_envelope_exceeded")
   })
 
-  it("enforces service budget ceilings and the Scripts 20% step", () => {
+  it("enforces service budget ceilings and the Scripts 50% hard step", () => {
     const scripts = accountState()
     expect(() => validateAdsMutationPolicy({
       operations: [{
         ...budgetOperation,
-        nextMicros: 49_000_000,
+        nextMicros: 60_000_000,
+      }],
+      state: scripts,
+    })).not.toThrow()
+    expect(() => validateAdsMutationPolicy({
+      operations: [{
+        ...budgetOperation,
+        nextMicros: 61_000_000,
       }],
       state: scripts,
     })).toThrow("scripts_budget_step_exceeded")

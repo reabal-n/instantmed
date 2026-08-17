@@ -149,13 +149,30 @@ function evaluatePolicyWithoutHolds(snap: ReturnType<typeof snapshot>) {
 
 describe("Google Ads Agent policy", () => {
   it("pins the campaign constitution and safety limits", () => {
-    expect(POLICY.account.dailyBudgetEnvelopeCents).toBe(8400)
+    expect(POLICY.account.dailyBudgetEnvelopeCents).toBe(10000)
     expect(POLICY.attribution.minimumExpectedServiceOrderShare).toBe(0.90)
     expect(POLICY.scripts.scale.minimumContributionMargin).toBe(0.20)
     expect(POLICY.scripts.scale.maximumRefundRate).toBe(0.10)
     expect(POLICY.scripts.scale.minimumMatureOrders).toBe(10)
     expect(POLICY.scripts.scale.initialTargetRoas).toBe(1.35)
-    expect(POLICY.scripts.scale.maximumBudgetStep).toBe(0.20)
+    expect(POLICY.scripts.scale.maximumBudgetStep).toBe(0.50)
+    expect(POLICY.scripts.scale.tiers).toEqual({
+      positive: {
+        maximumBudgetStep: 0.20,
+        minimumContributionMargin: 0.20,
+        minimumOrders: 20,
+      },
+      proven: {
+        maximumBudgetStep: 0.35,
+        minimumContributionMargin: 0.30,
+        minimumOrders: 30,
+      },
+      strong: {
+        maximumBudgetStep: 0.50,
+        minimumContributionMargin: 0.40,
+        minimumOrders: 50,
+      },
+    })
     expect(POLICY.ed.pilot.maximumLossCents).toBe(15000)
     expect(POLICY.hairLoss.pilot.maximumLossCents).toBe(15000)
     expect(POLICY.womensHealth.pilot.maximumLossCents).toBe(15000)
@@ -359,7 +376,7 @@ describe("Google Ads Agent policy", () => {
     const recommendations = evaluatePolicyWithoutHolds(snapshot({
       account: {
         ...snapshot().account,
-        dailyBudgetTotalCents: 8401,
+        dailyBudgetTotalCents: 10001,
       },
     }))
 
