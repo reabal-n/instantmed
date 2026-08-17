@@ -6,6 +6,7 @@ import {
   assertAdsProposalOperationsUnchanged,
   canTransitionAdsProposal,
   getAdsProposalApplyEligibility,
+  getCodexDecisionExpectedStatus,
   hashAdsMutationOperations,
   isAdsProposalExpired,
   isCodexAdsApprovalReference,
@@ -278,6 +279,8 @@ describe("Google Ads proposal state machine", () => {
   it("permits only the governed lifecycle transitions", () => {
     expect(canTransitionAdsProposal("draft", "validated")).toBe(true)
     expect(canTransitionAdsProposal("validated", "awaiting_approval")).toBe(true)
+    expect(canTransitionAdsProposal("validated", "approved")).toBe(true)
+    expect(canTransitionAdsProposal("validated", "rejected")).toBe(true)
     expect(canTransitionAdsProposal("awaiting_approval", "approved")).toBe(true)
     expect(canTransitionAdsProposal("awaiting_approval", "rejected")).toBe(true)
     expect(canTransitionAdsProposal("approved", "applying")).toBe(true)
@@ -292,6 +295,15 @@ describe("Google Ads proposal state machine", () => {
     expect(isCodexAdsApprovalReference("task:task_1234")).toBe(false)
     expect(isCodexAdsApprovalReference("codex-task:x")).toBe(false)
     expect(isCodexAdsApprovalReference("codex-task:task 1234")).toBe(false)
+  })
+
+  it("lets an exact Codex decision consume a validated packet directly", () => {
+    expect(getCodexDecisionExpectedStatus("validated")).toBe("validated")
+    expect(getCodexDecisionExpectedStatus("awaiting_approval")).toBe(
+      "awaiting_approval",
+    )
+    expect(getCodexDecisionExpectedStatus("approved")).toBeNull()
+    expect(getCodexDecisionExpectedStatus("rejected")).toBeNull()
   })
 
   it("expires after 24 hours and treats expiry as apply-ineligible", () => {

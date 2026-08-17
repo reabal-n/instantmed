@@ -573,6 +573,8 @@ Telegram has exactly two PHI-free Google Ads message classes:
 
 Every mutation requires either the exact authenticated Telegram button action from the configured approver or an exact Codex-task approval for the same immutable proposal. Both channels share one replay-safe proposal state machine; a duplicate, expired, already-consumed, or drifted approval aborts without mutation.
 
+An exact Codex-task approval atomically consumes the validated proposal directly; it does not require a Telegram card or Telegram-only intermediate state. Telegram approvals still require the recorded signed card and authorised button action.
+
 Keep `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=false` and `TELEGRAM_ADS_APPROVALS_ENABLED=false` until the reporting, tracking, proposal-security, and guarded mutation path have completed shadow proof. No implementation-plan approval or broad instruction to manage Ads enables live changes.
 
 Google Ads API user access is included in the account read. As of 2026-07-31 the sole direct Ads user has `passkey_enabled=true`, so the August 2026 passkey requirement does not interrupt the existing OAuth refresh token. If that refresh token must be regenerated after rollout, authenticate with the existing passkey and allow for Google's stated trust delay; never rotate a working token during a live Ads change merely to test this requirement.
