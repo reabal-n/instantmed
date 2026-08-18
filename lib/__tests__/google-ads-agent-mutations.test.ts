@@ -297,6 +297,7 @@ const createdCampaignAdGroupResourceName = "customers/123/adGroups/902"
 const campaignCreateOperation = {
   adGroups: [{
     keywords: [{
+      exemptPolicyViolationKeys: [],
       matchType: "EXACT",
       text: "online uti assessment",
     }],

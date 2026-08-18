@@ -63,8 +63,16 @@ export function formatTrustedAdsOperationSummary(
         ...operation.adGroups.flatMap((adGroup, adGroupIndex) => [
           `Ad group ${adGroupIndex + 1}/${operation.adGroups.length}: ${adGroup.name}`,
           `Keywords (${adGroup.keywords.length}):`,
-          ...adGroup.keywords.map((keyword, keywordIndex) =>
-            `${keywordIndex + 1}. ${keyword.matchType} ${JSON.stringify(keyword.text)}`),
+          ...adGroup.keywords.flatMap((keyword, keywordIndex) => [
+            `${keywordIndex + 1}. ${keyword.matchType} ${JSON.stringify(keyword.text)}`,
+            `   Policy exemptions: ${
+              keyword.exemptPolicyViolationKeys.length > 0
+                ? keyword.exemptPolicyViolationKeys
+                    .map(({ policyName }) => policyName)
+                    .join(", ")
+                : "none"
+            }`,
+          ]),
           `Display paths: ${JSON.stringify(adGroup.responsiveSearchAd.path1)} / ${JSON.stringify(adGroup.responsiveSearchAd.path2)}`,
           `Headlines (${adGroup.responsiveSearchAd.headlines.length}):`,
           ...numbered(adGroup.responsiveSearchAd.headlines),

@@ -39,6 +39,13 @@ export interface AdSchedule {
 }
 
 interface CampaignCreateKeyword {
+  exemptPolicyViolationKeys: Array<{
+    policyName:
+      | "BIRTH_CONTROL"
+      | "HEALTH_IN_PERSONALIZED_ADS"
+      | "PRESCRIPTION_DRUG_SALE"
+    violatingText: string
+  }>
   matchType: "EXACT" | "PHRASE"
   text: string
 }
@@ -252,6 +259,11 @@ const CAMPAIGN_CREATE_SERVICE_VALUES = [
   "ed",
   "hair_loss",
   "womens_health",
+] as const
+const CAMPAIGN_CREATE_EXEMPTIBLE_POLICIES = [
+  "BIRTH_CONTROL",
+  "HEALTH_IN_PERSONALIZED_ADS",
+  "PRESCRIPTION_DRUG_SALE",
 ] as const
 const PAID_DESTINATION_PATHS = new Set([
   "/erectile-dysfunction",
@@ -587,7 +599,11 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
       const keywords = adGroup.keywords.map((value) => {
         const keyword = asRecord(value)
         if (!keyword) throw new Error("Invalid campaign keyword")
-        assertExactKeys(keyword, ["matchType", "text"], "campaign keyword")
+        assertExactKeys(keyword, [
+          "exemptPolicyViolationKeys",
+          "matchType",
+          "text",
+        ], "campaign keyword")
         const text = boundedText(keyword.text, "campaign keyword", 80)
         if (text.split(/\s+/).length > 10) {
           throw new Error("Positive keyword has too many words")
@@ -600,12 +616,50 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
           ["EXACT", "PHRASE"] as const,
           "matchType",
         )
+        if (
+          !Array.isArray(keyword.exemptPolicyViolationKeys)
+          || keyword.exemptPolicyViolationKeys.length > 3
+        ) {
+          throw new Error("Invalid exemptPolicyViolationKeys")
+        }
+        const exemptPolicyViolationKeys = keyword.exemptPolicyViolationKeys
+          .map((value) => {
+            const exemption = asRecord(value)
+            if (!exemption) throw new Error("Invalid policy exemption")
+            assertExactKeys(
+              exemption,
+              ["policyName", "violatingText"],
+              "policy exemption",
+            )
+            const policyName = enumValue(
+              exemption.policyName,
+              CAMPAIGN_CREATE_EXEMPTIBLE_POLICIES,
+              "policyName",
+            )
+            const violatingText = boundedText(
+              exemption.violatingText,
+              "violatingText",
+              80,
+            )
+            if (violatingText !== text) {
+              throw new Error(
+                "Policy exemption violatingText must match the keyword",
+              )
+            }
+            return { policyName, violatingText }
+          })
+        if (
+          new Set(exemptPolicyViolationKeys.map(({ policyName }) => policyName))
+            .size !== exemptPolicyViolationKeys.length
+        ) {
+          throw new Error("Campaign keyword policy exemptions must be unique")
+        }
         const target = text.toLowerCase()
         if (keywordTargets.has(target)) {
           throw new Error("Campaign positive keywords must be unique")
         }
         keywordTargets.add(target)
-        return { matchType, text }
+        return { exemptPolicyViolationKeys, matchType, text }
       })
       const rsa = asRecord(adGroup.responsiveSearchAd)
       if (!rsa) throw new Error("Invalid campaign responsive search ad")

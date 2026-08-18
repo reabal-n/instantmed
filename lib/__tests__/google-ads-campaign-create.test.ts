@@ -15,12 +15,48 @@ const campaignCreateOperation = {
   adGroups: [
     {
       keywords: [
-        { matchType: "EXACT", text: "online uti assessment" },
-        { matchType: "PHRASE", text: "uti doctor online" },
-        { matchType: "EXACT", text: "telehealth uti assessment" },
-        { matchType: "PHRASE", text: "online doctor for uti" },
-        { matchType: "EXACT", text: "urinary tract infection doctor" },
-        { matchType: "PHRASE", text: "uti treatment online" },
+        {
+          exemptPolicyViolationKeys: [],
+          matchType: "EXACT",
+          text: "online uti assessment",
+        },
+        {
+          exemptPolicyViolationKeys: [{
+            policyName: "HEALTH_IN_PERSONALIZED_ADS",
+            violatingText: "uti doctor online",
+          }],
+          matchType: "PHRASE",
+          text: "uti doctor online",
+        },
+        {
+          exemptPolicyViolationKeys: [{
+            policyName: "HEALTH_IN_PERSONALIZED_ADS",
+            violatingText: "telehealth uti assessment",
+          }],
+          matchType: "EXACT",
+          text: "telehealth uti assessment",
+        },
+        {
+          exemptPolicyViolationKeys: [{
+            policyName: "HEALTH_IN_PERSONALIZED_ADS",
+            violatingText: "online doctor for uti",
+          }],
+          matchType: "PHRASE",
+          text: "online doctor for uti",
+        },
+        {
+          exemptPolicyViolationKeys: [{
+            policyName: "HEALTH_IN_PERSONALIZED_ADS",
+            violatingText: "urinary tract infection doctor",
+          }],
+          matchType: "EXACT",
+          text: "urinary tract infection doctor",
+        },
+        {
+          exemptPolicyViolationKeys: [],
+          matchType: "PHRASE",
+          text: "uti treatment online",
+        },
       ],
       name: "AG | UTI Assessment",
       responsiveSearchAd: {
@@ -46,12 +82,54 @@ const campaignCreateOperation = {
     },
     {
       keywords: [
-        { matchType: "EXACT", text: "contraception assessment online" },
-        { matchType: "PHRASE", text: "contraceptive pill assessment" },
-        { matchType: "EXACT", text: "online contraception doctor" },
-        { matchType: "PHRASE", text: "start contraceptive pill online" },
-        { matchType: "PHRASE", text: "switch contraceptive pill online" },
-        { matchType: "EXACT", text: "online pill consultation" },
+        {
+          exemptPolicyViolationKeys: [],
+          matchType: "EXACT",
+          text: "contraception assessment online",
+        },
+        {
+          exemptPolicyViolationKeys: [{
+            policyName: "BIRTH_CONTROL",
+            violatingText: "contraceptive pill assessment",
+          }],
+          matchType: "PHRASE",
+          text: "contraceptive pill assessment",
+        },
+        {
+          exemptPolicyViolationKeys: [{
+            policyName: "BIRTH_CONTROL",
+            violatingText: "online contraception doctor",
+          }],
+          matchType: "EXACT",
+          text: "online contraception doctor",
+        },
+        {
+          exemptPolicyViolationKeys: [
+            {
+              policyName: "PRESCRIPTION_DRUG_SALE",
+              violatingText: "start contraceptive pill online",
+            },
+            {
+              policyName: "BIRTH_CONTROL",
+              violatingText: "start contraceptive pill online",
+            },
+          ],
+          matchType: "PHRASE",
+          text: "start contraceptive pill online",
+        },
+        {
+          exemptPolicyViolationKeys: [{
+            policyName: "BIRTH_CONTROL",
+            violatingText: "switch contraceptive pill online",
+          }],
+          matchType: "PHRASE",
+          text: "switch contraceptive pill online",
+        },
+        {
+          exemptPolicyViolationKeys: [],
+          matchType: "EXACT",
+          text: "online pill consultation",
+        },
       ],
       name: "AG | Contraception Assessment",
       responsiveSearchAd: {
@@ -147,7 +225,11 @@ describe("Google Ads campaign creation boundary", () => {
       ...base,
       adGroups: [{
         ...first,
-        keywords: [{ ...keywords[0], text: "nitrofurantoin online" }],
+        keywords: [{
+          ...keywords[0],
+          exemptPolicyViolationKeys: [],
+          text: "nitrofurantoin online",
+        }],
       }],
     }])).toThrow("Medicine-name keywords are prohibited")
 
@@ -156,6 +238,7 @@ describe("Google Ads campaign creation boundary", () => {
       adGroups: [first, {
         ...structuredClone(first),
         keywords: [{
+          exemptPolicyViolationKeys: [],
           matchType: "EXACT",
           text: "different valid keyword",
         }],
@@ -171,6 +254,34 @@ describe("Google Ads campaign creation boundary", () => {
       campaignCreateOperation,
       campaignCreateOperation,
     ])).toThrow("exactly one campaign_create operation")
+
+    expect(() => normalizeAdsMutationOperations([{
+      ...base,
+      adGroups: [{
+        ...first,
+        keywords: [{
+          ...keywords[1],
+          exemptPolicyViolationKeys: [{
+            policyName: "UNEXPECTED_POLICY",
+            violatingText: "uti doctor online",
+          }],
+        }],
+      }],
+    }])).toThrow("Invalid policyName")
+
+    expect(() => normalizeAdsMutationOperations([{
+      ...base,
+      adGroups: [{
+        ...first,
+        keywords: [{
+          ...keywords[1],
+          exemptPolicyViolationKeys: [{
+            policyName: "HEALTH_IN_PERSONALIZED_ADS",
+            violatingText: "different text",
+          }],
+        }],
+      }],
+    }])).toThrow("must match the keyword")
   })
 
   it("enforces the approved Women's Health pilot constitution", () => {
@@ -290,6 +401,28 @@ describe("Google Ads campaign creation boundary", () => {
       "adGroupAdOperation" in operation)).toBe(true)
     expect(operations.slice(8).every((operation) =>
       "adGroupCriterionOperation" in operation)).toBe(true)
+    expect(operations[9]).toEqual(expect.objectContaining({
+      adGroupCriterionOperation: expect.objectContaining({
+        exemptPolicyViolationKeys: [{
+          policyName: "HEALTH_IN_PERSONALIZED_ADS",
+          violatingText: "uti doctor online",
+        }],
+      }),
+    }))
+    expect(operations[17]).toEqual(expect.objectContaining({
+      adGroupCriterionOperation: expect.objectContaining({
+        exemptPolicyViolationKeys: [
+          {
+            policyName: "PRESCRIPTION_DRUG_SALE",
+            violatingText: "start contraceptive pill online",
+          },
+          {
+            policyName: "BIRTH_CONTROL",
+            violatingText: "start contraceptive pill online",
+          },
+        ],
+      }),
+    }))
   })
 
   it("renders the complete launch in the trusted approval summary", () => {
@@ -304,6 +437,10 @@ describe("Google Ads campaign creation boundary", () => {
     expect(summary).toContain("online uti assessment")
     expect(summary).toContain("AG | Contraception Assessment")
     expect(summary).toContain("contraception assessment online")
+    expect(summary).toContain("Policy exemptions: HEALTH_IN_PERSONALIZED_ADS")
+    expect(summary).toContain(
+      "Policy exemptions: PRESCRIPTION_DRUG_SALE, BIRTH_CONTROL",
+    )
     expect(summary).toContain("https://instantmed.com.au/womens-health")
     expect(Array.from(summary).length).toBeLessThan(3_600)
   })

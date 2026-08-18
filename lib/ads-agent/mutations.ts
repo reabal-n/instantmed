@@ -921,10 +921,19 @@ export function buildGoogleAdsMutateOperations(
             adGroupCriterionOperation: {
               create: {
                 adGroup: adGroup.resourceName,
-                keyword,
+                keyword: {
+                  matchType: keyword.matchType,
+                  text: keyword.text,
+                },
                 negative: false,
                 status: "ENABLED",
               },
+              ...(keyword.exemptPolicyViolationKeys.length > 0
+                ? {
+                    exemptPolicyViolationKeys:
+                      keyword.exemptPolicyViolationKeys,
+                  }
+                : {}),
             },
           }))),
       ]
