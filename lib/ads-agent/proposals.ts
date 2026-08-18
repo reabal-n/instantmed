@@ -1307,7 +1307,7 @@ export async function recordCodexProposalDecision(args: {
   return { consumed: result.data != null }
 }
 
-export function getCodexDecisionExpectedStatus(
+function getCodexDecisionExpectedStatus(
   status: AdsProposalStatus,
 ): "validated" | "awaiting_approval" | null {
   return status === "validated" || status === "awaiting_approval"

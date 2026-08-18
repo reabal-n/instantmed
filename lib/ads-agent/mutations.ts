@@ -35,7 +35,14 @@ import {
   recordAdsProposalValidation,
 } from "@/lib/ads-agent/proposals"
 import { isAdsAgentSnapshot } from "@/lib/ads-agent/runs"
-import type { AdsAgentSnapshot, AdsService } from "@/lib/ads-agent/types"
+import {
+  type AdsScaleAuthorizationEvidence,
+  deriveScriptsScaleAuthorizationEvidence,
+  previousSydneyDateKey,
+  resolveLatestAdsMaterialChangeAt,
+  sydneyDateKey,
+} from "@/lib/ads-agent/scripts-scale-authorization"
+import type { AdsService } from "@/lib/ads-agent/types"
 import {
   type GoogleAdsMutateOperation,
   type GoogleAdsMutateResponse,
@@ -61,14 +68,6 @@ export interface AdsTrackingGateReceipt {
   checkedAt: string
   fresh: boolean
   state: "GREEN" | "AMBER" | "RED"
-}
-
-export interface AdsScaleAuthorizationEvidence {
-  previousMaterialChange: {
-    attributedOrders: number
-    closedDays: number
-  } | null
-  snapshot: AdsAgentSnapshot
 }
 
 export interface AdsMutationGatewayRepository {
@@ -1276,204 +1275,6 @@ function errorCode(error: unknown): string {
     .replace(/_+/g, "_")
     .slice(0, 96)
   return normalized || "unknown_error"
-}
-
-function sydneyDateKey(value: string): string | null {
-  const date = new Date(value)
-  if (!Number.isFinite(date.getTime())) return null
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    day: "2-digit",
-    month: "2-digit",
-    timeZone: "Australia/Sydney",
-    year: "numeric",
-  }).formatToParts(date)
-  const values = Object.fromEntries(
-    parts
-      .filter((part) => part.type !== "literal")
-      .map((part) => [part.type, part.value]),
-  )
-  return `${values.year}-${values.month}-${values.day}`
-}
-
-function previousSydneyDateKey(value: string): string | null {
-  const key = sydneyDateKey(value)
-  if (!key) return null
-  const [year, month, day] = key.split("-").map(Number)
-  const previous = new Date(Date.UTC(year, month - 1, day - 1))
-  return previous.toISOString().slice(0, 10)
-}
-
-interface StoredScaleProposalEvidence {
-  apply_receipt: unknown
-  operations: unknown
-  status: unknown
-  verification_receipt: unknown
-}
-
-interface StoredScaleRunEvidence {
-  report_date: unknown
-  snapshot: unknown
-  status: unknown
-}
-
-export function deriveScriptsScaleAuthorizationEvidence(args: {
-  budgetResourceName: string
-  campaignResourceName: string
-  historyComplete: boolean
-  latestReportDate: string
-  latestSnapshot: unknown
-  liveMaterialChangeAt: string | null
-  proposals: StoredScaleProposalEvidence[]
-  runs: StoredScaleRunEvidence[]
-}): AdsScaleAuthorizationEvidence | null {
-  if (
-    !args.historyComplete
-    || !isAdsAgentSnapshot(args.latestSnapshot)
-    || args.latestSnapshot.reportDate !== args.latestReportDate
-  ) {
-    return null
-  }
-  const touchesTarget = (value: unknown): boolean => {
-    if (!Array.isArray(value)) return false
-    return value.some((operation) => {
-      const record = asRecord(operation)
-      const kind = asString(record?.kind)
-      const resourceName = asString(record?.resourceName)
-      return (
-        kind === "campaign_budget"
-        && resourceName === args.budgetResourceName
-      ) || (
-        kind === "campaign_bidding"
-        && resourceName === args.campaignResourceName
-      )
-    })
-  }
-
-  const appliedAt: string[] = []
-  for (const row of args.proposals.filter((proposal) =>
-    touchesTarget(proposal.operations))) {
-    const status = asString(row.status)
-    const receipt = asRecord(row.apply_receipt)
-    const verification = asRecord(row.verification_receipt)
-    const outcome = asString(receipt?.outcome)
-    const verificationOutcome = asString(verification?.outcome)
-    if (status === "applying") return null
-    if (outcome === "ambiguous") {
-      if (status === "failed" && verificationOutcome === "not_applied") {
-        continue
-      }
-      if (!(status === "verified" && verificationOutcome === "verified")) {
-        return null
-      }
-    } else if (outcome === "applied") {
-      if (!(status === "verified" && verificationOutcome === "verified")) {
-        return null
-      }
-    } else {
-      continue
-    }
-    const value = asString(receipt?.appliedAt)
-    if (!value || !Number.isFinite(Date.parse(value))) return null
-    appliedAt.push(value)
-  }
-  if (
-    args.liveMaterialChangeAt
-    && Number.isFinite(Date.parse(args.liveMaterialChangeAt))
-  ) {
-    appliedAt.push(args.liveMaterialChangeAt)
-  }
-  appliedAt.sort((left, right) => Date.parse(right) - Date.parse(left))
-  const previousChangeAt = appliedAt[0] ?? null
-  if (!previousChangeAt) {
-    return {
-      previousMaterialChange: null,
-      snapshot: args.latestSnapshot,
-    }
-  }
-
-  const changeDate = sydneyDateKey(previousChangeAt)
-  if (!changeDate) return null
-  let attributedOrders = 0
-  let totalOrdersAfterChange = 0
-  const closedDates = new Set<string>()
-  for (const row of args.runs) {
-    if (
-      row.status !== "delivered"
-      || typeof row.report_date !== "string"
-      || row.report_date > args.latestReportDate
-      || !isAdsAgentSnapshot(row.snapshot)
-      || row.snapshot.reportDate !== row.report_date
-      || !Array.isArray(row.snapshot.daily)
-      || closedDates.has(row.report_date)
-    ) {
-      return null
-    }
-    if (row.report_date <= changeDate) continue
-    const campaigns = row.snapshot.daily.filter((campaign) =>
-      campaign.campaignResourceName === args.campaignResourceName
-      && resolveAdsCampaignService(campaign) === "scripts")
-    const totalOrders = campaigns[0]?.orders
-    const scriptsOrders = campaigns[0]?.serviceOrders.scripts ?? 0
-    if (
-      campaigns.length !== 1
-      || totalOrders == null
-      || totalOrders < 0
-      || scriptsOrders < 0
-      || scriptsOrders > totalOrders
-    ) {
-      return null
-    }
-    closedDates.add(row.report_date)
-    attributedOrders += scriptsOrders
-    totalOrdersAfterChange += totalOrders
-  }
-  if (
-    totalOrdersAfterChange > 0
-    && attributedOrders / totalOrdersAfterChange
-      < POLICY.attribution.minimumExpectedServiceOrderShare
-  ) return null
-  return {
-    previousMaterialChange: {
-      attributedOrders,
-      closedDays: closedDates.size,
-    },
-    snapshot: args.latestSnapshot,
-  }
-}
-
-export function resolveLatestAdsMaterialChangeAt(args: {
-  budgetResourceName: string
-  campaignResourceName: string
-  state: GoogleAdsAccountState
-}): string | null {
-  const relevantCampaignField = (fields: unknown): boolean => {
-    const value = JSON.stringify(fields)
-      .toLowerCase()
-      .replace(/[_\-.]/g, "")
-    return [
-      "bidding",
-      "campaignbudget",
-      "maximizeconversionvalue",
-      "targetroas",
-    ].some((field) => value.includes(field))
-  }
-  const candidates = args.state.changeEvents
-    .filter((event) => {
-      if (event.changeResourceName === args.budgetResourceName) return true
-      return event.changeResourceName === args.campaignResourceName
-        && relevantCampaignField(event.changedFields)
-    })
-    .map((event) => event.changeDateTime)
-    .filter((value): value is string =>
-      value != null && Number.isFinite(Date.parse(value)))
-    .sort((left, right) => Date.parse(right) - Date.parse(left))
-  return candidates[0]
-    ?? (
-      args.state.changeEventHistoryStartAt
-      && Number.isFinite(Date.parse(args.state.changeEventHistoryStartAt))
-        ? args.state.changeEventHistoryStartAt
-        : null
-    )
 }
 
 function fallbackGoogleOperationsHash(proposal: AdsChangeProposal): string {

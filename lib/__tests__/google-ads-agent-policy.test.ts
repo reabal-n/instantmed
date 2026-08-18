@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest"
 
 import {
   authorizeScriptsBudgetScale,
+  authorizeScriptsScaleEligibility,
   evaluateAdsPolicy,
   POLICY,
-  resolveScriptsScaleTier,
 } from "@/lib/ads-agent/policy"
 import type {
   AdsAgentSnapshot,
@@ -172,18 +172,17 @@ describe("Google Ads Agent policy", () => {
   })
 
   it("earns progressively larger budget steps from measured contribution", () => {
-    expect(resolveScriptsScaleTier({
-      contributionMargin: 0.20,
-      orders: 10,
-    })?.name).toBe("positive")
-    expect(resolveScriptsScaleTier({
-      contributionMargin: 0.30,
-      orders: 30,
-    })?.name).toBe("proven")
-    expect(resolveScriptsScaleTier({
-      contributionMargin: 0.40,
-      orders: 50,
-    })?.name).toBe("strong")
+    const eligible = (orders: number, contributionMargin: number) =>
+      authorizeScriptsScaleEligibility(campaign({
+        contributionMargin,
+        orders,
+        refundRate: 0,
+        serviceOrders: { scripts: orders },
+      })).name
+
+    expect(eligible(10, 0.20)).toBe("positive")
+    expect(eligible(30, 0.30)).toBe("proven")
+    expect(eligible(50, 0.40)).toBe("strong")
   })
 
   it("binds a strong Scripts step to tROAS, economics, and post-change proof", () => {

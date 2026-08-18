@@ -8,12 +8,9 @@ import {
 import {
   type AdsMutationAuditReceipt,
   type AdsMutationGatewayRepository,
-  type AdsScaleAuthorizationEvidence,
   buildGoogleAdsMutateOperations,
   createAdsMutationGateway,
-  deriveScriptsScaleAuthorizationEvidence,
   hashGoogleAdsMutateOperations,
-  resolveLatestAdsMaterialChangeAt,
   validateAdsMutationPolicy,
 } from "@/lib/ads-agent/mutations"
 import {
@@ -21,6 +18,11 @@ import {
   type AdsMutationOperation,
   hashAdsMutationOperations,
 } from "@/lib/ads-agent/proposals"
+import {
+  type AdsScaleAuthorizationEvidence,
+  deriveScriptsScaleAuthorizationEvidence,
+  resolveLatestAdsMaterialChangeAt,
+} from "@/lib/ads-agent/scripts-scale-authorization"
 import type {
   AdsAgentSnapshot,
   CampaignEconomics,

@@ -97,7 +97,7 @@ export const POLICY = {
 export type ScriptsScaleTier =
   (typeof POLICY.scripts.scale.budgetStepTiers)[number]
 
-export function resolveScriptsScaleTier(args: {
+function resolveScriptsScaleTier(args: {
   contributionMargin: number
   orders: number
 }): ScriptsScaleTier | null {
