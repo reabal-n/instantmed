@@ -290,6 +290,43 @@ const positiveKeywordCreateOperation = {
   text: "repeat prescription online",
 } as unknown as AdsMutationOperation
 
+const createdCampaignResourceName = "customers/123/campaigns/900"
+const createdCampaignBudgetResourceName =
+  "customers/123/campaignBudgets/901"
+const createdCampaignAdGroupResourceName = "customers/123/adGroups/902"
+const campaignCreateOperation = {
+  adGroups: [{
+    keywords: [{
+      exemptPolicyViolationKeys: [],
+      matchType: "EXACT",
+      text: "online uti assessment",
+    }],
+    name: "AG | UTI Assessment",
+    responsiveSearchAd: {
+      descriptions: [
+        "Complete a secure UTI symptom form for Australian doctor review.",
+        "The doctor may call if more detail is needed before deciding what comes next.",
+      ],
+      headlines: [
+        "Online UTI Assessment",
+        "Australian Doctor Review",
+        "Start With A Secure Form",
+      ],
+      path1: "womens-health",
+      path2: "uti-review",
+    },
+  }],
+  campaignName: "IM | Search | Women's Health | AU",
+  cpcBidMicros: 3_000_000,
+  dailyBudgetMicros: 20_000_000,
+  finalUrl: "https://instantmed.com.au/womens-health",
+  kind: "campaign_create",
+  languageResourceName: "languageConstants/1000",
+  locationResourceName: "geoTargetConstants/2036",
+  service: "womens_health",
+  status: "ENABLED",
+} as unknown as AdsMutationOperation
+
 function stateWithCreatedRsa(
   state: GoogleAdsAccountState,
 ): GoogleAdsAccountState {
@@ -339,6 +376,121 @@ function stateWithCreatedKeyword(
       type: "KEYWORD",
     },
   }))
+  return next
+}
+
+function stateWithCreatedCampaign(
+  state: GoogleAdsAccountState,
+): GoogleAdsAccountState {
+  const next = structuredClone(state)
+  next.campaignBudgets.push(resource(createdCampaignBudgetResourceName, {
+    campaignBudget: {
+      amountMicros: "20000000",
+      explicitlyShared: false,
+      resourceName: createdCampaignBudgetResourceName,
+      status: "ENABLED",
+    },
+  }))
+  next.campaigns.push(resource(createdCampaignResourceName, {
+    campaign: {
+      advertisingChannelType: "SEARCH",
+      biddingStrategyType: "MANUAL_CPC",
+      campaignBudget: createdCampaignBudgetResourceName,
+      containsEuPoliticalAdvertising:
+        "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+      geoTargetTypeSetting: {
+        negativeGeoTargetType: "PRESENCE",
+        positiveGeoTargetType: "PRESENCE",
+      },
+      manualCpc: { enhancedCpcEnabled: false },
+      name: "IM | Search | Women's Health | AU",
+      networkSettings: {
+        targetContentNetwork: false,
+        targetGoogleSearch: true,
+        targetPartnerSearchNetwork: false,
+        targetSearchNetwork: false,
+      },
+      resourceName: createdCampaignResourceName,
+      status: "ENABLED",
+    },
+  }))
+  next.campaignCriteria.push(
+    resource("customers/123/campaignCriteria/900~2036", {
+      campaignCriterion: {
+        campaign: createdCampaignResourceName,
+        location: { geoTargetConstant: "geoTargetConstants/2036" },
+        negative: false,
+        resourceName: "customers/123/campaignCriteria/900~2036",
+        status: "ENABLED",
+        type: "LOCATION",
+      },
+    }),
+    resource("customers/123/campaignCriteria/900~1000", {
+      campaignCriterion: {
+        campaign: createdCampaignResourceName,
+        language: { languageConstant: "languageConstants/1000" },
+        negative: false,
+        resourceName: "customers/123/campaignCriteria/900~1000",
+        status: "ENABLED",
+        type: "LANGUAGE",
+      },
+    }),
+  )
+  next.adGroups.push(resource(createdCampaignAdGroupResourceName, {
+    adGroup: {
+      campaign: createdCampaignResourceName,
+      cpcBidMicros: "3000000",
+      name: "AG | UTI Assessment",
+      resourceName: createdCampaignAdGroupResourceName,
+      status: "ENABLED",
+      type: "SEARCH_STANDARD",
+    },
+  }))
+  next.adGroupCriteria.push(resource(
+    "customers/123/adGroupCriteria/902~903",
+    {
+      adGroupCriterion: {
+        adGroup: createdCampaignAdGroupResourceName,
+        keyword: {
+          matchType: "EXACT",
+          text: "online uti assessment",
+        },
+        negative: false,
+        resourceName: "customers/123/adGroupCriteria/902~903",
+        status: "ENABLED",
+        type: "KEYWORD",
+      },
+    },
+  ))
+  next.responsiveSearchAds.push(resource(
+    "customers/123/adGroupAds/902~904",
+    {
+      adGroupAd: {
+        ad: {
+          finalUrls: ["https://instantmed.com.au/womens-health"],
+          responsiveSearchAd: {
+            descriptions: [
+              { text: "Complete a secure UTI symptom form for Australian doctor review." },
+              { text: "The doctor may call if more detail is needed before deciding what comes next." },
+            ],
+            headlines: [
+              { text: "Online UTI Assessment" },
+              { text: "Australian Doctor Review" },
+              { text: "Start With A Secure Form" },
+            ],
+            path1: "womens-health",
+            path2: "uti-review",
+          },
+          resourceName: "customers/123/ads/904",
+          type: "RESPONSIVE_SEARCH_AD",
+        },
+        adGroup: createdCampaignAdGroupResourceName,
+        resourceName: "customers/123/adGroupAds/902~904",
+        status: "ENABLED",
+      },
+    },
+  ))
+  next.readAt = "2026-07-30T09:31:00.000Z"
   return next
 }
 
@@ -832,6 +984,68 @@ describe("Google Ads mutation gateway", () => {
       next: "REMOVED",
       resourceName: createdKeywordResourceName,
     }])
+  })
+
+  it("atomically creates and content-verifies a Search campaign before offering a whole-campaign pause", async () => {
+    const before = accountState()
+    const after = stateWithCreatedCampaign(before)
+    const initial = proposal(before, {
+      operations: [campaignCreateOperation],
+      rationale: {
+        boundedImpact: "A$20/day with an A$3 max CPC",
+        campaign: "IM | Search | Women's Health | AU",
+        currentValue: "No paid Women's Health campaign",
+        reason: "Approved bounded acquisition launch",
+        requestedValue: "Enabled Search campaign",
+        service: "womens_health",
+      },
+    })
+    const harness = gateway({
+      accountReads: [before, after, after],
+      initial,
+    })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("verified")
+    expect(harness.mutate.mock.calls[0][0].operations).toHaveLength(7)
+
+    await harness.gateway.buildRollbackProposal("ADS-20260730-01")
+    expect(harness.store.rollbacks[0].operations).toEqual([{
+      expected: "ENABLED",
+      kind: "campaign_status",
+      next: "PAUSED",
+      resourceName: createdCampaignResourceName,
+    }])
+  })
+
+  it("binds a campaign launch approval card to the exact service and name", async () => {
+    const before = accountState()
+    for (const rationale of [{
+      campaign: "Different campaign",
+      service: "womens_health" as const,
+    }, {
+      campaign: "IM | Search | Women's Health | AU",
+      service: "hair_loss" as const,
+    }]) {
+      const initial = proposal(before, {
+        operations: [campaignCreateOperation],
+        rationale: {
+          boundedImpact: "A$20/day with an A$3 max CPC",
+          campaign: rationale.campaign,
+          currentValue: "No paid campaign",
+          reason: "Approved bounded acquisition launch",
+          requestedValue: "Enabled Search campaign",
+          service: rationale.service,
+        },
+      })
+      const harness = gateway({ accountReads: [before], initial })
+      await expect(
+        harness.gateway.applyProposal("ADS-20260730-01"),
+      ).resolves.toMatchObject({ outcome: "aborted" })
+      expect(harness.mutate).not.toHaveBeenCalled()
+    }
   })
 
   it("rejects disabled, expired, unapproved, and unverified proposals", async () => {

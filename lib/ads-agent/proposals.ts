@@ -38,7 +38,44 @@ export interface AdSchedule {
   startMinute: "ZERO" | "FIFTEEN" | "THIRTY" | "FORTY_FIVE"
 }
 
+interface CampaignCreateKeyword {
+  exemptPolicyViolationKeys: Array<{
+    policyName:
+      | "BIRTH_CONTROL"
+      | "HEALTH_IN_PERSONALIZED_ADS"
+      | "PRESCRIPTION_DRUG_SALE"
+    violatingText: string
+  }>
+  matchType: "EXACT" | "PHRASE"
+  text: string
+}
+
+interface CampaignCreateResponsiveSearchAd {
+  descriptions: string[]
+  headlines: string[]
+  path1: string
+  path2: string
+}
+
+interface CampaignCreateAdGroup {
+  keywords: CampaignCreateKeyword[]
+  name: string
+  responsiveSearchAd: CampaignCreateResponsiveSearchAd
+}
+
 export type AdsMutationOperation =
+  | {
+      adGroups: CampaignCreateAdGroup[]
+      campaignName: string
+      cpcBidMicros: number
+      dailyBudgetMicros: number
+      finalUrl: string
+      kind: "campaign_create"
+      languageResourceName: string
+      locationResourceName: string
+      service: "ed" | "hair_loss" | "womens_health"
+      status: "ENABLED"
+    }
   | {
       kind: "campaign_status"
       resourceName: string
@@ -218,6 +255,16 @@ const SERVICE_VALUES = [
   "womens_health",
   "account",
 ] as const
+const CAMPAIGN_CREATE_SERVICE_VALUES = [
+  "ed",
+  "hair_loss",
+  "womens_health",
+] as const
+const CAMPAIGN_CREATE_EXEMPTIBLE_POLICIES = [
+  "BIRTH_CONTROL",
+  "HEALTH_IN_PERSONALIZED_ADS",
+  "PRESCRIPTION_DRUG_SALE",
+] as const
 const PAID_DESTINATION_PATHS = new Set([
   "/erectile-dysfunction",
   "/hair-loss",
@@ -342,6 +389,30 @@ function normalizeDisplayPath(value: unknown, field: string): string {
     throw new Error(`Invalid ${field}`)
   }
   return path
+}
+
+function boundedText(
+  value: unknown,
+  field: string,
+  maximumLength: number,
+): string {
+  const normalized = requiredString(value, field)
+  if (normalized.length > maximumLength) {
+    throw new Error(`${field} is too long`)
+  }
+  return normalized
+}
+
+function normalizeConstantResourceName(args: {
+  collection: "geoTargetConstants" | "languageConstants"
+  field: string
+  value: unknown
+}): string {
+  const normalized = requiredString(args.value, args.field)
+  if (!new RegExp(`^${args.collection}/\\d+$`).test(normalized)) {
+    throw new Error(`Invalid ${args.field}`)
+  }
+  return normalized
 }
 
 function assertPaidAdCopy(value: string): void {
@@ -487,6 +558,181 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
   const record = asRecord(value)
   if (!record || typeof record.kind !== "string") {
     throw new Error("Unsupported Google Ads mutation operation")
+  }
+
+  if (record.kind === "campaign_create") {
+    assertExactKeys(record, [
+      "kind",
+      "adGroups",
+      "campaignName",
+      "cpcBidMicros",
+      "dailyBudgetMicros",
+      "finalUrl",
+      "languageResourceName",
+      "locationResourceName",
+      "service",
+      "status",
+    ], "campaign_create")
+    if (
+      !Array.isArray(record.adGroups)
+      || record.adGroups.length < 1
+      || record.adGroups.length > 5
+    ) {
+      throw new Error("Campaign creation requires 1 to 5 ad groups")
+    }
+    const keywordTargets = new Set<string>()
+    const adGroups = record.adGroups.map((value) => {
+      const adGroup = asRecord(value)
+      if (!adGroup) throw new Error("Invalid campaign ad group")
+      assertExactKeys(adGroup, [
+        "keywords",
+        "name",
+        "responsiveSearchAd",
+      ], "campaign ad group")
+      if (
+        !Array.isArray(adGroup.keywords)
+        || adGroup.keywords.length < 1
+        || adGroup.keywords.length > 20
+      ) {
+        throw new Error("Campaign ad groups require 1 to 20 keywords")
+      }
+      const keywords = adGroup.keywords.map((value) => {
+        const keyword = asRecord(value)
+        if (!keyword) throw new Error("Invalid campaign keyword")
+        assertExactKeys(keyword, [
+          "exemptPolicyViolationKeys",
+          "matchType",
+          "text",
+        ], "campaign keyword")
+        const text = boundedText(keyword.text, "campaign keyword", 80)
+        if (text.split(/\s+/).length > 10) {
+          throw new Error("Positive keyword has too many words")
+        }
+        if (containsProhibitedPaidMedicineTerm(text)) {
+          throw new Error("Medicine-name keywords are prohibited")
+        }
+        const matchType = enumValue(
+          keyword.matchType,
+          ["EXACT", "PHRASE"] as const,
+          "matchType",
+        )
+        if (
+          !Array.isArray(keyword.exemptPolicyViolationKeys)
+          || keyword.exemptPolicyViolationKeys.length > 3
+        ) {
+          throw new Error("Invalid exemptPolicyViolationKeys")
+        }
+        const exemptPolicyViolationKeys = keyword.exemptPolicyViolationKeys
+          .map((value) => {
+            const exemption = asRecord(value)
+            if (!exemption) throw new Error("Invalid policy exemption")
+            assertExactKeys(
+              exemption,
+              ["policyName", "violatingText"],
+              "policy exemption",
+            )
+            const policyName = enumValue(
+              exemption.policyName,
+              CAMPAIGN_CREATE_EXEMPTIBLE_POLICIES,
+              "policyName",
+            )
+            const violatingText = boundedText(
+              exemption.violatingText,
+              "violatingText",
+              80,
+            )
+            if (violatingText !== text) {
+              throw new Error(
+                "Policy exemption violatingText must match the keyword",
+              )
+            }
+            return { policyName, violatingText }
+          })
+        if (
+          new Set(exemptPolicyViolationKeys.map(({ policyName }) => policyName))
+            .size !== exemptPolicyViolationKeys.length
+        ) {
+          throw new Error("Campaign keyword policy exemptions must be unique")
+        }
+        const target = text.toLowerCase()
+        if (keywordTargets.has(target)) {
+          throw new Error("Campaign positive keywords must be unique")
+        }
+        keywordTargets.add(target)
+        return { exemptPolicyViolationKeys, matchType, text }
+      })
+      const rsa = asRecord(adGroup.responsiveSearchAd)
+      if (!rsa) throw new Error("Invalid campaign responsive search ad")
+      assertExactKeys(rsa, [
+        "descriptions",
+        "headlines",
+        "path1",
+        "path2",
+      ], "campaign responsive search ad")
+      return {
+        keywords,
+        name: boundedText(adGroup.name, "campaign ad group name", 255),
+        responsiveSearchAd: {
+          descriptions: normalizeUniqueAdText({
+            field: "description",
+            maximum: 4,
+            maximumLength: 90,
+            minimum: 2,
+            value: rsa.descriptions,
+          }),
+          headlines: normalizeUniqueAdText({
+            field: "headline",
+            maximum: 15,
+            maximumLength: 30,
+            minimum: 3,
+            value: rsa.headlines,
+          }),
+          path1: normalizeDisplayPath(rsa.path1, "path1"),
+          path2: normalizeDisplayPath(rsa.path2, "path2"),
+        },
+      }
+    })
+    if (
+      new Set(adGroups.map(({ name }) => name.toLowerCase())).size
+      !== adGroups.length
+    ) {
+      throw new Error("Campaign ad group names must be unique")
+    }
+    const cpcBidMicros = nonNegativeInteger(
+      record.cpcBidMicros,
+      "cpcBidMicros",
+    )
+    const dailyBudgetMicros = nonNegativeInteger(
+      record.dailyBudgetMicros,
+      "dailyBudgetMicros",
+    )
+    if (cpcBidMicros === 0 || dailyBudgetMicros === 0) {
+      throw new Error("Campaign budget and CPC bid must be positive")
+    }
+    return {
+      adGroups,
+      campaignName: boundedText(record.campaignName, "campaign name", 128),
+      cpcBidMicros,
+      dailyBudgetMicros,
+      finalUrl: normalizePaidDestination(record.finalUrl),
+      kind: "campaign_create",
+      languageResourceName: normalizeConstantResourceName({
+        collection: "languageConstants",
+        field: "languageResourceName",
+        value: record.languageResourceName,
+      }),
+      locationResourceName: normalizeConstantResourceName({
+        collection: "geoTargetConstants",
+        field: "locationResourceName",
+        value: record.locationResourceName,
+      }),
+      service: enumValue(
+        record.service,
+        CAMPAIGN_CREATE_SERVICE_VALUES,
+        "campaign service",
+      ),
+      status: enumValue(record.status, ["ENABLED"] as const, "status"),
+    }
   }
 
   if (record.kind === "campaign_status") {
@@ -762,7 +1008,16 @@ export function normalizeAdsMutationOperations(
   if (!Array.isArray(value) || value.length === 0 || value.length > 50) {
     throw new Error("Google Ads proposal operations must be a bounded array")
   }
-  return value.map(normalizeOperation)
+  const operations = value.map(normalizeOperation)
+  if (
+    operations.some((operation) => operation.kind === "campaign_create")
+    && operations.length !== 1
+  ) {
+    throw new Error(
+      "Google Ads proposals require exactly one campaign_create operation",
+    )
+  }
+  return operations
 }
 
 export function hashAdsMutationOperations(value: unknown): string {

@@ -83,7 +83,7 @@ export const POLICY = {
     },
   },
   womensHealth: {
-    dailyBudgetCents: 1_000,
+    dailyBudgetCents: 2_000,
     pilot: {
       initialCpcCeilingCents: 300,
       investigateClicks: 10,

@@ -439,10 +439,197 @@ function matchingPositiveKeywords(
   }).sort((left, right) => left.resourceName.localeCompare(right.resourceName))
 }
 
+type CampaignCreateOperation = Extract<
+  AdsMutationOperation,
+  { kind: "campaign_create" }
+>
+
+function activeCampaignsNamed(
+  state: GoogleAdsAccountState,
+  campaignName: string,
+): Array<{ resourceName: string; status: string | null }> {
+  const wanted = normalizedCampaignLabel(campaignName)
+  return state.campaigns.flatMap((resource) => {
+    const campaign = asRecord(resource.values.campaign)
+    if (
+      !resource.resourceName
+      || asString(campaign?.status) === "REMOVED"
+      || normalizedCampaignLabel(campaign?.name) !== wanted
+    ) {
+      return []
+    }
+    return [{
+      resourceName: resource.resourceName,
+      status: asString(campaign?.status),
+    }]
+  }).sort((left, right) => left.resourceName.localeCompare(right.resourceName))
+}
+
+function campaignCriterionTargets(args: {
+  campaignResourceName: string
+  field: "language" | "location"
+  state: GoogleAdsAccountState
+}): string[] {
+  const resourceField = args.field === "language"
+    ? "languageConstant"
+    : "geoTargetConstant"
+  return args.state.campaignCriteria.flatMap((resource) => {
+    const criterion = asRecord(resource.values.campaignCriterion)
+    const target = asRecord(criterion?.[args.field])
+    if (
+      criterion?.campaign !== args.campaignResourceName
+      || criterion?.negative === true
+      || asString(criterion?.status) === "REMOVED"
+    ) {
+      return []
+    }
+    const name = asString(target?.[resourceField])
+    return name ? [name] : []
+  }).sort((left, right) => left.localeCompare(right))
+}
+
+function campaignCreateAdGroupMatches(args: {
+  actualResourceName: string
+  operation: CampaignCreateOperation
+  requested: CampaignCreateOperation["adGroups"][number]
+  state: GoogleAdsAccountState
+}): boolean {
+  const actual = adGroupValue(args.state, args.actualResourceName)
+  if (
+    asString(actual?.status) !== "ENABLED"
+    || asString(actual?.type) !== "SEARCH_STANDARD"
+    || asNumber(actual?.cpcBidMicros) !== args.operation.cpcBidMicros
+  ) {
+    return false
+  }
+
+  const actualKeywords = args.state.adGroupCriteria.flatMap((resource) => {
+    const criterion = asRecord(resource.values.adGroupCriterion)
+    const keyword = asRecord(criterion?.keyword)
+    const text = asString(keyword?.text)
+    const matchType = asString(keyword?.matchType)
+    if (
+      criterion?.adGroup !== args.actualResourceName
+      || criterion?.negative === true
+      || asString(criterion?.status) !== "ENABLED"
+      || !text
+      || !matchType
+    ) {
+      return []
+    }
+    return [{ matchType, text: text.toLowerCase() }]
+  }).sort((left, right) =>
+    `${left.matchType}:${left.text}`.localeCompare(
+      `${right.matchType}:${right.text}`,
+    ))
+  const requestedKeywords = args.requested.keywords
+    .map(({ matchType, text }) => ({
+      matchType,
+      text: text.toLowerCase(),
+    }))
+    .sort((left, right) =>
+      `${left.matchType}:${left.text}`.localeCompare(
+        `${right.matchType}:${right.text}`,
+      ))
+  if (JSON.stringify(actualKeywords) !== JSON.stringify(requestedKeywords)) {
+    return false
+  }
+
+  const rsa = args.requested.responsiveSearchAd
+  return matchingResponsiveSearchAds(args.state, {
+    adGroupResourceName: args.actualResourceName,
+    descriptions: rsa.descriptions,
+    finalUrl: args.operation.finalUrl,
+    headlines: rsa.headlines,
+    kind: "responsive_search_ad_create",
+    path1: rsa.path1,
+    path2: rsa.path2,
+    status: "ENABLED",
+  }).filter(({ status }) => status === "ENABLED").length === 1
+}
+
+function matchingCampaignCreates(
+  state: GoogleAdsAccountState,
+  operation: CampaignCreateOperation,
+): Array<{ resourceName: string; status: string | null }> {
+  return activeCampaignsNamed(state, operation.campaignName).filter((match) => {
+    const campaign = campaignValue(state, match.resourceName)
+    const budgetResourceName = asString(campaign?.campaignBudget)
+    const budget = budgetResourceName
+      ? budgetValue(state, budgetResourceName)
+      : null
+    const network = asRecord(campaign?.networkSettings)
+    const geo = asRecord(campaign?.geoTargetTypeSetting)
+    const manualCpc = asRecord(campaign?.manualCpc)
+    if (
+      asString(campaign?.status) !== operation.status
+      || asString(campaign?.advertisingChannelType) !== "SEARCH"
+      || asString(campaign?.biddingStrategyType) !== "MANUAL_CPC"
+      || manualCpc?.enhancedCpcEnabled !== false
+      || asString(campaign?.containsEuPoliticalAdvertising)
+        !== "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING"
+      || network?.targetGoogleSearch !== true
+      || network?.targetSearchNetwork !== false
+      || network?.targetContentNetwork !== false
+      || network?.targetPartnerSearchNetwork !== false
+      || asString(geo?.positiveGeoTargetType) !== "PRESENCE"
+      || asString(geo?.negativeGeoTargetType) !== "PRESENCE"
+      || asNumber(budget?.amountMicros) !== operation.dailyBudgetMicros
+      || budget?.explicitlyShared !== false
+      || JSON.stringify(campaignCriterionTargets({
+        campaignResourceName: match.resourceName,
+        field: "location",
+        state,
+      })) !== JSON.stringify([operation.locationResourceName])
+      || JSON.stringify(campaignCriterionTargets({
+        campaignResourceName: match.resourceName,
+        field: "language",
+        state,
+      })) !== JSON.stringify([operation.languageResourceName])
+    ) {
+      return false
+    }
+
+    const activeAdGroups = state.adGroups.flatMap((resource) => {
+      const adGroup = asRecord(resource.values.adGroup)
+      if (
+        !resource.resourceName
+        || adGroup?.campaign !== match.resourceName
+        || asString(adGroup?.status) === "REMOVED"
+      ) {
+        return []
+      }
+      return [{
+        name: asString(adGroup?.name),
+        resourceName: resource.resourceName,
+      }]
+    })
+    if (activeAdGroups.length !== operation.adGroups.length) return false
+
+    return operation.adGroups.every((requested) => {
+      const named = activeAdGroups.filter(({ name }) =>
+        normalizedCampaignLabel(name)
+          === normalizedCampaignLabel(requested.name))
+      return named.length === 1 && campaignCreateAdGroupMatches({
+        actualResourceName: named[0].resourceName,
+        operation,
+        requested,
+        state,
+      })
+    })
+  })
+}
+
 function operationProjection(
   operation: AdsMutationOperation,
   state: GoogleAdsAccountState,
 ): unknown {
+  if (operation.kind === "campaign_create") {
+    return {
+      existing: activeCampaignsNamed(state, operation.campaignName),
+      matches: matchingCampaignCreates(state, operation),
+    }
+  }
   if (operation.kind === "campaign_status") {
     return { status: asString(campaignValue(state, operation.resourceName)?.status) }
   }
@@ -503,6 +690,13 @@ function operationMatches(
   target: "expected" | "next",
 ): boolean {
   const projection = operationProjection(operation, state) as UnknownRecord
+  if (operation.kind === "campaign_create") {
+    const existing = projection.existing as Array<{ status: string | null }>
+    const matches = projection.matches as Array<{ status: string | null }>
+    return target === "expected"
+      ? existing.length === 0
+      : matches.length === 1 && matches[0].status === operation.status
+  }
   if (operation.kind === "campaign_status") {
     return projection.status === operation[target]
   }
@@ -620,6 +814,130 @@ export function buildGoogleAdsMutateOperations(
 ): GoogleAdsMutateOperation[] {
   const operations = normalizeAdsMutationOperations(value)
   return operations.flatMap((operation): GoogleAdsMutateOperation[] => {
+    if (operation.kind === "campaign_create") {
+      const customerId = state.customer?.id
+      if (!customerId?.match(/^\d+$/)) {
+        throw new Error("google_ads_customer_identity_unavailable")
+      }
+      const budgetResourceName =
+        `customers/${customerId}/campaignBudgets/-1`
+      const campaignResourceName = `customers/${customerId}/campaigns/-2`
+      const adGroups = operation.adGroups.map((adGroup, index) => ({
+        ...adGroup,
+        resourceName: `customers/${customerId}/adGroups/${-(index + 3)}`,
+      }))
+      return [
+        {
+          campaignBudgetOperation: {
+            create: {
+              amountMicros: String(operation.dailyBudgetMicros),
+              deliveryMethod: "STANDARD",
+              explicitlyShared: false,
+              resourceName: budgetResourceName,
+            },
+          },
+        },
+        {
+          campaignOperation: {
+            create: {
+              advertisingChannelType: "SEARCH",
+              campaignBudget: budgetResourceName,
+              containsEuPoliticalAdvertising:
+                "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+              geoTargetTypeSetting: {
+                negativeGeoTargetType: "PRESENCE",
+                positiveGeoTargetType: "PRESENCE",
+              },
+              manualCpc: { enhancedCpcEnabled: false },
+              name: operation.campaignName,
+              networkSettings: {
+                targetContentNetwork: false,
+                targetGoogleSearch: true,
+                targetPartnerSearchNetwork: false,
+                targetSearchNetwork: false,
+              },
+              resourceName: campaignResourceName,
+              status: operation.status,
+            },
+          },
+        },
+        {
+          campaignCriterionOperation: {
+            create: {
+              campaign: campaignResourceName,
+              location: {
+                geoTargetConstant: operation.locationResourceName,
+              },
+              negative: false,
+              status: "ENABLED",
+            },
+          },
+        },
+        {
+          campaignCriterionOperation: {
+            create: {
+              campaign: campaignResourceName,
+              language: {
+                languageConstant: operation.languageResourceName,
+              },
+              negative: false,
+              status: "ENABLED",
+            },
+          },
+        },
+        ...adGroups.map((adGroup) => ({
+          adGroupOperation: {
+            create: {
+              campaign: campaignResourceName,
+              cpcBidMicros: String(operation.cpcBidMicros),
+              name: adGroup.name,
+              resourceName: adGroup.resourceName,
+              status: "ENABLED",
+              type: "SEARCH_STANDARD",
+            },
+          },
+        })),
+        ...adGroups.map((adGroup) => ({
+          adGroupAdOperation: {
+            create: {
+              ad: {
+                finalUrls: [operation.finalUrl],
+                responsiveSearchAd: {
+                  descriptions: adGroup.responsiveSearchAd.descriptions
+                    .map((text) => ({ text })),
+                  headlines: adGroup.responsiveSearchAd.headlines
+                    .map((text) => ({ text })),
+                  path1: adGroup.responsiveSearchAd.path1,
+                  path2: adGroup.responsiveSearchAd.path2,
+                },
+              },
+              adGroup: adGroup.resourceName,
+              status: "ENABLED",
+            },
+          },
+        })),
+        ...adGroups.flatMap((adGroup) =>
+          adGroup.keywords.map((keyword) => ({
+            adGroupCriterionOperation: {
+              create: {
+                adGroup: adGroup.resourceName,
+                keyword: {
+                  matchType: keyword.matchType,
+                  text: keyword.text,
+                },
+                negative: false,
+                status: "ENABLED",
+              },
+              ...(keyword.exemptPolicyViolationKeys.length > 0
+                ? {
+                    exemptPolicyViolationKeys:
+                      keyword.exemptPolicyViolationKeys,
+                  }
+                : {}),
+            },
+          }))),
+      ]
+    }
     if (operation.kind === "campaign_status") {
       return [{
         campaignOperation: {
@@ -831,6 +1149,92 @@ const ALLOWED_PAID_PRICE_CENTS = {
   womens_health: new Set([4_995]),
 } as const
 
+function specialtyBudgetCeilingMicros(
+  service: CampaignCreateOperation["service"],
+): number {
+  if (service === "ed") return POLICY.ed.dailyBudgetCents * 10_000
+  if (service === "hair_loss") {
+    return POLICY.hairLoss.dailyBudgetCents * 10_000
+  }
+  return POLICY.womensHealth.dailyBudgetCents * 10_000
+}
+
+function specialtyCpcCeilingMicros(
+  service: CampaignCreateOperation["service"],
+): number {
+  if (service === "ed") {
+    return POLICY.ed.pilot.initialCpcCeilingCents * 10_000
+  }
+  if (service === "hair_loss") {
+    return POLICY.hairLoss.pilot.initialCpcCeilingCents * 10_000
+  }
+  return POLICY.womensHealth.pilot.initialCpcCeilingCents * 10_000
+}
+
+function assertCampaignCreateSafe(
+  operations: AdsMutationOperation[],
+  state: GoogleAdsAccountState,
+): void {
+  for (const operation of operations) {
+    if (operation.kind !== "campaign_create") continue
+    if (
+      state.customer?.currencyCode !== "AUD"
+      || state.customer.timeZone !== "Australia/Sydney"
+      || !state.customer.id?.match(/^\d+$/)
+    ) {
+      throw new Error("campaign_create_account_constitution_mismatch")
+    }
+    if (
+      operation.locationResourceName !== "geoTargetConstants/2036"
+      || operation.languageResourceName !== "languageConstants/1000"
+    ) {
+      throw new Error("campaign_create_targeting_mismatch")
+    }
+    if (campaignNameService(operation.campaignName) !== operation.service) {
+      throw new Error("proposal_service_mismatch")
+    }
+    if (
+      new URL(operation.finalUrl).pathname
+      !== PAID_DESTINATION_BY_SERVICE[operation.service]
+    ) {
+      throw new Error("paid_destination_service_mismatch")
+    }
+    if (
+      operation.dailyBudgetMicros
+      > specialtyBudgetCeilingMicros(operation.service)
+    ) {
+      throw new Error("service_budget_ceiling_exceeded")
+    }
+    if (
+      operation.cpcBidMicros
+      > specialtyCpcCeilingMicros(operation.service)
+    ) {
+      throw new Error("specialty_cpc_ceiling_exceeded")
+    }
+    if (activeCampaignsNamed(state, operation.campaignName).length > 0) {
+      throw new Error("create_target_already_exists")
+    }
+    for (const adGroup of operation.adGroups) {
+      if (!adGroup.responsiveSearchAd.descriptions.some((description) =>
+        /\bmay call\b/i.test(description))) {
+        throw new Error("prescribing_ad_missing_possible_call")
+      }
+      const prices = [
+        ...adGroup.responsiveSearchAd.headlines,
+        ...adGroup.responsiveSearchAd.descriptions,
+      ]
+        .flatMap((text) =>
+          Array.from(text.matchAll(/A?\$(\d+(?:\.\d{1,2})?)/g)))
+        .map((match) => Math.round(Number(match[1]) * 100))
+      if (prices.some((price) =>
+        !(ALLOWED_PAID_PRICE_CENTS[operation.service] as ReadonlySet<number>)
+          .has(price))) {
+        throw new Error("paid_copy_price_mismatch")
+      }
+    }
+  }
+}
+
 function assertCreateOperationsSafe(
   operations: AdsMutationOperation[],
   state: GoogleAdsAccountState,
@@ -918,6 +1322,12 @@ function assertSpecialtyCpcCeiling(
   const ceilingMicros = POLICY.ed.pilot.initialCpcCeilingCents * 10_000
 
   for (const operation of operations) {
+    if (
+      operation.kind === "campaign_create"
+      && operation.cpcBidMicros > specialtyCpcCeilingMicros(operation.service)
+    ) {
+      throw new Error("specialty_cpc_ceiling_exceeded")
+    }
     if (operation.kind === "ad_group_cpc_bid") {
       const campaign = campaignForAdGroup(
         state,
@@ -1175,6 +1585,13 @@ function assertGovernedCampaignConstitution(
     if (!service) throw new Error("ungoverned_campaign_service")
     enabledByService.set(service, (enabledByService.get(service) ?? 0) + 1)
   }
+  for (const operation of operations) {
+    if (operation.kind !== "campaign_create") continue
+    enabledByService.set(
+      operation.service,
+      (enabledByService.get(operation.service) ?? 0) + 1,
+    )
+  }
   if (Array.from(enabledByService.values()).some((count) => count > 1)) {
     throw new Error("multiple_enabled_service_campaigns")
   }
@@ -1186,6 +1603,7 @@ export function validateAdsMutationPolicy(args: {
 }): AdsMutationOperation[] {
   const operations = normalizeAdsMutationOperations(args.operations)
   assertGovernedCampaignConstitution(operations, args.state)
+  assertCampaignCreateSafe(operations, args.state)
   assertSpecialtyCpcCeiling(operations, args.state)
   assertCreateOperationsSafe(operations, args.state)
   assertKeywordAndAudienceSafety(operations, args.state)
@@ -1193,6 +1611,7 @@ export function validateAdsMutationPolicy(args: {
 }
 
 function isScalingOperation(operation: AdsMutationOperation): boolean {
+  if (operation.kind === "campaign_create") return true
   if (operation.kind === "campaign_status") return operation.next === "ENABLED"
   if (operation.kind === "campaign_budget") {
     return operation.nextMicros > operation.expectedMicros
@@ -1234,6 +1653,24 @@ function isScalingOperation(operation: AdsMutationOperation): boolean {
 
 function isScalingProposal(operations: AdsMutationOperation[]): boolean {
   return operations.some(isScalingOperation)
+}
+
+function assertProposalOperationIdentity(
+  proposal: AdsChangeProposal,
+  operations: AdsMutationOperation[],
+): void {
+  for (const operation of operations) {
+    if (operation.kind !== "campaign_create") continue
+    if (proposal.rationale.service !== operation.service) {
+      throw new Error("proposal_service_mismatch")
+    }
+    if (
+      normalizedCampaignLabel(proposal.rationale.campaign)
+      !== normalizedCampaignLabel(operation.campaignName)
+    ) {
+      throw new Error("proposal_campaign_mismatch")
+    }
+  }
 }
 
 function verifiedDecisionReceipt(proposal: AdsChangeProposal): boolean {
@@ -1443,6 +1880,18 @@ function reverseOperations(
   state: GoogleAdsAccountState,
 ): AdsMutationOperation[] {
   return operations.map((operation): AdsMutationOperation => {
+    if (operation.kind === "campaign_create") {
+      const matches = matchingCampaignCreates(state, operation)
+      if (matches.length !== 1) {
+        throw new Error("campaign_create_rollback_resource_missing")
+      }
+      return {
+        expected: "ENABLED",
+        kind: "campaign_status",
+        next: "PAUSED",
+        resourceName: matches[0].resourceName,
+      }
+    }
     if (operation.kind === "campaign_status") {
       return { ...operation, expected: operation.next, next: operation.expected }
     }
@@ -1636,6 +2085,7 @@ export function createAdsMutationGateway(
         operations: proposal.operations,
         state,
       })
+      assertProposalOperationIdentity(proposal, operations)
       assertExpectedOperationState(operations, state)
       await requireTrackingGreen({
         now,
@@ -1727,6 +2177,7 @@ export function createAdsMutationGateway(
         operations: proposal.operations,
         state,
       })
+      assertProposalOperationIdentity(proposal, operations)
       googleOperations = buildGoogleAdsMutateOperations(operations, state)
       googleOperationsHash = hashGoogleAdsMutateOperations(googleOperations)
       const eligibility = getAdsProposalApplyEligibility({

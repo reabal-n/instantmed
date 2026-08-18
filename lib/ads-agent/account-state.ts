@@ -210,6 +210,8 @@ export function buildGoogleAdsAccountStateQueries(
         "campaign.bidding_strategy",
         "campaign.bidding_strategy_type",
         "campaign.campaign_budget",
+        "campaign.contains_eu_political_advertising",
+        "campaign.manual_cpc.enhanced_cpc_enabled",
         "campaign.maximize_conversions.target_cpa_micros",
         "campaign.maximize_conversion_value.target_roas",
         "campaign.network_settings.target_google_search",
