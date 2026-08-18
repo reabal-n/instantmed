@@ -167,6 +167,8 @@ describe("Google Ads Agent policy", () => {
     expect(POLICY.scripts.scale.targetContributionMargin).toBe(0.30)
     expect(POLICY.ed.pilot.maximumLossCents).toBe(15000)
     expect(POLICY.hairLoss.pilot.maximumLossCents).toBe(15000)
+    expect(POLICY.womensHealth.dailyBudgetCents).toBe(2000)
+    expect(POLICY.womensHealth.pilot.initialCpcCeilingCents).toBe(300)
     expect(POLICY.womensHealth.pilot.maximumLossCents).toBe(15000)
     expect(POLICY.keywords.medicineNamesAllowed).toBe(false)
   })

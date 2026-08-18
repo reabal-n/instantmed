@@ -556,6 +556,9 @@ describe("project docs drift contract", () => {
     expect(roadmap).toContain("Clinical protocol reactivated 2026-08-12")
     expect(roadmap).toContain("The exact-flow conversion repair from 2026-07-29 remains in force")
     expect(roadmap).toContain("Automatic Gmail polling and support-inbox Telegram paging remain retired")
+    expect(roadmap).toContain("No staffing or rota project is active")
+    expect(roadmap).toContain("A$20/day with a A$3 maximum CPC")
+    expect(roadmap).not.toContain("add deliberate overnight/early-morning review coverage")
 
     expect(operations).toContain("Medical-certificate protocol issuance is active and bounded")
     expect(operations).toContain("`docs/REVENUE_MODEL.md` owns the current hiring and capacity triggers")

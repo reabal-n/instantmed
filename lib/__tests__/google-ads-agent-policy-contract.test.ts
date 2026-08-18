@@ -19,9 +19,23 @@ describe("Google Ads Agent policy documentation", () => {
     expect(operations).toContain("09:00 Australia/Sydney")
     expect(operations).toContain("Telegram Ads approval requires an immutable proposal")
     expect(operations).toContain("authorised Telegram user ID")
+    expect(operations).toContain("one atomic Google Ads request")
+    expect(operations).toContain("A$20/day")
+    expect(operations).toContain("A$3 maximum CPC")
     expect(revenue).toContain("maximum 50% budget step")
     expect(revenue).toContain("10 attributed orders after the change")
     expect(revenue).not.toContain("tCPA cap")
+  })
+
+  it("pins the approved Women's Health paid launch without widening health targeting", () => {
+    expect(advertising).toContain("IM | Search | Women's Health | AU")
+    expect(advertising).toContain("UTI Assessment")
+    expect(advertising).toContain("Contraception Assessment")
+    expect(advertising).toContain("exact and phrase match only")
+    expect(advertising).toContain("A$20/day")
+    expect(advertising).toContain("A$3 maximum CPC")
+    expect(advertising).toContain("No medicine-name keywords")
+    expect(advertising).toContain("No advertiser-curated health audiences")
   })
 
   it("keeps Google eligibility separate from Australian advertising clearance", () => {

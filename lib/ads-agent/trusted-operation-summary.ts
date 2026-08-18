@@ -48,6 +48,32 @@ export function formatTrustedAdsOperationSummary(
   const lines = operations.flatMap((operation, index) => {
     const heading = `Operation ${index + 1}/${operations.length} · ${operation.kind}`
 
+    if (operation.kind === "campaign_create") {
+      return [
+        heading,
+        `Campaign: ${operation.campaignName}`,
+        `Service: ${operation.service}`,
+        `Status: ${operation.status}`,
+        `Budget: A$${(operation.dailyBudgetMicros / 1_000_000).toFixed(2)}/day`,
+        `Bid: A$${(operation.cpcBidMicros / 1_000_000).toFixed(2)} max CPC`,
+        "Bidding: Manual CPC (enhanced CPC off)",
+        "Networks: Google Search only (Search Partners and Display off)",
+        `Targeting: Australia only (${operation.locationResourceName}); English (${operation.languageResourceName}); presence only`,
+        `Final URL: ${operation.finalUrl}`,
+        ...operation.adGroups.flatMap((adGroup, adGroupIndex) => [
+          `Ad group ${adGroupIndex + 1}/${operation.adGroups.length}: ${adGroup.name}`,
+          `Keywords (${adGroup.keywords.length}):`,
+          ...adGroup.keywords.map((keyword, keywordIndex) =>
+            `${keywordIndex + 1}. ${keyword.matchType} ${JSON.stringify(keyword.text)}`),
+          `Display paths: ${JSON.stringify(adGroup.responsiveSearchAd.path1)} / ${JSON.stringify(adGroup.responsiveSearchAd.path2)}`,
+          `Headlines (${adGroup.responsiveSearchAd.headlines.length}):`,
+          ...numbered(adGroup.responsiveSearchAd.headlines),
+          `Descriptions (${adGroup.responsiveSearchAd.descriptions.length}):`,
+          ...numbered(adGroup.responsiveSearchAd.descriptions),
+        ]),
+      ]
+    }
+
     if (
       operation.kind === "campaign_status"
       || operation.kind === "ad_status"

@@ -32,6 +32,7 @@ export interface AdsProposalDraftPacket {
 }
 
 const MUTATION_FAMILIES = new Set<AdsMutationFamily>([
+  "campaign_create",
   "campaign_status",
   "campaign_budget",
   "campaign_bidding",

@@ -3,7 +3,7 @@
 > Canonical advertising rules for InstantMed marketing, Google Ads, landing pages, metadata, schema, and reusable copy.
 > Read this before changing any public acquisition surface.
 
-**Last updated:** 2026-08-16
+**Last updated:** 2026-08-18
 
 > **In an active complaint?** Stop and load the runbook before doing anything else: [`docs/runbooks/comparative-tagline-complaint.md`](runbooks/comparative-tagline-complaint.md). It covers AHPRA notifications, TGA notices, Medical Board letters, Google Ads disapprovals, competitor cease-and-desists, patient complaints about ad copy, and media inquiries.
 
@@ -240,6 +240,12 @@ A live service does not itself authorise a campaign. Campaign creation, activati
 | Hair loss search | Hair loss assessment. Avoid drug names and outcome guarantees. |
 | Weight-management search (live service; paid Ads not approved) | No campaign may run without separate exact operator approval. If approved, use weight-management assessment framing and avoid injection/drug references, guaranteed weight loss, and body-shaming language. |
 | Women's health search | Narrow condition/service terms. Avoid sensitive targeting and guaranteed outcomes. |
+
+### Women's Health paid launch approval — 2026-08-18
+
+The operator approved one bounded Search launch: `IM | Search | Women's Health | AU`, A$20/day, A$3 maximum CPC, Australia-presence targeting, English, Google Search only, and the paid destination `/womens-health`. It has exactly two ad groups: `UTI Assessment` and `Contraception Assessment`.
+
+Positive keywords use exact and phrase match only. No medicine-name keywords, broad match, Search Partners, Display Network, remarketing, Customer Match, or custom segments are permitted. No advertiser-curated health audiences are permitted. Copy stays at service and assessment level, says the doctor may call, and never promises a prescription or outcome. This is approval for the exact launch packet, not general permission to create or widen health campaigns.
 
 ### Negative-keyword governance
 

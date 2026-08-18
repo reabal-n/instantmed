@@ -5,6 +5,7 @@ export type RecommendationKind =
   | "APPROVAL_NEEDED"
 
 export type AdsMutationFamily =
+  | "campaign_create"
   | "campaign_status"
   | "campaign_budget"
   | "campaign_bidding"

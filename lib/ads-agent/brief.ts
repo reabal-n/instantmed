@@ -41,6 +41,7 @@ const mutationFamilyCopy: Record<AdsMutationFamily, string> = {
   ad_group_cpc_bid: "CPC bid change",
   ad_status: "ad change",
   asset_link_status: "asset/sitelink change",
+  campaign_create: "new Search campaign",
   campaign_bidding: "scaling/bid change",
   campaign_budget: "budget change",
   campaign_status: "campaign pause/enable",
