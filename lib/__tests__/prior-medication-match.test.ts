@@ -1,15 +1,13 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  findPriorMedicationMatch,
-  normalizeMedicationNameForComparison,
-} from "@/lib/clinical/prior-medication-match"
+import { findPriorMedicationMatch } from "@/lib/clinical/prior-medication-match"
 
 describe("prior medication matching", () => {
   it("removes strength, form, and regimen noise before comparison", () => {
-    expect(normalizeMedicationNameForComparison(
+    expect(findPriorMedicationMatch(
       "Sertraline 100 mg tablet once daily",
-    )).toBe("sertraline")
+      ["Sertraline"],
+    )).toEqual({ medicationName: "Sertraline", kind: "exact" })
   })
 
   it.each([

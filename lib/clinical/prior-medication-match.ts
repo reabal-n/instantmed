@@ -68,7 +68,7 @@ const DOSE_TOKEN = /^\d+(?:\.\d+)?(?:mg|mcg|g|ng|ml|units?|iu|mmol|meq|%)?$/i
  * an advisory comparison against the same patient's prescription history; it
  * must never drive eligibility, safety routing, or prescribing.
  */
-export function normalizeMedicationNameForComparison(value: string): string {
+function normalizeMedicationNameForComparison(value: string): string {
   return value
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
