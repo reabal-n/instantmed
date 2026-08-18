@@ -241,11 +241,11 @@ A live service does not itself authorise a campaign. Campaign creation, activati
 | Weight-management search (live service; paid Ads not approved) | No campaign may run without separate exact operator approval. If approved, use weight-management assessment framing and avoid injection/drug references, guaranteed weight loss, and body-shaming language. |
 | Women's health search | Narrow condition/service terms. Avoid sensitive targeting and guaranteed outcomes. |
 
-### Women's Health paid launch approval — 2026-08-18
+### Women's Health paid launch — live 2026-08-18
 
-The operator approved one bounded Search launch: `IM | Search | Women's Health | AU`, A$20/day, A$3 maximum CPC, Australia-presence targeting, English, Google Search only, and the paid destination `/womens-health`. It has exactly two ad groups: `UTI Assessment` and `Contraception Assessment`.
+Campaign `24144825264` (`IM | Search | Women's Health | AU`) is live at A$20/day with a A$3 maximum CPC, Australia-presence targeting, English, Google Search only, and the paid destination `/womens-health`. It has exactly two ad groups: `UTI Assessment` and `Contraception Assessment`. Exact proposal `ADS-20260818-18` applied and fresh-read verified the complete campaign on 2026-08-18 before spend began.
 
-Positive keywords use exact and phrase match only. No medicine-name keywords, broad match, Search Partners, Display Network, remarketing, Customer Match, or custom segments are permitted. No advertiser-curated health audiences are permitted. Copy stays at service and assessment level, says the doctor may call, and never promises a prescription or outcome. This is approval for the exact launch packet, not general permission to create or widen health campaigns.
+Positive keywords use exact and phrase match only. No medicine-name keywords, broad match, Search Partners, Display Network, remarketing, Customer Match, or custom segments are permitted. No advertiser-curated health audiences are permitted. Copy stays at service and assessment level, says the doctor may call, and never promises a prescription or outcome. The launch receipt is not general permission to widen this or any other health campaign.
 
 ### Negative-keyword governance
 
