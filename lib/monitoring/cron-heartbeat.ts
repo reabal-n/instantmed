@@ -61,6 +61,7 @@ const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number
   "retry-auto-approval":    { schedule: "*/3 * * * *",   maxDelayMinutes: 10 },
   "retry-drafts":           { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "release-stale-claims":   { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
+  "refund-reconciliation":  { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "stale-queue":            { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "emergency-flags":        { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "daily-reconciliation":   { schedule: "0 21 * * *",    maxDelayMinutes: 1500 }, // ~25h

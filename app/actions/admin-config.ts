@@ -38,6 +38,7 @@ import { startOfDayAEST } from "@/lib/operator/cases/time-grouping"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { stripe } from "@/lib/stripe/client"
+import { requestStripeRefund } from "@/lib/stripe/refund-attempts"
 
 const log = createLogger("admin-config-actions")
 
@@ -297,24 +298,41 @@ export async function markRefundEligibleAction(paymentId: string, reason: string
 export async function processRefundAction(
   paymentId: string,
   refundAmount: number,
-  intakeId?: string
+  _intakeId?: string,
 ) {
   const admin = await requireAdminWithRateLimit()
 
-  // Look up the payment to get the Stripe payment intent ID
   const supabase = (await import("@/lib/supabase/service-role")).createServiceRoleClient()
   const { data: payment, error: paymentError } = await supabase
     .from("payments")
-    .select("stripe_payment_intent_id, amount, refund_status, stripe_refund_id, updated_at")
+    .select("intake_id, stripe_payment_intent_id, amount")
     .eq("id", paymentId)
     .single()
 
-  if (paymentError || !payment?.stripe_payment_intent_id) {
-    log.error("Payment not found or missing Stripe payment intent ID", { paymentId, error: paymentError })
-    return { success: false, error: "Payment record not found or missing Stripe payment intent ID" }
+  if (
+    paymentError ||
+    !payment?.stripe_payment_intent_id ||
+    !payment.intake_id ||
+    !Number.isSafeInteger(payment.amount) ||
+    payment.amount <= 0
+  ) {
+    log.error("Payment is not durably linked to a refundable intake", {
+      error: paymentError,
+      paymentId,
+    })
+    return {
+      success: false,
+      error: "Payment record is not safely linked to a refundable request",
+    }
   }
+  if (refundAmount !== payment.amount) {
+    return {
+      success: false,
+      error: "Refund amount changed. Refresh the payment record and try again.",
+    }
+  }
+  const intakeId = payment.intake_id
 
-  // Log refund attempt for audit trail
   await logAuditEvent({
     action: "refund_attempted",
     actorId: admin.id,
@@ -329,137 +347,81 @@ export async function processRefundAction(
     },
   })
 
-  // Reserve one creator before touching Stripe. Exact refund webhooks also
-  // advance payments.updated_at, so the guarded response/failure writes below
-  // can never overwrite their terminal mirror.
-  const requestedReservationAt = new Date(
-    Math.max(Date.now(), Date.parse(payment.updated_at) + 1),
-  ).toISOString()
-  const { data: reserved, error: processingError } = await supabase
-    .from("payments")
-    .update({ refund_status: "processing", updated_at: requestedReservationAt })
-    .eq("id", paymentId)
-    .eq("updated_at", payment.updated_at)
-    .select("id, updated_at")
-    .maybeSingle()
-  if (processingError || !reserved || typeof reserved.updated_at !== "string") {
-    return {
-      success: false,
-      error: processingError?.message ?? (
-        !reserved
-          ? "Payment changed while the refund was being prepared. Refresh and try again."
-          : "Could not verify the reserved refund state. Refresh and try again."
-      ),
-    }
-  }
-  const reservationUpdatedAt = reserved.updated_at
-
-  // Call Stripe to create the refund
-  let stripeRefund
-  try {
-    stripeRefund = await stripe.refunds.create({
-      payment_intent: payment.stripe_payment_intent_id,
-      amount: refundAmount,
-      reason: "requested_by_customer",
-      metadata: {
-        payment_id: paymentId,
-        intake_id: intakeId || "",
-        admin_id: admin.id,
-        refund_type: "admin_manual",
-      },
-    }, {
-      idempotencyKey:
-        payment.refund_status === "failed" && payment.stripe_refund_id
-          ? `admin_refund_${paymentId}_after_${payment.stripe_refund_id}`
-          : `admin_refund_${paymentId}`,
-    })
-  } catch (stripeError) {
-    const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
-    log.error("Stripe refund failed", { paymentId, error: errorMessage })
-
-    await supabase
-      .from("payments")
-      .update({ refund_status: "failed", updated_at: new Date().toISOString() })
-      .eq("id", paymentId)
-      .eq("updated_at", reservationUpdatedAt)
-      .eq("refund_status", "processing")
-
+  const result = await requestStripeRefund({ stripe, supabase }, {
+    actorProfileId: admin.id,
+    intakeId,
+    paymentIntentId: payment.stripe_payment_intent_id,
+    refundType: "admin_manual",
+    targetTotalCents: payment.amount,
+  })
+  if (result.status === "failed") {
     await logAuditEvent({
       action: "refund_failed",
       actorId: admin.id,
       actorType: "admin",
       intakeId,
-      fromState: "processing",
+      fromState: "eligible",
       toState: "failed",
       metadata: {
         paymentId,
         amount: refundAmount,
         stripePaymentIntentId: payment.stripe_payment_intent_id,
-        error: errorMessage,
-      },
-    })
-
-    return { success: false, error: `Stripe refund failed: ${errorMessage}` }
-  }
-
-  // Refund.create can be pending and later fail. Keep the legacy payment mirror
-  // processing; exact webhook evidence owns the terminal cash state.
-  const { data: acceptedState, error: acceptedStateError } = await supabase
-    .from("payments")
-    .update({
-      refund_status: "processing",
-      stripe_refund_id: stripeRefund.id,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", paymentId)
-    .eq("updated_at", reservationUpdatedAt)
-    .eq("refund_status", "processing")
-    .select("id")
-    .maybeSingle()
-  const result = acceptedStateError
-    ? { success: false, error: acceptedStateError.message }
-    : { success: true }
-
-  if (!acceptedState && !acceptedStateError) {
-    log.info("Exact refund webhook state won the admin create-response race", {
-      paymentId,
-      stripeRefundId: stripeRefund.id,
-    })
-  }
-
-  if (result.success) {
-    await logAuditEvent({
-      action: "refund_requested",
-      actorId: admin.id,
-      actorType: "admin",
-      intakeId,
-      fromState: "processing",
-      toState: "processing",
-      metadata: {
-        paymentId,
-        amount: stripeRefund.amount,
-        stripeRefundId: stripeRefund.id,
-      },
-    })
-    revalidateStaff({ content: true })
-    log.info("Refund requested", { adminId: admin.id, paymentId, stripeRefundId: stripeRefund.id, refundAmount: stripeRefund.amount })
-  } else {
-    await logAuditEvent({
-      action: "refund_failed",
-      actorId: admin.id,
-      actorType: "admin",
-      intakeId,
-      fromState: "processing",
-      toState: "failed",
-      metadata: {
-        paymentId,
-        amount: refundAmount,
-        stripeRefundId: stripeRefund.id,
         error: result.error,
       },
     })
+    return {
+      success: false,
+      error: "Could not reserve this refund safely. Refresh and try again.",
+    }
   }
-  return result
+
+  if (result.status === "cash_satisfied") {
+    await logAuditEvent({
+      action: "refund_succeeded",
+      actorId: admin.id,
+      actorType: "admin",
+      intakeId,
+      fromState: "eligible",
+      toState: "refunded",
+      metadata: {
+        paymentId,
+        amount: 0,
+        stripePaymentIntentId: payment.stripe_payment_intent_id,
+      },
+    })
+    revalidateStaff({ content: true })
+    return { success: true, pending: false }
+  }
+
+  await logAuditEvent({
+    action: "refund_requested",
+    actorId: admin.id,
+    actorType: "admin",
+    intakeId,
+    fromState: "eligible",
+    toState: "processing",
+    metadata: {
+      paymentId,
+      amount: result.amountCents,
+      attemptId: result.attemptId,
+      stripeRefundId: result.refundId,
+      outcome: result.status,
+    },
+  })
+  revalidateStaff({ content: true })
+  log.info("Durable refund attempt reserved", {
+    adminId: admin.id,
+    amount: result.amountCents,
+    attemptId: result.attemptId,
+    outcome: result.status,
+    paymentId,
+    stripeRefundId: result.refundId,
+  })
+  return {
+    success: true,
+    pending: true,
+    ...(result.refundId ? { refundId: result.refundId } : {}),
+  }
 }
 
 export async function markRefundNotEligibleAction(paymentId: string, reason: string) {

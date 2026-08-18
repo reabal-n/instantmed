@@ -262,6 +262,11 @@ test.describe("Smoke: Decline flow marks intake as declined", () => {
     const refundId = `re_smoke_${randomUUID()}`
     const balanceTransactionId = `txn_smoke_${randomUUID()}`
     const created = Math.floor(Date.now() / 1000)
+    const paymentIntent = {
+      id: paymentIntentId,
+      object: "payment_intent",
+      metadata: {},
+    }
 
     // Set stripe_payment_intent_id on intake so refund lookup works
     const supabase = getSupabaseClient()
@@ -284,7 +289,7 @@ test.describe("Smoke: Decline flow marks intake as declined", () => {
           object: "charge",
           amount: 1995,
           amount_refunded: 1995,
-          payment_intent: paymentIntentId,
+          payment_intent: paymentIntent,
           refunds: {
             object: "list",
             data: [{
@@ -313,7 +318,7 @@ test.describe("Smoke: Decline flow marks intake as declined", () => {
               created,
               currency: "aud",
               metadata: {},
-              payment_intent: paymentIntentId,
+              payment_intent: paymentIntent,
               reason: "requested_by_customer",
               receipt_number: null,
               source_transfer_reversal: null,

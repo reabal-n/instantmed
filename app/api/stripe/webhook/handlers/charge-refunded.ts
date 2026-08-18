@@ -5,66 +5,20 @@ import {
   queueExactGoogleAdsConversionAdjustment,
   runGoogleAdsConversionAdjustment,
 } from "@/lib/analytics/google-ads-conversion-adjustments"
-import { reserveRefundEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import {
+  finalizePersistedStripeRefundAttempts,
   persistStripeRefundEventEvidence,
   readExactRefundAdjustmentTarget,
   reconcilePersistedStripeRefundState,
   reportStripeRefundEvidenceFailure,
 } from "@/lib/stripe/refund-event-persistence"
+import { finalizeRefundNotifications } from "@/lib/stripe/refund-notification-finalizer"
 
 import type { HandlerResult, WebhookContext } from "./types"
 import { addToDeadLetterQueue, tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:charge-refunded")
-
-/**
- * Greet the patient by their first name with safe capitalisation. The
- * `profiles.full_name` column stores whatever the patient typed at signup,
- * which often has lower-case surnames or odd capitalisation. Splitting to
- * the first token and Title-casing it avoids "Hi sarah roberts," in
- * automated refund emails. Falls back to "there" when no name is on file.
- */
-function greetingFirstName(name: string | null | undefined): string {
-  if (!name) return "there"
-  const first = name.trim().split(/\s+/)[0]
-  if (!first) return "there"
-  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase()
-}
-
-function latestRefund(refunds: Stripe.Refund[]): Stripe.Refund | null {
-  const cashRefunds = refunds.filter((refund) =>
-    refund.status === "succeeded" &&
-    !refund.failure_balance_transaction &&
-    typeof refund.balance_transaction === "object" &&
-    refund.balance_transaction?.object === "balance_transaction",
-  )
-  if (!cashRefunds.length) return null
-
-  return cashRefunds.reduce((latest, refund) => {
-    if (!latest) return refund
-    return refundCashEpochSeconds(refund) > refundCashEpochSeconds(latest)
-      ? refund
-      : latest
-  }, null as Stripe.Refund | null)
-}
-
-function refundCashEpochSeconds(refund: Stripe.Refund): number {
-  return typeof refund.balance_transaction === "object"
-    ? refund.balance_transaction?.created ?? 0
-    : 0
-}
-
-function outstandingRefundCents(refunds: Stripe.Refund[]): number {
-  return refunds.reduce((sum, refund) =>
-    refund.status === "succeeded" &&
-    !refund.failure_balance_transaction &&
-    refundCashEpochSeconds(refund) > 0
-      ? sum + refund.amount
-      : sum,
-  0)
-}
 
 export async function handleChargeRefunded(ctx: WebhookContext): Promise<HandlerResult> {
   const { event, supabase } = ctx
@@ -98,28 +52,6 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
     return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
   }
 
-  const latest = latestRefund(evidence.refunds)
-  if (
-    !latest ||
-    outstandingRefundCents(evidence.refunds) !== charge.amount_refunded
-  ) {
-    const error = "Stripe refund objects do not reconcile to the charge refund total"
-    reportStripeRefundEvidenceFailure(ctx.event, error)
-    if (!ctx.adminReplay) {
-      await addToDeadLetterQueue(
-        supabase,
-        event.id,
-        event.type,
-        charge.id,
-        evidence.intakeId,
-        error,
-        "REFUND_CHARGE_TOTAL_MISMATCH",
-        event as unknown as Record<string, unknown>,
-      )
-    }
-    return NextResponse.json({ error: "Refund evidence unavailable" }, { status: 500 })
-  }
-
   const reconciliation = await reconcilePersistedStripeRefundState({
     intakeId: evidence.intakeId,
     livemode: event.livemode,
@@ -144,6 +76,50 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
   }
 
   const state = reconciliation.state
+  if (!state) {
+    return failChargeRefundRetryably(
+      ctx,
+      charge.id,
+      evidence.intakeId,
+      "Stripe refund reconciled state is unavailable",
+      "REFUND_STATE_RECONCILIATION_FAILED",
+    )
+  }
+  const notification = await finalizeRefundNotifications({
+    evidence: evidence.evidence,
+    intakeId: state.id,
+    livemode: event.livemode,
+    supabase,
+  })
+  if (notification.error) {
+    return failChargeRefundRetryably(
+      ctx,
+      charge.id,
+      state.id,
+      notification.error,
+      "REFUND_NOTIFICATION_FINALIZATION_FAILED",
+    )
+  }
+
+  const attemptFinalization = await finalizePersistedStripeRefundAttempts({
+    evidence: evidence.evidence,
+    livemode: event.livemode,
+    refunds: evidence.refunds,
+    supabase,
+  })
+  if (attemptFinalization.error) {
+    return failChargeRefundRetryably(
+      ctx,
+      charge.id,
+      state.id,
+      attemptFinalization.error,
+      "REFUND_ATTEMPT_FINALIZATION_FAILED",
+    )
+  }
+
+  // Cash-confirmed patient communication outranks optional acquisition work.
+  // The exact-key reservation is idempotent if a later Ads failure retries the
+  // Stripe event.
   const target = await readExactRefundAdjustmentTarget({ state, supabase })
   if (target.error) {
     return failChargeRefundRetryably(
@@ -155,8 +131,7 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
     )
   }
 
-  const isPriorityBreachRefund = latest.metadata?.refund_type === "priority_breach"
-  if (state && target.targetNetValueCents !== null && target.adjustmentDateTime) {
+  if (target.targetNetValueCents !== null && target.adjustmentDateTime) {
     const queued = await queueExactGoogleAdsConversionAdjustment({
       adjustmentDateTime: target.adjustmentDateTime,
       amountCents: state.amount_cents,
@@ -172,27 +147,6 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
         state.id,
         queued.error,
         "REFUND_ADJUSTMENT_QUEUE_FAILED",
-      )
-    }
-  }
-
-  if (state?.refund_status === "succeeded") {
-    const refundIsFullRefund = Number(state.refund_amount_cents ?? 0) >=
-      Number(state.amount_cents ?? charge.amount)
-    const reservationError = await reserveChargeRefundEmail({
-      ctx,
-      intakeId: state.id,
-      isPriorityBreachRefund,
-      latest,
-      refundIsFullRefund,
-    })
-    if (reservationError) {
-      return failChargeRefundRetryably(
-        ctx,
-        charge.id,
-        state.id,
-        reservationError,
-        "REFUND_NOTIFICATION_RESERVATION_FAILED",
       )
     }
   }
@@ -223,61 +177,6 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
       })
     })
   }
-}
-
-/*
- * Email reservation remains before the event claim because it is itself
- * idempotent. A transient outbox failure must keep the Stripe event replayable.
- */
-async function reserveChargeRefundEmail(input: {
-  ctx: WebhookContext
-  intakeId: string
-  isPriorityBreachRefund: boolean
-  latest: Stripe.Refund
-  refundIsFullRefund: boolean
-}): Promise<string | null> {
-  const intakeRead = await input.ctx.supabase
-    .from("intakes")
-    .select("id, patient_id, status")
-    .eq("id", input.intakeId)
-    .single()
-  if (intakeRead.error) {
-    return `Refund notification intake lookup failed: ${intakeRead.error.message}`
-  }
-  if (!intakeRead.data?.patient_id) return null
-
-  const patientRead = await input.ctx.supabase
-    .from("profiles")
-    .select("id, full_name, email")
-    .eq("id", intakeRead.data.patient_id)
-    .single()
-  if (patientRead.error) {
-    return `Refund notification patient lookup failed: ${patientRead.error.message}`
-  }
-  if (!patientRead.data?.email) return null
-
-  const wasDeclinedOrCancelled =
-    intakeRead.data.status === "declined" || intakeRead.data.status === "cancelled"
-
-  const reservation = await reserveRefundEmail({
-    amountCents: input.latest.amount,
-    intakeId: input.intakeId,
-    livemode: input.ctx.event.livemode,
-    patientId: patientRead.data.id,
-    patientName: greetingFirstName(patientRead.data.full_name),
-    refundReason: input.isPriorityBreachRefund
-      ? "Priority review fee refunded"
-      : input.refundIsFullRefund
-        ? wasDeclinedOrCancelled
-          ? "Your request was declined or cancelled"
-          : "Full refund processed"
-        : "Partial refund processed",
-    stripeRefundId: input.latest.id,
-    to: patientRead.data.email,
-  })
-  return reservation.success
-    ? null
-    : reservation.error || "Refund notification reservation failed"
 }
 
 async function failChargeRefundRetryably(

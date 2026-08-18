@@ -248,9 +248,10 @@ export async function GET(request: NextRequest) {
     // ── Priority breach auto-refund (operator decision 2026-08-03) ──────────
     // A priority intake still undecided PRIORITY_BREACH_HOURS after payment
     // gets its $9.95 fee refunded automatically + a breach email, so overnight
-    // patients hear the honest outcome while no operator is awake. Once-only
-    // via priority_fee_refunded_at; Stripe-idempotent per intake. The later
-    // approval email acknowledges the refund (med-cert-patient / script-sent).
+    // patients hear the honest outcome while no operator is awake. This route
+    // initiates generation 1 only; the refund-reconciliation cron owns exact
+    // same-key recovery and the one bounded successor. The later approval
+    // email acknowledges the refund (med-cert-patient / script-sent).
     let priorityBreachRefundRequests = 0
     try {
       const { PRIORITY_BREACH_HOURS, refundPriorityFeeOnBreach } = await import(
@@ -263,15 +264,14 @@ export async function GET(request: NextRequest) {
           .select(`
             id, category, subtype, is_priority, payment_status, amount_cents,
             refund_amount_cents, refund_status, refund_stripe_id,
-            priority_fee_refunded_at, priority_fee_refund_retry_attempted_at,
-            stripe_payment_intent_id, payment_id, patient_id,
+            priority_fee_refunded_at, stripe_payment_intent_id, payment_id, patient_id,
             updated_at,
             patient:profiles!patient_id(full_name, email)
           `)
           .eq("is_priority", true)
           .eq("payment_status", "paid")
           .neq("refund_status", "pending")
-          .or("refund_status.neq.failed,priority_fee_refund_retry_attempted_at.is.null")
+          .neq("refund_status", "failed")
           // paid/in_review only: a decision (approved/declined/awaiting_script)
           // or a doctor info-request means the review engaged inside the window.
           .in("status", ["paid", "in_review"])
