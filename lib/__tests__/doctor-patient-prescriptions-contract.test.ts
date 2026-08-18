@@ -250,6 +250,16 @@ describe("doctor patient medication history contract", () => {
     expect(clinicalCaseReviewSource).not.toContain("Copy search")
   })
 
+  it("keeps the Parchment handoff compact and puts raw request context behind disclosure", () => {
+    expect(panelSource).toContain('data-parchment-medication-context="compact"')
+    expect(panelSource).toContain("Medicine to search")
+    expect(panelSource).toContain("Copy name")
+    expect(panelSource).toContain("Request details")
+    expect(panelSource).toContain("Likely match from a previous prescription")
+    expect(panelSource).not.toContain('data-parchment-medication-context="mobile"')
+    expect(panelSource).not.toContain('data-parchment-medication-context="desktop"')
+  })
+
   it("never falls back to copying a strength-bearing search hint", () => {
     expect(panelSource).not.toContain("copyPrescriptionSearchHint")
     expect(panelSource).not.toContain("Copied Parchment search term")

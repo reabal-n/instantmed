@@ -88,4 +88,36 @@ describe("buildParchmentPrescriptionContext", () => {
       directionsTemplate: "Doctor to select therapy in Parchment.",
     })
   })
+
+  it.each([
+    "Rosuvastatin 10 mg tablet",
+    "Rosuvastatin once daily",
+    "Rosuvastatin: patient requested",
+  ])("rejects strength-bearing or sentence-like clipboard content: %s", (clipboardText) => {
+    const context = buildParchmentPrescriptionContext({
+      title: "Repeat prescription",
+      patientStory: "",
+      keyFacts: [],
+      safetyItems: [],
+      recommendedPlan: {
+        action: "prescribe",
+        title: "Review",
+        rationale: "",
+        nextSteps: [],
+      },
+      prescriptionIntent: {
+        presetLabel: "Repeat prescription Parchment context",
+        medicationName: "Rosuvastatin",
+        medicationSearchHint: "Rosuvastatin 10 mg tablet",
+        patientReportedDose: "10 mg nightly",
+        directionsTemplate: "Confirm regimen in Parchment.",
+        safetyChecks: [],
+        parchmentMode: "open_patient_prescribe",
+        clipboardText,
+      },
+      draftNote: "",
+    })
+
+    expect(context?.copyText).toBe("")
+  })
 })

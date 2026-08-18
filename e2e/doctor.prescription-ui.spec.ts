@@ -314,6 +314,7 @@ const SPECIALTY_SCENARIOS = [
 test.describe("Doctor prescription UI flow", () => {
   const testIntakeIds: string[] = []
   const testPatientIds: string[] = []
+  const testPrescriptionIds: string[] = []
 
   test.beforeEach(async ({ page }) => {
     test.skip(!isDbAvailable(), "Database required for prescription UI flow")
@@ -323,6 +324,10 @@ test.describe("Doctor prescription UI flow", () => {
 
   test.afterEach(async ({ page }) => {
     await logoutTestUser(page)
+    const supabase = getSupabaseClient()
+    for (const prescriptionId of testPrescriptionIds.splice(0)) {
+      await supabase.from("prescriptions").delete().eq("id", prescriptionId)
+    }
     for (const intakeId of testIntakeIds.splice(0)) {
       await cleanupTestIntake(intakeId)
     }
@@ -401,9 +406,28 @@ test.describe("Doctor prescription UI flow", () => {
   })
 
   test("keeps inferred strength explicit and copies only the verified generic name", async ({ page }) => {
+    const patientId = await seedReviewProfilePatient()
+    testPatientIds.push(patientId)
+    const priorPrescriptionId = randomUUID()
+    const { error: priorPrescriptionError } = await getSupabaseClient()
+      .from("prescriptions")
+      .insert({
+        id: priorPrescriptionId,
+        patient_id: patientId,
+        medication_name: "Sertraline",
+        medication_strength: "100 mg",
+        status: "active",
+        issued_date: new Date().toISOString().slice(0, 10),
+      })
+    if (priorPrescriptionError) {
+      throw new Error(`Failed to seed prior prescription: ${priorPrescriptionError.message}`)
+    }
+    testPrescriptionIds.push(priorPrescriptionId)
+
     const intakeId = await seedRepeatPrescriptionCase({
+      patientId,
       answerOverrides: {
-        medicationName: "Sertraline 100mg",
+        medicationName: "Sertralne 100mg",
         medicationStrength: "",
         medicationForm: "",
         currentDose: "100 mg once daily",
@@ -424,7 +448,7 @@ test.describe("Doctor prescription UI flow", () => {
     const recency = packet.locator('[data-review-fact="last_prescribed"]')
 
     await expect(medicine).toHaveAttribute("data-review-fact-state", "inferred")
-    await expect(medicine.getByText("Sertraline 100mg", { exact: true })).toBeVisible()
+    await expect(medicine.getByText("Sertralne 100mg", { exact: true })).toBeVisible()
     await expect(medicine.getByText("Inferred from patient text · Confirm strength", { exact: true })).toBeVisible()
     await expect(packet.locator('[data-review-fact="strength"]')).toHaveCount(0)
     await expect(packet.locator('[data-review-fact="form"]')).toHaveCount(0)
@@ -461,8 +485,15 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(parchmentPanel).toBeVisible()
     const medicationContext = parchmentPanel.locator('[data-parchment-medication-context]:visible')
     await expect(medicationContext).toBeVisible({ timeout: 15000 })
-    await expect(medicationContext.getByText("Generic medicine", { exact: true })).toBeVisible()
+    await expect(medicationContext.getByText("Medicine to search", { exact: true })).toBeVisible()
     await expect(medicationContext.getByText("Sertraline", { exact: true })).toBeVisible()
+    await expect(medicationContext).toContainText("Likely match from a previous prescription")
+    await expect(
+      medicationContext.getByText("Current dose: 100 mg once daily", { exact: true }),
+    ).not.toBeVisible()
+
+    await medicationContext.getByText("Request details", { exact: true }).click()
+    await expect(medicationContext).toContainText("Patient entered: Sertralne 100mg")
     await expect(medicationContext).toContainText("Current dose: 100 mg once daily")
 
     await medicationContext.getByRole("button", { name: "Copy generic name" }).click()

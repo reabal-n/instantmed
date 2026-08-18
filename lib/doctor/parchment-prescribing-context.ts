@@ -1,5 +1,23 @@
 import type { ClinicalCaseSummary } from "@/lib/clinical/case-summary"
 
+const COPY_CONTEXT_PATTERN = /\b(?:cap(?:sule)?s?|confirm|cream|current|daily|directions?|dose|drops|form|frequency|gel|inhaler|injection|mcg|mg|ml|morning|nightly|ointment|once|parchment|patch|patient|quantity|repeat(?:s)?|request(?:ed)?|spray|strength|tab(?:let)?s?|take|times?|units?|weekly|xr|sr|mr)\b/i
+
+function safeGenericCopyText(value: string): string {
+  const trimmed = value.trim()
+  if (
+    trimmed.length < 2
+    || trimmed.length > 100
+    || /[\r\n\d%]/.test(trimmed)
+    || COPY_CONTEXT_PATTERN.test(trimmed)
+    || trimmed.split(/\s+/).length > 6
+    || !/^[\p{L}\p{M}][\p{L}\p{M}'’()+/\- ]*[\p{L}\p{M})]$/u.test(trimmed)
+  ) {
+    return ""
+  }
+
+  return trimmed
+}
+
 export interface ParchmentPrescriptionContext {
   presetLabel: string
   medicationLabel?: string
@@ -30,6 +48,8 @@ export function buildParchmentPrescriptionContext(
     patientReportedDose: intent.patientReportedDose || undefined,
     regimenSource: hasPatientReportedRegimen ? "patient_reported" : "template",
     directionsTemplate: intent.directionsTemplate,
-    copyText: intent.clipboardText,
+    // Defence in depth: the generic Copy action must never paste strength,
+    // form, dose, directions, or multiline request context into Parchment.
+    copyText: safeGenericCopyText(intent.clipboardText),
   }
 }

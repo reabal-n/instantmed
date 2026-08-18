@@ -68,11 +68,12 @@ describe("mobile staff action contracts", () => {
     // sheet (pinned by doctor-review-ui-contract) still owns layout.
     expect(parchmentPanelSource).toContain("h-[100dvh] w-full")
     expect(parchmentPanelSource).toContain("style={keyboardInset ? { height: keyboardInset.height } : undefined}")
-    // While typing, chrome yields to the iframe: the phone medicine-context
-    // disclosure and the footer collapse instead of eating keyboard-shortened
-    // viewport, and the long header instruction never renders on phones at all
-    // (the footer carries the same confirmation rule).
+    // While typing, chrome yields to the iframe: the compact medicine context
+    // and footer collapse instead of eating the keyboard-shortened viewport.
     expect(parchmentPanelSource).toContain('keyboardInset && "hidden"')
-    expect(parchmentPanelSource).toContain('className="mt-0.5 hidden text-xs text-muted-foreground sm:block sm:text-sm"')
+    expect(parchmentPanelSource).toContain('data-parchment-medication-context="compact"')
+    expect(parchmentPanelSource).toContain("Request details")
+    expect(parchmentPanelSource).not.toContain('data-parchment-medication-context="mobile"')
+    expect(parchmentPanelSource).not.toContain('data-parchment-medication-context="desktop"')
   })
 })

@@ -31,6 +31,43 @@ function medicationCatalogClient(result: { data: unknown; error: unknown }) {
   }
 }
 
+function medicationHistoryClient(input: {
+  catalog: { data: unknown; error: unknown }
+  intake: { data: unknown; error: unknown }
+  prescriptions: { data: unknown; error: unknown }
+}) {
+  const medicationEq = vi.fn().mockResolvedValue(input.catalog)
+  const medicationSelect = vi.fn(() => ({ eq: medicationEq }))
+
+  const intakeMaybeSingle = vi.fn().mockResolvedValue(input.intake)
+  const intakeEq = vi.fn(() => ({ maybeSingle: intakeMaybeSingle }))
+  const intakeSelect = vi.fn(() => ({ eq: intakeEq }))
+
+  const prescriptionLimit = vi.fn().mockResolvedValue(input.prescriptions)
+  const prescriptionOrder = vi.fn(() => ({ limit: prescriptionLimit }))
+  const prescriptionIn = vi.fn(() => ({ order: prescriptionOrder }))
+  const prescriptionEq = vi.fn(() => ({ in: prescriptionIn }))
+  const prescriptionSelect = vi.fn(() => ({ eq: prescriptionEq }))
+
+  const from = vi.fn((table: string) => {
+    if (table === "medications") return { select: medicationSelect }
+    if (table === "intakes") return { select: intakeSelect }
+    if (table === "prescriptions") return { select: prescriptionSelect }
+    throw new Error(`Unexpected table: ${table}`)
+  })
+
+  return {
+    client: { from },
+    from,
+    intakeEq,
+    intakeMaybeSingle,
+    prescriptionEq,
+    prescriptionIn,
+    prescriptionOrder,
+    prescriptionLimit,
+  }
+}
+
 describe("resolveGenericMedicationNameAction", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -118,6 +155,70 @@ describe("resolveGenericMedicationNameAction", () => {
     })
   })
 
+  it("resolves a likely typo only through the same patient's prior prescriptions", async () => {
+    const history = medicationHistoryClient({
+      catalog: {
+        data: [
+          { name: "Sertraline", brand_names: ["Zoloft"] },
+          { name: "Venlafaxine", brand_names: ["Efexor"] },
+        ],
+        error: null,
+      },
+      intake: {
+        data: { patient_id: "patient-1" },
+        error: null,
+      },
+      prescriptions: {
+        data: [
+          { medication_name: "Sertraline" },
+          { medication_name: "Venlafaxine" },
+        ],
+        error: null,
+      },
+    })
+    mocks.createServiceRoleClient.mockReturnValue(history.client)
+
+    await expect(resolveGenericMedicationNameAction(
+      "Sertralne 100 mg tablet",
+      "00000000-0000-0000-0000-000000000123",
+    )).resolves.toEqual({
+      success: true,
+      data: {
+        status: "resolved",
+        genericName: "Sertraline",
+        source: "previous_prescription",
+        matchKind: "likely_typo",
+      },
+    })
+
+    expect(history.from).toHaveBeenNthCalledWith(1, "medications")
+    expect(history.from).toHaveBeenNthCalledWith(2, "intakes")
+    expect(history.from).toHaveBeenNthCalledWith(3, "prescriptions")
+    expect(history.intakeEq).toHaveBeenCalledWith(
+      "id",
+      "00000000-0000-0000-0000-000000000123",
+    )
+    expect(history.prescriptionEq).toHaveBeenCalledWith("patient_id", "patient-1")
+    expect(history.prescriptionIn).toHaveBeenCalledWith("status", [
+      "active",
+      "completed",
+      "expired",
+    ])
+    expect(history.prescriptionOrder).toHaveBeenCalledWith("created_at", { ascending: false })
+    expect(history.prescriptionLimit).toHaveBeenCalledWith(20)
+  })
+
+  it("fails closed when a supplied intake id is invalid", async () => {
+    await expect(resolveGenericMedicationNameAction(
+      "Sertraline",
+      "not-an-intake-id",
+    )).resolves.toEqual({
+      success: false,
+      error: "Medication reference is invalid",
+    })
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
   it("fails closed without logging or returning database errors", async () => {
     const catalog = medicationCatalogClient({
       data: null,
@@ -138,6 +239,7 @@ describe("resolveGenericMedicationNameAction", () => {
     )
 
     expect(source).toContain('.from("medications")')
+    expect(source).toContain('.from("prescriptions")')
     expect(source).toContain('.select("name, brand_names")')
     expect(source).toContain('.eq("is_active", true)')
     expect(source).not.toMatch(/\bfetch\s*\(/)
