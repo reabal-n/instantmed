@@ -464,7 +464,7 @@ export function ParchmentPrescribePanel({
               </div>
               {hasRequestDetails ? (
                 <details className="group mt-1.5 text-xs text-muted-foreground">
-                  <summary className="flex w-fit cursor-pointer list-none items-center gap-1 rounded-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+                  <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-1 rounded-sm pr-2 font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:min-h-9 [&::-webkit-details-marker]:hidden">
                     <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden />
                     <span>Request details</span>
                   </summary>

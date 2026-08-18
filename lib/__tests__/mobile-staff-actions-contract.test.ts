@@ -73,6 +73,7 @@ describe("mobile staff action contracts", () => {
     expect(parchmentPanelSource).toContain('keyboardInset && "hidden"')
     expect(parchmentPanelSource).toContain('data-parchment-medication-context="compact"')
     expect(parchmentPanelSource).toContain("Request details")
+    expect(parchmentPanelSource).toContain("min-h-11 w-fit")
     expect(parchmentPanelSource).not.toContain('data-parchment-medication-context="mobile"')
     expect(parchmentPanelSource).not.toContain('data-parchment-medication-context="desktop"')
   })
