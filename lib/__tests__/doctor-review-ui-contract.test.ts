@@ -211,7 +211,8 @@ describe("doctor review prescribing controls", () => {
     expect(parchmentPanelSource).toContain("h-[100dvh] w-full")
     expect(parchmentPanelSource).toContain("sm:w-[min(800px,100vw)]")
     expect(parchmentPanelSource).toContain("pb-[max(0.75rem,env(safe-area-inset-bottom))]")
-    expect(parchmentPanelSource).toContain("sm:hidden")
+    expect(parchmentPanelSource).toContain('data-parchment-medication-context="compact"')
+    expect(parchmentPanelSource).toContain("Request details")
     expect(parchmentPanelSource).toContain("min-h-11")
     expect(queueSheetActionsSource).toMatch(
       /onClick=\{handlePrescribeClick\}[\s\S]*?className="min-h-11[^"]*sm:h-7/,
