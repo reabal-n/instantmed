@@ -12,6 +12,7 @@ import {
 } from "@/lib/ads-agent/experiments"
 import {
   applyProposal,
+  reconcileProposal,
   validateProposal,
   verifyProposal,
 } from "@/lib/ads-agent/mutations"
@@ -37,6 +38,7 @@ type Command =
   | "approve"
   | "reject"
   | "apply"
+  | "reconcile"
   | "verify"
   | "experiment:create"
   | "experiment:check"
@@ -54,6 +56,7 @@ const USAGE = [
   "pnpm ads:agent approve --proposal=<proposal-key> --reference=codex-task:<task-id>",
   "pnpm ads:agent reject --proposal=<proposal-key> --reference=codex-task:<task-id>",
   "pnpm ads:agent apply --proposal=<proposal-key>",
+  "pnpm ads:agent reconcile --proposal=<proposal-key>",
   "pnpm ads:agent verify --proposal=<proposal-key>",
   "pnpm ads:agent experiment:create --proposal=<proposal-key>",
   "pnpm ads:agent experiment:check --experiment=<experiment-key>",
@@ -202,6 +205,12 @@ async function run(command: Command): Promise<void> {
     if (!receipt.ok) process.exitCode = 1
     return
   }
+  if (command === "reconcile") {
+    const receipt = await reconcileProposal(proposalKey)
+    writeJson(receipt)
+    if (receipt.outcome !== "verified") process.exitCode = 1
+    return
+  }
   if (command === "verify") {
     const receipt = await verifyProposal(proposalKey)
     writeJson(receipt)
@@ -222,6 +231,7 @@ async function main(): Promise<void> {
     "approve",
     "reject",
     "apply",
+    "reconcile",
     "verify",
     "experiment:create",
     "experiment:check",

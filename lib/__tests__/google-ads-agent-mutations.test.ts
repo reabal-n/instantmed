@@ -18,6 +18,15 @@ import {
   type AdsMutationOperation,
   hashAdsMutationOperations,
 } from "@/lib/ads-agent/proposals"
+import {
+  type AdsScaleAuthorizationEvidence,
+  deriveScriptsScaleAuthorizationEvidence,
+  resolveLatestAdsMaterialChangeAt,
+} from "@/lib/ads-agent/scripts-scale-authorization"
+import type {
+  AdsAgentSnapshot,
+  CampaignEconomics,
+} from "@/lib/ads-agent/types"
 import type {
   GoogleAdsMutateOperation,
   GoogleAdsMutateResponse,
@@ -86,8 +95,9 @@ function accountState(
       resource(campaignResourceName, {
         campaign: {
           advertisingChannelType: "SEARCH",
-          biddingStrategyType: "MANUAL_CPC",
+          biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
           campaignBudget: budgetResourceName,
+          maximizeConversionValue: { targetRoas: 1.35 },
           name: "Scripts Search",
           resourceName: campaignResourceName,
           status: "ENABLED",
@@ -135,11 +145,123 @@ function stateWithBudget(
   return next
 }
 
+function stateWithTargetRoas(
+  state: GoogleAdsAccountState,
+  targetRoas: number | null,
+): GoogleAdsAccountState {
+  const next = structuredClone(state)
+  const campaign = next.campaigns[0].values.campaign as Record<string, unknown>
+  campaign.biddingStrategyType = "MAXIMIZE_CONVERSION_VALUE"
+  campaign.maximizeConversionValue = targetRoas == null ? {} : { targetRoas }
+  next.readAt = "2026-07-30T09:31:00.000Z"
+  return next
+}
+
 const budgetOperation: AdsMutationOperation = {
   expectedMicros: 40_000_000,
   kind: "campaign_budget",
   nextMicros: 48_000_000,
   resourceName: budgetResourceName,
+}
+
+function eligibleScaleEvidence(
+  overrides: Partial<AdsScaleAuthorizationEvidence> = {},
+): AdsScaleAuthorizationEvidence {
+  const scripts: CampaignEconomics = {
+    biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
+    budgetAmountMicros: 40_000_000,
+    budgetResourceName,
+    campaignId: "456",
+    campaignName: "Scripts Search",
+    campaignResourceName,
+    campaignStatus: "ENABLED",
+    channel: "SEARCH",
+    clicks: 233,
+    contributionCents: 114_321,
+    contributionMargin: 0.5068,
+    grossRevenueCents: 225_590,
+    netRetainedRevenueCents: 225_590,
+    orders: 75,
+    refundCents: 0,
+    refundedOrders: 0,
+    refundRate: 0,
+    serviceOrders: { scripts: 75 },
+    spendCents: 103_956,
+    stripeFeeCents: 7_313,
+    targetRoas: 1.35,
+    unavailableReasonCodes: [],
+  }
+  const snapshot = {
+    account: {
+      accountHash: "a".repeat(64),
+      asOf: "2026-07-30T09:50:00.000Z",
+      autoTaggingEnabled: true,
+      dailyBudgetTotalCents: 4_000,
+      finalUrlSuffix: "utm_source=google&utm_medium=cpc",
+      lastChangeActor: null,
+      lastChangeAt: null,
+    },
+    daily: [scripts],
+    generatedAt: "2026-07-30T09:50:00.000Z",
+    inputs: {},
+    reportDate: "2026-07-29",
+    rolling30: [scripts],
+    totals: {} as AdsAgentSnapshot["totals"],
+    tracking: {
+      evidenceAsOf: "2026-07-30T09:50:00.000Z",
+      reasonCodes: [],
+      scaleAllowed: true,
+      state: "GREEN" as const,
+    },
+    windows: {} as AdsAgentSnapshot["windows"],
+  }
+  return {
+    previousMaterialChange: null,
+    snapshot,
+    ...overrides,
+  }
+}
+
+function deliveredScaleRun(
+  reportDate: string,
+  scriptsOrders: number,
+  totalOrders = scriptsOrders,
+) {
+  const snapshot = structuredClone(eligibleScaleEvidence().snapshot)
+  snapshot.reportDate = reportDate
+  snapshot.daily = [{
+    ...snapshot.rolling30[0],
+    contributionCents: scriptsOrders > 0 ? 1_000 : 0,
+    contributionMargin: scriptsOrders > 0 ? 0.4 : null,
+    grossRevenueCents: scriptsOrders * 2_995,
+    netRetainedRevenueCents: scriptsOrders * 2_995,
+    orders: totalOrders,
+    serviceOrders: scriptsOrders > 0 ? { scripts: scriptsOrders } : {},
+    spendCents: scriptsOrders > 0 ? 500 : 0,
+    stripeFeeCents: scriptsOrders > 0 ? 100 : 0,
+  }]
+  return { report_date: reportDate, snapshot, status: "delivered" }
+}
+
+function scaleHistoryProposal(args: {
+  outcome: "ambiguous" | "applied"
+  status: string
+  verificationOutcome: "mismatch" | "not_applied" | "verified" | null
+}) {
+  return {
+    apply_receipt: {
+      appliedAt: "2026-07-25T00:00:00.000Z",
+      outcome: args.outcome,
+    },
+    operations: [{
+      kind: "campaign_bidding",
+      resourceName: campaignResourceName,
+    }],
+    status: args.status,
+    verification_receipt: args.verificationOutcome
+      ? { outcome: args.verificationOutcome }
+      : null,
+  }
 }
 
 const rsaCreateOperation = {
@@ -279,6 +401,7 @@ function fakeRepository(
     launchProposalKey: string
     stopProposalKey: string | null
   } | null = null,
+  scaleEvidence: AdsScaleAuthorizationEvidence | null = eligibleScaleEvidence(),
 ): {
   audits: AdsMutationAuditReceipt[]
   getCurrent(): AdsChangeProposal
@@ -328,6 +451,7 @@ function fakeRepository(
       state: trackingState,
     })),
     getMaterialExperimentLock: vi.fn(async () => experimentLock),
+    getScaleAuthorizationEvidence: vi.fn(async () => scaleEvidence),
     getProposalByKey: vi.fn(async (proposalKey) =>
       proposalKey === current.proposalKey ? structuredClone(current) : null),
     recordApplyOutcome: vi.fn(async (args) => {
@@ -388,12 +512,16 @@ function gateway(args: {
     stopProposalKey: string | null
   } | null
   trackingState?: "GREEN" | "AMBER" | "RED"
+  scaleEvidence?: AdsScaleAuthorizationEvidence | null
 }) {
   const initial = args.initial ?? proposal(args.accountReads[0])
   const store = fakeRepository(
     initial,
     args.trackingState,
     args.experimentLock,
+    args.scaleEvidence === undefined
+      ? eligibleScaleEvidence()
+      : args.scaleEvidence,
   )
   const getAccountState = vi.fn()
   for (const state of args.accountReads) {
@@ -431,6 +559,172 @@ function gateway(args: {
 }
 
 describe("Google Ads mutation gateway", () => {
+  it("detects lowerCamel Google field masks for manual tROAS changes", () => {
+    const state = accountState({
+      changeEvents: [{
+        actorHash: "d".repeat(64),
+        changeDateTime: "2026-07-30T09:31:00.000Z",
+        changedFields: ["maximizeConversionValue.targetRoas"],
+        changeResourceName: campaignResourceName,
+        changeResourceType: "CAMPAIGN",
+        clientType: "GOOGLE_ADS_WEB_CLIENT",
+        resourceChangeOperation: "UPDATE",
+        resourceName: "customers/123/changeEvents/manual-troas",
+      }],
+    })
+
+    expect(resolveLatestAdsMaterialChangeAt({
+      budgetResourceName,
+      campaignResourceName,
+      state,
+    })).toBe("2026-07-30T09:31:00.000Z")
+  })
+
+  it("uses the observable ChangeEvent boundary when no material event is returned", () => {
+    const state = accountState({
+      changeEventHistoryStartAt: "2026-07-01T00:00:00.000Z",
+      changeEvents: [],
+    })
+
+    expect(resolveLatestAdsMaterialChangeAt({
+      budgetResourceName,
+      campaignResourceName,
+      state,
+    })).toBe("2026-07-01T00:00:00.000Z")
+  })
+
+  it("derives cooldown proof from production-shaped run and proposal rows", () => {
+    const latest = eligibleScaleEvidence().snapshot
+    const evidence = deriveScriptsScaleAuthorizationEvidence({
+      budgetResourceName,
+      campaignResourceName,
+      historyComplete: true,
+      latestReportDate: latest.reportDate,
+      latestSnapshot: latest,
+      liveMaterialChangeAt: null,
+      proposals: [scaleHistoryProposal({
+        outcome: "applied",
+        status: "verified",
+        verificationOutcome: "verified",
+      })],
+      runs: [
+        deliveredScaleRun("2026-07-26", 0),
+        deliveredScaleRun("2026-07-27", 5),
+        deliveredScaleRun("2026-07-28", 5),
+      ],
+    })
+
+    expect(evidence?.previousMaterialChange).toEqual({
+      attributedOrders: 10,
+      closedDays: 3,
+    })
+  })
+
+  it("does not let pre-change orders satisfy a day-20 manual-change sample", () => {
+    const latest = eligibleScaleEvidence().snapshot
+    const evidence = deriveScriptsScaleAuthorizationEvidence({
+      budgetResourceName,
+      campaignResourceName,
+      historyComplete: true,
+      latestReportDate: latest.reportDate,
+      latestSnapshot: latest,
+      liveMaterialChangeAt: "2026-07-10T01:00:00.000Z",
+      proposals: [],
+      runs: [
+        deliveredScaleRun("2026-07-09", 50),
+        deliveredScaleRun("2026-07-11", 0),
+        deliveredScaleRun("2026-07-12", 0),
+        deliveredScaleRun("2026-07-13", 0),
+      ],
+    })
+
+    expect(evidence?.previousMaterialChange).toEqual({
+      attributedOrders: 0,
+      closedDays: 3,
+    })
+  })
+
+  it("evaluates post-change attribution across the full closed sample", () => {
+    const latest = eligibleScaleEvidence().snapshot
+    const evidence = deriveScriptsScaleAuthorizationEvidence({
+      budgetResourceName,
+      campaignResourceName,
+      historyComplete: true,
+      latestReportDate: latest.reportDate,
+      latestSnapshot: latest,
+      liveMaterialChangeAt: "2026-07-25T00:00:00.000Z",
+      proposals: [],
+      runs: [
+        deliveredScaleRun("2026-07-26", 1, 2),
+        deliveredScaleRun("2026-07-27", 50, 50),
+        deliveredScaleRun("2026-07-28", 50, 50),
+      ],
+    })
+
+    expect(evidence?.previousMaterialChange).toEqual({
+      attributedOrders: 101,
+      closedDays: 3,
+    })
+  })
+
+  it("distinguishes resolved from unresolved ambiguous Ads writes", () => {
+    const latest = eligibleScaleEvidence().snapshot
+    const derive = (proposalRow: ReturnType<typeof scaleHistoryProposal>) =>
+      deriveScriptsScaleAuthorizationEvidence({
+        budgetResourceName,
+        campaignResourceName,
+        historyComplete: true,
+        latestReportDate: latest.reportDate,
+        latestSnapshot: latest,
+        liveMaterialChangeAt: null,
+        proposals: [proposalRow],
+        runs: [deliveredScaleRun("2026-07-26", 0)],
+      })
+
+    expect(derive(scaleHistoryProposal({
+      outcome: "ambiguous",
+      status: "verified",
+      verificationOutcome: "verified",
+    }))?.previousMaterialChange).toEqual({
+      attributedOrders: 0,
+      closedDays: 1,
+    })
+    expect(derive(scaleHistoryProposal({
+      outcome: "ambiguous",
+      status: "failed",
+      verificationOutcome: "not_applied",
+    }))?.previousMaterialChange).toBeNull()
+    expect(derive(scaleHistoryProposal({
+      outcome: "ambiguous",
+      status: "failed",
+      verificationOutcome: "mismatch",
+    }))).toBeNull()
+  })
+
+  it("fails scale history closed on truncation or report-date drift", () => {
+    const latest = eligibleScaleEvidence().snapshot
+    expect(deriveScriptsScaleAuthorizationEvidence({
+      budgetResourceName,
+      campaignResourceName,
+      historyComplete: false,
+      latestReportDate: latest.reportDate,
+      latestSnapshot: latest,
+      liveMaterialChangeAt: null,
+      proposals: [],
+      runs: [],
+    })).toBeNull()
+    expect(deriveScriptsScaleAuthorizationEvidence({
+      budgetResourceName,
+      campaignResourceName,
+      historyComplete: true,
+      latestReportDate: "2026-07-28",
+      latestSnapshot: latest,
+      liveMaterialChangeAt: null,
+      proposals: [],
+      runs: [],
+    })).toBeNull()
+  })
+
   it("validates and durably receipts an immutable draft before approval", async () => {
     const state = accountState()
     const initial = proposal(state, {
@@ -655,6 +949,159 @@ describe("Google Ads mutation gateway", () => {
     expect(harness.mutate).not.toHaveBeenCalled()
   })
 
+  it("derives Scripts scale governance from the live budget owner", async () => {
+    const state = accountState()
+    const base = proposal(state)
+    const initial = proposal(state, {
+      rationale: { ...base.rationale, service: "med_certs" },
+    })
+    const harness = gateway({ accountReads: [state], initial })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({
+      errorCode: "proposal_service_mismatch",
+      outcome: "aborted",
+    })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+
+  it("binds the approval-card campaign label to the live owner", async () => {
+    const state = accountState()
+    const base = proposal(state)
+    const initial = proposal(state, {
+      rationale: { ...base.rationale, campaign: "Scripts Legacy" },
+    })
+    const harness = gateway({ accountReads: [state], initial })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({
+      errorCode: "proposal_campaign_mismatch",
+      outcome: "aborted",
+    })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    [{ strategy: "MAXIMIZE_CONVERSION_VALUE", targetRoas: 1.34 }, "scripts_bidding_authorization_rejected"],
+    [{ strategy: "MAXIMIZE_CONVERSIONS" }, "scripts_bidding_authorization_rejected"],
+    [{ strategy: "MANUAL_CPC" }, "scripts_bidding_authorization_rejected"],
+  ] as const)("rejects an uneconomic Scripts bidding target %#", async (next, expected) => {
+    const state = stateWithTargetRoas(accountState(), null)
+    const operations: AdsMutationOperation[] = [{
+      expected: { strategy: "MAXIMIZE_CONVERSION_VALUE" },
+      kind: "campaign_bidding",
+      next,
+      resourceName: campaignResourceName,
+    }]
+    const harness = gateway({
+      accountReads: [state],
+      initial: proposal(state, { operations }),
+    })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ errorCode: expected, outcome: "aborted" })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+
+  it("requires fresh eligible economics for the Scripts tROAS setup", async () => {
+    const state = stateWithTargetRoas(accountState(), null)
+    const operations: AdsMutationOperation[] = [{
+      expected: { strategy: "MAXIMIZE_CONVERSION_VALUE" },
+      kind: "campaign_bidding",
+      next: { strategy: "MAXIMIZE_CONVERSION_VALUE", targetRoas: 1.35 },
+      resourceName: campaignResourceName,
+    }]
+    const missing = gateway({
+      accountReads: [state],
+      initial: proposal(state, { operations }),
+      scaleEvidence: null,
+    })
+    await expect(
+      missing.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({
+      errorCode: "scripts_scale_authorization_unavailable",
+      outcome: "aborted",
+    })
+    expect(missing.mutate).not.toHaveBeenCalled()
+
+    const staleEvidence = eligibleScaleEvidence()
+    staleEvidence.snapshot.reportDate = "2026-07-28"
+    const stale = gateway({
+      accountReads: [state],
+      initial: proposal(state, { operations }),
+      scaleEvidence: staleEvidence,
+    })
+    await expect(
+      stale.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({
+      errorCode: "scripts_scale_evidence_stale",
+      outcome: "aborted",
+    })
+    expect(stale.mutate).not.toHaveBeenCalled()
+  })
+
+  it("applies the exact Scripts 1.35 tROAS setup with eligible economics", async () => {
+    const before = stateWithTargetRoas(accountState(), null)
+    const after = stateWithTargetRoas(before, 1.35)
+    const operations: AdsMutationOperation[] = [{
+      expected: { strategy: "MAXIMIZE_CONVERSION_VALUE" },
+      kind: "campaign_bidding",
+      next: { strategy: "MAXIMIZE_CONVERSION_VALUE", targetRoas: 1.35 },
+      resourceName: campaignResourceName,
+    }]
+    const harness = gateway({
+      accountReads: [before, after],
+      initial: proposal(before, { operations }),
+    })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.mutate).toHaveBeenCalledTimes(2)
+  })
+
+  it("fails a Scripts increase closed when scale evidence is missing or immature", async () => {
+    for (const [scaleEvidence, expected] of [
+      [null, "scripts_scale_authorization_unavailable"],
+      [eligibleScaleEvidence({
+        previousMaterialChange: { attributedOrders: 12, closedDays: 2 },
+      }), "scripts_post_change_evidence_immature"],
+      [eligibleScaleEvidence({
+        previousMaterialChange: { attributedOrders: 9, closedDays: 3 },
+      }), "scripts_post_change_evidence_immature"],
+    ] as const) {
+      const state = accountState()
+      const harness = gateway({ accountReads: [state], scaleEvidence })
+      await expect(
+        harness.gateway.applyProposal("ADS-20260730-01"),
+      ).resolves.toMatchObject({ errorCode: expected, outcome: "aborted" })
+      expect(harness.mutate).not.toHaveBeenCalled()
+    }
+  })
+
+  it("enforces the fee-aware economic ceiling below the 50% constitution", async () => {
+    const state = accountState()
+    const operations: AdsMutationOperation[] = [{
+      ...budgetOperation,
+      nextMicros: 60_000_000,
+    }]
+    const harness = gateway({
+      accountReads: [state],
+      initial: proposal(state, { operations }),
+    })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({
+      errorCode: "scripts_budget_authorization_exceeded",
+      outcome: "aborted",
+    })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+
   it("locks a sequential campaign against unrelated material packets", async () => {
     const state = accountState()
     const blocked = gateway({
@@ -684,23 +1131,30 @@ describe("Google Ads mutation gateway", () => {
     ).resolves.toMatchObject({ outcome: "applied" })
   })
 
-  it("rejects account-budget overflow", () => {
+  it("does not impose a static account-wide budget ceiling", () => {
     const state = accountState()
     expect(() => validateAdsMutationPolicy({
       operations: [{
         ...budgetOperation,
-        nextMicros: 85_000_000,
+        nextMicros: 60_000_000,
       }],
       state,
-    })).toThrow("account_budget_envelope_exceeded")
+    })).not.toThrow()
   })
 
-  it("enforces service budget ceilings and the Scripts 20% step", () => {
+  it("allows an exactly approved Scripts step up to the 50% constitutional ceiling", () => {
     const scripts = accountState()
     expect(() => validateAdsMutationPolicy({
       operations: [{
         ...budgetOperation,
-        nextMicros: 49_000_000,
+        nextMicros: 60_000_000,
+      }],
+      state: scripts,
+    })).not.toThrow()
+    expect(() => validateAdsMutationPolicy({
+      operations: [{
+        ...budgetOperation,
+        nextMicros: 61_000_000,
       }],
       state: scripts,
     })).toThrow("scripts_budget_step_exceeded")
@@ -1171,6 +1625,92 @@ describe("Google Ads mutation gateway", () => {
     expect(harness.store.getCurrent().status).toBe("verified")
   })
 
+  it("reconciles an interrupted applying proposal only from exact live state", async () => {
+    const before = accountState()
+    const after = stateWithBudget(before, 48_000_000)
+    const harness = gateway({
+      accountReads: [after],
+      initial: proposal(before, { status: "applying" }),
+    })
+
+    await expect(
+      harness.gateway.reconcileProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ outcome: "verified" })
+
+    expect(harness.mutate).not.toHaveBeenCalled()
+    expect(harness.store.getCurrent()).toMatchObject({
+      applyReceipt: {
+        errorCode: "worker_interrupted_after_google_mutate",
+        outcome: "ambiguous",
+        requestId: null,
+      },
+      status: "verified",
+      verificationReceipt: { outcome: "verified" },
+    })
+    expect(harness.store.audits.map(({ stage }) => stage)).toEqual([
+      "apply",
+      "verify",
+    ])
+  })
+
+  it("leaves an interrupted proposal applying when live state does not match", async () => {
+    const state = accountState()
+    const harness = gateway({
+      accountReads: [state],
+      initial: proposal(state, { status: "applying" }),
+    })
+
+    await expect(
+      harness.gateway.reconcileProposal("ADS-20260730-01"),
+    ).rejects.toThrow("proposal_reconciliation_mismatch")
+
+    expect(harness.mutate).not.toHaveBeenCalled()
+    expect(harness.store.getCurrent()).toMatchObject({
+      applyReceipt: null,
+      status: "applying",
+      verificationReceipt: null,
+    })
+    expect(harness.store.audits).toEqual([
+      expect.objectContaining({
+        errorCode: "applying_reconciliation_mismatch",
+        outcome: "mismatch",
+        stage: "verify",
+      }),
+    ])
+  })
+
+  it("refuses reconciliation outside the receipt-free applying state", async () => {
+    const state = accountState()
+    const approved = gateway({
+      accountReads: [state],
+      initial: proposal(state, { status: "approved" }),
+    })
+    await expect(
+      approved.gateway.reconcileProposal("ADS-20260730-01"),
+    ).rejects.toThrow("proposal_not_applying")
+    expect(approved.getAccountState).not.toHaveBeenCalled()
+
+    const withReceipt = gateway({
+      accountReads: [state],
+      initial: proposal(state, {
+        applyReceipt: {
+          appliedAt: "2026-07-30T09:55:00.000Z",
+          errorCode: null,
+          googleOperationsHash:
+            proposal(state).validationReceipt!.googleOperationsHash!,
+          outcome: "applied",
+          proposalKey: "ADS-20260730-01",
+          requestId: "apply-request",
+        },
+        status: "applying",
+      }),
+    })
+    await expect(
+      withReceipt.gateway.reconcileProposal("ADS-20260730-01"),
+    ).rejects.toThrow("proposal_reconciliation_receipt_conflict")
+    expect(withReceipt.getAccountState).not.toHaveBeenCalled()
+  })
+
   it("stops before apply when the durable apply-start audit is unavailable", async () => {
     const before = accountState()
     const after = stateWithBudget(before, 48_000_000)
@@ -1216,6 +1756,8 @@ describe("Google Ads mutation gateway", () => {
   it("hashes mutable account truth independently of read time and change history", () => {
     const first = accountState()
     const sameConfiguration = accountState({
+      changeEventHistorySaturated: true,
+      changeEventHistoryStartAt: "2026-07-01T00:00:00.000Z",
       changeEvents: [{
         actorHash: "d".repeat(64),
         changeDateTime: "2026-07-30T09:31:00.000Z",

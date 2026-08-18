@@ -40,6 +40,10 @@ export interface GoogleAdsAccountState {
   campaignSharedSets: NormalizedGoogleAdsResource[]
   campaigns: NormalizedGoogleAdsResource[]
   changeEvents: GoogleAdsChangeEventState[]
+  /** Conservative observable-history boundary used when no change is returned. */
+  changeEventHistoryStartAt?: string | null
+  /** True when either bounded ChangeEvent query reached Google's row cap. */
+  changeEventHistorySaturated?: boolean
   conversionActions: NormalizedGoogleAdsResource[]
   conversionGoals: NormalizedGoogleAdsResource[]
   customer: GoogleAdsCustomerState | null
@@ -69,6 +73,7 @@ export interface GoogleAdsAccountStateQueries {
   campaignSharedSets: string
   campaigns: string
   changeEvents: string
+  changeEventsToday: string
   conversionActions: string
   conversionGoals: string
   customer: string
@@ -117,7 +122,45 @@ const OPTIONAL_ACCOUNT_STATE_QUERIES: ReadonlySet<
   keyof GoogleAdsAccountStateQueries
 > = new Set(["customerUserAccess"])
 
-export function buildGoogleAdsAccountStateQueries(): GoogleAdsAccountStateQueries {
+function sydneyCalendarDate(now: Date, dayOffset: number): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Australia/Sydney",
+    year: "numeric",
+  }).formatToParts(now)
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  )
+  const shifted = new Date(Date.UTC(
+    Number(values.year),
+    Number(values.month) - 1,
+    Number(values.day) + dayOffset,
+  ))
+  return shifted.toISOString().slice(0, 10)
+}
+
+export function buildGoogleAdsAccountStateQueries(
+  now = new Date(),
+): GoogleAdsAccountStateQueries {
+  if (!Number.isFinite(now.getTime())) {
+    throw new Error("Cannot build Google Ads queries at an invalid time")
+  }
+  const closedChangeEventStart = sydneyCalendarDate(now, -29)
+  const today = sydneyCalendarDate(now, 0)
+  const tomorrow = sydneyCalendarDate(now, 1)
+  const changeEventFields = [
+    "change_event.resource_name",
+    "change_event.change_date_time",
+    "change_event.change_resource_name",
+    "change_event.change_resource_type",
+    "change_event.client_type",
+    "change_event.user_email",
+    "change_event.resource_change_operation",
+    "change_event.changed_fields",
+  ]
   return {
     customer: gaql({
       fields: [
@@ -384,19 +427,16 @@ export function buildGoogleAdsAccountStateQueries(): GoogleAdsAccountStateQuerie
       suffix: "ORDER BY customer_user_access.user_id",
     }),
     changeEvents: gaql({
-      fields: [
-        "change_event.resource_name",
-        "change_event.change_date_time",
-        "change_event.change_resource_name",
-        "change_event.change_resource_type",
-        "change_event.client_type",
-        "change_event.user_email",
-        "change_event.resource_change_operation",
-        "change_event.changed_fields",
-      ],
+      fields: changeEventFields,
       from: "change_event",
       suffix:
-        "WHERE change_event.change_date_time DURING LAST_14_DAYS ORDER BY change_event.change_date_time DESC LIMIT 1000",
+        `WHERE change_event.change_date_time >= '${closedChangeEventStart} 00:00:00' AND change_event.change_date_time < '${today} 00:00:00' ORDER BY change_event.change_date_time DESC LIMIT 10000`,
+    }),
+    changeEventsToday: gaql({
+      fields: changeEventFields,
+      from: "change_event",
+      suffix:
+        `WHERE change_event.change_date_time >= '${today} 00:00:00' AND change_event.change_date_time < '${tomorrow} 00:00:00' ORDER BY change_event.change_date_time DESC LIMIT 10000`,
     }),
   }
 }
@@ -440,8 +480,13 @@ function normalizeValue(value: unknown): unknown {
 export function hashGoogleAdsAccountState(
   state: GoogleAdsAccountState,
 ): string {
-  const { changeEvents: _changeEvents, readAt: _readAt, ...configuration } =
-    state
+  const {
+    changeEvents: _changeEvents,
+    changeEventHistorySaturated: _changeEventHistorySaturated,
+    changeEventHistoryStartAt: _changeEventHistoryStartAt,
+    readAt: _readAt,
+    ...configuration
+  } = state
   return createHash("sha256")
     .update(JSON.stringify(normalizeValue(configuration)), "utf8")
     .digest("hex")
@@ -499,7 +544,7 @@ function hashChangeActor(value: unknown): string | null {
 function normalizeChangeEvents(
   rows: Record<string, unknown>[],
 ): GoogleAdsChangeEventState[] {
-  return rows
+  const events = rows
     .map((row) => {
       const event = asRecord(row.changeEvent) ?? {}
       return {
@@ -522,6 +567,14 @@ function normalizeChangeEvents(
       if (timeOrder !== 0) return timeOrder
       return (left.resourceName ?? "").localeCompare(right.resourceName ?? "")
     })
+
+  return [...new Map(
+    events.map((event) => [
+      event.resourceName
+        ?? `${event.changeDateTime}:${event.changeResourceName}:${event.resourceChangeOperation}`,
+      event,
+    ]),
+  ).values()]
 }
 
 export async function getAdsAccountState(args: {
@@ -532,7 +585,7 @@ export async function getAdsAccountState(args: {
     throw new Error("Cannot read Google Ads account state at an invalid time")
   }
 
-  const queries = buildGoogleAdsAccountStateQueries()
+  const queries = buildGoogleAdsAccountStateQueries(now)
   const entries = Object.entries(queries) as Array<
     [keyof GoogleAdsAccountStateQueries, string]
   >
@@ -582,6 +635,15 @@ export async function getAdsAccountState(args: {
     customerManagerLinks: normalizeRows(rows.customerManagerLinks),
     customerUserAccess: normalizeRows(rows.customerUserAccess),
     optionalQueryFailures,
-    changeEvents: normalizeChangeEvents(rows.changeEvents),
+    changeEvents: normalizeChangeEvents([
+      ...rows.changeEvents,
+      ...rows.changeEventsToday,
+    ]),
+    // UTC midnight falls 10-11 hours after Sydney midnight, so it remains
+    // conservative without hard-coding a daylight-saving offset.
+    changeEventHistoryStartAt: `${sydneyCalendarDate(now, -29)}T00:00:00.000Z`,
+    changeEventHistorySaturated:
+      rows.changeEvents.length >= 10_000
+      || rows.changeEventsToday.length >= 10_000,
   }
 }

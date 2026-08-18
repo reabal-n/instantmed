@@ -57,6 +57,7 @@ function state(): GoogleAdsAccountState {
           campaign: {
             advertisingChannelType: "SEARCH",
             id: "10",
+            name: "IM | Search | Med Certs",
             resourceName: "customers/123/campaigns/10",
             status: "ENABLED",
           },
@@ -389,7 +390,7 @@ describe("Google Ads Agent deep audit", () => {
     expect(report.account).toMatchObject({
       activeManagerLinks: 1,
       activeUsers: 1,
-      changeEventLookbackDays: 14,
+      changeEventLookbackDays: 30,
       enabledAdGroups: 1,
       enabledSearchCampaigns: 1,
       enabledSearchRsas: 1,
@@ -403,6 +404,15 @@ describe("Google Ads Agent deep audit", () => {
       searchTermDetailScope: "authorised_codex_task_only",
       telegramSafe: false,
     })
+    expect(report.schedules).toEqual([
+      expect.objectContaining({
+        campaignId: "10",
+        campaignName: "IM | Search | Med Certs",
+        coverage: "ALL_DAYS_24H",
+        entries: [],
+        source: "GOOGLE_DEFAULT",
+      }),
+    ])
     expect(JSON.stringify(report)).not.toContain("person@example.test")
     expect(report.searchTerms.convertedUntargeted[0]?.searchTerm).toBe(
       "medical certificate for yesterday",
@@ -462,6 +472,79 @@ describe("Google Ads Agent deep audit", () => {
         && signal.evidence.includes("finasteride online")
       ),
     ).toMatchObject({ level: "investigate" })
+  })
+
+  it("surfaces configured schedule limits instead of hiding them in account state", () => {
+    const accountState = state()
+    accountState.campaignCriteria = [
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY",
+      "SATURDAY",
+      "SUNDAY",
+    ].flatMap((dayOfWeek, dayIndex) => [0, 1].map((duplicateIndex) => {
+      const resourceName =
+        `customers/123/campaignCriteria/10~${dayIndex + 1}${duplicateIndex}`
+      return {
+        resourceName,
+        values: {
+          campaignCriterion: {
+            adSchedule: {
+              dayOfWeek,
+              endHour: 20,
+              endMinute: "ZERO",
+              startHour: 8,
+              startMinute: "ZERO",
+            },
+            campaign: "customers/123/campaigns/10",
+            resourceName,
+            status: "ENABLED",
+            type: "AD_SCHEDULE",
+          },
+        },
+      }
+    }))
+
+    const report = analyzeGoogleAdsDeepAudit({
+      accountState,
+      accountStateAvailable: true,
+      failedQueries: [],
+      generatedAt: "2026-08-16T00:00:00.000Z",
+      rows: rows(),
+      successfulQueries: Object.keys(rows()) as Array<keyof GoogleAdsDeepAuditRows>,
+      window: {
+        days: 30,
+        endDate: "2026-08-15",
+        endUtcExclusive: "2026-08-15T14:00:00.000Z",
+        startDate: "2026-07-17",
+        startUtc: "2026-07-16T14:00:00.000Z",
+      },
+    })
+
+    expect(report.schedules).toEqual([
+      expect.objectContaining({
+        campaignId: "10",
+        coverage: "LIMITED",
+        entries: expect.arrayContaining([
+          expect.objectContaining({
+            dayOfWeek: "MONDAY",
+            endHour: 20,
+            startHour: 8,
+          }),
+        ]),
+        source: "CONFIGURED",
+      }),
+    ])
+    expect(report.signals).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        campaignId: "10",
+        code: "LIMITED_AD_SCHEDULE",
+        evidence: expect.stringContaining("84 of 168 weekly hours"),
+        level: "investigate",
+      }),
+    ]))
   })
 
   it("flags enabled specialty campaigns that drift from the pilot contract", () => {

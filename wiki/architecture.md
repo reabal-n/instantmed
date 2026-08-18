@@ -11,12 +11,12 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 | API route files under `app/api/` | 87 |
 | Cron route files under `app/api/cron/` | 28 |
 | `components/` | 406 files |
-| `lib/` | 1,257 files |
+| `lib/` | 1,260 files |
 | E2E TypeScript files under `e2e/` | 78 (68 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 127 |
+| SQL migrations under `supabase/migrations/` | 129 |
 
-Latest applied and verified production migration (2026-08-16): `20260814190000_fix_support_refund_attempt_role_cast.sql`. Linked migration history is aligned through that version; the detailed DB lint, ACL, and refund-ledger receipt lives in `docs/ARCHITECTURE.md`.
+Latest applied and verified production migration (2026-08-17): `20260817095854_allow_direct_codex_ads_approval.sql`. It changes only the immutable Ads proposal state transition used by exact Codex approval; the detailed database receipts live in `docs/ARCHITECTURE.md`.
 
 ## Runtime Shape
 

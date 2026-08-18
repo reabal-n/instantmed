@@ -18,9 +18,6 @@ const SERVICE_ORDER = [
 ] as const satisfies readonly AdsService[]
 
 export const POLICY = {
-  account: {
-    dailyBudgetEnvelopeCents: 8_400,
-  },
   attribution: {
     minimumExpectedServiceOrderShare: 0.90,
   },
@@ -55,12 +52,34 @@ export const POLICY = {
   scripts: {
     dailyBudgetCents: 4_000,
     scale: {
+      budgetStepTiers: [
+        {
+          maximumBudgetStep: 0.20,
+          minimumContributionMargin: 0.20,
+          minimumMatureOrders: 10,
+          name: "positive",
+        },
+        {
+          maximumBudgetStep: 0.35,
+          minimumContributionMargin: 0.30,
+          minimumMatureOrders: 30,
+          name: "proven",
+        },
+        {
+          maximumBudgetStep: 0.50,
+          minimumContributionMargin: 0.40,
+          minimumMatureOrders: 50,
+          name: "strong",
+        },
+      ],
       initialTargetRoas: 1.35,
-      maximumBudgetStep: 0.20,
+      maximumBudgetStep: 0.50,
       maximumRefundRate: 0.10,
       minimumContributionMargin: 0.20,
       minimumMatureOrders: 10,
-      observationDaysAfterBidChange: 7,
+      minimumOrdersAfterChange: 10,
+      observationDaysAfterBidChange: 3,
+      targetContributionMargin: 0.30,
     },
   },
   womensHealth: {
@@ -74,6 +93,128 @@ export const POLICY = {
     },
   },
 } as const
+
+export type ScriptsScaleTier =
+  (typeof POLICY.scripts.scale.budgetStepTiers)[number]
+
+function resolveScriptsScaleTier(args: {
+  contributionMargin: number
+  orders: number
+}): ScriptsScaleTier | null {
+  return [...POLICY.scripts.scale.budgetStepTiers]
+    .reverse()
+    .find((tier) =>
+      args.orders >= tier.minimumMatureOrders
+      && args.contributionMargin >= tier.minimumContributionMargin
+    ) ?? null
+}
+
+export interface ScriptsBudgetScaleAuthorization {
+  maximumNextMicros: number
+  tier: ScriptsScaleTier["name"]
+}
+
+export function authorizeScriptsScaleEligibility(
+  campaign: CampaignEconomics,
+): ScriptsScaleTier {
+  if (
+    campaign.orders == null
+    || campaign.contributionMargin == null
+    || campaign.refundRate == null
+    || campaign.unavailableReasonCodes.length > 0
+  ) {
+    throw new Error("scripts_scale_economics_unavailable")
+  }
+  const scriptsOrders = campaign.serviceOrders.scripts ?? 0
+  if (
+    campaign.orders <= 0
+    || scriptsOrders / campaign.orders
+      < POLICY.attribution.minimumExpectedServiceOrderShare
+  ) {
+    throw new Error("scripts_scale_attribution_contaminated")
+  }
+  if (campaign.refundRate >= POLICY.scripts.scale.maximumRefundRate) {
+    throw new Error("scripts_refund_gate")
+  }
+  const tier = resolveScriptsScaleTier({
+    contributionMargin: campaign.contributionMargin,
+    orders: scriptsOrders,
+  })
+  if (!tier) throw new Error("scripts_scale_tier_unavailable")
+  return tier
+}
+
+export function authorizeScriptsBudgetScale(args: {
+  campaign: CampaignEconomics
+  closedDaysAfterPreviousChange?: number | null
+  expectedMicros: number
+  nextMicros: number
+  ordersAfterPreviousChange?: number | null
+}): ScriptsBudgetScaleAuthorization {
+  const { campaign } = args
+  if (
+    campaign.budgetAmountMicros == null
+    || campaign.budgetResourceName == null
+    || campaign.budgetAmountMicros !== args.expectedMicros
+  ) {
+    throw new Error("scripts_budget_evidence_mismatch")
+  }
+  if (
+    campaign.biddingStrategyType !== "MAXIMIZE_CONVERSION_VALUE"
+    || campaign.targetRoas == null
+    || campaign.targetRoas < POLICY.scripts.scale.initialTargetRoas
+  ) {
+    throw new Error("scripts_troas_floor_missing")
+  }
+  if (
+    campaign.netRetainedRevenueCents == null
+    || campaign.spendCents == null
+    || campaign.stripeFeeCents == null
+  ) {
+    throw new Error("scripts_scale_economics_unavailable")
+  }
+  const tier = authorizeScriptsScaleEligibility(campaign)
+
+  const maximumWindowSpendCents = Math.floor(
+    campaign.netRetainedRevenueCents
+      - campaign.stripeFeeCents
+      - POLICY.scripts.scale.targetContributionMargin
+        * campaign.netRetainedRevenueCents,
+  )
+  if (campaign.spendCents <= 0 || maximumWindowSpendCents <= 0) {
+    throw new Error("scripts_scale_economic_ceiling_unavailable")
+  }
+  const tierMaximumMicros = Math.floor(
+    args.expectedMicros * (1 + tier.maximumBudgetStep),
+  )
+  const economicMaximumMicros = Math.floor(
+    args.expectedMicros * maximumWindowSpendCents / campaign.spendCents,
+  )
+  const maximumNextMicros = Math.min(
+    tierMaximumMicros,
+    economicMaximumMicros,
+  )
+  if (args.nextMicros > maximumNextMicros) {
+    throw new Error("scripts_budget_authorization_exceeded")
+  }
+
+  const hasPreviousChange =
+    args.closedDaysAfterPreviousChange != null
+    || args.ordersAfterPreviousChange != null
+  if (
+    hasPreviousChange
+    && (
+      (args.closedDaysAfterPreviousChange ?? -1)
+        < POLICY.scripts.scale.observationDaysAfterBidChange
+      || (args.ordersAfterPreviousChange ?? -1)
+        < POLICY.scripts.scale.minimumOrdersAfterChange
+    )
+  ) {
+    throw new Error("scripts_post_change_evidence_immature")
+  }
+
+  return { maximumNextMicros, tier: tier.name }
+}
 
 const PROHIBITED_PAID_MEDICINE_TERM_PATTERN =
   /\b(?:amlodipine|atorvastatin|cialis|duromine|dutasteride|finasteride|minoxidil|mounjaro|nitrofurantoin|ozempic|perindopril|phentermine|ramipril|rosuvastatin|semaglutide|seretide|sildenafil|symbicort|tadalafil|tirzepatide|trimethoprim|valium|ventolin|viagra|wegovy|xanax)\b/i
@@ -215,19 +356,33 @@ function evaluateScripts(campaign: CampaignEconomics): AdsRecommendation {
   ) {
     return hold("scripts", "SCRIPTS_REFUND_GATE")
   }
-  if (campaign.orders! < POLICY.scripts.scale.minimumMatureOrders) {
+  const scaleTier = resolveScriptsScaleTier({
+    contributionMargin: campaign.contributionMargin,
+    orders: campaign.serviceOrders.scripts ?? 0,
+  })
+  if (
+    (campaign.serviceOrders.scripts ?? 0)
+      < POLICY.scripts.scale.minimumMatureOrders
+  ) {
     return hold("scripts", "POST_CHANGE_SAMPLE_IMMATURE")
   }
-  if (
-    campaign.contributionMargin
-    < POLICY.scripts.scale.minimumContributionMargin
-  ) {
+  if (!scaleTier) {
     return hold("scripts", "SCRIPTS_CONTRIBUTION_GATE")
   }
 
+  const hasScaleRoasFloor =
+    campaign.biddingStrategyType === "MAXIMIZE_CONVERSION_VALUE"
+    && campaign.targetRoas != null
+    && campaign.targetRoas >= POLICY.scripts.scale.initialTargetRoas
+
   return {
     kind: "APPROVAL_NEEDED",
-    proposedMutationFamily: "campaign_bidding",
+    // Older snapshots omit bidding configuration and deliberately fall back to
+    // the tROAS step. Fresh snapshots move on to budget only after the
+    // contribution floor is present in the live campaign.
+    proposedMutationFamily: hasScaleRoasFloor
+      ? "campaign_budget"
+      : "campaign_bidding",
     reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
     service: "scripts",
   }
@@ -321,18 +476,12 @@ export function evaluateAdsPolicy(
   options?: EvaluateAdsPolicyOptions,
 ): AdsRecommendation[] {
   const openAttributionHolds = options?.openAttributionHolds ?? OPEN_ATTRIBUTION_HOLDS
+  const recommendations: AdsRecommendation[] = []
   if (snapshot.account.dailyBudgetTotalCents == null) {
-    return [investigate("account", "BUDGET_ENVELOPE_UNAVAILABLE")]
-  }
-  if (
-    snapshot.account.dailyBudgetTotalCents
-    > POLICY.account.dailyBudgetEnvelopeCents
-  ) {
-    return [hold("account", "BUDGET_ENVELOPE_EXCEEDED")]
+    recommendations.push(investigate("account", "BUDGET_ENVELOPE_UNAVAILABLE"))
   }
 
   const campaigns = groupedCampaigns(snapshot)
-  const recommendations: AdsRecommendation[] = []
 
   for (const service of SERVICE_ORDER) {
     // Durable hold wins over EVERYTHING for the service — including a missing

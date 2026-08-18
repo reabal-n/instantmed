@@ -38,6 +38,7 @@ const UNMAPPED_CAMPAIGN_ID = "google_ads_unmapped"
 const UNMAPPED_CAMPAIGN_NAME = "Unmapped Google Ads"
 
 interface AccountCampaign {
+  biddingStrategyType: string | null
   budgetAmountMicros: number | null
   budgetResourceName: string | null
   campaignId: string
@@ -45,6 +46,7 @@ interface AccountCampaign {
   campaignResourceName: string | null
   campaignStatus: string | null
   channel: string | null
+  targetRoas: number | null
 }
 
 interface LocalCampaignRollup {
@@ -148,6 +150,7 @@ function getAccountCampaigns(
       if (!campaignId) return null
 
       return {
+        biddingStrategyType: asString(campaign?.biddingStrategyType),
         budgetAmountMicros: asFiniteNumber(budget?.amountMicros),
         budgetResourceName: asString(budget?.resourceName),
         campaignId,
@@ -156,6 +159,9 @@ function getAccountCampaigns(
           asString(campaign?.resourceName) || resource.resourceName,
         campaignStatus: asString(campaign?.status),
         channel: asString(campaign?.advertisingChannelType),
+        targetRoas: asFiniteNumber(
+          asRecord(campaign?.maximizeConversionValue)?.targetRoas,
+        ),
       }
     })
     .filter((campaign): campaign is AccountCampaign => campaign != null)
@@ -395,6 +401,18 @@ function buildCampaignEconomics(args: {
           : null
 
       return {
+        ...(accountCampaign
+          ? {
+              budgetAmountMicros: accountCampaign.budgetAmountMicros,
+              budgetResourceName: accountCampaign.budgetResourceName,
+            }
+          : {}),
+        ...(accountCampaign?.biddingStrategyType
+          ? {
+              biddingStrategyType: accountCampaign.biddingStrategyType,
+              targetRoas: accountCampaign.targetRoas,
+            }
+          : {}),
         campaignId,
         campaignName:
           accountCampaign?.campaignName ||

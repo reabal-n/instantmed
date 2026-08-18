@@ -115,11 +115,12 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **127 migration files**")
+      expect(source).toContain("Current count on disk: **129 migration files**")
       expect(source).toContain("`20260814163645_reconcile_manual_certificate_delivery.sql`")
       expect(source).toContain("`20260814171919_harden_audit_function_search_paths.sql`")
       expect(source).toContain("`20260814190000_fix_support_refund_attempt_role_cast.sql`")
-      expect(source).toContain("linked migration history is aligned through `20260814190000`")
+      expect(source).toContain("`20260817095854_allow_direct_codex_ads_approval.sql`")
+      expect(source).toContain("aligned through `20260817095854`")
       expect(source).toContain("17 refunds and 17 cash movements totalling A$549.00 (54,900 cents)")
       expect(source).toContain("17 linked, 0 ambiguous, and 0 unlinked")
       expect(source).toContain("15 mutable intake mirrors")
@@ -128,12 +129,13 @@ describe("project docs drift contract", () => {
       expect(source).toContain("On-disk presence is not deployment proof")
     }
 
-    expect(architecture).toContain("Latest: `20260814190000_fix_support_refund_attempt_role_cast.sql`")
+    expect(architecture).toContain("Latest: `20260817095854_allow_direct_codex_ads_approval.sql`")
     expect(architecture).toContain("Production receipt (2026-08-16)")
+    expect(architecture).toContain("Production receipt (2026-08-17)")
     expect(architecture).toContain("the linked DB lint error gate passed")
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(wikiArchitecture).toContain(
-      "Latest applied and verified production migration (2026-08-16): `20260814190000_fix_support_refund_attempt_role_cast.sql`",
+      "Latest applied and verified production migration (2026-08-17): `20260817095854_allow_direct_codex_ads_approval.sql`",
     )
   })
 

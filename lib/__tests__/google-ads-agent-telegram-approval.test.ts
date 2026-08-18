@@ -65,6 +65,23 @@ function proposal(
   }
 }
 
+function proposalForOperations(
+  nextOperations: AdsChangeProposal["operations"],
+  overrides: Partial<AdsChangeProposal> = {},
+): AdsChangeProposal {
+  const nextOperationHash = hashAdsMutationOperations(nextOperations)
+  return proposal({
+    mutationFamily: nextOperations[0].kind,
+    operationHash: nextOperationHash,
+    operations: nextOperations,
+    validationReceipt: {
+      ...proposal().validationReceipt!,
+      operationHash: nextOperationHash,
+    },
+    ...overrides,
+  })
+}
+
 function env(
   overrides: Record<string, string | undefined> = {},
 ): Record<string, string | undefined> {
@@ -145,6 +162,277 @@ describe("Telegram Ads approval security", () => {
     expect(card).toContain(
       "Experiment: schedules · sequential · 14 days · minimum 10 retained orders/arm · A$150.00 max loss",
     )
+  })
+
+  it("shows the canonical budget operation even when the rationale understates it", () => {
+    const budgetOperations: AdsChangeProposal["operations"] = [{
+      expectedMicros: 40_000_000,
+      kind: "campaign_budget",
+      nextMicros: 60_000_000,
+      resourceName: "customers/9205010513/campaignBudgets/15589755119",
+    }]
+    const budgetHash = hashAdsMutationOperations(budgetOperations)
+    const card = formatTelegramAdsProposalCard(proposalForOperations(
+      budgetOperations,
+      {
+        rationale: {
+          boundedImpact: "Only A$8/day more",
+          campaign: "Scripts",
+          currentValue: "A$40/day",
+          reason: "Scale a profitable campaign",
+          requestedValue: "A$48/day",
+          service: "scripts",
+        },
+      },
+    ))
+
+    expect(card).toContain(`Trusted operations · SHA-256 ${budgetHash}`)
+    expect(card).toContain(
+      "Resource: customers/9205010513/campaignBudgets/15589755119",
+    )
+    expect(card).toContain(
+      "Expected → next: 40000000 micros (A$40.00) → 60000000 micros (A$60.00)",
+    )
+    expect(card).toContain("Scripts · Scripts: A$40/day → A$48/day")
+  })
+
+  it("shows every responsive search ad field from the canonical operation", () => {
+    const rsaOperations: AdsChangeProposal["operations"] = [{
+      adGroupResourceName: "customers/9205010513/adGroups/197218555566",
+      descriptions: [
+        "Complete a secure men's health form. An Australian doctor reviews it.",
+        "Private assessment online. A doctor may call before prescribing.",
+        "If approved, your eScript is sent by SMS.",
+      ],
+      finalUrl: "https://instantmed.com.au/erectile-dysfunction",
+      headlines: [
+        "Private ED Assessment",
+        "Doctor Review Online",
+        "Start With a Secure Form",
+        "If Clinically Appropriate",
+      ],
+      kind: "responsive_search_ad_create",
+      path1: "ed",
+      path2: "doctor-review",
+      status: "ENABLED",
+    }]
+    const card = formatTelegramAdsProposalCard(
+      proposalForOperations(rsaOperations),
+    )
+
+    expect(card).toContain(
+      "Ad group: customers/9205010513/adGroups/197218555566",
+    )
+    expect(card).toContain("Status: ENABLED")
+    expect(card).toContain(
+      "Final URL: https://instantmed.com.au/erectile-dysfunction",
+    )
+    expect(card).toContain('Display paths: "ed" / "doctor-review"')
+    expect(card).toContain([
+      "Headlines (4):",
+      '1. "Private ED Assessment"',
+      '2. "Doctor Review Online"',
+      '3. "Start With a Secure Form"',
+      '4. "If Clinically Appropriate"',
+    ].join("\n"))
+    expect(card).toContain([
+      "Descriptions (3):",
+      '1. "Complete a secure men\'s health form. An Australian doctor reviews it."',
+      '2. "Private assessment online. A doctor may call before prescribing."',
+      '3. "If approved, your eScript is sent by SMS."',
+    ].join("\n"))
+  })
+
+  it("shows positive keyword text, match type, status, and target ad group", () => {
+    const keywordOperations: AdsChangeProposal["operations"] = [{
+      adGroupResourceName: "customers/9205010513/adGroups/196799711677",
+      kind: "positive_keyword_create",
+      matchType: "PHRASE",
+      status: "ENABLED",
+      text: "telehealth prescription",
+    }]
+    const card = formatTelegramAdsProposalCard(
+      proposalForOperations(keywordOperations),
+    )
+
+    expect(card).toContain(
+      "Ad group: customers/9205010513/adGroups/196799711677",
+    )
+    expect(card).toContain('Text: "telehealth prescription"')
+    expect(card).toContain("Match type: PHRASE")
+    expect(card).toContain("Status: ENABLED")
+  })
+
+  it("shows negative keyword text, match type, enabled status, and campaign", () => {
+    const negativeOperations: AdsChangeProposal["operations"] = [{
+      campaignResourceName: "customers/9205010513/campaigns/23870042807",
+      kind: "negative_keyword",
+      matchType: "PHRASE",
+      text: "example medicine term",
+    }]
+    const card = formatTelegramAdsProposalCard(
+      proposalForOperations(negativeOperations),
+    )
+
+    expect(card).toContain(
+      "Campaign: customers/9205010513/campaigns/23870042807",
+    )
+    expect(card).toContain('Text: "example medicine term"')
+    expect(card).toContain("Match type: PHRASE")
+    expect(card).toContain("Status: ENABLED (negative criterion)")
+  })
+
+  it("shows every expected and next ad schedule entry", () => {
+    const scheduleOperations: AdsChangeProposal["operations"] = [{
+      campaignResourceName: "customers/9205010513/campaigns/23870042807",
+      expected: [
+        {
+          dayOfWeek: "MONDAY",
+          endHour: 20,
+          endMinute: "ZERO",
+          startHour: 8,
+          startMinute: "ZERO",
+        },
+        {
+          dayOfWeek: "SUNDAY",
+          endHour: 24,
+          endMinute: "ZERO",
+          startHour: 0,
+          startMinute: "THIRTY",
+        },
+      ],
+      kind: "schedule_replace",
+      next: [],
+    }]
+    const card = formatTelegramAdsProposalCard(
+      proposalForOperations(scheduleOperations),
+    )
+
+    expect(card).toContain(
+      "Campaign: customers/9205010513/campaigns/23870042807",
+    )
+    expect(card).toContain([
+      "Expected schedule (2):",
+      "1. MONDAY 08:00-20:00",
+      "2. SUNDAY 00:30-24:00",
+      "Next schedule (0):",
+      "none (no ad schedule criteria)",
+    ].join("\n"))
+  })
+
+  it("shows exact transitions for every mutable resource operation", () => {
+    const cases: Array<{
+      expected: string
+      operations: AdsChangeProposal["operations"]
+    }> = [
+      {
+        expected: [
+          "Resource: customers/123/campaigns/456",
+          "Expected → next: ENABLED → PAUSED",
+        ].join("\n"),
+        operations: [{
+          expected: "ENABLED",
+          kind: "campaign_status",
+          next: "PAUSED",
+          resourceName: "customers/123/campaigns/456",
+        }],
+      },
+      {
+        expected: [
+          "Resource: customers/123/campaigns/456",
+          'Expected → next: {"strategy":"MAXIMIZE_CONVERSION_VALUE"} → {"strategy":"MAXIMIZE_CONVERSION_VALUE","targetRoas":1.35}',
+        ].join("\n"),
+        operations: [{
+          expected: { strategy: "MAXIMIZE_CONVERSION_VALUE" },
+          kind: "campaign_bidding",
+          next: {
+            strategy: "MAXIMIZE_CONVERSION_VALUE",
+            targetRoas: 1.35,
+          },
+          resourceName: "customers/123/campaigns/456",
+        }],
+      },
+      {
+        expected: [
+          "Resource: customers/123/adGroups/789",
+          "Expected → next: 10000 micros (A$0.01) → 3000000 micros (A$3.00)",
+        ].join("\n"),
+        operations: [{
+          expectedMicros: 10_000,
+          kind: "ad_group_cpc_bid",
+          nextMicros: 3_000_000,
+          resourceName: "customers/123/adGroups/789",
+        }],
+      },
+      {
+        expected: [
+          "Resource: customers/123/adGroupAds/789~1011",
+          "Expected → next: ENABLED → PAUSED",
+        ].join("\n"),
+        operations: [{
+          expected: "ENABLED",
+          kind: "ad_status",
+          next: "PAUSED",
+          resourceName: "customers/123/adGroupAds/789~1011",
+        }],
+      },
+      {
+        expected: [
+          "Resource: customers/123/adGroupCriteria/789~1012",
+          "Expected → next: ENABLED → PAUSED",
+        ].join("\n"),
+        operations: [{
+          expected: "ENABLED",
+          kind: "keyword_status",
+          next: "PAUSED",
+          resourceName: "customers/123/adGroupCriteria/789~1012",
+        }],
+      },
+      {
+        expected: [
+          "Resource: customers/123/campaignAssets/456~222~SITELINK",
+          "Expected → next: ENABLED → PAUSED",
+        ].join("\n"),
+        operations: [{
+          expected: "ENABLED",
+          kind: "asset_link_status",
+          next: "PAUSED",
+          resourceName: "customers/123/campaignAssets/456~222~SITELINK",
+        }],
+      },
+    ]
+
+    for (const entry of cases) {
+      const card = formatTelegramAdsProposalCard(
+        proposalForOperations(entry.operations),
+      )
+      expect(card).toContain(entry.expected)
+    }
+  })
+
+  it("refuses to render a trusted summary when operations diverge from validation", () => {
+    expect(() => formatTelegramAdsProposalCard(proposal({
+      operations: [{
+        ...operations[0],
+        next: "ENABLED",
+      }],
+    }))).toThrow("proposal_operations_changed")
+  })
+
+  it("fails closed instead of truncating a trusted packet that exceeds Telegram limits", () => {
+    const oversizedOperations: AdsChangeProposal["operations"] = Array.from(
+      { length: 50 },
+      (_, index) => ({
+        expected: "ENABLED" as const,
+        kind: "campaign_status" as const,
+        next: "PAUSED" as const,
+        resourceName: `customers/9205010513/campaigns/${23_000_000_000 + index}`,
+      }),
+    )
+
+    expect(() => formatTelegramAdsProposalCard(
+      proposalForOperations(oversizedOperations),
+    )).toThrow("telegram_ads_proposal_card_too_long")
   })
 
   it("records an exact one-time approval without raw Telegram identity or payload", async () => {

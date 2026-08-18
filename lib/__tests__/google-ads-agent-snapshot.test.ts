@@ -32,7 +32,9 @@ const scriptsCampaign = {
   values: {
     campaign: {
       advertisingChannelType: "SEARCH",
+      biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
       id: "23870042807",
+      maximizeConversionValue: { targetRoas: 1.35 },
       name: "JDM | Search | Scripts",
       resourceName: "customers/1234567890/campaigns/23870042807",
       status: "ENABLED",
@@ -253,11 +255,13 @@ describe("Google Ads Agent snapshot", () => {
         (row) => row.campaignId === "23870042807",
       ),
     ).toMatchObject({
+      biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
       campaignName: "JDM | Search | Scripts",
       campaignStatus: "ENABLED",
       clicks: 412,
       contributionCents: 18835,
       grossRevenueCents: 60900,
+      targetRoas: 1.35,
       netRetainedRevenueCents: 55900,
       orders: 2,
       refundCents: 5000,

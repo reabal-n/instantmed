@@ -241,7 +241,13 @@ const transitions: Record<AdsProposalStatus, readonly AdsProposalStatus[]> = {
   failed: [],
   rejected: [],
   rolled_back: [],
-  validated: ["awaiting_approval", "failed", "expired"],
+  validated: [
+    "awaiting_approval",
+    "approved",
+    "rejected",
+    "failed",
+    "expired",
+  ],
   verified: ["rolled_back"],
 }
 
@@ -1261,8 +1267,12 @@ export async function recordCodexProposalDecision(args: {
   }
   const proposal = await getAdsProposalByKey(args.supabase, args.proposalKey)
   if (!proposal) throw new Error("proposal_not_found")
-  if (proposal.status !== "awaiting_approval") {
+  const expectedStatus = getCodexDecisionExpectedStatus(proposal.status)
+  if (!expectedStatus) {
     return { consumed: false }
+  }
+  if (!proposal.validationReceipt?.ok) {
+    throw new Error("proposal_validation_failed")
   }
   if (isAdsProposalExpired(proposal, args.now)) {
     throw new Error("proposal_expired")
@@ -1286,7 +1296,7 @@ export async function recordCodexProposalDecision(args: {
       updated_at: now,
     })
     .eq("id", proposal.id)
-    .eq("status", "awaiting_approval")
+    .eq("status", expectedStatus)
     .select("id")
     .maybeSingle()
   if (result.error) {
@@ -1295,6 +1305,14 @@ export async function recordCodexProposalDecision(args: {
     )
   }
   return { consumed: result.data != null }
+}
+
+function getCodexDecisionExpectedStatus(
+  status: AdsProposalStatus,
+): "validated" | "awaiting_approval" | null {
+  return status === "validated" || status === "awaiting_approval"
+    ? status
+    : null
 }
 
 export function isCodexAdsApprovalReference(value: string): boolean {

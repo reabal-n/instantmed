@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  authorizeScriptsBudgetScale,
+  authorizeScriptsScaleEligibility,
   evaluateAdsPolicy,
   POLICY,
 } from "@/lib/ads-agent/policy"
@@ -149,17 +151,102 @@ function evaluatePolicyWithoutHolds(snap: ReturnType<typeof snapshot>) {
 
 describe("Google Ads Agent policy", () => {
   it("pins the campaign constitution and safety limits", () => {
-    expect(POLICY.account.dailyBudgetEnvelopeCents).toBe(8400)
     expect(POLICY.attribution.minimumExpectedServiceOrderShare).toBe(0.90)
     expect(POLICY.scripts.scale.minimumContributionMargin).toBe(0.20)
     expect(POLICY.scripts.scale.maximumRefundRate).toBe(0.10)
     expect(POLICY.scripts.scale.minimumMatureOrders).toBe(10)
     expect(POLICY.scripts.scale.initialTargetRoas).toBe(1.35)
-    expect(POLICY.scripts.scale.maximumBudgetStep).toBe(0.20)
+    expect(POLICY.scripts.scale.maximumBudgetStep).toBe(0.50)
+    expect(POLICY.scripts.scale.budgetStepTiers).toEqual([
+      expect.objectContaining({ name: "positive", maximumBudgetStep: 0.20 }),
+      expect.objectContaining({ name: "proven", maximumBudgetStep: 0.35 }),
+      expect.objectContaining({ name: "strong", maximumBudgetStep: 0.50 }),
+    ])
+    expect(POLICY.scripts.scale.observationDaysAfterBidChange).toBe(3)
+    expect(POLICY.scripts.scale.minimumOrdersAfterChange).toBe(10)
+    expect(POLICY.scripts.scale.targetContributionMargin).toBe(0.30)
     expect(POLICY.ed.pilot.maximumLossCents).toBe(15000)
     expect(POLICY.hairLoss.pilot.maximumLossCents).toBe(15000)
     expect(POLICY.womensHealth.pilot.maximumLossCents).toBe(15000)
     expect(POLICY.keywords.medicineNamesAllowed).toBe(false)
+  })
+
+  it("earns progressively larger budget steps from measured contribution", () => {
+    const eligible = (orders: number, contributionMargin: number) =>
+      authorizeScriptsScaleEligibility(campaign({
+        contributionMargin,
+        orders,
+        refundRate: 0,
+        serviceOrders: { scripts: orders },
+      })).name
+
+    expect(eligible(10, 0.20)).toBe("positive")
+    expect(eligible(30, 0.30)).toBe("proven")
+    expect(eligible(50, 0.40)).toBe("strong")
+  })
+
+  it("binds a strong Scripts step to tROAS, economics, and post-change proof", () => {
+    const strong = campaign({
+      biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
+      budgetAmountMicros: 40_000_000,
+      budgetResourceName: "customers/123/campaignBudgets/789",
+      contributionCents: 114_321,
+      contributionMargin: 0.5068,
+      netRetainedRevenueCents: 225_590,
+      orders: 75,
+      refundCents: 0,
+      refundedOrders: 0,
+      refundRate: 0,
+      serviceOrders: { scripts: 75 },
+      spendCents: 103_956,
+      stripeFeeCents: 7_313,
+      targetRoas: 1.35,
+    })
+    const authorized = authorizeScriptsBudgetScale({
+      campaign: strong,
+      closedDaysAfterPreviousChange: 3,
+      expectedMicros: 40_000_000,
+      nextMicros: 57_000_000,
+      ordersAfterPreviousChange: 10,
+    })
+    expect(authorized.tier).toBe("strong")
+    expect(authorized.maximumNextMicros).toBeGreaterThan(57_000_000)
+    expect(authorized.maximumNextMicros).toBeLessThan(60_000_000)
+
+    expect(() => authorizeScriptsBudgetScale({
+      campaign: strong,
+      closedDaysAfterPreviousChange: 3,
+      expectedMicros: 40_000_000,
+      nextMicros: 60_000_000,
+      ordersAfterPreviousChange: 10,
+    })).toThrow("scripts_budget_authorization_exceeded")
+    expect(() => authorizeScriptsBudgetScale({
+      campaign: strong,
+      closedDaysAfterPreviousChange: 2,
+      expectedMicros: 40_000_000,
+      nextMicros: 48_000_000,
+      ordersAfterPreviousChange: 12,
+    })).toThrow("scripts_post_change_evidence_immature")
+    expect(() => authorizeScriptsBudgetScale({
+      campaign: strong,
+      closedDaysAfterPreviousChange: 3,
+      expectedMicros: 40_000_000,
+      nextMicros: 48_000_000,
+      ordersAfterPreviousChange: 9,
+    })).toThrow("scripts_post_change_evidence_immature")
+    expect(() => authorizeScriptsBudgetScale({
+      campaign: { ...strong, targetRoas: null },
+      expectedMicros: 40_000_000,
+      nextMicros: 48_000_000,
+    })).toThrow("scripts_troas_floor_missing")
+    expect(() => authorizeScriptsBudgetScale({
+      campaign: {
+        ...strong,
+        serviceOrders: { med_certs: 10, scripts: 65 },
+      },
+      expectedMicros: 40_000_000,
+      nextMicros: 48_000_000,
+    })).toThrow("scripts_scale_attribution_contaminated")
   })
 
   it("blocks scale proposals whenever tracking is not GREEN", () => {
@@ -181,6 +268,26 @@ describe("Google Ads Agent policy", () => {
     expect(recommendations).not.toContainEqual(
       expect.objectContaining({ kind: "APPROVAL_NEEDED", service: "scripts" }),
     )
+  })
+
+  it("moves from the tROAS guard to a budget proposal once the live floor exists", () => {
+    const scripts = campaign({
+      biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
+      contributionMargin: 0.51,
+      orders: 75,
+      targetRoas: 1.35,
+    })
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
+      daily: [scripts],
+      rolling30: [scripts],
+    }))
+
+    expect(recommendationFor(recommendations, "scripts")).toEqual({
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_budget",
+      reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+      service: "scripts",
+    })
   })
 
   it("holds Scripts when the refund gate is breached", () => {
@@ -267,10 +374,10 @@ describe("Google Ads Agent policy", () => {
 
   it("keeps the exact 90 percent service-purity boundary actionable", () => {
     const scripts = campaign({
-      orders: 10,
+      orders: 20,
       refundedOrders: 0,
       refundRate: 0,
-      serviceOrders: { ed: 1, scripts: 9 },
+      serviceOrders: { ed: 2, scripts: 18 },
     })
     const recommendations = evaluatePolicyWithoutHolds(snapshot({
       daily: [scripts],
@@ -355,20 +462,16 @@ describe("Google Ads Agent policy", () => {
     })
   })
 
-  it("holds the account when enabled budgets exceed the envelope", () => {
+  it("does not turn an old portfolio budget number into a hidden growth cap", () => {
     const recommendations = evaluatePolicyWithoutHolds(snapshot({
       account: {
         ...snapshot().account,
-        dailyBudgetTotalCents: 8401,
+        dailyBudgetTotalCents: 10001,
       },
     }))
 
-    expect(recommendationFor(recommendations, "account")).toEqual({
-      kind: "HOLD",
-      proposedMutationFamily: null,
-      reasonCodes: ["BUDGET_ENVELOPE_EXCEEDED"],
-      service: "account",
-    })
+    expect(recommendationFor(recommendations, "account")).toBeUndefined()
+    expect(recommendationFor(recommendations, "scripts")).toBeDefined()
   })
 
   it("holds negative medical-certificate contribution independently", () => {
