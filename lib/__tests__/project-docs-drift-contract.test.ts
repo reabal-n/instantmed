@@ -119,8 +119,10 @@ describe("project docs drift contract", () => {
       expect(source).toContain("`20260814163645_reconcile_manual_certificate_delivery.sql`")
       expect(source).toContain("`20260814171919_harden_audit_function_search_paths.sql`")
       expect(source).toContain("`20260814190000_fix_support_refund_attempt_role_cast.sql`")
+      expect(source).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
       expect(source).toContain("`20260817095854_allow_direct_codex_ads_approval.sql`")
       expect(source).toContain("aligned through `20260817095854`")
+      expect(source).toContain("recovery issue count returned zero in both test and live mode")
       expect(source).toContain("17 refunds and 17 cash movements totalling A$549.00 (54,900 cents)")
       expect(source).toContain("17 linked, 0 ambiguous, and 0 unlinked")
       expect(source).toContain("15 mutable intake mirrors")
@@ -132,11 +134,33 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("Latest: `20260817095854_allow_direct_codex_ads_approval.sql`")
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
-    expect(architecture).toContain("the linked DB lint error gate passed")
+    expect(architecture).toContain("the linked DB lint error gate")
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
+    expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
       "Latest applied and verified production migration (2026-08-17): `20260817095854_allow_direct_codex_ads_approval.sql`",
     )
+    expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
+    expect(wikiArchitecture).toContain(
+      "Linked migration history is aligned through that version",
+    )
+  })
+
+  it("keeps durable refund recovery ownership aligned across active canon", () => {
+    for (const source of [agents, claude]) {
+      expect(source).toContain("private `stripe_refund_attempts` ledger")
+      expect(source).toContain("at most one evidence-backed successor")
+      expect(source).not.toContain("idempotency key `priority_breach_<intakeId>`")
+    }
+
+    expect(architecture).toContain("five-minute `refund-reconciliation` cron")
+    expect(architecture).toContain("optional Ads work has independent retry ownership")
+    expect(operations).toContain(
+      "| Refund Reconciliation | `/api/cron/refund-reconciliation` | Every 5 min |",
+    )
+    expect(operations).not.toContain("priority_fee_refund_retry_attempted_at")
+    expect(testing).toContain("there is no caller-controlled refund bypass")
+    expect(testing).not.toContain("skipRefund flag")
   })
 
   it("documents the evidence-preserving certificate and PostHog recovery paths", () => {

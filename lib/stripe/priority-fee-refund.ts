@@ -10,8 +10,8 @@
  *
  * Money-path invariants:
  * - Fee-only partial refund; never touches the service amount.
- * - Idempotent per exact refund generation. A durably failed Refund permits
- *   one bounded successor key; the cron never creates an unbounded series.
+ * - The stale-queue cron initiates generation 1 only. Durable recovery owns
+ *   same-key replay and the one bounded successor after terminal failure.
  * - Only fires from `payment_status = "paid"` with zero prior refund cents, so
  *   it can never stack on a support or decline refund.
  * - A later decline still tops the patient up to a FULL refund:
@@ -20,9 +20,12 @@
  */
 
 import * as Sentry from "@sentry/nextjs"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import type Stripe from "stripe"
 
 import { PRICING } from "@/lib/constants"
 import { createLogger } from "@/lib/observability/logger"
+import { requestStripeRefund } from "@/lib/stripe/refund-attempts"
 
 const logger = createLogger("priority-fee-refund")
 
@@ -42,7 +45,6 @@ export interface PriorityBreachIntake {
   refund_status: string | null
   refund_stripe_id: string | null
   priority_fee_refunded_at: string | null
-  priority_fee_refund_retry_attempted_at: string | null
   stripe_payment_intent_id: string | null
   payment_id: string | null
   updated_at: string
@@ -50,17 +52,7 @@ export interface PriorityBreachIntake {
 
 /** Minimal Stripe surface so unit tests can inject a fake. */
 export interface PriorityRefundStripe {
-  refunds: {
-    create(
-      params: {
-        payment_intent: string
-        amount: number
-        reason: "requested_by_customer"
-        metadata: Record<string, string>
-      },
-      options: { idempotencyKey: string },
-    ): Promise<{ id: string; amount: number | null }>
-  }
+  refunds: Pick<Stripe["refunds"], "create">
   checkout: {
     sessions: {
       retrieve(id: string): Promise<{ payment_intent: string | { id: string } | null }>
@@ -68,28 +60,15 @@ export interface PriorityRefundStripe {
   }
 }
 
-/** Minimal Supabase surface (the service-role client satisfies this). */
-interface PriorityRefundMutation {
-  eq(column: string, value: unknown): PriorityRefundMutation
-  select(column: "id" | "id, updated_at"): {
-    maybeSingle(): PromiseLike<{
-      data: { id: string; updated_at?: string } | null
-      error: { message: string } | null
-    }>
-  }
-  then<TResult1 = { error: { message: string } | null }>(
-    onfulfilled?: ((value: { error: { message: string } | null }) => TResult1 | PromiseLike<TResult1>) | null,
-  ): PromiseLike<TResult1>
-}
-
-export interface PriorityRefundDb {
-  from(table: "intakes"): {
-    update(values: Record<string, unknown>): PriorityRefundMutation
-  }
-}
+export type PriorityRefundDb = Pick<SupabaseClient, "rpc">
 
 export type PriorityFeeRefundResult =
-  | { status: "pending"; refundId: string; amountCents: number }
+  | {
+      status: "pending"
+      attemptId: string
+      refundId?: string
+      amountCents: number
+    }
   | { status: "skipped"; reason: string }
   | { status: "failed"; error: string }
 
@@ -99,12 +78,8 @@ export async function refundPriorityFeeOnBreach(
 ): Promise<PriorityFeeRefundResult> {
   if (!intake.is_priority) return { status: "skipped", reason: "not_priority" }
   if (intake.priority_fee_refunded_at) return { status: "skipped", reason: "already_refunded" }
-  if (intake.refund_status === "pending" && intake.refund_stripe_id) {
+  if (intake.refund_status === "pending") {
     return { status: "skipped", reason: "refund_pending" }
-  }
-  const advancesFailedRefund = intake.refund_status === "failed" && Boolean(intake.refund_stripe_id)
-  if (advancesFailedRefund && intake.priority_fee_refund_retry_attempted_at) {
-    return { status: "skipped", reason: "failed_refund_retry_exhausted" }
   }
   // `paid` only: partially_refunded/refunded means support or decline already
   // moved money on this intake — never stack a fee refund on top of that.
@@ -137,104 +112,40 @@ export async function refundPriorityFeeOnBreach(
     return { status: "failed", error: "no_payment_intent" }
   }
 
-  const requestedReservationAt = new Date(
-    Math.max(Date.now(), Date.parse(intake.updated_at) + 1),
-  ).toISOString()
-  const { data: reserved, error: reservationError } = await deps.supabase
-    .from("intakes")
-    .update({
-      refund_status: "pending",
-      refund_error: null,
-      updated_at: requestedReservationAt,
-      ...(advancesFailedRefund
-        ? { priority_fee_refund_retry_attempted_at: requestedReservationAt }
-        : {}),
-    })
-    .eq("id", intake.id)
-    .eq("updated_at", intake.updated_at)
-    .select("id, updated_at")
-    .maybeSingle()
-  if (reservationError || !reserved || typeof reserved.updated_at !== "string") {
-    const message = reservationError?.message ?? (
-      !reserved ? "intake_changed" : "persisted_version_unavailable"
-    )
-    captureBreachRefundFailure(intake.id, `Could not reserve refund request: ${message}`)
-    return { status: "failed", error: "state_reservation_failed" }
-  }
-  const reservationUpdatedAt = reserved.updated_at
+  const result = await requestStripeRefund({
+    stripe: deps.stripe,
+    supabase: deps.supabase,
+  }, {
+    intakeId: intake.id,
+    paymentIntentId,
+    refundType: "priority_breach",
+    targetTotalCents: PRIORITY_FEE_CENTS,
+  })
 
-  let refund: { id: string; amount: number | null }
-  try {
-    refund = await deps.stripe.refunds.create(
-      {
-        payment_intent: paymentIntentId,
-        amount: PRIORITY_FEE_CENTS,
-        reason: "requested_by_customer",
-        metadata: {
-          intake_id: intake.id,
-          category: intake.category || "unknown",
-          refund_type: "priority_breach",
-        },
-      },
-      {
-        idempotencyKey: advancesFailedRefund
-          ? `priority_breach_${intake.id}_after_${intake.refund_stripe_id}`
-          : `priority_breach_${intake.id}`,
-      },
-    )
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown Stripe error"
-    await deps.supabase
-      .from("intakes")
-      .update({
-        refund_status: "failed",
-        refund_error: message,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", intake.id)
-      .eq("updated_at", reservationUpdatedAt)
-    captureBreachRefundFailure(intake.id, message)
-    return { status: "failed", error: message }
+  if (result.status === "failed") {
+    captureBreachRefundFailure(intake.id, result.error)
+    return { status: "failed", error: result.error }
   }
-
-  const refundedCents = refund.amount ?? PRIORITY_FEE_CENTS
-  const nowIso = new Date().toISOString()
-  const { data: updated, error: updateError } = await deps.supabase
-    .from("intakes")
-    .update({
-      refund_status: "pending",
-      refund_stripe_id: refund.id,
-      refund_error: null,
-      updated_at: nowIso,
-    })
-    .eq("id", intake.id)
-    .eq("updated_at", reservationUpdatedAt)
-    .eq("refund_status", "pending")
-    .select("id")
-    .maybeSingle()
-
-  if (updateError) {
-    // Stripe accepted the request but pending state did not land. A retry uses
-    // the same idempotency key, so it cannot create a second refund.
-    captureBreachRefundFailure(
-      intake.id,
-      `Refund request accepted but intake update failed: ${updateError.message}`,
-    )
-    return { status: "failed", error: "state_write_failed" }
+  if (result.status === "cash_satisfied") {
+    return { status: "skipped", reason: "already_refunded" }
   }
-  if (!updated) {
-    logger.info("Exact refund webhook state won the priority create-response race", {
-      intakeId: intake.id,
-      refundId: refund.id,
-    })
+  if (result.status === "active") {
+    return { status: "skipped", reason: "refund_pending" }
   }
 
   logger.info("Priority fee refund requested on breach", {
+    attemptId: result.attemptId,
+    outcome: result.status,
     intakeId: intake.id,
-    refundId: refund.id,
-    amountCents: refundedCents,
+    refundId: result.refundId,
+    amountCents: result.amountCents,
   })
-  return { status: "pending", refundId: refund.id, amountCents: refundedCents }
+  return {
+    status: "pending",
+    attemptId: result.attemptId,
+    ...(result.refundId ? { refundId: result.refundId } : {}),
+    amountCents: result.amountCents,
+  }
 }
 
 function captureBreachRefundFailure(intakeId: string, message: string): void {

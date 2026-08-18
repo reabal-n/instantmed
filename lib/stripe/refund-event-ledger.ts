@@ -23,6 +23,7 @@ export const STRIPE_REFUND_EVIDENCE_SELECT = [
 
 type StripeRefundEvidenceSource =
   | "charge.refunded"
+  | "refund.api.reconcile"
   | "refund.created"
   | "refund.failed"
   | "refund.list.backfill"
@@ -122,6 +123,31 @@ export function buildStripeRefundBackfillEvidence(input: {
       evidence.refund_status ?? "unknown",
     ].join(":"),
     evidence_source: "refund.list.backfill",
+    intake_id: input.intakeId,
+    livemode: input.livemode,
+    payment_intent_id: stripeId(input.refund.payment_intent),
+    stripe_event_created_at: null,
+    stripe_event_id: null,
+  }
+}
+
+export function buildStripeRefundApiEvidence(input: {
+  intakeId: string
+  livemode: boolean
+  refund: Stripe.Refund
+}): StripeRefundEvidenceRow | null {
+  const evidence = buildEvidenceFields(input.refund)
+  if (!evidence) return null
+
+  return {
+    ...evidence,
+    evidence_key: [
+      `${modePrefix(input.livemode)}:refund:${input.refund.id}:api`,
+      evidence.balance_transaction_id ?? "none",
+      evidence.failure_balance_transaction_id ?? "none",
+      evidence.refund_status ?? "unknown",
+    ].join(":"),
+    evidence_source: "refund.api.reconcile",
     intake_id: input.intakeId,
     livemode: input.livemode,
     payment_intent_id: stripeId(input.refund.payment_intent),

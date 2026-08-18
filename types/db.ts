@@ -113,6 +113,7 @@ export interface Intake {
   refund_error: string | null
   refunded_at: string | null
   refunded_by: string | null
+  refund_obligation_livemode: boolean | null
   // Dispute tracking
   dispute_id: string | null
   // Admin/doctor workflow

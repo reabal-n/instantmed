@@ -303,6 +303,19 @@ export function getStripeSecretKey(): string {
 }
 
 /**
+ * Resolve the immutable Stripe account mode from the credential used for the
+ * request. Refund-attempt rows must carry this before any webhook evidence
+ * exists, so silently defaulting to live mode would poison test-mode
+ * reconciliation.
+ */
+export function getStripeLivemode(): boolean {
+  const key = getStripeSecretKey()
+  if (/^(?:sk|rk)_live_/.test(key)) return true
+  if (/^(?:sk|rk)_test_/.test(key)) return false
+  throw new Error("STRIPE_SECRET_KEY has an unsupported mode prefix")
+}
+
+/**
  * Stripe webhook secret
  */
 export function getStripeWebhookSecret(): string {

@@ -20,6 +20,7 @@ const terminalAnchors: Record<string, string> = {
   "parchment-smoke": "runParchmentSmokeValidation",
   "posthog-reconciliation": "PostHog reconciliation complete",
   "release-stale-claims": "Failed to record stale-claims run",
+  "refund-reconciliation": "Stripe refund recovery complete",
   "retry-auto-approval": "Retry auto-approval cron complete",
   "retry-drafts": "Retry drafts cron completed",
   "stale-queue": "Awaiting-script count failed",
@@ -31,6 +32,7 @@ const lockProtectedJobs = [
   "google-ads-conversions",
   "posthog-reconciliation",
   "release-stale-claims",
+  "refund-reconciliation",
   "retry-drafts",
 ]
 
@@ -48,7 +50,7 @@ describe("critical cron terminal outcome contract", () => {
     ).sort()
 
     expect(registeredJobs).toEqual(Object.keys(terminalAnchors).sort())
-    expect(registeredJobs).toHaveLength(14)
+    expect(registeredJobs).toHaveLength(15)
   })
 
   it.each(Object.entries(terminalAnchors))(
@@ -115,5 +117,13 @@ describe("critical cron terminal outcome contract", () => {
     expect(businessAlerts).toContain(
       "handledFailures += operationalInvariants.queryFailures?.length ?? 0",
     )
+  })
+
+  it("keeps priority refund retries owned by the dedicated recovery cron", () => {
+    const staleQueue = read("app/api/cron/stale-queue/route.ts")
+
+    expect(staleQueue).toContain('.neq("refund_status", "failed")')
+    expect(staleQueue).not.toContain("priority_fee_refund_retry_attempted_at")
+    expect(staleQueue).toContain("refund-reconciliation cron owns")
   })
 })
