@@ -115,7 +115,7 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **128 migration files**")
+      expect(source).toContain("Current count on disk: **129 migration files**")
       expect(source).toContain("`20260814163645_reconcile_manual_certificate_delivery.sql`")
       expect(source).toContain("`20260814171919_harden_audit_function_search_paths.sql`")
       expect(source).toContain("`20260814190000_fix_support_refund_attempt_role_cast.sql`")

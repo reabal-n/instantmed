@@ -107,6 +107,7 @@ const PAID_PRESCRIPTION_DESTINATION_SURFACES = [
   "components/marketing/womens-health-landing.tsx",
   "components/marketing/prescriptions-landing.tsx",
   "components/marketing/mockups/escript-hero-mockup.tsx",
+  "components/seo/content-hub-links.tsx",
   "components/shared/navbar/services-dropdown.tsx",
   "lib/data/ed-faq.ts",
   "lib/data/hair-loss-faq.ts",
