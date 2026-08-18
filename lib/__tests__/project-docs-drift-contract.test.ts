@@ -408,6 +408,19 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("medication-step.tsx")
   })
 
+  it("pins the doctor-only prior-prescription typo fallback to exact curated resolution", () => {
+    const clinical = readProjectFile("docs/CLINICAL.md")
+    const operations = readProjectFile("docs/OPERATIONS.md")
+
+    for (const source of [agents, claude, architecture, clinical, operations]) {
+      expect(source).toContain("same patient")
+      expect(source).toMatch(/exact-resolve|exact curated/)
+    }
+    expect(clinical).toContain("doctor is verified as the current or prior reviewer")
+    expect(operations).toContain("never performs general fuzzy catalog search")
+    expect(architecture).toContain("verifies the doctor/intake relationship")
+  })
+
   it("documents one medication per repeat request so dose/history answers stay unambiguous", () => {
     const clinical = readProjectFile("docs/CLINICAL.md")
 
