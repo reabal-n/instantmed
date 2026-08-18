@@ -1159,15 +1159,15 @@ describe("Google Ads mutation gateway", () => {
       state: scripts,
     })).toThrow("scripts_budget_step_exceeded")
 
-    const specialty = stateWithBudget(accountState(), 7_000_000)
+    const specialty = stateWithBudget(accountState(), 12_000_000)
     const campaign = specialty.campaigns[0].values
       .campaign as Record<string, unknown>
     campaign.name = "ED Search"
     expect(() => validateAdsMutationPolicy({
       operations: [{
         ...budgetOperation,
-        expectedMicros: 7_000_000,
-        nextMicros: 8_000_000,
+        expectedMicros: 12_000_000,
+        nextMicros: 13_000_000,
       }],
       state: specialty,
     })).toThrow("service_budget_ceiling_exceeded")
@@ -1254,6 +1254,37 @@ describe("Google Ads mutation gateway", () => {
       }],
       state,
     })).toThrow(String(_reason))
+  })
+
+  it("ignores broad keywords retained under a removed legacy ad group", () => {
+    const state = accountState()
+    const removedAdGroup = "customers/123/adGroups/999"
+    const removedKeyword = "customers/123/adGroupCriteria/999~222"
+    state.adGroups.push(resource(removedAdGroup, {
+      adGroup: {
+        campaign: campaignResourceName,
+        resourceName: removedAdGroup,
+        status: "REMOVED",
+      },
+    }))
+    state.adGroupCriteria.push(resource(removedKeyword, {
+      adGroupCriterion: {
+        adGroup: removedAdGroup,
+        keyword: {
+          matchType: "BROAD",
+          text: "online prescriptions",
+        },
+        negative: false,
+        resourceName: removedKeyword,
+        status: "ENABLED",
+        type: "KEYWORD",
+      },
+    }))
+
+    expect(() => validateAdsMutationPolicy({
+      operations: [positiveKeywordCreateOperation],
+      state,
+    })).not.toThrow()
   })
 
   it("rejects enabling a health campaign with an advertiser-curated audience", () => {

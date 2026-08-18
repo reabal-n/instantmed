@@ -1054,6 +1054,14 @@ function assertKeywordAndAudienceSafety(
 
   for (const resource of state.adGroupCriteria) {
     const criterion = asRecord(resource.values.adGroupCriterion)
+    const adGroup = adGroupValue(
+      state,
+      asString(criterion?.adGroup) ?? "",
+    )
+    // Removed ad groups can retain enabled historical criteria in Google Ads.
+    // They are not eligible to serve and must not make a safe operation on the
+    // current campaign look like it is activating those legacy keywords.
+    if (asString(adGroup?.status) === "REMOVED") continue
     const campaign = campaignForAdGroup(
       state,
       asString(criterion?.adGroup),

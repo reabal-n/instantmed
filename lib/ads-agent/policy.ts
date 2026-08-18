@@ -22,7 +22,7 @@ export const POLICY = {
     minimumExpectedServiceOrderShare: 0.90,
   },
   ed: {
-    dailyBudgetCents: 700,
+    dailyBudgetCents: 1_200,
     pilot: {
       initialCpcCeilingCents: 300,
       investigateClicks: 10,
@@ -32,7 +32,7 @@ export const POLICY = {
     },
   },
   hairLoss: {
-    dailyBudgetCents: 700,
+    dailyBudgetCents: 1_000,
     pilot: {
       initialCpcCeilingCents: 300,
       investigateClicks: 10,
