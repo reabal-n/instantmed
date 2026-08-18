@@ -71,7 +71,10 @@ function medicationHistoryClient(input: {
 describe("resolveGenericMedicationNameAction", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mocks.requireRoleOrNull.mockResolvedValue({ id: "doctor-1", role: "doctor" })
+    mocks.requireRoleOrNull.mockResolvedValue({
+      user: { id: "doctor-1" },
+      profile: { id: "doctor-1", role: "doctor" },
+    })
   })
 
   it("requires an authenticated doctor or admin before accessing the catalog", async () => {
@@ -165,7 +168,12 @@ describe("resolveGenericMedicationNameAction", () => {
         error: null,
       },
       intake: {
-        data: { patient_id: "patient-1" },
+        data: {
+          patient_id: "patient-1",
+          claimed_by: "doctor-1",
+          reviewing_doctor_id: null,
+          reviewed_by: null,
+        },
         error: null,
       },
       prescriptions: {
@@ -206,6 +214,40 @@ describe("resolveGenericMedicationNameAction", () => {
     ])
     expect(history.prescriptionOrder).toHaveBeenCalledWith("created_at", { ascending: false })
     expect(history.prescriptionLimit).toHaveBeenCalledWith(20)
+  })
+
+  it("does not expose prior prescriptions to a doctor without a case relationship", async () => {
+    const history = medicationHistoryClient({
+      catalog: {
+        data: [{ name: "Sertraline", brand_names: ["Zoloft"] }],
+        error: null,
+      },
+      intake: {
+        data: {
+          patient_id: "patient-1",
+          claimed_by: "doctor-2",
+          reviewing_doctor_id: null,
+          reviewed_by: null,
+        },
+        error: null,
+      },
+      prescriptions: {
+        data: [{ medication_name: "Sertraline" }],
+        error: null,
+      },
+    })
+    mocks.createServiceRoleClient.mockReturnValue(history.client)
+
+    await expect(resolveGenericMedicationNameAction(
+      "Sertralne",
+      "00000000-0000-0000-0000-000000000123",
+    )).resolves.toEqual({
+      success: false,
+      error: "Unauthorized",
+    })
+
+    expect(history.from).toHaveBeenCalledTimes(2)
+    expect(history.prescriptionEq).not.toHaveBeenCalled()
   })
 
   it("fails closed when a supplied intake id is invalid", async () => {

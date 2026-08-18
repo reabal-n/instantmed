@@ -11,6 +11,7 @@ import {
   findPriorMedicationMatch,
   type PriorMedicationMatchKind,
 } from "@/lib/clinical/prior-medication-match"
+import { isParchmentClaimSatisfied } from "@/lib/doctor/parchment-claim"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const MAX_MEDICATION_REFERENCE_LENGTH = 240
@@ -90,9 +91,17 @@ export async function resolveGenericMedicationNameAction(
     // bypasses Parchment confirmation.
     const { data: intake } = await supabase
       .from("intakes")
-      .select("patient_id")
+      .select("patient_id, claimed_by, reviewing_doctor_id, reviewed_by")
       .eq("id", parsedIntakeId)
       .maybeSingle()
+
+    const canAccessIntake = auth.profile.role === "admin" || (
+      intake
+      && isParchmentClaimSatisfied(intake, auth.profile.id)
+    )
+    if (!canAccessIntake) {
+      return { success: false, error: "Unauthorized" }
+    }
 
     const patientId = typeof intake?.patient_id === "string" ? intake.patient_id : null
     if (!patientId) {
