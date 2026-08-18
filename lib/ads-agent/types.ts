@@ -48,6 +48,12 @@ export type CampaignAvailabilityReason =
   | "STRIPE_FEES_UNAVAILABLE"
 
 export interface CampaignEconomics {
+  /** Optional on historical snapshots created before campaign configuration was bound. */
+  biddingStrategyType?: string | null
+  /** Optional on historical snapshots; exact micros from the campaign budget resource. */
+  budgetAmountMicros?: number | null
+  /** Optional on historical snapshots; binds economic evidence to one live budget. */
+  budgetResourceName?: string | null
   campaignId: string
   campaignName: string
   campaignResourceName: string | null
@@ -66,6 +72,8 @@ export interface CampaignEconomics {
   serviceOrders: Record<string, number>
   spendCents: number | null
   stripeFeeCents: number | null
+  /** Campaign-native target ROAS; null means the strategy has no explicit floor. */
+  targetRoas?: number | null
   unavailableReasonCodes: CampaignAvailabilityReason[]
 }
 

@@ -11,8 +11,11 @@ import {
   type NormalizedGoogleAdsResource,
 } from "@/lib/ads-agent/account-state"
 import {
+  authorizeScriptsBudgetScale,
+  authorizeScriptsScaleEligibility,
   containsProhibitedPaidMedicineTerm,
   POLICY,
+  resolveAdsCampaignService,
 } from "@/lib/ads-agent/policy"
 import {
   type AdsChangeProposal,
@@ -31,6 +34,15 @@ import {
   normalizeAdsMutationOperations,
   recordAdsProposalValidation,
 } from "@/lib/ads-agent/proposals"
+import { isAdsAgentSnapshot } from "@/lib/ads-agent/runs"
+import {
+  type AdsScaleAuthorizationEvidence,
+  deriveScriptsScaleAuthorizationEvidence,
+  previousSydneyDateKey,
+  resolveLatestAdsMaterialChangeAt,
+  sydneyDateKey,
+} from "@/lib/ads-agent/scripts-scale-authorization"
+import type { AdsService } from "@/lib/ads-agent/types"
 import {
   type GoogleAdsMutateOperation,
   type GoogleAdsMutateResponse,
@@ -80,6 +92,13 @@ export interface AdsMutationGatewayRepository {
     stopProposalKey: string | null
   } | null>
   getProposalByKey(proposalKey: string): Promise<AdsChangeProposal | null>
+  getScaleAuthorizationEvidence(args: {
+    budgetResourceName: string
+    campaignResourceName: string
+    liveMaterialChangeAt: string | null
+    runId: string | null
+    service: AdsService
+  }): Promise<AdsScaleAuthorizationEvidence | null>
   recordApplyOutcome(args: {
     expectedStatus: "approved" | "applying"
     proposalId: string
@@ -102,6 +121,7 @@ export interface AdsMutationGatewayRepository {
 export interface AdsMutationGateway {
   applyProposal(proposalKey: string): Promise<ApplyReceipt>
   buildRollbackProposal(proposalKey: string): Promise<AdsChangeProposal>
+  reconcileProposal(proposalKey: string): Promise<VerificationReceipt>
   validateProposal(proposalKey: string): Promise<ValidationReceipt>
   verifyProposal(proposalKey: string): Promise<VerificationReceipt>
 }
@@ -141,6 +161,13 @@ function asString(value: unknown): string | null {
   if (typeof value === "string") return value.trim() || null
   if (typeof value === "number" && Number.isFinite(value)) return String(value)
   return null
+}
+
+function normalizedCampaignLabel(value: unknown): string | null {
+  const label = asString(value)
+  return label
+    ? label.normalize("NFKC").replace(/\s+/g, " ").toLowerCase()
+    : null
 }
 
 function asNumber(value: unknown): number | null {
@@ -1027,6 +1054,14 @@ function assertKeywordAndAudienceSafety(
 
   for (const resource of state.adGroupCriteria) {
     const criterion = asRecord(resource.values.adGroupCriterion)
+    const adGroup = adGroupValue(
+      state,
+      asString(criterion?.adGroup) ?? "",
+    )
+    // Removed ad groups can retain enabled historical criteria in Google Ads.
+    // They are not eligible to serve and must not make a safe operation on the
+    // current campaign look like it is activating those legacy keywords.
+    if (asString(adGroup?.status) === "REMOVED") continue
     const campaign = campaignForAdGroup(
       state,
       asString(criterion?.adGroup),
@@ -1063,63 +1098,6 @@ function assertKeywordAndAudienceSafety(
     ) {
       throw new Error("health_audience_operation_rejected")
     }
-  }
-}
-
-function assertBudgetEnvelope(
-  operations: AdsMutationOperation[],
-  state: GoogleAdsAccountState,
-): void {
-  const nextCampaignStatuses = new Map<string, string>()
-  const nextBudgetMicros = new Map<string, number>()
-
-  for (const resource of state.campaigns) {
-    if (!resource.resourceName) continue
-    const campaign = asRecord(resource.values.campaign)
-    const status = asString(campaign?.status)
-    if (status) nextCampaignStatuses.set(resource.resourceName, status)
-  }
-  for (const resource of state.campaignBudgets) {
-    if (!resource.resourceName) continue
-    const budget = asRecord(resource.values.campaignBudget)
-    const amount = asNumber(budget?.amountMicros)
-    if (amount != null) nextBudgetMicros.set(resource.resourceName, amount)
-  }
-  for (const operation of operations) {
-    if (operation.kind === "campaign_status") {
-      nextCampaignStatuses.set(operation.resourceName, operation.next)
-    }
-    if (operation.kind === "campaign_budget") {
-      nextBudgetMicros.set(operation.resourceName, operation.nextMicros)
-    }
-  }
-
-  const enabledBudgetNames = new Set<string>()
-  for (const resource of state.campaigns) {
-    if (!resource.resourceName) continue
-    const campaign = asRecord(resource.values.campaign)
-    if (
-      nextCampaignStatuses.get(resource.resourceName) !== "ENABLED"
-      || asString(campaign?.advertisingChannelType) !== "SEARCH"
-    ) {
-      continue
-    }
-    const budgetName = asString(campaign?.campaignBudget)
-    if (!budgetName || !nextBudgetMicros.has(budgetName)) {
-      throw new Error("account_budget_envelope_unavailable")
-    }
-    enabledBudgetNames.add(budgetName)
-  }
-  const totalCents = Array.from(enabledBudgetNames).reduce(
-    (total, budgetName) =>
-      total + Math.round((nextBudgetMicros.get(budgetName) ?? 0) / 10_000),
-    0,
-  )
-  if (
-    totalCents > POLICY.account.dailyBudgetEnvelopeCents
-    && isScalingProposal(operations)
-  ) {
-    throw new Error("account_budget_envelope_exceeded")
   }
 }
 
@@ -1207,7 +1185,6 @@ export function validateAdsMutationPolicy(args: {
   state: GoogleAdsAccountState
 }): AdsMutationOperation[] {
   const operations = normalizeAdsMutationOperations(args.operations)
-  assertBudgetEnvelope(operations, args.state)
   assertGovernedCampaignConstitution(operations, args.state)
   assertSpecialtyCpcCeiling(operations, args.state)
   assertCreateOperationsSafe(operations, args.state)
@@ -1326,6 +1303,138 @@ async function requireTrackingGreen(args: {
   })
   if (!tracking.fresh || tracking.state !== "GREEN") {
     throw new Error("tracking_not_green")
+  }
+}
+
+async function requireScaleAuthorization(args: {
+  operations: AdsMutationOperation[]
+  proposal: AdsChangeProposal
+  repository: AdsMutationGatewayRepository
+  state: GoogleAdsAccountState
+}): Promise<void> {
+  const budgetIncreases = args.operations.filter(
+    (operation): operation is Extract<
+      AdsMutationOperation,
+      { kind: "campaign_budget" }
+    > => operation.kind === "campaign_budget"
+      && operation.nextMicros > operation.expectedMicros,
+  )
+  const biddingChanges = args.operations.filter(
+    (operation): operation is Extract<
+      AdsMutationOperation,
+      { kind: "campaign_bidding" }
+    > => operation.kind === "campaign_bidding",
+  )
+  if (budgetIncreases.length === 0 && biddingChanges.length === 0) return
+
+  const governedChanges = [
+    ...budgetIncreases.map((operation) => ({ operation, type: "budget" as const })),
+    ...biddingChanges.map((operation) => ({ operation, type: "bidding" as const })),
+  ]
+  for (const change of governedChanges) {
+    const owners = args.state.campaigns
+      .map((resource) => ({
+        campaign: asRecord(resource.values.campaign),
+        resourceName: resource.resourceName,
+      }))
+      .filter(({ campaign, resourceName }) =>
+        change.type === "budget"
+          ? asString(campaign?.campaignBudget) === change.operation.resourceName
+          : resourceName === change.operation.resourceName)
+    if (owners.length !== 1 || !owners[0].resourceName) {
+      throw new Error(
+        change.type === "budget"
+          ? "campaign_budget_owner_ambiguous"
+          : "campaign_bidding_owner_ambiguous",
+      )
+    }
+    const service = resolveAdsCampaignService({
+      campaignName: asString(owners[0].campaign?.name) ?? "",
+    })
+    if (!service) throw new Error("ungoverned_campaign_service")
+    if (
+      normalizedCampaignLabel(args.proposal.rationale.campaign)
+        !== normalizedCampaignLabel(owners[0].campaign?.name)
+    ) {
+      throw new Error("proposal_campaign_mismatch")
+    }
+    if (args.proposal.rationale.service !== service) {
+      throw new Error("proposal_service_mismatch")
+    }
+    if (service !== "scripts") continue
+    if (
+      args.state.changeEventHistorySaturated === true
+      || args.state.changeEvents.length >= 20_000
+    ) {
+      throw new Error("scripts_change_history_saturated")
+    }
+    const budgetResourceName = asString(owners[0].campaign?.campaignBudget)
+    if (!budgetResourceName) {
+      throw new Error("scripts_budget_owner_unavailable")
+    }
+    const liveTargetRoas = asNumber(
+      asRecord(owners[0].campaign?.maximizeConversionValue)?.targetRoas,
+    )
+    const liveStrategy = asString(owners[0].campaign?.biddingStrategyType)
+    if (change.type === "budget") {
+      if (
+        liveStrategy !== "MAXIMIZE_CONVERSION_VALUE"
+        || liveTargetRoas == null
+        || liveTargetRoas < POLICY.scripts.scale.initialTargetRoas
+      ) {
+        throw new Error("scripts_live_troas_floor_missing")
+      }
+    } else if (
+      liveStrategy !== "MAXIMIZE_CONVERSION_VALUE"
+      || change.operation.next.strategy !== "MAXIMIZE_CONVERSION_VALUE"
+      || change.operation.next.targetRoas == null
+      || change.operation.next.targetRoas
+        < POLICY.scripts.scale.initialTargetRoas
+    ) {
+      throw new Error("scripts_bidding_authorization_rejected")
+    }
+
+    const evidence = await args.repository.getScaleAuthorizationEvidence({
+      budgetResourceName,
+      campaignResourceName: owners[0].resourceName,
+      liveMaterialChangeAt: resolveLatestAdsMaterialChangeAt({
+        budgetResourceName,
+        campaignResourceName: owners[0].resourceName,
+        state: args.state,
+      }),
+      runId: args.proposal.runId,
+      service,
+    })
+    if (!evidence) throw new Error("scripts_scale_authorization_unavailable")
+    if (
+      evidence.snapshot.reportDate
+        !== previousSydneyDateKey(args.state.readAt)
+    ) {
+      throw new Error("scripts_scale_evidence_stale")
+    }
+
+    const campaigns = evidence.snapshot.rolling30.filter((campaign) =>
+      campaign.budgetResourceName === budgetResourceName
+      && resolveAdsCampaignService(campaign) === "scripts"
+    )
+    if (campaigns.length !== 1) {
+      throw new Error("scripts_budget_evidence_unavailable")
+    }
+    authorizeScriptsScaleEligibility(campaigns[0])
+    if (change.type === "bidding") continue
+    authorizeScriptsBudgetScale({
+      campaign: campaigns[0],
+      expectedMicros: change.operation.expectedMicros,
+      nextMicros: change.operation.nextMicros,
+      ...(evidence.previousMaterialChange
+        ? {
+            closedDaysAfterPreviousChange:
+              evidence.previousMaterialChange.closedDays,
+            ordersAfterPreviousChange:
+              evidence.previousMaterialChange.attributedOrders,
+          }
+        : {}),
+    })
   }
 }
 
@@ -1534,6 +1643,12 @@ export function createAdsMutationGateway(
         proposal,
         repository,
       })
+      await requireScaleAuthorization({
+        operations,
+        proposal,
+        repository,
+        state,
+      })
       const googleOperations = buildGoogleAdsMutateOperations(
         operations,
         state,
@@ -1634,6 +1749,12 @@ export function createAdsMutationGateway(
         operations,
         proposal,
         repository,
+      })
+      await requireScaleAuthorization({
+        operations,
+        proposal,
+        repository,
+        state,
       })
     } catch (error) {
       return abortApprovedProposal({
@@ -1911,6 +2032,94 @@ export function createAdsMutationGateway(
     return verification
   }
 
+  async function reconcileProposal(
+    proposalKey: string,
+  ): Promise<VerificationReceipt> {
+    const proposal = await getProposal(proposalKey)
+    if (proposal.status !== "applying") {
+      throw new Error("proposal_not_applying")
+    }
+    if (proposal.applyReceipt || proposal.verificationReceipt) {
+      throw new Error("proposal_reconciliation_receipt_conflict")
+    }
+    if (
+      !proposal.validationReceipt?.ok
+      || !proposal.validationReceipt.googleOperationsHash
+      || proposal.validationReceipt.operationHash !== proposal.operationHash
+      || !verifiedDecisionReceipt(proposal)
+    ) {
+      throw new Error("proposal_reconciliation_evidence_invalid")
+    }
+
+    const state = await dependencies.getAccountState({
+      now: dependencies.now(),
+    })
+    const verifiedAt = dependencies.now()
+    const verification = verifyOperationState(
+      proposalKey,
+      proposal.operations,
+      state,
+      verifiedAt,
+    )
+    if (verification.outcome !== "verified") {
+      await appendAudit({
+        errorCode: "applying_reconciliation_mismatch",
+        googleOperationsHash:
+          proposal.validationReceipt.googleOperationsHash,
+        outcome: verification.outcome,
+        proposalKey,
+        requestId: null,
+        stage: "verify",
+        timestamp: verifiedAt.toISOString(),
+      })
+      throw new Error("proposal_reconciliation_mismatch")
+    }
+
+    const applyReceipt: ApplyReceipt = {
+      appliedAt: verifiedAt.toISOString(),
+      errorCode: "worker_interrupted_after_google_mutate",
+      googleOperationsHash:
+        proposal.validationReceipt.googleOperationsHash,
+      outcome: "ambiguous",
+      proposalKey,
+      requestId: null,
+    }
+    const applied = await repository.recordApplyOutcome({
+      expectedStatus: "applying",
+      proposalId: proposal.id,
+      receipt: applyReceipt,
+      status: "applied",
+    })
+    if (!applied) throw new Error("proposal_apply_receipt_cas_miss")
+    await appendAudit({
+      errorCode: applyReceipt.errorCode,
+      googleOperationsHash: applyReceipt.googleOperationsHash,
+      outcome: applyReceipt.outcome,
+      proposalKey,
+      requestId: null,
+      stage: "apply",
+      timestamp: verifiedAt.toISOString(),
+    })
+
+    const verified = await repository.recordVerification({
+      expectedStatus: "applied",
+      proposalId: proposal.id,
+      receipt: verification,
+      status: "verified",
+    })
+    if (!verified) throw new Error("proposal_verification_cas_miss")
+    await appendAudit({
+      errorCode: null,
+      googleOperationsHash: applyReceipt.googleOperationsHash,
+      outcome: verification.outcome,
+      proposalKey,
+      requestId: null,
+      stage: "verify",
+      timestamp: verifiedAt.toISOString(),
+    })
+    return verification
+  }
+
   async function buildRollbackProposal(
     proposalKey: string,
   ): Promise<AdsChangeProposal> {
@@ -1924,6 +2133,7 @@ export function createAdsMutationGateway(
   return {
     applyProposal,
     buildRollbackProposal,
+    reconcileProposal,
     validateProposal,
     verifyProposal,
   }
@@ -2040,6 +2250,112 @@ export function createSupabaseAdsMutationRepository(args: {
         fresh,
         state,
       }
+    },
+    async getScaleAuthorizationEvidence({
+      budgetResourceName,
+      campaignResourceName,
+      liveMaterialChangeAt,
+      runId,
+      service,
+    }) {
+      if (!runId) return null
+      const [source, latest] = await Promise.all([
+        supabase
+          .from("google_ads_agent_runs")
+          .select("id, report_date, status, snapshot")
+          .eq("id", runId)
+          .maybeSingle(),
+        supabase
+          .from("google_ads_agent_runs")
+          .select("id, report_date, status, snapshot")
+          .eq("status", "delivered")
+          .order("report_date", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ])
+      if (
+        source.error
+        || latest.error
+        || source.data?.status !== "delivered"
+        || latest.data?.status !== "delivered"
+        || typeof latest.data.report_date !== "string"
+        || !isAdsAgentSnapshot(latest.data.snapshot)
+      ) {
+        return null
+      }
+
+      const historyCutoff = new Date(
+        Date.parse(latest.data.snapshot.generatedAt) - 90 * 24 * 60 * 60 * 1_000,
+      ).toISOString()
+      const proposalFields =
+        "id, status, mutation_family, operations, apply_receipt, verification_receipt, updated_at" as const
+      const [recent, applying, ambiguousFailed] = await Promise.all([
+        supabase
+          .from("google_ads_change_proposals")
+          .select(proposalFields)
+          .in("mutation_family", ["campaign_budget", "campaign_bidding"])
+          .gte("updated_at", historyCutoff)
+          .order("updated_at", { ascending: false })
+          .limit(200),
+        supabase
+          .from("google_ads_change_proposals")
+          .select(proposalFields)
+          .in("mutation_family", ["campaign_budget", "campaign_bidding"])
+          .eq("status", "applying")
+          .limit(200),
+        supabase
+          .from("google_ads_change_proposals")
+          .select(proposalFields)
+          .in("mutation_family", ["campaign_budget", "campaign_bidding"])
+          .eq("status", "failed")
+          .eq("apply_receipt->>outcome", "ambiguous")
+          .limit(200),
+      ])
+      if (
+        recent.error
+        || applying.error
+        || ambiguousFailed.error
+        || (recent.data?.length ?? 0) >= 200
+        || (applying.data?.length ?? 0) >= 200
+        || (ambiguousFailed.data?.length ?? 0) >= 200
+      ) {
+        return null
+      }
+      const proposalRows = new Map<string, (typeof recent.data)[number]>()
+      for (const row of [
+        ...(recent.data ?? []),
+        ...(applying.data ?? []),
+        ...(ambiguousFailed.data ?? []),
+      ]) {
+        if (typeof row.id !== "string") return null
+        proposalRows.set(row.id, row)
+      }
+
+      const firstHistoryDate = sydneyDateKey(historyCutoff)
+      if (!firstHistoryDate) return null
+      const runs = await supabase
+        .from("google_ads_agent_runs")
+        .select("report_date, status, snapshot")
+        .eq("status", "delivered")
+        .gte("report_date", firstHistoryDate)
+        .lte("report_date", latest.data.report_date)
+        .order("report_date", { ascending: true })
+      if (runs.error) return null
+      if (service !== "scripts") return null
+      return deriveScriptsScaleAuthorizationEvidence({
+        budgetResourceName,
+        campaignResourceName,
+        historyComplete: (
+          (recent.data?.length ?? 0) < 200
+          && (applying.data?.length ?? 0) < 200
+          && (ambiguousFailed.data?.length ?? 0) < 200
+        ),
+        latestReportDate: latest.data.report_date,
+        latestSnapshot: latest.data.snapshot,
+        liveMaterialChangeAt,
+        proposals: [...proposalRows.values()],
+        runs: runs.data ?? [],
+      })
     },
     async getMaterialExperimentLock({ campaign }) {
       const result = await supabase
@@ -2178,6 +2494,12 @@ export async function verifyProposal(
   proposalKey: string,
 ): Promise<VerificationReceipt> {
   return defaultGateway().verifyProposal(proposalKey)
+}
+
+export async function reconcileProposal(
+  proposalKey: string,
+): Promise<VerificationReceipt> {
+  return defaultGateway().reconcileProposal(proposalKey)
 }
 
 export async function buildRollbackProposal(

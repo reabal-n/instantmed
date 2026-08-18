@@ -132,6 +132,24 @@ interface GoogleAdsDeepAuditBreakdown extends GoogleAdsDeepAuditMetric {
   dimension: string
 }
 
+interface GoogleAdsDeepAuditScheduleEntry {
+  criterionResourceName: string | null
+  dayOfWeek: string | null
+  endHour: number
+  endMinute: string | null
+  startHour: number
+  startMinute: string | null
+}
+
+interface GoogleAdsDeepAuditSchedule {
+  campaignId: string | null
+  campaignName: string | null
+  campaignResourceName: string | null
+  coverage: "ALL_DAYS_24H" | "LIMITED"
+  entries: GoogleAdsDeepAuditScheduleEntry[]
+  source: "CONFIGURED" | "GOOGLE_DEFAULT"
+}
+
 interface GoogleAdsDeepAuditSignal {
   campaignId: string | null
   code:
@@ -140,6 +158,7 @@ interface GoogleAdsDeepAuditSignal {
     | "DISAPPROVED_RSA"
     | "LOW_QUALITY_COMPONENT"
     | "LOW_RSA_ASSET"
+    | "LIMITED_AD_SCHEDULE"
     | "NO_CAMPAIGN_IMAGE_ASSET"
     | "NO_ENABLED_RSA"
     | "NO_STRUCTURED_SNIPPET"
@@ -161,7 +180,7 @@ export interface GoogleAdsDeepAuditReport {
   account: {
     activeManagerLinks: number
     activeUsers: number
-    changeEventLookbackDays: 14
+    changeEventLookbackDays: 30
     currencyCode: string | null
     customerId: string | null
     enabledAdGroups: number
@@ -203,6 +222,7 @@ export interface GoogleAdsDeepAuditReport {
     telegramSafe: false
   }
   responsiveSearchAds: GoogleAdsDeepAuditAd[]
+  schedules: GoogleAdsDeepAuditSchedule[]
   searchTerms: {
     convertedUntargeted: GoogleAdsDeepAuditSearchTerm[]
     medicineTerms: GoogleAdsDeepAuditSearchTerm[]
@@ -852,6 +872,115 @@ function enabledSearchCampaignResources(
   })
 }
 
+const SCHEDULE_DAY_ORDER = [
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+  "SUNDAY",
+] as const
+
+function scheduleMinute(value: string | null): number {
+  if (value === "FIFTEEN") return 15
+  if (value === "THIRTY") return 30
+  if (value === "FORTY_FIVE") return 45
+  return 0
+}
+
+function weeklyScheduleMinutes(
+  entries: GoogleAdsDeepAuditScheduleEntry[],
+): number {
+  return SCHEDULE_DAY_ORDER.reduce((weeklyTotal, dayOfWeek) => {
+    const intervals = entries
+      .filter((entry) => entry.dayOfWeek === dayOfWeek)
+      .map((entry) => ({
+        end: entry.endHour * 60 + scheduleMinute(entry.endMinute),
+        start: entry.startHour * 60 + scheduleMinute(entry.startMinute),
+      }))
+      .filter(({ end, start }) => end > start)
+      .sort((left, right) => left.start - right.start || left.end - right.end)
+
+    let covered = 0
+    let intervalEnd = 0
+    for (const interval of intervals) {
+      const start = Math.max(interval.start, intervalEnd)
+      if (interval.end > start) covered += interval.end - start
+      intervalEnd = Math.max(intervalEnd, interval.end)
+    }
+    return weeklyTotal + covered
+  }, 0)
+}
+
+function configuredSchedules(
+  state: GoogleAdsAccountState | null,
+): GoogleAdsDeepAuditSchedule[] {
+  if (!state) return []
+
+  return state.campaigns.flatMap((resource) => {
+    const campaign = accountRecord(resource, "campaign")
+    if (
+      text(campaign.status) !== "ENABLED"
+      || text(campaign.advertisingChannelType) !== "SEARCH"
+    ) {
+      return []
+    }
+    const campaignResourceName =
+      text(campaign.resourceName) ?? resource.resourceName
+    const entries = state.campaignCriteria.flatMap((criterionResource) => {
+      const criterion = accountRecord(criterionResource, "campaignCriterion")
+      const schedule = record(criterion.adSchedule)
+      if (
+        campaignResourceName == null
+        || text(criterion.campaign) !== campaignResourceName
+        || text(criterion.type) !== "AD_SCHEDULE"
+        || text(criterion.status) !== "ENABLED"
+        || Object.keys(schedule).length === 0
+      ) {
+        return []
+      }
+      return [{
+        criterionResourceName:
+          text(criterion.resourceName) ?? criterionResource.resourceName,
+        dayOfWeek: text(schedule.dayOfWeek),
+        endHour: number(schedule.endHour),
+        endMinute: text(schedule.endMinute),
+        startHour: number(schedule.startHour),
+        startMinute: text(schedule.startMinute),
+      }]
+    }).sort((left, right) => {
+      const leftDay = SCHEDULE_DAY_ORDER.indexOf(
+        left.dayOfWeek as (typeof SCHEDULE_DAY_ORDER)[number],
+      )
+      const rightDay = SCHEDULE_DAY_ORDER.indexOf(
+        right.dayOfWeek as (typeof SCHEDULE_DAY_ORDER)[number],
+      )
+      return leftDay - rightDay
+        || left.startHour - right.startHour
+        || scheduleMinute(left.startMinute) - scheduleMinute(right.startMinute)
+    })
+    const coverage: GoogleAdsDeepAuditSchedule["coverage"] =
+      entries.length === 0 || weeklyScheduleMinutes(entries) === 7 * 24 * 60
+        ? "ALL_DAYS_24H"
+        : "LIMITED"
+    const source: GoogleAdsDeepAuditSchedule["source"] =
+      entries.length === 0 ? "GOOGLE_DEFAULT" : "CONFIGURED"
+
+    return [{
+      campaignId: text(campaign.id),
+      campaignName: text(campaign.name),
+      campaignResourceName,
+      coverage,
+      entries,
+      source,
+    }]
+  }).sort((left, right) =>
+    (left.campaignName ?? left.campaignId ?? "")
+      .localeCompare(right.campaignName ?? right.campaignId ?? "")
+  )
+}
+
 function enabledSearchCampaignResourceNames(
   state: GoogleAdsAccountState | null,
 ): Set<string> {
@@ -997,6 +1126,7 @@ function buildSignals(args: {
   campaigns: GoogleAdsDeepAuditCampaign[]
   keywords: GoogleAdsDeepAuditKeyword[]
   locations: GoogleAdsDeepAuditBreakdown[]
+  schedules: GoogleAdsDeepAuditSchedule[]
   searchTerms: GoogleAdsDeepAuditSearchTerm[]
   windowEndDate: string
 }): GoogleAdsDeepAuditSignal[] {
@@ -1007,6 +1137,19 @@ function buildSignals(args: {
       .map((ad) => ad.resourceName)
       .filter((resourceName): resourceName is string => resourceName != null),
   )
+
+  for (const schedule of args.schedules) {
+    if (schedule.coverage !== "LIMITED") continue
+    const hours = weeklyScheduleMinutes(schedule.entries) / 60
+    addSignal(signals, {
+      campaignId: schedule.campaignId,
+      code: "LIMITED_AD_SCHEDULE",
+      evidence:
+        `Enabled Search campaign is configured for ${round(hours, 2)} of 168 weekly hours; inspect daypart contribution before expanding or contracting it`,
+      level: "investigate",
+      resourceName: schedule.campaignResourceName,
+    })
+  }
 
   for (const keyword of args.keywords) {
     if (isActiveKeyword(keyword) && keyword.matchType === "BROAD") {
@@ -1313,6 +1456,7 @@ export function analyzeGoogleAdsDeepAudit(
   })
 
   const state = input.accountState
+  const schedules = configuredSchedules(state)
   const signals = buildSignals({
     accountState: state,
     ads,
@@ -1320,6 +1464,7 @@ export function analyzeGoogleAdsDeepAudit(
     campaigns,
     keywords,
     locations: userLocations,
+    schedules,
     searchTerms,
     windowEndDate: input.window.endDate,
   })
@@ -1341,7 +1486,7 @@ export function analyzeGoogleAdsDeepAudit(
             !== "UNKNOWN"
           ).length
         : 0,
-      changeEventLookbackDays: 14,
+      changeEventLookbackDays: 30,
       currencyCode: state?.customer?.currencyCode ?? null,
       customerId: state?.customer?.id ?? null,
       enabledAdGroups: enabledSearchAdGroupResourceNames(state).size,
@@ -1413,6 +1558,7 @@ export function analyzeGoogleAdsDeepAudit(
       telegramSafe: false,
     },
     responsiveSearchAds: ads,
+    schedules,
     searchTerms: {
       convertedUntargeted: searchTerms
         .filter((term) =>

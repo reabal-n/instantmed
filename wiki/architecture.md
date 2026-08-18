@@ -11,12 +11,12 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 | API route files under `app/api/` | 88 |
 | Cron route files under `app/api/cron/` | 29 |
 | `components/` | 406 files |
-| `lib/` | 1,273 files |
+| `lib/` | 1,276 files |
 | E2E TypeScript files under `e2e/` | 78 (68 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 128 |
+| SQL migrations under `supabase/migrations/` | 129 |
 
-Newest migration on disk and latest applied and verified production migration (2026-08-16): `20260816101752_harden_stripe_refund_recovery.sql`. Linked migration history is aligned through that version; the linked DB lint error gate and SECURITY DEFINER ACL check passed, and the aggregate-only recovery issue count was zero in both test and live mode immediately after apply. The detailed receipt lives in `docs/ARCHITECTURE.md`.
+Latest applied and verified production migration (2026-08-17): `20260817095854_allow_direct_codex_ads_approval.sql`. Linked migration history is aligned through that version. The immediately preceding refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, passed the linked DB lint and ACL gates; its aggregate-only recovery issue count returned zero in both test and live mode after apply. Detailed database receipts live in `docs/ARCHITECTURE.md`.
 
 ## Runtime Shape
 

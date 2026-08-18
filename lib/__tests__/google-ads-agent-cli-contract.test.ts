@@ -31,6 +31,7 @@ describe("Google Ads Agent CLI contract", () => {
       "approve",
       "reject",
       "apply",
+      "reconcile",
       "verify",
       "experiment:create",
       "experiment:check",
@@ -46,6 +47,7 @@ describe("Google Ads Agent CLI contract", () => {
   it("keeps apply behind the mutation kill switch and exact proposal input", () => {
     expect(source).toContain("GOOGLE_ADS_AGENT_MUTATIONS_ENABLED")
     expect(source).toContain("applyProposal(proposalKey)")
+    expect(source).toContain("reconcileProposal(proposalKey)")
     expect(source).toContain("validateProposal(proposalKey)")
     expect(source).toContain("verifyProposal(proposalKey)")
     expect(source).toContain("--proposal")

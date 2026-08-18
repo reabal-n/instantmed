@@ -115,7 +115,7 @@ function isAdsRecommendation(value: unknown): value is AdsRecommendation {
   )
 }
 
-function isAdsAgentSnapshot(value: unknown): value is AdsAgentSnapshot {
+export function isAdsAgentSnapshot(value: unknown): value is AdsAgentSnapshot {
   if (!isRecord(value) || !isRecord(value.tracking)) return false
   return (
     typeof value.generatedAt === "string" &&

@@ -75,7 +75,9 @@ describe("Google Ads account state", () => {
   })
 
   it("builds PHI-free queries for every governed account surface", () => {
-    const queries = buildGoogleAdsAccountStateQueries()
+    const queries = buildGoogleAdsAccountStateQueries(
+      new Date("2026-08-16T10:00:00.000Z"),
+    )
     const joined = Object.values(queries).join("\n")
 
     expect(joined).toContain("customer.auto_tagging_enabled")
@@ -90,6 +92,21 @@ describe("Google Ads account state", () => {
     expect(joined).toContain("customer_user_access.access_role")
     expect(joined).toContain("customer_user_access.passkey_enabled")
     expect(joined).toContain("change_event.client_type")
+    expect(queries.changeEvents).toContain(
+      "change_event.change_date_time >= '2026-07-18 00:00:00'",
+    )
+    expect(queries.changeEvents).toContain(
+      "change_event.change_date_time < '2026-08-16 00:00:00'",
+    )
+    expect(queries.changeEventsToday).toContain(
+      "change_event.change_date_time >= '2026-08-16 00:00:00'",
+    )
+    expect(queries.changeEventsToday).toContain(
+      "change_event.change_date_time < '2026-08-17 00:00:00'",
+    )
+    expect(queries.changeEvents).toContain("LIMIT 10000")
+    expect(queries.changeEventsToday).toContain("LIMIT 10000")
+    expect(queries.changeEvents).not.toContain("DURING LAST_14_DAYS")
     expect(joined).not.toContain("search_term_view")
     expect(joined).not.toContain("search_term_view.search_term")
     expect(joined).not.toContain("patient")
@@ -129,6 +146,7 @@ describe("Google Ads account state", () => {
       changeResourceName: "customers/1234567890/campaigns/222",
       clientType: "GOOGLE_ADS_WEB_CLIENT",
     })
+    expect(state.changeEventHistoryStartAt).toBe("2026-06-29T00:00:00.000Z")
     expect(JSON.stringify(state)).not.toContain("operator@example.test")
     expect(mocks.searchGoogleAds).toHaveBeenCalledTimes(
       Object.keys(buildGoogleAdsAccountStateQueries()).length,

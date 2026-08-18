@@ -143,7 +143,6 @@ const SERVICE_LINKS: Record<string, {
       { href: "/mens-health", label: "Men's health online" },
       { href: "/prescriptions", label: "Repeat prescriptions" },
       { href: "/blog/hair-loss-treatment-online-australia", label: "Hair loss assessment online in Australia" },
-      { href: "/blog/finasteride-vs-minoxidil-hair-loss", label: "Hair loss treatment options explained" },
       { href: "/blog/telehealth-safety-screening", label: "How telehealth safety screening works" },
     ],
     blog: [

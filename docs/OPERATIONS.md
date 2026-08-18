@@ -563,7 +563,7 @@ The Codex app automation **InstantMed Ads daily manager** runs shortly after the
 pnpm ads:agent deep-audit --days=30
 ```
 
-The deep audit covers date-segmented search terms, keyword and Quality Score diagnostics, RSA and asset exposure, device/daypart/location performance, policy status, manager and user access, passkey readiness, and change history. Its detailed output is restricted to the authorised Codex task: it is not persisted and is explicitly not Telegram-safe. Possible personal search queries are suppressed. Telegram receives only the aggregate daily brief, a short aggregate exception, or an immutable approval card. Historical rows are context and never prove that a current negative, targeting control, or asset is broken.
+The deep audit covers date-segmented search terms, keyword and Quality Score diagnostics, RSA and asset exposure, configured campaign schedules, device/daypart/location performance, policy status, manager and user access, passkey readiness, and change history. Each enabled Search campaign reports either its exact configured schedule or `ALL_DAYS_24H` with `GOOGLE_DEFAULT`; a limited schedule emits an investigation signal so it cannot disappear inside a summary-level read. Its detailed output is restricted to the authorised Codex task: it is not persisted and is explicitly not Telegram-safe. Possible personal search queries are suppressed. Telegram receives only the aggregate daily brief, a short aggregate exception, or an immutable approval card. Historical rows are context and never prove that a current negative, targeting control, or asset is broken.
 
 Telegram has exactly two PHI-free Google Ads message classes:
 
@@ -573,6 +573,8 @@ Telegram has exactly two PHI-free Google Ads message classes:
 **Telegram Ads approval requires an immutable proposal** tied to the configured chat, recorded message ID, operation hash, expiry, dedicated Ads signing secret, and **authorised Telegram user ID**. The existing Telegram webhook secret header must also verify. Free text, replies, reactions, forwarded messages, silence, an unauthorised user, or a button detached from the recorded proposal message never count as approval.
 
 Every mutation requires either the exact authenticated Telegram button action from the configured approver or an exact Codex-task approval for the same immutable proposal. Both channels share one replay-safe proposal state machine; a duplicate, expired, already-consumed, or drifted approval aborts without mutation.
+
+An exact Codex-task approval atomically consumes the validated proposal directly; it does not require a Telegram card or Telegram-only intermediate state. Telegram approvals still require the recorded signed card and authorised button action.
 
 Keep `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=false` and `TELEGRAM_ADS_APPROVALS_ENABLED=false` until the reporting, tracking, proposal-security, and guarded mutation path have completed shadow proof. No implementation-plan approval or broad instruction to manage Ads enables live changes.
 
@@ -603,6 +605,14 @@ pnpm ads:agent proposal:send --proposal=<proposal-key>
 The restricted operation union supports creation of responsive search ads and positive exact/phrase keywords. RSA packets require 3-15 unique headlines, 2-4 unique descriptions, an allowlisted InstantMed paid destination, service-matched pricing, and possible-call wording for prescribing pathways. Positive keyword packets prohibit broad match, medicine names, more than 10 words, and duplicate live criteria. Negative keyword packets may contain medicine names because they prevent serving rather than target a query; they remain exact-approval mutations. Enabled creations are scaling changes, so they also require a fresh GREEN tracking gate. Both creation types are verified from fresh account content rather than response ordering; rollback is a new approval-gated removal packet for the exact created resource.
 
 Text assets and image assets are not accepted as creation packets yet. Do not place raw image bytes, transient local paths, or an unverified public URL in a proposal. Asset creation must first define durable input storage, byte hashing, campaign-link verification, and orphan cleanup; existing asset links may still be paused, enabled, or removed through the restricted asset-link family.
+
+If a local apply worker stops after Google accepts the atomic mutation but before the apply receipt is durable, do **not** run `apply` again. Confirm the proposal is still `applying` with no apply or verification receipt, then use:
+
+```bash
+pnpm ads:agent reconcile --proposal=<proposal-key>
+```
+
+`reconcile` never sends a Google mutation. It fresh-reads every approved operation and advances `applying -> applied -> verified` only when all live resources exactly match the immutable requested state. The recovered apply receipt is explicitly `ambiguous`, has no invented Google request ID, and records `worker_interrupted_after_google_mutate`. Any mismatch or incomplete decision/validation evidence fails closed and leaves the proposal `applying` for operator investigation.
 
 Approval is required for budgets, bids, bid strategies, keywords, negative keywords, match types, ads, assets, sitelinks, callouts, targeting, schedules, pauses, enables, experiments, and campaign creation/removal. No unattended Ads mutation is authorised by this workflow.
 
