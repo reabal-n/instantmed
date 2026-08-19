@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 const migrationSource = readFileSync(
-  join(process.cwd(), "supabase/migrations/20260819054245_allow_partially_refunded_fulfilment.sql"),
+  join(process.cwd(), "supabase/migrations/20260819055501_allow_partially_refunded_fulfilment.sql"),
   "utf8",
 )
 
