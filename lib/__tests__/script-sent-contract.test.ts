@@ -55,14 +55,14 @@ describe("script sent mutation production contract", () => {
     )
   })
 
-  it("validates paid prescribing eligibility before writing script completion fields", () => {
+  it("validates fulfilment-entitled prescribing eligibility before writing script completion fields", () => {
     const body = functionBody("updateScriptSent")
 
     expect(mutationSource).toContain("getParchmentScriptCompletionEligibility")
     expect(body).toContain("getParchmentScriptCompletionEligibility(")
     expect(body).toContain("status, payment_status, category, subtype, script_sent")
     expect(body).toContain('.eq("status", "awaiting_script")')
-    expect(body).toContain('.eq("payment_status", "paid")')
+    expect(body).toContain('.in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])')
     expect(body).toContain("[updateScriptSent] Script sent update matched no eligible intake")
     expect(body.indexOf("getParchmentScriptCompletionEligibility(")).toBeLessThan(
       body.indexOf("script_sent: scriptSent"),
@@ -198,7 +198,7 @@ describe("script sent mutation production contract", () => {
     expect(parchmentWebhookSource).toContain('payload.event_type !== "prescription.created"')
     expect(parchmentWebhookSource).toContain("updateScriptSent")
     expect(parchmentWebhookSource).toContain('.eq("status", "awaiting_script")')
-    expect(parchmentWebhookSource).toContain('.eq("payment_status", "paid")')
+    expect(parchmentWebhookSource).toContain('.in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])')
     expect(parchmentWebhookSource).toContain('.eq("script_sent", false)')
     expect(parchmentWebhookSource).toContain("externalEvidenceAlreadyIssued: true")
   })

@@ -44,6 +44,7 @@ import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt } fr
 import { isConsultServiceType, isKnownDoctorServiceType, isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
 import { formatCurrency } from "@/lib/format"
 import { formatMinutes } from "@/lib/format/dates"
+import { isFulfilmentEntitledPaymentStatus } from "@/lib/stripe/fulfilment-entitlement"
 import { cn } from "@/lib/utils"
 
 const DECISION_WAIT_SIGNAL_CADENCE_MS = 60_000
@@ -375,7 +376,7 @@ export function IntakeActionButtons({
   const canDecline =
     intake.script_sent !== true &&
     !["approved", "declined", "completed"].includes(intake.status)
-  const showRefundOnDecline = canDecline && intake.payment_status === "paid"
+  const showRefundOnDecline = canDecline && isFulfilmentEntitledPaymentStatus(intake.payment_status)
   const refundRemainingCents = Math.max(0, (intake.amount_cents ?? 0) - (intake.refund_amount_cents ?? 0))
   const refundLabel = refundRemainingCents > 0 ? formatCurrency(refundRemainingCents) : null
   const refundShortLabel = refundLabel?.replace(/\.00$/, "")

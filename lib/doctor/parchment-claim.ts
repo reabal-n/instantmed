@@ -60,7 +60,7 @@ export function getParchmentPrescriberCandidateIds(
 export function getParchmentPrescribingEligibility(
   intake: ParchmentPrescribingEligibilityState,
 ): ParchmentPrescribingEligibility {
-  if (intake.payment_status !== "paid") {
+  if (!isFulfilmentEntitledPaymentStatus(intake.payment_status)) {
     return {
       eligible: false,
       error: "Parchment can only be opened for paid prescribing cases.",
@@ -88,7 +88,7 @@ export function getParchmentScriptCompletionEligibility(
   intake: ParchmentPrescribingEligibilityState,
 ): ParchmentPrescribingEligibility {
   if (
-    intake.payment_status !== "paid" ||
+    !isFulfilmentEntitledPaymentStatus(intake.payment_status) ||
     !ACTIVE_SCRIPT_COMPLETION_STATUSES.has(intake.status ?? "") ||
     !isParchmentPrescribingCase(intake)
   ) {
@@ -105,7 +105,7 @@ export function getParchmentPatientSyncEligibility(
   intake: ParchmentPrescribingEligibilityState,
 ): ParchmentPrescribingEligibility {
   if (
-    intake.payment_status !== "paid" ||
+    !isFulfilmentEntitledPaymentStatus(intake.payment_status) ||
     !ACTIVE_PATIENT_SYNC_STATUSES.has(intake.status ?? "") ||
     !isParchmentPrescribingCase(intake)
   ) {
@@ -117,3 +117,4 @@ export function getParchmentPatientSyncEligibility(
 
   return { eligible: true }
 }
+import { isFulfilmentEntitledPaymentStatus } from "@/lib/stripe/fulfilment-entitlement"

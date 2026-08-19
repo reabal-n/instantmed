@@ -1,6 +1,7 @@
 import "server-only"
 
 import { createLogger } from "@/lib/observability/logger"
+import { isFulfilmentEntitledPaymentStatus } from "@/lib/stripe/fulfilment-entitlement"
 const logger = createLogger("intake-lifecycle")
 
 // ============================================
@@ -132,7 +133,10 @@ export function validateIntakeStatusTransition(
   }
 
   // Check if payment is required
-  if (STATUSES_REQUIRING_PAYMENT.includes(newStatus) && paymentStatus !== "paid") {
+  if (
+    STATUSES_REQUIRING_PAYMENT.includes(newStatus) &&
+    !isFulfilmentEntitledPaymentStatus(paymentStatus)
+  ) {
     return {
       valid: false,
       error: `Cannot set status to ${newStatus} - payment required (current: ${paymentStatus})`,
@@ -147,7 +151,7 @@ export function validateIntakeStatusTransition(
  * Check if intake is paid
  */
 export function isIntakePaid(paymentStatus: string): boolean {
-  return paymentStatus === "paid"
+  return isFulfilmentEntitledPaymentStatus(paymentStatus)
 }
 
 /**

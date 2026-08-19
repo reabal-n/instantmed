@@ -10,6 +10,7 @@ import {
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { prepareDoctorNotesWrite, readAnswers } from "@/lib/security/phi-field-wrappers"
+import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
   Intake,
@@ -441,7 +442,7 @@ export async function updateScriptSent(
     .update(scriptUpdate)
     .eq("id", intakeId)
     .eq("status", "awaiting_script")
-    .eq("payment_status", "paid")
+    .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
     .eq("script_sent", false)
     .select("id")
     .maybeSingle()
@@ -551,7 +552,7 @@ export async function approvePrescribedScript(
     .eq("id", intakeId)
     .eq("script_sent", true)
     .eq("status", "awaiting_script")
-    .eq("payment_status", "paid")
+    .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
     .select("id, status")
     .maybeSingle()
 

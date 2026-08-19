@@ -6,6 +6,7 @@ import type { StaffNavCounts } from "@/lib/dashboard/staff-navigation"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { createLogger } from "@/lib/observability/logger"
+import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("staff-nav-counts")
@@ -18,7 +19,7 @@ async function computeStaffNavCounts(): Promise<StaffNavCounts> {
       supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
-        .eq("payment_status", "paid")
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
         .eq("status", "awaiting_script"),
     ),
     getPrescribingIdentityBlockerReport(supabase),
@@ -26,7 +27,7 @@ async function computeStaffNavCounts(): Promise<StaffNavCounts> {
       supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
-        .eq("payment_status", "paid")
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
         .in("status", ["paid", "in_review", "pending_info"]),
     ),
   ])

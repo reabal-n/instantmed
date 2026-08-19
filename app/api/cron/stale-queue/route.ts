@@ -11,6 +11,7 @@ import { getFeatureFlags } from "@/lib/feature-flags"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { sendQueueWaitingReminderViaTelegram } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
+import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("stale-queue")
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .eq("status", "paid")
-        .eq("payment_status", "paid")
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
         .lt("paid_at", patientEmailThreshold.toISOString()),
     )
     if (staleCountError) throw new Error(`Stale queue count failed: ${staleCountError.message}`)
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .eq("status", "paid")
-        .eq("payment_status", "paid")
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
         .lt("paid_at", sentryAlertThreshold.toISOString()),
     )
     if (sentryStaleError) throw new Error(`Stale queue paging count failed: ${sentryStaleError.message}`)
@@ -125,7 +126,7 @@ export async function GET(request: NextRequest) {
           .from("intakes")
           .select("paid_at", { count: "exact" })
           .eq("status", "paid")
-          .eq("payment_status", "paid")
+          .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
           .lt("paid_at", reminderThreshold.toISOString())
           .order("paid_at", { ascending: true })
           .limit(1),
@@ -159,6 +160,7 @@ export async function GET(request: NextRequest) {
             patient:profiles!patient_id(full_name, email)
           `)
           .eq("status", "paid")
+          .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
           .lt("paid_at", patientEmailThreshold.toISOString())
           .is("delay_notification_sent_at", null)
           // Cross-guard with the retry-auto-approval cron, which sends the SAME
@@ -316,6 +318,7 @@ export async function GET(request: NextRequest) {
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .eq("status", "awaiting_script")
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
         .lt("updated_at", awaitingScriptThreshold.toISOString()),
     )
     if (stuckScriptError) {

@@ -11,12 +11,12 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 | API route files under `app/api/` | 88 |
 | Cron route files under `app/api/cron/` | 29 |
 | `components/` | 406 files |
-| `lib/` | 1,279 files |
+| `lib/` | 1,281 files |
 | E2E TypeScript files under `e2e/` | 78 (68 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 129 |
+| SQL migrations under `supabase/migrations/` | 130 |
 
-Latest applied and verified production migration (2026-08-17): `20260817095854_allow_direct_codex_ads_approval.sql`. Linked migration history is aligned through that version. The immediately preceding refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, passed the linked DB lint and ACL gates; its aggregate-only recovery issue count returned zero in both test and live mode after apply. Detailed database receipts live in `docs/ARCHITECTURE.md`.
+Latest applied and verified production migration (2026-08-19): `20260819055501_allow_partially_refunded_fulfilment.sql`. Linked migration history is aligned through that version. The migration keeps partially refunded but otherwise paid requests fulfilment-entitled while retaining service-role-only doctor claims and blocking fully refunded or disputed requests. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, passed its linked DB lint and ACL gates. Detailed database receipts live in `docs/ARCHITECTURE.md`.
 
 ## Runtime Shape
 

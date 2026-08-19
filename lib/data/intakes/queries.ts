@@ -42,6 +42,7 @@ import { startOfDayAEST, startOfDaySydney } from "@/lib/operator/cases/time-grou
 import { derivePatientPaymentRecoveryReason } from "@/lib/patient/payment-recovery"
 import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
 import type { AdminServiceFilterValue } from "@/lib/services/service-presentation"
+import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
   IntakeStatus,
@@ -408,7 +409,7 @@ export async function getDoctorQueue(
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .in("status", [...activeStatuses])
-        .eq("payment_status", "paid"), { allowSeeded })
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), { allowSeeded })
 
       if (scope.serviceFilter) {
         query = query.or(scope.serviceFilter)
@@ -435,7 +436,7 @@ export async function getDoctorQueue(
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .in("status", [...getQueueStatusesForFilter(filter)])
-        .eq("payment_status", "paid"), { allowSeeded })
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), { allowSeeded })
 
       if (scope.serviceFilter) query = query.or(scope.serviceFilter)
       if (onlySeeded) query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
@@ -458,7 +459,7 @@ export async function getDoctorQueue(
     .from("intakes")
     .select("id, paid_at, submitted_at, created_at")
     .in("status", QUEUE_REVIEW_STATUSES)
-    .eq("payment_status", "paid"), { allowSeeded })
+    .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), { allowSeeded })
 
   if (scope.serviceFilter) oldestQuery = oldestQuery.or(scope.serviceFilter)
   if (onlySeeded) oldestQuery = oldestQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
@@ -509,7 +510,7 @@ export async function getDoctorQueue(
       service:services!service_id (id, name, short_name, type, slug)
     `)
     .in("status", [...activeStatuses])
-    .eq("payment_status", "paid"), { allowSeeded })
+    .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), { allowSeeded })
 
   if (scope.serviceFilter) {
     dataQuery = dataQuery.or(scope.serviceFilter)
@@ -653,7 +654,7 @@ export async function getNextQueueIntakeId(currentIntakeId: string): Promise<str
     .from("intakes")
     .select("id")
     .in("status", QUEUE_REVIEW_STATUSES)
-    .eq("payment_status", "paid")
+    .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
     .neq("id", currentIntakeId))
     .order("is_priority", { ascending: false })
     .order("sla_deadline", { ascending: true, nullsFirst: false })
@@ -1064,7 +1065,7 @@ export async function getIntakeMonitoringStats(): Promise<{
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .in("status", QUEUE_REVIEW_STATUSES)
-        .eq("payment_status", "paid")),
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])),
       // Paid count
       filterReportableIntakes(supabase
         .from("intakes")
@@ -1092,7 +1093,7 @@ export async function getIntakeMonitoringStats(): Promise<{
         .from("intakes")
         .select("paid_at, submitted_at, created_at")
         .in("status", QUEUE_REVIEW_STATUSES)
-        .eq("payment_status", "paid"))
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]))
         .order("paid_at", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: true })
         .limit(1)
