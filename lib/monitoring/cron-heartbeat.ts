@@ -62,6 +62,7 @@ const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number
   "retry-drafts":           { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "release-stale-claims":   { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "refund-reconciliation":  { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
+  "review-request":         { schedule: "0 0,23 * * *",  maxDelayMinutes: 1500 }, // actual 10:00 Sydney run; guard-only slot is neutral
   "stale-queue":            { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "emergency-flags":        { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "daily-reconciliation":   { schedule: "0 21 * * *",    maxDelayMinutes: 1500 }, // ~25h

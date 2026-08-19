@@ -21,6 +21,7 @@ const terminalAnchors: Record<string, string> = {
   "posthog-reconciliation": "PostHog reconciliation complete",
   "release-stale-claims": "Failed to record stale-claims run",
   "refund-reconciliation": "Stripe refund recovery complete",
+  "review-request": "Cron: review requests processed",
   "retry-auto-approval": "Retry auto-approval cron complete",
   "retry-drafts": "Retry drafts cron completed",
   "stale-queue": "Awaiting-script count failed",
@@ -50,7 +51,7 @@ describe("critical cron terminal outcome contract", () => {
     ).sort()
 
     expect(registeredJobs).toEqual(Object.keys(terminalAnchors).sort())
-    expect(registeredJobs).toHaveLength(15)
+    expect(registeredJobs).toHaveLength(16)
   })
 
   it.each(Object.entries(terminalAnchors))(
