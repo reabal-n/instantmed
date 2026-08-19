@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
+import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
 
 const DEFAULT_LOOKBACK_DAYS = 180
 const PRESCRIBING_CONSULT_SUBTYPES = new Set<string>(PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES)
@@ -65,8 +66,6 @@ export const PRESCRIPTION_FULFILMENT_STAGES: PrescriptionFulfilmentStage[] = [
  * terminal status) keeps the payment record and the clinical record honest —
  * `approved` + `refunded` is exactly what happened.
  */
-const FULFILMENT_OBLIGATION_PAYMENT_STATUSES = ["paid", "partially_refunded"] as const
-
 type FulfilmentIntakeRow = {
   approved_at: string | null
   category: string | null
@@ -455,7 +454,7 @@ export async function getPrescriptionFulfilmentDashboard(
     .from("intakes")
     .select("id, reference_number, status, category, subtype, paid_at, payment_status, approved_at, script_sent, script_sent_at, parchment_reference, updated_at, created_at")
     .not("paid_at", "is", null)
-    .in("payment_status", [...FULFILMENT_OBLIGATION_PAYMENT_STATUSES])
+    .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
     .gte("paid_at", since)
     .in("category", ["prescription", "consult"])
     .order("updated_at", { ascending: false })

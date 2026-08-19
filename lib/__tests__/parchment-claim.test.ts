@@ -61,6 +61,24 @@ describe("getParchmentPrescribingEligibility", () => {
     }
   })
 
+  it("allows prescribing after a partial refund leaves the service paid", () => {
+    expect(getParchmentPrescribingEligibility({
+      category: "prescription",
+      payment_status: "partially_refunded",
+      serviceType: "repeat_rx",
+      status: "in_review",
+    })).toMatchObject({ eligible: true })
+  })
+
+  it("keeps fully refunded prescribing requests blocked", () => {
+    expect(getParchmentPrescribingEligibility({
+      category: "prescription",
+      payment_status: "refunded",
+      serviceType: "repeat_rx",
+      status: "in_review",
+    })).toMatchObject({ eligible: false })
+  })
+
   it("blocks prescribing consults that are no longer active", () => {
     expect(getParchmentPrescribingEligibility({
       category: "consult",
@@ -119,6 +137,15 @@ describe("getParchmentPatientSyncEligibility", () => {
     })).toMatchObject({ eligible: true })
   })
 
+  it("allows partially refunded prescribing requests to sync identity to Parchment", () => {
+    expect(getParchmentPatientSyncEligibility({
+      category: "prescription",
+      payment_status: "partially_refunded",
+      serviceType: "repeat_rx",
+      status: "pending_info",
+    })).toMatchObject({ eligible: true })
+  })
+
   it("blocks non-prescribing requests from retrying Parchment patient sync", () => {
     expect(getParchmentPatientSyncEligibility({
       category: "medical_certificate",
@@ -150,6 +177,15 @@ describe("getParchmentScriptCompletionEligibility", () => {
       eligible: false,
       error: "Scripts can only be approved after Parchment prescribing for active paid prescribing requests.",
     })
+  })
+
+  it("allows script completion after a partial refund leaves the service paid", () => {
+    expect(getParchmentScriptCompletionEligibility({
+      category: "prescription",
+      payment_status: "partially_refunded",
+      serviceType: "repeat_rx",
+      status: "awaiting_script",
+    })).toMatchObject({ eligible: true })
   })
 
   it("blocks non-prescribing requests from being marked script sent", () => {

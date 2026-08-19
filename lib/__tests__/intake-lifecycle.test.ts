@@ -19,6 +19,14 @@ describe("validateIntakeStatusTransition", () => {
     })
   })
 
+  it("keeps fulfilment active after a partial service-recovery refund", () => {
+    expect(validateIntakeStatusTransition(
+      "in_review",
+      "awaiting_script",
+      "partially_refunded",
+    )).toMatchObject({ valid: true })
+  })
+
   // Regression guard: 2026-06-09 incident — customer paid after a failed Stripe
   // session, webhook rejected checkout_failed→paid, intake stuck 10 days.
   it("allows checkout_failed → paid (customer retried payment and Stripe confirmed)", () => {
@@ -82,8 +90,9 @@ describe("validateIntakeStatusTransition", () => {
 })
 
 describe("isIntakePaid", () => {
-  it("is true only for the paid payment_status", () => {
+  it("is true for payment states that retain a fulfilment obligation", () => {
     expect(isIntakePaid("paid")).toBe(true)
+    expect(isIntakePaid("partially_refunded")).toBe(true)
     expect(isIntakePaid("unpaid")).toBe(false)
     expect(isIntakePaid("refunded")).toBe(false)
   })
@@ -106,6 +115,10 @@ describe("canDoctorApprove", () => {
     for (const status of ["paid", "in_review", "pending_info", "escalated", "awaiting_script"] as const) {
       expect(canDoctorApprove(status, "paid")).toMatchObject({ valid: true })
     }
+  })
+
+  it("allows approval while a partial refund leaves the paid service active", () => {
+    expect(canDoctorApprove("in_review", "partially_refunded")).toMatchObject({ valid: true })
   })
 })
 

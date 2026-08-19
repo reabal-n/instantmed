@@ -45,6 +45,7 @@ import {
 } from "@/lib/doctor/renewal-format"
 import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { formatServiceType } from "@/lib/format/intake"
+import { isFulfilmentEntitledPaymentStatus } from "@/lib/stripe/fulfilment-entitlement"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient, RecentlyCompletedIntake } from "@/types/db"
 
@@ -332,7 +333,7 @@ export function QueueTable({
               (intake as IntakeWithPatient & { reviewing_doctor_name?: string | null })
                 .reviewing_doctor_name ?? null
             const overReviewTarget =
-              intake.payment_status === "paid" &&
+              isFulfilmentEntitledPaymentStatus(intake.payment_status) &&
               REVIEW_TARGET_STATUSES.has(intake.status) &&
               isPastReviewTarget(queueEnteredAt)
             const showIdentityFix =

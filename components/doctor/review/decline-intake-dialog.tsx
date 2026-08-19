@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
+import { isFulfilmentEntitledPaymentStatus } from "@/lib/stripe/fulfilment-entitlement"
 import { cn } from "@/lib/utils"
 import type { DeclineReasonCode } from "@/types/db"
 
@@ -81,7 +82,7 @@ export function DeclineIntakeDialog() {
   // The current refund policy: every declined paid intake gets a 100%
   // refund. Surface that here so the doctor knows the patient gets
   // their money back when they confirm.
-  const isPaid = intake.payment_status === "paid"
+  const isPaid = isFulfilmentEntitledPaymentStatus(intake.payment_status)
 
   return (
     <AlertDialog open={showDeclineDialog} onOpenChange={handleOpenChange}>

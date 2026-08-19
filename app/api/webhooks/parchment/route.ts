@@ -11,6 +11,10 @@ import { syncParchmentPrescriptionToPms } from "@/lib/parchment/sync-prescriptio
 import { webhookPayloadSchema } from "@/lib/parchment/types"
 import { selectParchmentWebhookIntake, selectParchmentWebhookPrescriberId } from "@/lib/parchment/webhook-matching"
 import { logAuditEvent, logWebhookFailure } from "@/lib/security/audit-log"
+import {
+  FULFILMENT_ENTITLED_PAYMENT_STATUSES,
+  isFulfilmentEntitledPaymentStatus,
+} from "@/lib/stripe/fulfilment-entitlement"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 // Short-lived Redis dedup key - 60s window catches rapid duplicate deliveries
@@ -275,7 +279,7 @@ export async function POST(request: Request) {
       .select("id, reference_number, status, category, subtype, claimed_by, reviewing_doctor_id, reviewed_by, created_at, service:services!service_id(type)")
       .eq("patient_id", patientProfileId)
       .eq("status", "awaiting_script")
-      .eq("payment_status", "paid")
+      .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
       .eq("script_sent", false)
       .is("parchment_reference", null)
 
@@ -314,7 +318,7 @@ export async function POST(request: Request) {
         .eq("id", candidate.id)
         .eq("patient_id", patientProfileId)
         .eq("status", "awaiting_script")
-        .eq("payment_status", "paid")
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
         .eq("script_sent", false)
         .is("parchment_reference", null)
         .select("id, parchment_reference")
@@ -475,7 +479,10 @@ export async function POST(request: Request) {
       if (existing && !existing.script_sent) {
         if (
           intakeCorrelation !== undefined &&
-          (existing.status !== "awaiting_script" || existing.payment_status !== "paid")
+          (
+            existing.status !== "awaiting_script" ||
+            !isFulfilmentEntitledPaymentStatus(existing.payment_status)
+          )
         ) {
           await recordParchmentWebhookMismatch(
             "intake_correlation_ineligible",

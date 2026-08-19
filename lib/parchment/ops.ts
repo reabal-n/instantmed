@@ -8,6 +8,7 @@ import {
   filterUnresolvedParchmentFailures,
   isNonActionableParchmentFailure,
 } from "@/lib/parchment/failure-reconciliation"
+import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
 
 const PARCHMENT_PRESCRIPTION_EVENT = "parchment:prescription.created"
 const SYSTEM_ADMIN_EMAILS = new Set(["system@instantmed.com.au"])
@@ -510,6 +511,7 @@ export async function getParchmentOpsDashboard(
       .from("intakes")
       .select("id, patient_id, reference_number, status, category, subtype, updated_at, created_at, paid_at, approved_at")
       .eq("status", "awaiting_script")
+      .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
       .eq("script_sent", false)
       .is("parchment_reference", null)
       .lt("updated_at", staleHandoffCutoff)
@@ -520,7 +522,7 @@ export async function getParchmentOpsDashboard(
       .from("intakes")
       .select("id, patient_id, reference_number, status, category, subtype, updated_at, created_at, paid_at, approved_at")
       .eq("status", "approved")
-      .eq("payment_status", "paid")
+      .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
       .eq("script_sent", false)
       .is("parchment_reference", null)
       .eq("category", "prescription")
@@ -532,7 +534,7 @@ export async function getParchmentOpsDashboard(
       .from("intakes")
       .select("id, patient_id, reference_number, status, category, subtype, updated_at, created_at, paid_at, approved_at")
       .eq("status", "approved")
-      .eq("payment_status", "paid")
+      .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
       .eq("script_sent", false)
       .is("parchment_reference", null)
       .eq("category", "consult")

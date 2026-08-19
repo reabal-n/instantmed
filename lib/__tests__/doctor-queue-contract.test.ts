@@ -139,9 +139,9 @@ const e2eResetMigrationSource = readFileSync(
 )
 
 describe("doctor queue production contract", () => {
-  it("keeps the server queue aligned with all actionable paid statuses", () => {
+  it("keeps the server queue aligned with all fulfilment-entitled payment statuses", () => {
     expect(queriesSource).toContain("QUEUE_REVIEW_STATUSES")
-    expect(queriesSource).toContain('.eq("payment_status", "paid")')
+    expect(queriesSource).toContain('.in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])')
   })
 
   it("keeps seeded E2E intakes out of live operational queue reads", () => {
@@ -444,7 +444,7 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).toContain("REVIEW_TARGET_MINUTES = 120")
     expect(queueTableSource).toContain("isPastReviewTarget")
     expect(queueTableSource).toContain("Over review target")
-    expect(queueTableSource).toContain('intake.payment_status === "paid"')
+    expect(queueTableSource).toContain("isFulfilmentEntitledPaymentStatus(intake.payment_status)")
   })
 
   it("keeps note guidance inline and avoids global 50-character blockers", () => {

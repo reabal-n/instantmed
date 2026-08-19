@@ -14,6 +14,7 @@ import {
   type PrescribingIdentityIntakeRow,
 } from "@/lib/doctor/prescribing-identity-blockers"
 import { readAnswers } from "@/lib/security/phi-field-wrappers"
+import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
 import type { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { asProfile } from "@/types/db"
 
@@ -95,7 +96,7 @@ export async function getPrescribingIdentityBlockerReport(
         answers_encrypted
       )
     `)
-      .eq("payment_status", "paid")
+      .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
       .or(`category.eq.prescription,and(category.eq.consult,subtype.in.(${prescribingConsultSubtypeFilter}))`)
       .in("status", [...PARCHMENT_PATIENT_SYNC_STATUSES])
       .order("paid_at", { ascending: true, nullsFirst: false })
