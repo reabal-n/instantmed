@@ -34,7 +34,12 @@ function mockAnswersQuery(result: { data?: unknown[]; error?: { message: string 
 }
 
 function mockPatientIntakes(rows: Array<{ id: string }>, total = rows.length) {
-  getPatientIntakesMock.mockResolvedValue({ data: rows, total, page: 1, pageSize: 6 })
+  getPatientIntakesMock.mockResolvedValue({
+    data: rows.map((row) => ({ ...row, payment_status: "paid", paid_at: null })),
+    total,
+    page: 1,
+    pageSize: 6,
+  })
 }
 
 async function labelFor(answers: Record<string, unknown> | null): Promise<string | null> {
@@ -111,7 +116,12 @@ describe("buildPreviousIntakeContext", () => {
     expect(context.previousIntakes[1].medication_name).toBeNull()
     expect(fromMock).toHaveBeenCalledTimes(1)
     expect(fromMock).toHaveBeenCalledWith("intake_answers")
-    // 40 total intakes minus the current one — never the capped page length.
+    expect(getPatientIntakesMock).toHaveBeenCalledWith("patient-1", {
+      pageSize: 6,
+      scope: "clinical_history",
+    })
+    // 40 clinical-history intakes minus the current one — never the capped
+    // page length or an unpaid checkout artifact.
     expect(context.previousIntakeCount).toBe(39)
   })
 

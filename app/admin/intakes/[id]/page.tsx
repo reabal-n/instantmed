@@ -74,7 +74,7 @@ export default async function AdminIntakeDetailPage({
     patientMessages,
     patientNotes,
   ] = await Promise.all([
-    getPatientIntakes(intake.patient.id, { pageSize: 6 }),
+    getPatientIntakes(intake.patient.id, { pageSize: 6, scope: "clinical_history" }),
     getAIDraftsForIntake(id),
     getNextQueueIntakeId(id),
     serviceType === "med_certs"
