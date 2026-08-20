@@ -1,6 +1,7 @@
 import "server-only"
 
 import { getPatientIntakes } from "@/lib/data/intakes"
+import { isClinicalHistoryIntake } from "@/lib/data/intakes/clinical-history"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
@@ -59,8 +60,12 @@ export async function buildPreviousIntakeContext(args: {
   previousIntakes: Array<PatientIntakeRow & { medication_name: string | null }>
   previousIntakeCount: number
 }> {
-  const patientHistory = await getPatientIntakes(args.patientId, { pageSize: 6 })
+  const patientHistory = await getPatientIntakes(args.patientId, {
+    pageSize: 6,
+    scope: "clinical_history",
+  })
   const previousIntakes = patientHistory.data
+    .filter(isClinicalHistoryIntake)
     .filter((row) => row.id !== args.currentIntakeId)
     .slice(0, 5)
   const medicationLabels = await getIntakeMedicationLabels(
@@ -71,8 +76,8 @@ export async function buildPreviousIntakeContext(args: {
       ...row,
       medication_name: medicationLabels.get(row.id) ?? null,
     })),
-    // True prior total (all statuses, current excluded) — never the capped
-    // page length, which under-reports for any patient past 5 requests.
+    // True prior clinical-history total (current excluded) — never the capped
+    // page length or an unpaid checkout artifact.
     previousIntakeCount: Math.max(patientHistory.total - 1, previousIntakes.length),
   }
 }

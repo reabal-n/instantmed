@@ -6,7 +6,7 @@ import { type ReactNode,useState } from "react"
 import { cn } from "@/lib/utils"
 
 interface IntakeSecondaryDisclosureProps {
-  /** True count of every request except the active request. */
+  /** True count of clinical-history requests except the active request. */
   totalOtherRequestCount: number
   /** Number of recent other-request rows included in this bounded payload. */
   visibleOtherRequestCount: number

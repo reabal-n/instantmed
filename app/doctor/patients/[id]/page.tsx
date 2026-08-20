@@ -5,6 +5,7 @@ import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { buildClinicalProfileDifferences } from "@/lib/clinical/case-summary"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { getHealthProfile } from "@/lib/data/health-profile"
+import { CLINICAL_HISTORY_POSTGREST_FILTER } from "@/lib/data/intakes/clinical-history"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
 import {
@@ -534,6 +535,7 @@ async function getPatientWithHistory(
         answers:intake_answers(answers)
       `)
       .in("patient_id", patientIds)
+      .or(CLINICAL_HISTORY_POSTGREST_FILTER)
       .order("created_at", { ascending: false })
       .limit(50),
 

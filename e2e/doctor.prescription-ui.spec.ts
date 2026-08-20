@@ -536,6 +536,54 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(drawer.getByText(activeIntake.reference_number)).toHaveCount(0)
   })
 
+  test("does not present an unpaid checkout artifact as previous clinical history", async ({ page }) => {
+    const patientId = await seedReviewProfilePatient()
+    testPatientIds.push(patientId)
+    const checkoutArtifact = await seedTestIntake({
+      status: "pending_payment",
+      payment_status: "unpaid",
+      category: "prescription",
+      patient_id: patientId,
+    })
+    if (!checkoutArtifact.success || !checkoutArtifact.intakeId) {
+      throw new Error(`Failed to seed unpaid checkout artifact: ${checkoutArtifact.error}`)
+    }
+    testIntakeIds.push(checkoutArtifact.intakeId)
+
+    const intakeId = await seedRepeatPrescriptionCase({ patientId })
+    testIntakeIds.push(intakeId)
+    const checkoutIntake = await getIntakeById(checkoutArtifact.intakeId)
+    if (!checkoutIntake?.reference_number) {
+      throw new Error("Seeded checkout artifact reference should be available")
+    }
+
+    await page.goto(`/doctor/intakes/${intakeId}`)
+    await waitForPageLoad(page)
+
+    const historyDisclosure = page.getByRole("button", {
+      name: "Recent history",
+      exact: true,
+    })
+    await expect(historyDisclosure).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("button", { name: /other request/ })).toHaveCount(0)
+    await historyDisclosure.click()
+    await expect(page.getByText("No other requests or notes.", { exact: true })).toBeVisible()
+    await expect(page.getByText(checkoutIntake.reference_number)).toHaveCount(0)
+
+    await page.getByRole("button", { name: "View profile" }).click()
+    const drawer = page.getByRole("dialog", { name: "Patient profile" })
+    await expect(drawer.getByText("1 request total · 0 notes total", { exact: true })).toBeVisible({ timeout: 15000 })
+    await expect(drawer.getByText(checkoutIntake.reference_number)).toHaveCount(0)
+
+    await Promise.all([
+      page.waitForURL(`**/doctor/patients/${patientId}?requestId=${intakeId}`),
+      drawer.getByRole("link", { name: "Open full record" }).click(),
+    ])
+    await page.getByRole("tab", { name: "History" }).click()
+    const clinicalHistory = page.getByRole("tabpanel", { name: "History" })
+    await expect(clinicalHistory.getByText(checkoutIntake.reference_number)).toHaveCount(0)
+  })
+
   for (const scenario of SPECIALTY_SCENARIOS) {
     test(`renders one canonical packet for ${scenario.label} prescribing`, async ({ page }) => {
       const patientId = await seedReviewProfilePatient()

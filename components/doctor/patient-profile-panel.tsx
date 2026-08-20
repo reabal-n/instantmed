@@ -179,7 +179,13 @@ export function PatientProfilePanel({
           </div>
           {summary.status === "ready" ? (
             <p className="mt-3 text-xs font-medium text-muted-foreground">
-              {summary.data.totalIntakes} requests total · {summary.data.totalNotes} notes total
+              {summary.data.totalIntakes === 1
+                ? "1 request total"
+                : `${summary.data.totalIntakes} requests total`}
+              {" · "}
+              {summary.data.totalNotes === 1
+                ? "1 note total"
+                : `${summary.data.totalNotes} notes total`}
             </p>
           ) : null}
         </section>

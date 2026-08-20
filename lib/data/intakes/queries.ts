@@ -64,6 +64,7 @@ import {
   projectSupportLedgerPatient,
   SUPPORT_LEDGER_SELECT,
 } from "./admin-ledger-projection"
+import { CLINICAL_HISTORY_POSTGREST_FILTER } from "./clinical-history"
 import type {
   DashboardIntake,
   DashboardPrescription,
@@ -163,15 +164,22 @@ async function getDoctorQueueScope(
 /**
  * Fetch all intakes for a given patient with service info.
  * Returns intakes sorted by created_at descending (newest first).
- * Supports optional pagination for scalability.
+ * Supports optional pagination and a clinician-history scope that excludes
+ * checkout-only artifacts from both the result page and its true count.
  */
 export function getPatientIntakes(
   patientId: string,
-  options?: { status?: IntakeStatus; page?: number; pageSize?: number }
+  options?: {
+    status?: IntakeStatus
+    page?: number
+    pageSize?: number
+    scope?: "all" | "clinical_history"
+  }
 ): Promise<{ data: PatientIntakeWithPatient[]; total: number; page: number; pageSize: number }> {
   const page = Math.max(1, Math.min(options?.page ?? 1, 1000))
   const pageSize = Math.min(options?.pageSize ?? 20, 100)
   const statusKey = options?.status ?? "all"
+  const scope = options?.scope ?? "all"
 
   return unstable_cache(
     async () => {
@@ -186,6 +194,9 @@ export function getPatientIntakes(
 
       if (options?.status) {
         countQuery = countQuery.eq("status", options.status)
+      }
+      if (scope === "clinical_history") {
+        countQuery = countQuery.or(CLINICAL_HISTORY_POSTGREST_FILTER)
       }
 
       // Get total count first
@@ -206,6 +217,9 @@ export function getPatientIntakes(
 
       if (options?.status) {
         query = query.eq("status", options.status)
+      }
+      if (scope === "clinical_history") {
+        query = query.or(CLINICAL_HISTORY_POSTGREST_FILTER)
       }
 
       const { data, error } = await query
@@ -242,7 +256,7 @@ export function getPatientIntakes(
         pageSize,
       }
     },
-    [`patient-intakes-${patientId}-${statusKey}-${page}-${pageSize}`],
+    [`patient-intakes-${patientId}-${statusKey}-${scope}-${page}-${pageSize}`],
     { tags: ["patient-intakes", `patient-intakes-${patientId}`], revalidate: 30 }
   )()
 }

@@ -53,7 +53,7 @@ export async function GET(
   }
 
   const [patientHistory, notes, totalNotes, healthProfile, currentIntake] = await Promise.all([
-    getPatientIntakes(patientId, { pageSize: 10 }),
+    getPatientIntakes(patientId, { pageSize: 10, scope: "clinical_history" }),
     getPatientNotes(patientId, undefined, 5),
     getPatientNoteCount(patientId),
     getHealthProfile(patientId),
