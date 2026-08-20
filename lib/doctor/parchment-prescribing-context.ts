@@ -24,6 +24,7 @@ export interface ParchmentPrescriptionContext {
   medicationLabel?: string
   searchHint?: string
   patientReportedDose?: string
+  patientReportedFrequency?: string
   regimenSource: "patient_reported" | "template"
   directionsTemplate: string
   /** Verified generic name, when one exists. */
@@ -58,6 +59,7 @@ export function buildParchmentPrescriptionContext(
     medicationLabel: medicationLabel || undefined,
     searchHint: intent.medicationSearchHint || undefined,
     patientReportedDose: intent.patientReportedDose || undefined,
+    patientReportedFrequency: intent.patientReportedFrequency || undefined,
     regimenSource: hasPatientReportedRegimen ? "patient_reported" : "template",
     directionsTemplate: intent.directionsTemplate,
     // Defence in depth: the generic Copy action must never paste strength,

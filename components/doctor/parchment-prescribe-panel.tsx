@@ -162,14 +162,14 @@ export function ParchmentPrescribePanel({
     || patientRequestEntry
     || prescriptionContext?.presetLabel
     || "Medicine not recorded"
-  const requestDose = prescriptionContext?.regimenSource === "patient_reported"
-    ? prescriptionContext.patientReportedDose || "Not recorded"
+  const requestFrequency = prescriptionContext?.regimenSource === "patient_reported"
+    ? prescriptionContext.patientReportedFrequency || null
     : null
   const directionsContext = prescriptionContext?.regimenSource === "template"
     ? prescriptionContext.directionsTemplate
     : null
   const hasAdditionalRequestDetails = Boolean(
-    shouldShowPatientRequestEntry || directionsContext,
+    shouldShowPatientRequestEntry || prescriptionContext?.patientReportedDose || directionsContext,
   )
 
   useEffect(() => {
@@ -252,16 +252,16 @@ export function ParchmentPrescribePanel({
     }
   }, [copyableMedicationName])
 
-  const copyPatientReportedRegimen = useCallback(async () => {
-    const patientReportedRegimen = prescriptionContext?.patientReportedDose?.trim()
-    if (!patientReportedRegimen) return
+  const copyPatientReportedFrequency = useCallback(async () => {
+    const patientReportedFrequency = prescriptionContext?.patientReportedFrequency?.trim()
+    if (!patientReportedFrequency) return
     try {
-      await navigator.clipboard.writeText(patientReportedRegimen)
-      toast.success("Copied dose and frequency")
+      await navigator.clipboard.writeText(patientReportedFrequency)
+      toast.success("Copied frequency")
     } catch {
-      toast.error("Could not copy dose and frequency")
+      toast.error("Could not copy frequency")
     }
-  }, [prescriptionContext?.patientReportedDose])
+  }, [prescriptionContext?.patientReportedFrequency])
 
   const loadPrescribingUrl = useCallback(async () => {
     setLoading(true)
@@ -479,30 +479,25 @@ export function ParchmentPrescribePanel({
                   </Button>
                 ) : null}
               </div>
-              {requestDose ? (
+              {requestFrequency ? (
                 <div className="mt-2 flex flex-col items-start gap-2 border-t border-border/50 pt-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-muted-foreground">Patient&apos;s dose &amp; frequency</p>
-                    <p className={cn(
-                      "select-text break-words text-sm leading-5 text-foreground",
-                      !prescriptionContext.patientReportedDose && "font-medium text-warning",
-                    )}>
-                      {requestDose}
+                    <p className="text-xs font-medium text-muted-foreground">Frequency</p>
+                    <p className="select-text break-words text-sm leading-5 text-foreground">
+                      {requestFrequency}
                     </p>
                   </div>
-                  {prescriptionContext.patientReportedDose ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="min-h-11 shrink-0 px-2.5 sm:min-h-9"
-                      onClick={copyPatientReportedRegimen}
-                      aria-label="Copy patient-reported dose and frequency"
-                    >
-                      <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                      Copy dose &amp; frequency
-                    </Button>
-                  ) : null}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="min-h-11 shrink-0 px-2.5 sm:min-h-9"
+                    onClick={copyPatientReportedFrequency}
+                    aria-label="Copy patient-reported frequency"
+                  >
+                    <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                    Copy frequency
+                  </Button>
                 </div>
               ) : null}
               {hasAdditionalRequestDetails ? (
@@ -516,6 +511,12 @@ export function ParchmentPrescribePanel({
                       <p className="break-words">
                         <span className="font-medium text-foreground">Patient entered:</span>{" "}
                         {patientRequestEntry}
+                      </p>
+                    ) : null}
+                    {prescriptionContext.patientReportedDose ? (
+                      <p className="break-words">
+                        <span className="font-medium text-foreground">Current dose:</span>{" "}
+                        {prescriptionContext.patientReportedDose}
                       </p>
                     ) : null}
                     {directionsContext ? (

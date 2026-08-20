@@ -22,6 +22,7 @@ describe("buildParchmentPrescriptionContext", () => {
         form: "tablet",
         medicationSearchHint: "Rosuvastatin 10 mg tablet",
         patientReportedDose: "10 mg nightly",
+        patientReportedFrequency: "Night",
         directionsTemplate: "Confirm regimen in Parchment.",
         safetyChecks: [],
         parchmentMode: "open_patient_prescribe",
@@ -35,6 +36,7 @@ describe("buildParchmentPrescriptionContext", () => {
       medicationLabel: "Rosuvastatin 10 mg tablet",
       searchHint: "Rosuvastatin 10 mg tablet",
       patientReportedDose: "10 mg nightly",
+      patientReportedFrequency: "Night",
       regimenSource: "patient_reported",
       directionsTemplate: "Confirm regimen in Parchment.",
       copyText: "Rosuvastatin",
@@ -59,6 +61,7 @@ describe("buildParchmentPrescriptionContext", () => {
         medicationName: "Valaciclovir 500mg Tablets",
         medicationSearchHint: "Valaciclovir 500mg Tablets",
         patientReportedDose: "1 tablet twice daily",
+        patientReportedFrequency: "Twice daily",
         directionsTemplate: "Confirm regimen in Parchment.",
         safetyChecks: [],
         parchmentMode: "open_patient_prescribe",
@@ -70,6 +73,7 @@ describe("buildParchmentPrescriptionContext", () => {
     expect(context).toMatchObject({
       medicationLabel: "Valaciclovir 500mg Tablets",
       patientReportedDose: "1 tablet twice daily",
+      patientReportedFrequency: "Twice daily",
       copyText: "",
       requestedNameCopyText: "Valaciclovir",
     })
@@ -119,6 +123,7 @@ describe("buildParchmentPrescriptionContext", () => {
     expect(context).toMatchObject({
       regimenSource: "template",
       patientReportedDose: undefined,
+      patientReportedFrequency: undefined,
       directionsTemplate: "Doctor to select therapy in Parchment.",
     })
   })

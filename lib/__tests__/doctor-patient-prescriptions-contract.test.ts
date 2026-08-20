@@ -253,14 +253,15 @@ describe("doctor patient medication history contract", () => {
     expect(clinicalCaseReviewSource).not.toContain("Copy search")
   })
 
-  it("copies the separately labelled patient-reported dose and frequency", () => {
-    expect(panelSource).toContain("copyPatientReportedRegimen")
-    expect(panelSource).toContain('toast.success("Copied dose and frequency")')
-    expect(panelSource).toContain("Patient&apos;s dose &amp; frequency")
-    expect(panelSource).toContain("Copy dose &amp; frequency")
-    expect(panelSource.indexOf("Copy dose &amp; frequency")).toBeLessThan(
+  it("copies the separately labelled patient-reported frequency only", () => {
+    expect(panelSource).toContain("copyPatientReportedFrequency")
+    expect(panelSource).toContain('toast.success("Copied frequency")')
+    expect(panelSource).toContain(">Frequency</p>")
+    expect(panelSource).toContain("Copy frequency")
+    expect(panelSource.indexOf("Copy frequency")).toBeLessThan(
       panelSource.indexOf("<details"),
     )
+    expect(panelSource).not.toContain("Copy dose &amp; frequency")
   })
 
   it("keeps the Parchment handoff compact and puts raw request context behind disclosure", () => {

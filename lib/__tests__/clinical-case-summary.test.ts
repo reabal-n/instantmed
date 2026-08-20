@@ -568,6 +568,7 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent?.strength).toBe("100mg")
     expect(summary.prescriptionIntent?.clipboardText).toBe("")
     expect(summary.prescriptionIntent?.patientReportedDose).toBe("Once daily")
+    expect(summary.prescriptionIntent?.patientReportedFrequency).toBe("Once daily")
   })
 
   it("does not let a client-supplied active ingredient override the request or clipboard", () => {
@@ -1073,4 +1074,3 @@ describe("weightLossSummary", () => {
     expect(summary.prescriptionIntent).toBeUndefined()
   })
 })
-

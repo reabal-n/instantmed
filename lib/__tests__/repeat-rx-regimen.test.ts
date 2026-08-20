@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   areRepeatRxMedicationDetailsEqual,
   composeRepeatRxRegimen,
+  extractRepeatRxFrequency,
   hasCompleteRepeatRxRegimen,
   inferRepeatRxDoseUnit,
   parseRepeatRxRegimenPreset,
@@ -83,6 +84,23 @@ describe("repeat-Rx regimen editing", () => {
       frequency: "twice_daily",
     })
     expect(parseRepeatRxRegimenPreset("Take half a tablet every second day")).toBeNull()
+  })
+
+  it.each([
+    ["500mcg daily", "Once daily"],
+    ["1 tablet once daily", "Once daily"],
+    ["1 tablet twice a day", "Twice daily"],
+    ["2 puffs three times daily", "3 times daily"],
+    ["1 tablet each morning", "Morning"],
+    ["1 capsule at night", "Night"],
+    ["2 puffs when needed", "As needed"],
+  ])("extracts only the supported patient frequency from %s", (value, expected) => {
+    expect(extractRepeatRxFrequency(value)).toBe(expected)
+  })
+
+  it("does not manufacture a clipboard frequency from uncommon directions", () => {
+    expect(extractRepeatRxFrequency("Half a tablet every second day")).toBeNull()
+    expect(extractRepeatRxFrequency("One capsule on Mondays and Thursdays")).toBeNull()
   })
 
   it("uses the patient-entered medicine form only to preselect its matching unit", () => {

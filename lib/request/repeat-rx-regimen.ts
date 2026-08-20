@@ -73,21 +73,25 @@ function doseUnitDefinition(unit: RepeatRxDoseUnit) {
   return REPEAT_RX_DOSE_UNIT_OPTIONS.find((option) => option.value === unit)
 }
 
+function frequencyDefinition(frequency: RepeatRxFrequency) {
+  return REPEAT_RX_FREQUENCY_OPTIONS.find((option) => option.value === frequency)
+}
+
 export function composeRepeatRxRegimen({
   amount,
   unit,
   frequency,
 }: Partial<RepeatRxRegimenPreset>): string {
   const unitDefinition = unit ? doseUnitDefinition(unit) : undefined
-  const frequencyDefinition = frequency
-    ? REPEAT_RX_FREQUENCY_OPTIONS.find((option) => option.value === frequency)
+  const selectedFrequency = frequency
+    ? frequencyDefinition(frequency)
     : undefined
   const quantity = amount === "one" ? "1" : amount === "two" ? "2" : ""
   const dose = quantity && unitDefinition
     ? `${quantity} ${amount === "one" ? unitDefinition.value : unitDefinition.plural}`
     : ""
 
-  return [dose, frequencyDefinition?.phrase].filter(Boolean).join(" ")
+  return [dose, selectedFrequency?.phrase].filter(Boolean).join(" ")
 }
 
 export function parseRepeatRxRegimenPreset(
@@ -106,6 +110,44 @@ export function parseRepeatRxRegimenPreset(
     .find(([, pattern]) => pattern.test(match[3]))?.[0]
 
   return unit && frequency ? { amount, unit, frequency } : null
+}
+
+/**
+ * Return only a patient-reported frequency that maps to one of the choices in
+ * the repeat-prescription intake. This is intentionally narrower than the
+ * regimen validator: uncommon free-text directions remain visible to the
+ * doctor, but are not normalised into a clipboard value that could change the
+ * patient's meaning.
+ */
+export function extractRepeatRxFrequency(
+  value: string | null | undefined,
+): string | null {
+  const normalized = typeof value === "string"
+    ? value.normalize("NFKC").trim().replace(/\s+/g, " ")
+    : ""
+  if (!normalized) return null
+
+  const preset = parseRepeatRxRegimenPreset(normalized)
+  if (preset) return frequencyDefinition(preset.frequency)?.label ?? null
+
+  const frequency = (
+    /\b(?:three|3)\s+times?\s+(?:(?:a|per|each)\s+)?(?:day|daily)\b/i.test(normalized)
+      ? "three_times_daily"
+      : /\b(?:twice|two\s+times?)\s+(?:(?:a|per|each)\s+)?(?:day|daily)\b/i.test(normalized)
+        ? "twice_daily"
+        : /\bonce\s+(?:(?:a|per|each)\s+)?(?:day|daily)\b/i.test(normalized)
+          || /\bdaily\b/i.test(normalized)
+          ? "once_daily"
+          : /\b(?:each|every|in\s+the)\s+morning\b|\bmorning\b/i.test(normalized)
+            ? "morning"
+            : /\b(?:at|each|every)\s+night\b|\b(?:nightly|bedtime)\b/i.test(normalized)
+              ? "night"
+              : /\b(?:as|when|if)\s+(?:needed|required)\b|\bprn\b/i.test(normalized)
+                ? "as_needed"
+                : null
+  ) satisfies RepeatRxFrequency | null
+
+  return frequency ? frequencyDefinition(frequency)?.label ?? null : null
 }
 
 export function inferRepeatRxDoseUnit(

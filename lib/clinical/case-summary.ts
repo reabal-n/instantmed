@@ -11,6 +11,7 @@ import {
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import { normaliseSymptomText } from "@/lib/clinical/symptom-normaliser"
 import { computeBmi, WEIGHT_LOSS_BMI_FLOOR } from "@/lib/clinical/weight-loss-eligibility"
+import { extractRepeatRxFrequency } from "@/lib/request/repeat-rx-regimen"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
@@ -62,6 +63,8 @@ interface PrescriptionIntent {
   medicationSearchHint?: string
   /** Patient-entered regimen context shown separately from the copy action. */
   patientReportedDose?: string | null
+  /** Patient-entered frequency, conservatively extracted for a separate copy action. */
+  patientReportedFrequency?: string | null
   directionsTemplate: string
   quantityTemplate?: string
   repeatsTemplate?: string
@@ -1087,6 +1090,7 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
         ? medicationLabels[0]
         : [medicationName, strength, form].filter(Boolean).join(" "),
       patientReportedDose: currentDose ?? null,
+      patientReportedFrequency: extractRepeatRxFrequency(currentDose),
       directionsTemplate: currentDose
         ? `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Patient reports current dose: ${currentDose}. Confirm regimen, quantity, repeats and indication in Parchment before prescribing.`
         : `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Repeat existing regimen after doctor confirms dose, quantity, repeats and indication in Parchment.`,

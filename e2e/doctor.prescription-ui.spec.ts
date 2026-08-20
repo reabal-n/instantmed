@@ -488,17 +488,18 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(medicationContext.getByText("Medicine to search", { exact: true })).toBeVisible()
     await expect(medicationContext.getByText("Sertraline", { exact: true })).toBeVisible()
     await expect(medicationContext).toContainText("Likely match from a previous prescription")
-    await expect(medicationContext.getByText("Patient's dose & frequency", { exact: true })).toBeVisible()
-    await expect(medicationContext.getByText("100 mg once daily", { exact: true })).toBeVisible()
+    await expect(medicationContext.getByText("Frequency", { exact: true })).toBeVisible()
+    await expect(medicationContext.getByText("Once daily", { exact: true })).toBeVisible()
 
     await medicationContext.getByRole("button", { name: /Copy .*medicine name/ }).click()
     await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("Sertraline")
 
-    await medicationContext.getByRole("button", { name: "Copy patient-reported dose and frequency" }).click()
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("100 mg once daily")
+    await medicationContext.getByRole("button", { name: "Copy patient-reported frequency" }).click()
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("Once daily")
 
     await medicationContext.getByText("Request details", { exact: true }).click()
     await expect(medicationContext).toContainText("Patient entered: Sertralne 100mg")
+    await expect(medicationContext).toContainText("Current dose: 100 mg once daily")
   })
 
   test("shows prior request history while excluding the active request from the profile drawer", async ({ page }) => {
