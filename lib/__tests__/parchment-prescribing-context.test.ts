@@ -38,6 +38,40 @@ describe("buildParchmentPrescriptionContext", () => {
       regimenSource: "patient_reported",
       directionsTemplate: "Confirm regimen in Parchment.",
       copyText: "Rosuvastatin",
+      requestedNameCopyText: "Rosuvastatin",
+    })
+  })
+
+  it("keeps a patient-entered medicine name copyable without its dose or form", () => {
+    const context = buildParchmentPrescriptionContext({
+      title: "Repeat prescription",
+      patientStory: "",
+      keyFacts: [],
+      safetyItems: [],
+      recommendedPlan: {
+        action: "prescribe",
+        title: "Review",
+        rationale: "",
+        nextSteps: [],
+      },
+      prescriptionIntent: {
+        presetLabel: "Repeat prescription Parchment context",
+        medicationName: "Valaciclovir 500mg Tablets",
+        medicationSearchHint: "Valaciclovir 500mg Tablets",
+        patientReportedDose: "1 tablet twice daily",
+        directionsTemplate: "Confirm regimen in Parchment.",
+        safetyChecks: [],
+        parchmentMode: "open_patient_prescribe",
+        clipboardText: "",
+      },
+      draftNote: "",
+    })
+
+    expect(context).toMatchObject({
+      medicationLabel: "Valaciclovir 500mg Tablets",
+      patientReportedDose: "1 tablet twice daily",
+      copyText: "",
+      requestedNameCopyText: "Valaciclovir",
     })
   })
 
@@ -119,5 +153,6 @@ describe("buildParchmentPrescriptionContext", () => {
     })
 
     expect(context?.copyText).toBe("")
+    expect(context?.requestedNameCopyText).toBe("Rosuvastatin")
   })
 })

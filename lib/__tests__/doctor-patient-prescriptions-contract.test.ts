@@ -198,7 +198,7 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("iframeSlowToLoad")
     expect(panelSource).toContain("Parchment is taking a little longer")
     expect(panelSource).toContain("Open in new tab")
-    expect(panelSource).toContain("copyMedicationName")
+    expect(panelSource).toContain("copyMedicationSearchName")
   })
 
   it("mints a fresh Parchment session only after an explicit retry", () => {
@@ -237,10 +237,13 @@ describe("doctor patient medication history contract", () => {
     expect(fixabilityBody).not.toContain("identity verification service failed")
   })
 
-  it("labels the trusted copy action as a generic-medicine copy", () => {
-    expect(panelSource).toContain("copyMedicationName")
-    expect(panelSource).toContain('toast.success("Copied generic medicine name")')
-    expect(panelSource).toContain("Copy generic name")
+  it("copies a name-only medicine search value while preserving generic verification context", () => {
+    expect(panelSource).toContain("copyMedicationSearchName")
+    expect(panelSource).toContain("requestedNameCopyText")
+    expect(panelSource).toContain("copyableMedicationName")
+    expect(panelSource).toContain('toast.success("Copied medicine name")')
+    expect(panelSource).toContain("Copy name")
+    expect(panelSource).toContain("patient-entered medicine name")
     expect(panelSource).not.toContain("Copy context")
     expect(panelSource).not.toContain("Copy search")
 
@@ -248,6 +251,13 @@ describe("doctor patient medication history contract", () => {
     expect(clinicalCaseReviewSource).toContain('toast.success("Copied generic medicine name")')
     expect(clinicalCaseReviewSource).toContain("Copy generic name")
     expect(clinicalCaseReviewSource).not.toContain("Copy search")
+  })
+
+  it("copies the separately labelled patient-reported dose and frequency", () => {
+    expect(panelSource).toContain("copyPatientReportedRegimen")
+    expect(panelSource).toContain('toast.success("Copied dose and frequency")')
+    expect(panelSource).toContain("Patient-reported dose and frequency:")
+    expect(panelSource).toContain("Copy dose &amp; frequency")
   })
 
   it("keeps the Parchment handoff compact and puts raw request context behind disclosure", () => {

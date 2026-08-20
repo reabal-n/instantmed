@@ -134,14 +134,16 @@ export function ParchmentPrescribePanel({
   const errorCopy = getParchmentErrorCopy(error)
   const patientDetailsHref = patientProfileHref || (patientId ? buildStaffPatientHref(patientId) : null)
   const canEditPatientDetails = Boolean(patientDetailsHref && canFixParchmentErrorFromPatientProfile(error))
-  const trustedGenericName = prescriptionContext?.copyText || (
+  const verifiedGenericName = prescriptionContext?.copyText || (
     genericReference.status === "resolved" ? genericReference.genericName : ""
   )
+  const requestedNameCopyText = prescriptionContext?.requestedNameCopyText?.trim() || ""
+  const copyableMedicationName = verifiedGenericName || requestedNameCopyText
   const patientRequestEntry = prescriptionContext?.medicationLabel?.trim() || ""
   const shouldShowPatientRequestEntry = Boolean(
-    trustedGenericName &&
+    copyableMedicationName &&
     patientRequestEntry &&
-    patientRequestEntry.localeCompare(trustedGenericName, "en-AU", { sensitivity: "base" }) !== 0,
+    patientRequestEntry.localeCompare(copyableMedicationName, "en-AU", { sensitivity: "base" }) !== 0,
   )
   const matchedFromPreviousPrescription = genericReference.status === "resolved"
     && genericReference.source === "previous_prescription"
@@ -152,9 +154,11 @@ export function ParchmentPrescribePanel({
     : genericReference.status === "resolving"
       ? "Checking the request and previous prescriptions…"
       : genericReference.status === "unresolved"
-        ? "No verified match · search manually in Parchment"
+        ? requestedNameCopyText
+          ? "Patient-entered name · confirm the match in Parchment"
+          : "No verified match · search manually in Parchment"
         : null
-  const displayedMedicationName = trustedGenericName
+  const displayedMedicationName = copyableMedicationName
     || patientRequestEntry
     || prescriptionContext?.presetLabel
     || "Medicine not recorded"
@@ -238,15 +242,26 @@ export function ParchmentPrescribePanel({
     }
   }, [loadFreshParchmentUrl])
 
-  const copyMedicationName = useCallback(async () => {
-    if (!trustedGenericName) return
+  const copyMedicationSearchName = useCallback(async () => {
+    if (!copyableMedicationName) return
     try {
-      await navigator.clipboard.writeText(trustedGenericName)
-      toast.success("Copied generic medicine name")
+      await navigator.clipboard.writeText(copyableMedicationName)
+      toast.success("Copied medicine name")
     } catch {
-      toast.error("Could not copy generic medicine name")
+      toast.error("Could not copy medicine name")
     }
-  }, [trustedGenericName])
+  }, [copyableMedicationName])
+
+  const copyPatientReportedRegimen = useCallback(async () => {
+    const patientReportedRegimen = prescriptionContext?.patientReportedDose?.trim()
+    if (!patientReportedRegimen) return
+    try {
+      await navigator.clipboard.writeText(patientReportedRegimen)
+      toast.success("Copied dose and frequency")
+    } catch {
+      toast.error("Could not copy dose and frequency")
+    }
+  }, [prescriptionContext?.patientReportedDose])
 
   const loadPrescribingUrl = useCallback(async () => {
     setLoading(true)
@@ -431,7 +446,7 @@ export function ParchmentPrescribePanel({
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-muted-foreground">Medicine to search</p>
-                  <p className="break-words text-sm font-semibold leading-5 text-foreground">
+                  <p className="select-text break-words text-sm font-semibold leading-5 text-foreground">
                     {displayedMedicationName}
                   </p>
                   {medicationMatchMessage ? (
@@ -448,14 +463,16 @@ export function ParchmentPrescribePanel({
                     </p>
                   ) : null}
                 </div>
-                {trustedGenericName ? (
+                {copyableMedicationName ? (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     className="min-h-11 shrink-0 px-2.5 sm:min-h-9"
-                    onClick={copyMedicationName}
-                    aria-label="Copy generic name"
+                    onClick={copyMedicationSearchName}
+                    aria-label={verifiedGenericName
+                      ? "Copy verified generic medicine name"
+                      : "Copy patient-entered medicine name"}
                   >
                     <Clipboard className="mr-1.5 h-3.5 w-3.5" />
                     Copy name
@@ -476,10 +493,28 @@ export function ParchmentPrescribePanel({
                       </p>
                     ) : null}
                     {requestDose ? (
-                      <p className={cn(!prescriptionContext.patientReportedDose && "font-medium text-warning")}>
-                        <span className="font-medium text-foreground">Current dose:</span>{" "}
-                        {requestDose}
-                      </p>
+                      <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                        <p className={cn(
+                          "min-w-0 break-words",
+                          !prescriptionContext.patientReportedDose && "font-medium text-warning",
+                        )}>
+                          <span className="font-medium text-foreground">Patient-reported dose and frequency:</span>{" "}
+                          <span className="select-text">{requestDose}</span>
+                        </p>
+                        {prescriptionContext.patientReportedDose ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="min-h-11 shrink-0 px-2 sm:min-h-9"
+                            onClick={copyPatientReportedRegimen}
+                            aria-label="Copy patient-reported dose and frequency"
+                          >
+                            <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                            Copy dose &amp; frequency
+                          </Button>
+                        ) : null}
+                      </div>
                     ) : null}
                     {directionsContext ? (
                       <p className="break-words">
@@ -551,8 +586,8 @@ export function ParchmentPrescribePanel({
                         <>
                           <p className="text-sm font-medium text-foreground">Parchment is taking a little longer</p>
                           <p className="text-sm text-muted-foreground">
-                            {trustedGenericName
-                              ? "Keep waiting, open a new tab, or copy the verified generic name and continue there."
+                            {copyableMedicationName
+                              ? "Keep waiting, open a new tab, or copy the medicine name and continue there."
                               : "Keep waiting or open Parchment in a new tab."}
                           </p>
                           <div className="flex flex-wrap justify-center gap-2">
@@ -564,10 +599,10 @@ export function ParchmentPrescribePanel({
                               <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                               Open in new tab
                             </Button>
-                            {trustedGenericName && (
-                              <Button type="button" variant="ghost" size="sm" onClick={copyMedicationName}>
+                            {copyableMedicationName && (
+                              <Button type="button" variant="ghost" size="sm" onClick={copyMedicationSearchName}>
                                 <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                                Copy generic name
+                                Copy name
                               </Button>
                             )}
                           </div>

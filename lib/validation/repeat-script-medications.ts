@@ -239,7 +239,7 @@ export function getRepeatScriptMedicationConcreteStrength(
 }
 
 function stripFormFromName(value: string): string {
-  const knownFormPattern = /\b(tablet|capsule|caplet|solution|suspension|cream|ointment|gel|patch|inhaler|injection|drops?|spray|pessary|suppository|liquid)\b/i
+  const knownFormPattern = /\b(?:tabs?|tablets?|caps?|capsules?|caplets?|solutions?|suspensions?|creams?|ointments?|gels?|patch(?:es)?|inhalers?|injections?|drops?|sprays?|pessar(?:y|ies)|suppositor(?:y|ies)|liquids?)\b/i
   const match = value.match(knownFormPattern)
   return match?.index && match.index > 0
     ? value.slice(0, match.index).trim()

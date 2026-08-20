@@ -1101,8 +1101,8 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       ],
     },
     // Repeat-request medicine fields are client-controlled. The doctor panel
-    // resolves a trusted generic name from the authenticated first-party
-    // medications table; until then there is deliberately no copyable name.
+    // keeps this name labelled as patient-entered and name-only for search; an
+    // authenticated first-party match may replace it with a verified generic.
     null,
   )
 
