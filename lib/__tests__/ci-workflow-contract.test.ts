@@ -10,6 +10,10 @@ const ciWorkflowSource = readFileSync(
 )
 const testingDocsSource = readFileSync(join(process.cwd(), "docs/TESTING.md"), "utf8")
 const claudeSource = readFileSync(join(process.cwd(), "CLAUDE.md"), "utf8")
+const prescriptionE2ESource = readFileSync(
+  join(process.cwd(), "e2e/doctor.prescription-ui.spec.ts"),
+  "utf8",
+)
 
 function classifyE2EScope(eventName: string, changedFiles: string[]): string {
   const result = spawnSync(
@@ -135,6 +139,13 @@ describe("CI workflow contract", () => {
     expect(ciWorkflowSource).toContain("Run non-medcert paid critical E2E flows (Chromium)")
     expect(ciWorkflowSource).toContain("e2e/parchment-webhook.spec.ts")
     expect(ciWorkflowSource).not.toMatch(/^\s*run: pnpm exec playwright test --project=chromium\s*$/m)
+  })
+
+  it("keeps the Mobile Chrome prescription selector aligned with the test title", () => {
+    const clipboardTestTitle = "keeps inferred strength explicit and copies both visible Parchment handoff values"
+
+    expect(prescriptionE2ESource).toContain(`test("${clipboardTestTitle}"`)
+    expect(ciWorkflowSource).toContain(`--grep='${clipboardTestTitle}'`)
   })
 
   it("keeps the documented blocking browser smoke list aligned with CI", () => {

@@ -490,7 +490,7 @@ jobs:
             e2e/parchment-webhook.spec.ts
           pnpm exec playwright test --project='Mobile Chrome' --workers=1 \
             e2e/doctor.prescription-ui.spec.ts \
-            --grep='keeps inferred strength explicit and copies only the verified generic name'
+            --grep='keeps inferred strength explicit and copies both visible Parchment handoff values'
 
       - name: Run signed guest resume safety E2E (Chromium)
         if: ${{ always() && steps.verify_e2e_secrets.outcome == 'success' }}
