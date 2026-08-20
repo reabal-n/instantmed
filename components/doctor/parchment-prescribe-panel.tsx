@@ -168,8 +168,8 @@ export function ParchmentPrescribePanel({
   const directionsContext = prescriptionContext?.regimenSource === "template"
     ? prescriptionContext.directionsTemplate
     : null
-  const hasRequestDetails = Boolean(
-    shouldShowPatientRequestEntry || requestDose || directionsContext,
+  const hasAdditionalRequestDetails = Boolean(
+    shouldShowPatientRequestEntry || directionsContext,
   )
 
   useEffect(() => {
@@ -479,7 +479,33 @@ export function ParchmentPrescribePanel({
                   </Button>
                 ) : null}
               </div>
-              {hasRequestDetails ? (
+              {requestDose ? (
+                <div className="mt-2 flex flex-col items-start gap-2 border-t border-border/50 pt-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground">Patient&apos;s dose &amp; frequency</p>
+                    <p className={cn(
+                      "select-text break-words text-sm leading-5 text-foreground",
+                      !prescriptionContext.patientReportedDose && "font-medium text-warning",
+                    )}>
+                      {requestDose}
+                    </p>
+                  </div>
+                  {prescriptionContext.patientReportedDose ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="min-h-11 shrink-0 px-2.5 sm:min-h-9"
+                      onClick={copyPatientReportedRegimen}
+                      aria-label="Copy patient-reported dose and frequency"
+                    >
+                      <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                      Copy dose &amp; frequency
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
+              {hasAdditionalRequestDetails ? (
                 <details className="group mt-1.5 text-xs text-muted-foreground">
                   <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-1 rounded-sm pr-2 font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:min-h-9 [&::-webkit-details-marker]:hidden">
                     <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden />
@@ -491,30 +517,6 @@ export function ParchmentPrescribePanel({
                         <span className="font-medium text-foreground">Patient entered:</span>{" "}
                         {patientRequestEntry}
                       </p>
-                    ) : null}
-                    {requestDose ? (
-                      <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                        <p className={cn(
-                          "min-w-0 break-words",
-                          !prescriptionContext.patientReportedDose && "font-medium text-warning",
-                        )}>
-                          <span className="font-medium text-foreground">Patient-reported dose and frequency:</span>{" "}
-                          <span className="select-text">{requestDose}</span>
-                        </p>
-                        {prescriptionContext.patientReportedDose ? (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="min-h-11 shrink-0 px-2 sm:min-h-9"
-                            onClick={copyPatientReportedRegimen}
-                            aria-label="Copy patient-reported dose and frequency"
-                          >
-                            <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                            Copy dose &amp; frequency
-                          </Button>
-                        ) : null}
-                      </div>
                     ) : null}
                     {directionsContext ? (
                       <p className="break-words">

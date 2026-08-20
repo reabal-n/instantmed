@@ -256,8 +256,11 @@ describe("doctor patient medication history contract", () => {
   it("copies the separately labelled patient-reported dose and frequency", () => {
     expect(panelSource).toContain("copyPatientReportedRegimen")
     expect(panelSource).toContain('toast.success("Copied dose and frequency")')
-    expect(panelSource).toContain("Patient-reported dose and frequency:")
+    expect(panelSource).toContain("Patient&apos;s dose &amp; frequency")
     expect(panelSource).toContain("Copy dose &amp; frequency")
+    expect(panelSource.indexOf("Copy dose &amp; frequency")).toBeLessThan(
+      panelSource.indexOf("<details"),
+    )
   })
 
   it("keeps the Parchment handoff compact and puts raw request context behind disclosure", () => {
