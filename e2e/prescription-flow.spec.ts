@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test"
+import { expect, type Locator, type Page, test } from "@playwright/test"
 
 import { enterManualTestAddress, waitForPageLoad } from "./helpers/test-utils"
 
@@ -68,6 +68,23 @@ function collectBrowserErrors(page: Page) {
   return errors
 }
 
+async function expectPrimaryActionReady(
+  page: Page,
+  action: Locator,
+  ready: boolean,
+) {
+  const isMobile = (page.viewportSize()?.width ?? 1024) < 640
+  if (isMobile) {
+    await expect(action).toHaveAttribute(
+      "data-intake-mobile-action-ready",
+      ready ? "true" : "false",
+    )
+    return
+  }
+
+  await expect(action).toHaveAttribute("aria-disabled", ready ? "false" : "true")
+}
+
 /** Click a chip / selection button whose visible text matches `label` */
 async function clickChip(page: Page, label: string | RegExp) {
   const radio = page.getByRole("radio", { name: label })
@@ -76,6 +93,46 @@ async function clickChip(page: Page, label: string | RegExp) {
     return
   }
   await page.getByRole("button", { name: label }).click()
+}
+
+async function chooseQuickRegimen(
+  page: Page,
+  { amount = "1", unit = "Tablet", frequency = "Once daily" } = {},
+) {
+  await page
+    .getByRole("radiogroup", { name: "How much do you take?" })
+    .getByRole("radio", { name: amount, exact: true })
+    .click()
+  await page.locator("#current-dose-unit").click()
+  await page.getByRole("option", { name: unit, exact: true }).click()
+  await page
+    .getByRole("radiogroup", { name: "How often do you take it?" })
+    .getByRole("radio", { name: frequency, exact: true })
+    .click()
+}
+
+async function confirmUnchangedRegimen(page: Page) {
+  await page
+    .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
+    .getByRole("radio", { name: "Same", exact: true })
+    .click()
+}
+
+async function confirmNoSideEffects(page: Page) {
+  await page
+    .getByRole("radiogroup", { name: "Any side effects?" })
+    .getByRole("radio", { name: "No", exact: true })
+    .click()
+}
+
+async function useCustomRegimen(page: Page, value: string) {
+  await page
+    .getByRole("radiogroup", { name: "How much do you take?" })
+    .getByRole("radio", { name: "Other", exact: true })
+    .click()
+  const input = page.locator("#current-dose")
+  await input.fill(value)
+  return input
 }
 
 /** Click the primary "Continue" action button at the bottom of a step */
@@ -118,19 +175,15 @@ async function completeMedicationStep(page: Page) {
 
   await page.locator("#medication-name-0").fill("E2E test medication")
 
-  // Strength is mandatory; form remains optional. Both stay visible.
+  // Strength is mandatory; form remains optional and stays collapsed.
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
   await page.locator("#medication-strength-0").fill("500 mg")
-  await page.locator("#medication-form-0").fill("capsule")
 
   await clickChip(page, /Under 3 months/i)
-  await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
-  await page
-    .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-    .getByRole("radio", { name: /No, unchanged/i })
-    .click()
-  await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
-  await clickChip(page, /No side effects/i)
+  await chooseQuickRegimen(page)
+  await confirmUnchangedRegimen(page)
+  await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
+  await confirmNoSideEffects(page)
 
   await clickContinue(page)
   await page.waitForTimeout(500)
@@ -307,17 +360,18 @@ test.describe("Prescription: full flow - start to checkout", () => {
     // its history round-trip together.
     await expect(page.getByRole("heading", { name: "Your medication", level: 2 })).toBeVisible()
     await expect(page.locator("#medication-name-0")).toHaveValue("E2E test medication")
-    await expect(page.getByPlaceholder(/2 puffs twice daily/i)).toHaveValue("1 tablet daily")
-    await expect(page.getByPlaceholder(/e\.g\., asthma/i)).toHaveValue("asthma")
+    await expect(page.getByText("1 tablet once daily", { exact: true })).toBeVisible()
+    await expect(page.getByPlaceholder(/e\.g\. asthma/i)).toHaveValue("asthma")
     await expect(
       page
-        .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-        .getByRole("radio", { name: /No, unchanged/i }),
+        .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
+        .getByRole("radio", { name: "Same", exact: true }),
     ).toHaveAttribute("aria-checked", "true")
-    await expect(page.getByRole("radio", { name: "No side effects", exact: true })).toHaveAttribute(
-      "aria-checked",
-      "true",
-    )
+    await expect(
+      page
+        .getByRole("radiogroup", { name: "Any side effects?" })
+        .getByRole("radio", { name: "No", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
     expect(browserErrors).toEqual([])
   })
 })
@@ -367,13 +421,13 @@ test.describe("Prescription: prescription-history gating", () => {
 
     // The route-out is terminal: the repeat-only questions are gone and
     // Continue must not advance.
-    await expect(page.getByPlaceholder(/2 puffs twice daily/i)).toBeHidden()
-    await expect(page.getByText(/Any side effects with this medication\?/i)).toBeHidden()
+    await expect(page.getByRole("radiogroup", { name: "How much do you take?" })).toBeHidden()
+    await expect(page.getByRole("radiogroup", { name: "Any side effects?" })).toBeHidden()
 
     // "Change medication" clears the escape and restores the repeat questions
     // in place — no step navigation, the medicine box is on this screen.
     await page.getByRole("button", { name: /Change medication/i }).click()
-    await expect(page.getByPlaceholder(/2 puffs twice daily/i)).toBeVisible()
+    await expect(page.getByRole("radiogroup", { name: "How much do you take?" })).toBeVisible()
     await expect(page.locator("#medication-name-0")).toHaveValue("E2E test medication")
   })
 })
@@ -413,17 +467,15 @@ test.describe("Prescription: step validation", () => {
 
     // Leave strength blank; fill only form.
     await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+    await page.getByRole("button", { name: "Add form (optional)" }).click()
     await page.locator("#medication-form-0").fill("capsule")
 
     // Answer the rest of the merged screen.
     await clickChip(page, /Under 3 months/i)
-    await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
-    await page
-      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-      .getByRole("radio", { name: /No, unchanged/i })
-      .click()
-    await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
-    await clickChip(page, /No side effects/i)
+    await chooseQuickRegimen(page, { unit: "Capsule" })
+    await confirmUnchangedRegimen(page)
+    await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
+    await confirmNoSideEffects(page)
 
     // Continue surfaces the missing strength instead of advancing.
     await expect(page.locator("#medication-strength-0")).toHaveAttribute("aria-required", "true")
@@ -431,7 +483,7 @@ test.describe("Prescription: step validation", () => {
     await expect(page.getByText(/strength shown on the medication label/i).first()).toBeVisible()
 
     await page.locator("#medication-strength-0").fill("20 mg")
-    await clickChip(page, /No, unchanged/i)
+    await confirmUnchangedRegimen(page)
     await clickContinue(page)
     await waitForStep(page, /Anything the doctor should know/i)
   })
@@ -449,19 +501,16 @@ test.describe("Prescription: step validation", () => {
     await expect(page.locator("#medication-strength-0")).toHaveAttribute("aria-required", "false")
     await expect(page.getByText(/Using 100mg from the medication name/i)).toBeVisible()
     await clickChip(page, /Under 3 months/i)
-    await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
-    await page
-      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-      .getByRole("radio", { name: /No, unchanged/i })
-      .click()
-    await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
-    await clickChip(page, /No side effects/i)
+    await chooseQuickRegimen(page)
+    await confirmUnchangedRegimen(page)
+    await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
+    await confirmNoSideEffects(page)
 
     await clickContinue(page)
     await waitForStep(page, /Anything the doctor should know/i)
   })
 
-  test("medication step requires a current amount and frequency and exposes the error to the textarea", async ({ page }) => {
+  test("quick directions require amount, unit, and frequency without forcing typing", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -470,49 +519,38 @@ test.describe("Prescription: step validation", () => {
     await page.locator("#medication-name-0").fill("E2E missing dose medication")
     await page.locator("#medication-strength-0").fill("20 mg")
     await clickChip(page, /Under 3 months/i)
-    await page
-      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-      .getByRole("radio", { name: /No, unchanged/i })
-      .click()
-    await page.getByPlaceholder(/e\.g\., asthma/i).fill("anxiety")
-    await clickChip(page, /No side effects/i)
+    await page.getByPlaceholder(/e\.g\. asthma/i).fill("anxiety")
+    await confirmNoSideEffects(page)
 
-    // A frequency shortcut is useful input, but it is not a complete regimen
-    // until the patient also records how much they take.
+    // Timing alone is visibly incomplete, but the recovery path is still
+    // button-led rather than a textarea that repeats the chip words.
     await page
-      .getByRole("group", { name: "Common dose frequencies" })
-      .getByRole("button", { name: "Once daily", exact: true })
+      .getByRole("radiogroup", { name: "How often do you take it?" })
+      .getByRole("radio", { name: "Once daily", exact: true })
       .click()
-    await expect(page.locator("#current-dose")).toHaveValue("Once daily")
+    await expect(page.getByText("once daily", { exact: true })).toBeVisible()
 
     await clickContinue(page)
 
-    const doseInput = page.locator("#current-dose")
-    const doseError = page.locator("#current-dose-error")
+    const doseError = page.getByText(
+      "Enter how much you take and how often (for example, one tablet each morning)",
+      { exact: true },
+    ).last()
     await expect(doseError).toHaveText(
       "Enter how much you take and how often (for example, one tablet each morning)",
     )
     await expect(doseError).toBeVisible()
-    await expect(doseInput).toHaveAttribute("aria-required", "true")
-    await expect(doseInput).toHaveAttribute("aria-invalid", "true")
+    await expect(page.locator("#current-dose")).toHaveCount(0)
 
-    const describedBy = (await doseInput.getAttribute("aria-describedby"))?.split(/\s+/) ?? []
-    expect(describedBy).toContain("current-dose-hint")
-    expect(describedBy).toContain("current-dose-error")
-    for (const id of describedBy) {
-      await expect(page.locator(`#${id}`)).toBeVisible()
-    }
-
-    const frequencyHelpers = page.getByRole("group", { name: "Common dose frequencies" })
-    await expect(frequencyHelpers).not.toHaveAttribute("aria-invalid")
-    await expect(frequencyHelpers).not.toHaveAttribute("aria-describedby")
-
-    await doseInput.fill("One tablet each morning")
-    await expect(doseError).toHaveCount(0)
     await page
-      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-      .getByRole("radio", { name: /No, unchanged/i })
+      .getByRole("radiogroup", { name: "How much do you take?" })
+      .getByRole("radio", { name: "1", exact: true })
       .click()
+    await page.locator("#current-dose-unit").click()
+    await page.getByRole("option", { name: "Tablet", exact: true }).click()
+    await expect(page.getByText("1 tablet once daily", { exact: true })).toBeVisible()
+    await expect(doseError).toHaveCount(0)
+    await confirmUnchangedRegimen(page)
     await clickContinue(page)
     await waitForStep(page, /Anything the doctor should know/i)
   })
@@ -526,21 +564,21 @@ test.describe("Prescription: step validation", () => {
     await page.locator("#medication-name-0").fill("E2E test medication")
     await page.locator("#medication-strength-0").fill("500 mg")
     await clickChip(page, /Under 3 months/i)
-    await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
-    await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
-    await clickChip(page, /No side effects/i)
+    await chooseQuickRegimen(page)
+    await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
+    await confirmNoSideEffects(page)
 
     await clickContinue(page)
     await expect(page.getByText(/Please confirm whether the dose or the way you take this medicine has changed/i).first()).toBeVisible()
 
     const regimenQuestion = page.getByRole("radiogroup", {
-      name: /dose or the way you take this medicine changed/i,
+      name: "Same dose and directions as last time?",
     })
-    await regimenQuestion.getByRole("radio", { name: /Yes, changed/i }).click()
+    await regimenQuestion.getByRole("radio", { name: "Changed", exact: true }).click()
     await expect(page.getByText(/needs review by your regular GP or specialist/i).first()).toBeVisible()
     await expect(page.getByText(/Your medication/i).first()).toBeVisible()
 
-    await regimenQuestion.getByRole("radio", { name: /No, unchanged/i }).click()
+    await regimenQuestion.getByRole("radio", { name: "Same", exact: true }).click()
     await clickContinue(page)
     await waitForStep(page, /Anything the doctor should know/i)
   })
@@ -558,12 +596,12 @@ test.describe("Prescription: step validation", () => {
     await page.locator("#medication-name-0").fill("E2E test medication")
     await page.locator("#medication-strength-0").fill("500 mg")
     await clickChip(page, /Under 3 months/i)
-    await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
-    await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
-    await clickChip(page, /No side effects/i)
+    await chooseQuickRegimen(page)
+    await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
+    await confirmNoSideEffects(page)
     const unchangedOption = page
-      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-      .getByRole("radio", { name: /No, unchanged/i })
+      .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
+      .getByRole("radio", { name: "Same", exact: true })
     await unchangedOption.click()
     await expect(unchangedOption).toHaveAttribute("aria-checked", "true")
 
@@ -578,17 +616,16 @@ test.describe("Prescription: step validation", () => {
     await clickContinue(page)
     await expect(page.getByText(/Please confirm whether the dose or the way you take this medicine has changed/i).first()).toBeVisible()
 
-    // Re-attesting, then editing the dose text, clears it again.
+    // Switch to the uncommon-directions field, re-attest, then edit it.
+    const doseInput = await useCustomRegimen(page, "1 tablet daily")
     await unchangedOption.click()
-    const doseInput = page.locator("#current-dose")
-    await doseInput.fill("1 tablet daily")
     await expect(unchangedOption).toHaveAttribute("aria-checked", "true")
     await doseInput.fill("2 tablets daily")
     await expect(unchangedOption).toHaveAttribute("aria-checked", "false")
     await expect(page.getByText(/Please confirm whether the dose or the way you take this medicine has changed/i).first()).toBeVisible()
   })
 
-  test("frequency starters do not treat words inside patient-entered dose text as selected", async ({ page }) => {
+  test("quick directions replace custom prose instead of appending duplicate frequency words", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -597,16 +634,13 @@ test.describe("Prescription: step validation", () => {
     await page.locator("#medication-name-0").fill("E2E test medication")
     await clickChip(page, /Under 3 months/i)
 
-    const doseInput = page.locator("#current-dose")
-    await doseInput.fill("In the mornings I take one")
+    const doseInput = await useCustomRegimen(page, "In the mornings I take one")
+    await page.getByRole("button", { name: "Use quick choices" }).click()
+    await expect(doseInput).toBeHidden()
 
-    const morningStarter = page
-      .getByRole("group", { name: "Common dose frequencies" })
-      .getByRole("button", { name: "In the morning", exact: true })
-    await expect(morningStarter).toHaveAttribute("aria-pressed", "false")
-    await morningStarter.click()
-
-    await expect(doseInput).toHaveValue("In the mornings I take one, In the morning")
+    await chooseQuickRegimen(page, { frequency: "Morning" })
+    await expect(page.getByText("1 tablet each morning", { exact: true })).toBeVisible()
+    await expect(page.getByText(/In the mornings I take one, In the morning/i)).toHaveCount(0)
   })
 
   test("patient details validates email format", async ({ page }) => {
@@ -636,7 +670,7 @@ test.describe("Prescription: step validation", () => {
     await expect(page.getByText(/valid email/i)).toBeVisible({ timeout: 5000 })
   })
 
-  test("review step blocks Continue without safety consent", async ({ page }) => {
+  test("review step blocks payment without safety consent", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -648,7 +682,7 @@ test.describe("Prescription: step validation", () => {
 
     await waitForStep(page, /One last check/i)
     const btn = page.getByRole("button", { name: /^Pay \$/ }).last()
-    await expect(btn).toHaveAttribute("aria-disabled", "true")
+    await expectPrimaryActionReady(page, btn, false)
   })
 })
 
@@ -679,7 +713,7 @@ test.describe("Prescription: checkout price verification", () => {
     await expect(page.getByText(/Full refund if the doctor declines/i)).toBeVisible()
   })
 
-  test("checkout button disabled without consent", async ({ page }) => {
+  test("checkout action is blocked without consent", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -689,7 +723,7 @@ test.describe("Prescription: checkout price verification", () => {
     await completeDetailsStep(page)
     await waitForStep(page, /One last check/i)
     const checkoutBtn = page.getByRole("button", { name: /^Pay \$/ }).last()
-    await expect(checkoutBtn).toHaveAttribute("aria-disabled", "true")
+    await expectPrimaryActionReady(page, checkoutBtn, false)
 
     // Toggle consent
     const safetyCheckbox = page.locator("#safety-consent")
@@ -698,7 +732,7 @@ test.describe("Prescription: checkout price verification", () => {
 
     // Button should now be enabled
     await expect(checkoutBtn).toBeEnabled({ timeout: 5000 })
-    await expect(checkoutBtn).toHaveAttribute("aria-disabled", "false")
+    await expectPrimaryActionReady(page, checkoutBtn, true)
   })
 })
 
@@ -763,7 +797,7 @@ test.describe("Prescription: dedicated-service routing", () => {
 
     // Free-text indication must NOT be the mechanism: typing a denial there
     // changes nothing (regression for the negation-bypass class).
-    await page.getByRole("textbox", { name: /What is this medication for/i }).fill("not BPH")
+    await page.getByRole("textbox", { name: /What is it for/i }).fill("not BPH")
     await expect(page.getByRole("button", { name: steerCta })).toHaveCount(0)
   })
 
@@ -786,7 +820,7 @@ test.describe("Prescription: dedicated-service routing", () => {
     await waitForStep(page, /Your medication/i)
 
     await page.locator("#medication-name-0").fill("Atorvastatin")
-    await page.getByRole("textbox", { name: /What is this medication for/i })
+    await page.getByRole("textbox", { name: /What is it for/i })
       .fill("cholesterol, I also have erectile dysfunction")
 
     // The medicine is not a PDE5 inhibitor, so this must never steer or block.

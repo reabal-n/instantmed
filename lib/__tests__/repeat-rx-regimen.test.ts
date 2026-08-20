@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import {
   areRepeatRxMedicationDetailsEqual,
+  composeRepeatRxRegimen,
   hasCompleteRepeatRxRegimen,
-  hasDoseFrequencyStarter,
-  toggleDoseFrequencyStarter,
+  inferRepeatRxDoseUnit,
+  parseRepeatRxRegimenPreset,
 } from "@/lib/request/repeat-rx-regimen"
 
 describe("repeat-Rx regimen editing", () => {
@@ -52,26 +53,43 @@ describe("repeat-Rx regimen editing", () => {
     expect(hasCompleteRepeatRxRegimen("One tablet each morning")).toBe(true)
   })
 
-  it("matches frequency starters only as standalone comma-delimited entries", () => {
-    expect(hasDoseFrequencyStarter("Take one tablet, In the morning", "In the morning")).toBe(true)
-    expect(hasDoseFrequencyStarter("Take one tablet, in THE morning", "In the morning")).toBe(true)
-    expect(hasDoseFrequencyStarter("In the mornings I take one", "In the morning")).toBe(false)
-    expect(hasDoseFrequencyStarter("Once daily with food", "Once daily")).toBe(false)
+  it("composes a complete amount, unit, and frequency without free typing", () => {
+    expect(composeRepeatRxRegimen({
+      amount: "one",
+      unit: "tablet",
+      frequency: "morning",
+    })).toBe("1 tablet each morning")
+    expect(composeRepeatRxRegimen({
+      amount: "two",
+      unit: "puff",
+      frequency: "twice_daily",
+    })).toBe("2 puffs twice daily")
   })
 
-  it("adds a starter without changing patient-entered prose", () => {
-    expect(
-      toggleDoseFrequencyStarter("In the mornings I take one", "In the morning"),
-    ).toBe("In the mornings I take one, In the morning")
+  it("does not manufacture a regimen while a structured answer is incomplete", () => {
+    expect(composeRepeatRxRegimen({ amount: "one", frequency: "once_daily" })).toBe("once daily")
+    expect(composeRepeatRxRegimen({ amount: "two", unit: "capsule" })).toBe("2 capsules")
   })
 
-  it("removes only an exact standalone starter", () => {
-    expect(
-      toggleDoseFrequencyStarter("Take one tablet, Once daily", "Once daily"),
-    ).toBe("Take one tablet")
-    expect(
-      toggleDoseFrequencyStarter("Once daily with food", "Once daily"),
-    ).toBe("Once daily with food, Once daily")
+  it("restores common structured regimens without changing the reported words", () => {
+    expect(parseRepeatRxRegimenPreset("1 tablet daily")).toEqual({
+      amount: "one",
+      unit: "tablet",
+      frequency: "once_daily",
+    })
+    expect(parseRepeatRxRegimenPreset("2 puffs twice daily")).toEqual({
+      amount: "two",
+      unit: "puff",
+      frequency: "twice_daily",
+    })
+    expect(parseRepeatRxRegimenPreset("Take half a tablet every second day")).toBeNull()
+  })
+
+  it("uses the patient-entered medicine form only to preselect its matching unit", () => {
+    expect(inferRepeatRxDoseUnit("tablet")).toBe("tablet")
+    expect(inferRepeatRxDoseUnit("metered dose inhaler")).toBe("puff")
+    expect(inferRepeatRxDoseUnit("cream")).toBe("application")
+    expect(inferRepeatRxDoseUnit("unknown form")).toBeUndefined()
   })
 
   it("distinguishes real medication edits from equivalent stored details", () => {

@@ -64,11 +64,7 @@ const loadingControlLabels: Partial<Record<string, readonly string[]>> = {
   "symptoms-step": ["What symptoms are you having?", "How long have you felt unwell?"],
   "medication-step": [
     "Medication",
-    "Prescription history",
-    "Dose and frequency",
-    "Reason for taking it",
-    "Current regimen",
-    "Side effects",
+    "Repeat details",
   ],
   "ed-goals-step": [
     "How long has this been a concern?",
@@ -111,14 +107,10 @@ const stepLoadingGeometry: Partial<Record<string, StepLoadingGeometry>> = {
     ],
   },
   "medication-step": {
-    minHeightClass: "min-h-[1457px] sm:min-h-[1348px]",
+    minHeightClass: "min-h-[825px] sm:min-h-[755px]",
     cardGeometry: [
-      { columns: 1, heightClass: "h-[212px] sm:h-[181px]", optionCount: 1 },
-      { columns: 2, heightClass: "h-[221px] sm:h-[215px]", optionCount: 4 },
-      { columns: 1, heightClass: "h-[371px] sm:h-[321px]", optionCount: 3 },
-      { columns: 2, heightClass: "h-[166px] sm:h-[146px]", optionCount: 2 },
-      { columns: 2, heightClass: "h-[162px] sm:h-[118px]", optionCount: 2 },
-      { columns: 2, heightClass: "h-[127px]", optionCount: 2 },
+      { columns: 2, heightClass: "h-[146px] sm:h-[126px]", optionCount: 2 },
+      { columns: 3, heightClass: "h-[575px] sm:h-[525px]", optionCount: 6 },
     ],
   },
   "ed-goals-step": {

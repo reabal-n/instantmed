@@ -11,10 +11,10 @@
  * - Keyboard navigation (Enter to continue)
  */
 
-import { ArrowRight, Calendar, CreditCard, Lock, Mail, MapPin, Phone, Sparkles, User, Users } from "lucide-react"
+import { ArrowRight, Sparkles } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-import { IntakeStepIntro } from "@/components/request/shared/intake-step-primitives"
+import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -614,7 +614,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     <div className="space-y-4">
       <IntakeStepIntro
         title="Your details"
-        description={needsPrescriptionDetails ? "Needed for your medical record, eScript, and identity match." : "Needed for your medical record and result delivery."}
+        description={needsPrescriptionDetails ? "For your medical record and eScript." : "For your medical record and result delivery."}
       />
 
       {/* Top-of-step validation summary — gives a visible, screen-reader-announced
@@ -659,13 +659,13 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           </AlertDescription>
         </Alert>
       )}
+      <QuestionCard compact className="space-y-4">
       {/* Name fields */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         <FormField
           label="First name"
           required
           error={touched.firstName ? errors.firstName : undefined}
-          icon={User}
         >
           <Input
             value={firstName}
@@ -676,7 +676,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             enterKeyHint="next"
             aria-invalid={touched.firstName && !!errors.firstName}
             data-error={touched.firstName && errors.firstName ? "true" : undefined}
-            className={cn("h-11", touched.firstName && errors.firstName && "border-destructive")}
+            className={cn("h-12 sm:h-11", touched.firstName && errors.firstName && "border-destructive")}
           />
         </FormField>
         
@@ -694,17 +694,17 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             enterKeyHint="next"
             aria-invalid={touched.lastName && !!errors.lastName}
             data-error={touched.lastName && errors.lastName ? "true" : undefined}
-            className={cn("h-11", touched.lastName && errors.lastName && "border-destructive")}
+            className={cn("h-12 sm:h-11", touched.lastName && errors.lastName && "border-destructive")}
           />
         </FormField>
       </div>
 
+      <div className={cn("grid gap-3", needsPhone && "sm:grid-cols-2")}>
       {/* Email */}
       <FormField
         label="Email"
         required
         error={touched.email ? errors.email : undefined}
-        icon={Mail}
         helpContent={{ title: "Why do we need your email?", content: "We'll send your certificate or prescription here. Your email is kept private." }}
       >
         <Input
@@ -721,7 +721,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           enterKeyHint="next"
           aria-invalid={touched.email && !!errors.email}
           data-error={touched.email && errors.email ? "true" : undefined}
-          className={cn("h-11", touched.email && errors.email && "border-destructive")}
+          className={cn("h-12 sm:h-11", touched.email && errors.email && "border-destructive")}
         />
         {emailSuggestion && !errors.email && (
           <p className="text-xs text-muted-foreground mt-1" aria-live="polite">
@@ -748,12 +748,36 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         )}
       </FormField>
 
+      {/* Phone - required for prescriptions and consults */}
+      {needsPhone && (
+        <FormField
+          label="Mobile phone"
+          required
+          error={touched.phone ? errors.phone : undefined}
+        >
+          <Input
+            type="tel"
+            value={phone}
+            onChange={(e) => setIdentity({ phone: e.target.value })}
+            onBlur={() => handleBlur('phone', phone)}
+            placeholder="0412 345 678"
+            autoComplete="tel"
+            enterKeyHint="next"
+            inputMode="tel"
+            aria-invalid={touched.phone && !!errors.phone}
+            data-error={touched.phone && errors.phone ? "true" : undefined}
+            className={cn("h-12 sm:h-11", touched.phone && errors.phone && "border-destructive")}
+          />
+        </FormField>
+      )}
+      </div>
+
+      <div className={cn("grid gap-3", needsPrescriptionDetails && "grid-cols-2")}>
       {/* Date of birth */}
       <FormField
         label="Date of birth"
         required
         error={touched.dob ? errors.dob : undefined}
-        icon={Calendar}
         helpContent={{ title: "Why do we need your date of birth?", content: "Required for your medical record. Our services are only available to patients aged 18+." }}
       >
         <Input
@@ -761,7 +785,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           enterKeyHint="next"
           aria-invalid={touched.dob && !!errors.dob}
           data-error={touched.dob && errors.dob ? "true" : undefined}
-          className={cn("h-11 tabular-nums", touched.dob && errors.dob && "border-destructive")}
+          className={cn("h-12 tabular-nums sm:h-11", touched.dob && errors.dob && "border-destructive")}
           type="text"
           inputMode="numeric"
           maxLength={10}
@@ -777,7 +801,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         <FormField
           label="Sex"
           required
-          icon={Users}
           id="sex-select-trigger"
           error={touched.sex ? errors.sex : undefined}
           helpContent={{ title: "Why do we ask this?", content: "Required for eScript generation. Select the option that matches your Medicare record." }}
@@ -796,7 +819,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
               id="sex-select-trigger"
               aria-invalid={touched.sex && !sex ? true : undefined}
               data-error={touched.sex && errors.sex ? "true" : undefined}
-              className={cn("h-11", touched.sex && !sex && "border-destructive")}
+              className={cn("h-12 sm:h-11", touched.sex && !sex && "border-destructive")}
             >
               <SelectValue placeholder="Select..." />
             </SelectTrigger>
@@ -809,34 +832,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           </Select>
         </FormField>
       )}
-
-      {/* Phone - required for prescriptions and consults */}
-      {needsPhone && (
-        <FormField
-          label="Mobile phone"
-          required
-          error={touched.phone ? errors.phone : undefined}
-          icon={Phone}
-        >
-          <Input
-            type="tel"
-            value={phone}
-            onChange={(e) => setIdentity({ phone: e.target.value })}
-            onBlur={() => handleBlur('phone', phone)}
-            placeholder="0412 345 678"
-            autoComplete="tel"
-            enterKeyHint="next"
-            inputMode="tel"
-            aria-invalid={touched.phone && !!errors.phone}
-            data-error={touched.phone && errors.phone ? "true" : undefined}
-            className={cn("h-11", touched.phone && errors.phone && "border-destructive")}
-          />
-          <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
-            <span className="inline-block w-1 h-1 rounded-full bg-primary" />
-            Your doctor can contact you here if needed
-          </p>
-        </FormField>
-      )}
+      </div>
 
       {/* Medicare or IHI - required for prescribing pathways */}
       {needsPrescriptionDetails && (
@@ -846,7 +842,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           <div className="space-y-0.5 border-t border-border/50 pt-4">
             <Label className="text-sm font-medium">Prescribing details</Label>
             <p className="text-xs text-muted-foreground">
-              Required for your eScript identity match. Kept private and used only for the prescription record.
+              For your eScript identity match. Kept private.
             </p>
           </div>
           <div
@@ -864,17 +860,17 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                   aria-checked={selected}
                   onClick={() => handleIdentityMethodChange(option.value)}
                   className={cn(
-                    "min-h-14 rounded-xl border px-3 py-2.5 text-left transition-[background-color,border-color,color,box-shadow]",
+                    "min-h-12 rounded-xl border px-3 py-2 text-left transition-[background-color,border-color,color,box-shadow]",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                     selected
-                      ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
+                      ? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/20"
                       : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-primary/5",
                   )}
                 >
                   <span className="block text-sm font-semibold leading-tight">{option.label}</span>
                   <span className={cn(
                     "mt-0.5 block text-[11px] leading-snug",
-                    selected ? "text-primary/80" : "text-muted-foreground",
+                    "text-muted-foreground",
                   )}>
                     {option.description}
                   </span>
@@ -884,11 +880,11 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           </div>
           {identityMethod === "medicare" ? (
             <>
+              <div className="grid grid-cols-[minmax(0,1fr)_4.5rem] items-start gap-2.5">
               <FormField
                 label="Medicare number"
                 required={!ihiReady}
                 error={touched.medicareNumber ? errors.medicareNumber : undefined}
-                icon={CreditCard}
                 helpContent={{ title: "Why do we need this?", content: "Used to issue the prescription under your name and match the eScript record." }}
               >
                 <Input
@@ -928,7 +924,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                   autoComplete="off"
                   aria-invalid={touched.medicareNumber && !!errors.medicareNumber}
                   data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}
-                  className={cn("h-11", touched.medicareNumber && errors.medicareNumber && "border-destructive")}
+                  className={cn("h-12 sm:h-11", touched.medicareNumber && errors.medicareNumber && "border-destructive")}
                 />
                 {medicareNumber.length === 10 && medicareValidation?.valid && !errors.medicareNumber && (
                   <p className="text-xs text-muted-foreground mt-1">
@@ -941,8 +937,8 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                   of nine tap targets for a one-digit fact the patient reads
                   straight off the card. Medicare auto-advances here on its
                   10th digit. */}
-              <div className="space-y-1.5">
-                <Label htmlFor="medicare-irn" className="text-xs">IRN</Label>
+              <div className="space-y-1">
+                <Label htmlFor="medicare-irn" className="text-sm font-medium">IRN</Label>
                 <Input
                   id="medicare-irn"
                   ref={irnInputRef}
@@ -974,24 +970,24 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                   enterKeyHint="next"
                   aria-invalid={touched.medicareIrn && !!errors.medicareIrn}
                   className={cn(
-                    "h-11 w-16 text-center",
+                    "h-12 w-full text-center sm:h-11",
                     touched.medicareIrn && errors.medicareIrn && "border-destructive",
                   )}
                 />
-                <p className="text-xs text-muted-foreground">
-                  The number next to your name on the card.
-                </p>
                 {touched.medicareIrn && errors.medicareIrn && (
                   <p className="text-xs text-destructive">{errors.medicareIrn}</p>
                 )}
               </div>
+              </div>
+              <p className="-mt-1 text-xs text-muted-foreground">
+                IRN is the number next to your name on the card.
+              </p>
             </>
           ) : (
             <FormField
               label="Individual Healthcare Identifier"
               required={!medicareIdentityReady}
               error={touched.ihiNumber ? errors.ihiNumber : undefined}
-              icon={CreditCard}
               hint="Use this if you do not have Medicare"
               helpContent={{ title: "Where do I find my IHI?", content: "You can find your IHI in myGov or through the Healthcare Identifiers Service." }}
             >
@@ -1017,7 +1013,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                 autoComplete="off"
                 aria-invalid={touched.ihiNumber && !!errors.ihiNumber}
                 data-error={touched.ihiNumber && errors.ihiNumber ? "true" : undefined}
-                className={cn("h-11", touched.ihiNumber && errors.ihiNumber && "border-destructive")}
+                className={cn("h-12 sm:h-11", touched.ihiNumber && errors.ihiNumber && "border-destructive")}
               />
               {ihiNumber.length === 16 && ihiValidation?.valid && !errors.ihiNumber && (
                 <p className="text-xs text-muted-foreground mt-1">
@@ -1035,8 +1031,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           label="Address"
           required
           error={touched.addressLine1 ? errors.addressLine1 : undefined}
-          icon={MapPin}
-          hint="Choose a suggested address, or enter it manually."
+          hint="Choose a suggestion to fill the rest automatically."
         >
           <AddressAutocomplete
             value={addressLine1}
@@ -1049,7 +1044,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             }}
             onManualEntry={handleManualAddressEntry}
             placeholder="Start typing your address..."
-            className={cn("h-11", touched.addressLine1 && errors.addressLine1 && "border-destructive")}
+            className={cn("h-12 sm:h-11", touched.addressLine1 && errors.addressLine1 && "border-destructive")}
           />
           {showManualAddressFields && (
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_120px_120px]">
@@ -1180,18 +1175,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           )}
         </div>
       )}
-
-      {/* Data security reassurance */}
-      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-1 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <Lock className="w-3 h-3 text-primary" />
-          AES-256 encrypted
-        </span>
-        <span className="flex items-center gap-1">
-          <CreditCard className="w-3 h-3 text-primary" />
-          Payments by Stripe
-        </span>
-      </div>
+      </QuestionCard>
 
       {/* Continue button - always clickable so validate() fires and surfaces errors */}
       <Button
