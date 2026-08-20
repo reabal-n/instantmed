@@ -22,6 +22,7 @@ describe("buildParchmentPrescriptionContext", () => {
         form: "tablet",
         medicationSearchHint: "Rosuvastatin 10 mg tablet",
         patientReportedDose: "10 mg nightly",
+        patientReportedFrequency: "Night",
         directionsTemplate: "Confirm regimen in Parchment.",
         safetyChecks: [],
         parchmentMode: "open_patient_prescribe",
@@ -35,9 +36,46 @@ describe("buildParchmentPrescriptionContext", () => {
       medicationLabel: "Rosuvastatin 10 mg tablet",
       searchHint: "Rosuvastatin 10 mg tablet",
       patientReportedDose: "10 mg nightly",
+      patientReportedFrequency: "Night",
       regimenSource: "patient_reported",
       directionsTemplate: "Confirm regimen in Parchment.",
       copyText: "Rosuvastatin",
+      requestedNameCopyText: "Rosuvastatin",
+    })
+  })
+
+  it("keeps a patient-entered medicine name copyable without its dose or form", () => {
+    const context = buildParchmentPrescriptionContext({
+      title: "Repeat prescription",
+      patientStory: "",
+      keyFacts: [],
+      safetyItems: [],
+      recommendedPlan: {
+        action: "prescribe",
+        title: "Review",
+        rationale: "",
+        nextSteps: [],
+      },
+      prescriptionIntent: {
+        presetLabel: "Repeat prescription Parchment context",
+        medicationName: "Valaciclovir 500mg Tablets",
+        medicationSearchHint: "Valaciclovir 500mg Tablets",
+        patientReportedDose: "1 tablet twice daily",
+        patientReportedFrequency: "Twice daily",
+        directionsTemplate: "Confirm regimen in Parchment.",
+        safetyChecks: [],
+        parchmentMode: "open_patient_prescribe",
+        clipboardText: "",
+      },
+      draftNote: "",
+    })
+
+    expect(context).toMatchObject({
+      medicationLabel: "Valaciclovir 500mg Tablets",
+      patientReportedDose: "1 tablet twice daily",
+      patientReportedFrequency: "Twice daily",
+      copyText: "",
+      requestedNameCopyText: "Valaciclovir",
     })
   })
 
@@ -85,6 +123,7 @@ describe("buildParchmentPrescriptionContext", () => {
     expect(context).toMatchObject({
       regimenSource: "template",
       patientReportedDose: undefined,
+      patientReportedFrequency: undefined,
       directionsTemplate: "Doctor to select therapy in Parchment.",
     })
   })
@@ -119,5 +158,6 @@ describe("buildParchmentPrescriptionContext", () => {
     })
 
     expect(context?.copyText).toBe("")
+    expect(context?.requestedNameCopyText).toBe("Rosuvastatin")
   })
 })

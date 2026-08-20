@@ -282,8 +282,8 @@ async function verifyCheckoutStep(page: Page) {
  * Complete the medication step for prescriptions.
  *
  * Since #208 the PBS combobox is retired — the medication step is a plain
- * free-text name box (`#medication-name-0`). Strength/form (`#medication-strength-0`
- * / `#medication-form-0`) are optional and reveal once a name is typed.
+ * free-text name box (`#medication-name-0`). Strength is required; optional
+ * form details stay collapsed until requested.
  */
 async function completeMedicationStep(page: Page) {
   await waitForStep(page, /Your medication/i)
@@ -292,18 +292,29 @@ async function completeMedicationStep(page: Page) {
 
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
   await page.locator("#medication-strength-0").fill("500 mg")
-  await page.locator("#medication-form-0").fill("capsule")
 
   // P2.1 merged the old `medication-history` step in here — one screen, one
   // Continue, every field always mounted.
   await clickChip(page, /Under 3 months/i)
-  await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
   await page
-    .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-    .getByRole("radio", { name: /No, unchanged/i })
+    .getByRole("radiogroup", { name: "How much do you take?" })
+    .getByRole("radio", { name: "1", exact: true })
     .click()
-  await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
-  await clickChip(page, /No side effects/i)
+  await page.locator("#current-dose-unit").click()
+  await page.getByRole("option", { name: "Tablet", exact: true }).click()
+  await page
+    .getByRole("radiogroup", { name: "How often do you take it?" })
+    .getByRole("radio", { name: "Once daily", exact: true })
+    .click()
+  await page
+    .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
+    .getByRole("radio", { name: "Same", exact: true })
+    .click()
+  await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
+  await page
+    .getByRole("radiogroup", { name: "Any side effects?" })
+    .getByRole("radio", { name: "No", exact: true })
+    .click()
 
   await clickContinue(page)
   await page.waitForTimeout(500)

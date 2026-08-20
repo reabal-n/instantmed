@@ -12,6 +12,161 @@ interface RepeatRxRegimenSignals {
 export const REPEAT_RX_REGIMEN_REQUIRED_MESSAGE =
   "Enter how much you take and how often (for example, one tablet each morning)"
 
+export const REPEAT_RX_DOSE_AMOUNT_OPTIONS = [
+  { value: "one", label: "1" },
+  { value: "two", label: "2" },
+] as const
+
+export const REPEAT_RX_DOSE_UNIT_OPTIONS = [
+  { value: "tablet", label: "Tablet", plural: "tablets" },
+  { value: "capsule", label: "Capsule", plural: "capsules" },
+  { value: "puff", label: "Puff", plural: "puffs" },
+  { value: "mL", label: "mL", plural: "mL" },
+  { value: "unit", label: "Unit", plural: "units" },
+  { value: "application", label: "Application", plural: "applications" },
+  { value: "patch", label: "Patch", plural: "patches" },
+  { value: "drop", label: "Drop", plural: "drops" },
+  { value: "spray", label: "Spray", plural: "sprays" },
+] as const
+
+export const REPEAT_RX_FREQUENCY_OPTIONS = [
+  { value: "once_daily", label: "Once daily", phrase: "once daily" },
+  { value: "twice_daily", label: "Twice daily", phrase: "twice daily" },
+  { value: "three_times_daily", label: "3 times daily", phrase: "three times daily" },
+  { value: "morning", label: "Morning", phrase: "each morning" },
+  { value: "night", label: "Night", phrase: "at night" },
+  { value: "as_needed", label: "As needed", phrase: "as needed" },
+] as const
+
+export type RepeatRxDoseAmount = (typeof REPEAT_RX_DOSE_AMOUNT_OPTIONS)[number]["value"]
+export type RepeatRxDoseUnit = (typeof REPEAT_RX_DOSE_UNIT_OPTIONS)[number]["value"]
+export type RepeatRxFrequency = (typeof REPEAT_RX_FREQUENCY_OPTIONS)[number]["value"]
+
+export interface RepeatRxRegimenPreset {
+  amount: RepeatRxDoseAmount
+  unit: RepeatRxDoseUnit
+  frequency: RepeatRxFrequency
+}
+
+const UNIT_ALIASES: Record<RepeatRxDoseUnit, RegExp> = {
+  tablet: /^(?:tablet|tablets|tab|tabs)$/i,
+  capsule: /^(?:capsule|capsules|cap|caps)$/i,
+  puff: /^(?:puff|puffs|inhalation|inhalations)$/i,
+  mL: /^(?:ml|millilitre|millilitres|milliliter|milliliters)$/i,
+  unit: /^(?:unit|units|iu)$/i,
+  application: /^(?:application|applications|applicatorful|applicatorfuls)$/i,
+  patch: /^(?:patch|patches)$/i,
+  drop: /^(?:drop|drops)$/i,
+  spray: /^(?:spray|sprays)$/i,
+}
+
+const FREQUENCY_ALIASES: Record<RepeatRxFrequency, RegExp> = {
+  once_daily: /^(?:once daily|daily|once a day)$/i,
+  twice_daily: /^(?:twice daily|twice a day|two times daily)$/i,
+  three_times_daily: /^(?:three times daily|3 times daily|three times a day)$/i,
+  morning: /^(?:each morning|in the morning|morning)$/i,
+  night: /^(?:at night|each night|nightly|bedtime)$/i,
+  as_needed: /^(?:as needed|when needed|if needed|prn)$/i,
+}
+
+function doseUnitDefinition(unit: RepeatRxDoseUnit) {
+  return REPEAT_RX_DOSE_UNIT_OPTIONS.find((option) => option.value === unit)
+}
+
+function frequencyDefinition(frequency: RepeatRxFrequency) {
+  return REPEAT_RX_FREQUENCY_OPTIONS.find((option) => option.value === frequency)
+}
+
+export function composeRepeatRxRegimen({
+  amount,
+  unit,
+  frequency,
+}: Partial<RepeatRxRegimenPreset>): string {
+  const unitDefinition = unit ? doseUnitDefinition(unit) : undefined
+  const selectedFrequency = frequency
+    ? frequencyDefinition(frequency)
+    : undefined
+  const quantity = amount === "one" ? "1" : amount === "two" ? "2" : ""
+  const dose = quantity && unitDefinition
+    ? `${quantity} ${amount === "one" ? unitDefinition.value : unitDefinition.plural}`
+    : ""
+
+  return [dose, selectedFrequency?.phrase].filter(Boolean).join(" ")
+}
+
+export function parseRepeatRxRegimenPreset(
+  value: string | null | undefined,
+): RepeatRxRegimenPreset | null {
+  const normalized = typeof value === "string"
+    ? value.normalize("NFKC").trim().replace(/\s+/g, " ")
+    : ""
+  const match = /^(1|one|2|two)\s+([^\s]+)\s+(.+)$/i.exec(normalized)
+  if (!match) return null
+
+  const amount: RepeatRxDoseAmount = /^(?:1|one)$/i.test(match[1]) ? "one" : "two"
+  const unit = (Object.entries(UNIT_ALIASES) as [RepeatRxDoseUnit, RegExp][])
+    .find(([, pattern]) => pattern.test(match[2]))?.[0]
+  const frequency = (Object.entries(FREQUENCY_ALIASES) as [RepeatRxFrequency, RegExp][])
+    .find(([, pattern]) => pattern.test(match[3]))?.[0]
+
+  return unit && frequency ? { amount, unit, frequency } : null
+}
+
+/**
+ * Return only a patient-reported frequency that maps to one of the choices in
+ * the repeat-prescription intake. This is intentionally narrower than the
+ * regimen validator: uncommon free-text directions remain visible to the
+ * doctor, but are not normalised into a clipboard value that could change the
+ * patient's meaning.
+ */
+export function extractRepeatRxFrequency(
+  value: string | null | undefined,
+): string | null {
+  const normalized = typeof value === "string"
+    ? value.normalize("NFKC").trim().replace(/\s+/g, " ")
+    : ""
+  if (!normalized) return null
+
+  const preset = parseRepeatRxRegimenPreset(normalized)
+  if (preset) return frequencyDefinition(preset.frequency)?.label ?? null
+
+  const frequency = (
+    /\b(?:three|3)\s+times?\s+(?:(?:a|per|each)\s+)?(?:day|daily)\b/i.test(normalized)
+      ? "three_times_daily"
+      : /\b(?:twice|two\s+times?)\s+(?:(?:a|per|each)\s+)?(?:day|daily)\b/i.test(normalized)
+        ? "twice_daily"
+        : /\bonce\s+(?:(?:a|per|each)\s+)?(?:day|daily)\b/i.test(normalized)
+          || /\bdaily\b/i.test(normalized)
+          ? "once_daily"
+          : /\b(?:each|every|in\s+the)\s+morning\b|\bmorning\b/i.test(normalized)
+            ? "morning"
+            : /\b(?:at|each|every)\s+night\b|\b(?:nightly|bedtime)\b/i.test(normalized)
+              ? "night"
+              : /\b(?:as|when|if)\s+(?:needed|required)\b|\bprn\b/i.test(normalized)
+                ? "as_needed"
+                : null
+  ) satisfies RepeatRxFrequency | null
+
+  return frequency ? frequencyDefinition(frequency)?.label ?? null : null
+}
+
+export function inferRepeatRxDoseUnit(
+  medicationForm: string | null | undefined,
+): RepeatRxDoseUnit | undefined {
+  const normalized = medicationForm?.trim().toLowerCase()
+  if (!normalized) return undefined
+  if (/tab(?:let)?s?/.test(normalized)) return "tablet"
+  if (/cap(?:sule)?s?/.test(normalized)) return "capsule"
+  if (/inhaler|puff|inhalation/.test(normalized)) return "puff"
+  if (/liquid|solution|syrup|suspension|\bml\b/.test(normalized)) return "mL"
+  if (/cream|ointment|gel|lotion|foam/.test(normalized)) return "application"
+  if (/patch/.test(normalized)) return "patch"
+  if (/drop/.test(normalized)) return "drop"
+  if (/spray/.test(normalized)) return "spray"
+  if (/inject|insulin|\bunit/.test(normalized)) return "unit"
+  return undefined
+}
+
 const QUANTITY_TOKEN = String.raw`(?:\d+(?:\.\d+)?|\d+\s*\/\s*\d+|one|two|three|four|five|six|seven|eight|nine|ten|half(?:\s+(?:a|of\s+a))?|quarter(?:\s+(?:a|of\s+a))?)`
 const DOSE_UNIT_TOKEN = String.raw`(?:mg|mcg|micrograms?|µg|μg|g|grams?|ml|millilit(?:re|er)s?|units?|iu|tablets?|tabs?|pills?|capsules?|caps?|puffs?|pumps?|inhalations?|actuations?|sprays?|drops?|patch(?:es)?|sachets?|packets?|vials?|ampoules?|ampules?|nebules?|lozenges?|applications?|applicatorfuls?|suppositor(?:y|ies)|pessar(?:y|ies)|injections?|teaspoons?|tablespoons?)`
 
@@ -75,37 +230,6 @@ export function hasCompleteRepeatRxRegimen(
 ): boolean {
   const { hasAmount, hasFrequency } = getRepeatRxRegimenSignals(value)
   return hasAmount && hasFrequency
-}
-
-function doseSegments(value: string): string[] {
-  return value
-    .split(",")
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-}
-
-export function hasDoseFrequencyStarter(value: string, starter: string): boolean {
-  const normalizedStarter = starter.trim().toLowerCase()
-  if (!normalizedStarter) return false
-
-  return doseSegments(value).some(
-    (segment) => segment.toLowerCase() === normalizedStarter,
-  )
-}
-
-export function toggleDoseFrequencyStarter(value: string, starter: string): string {
-  const normalizedStarter = starter.trim()
-  if (!normalizedStarter) return value
-
-  if (!hasDoseFrequencyStarter(value, normalizedStarter)) {
-    return value.trim()
-      ? `${value.trim()}, ${normalizedStarter}`
-      : normalizedStarter
-  }
-
-  return doseSegments(value)
-    .filter((segment) => segment.toLowerCase() !== normalizedStarter.toLowerCase())
-    .join(", ")
 }
 
 export function areRepeatRxMedicationDetailsEqual(

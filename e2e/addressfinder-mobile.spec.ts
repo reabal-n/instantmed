@@ -42,15 +42,28 @@ async function completeToDetails(page: import("@playwright/test").Page) {
   // P2.1 put the prescription-history questions on this same screen.
   await page.locator("#medication-name-0").fill("Atorvastatin")
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+  await page.locator("#medication-strength-0").fill("20 mg")
 
   await page.getByRole("radio", { name: /Under 3 months/i }).click()
-  await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
   await page
-    .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-    .getByRole("radio", { name: /No, unchanged/i })
+    .getByRole("radiogroup", { name: "How much do you take?" })
+    .getByRole("radio", { name: "1", exact: true })
     .click()
-  await page.getByPlaceholder(/e\.g\., asthma/i).fill("high cholesterol")
-  await page.getByRole("radio", { name: /No side effects/i }).click()
+  await page.locator("#current-dose-unit").click()
+  await page.getByRole("option", { name: "Tablet", exact: true }).click()
+  await page
+    .getByRole("radiogroup", { name: "How often do you take it?" })
+    .getByRole("radio", { name: "Once daily", exact: true })
+    .click()
+  await page
+    .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
+    .getByRole("radio", { name: "Same", exact: true })
+    .click()
+  await page.getByPlaceholder(/e\.g\. asthma/i).fill("high cholesterol")
+  await page
+    .getByRole("radiogroup", { name: "Any side effects?" })
+    .getByRole("radio", { name: "No", exact: true })
+    .click()
   await clickPrimary()
 
   await expect(

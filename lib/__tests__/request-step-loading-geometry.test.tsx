@@ -5,7 +5,7 @@ import { StepLoading } from "@/components/request/step-components"
 
 const FIRST_STEP_CARD_COUNTS = {
   "certificate-step": 3,
-  "medication-step": 6,
+  "medication-step": 2,
   "ed-goals-step": 2,
   "hair-loss-goals-step": 2,
   "womens-health-type-step": 1,

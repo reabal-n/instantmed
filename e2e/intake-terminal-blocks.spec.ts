@@ -413,8 +413,8 @@ test.describe("persisted intake terminal blocks", () => {
     // step is not ready until the patient answers it again for the new one.
     await expect(page.locator('button[data-intake-primary-action="true"]')).toHaveAttribute("data-intake-primary-ready", "false")
     await page
-      .getByRole("radiogroup", { name: /dose or the way you take this medicine changed/i })
-      .getByRole("radio", { name: /No, unchanged/i })
+      .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
+      .getByRole("radio", { name: "Same", exact: true })
       .click()
 
     await expect(page.locator('button[data-intake-primary-action="true"]')).toHaveAttribute("data-intake-primary-ready", "true")

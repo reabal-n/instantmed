@@ -44,18 +44,19 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import {
-  ChipToggleGroup,
+  BinaryChoice,
+  CompactChoiceRow,
   IntakeStepIntro,
   QuestionCard,
   QuestionPrompt,
   SegmentedChoiceGroup,
-  YesNoDetailQuestion,
 } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
   buildIntakeValidationBlockedProperties,
@@ -78,10 +79,17 @@ import {
 import { addRecentMedication, getSmartDefaults } from "@/lib/request/preferences"
 import {
   areRepeatRxMedicationDetailsEqual,
+  composeRepeatRxRegimen,
   hasCompleteRepeatRxRegimen,
-  hasDoseFrequencyStarter,
+  inferRepeatRxDoseUnit,
+  parseRepeatRxRegimenPreset,
+  REPEAT_RX_DOSE_AMOUNT_OPTIONS,
+  REPEAT_RX_DOSE_UNIT_OPTIONS,
+  REPEAT_RX_FREQUENCY_OPTIONS,
   REPEAT_RX_REGIMEN_REQUIRED_MESSAGE,
-  toggleDoseFrequencyStarter,
+  type RepeatRxDoseAmount,
+  type RepeatRxDoseUnit,
+  type RepeatRxFrequency,
 } from "@/lib/request/repeat-rx-regimen"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { deriveRepeatMedicationTerminalBlock } from "@/lib/request/terminal-safety-blocks"
@@ -128,17 +136,12 @@ const PRESCRIPTION_HISTORY_OPTIONS = [
   { value: "over_12_months", label: "Over 12 months" },
 ] as const
 
-// Tap-to-add frequency starters. The textarea stays the source of truth — a
-// chip only seeds the words most patients would otherwise have to type on a
-// phone keyboard, and they still add the amount ("2 puffs", "1 tablet").
-const COMMON_FREQUENCY_STARTERS = [
-  { key: "once_daily", label: "Once daily" },
-  { key: "twice_daily", label: "Twice daily" },
-  { key: "three_times_daily", label: "Three times daily" },
-  { key: "morning", label: "In the morning" },
-  { key: "night", label: "At night" },
-  { key: "as_needed", label: "As needed" },
+const DOSE_AMOUNT_CHOICES = [
+  ...REPEAT_RX_DOSE_AMOUNT_OPTIONS,
+  { value: "other", label: "Other" },
 ] as const
+
+const FREQUENCY_CHOICES = REPEAT_RX_FREQUENCY_OPTIONS.map(({ value, label }) => ({ value, label }))
 
 const DOSE_CONFIRMATION_REQUIRED = "Please confirm whether the dose or the way you take this medicine has changed"
 const DOSE_CHANGE_REQUIRES_REVIEW = "A dose or directions change needs review by your regular GP or specialist"
@@ -197,6 +200,23 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     return [{ name: "" }]
   })
 
+  const restoredRegimenPreset = parseRepeatRxRegimenPreset(currentDose)
+  const [doseAmount, setDoseAmount] = useState<RepeatRxDoseAmount | undefined>(
+    restoredRegimenPreset?.amount,
+  )
+  const [doseUnit, setDoseUnit] = useState<RepeatRxDoseUnit | undefined>(
+    restoredRegimenPreset?.unit,
+  )
+  const [doseFrequency, setDoseFrequency] = useState<RepeatRxFrequency | undefined>(
+    restoredRegimenPreset?.frequency,
+  )
+  const [customDirectionsMode, setCustomDirectionsMode] = useState(
+    Boolean(currentDose && !restoredRegimenPreset),
+  )
+  const [showMedicationForm, setShowMedicationForm] = useState(
+    Boolean(medications[0]?.form?.trim()),
+  )
+
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   // Subtype the patient explicitly chose to keep as a repeat (clears the steer).
@@ -205,6 +225,8 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const [recentMeds, setRecentMeds] = useState<RecentMedication[]>([])
   const controlledBlock = deriveRepeatMedicationTerminalBlock(answers)
   const controlledBlockKind = controlledBlock?.kind
+  const suggestedDoseUnit = inferRepeatRxDoseUnit(medications[0]?.form)
+  const effectiveDoseUnit = doseUnit || suggestedDoseUnit
 
   const captureMedicationBlock = useCallback(({
     blockType,
@@ -318,6 +340,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       pbsCode: resolveRepeatMedicationCode(med.name, med.pbsCode),
     }
     syncToStore(updated)
+    if (med.form) setShowMedicationForm(true)
   }
 
   // Steer medicines that have a dedicated service out of the generic
@@ -494,12 +517,36 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     }
   }, [currentDose, doseChanged, setAnswer])
 
-  // Tap a starter to seed/clear the frequency wording. The textarea remains the
-  // source of truth, so checkout validation and the doctor's view are unchanged.
-  const toggleFrequencyStarter = useCallback((phrase: string) => {
-    updateCurrentDose(toggleDoseFrequencyStarter(currentDose, phrase))
+  const updateStructuredRegimen = useCallback(({
+    amount = doseAmount,
+    unit = effectiveDoseUnit,
+    frequency = doseFrequency,
+  }: {
+    amount?: RepeatRxDoseAmount
+    unit?: RepeatRxDoseUnit
+    frequency?: RepeatRxFrequency
+  }) => {
+    setDoseAmount(amount)
+    setDoseUnit(unit)
+    setDoseFrequency(frequency)
+    setCustomDirectionsMode(false)
+    updateCurrentDose(composeRepeatRxRegimen({ amount, unit, frequency }))
     setTouched((prev) => ({ ...prev, currentDose: true }))
-  }, [currentDose, updateCurrentDose])
+  }, [doseAmount, doseFrequency, effectiveDoseUnit, updateCurrentDose])
+
+  const switchToCustomDirections = useCallback(() => {
+    setCustomDirectionsMode(true)
+    setTouched((prev) => ({ ...prev, currentDose: true }))
+  }, [])
+
+  const switchToQuickDirections = useCallback(() => {
+    const parsed = parseRepeatRxRegimenPreset(currentDose)
+    setDoseAmount(parsed?.amount)
+    setDoseUnit(parsed?.unit || suggestedDoseUnit)
+    setDoseFrequency(parsed?.frequency)
+    setCustomDirectionsMode(false)
+    if (!parsed) updateCurrentDose("")
+  }, [currentDose, suggestedDoseUnit, updateCurrentDose])
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
@@ -640,13 +687,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     if (canContinue && blockedReasons.length > 0) setBlockedReasons([])
   }, [canContinue, blockedReasons.length])
 
-  const frequencyValues = Object.fromEntries(
-    COMMON_FREQUENCY_STARTERS.map((starter) => [
-      starter.key,
-      hasDoseFrequencyStarter(currentDose, starter.label),
-    ]),
-  )
-
   // Keyboard navigation
   useKeyboardNavigation({
     onNext: canContinue ? handleNext : undefined,
@@ -657,7 +697,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     <div className="space-y-4">
       <IntakeStepIntro
         title="Your medication"
-        description="Request one regular medicine at a time. Enter the name and the strength shown on the label — the doctor confirms the medicine before prescribing."
+        description="One medicine per request. Use the name and strength on the label."
       />
 
       <StepBlockedSummary reasons={blockedReasons} />
@@ -802,7 +842,8 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         </div>
       )}
 
-      {/* Medication entry */}
+      {/* Medication entry — one compact surface. Form is optional and only
+          appears when the patient asks for it or a restored medicine has one. */}
       {medications.map((med, index) => {
         const inferredStrength = !med.strength?.trim()
           ? getRepeatScriptMedicationConcreteStrength(med)
@@ -812,101 +853,326 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
 
         return (
           <QuestionCard key={index} compact>
-          <FormField
-            label="Medication name"
-            required
-            error={errors.medication}
-            helpContent={{
-              title: "Why do we ask this?",
-              content: "So the doctor knows what you're requesting. This is for reference — the doctor reviews and confirms the correct medication before prescribing."
-            }}
-          >
-            <Input
-              id={`medication-name-${index}`}
-              ref={index === 0 ? medicationNameRef : undefined}
-              value={med.name}
-              onChange={(event) => handleMedicationNameChange(index, event.target.value)}
-              placeholder="e.g. Sertraline"
-              autoComplete="off"
-              className="mt-2 h-11"
-              aria-invalid={Boolean(errors.medication)}
-            />
-          </FormField>
+            <div className="grid grid-cols-[minmax(0,1fr)_8.5rem] gap-2">
+              <FormField
+                label="Medication name"
+                required
+                error={errors.medication}
+                helpContent={{
+                  title: "Why do we ask this?",
+                  content: "The doctor reviews and confirms the exact medicine before prescribing."
+                }}
+              >
+                <Input
+                  id={`medication-name-${index}`}
+                  ref={index === 0 ? medicationNameRef : undefined}
+                  value={med.name}
+                  onChange={(event) => handleMedicationNameChange(index, event.target.value)}
+                  placeholder="e.g. Sertraline"
+                  autoComplete="off"
+                  className="h-12 sm:h-11"
+                  aria-invalid={Boolean(errors.medication)}
+                />
+              </FormField>
 
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground" htmlFor={`medication-strength-${index}`}>
-                Strength {separateStrengthRequired ? (
-                  <span className="text-destructive" aria-hidden="true">*</span>
-                ) : (
-                  <span className="text-muted-foreground/70">(captured above)</span>
-                )}
-              </label>
-              <Input
-                id={`medication-strength-${index}`}
-                value={med.strength || ""}
-                onChange={(event) => handleMedicationFieldChange(index, "strength", event.target.value)}
-                placeholder="e.g. 10 mg"
-                className="h-10"
-                aria-required={separateStrengthRequired}
-                aria-invalid={Boolean(strengthError)}
-                aria-describedby={strengthError || inferredStrength
-                  ? `medication-strength-help-${index}`
-                  : undefined}
-              />
-              {(strengthError || inferredStrength) && (
-                <p
-                  id={`medication-strength-help-${index}`}
-                  className={strengthError ? "text-xs text-destructive" : "text-xs text-muted-foreground"}
-                  role={strengthError ? "alert" : undefined}
-                >
-                  {strengthError || `Using ${inferredStrength} from the medication name.`}
-                </p>
-              )}
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground" htmlFor={`medication-strength-${index}`}>
+                  Strength {separateStrengthRequired ? (
+                    <span className="text-destructive" aria-hidden="true">*</span>
+                  ) : (
+                    <span className="sr-only">captured in name</span>
+                  )}
+                </label>
+                <Input
+                  id={`medication-strength-${index}`}
+                  value={med.strength || ""}
+                  onChange={(event) => handleMedicationFieldChange(index, "strength", event.target.value)}
+                  placeholder="10 mg"
+                  className="h-12 sm:h-11"
+                  aria-required={separateStrengthRequired}
+                  aria-invalid={Boolean(strengthError)}
+                  aria-describedby={strengthError || inferredStrength
+                    ? `medication-strength-help-${index}`
+                    : undefined}
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground" htmlFor={`medication-form-${index}`}>
-                Form <span className="text-muted-foreground/70">(optional)</span>
-              </label>
-              <Input
-                id={`medication-form-${index}`}
-                value={med.form || ""}
-                onChange={(event) => handleMedicationFieldChange(index, "form", event.target.value)}
-                placeholder="e.g. tablet"
-                className="h-10"
-              />
-            </div>
-          </div>
+
+            {(strengthError || inferredStrength) && (
+              <p
+                id={`medication-strength-help-${index}`}
+                className={strengthError ? "text-xs text-destructive" : "text-xs text-muted-foreground"}
+                role={strengthError ? "alert" : undefined}
+              >
+                {strengthError || `Using ${inferredStrength} from the medication name.`}
+              </p>
+            )}
+
+            {showMedicationForm ? (
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground" htmlFor={`medication-form-${index}`}>
+                  Form <span className="text-muted-foreground/70">(optional)</span>
+                </label>
+                <Input
+                  id={`medication-form-${index}`}
+                  value={med.form || ""}
+                  onChange={(event) => handleMedicationFieldChange(index, "form", event.target.value)}
+                  placeholder="e.g. tablet, inhaler, cream"
+                  className="h-12 sm:h-10"
+                />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowMedicationForm(true)}
+                className="text-xs font-medium text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                Add form (optional)
+              </button>
+            )}
           </QuestionCard>
         )
       })}
 
-      {/* Prescription history — always visible so answering never swaps the
-          screen out (the old progressive reveal hid this card after a pick). */}
-      <QuestionCard compact className="space-y-3">
-        <QuestionPrompt
-          label="When were you last prescribed this medication?"
-          required
-        />
-        <SegmentedChoiceGroup
-          options={PRESCRIPTION_HISTORY_OPTIONS}
-          value={prescriptionHistory}
-          onChange={(value) => setAnswer("prescriptionHistory", value)}
-          ariaLabel="When were you last prescribed this medication?"
-          columns="two"
-        />
-        {touched.prescriptionHistory && errors.prescriptionHistory && (
-          <p className="text-xs text-destructive" role="alert" aria-live="polite">
-            {errors.prescriptionHistory}
-          </p>
-        )}
-        <button
-          type="button"
-          onClick={() => setAnswer("prescriptionHistory", "never")}
-          className="w-full rounded-xl border border-border/60 bg-muted/25 px-3 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          I have not been prescribed this before
-        </button>
+      {/* The repeat questions share one surface. Related answers stay together,
+          while free typing is progressively disclosed only for uncommon dosing
+          directions or a reported side effect. */}
+      <QuestionCard compact>
+        <div className="divide-y divide-border/40">
+          <div className="space-y-2.5 pb-3">
+            <QuestionPrompt label="Last prescribed" required />
+            <SegmentedChoiceGroup
+              options={PRESCRIPTION_HISTORY_OPTIONS}
+              value={prescriptionHistory}
+              onChange={(value) => {
+                setAnswer("prescriptionHistory", value)
+                setErrors((prev) => {
+                  const next = { ...prev }
+                  delete next.prescriptionHistory
+                  return next
+                })
+              }}
+              ariaLabel="When were you last prescribed this medication?"
+              columns="auto"
+            />
+            {touched.prescriptionHistory && errors.prescriptionHistory && (
+              <p className="text-xs text-destructive" role="alert" aria-live="polite">
+                {errors.prescriptionHistory}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => setAnswer("prescriptionHistory", "never")}
+              className="text-xs font-medium text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              I have not been prescribed this before
+            </button>
+          </div>
+
+          {showRepeatDetails && (
+            <>
+              <div className="space-y-3 py-3">
+                <QuestionPrompt
+                  label="Current directions"
+                  hint="Choose the amount and timing from your label."
+                  required
+                />
+                {customDirectionsMode ? (
+                  <div className="space-y-2">
+                    <Textarea
+                      id="current-dose"
+                      value={currentDose}
+                      onChange={(event) => updateCurrentDose(event.target.value)}
+                      onBlur={() => setTouched((prev) => ({ ...prev, currentDose: true }))}
+                      placeholder="e.g. half a tablet every second day"
+                      className="min-h-[64px]"
+                    />
+                    <button
+                      type="button"
+                      onClick={switchToQuickDirections}
+                      className="text-xs font-medium text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    >
+                      Use quick choices
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-[minmax(0,1fr)_8.5rem] items-end gap-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">Amount</Label>
+                        <SegmentedChoiceGroup
+                          options={DOSE_AMOUNT_CHOICES}
+                          value={doseAmount}
+                          onChange={(value) => {
+                            if (value === "other") switchToCustomDirections()
+                            else updateStructuredRegimen({ amount: value as RepeatRxDoseAmount })
+                          }}
+                          ariaLabel="How much do you take?"
+                          columns="three"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="current-dose-unit" className="text-xs text-muted-foreground">Unit</Label>
+                        <Select
+                          value={effectiveDoseUnit ?? ""}
+                          onValueChange={(value) => updateStructuredRegimen({ unit: value as RepeatRxDoseUnit })}
+                        >
+                          <SelectTrigger id="current-dose-unit" className="h-12">
+                            <SelectValue placeholder="Choose" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {REPEAT_RX_DOSE_UNIT_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">How often</Label>
+                      <SegmentedChoiceGroup
+                        options={FREQUENCY_CHOICES}
+                        value={doseFrequency}
+                        onChange={(value) => updateStructuredRegimen({ frequency: value as RepeatRxFrequency })}
+                        ariaLabel="How often do you take it?"
+                        columns="three"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/45 px-3 py-2 text-sm">
+                      <span className="text-muted-foreground">Directions</span>
+                      <span className="min-w-0 text-right font-medium text-foreground">
+                        {currentDose || "Choose amount, unit and timing"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={switchToCustomDirections}
+                      className="text-xs font-medium text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    >
+                      Type different directions
+                    </button>
+                  </div>
+                )}
+                {touched.currentDose && errors.currentDose && (
+                  <p className="text-xs text-destructive" role="alert" aria-live="polite">
+                    {errors.currentDose}
+                  </p>
+                )}
+              </div>
+
+              <CompactChoiceRow
+                label="Same dose and directions as last time?"
+                required
+                detail={touched.doseChanged && errors.doseChanged ? (
+                  <p className="text-xs text-destructive" role="alert" aria-live="polite">
+                    {errors.doseChanged}
+                  </p>
+                ) : undefined}
+              >
+                <BinaryChoice
+                  value={doseChanged}
+                  onChange={(value) => {
+                    setAnswer("doseChanged", value)
+                    setTouched((prev) => ({ ...prev, doseChanged: true }))
+                    setErrors((prev) => {
+                      const next = { ...prev }
+                      if (value) next.doseChanged = DOSE_CHANGE_REQUIRES_REVIEW
+                      else delete next.doseChanged
+                      return next
+                    })
+                    setBlockedReasons((prev) => {
+                      const remaining = prev.filter((reason) =>
+                        reason !== DOSE_CONFIRMATION_REQUIRED && reason !== DOSE_CHANGE_REQUIRES_REVIEW
+                      )
+                      return value ? [...remaining, DOSE_CHANGE_REQUIRES_REVIEW] : remaining
+                    })
+                  }}
+                  ariaLabel="Same dose and directions as last time?"
+                  ariaInvalid={Boolean(touched.doseChanged && errors.doseChanged)}
+                  ariaRequired
+                  noLabel="Same"
+                  yesLabel="Changed"
+                />
+              </CompactChoiceRow>
+
+              <div className="py-3">
+                <FormField
+                  label="What is it for?"
+                  required
+                  error={touched.indication ? errors.indication : undefined}
+                >
+                  <Input
+                    id="medication-indication"
+                    value={indication}
+                    onChange={(event) => {
+                      const value = event.target.value
+                      setAnswer("indication", value)
+                      if (value.trim()) {
+                        setErrors((prev) => {
+                          const next = { ...prev }
+                          delete next.indication
+                          return next
+                        })
+                      }
+                    }}
+                    onBlur={() => setTouched((prev) => ({ ...prev, indication: true }))}
+                    placeholder="e.g. asthma"
+                    className="mt-1.5 h-12 sm:h-11"
+                  />
+                </FormField>
+              </div>
+
+              <CompactChoiceRow
+                label="Any side effects?"
+                required
+                detail={hasSideEffects === true || errors.sideEffects ? (
+                  <div className="space-y-1.5">
+                    {hasSideEffects === true && (
+                      <Textarea
+                        value={sideEffects}
+                        onValueChange={(value) => {
+                          setAnswer("sideEffects", value)
+                          if (value.trim()) {
+                            setErrors((prev) => {
+                              const next = { ...prev }
+                              delete next.sideEffects
+                              return next
+                            })
+                          }
+                        }}
+                        placeholder="Briefly describe what happened"
+                        className="min-h-[60px]"
+                      />
+                    )}
+                    {errors.sideEffects && (
+                      <p className="text-xs text-destructive" role="alert" aria-live="polite">
+                        {errors.sideEffects}
+                      </p>
+                    )}
+                  </div>
+                ) : undefined}
+              >
+                <BinaryChoice
+                  value={hasSideEffects}
+                  onChange={(value) => {
+                    setAnswer("hasSideEffects", value)
+                    if (!value) setAnswer("sideEffects", "")
+                    setErrors((prev) => {
+                      const next = { ...prev }
+                      delete next.sideEffects
+                      return next
+                    })
+                  }}
+                  ariaLabel="Any side effects?"
+                  ariaInvalid={Boolean(errors.sideEffects)}
+                  ariaRequired
+                  noLabel="No"
+                  yesLabel="Yes"
+                />
+              </CompactChoiceRow>
+            </>
+          )}
+        </div>
       </QuestionCard>
 
       {/* New medication detected - repeat-script boundary */}
@@ -937,125 +1203,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
             >
               Change medication
             </Button>
-            <Button
-              variant="ghost"
-              asChild
-              className="flex-1 gap-2"
-            >
-              <a href="/request">
-                Browse other services
-              </a>
+            <Button variant="ghost" asChild className="flex-1 gap-2">
+              <a href="/request">Browse other services</a>
             </Button>
           </div>
         </div>
-      )}
-
-      {/* Current dose */}
-      {showRepeatDetails && (
-        <QuestionCard compact>
-          <FormField
-            label="How much do you take, and how often?"
-            required
-            error={touched.currentDose ? errors.currentDose : undefined}
-            hint="Copy the directions from your label if you can."
-          >
-            <ChipToggleGroup
-              options={COMMON_FREQUENCY_STARTERS}
-              values={frequencyValues}
-              onChange={(key) => {
-                const starter = COMMON_FREQUENCY_STARTERS.find((option) => option.key === key)
-                if (starter) toggleFrequencyStarter(starter.label)
-              }}
-              ariaLabel="Common dose frequencies"
-              className="mt-2"
-            />
-            <Label
-              htmlFor="current-dose"
-              className="mt-3 block text-xs font-normal text-muted-foreground"
-            >
-              Add the amount or directions
-            </Label>
-            <Textarea
-              id="current-dose"
-              value={currentDose}
-              onChange={(e) => updateCurrentDose(e.target.value)}
-              onBlur={() => setTouched((prev) => ({ ...prev, currentDose: true }))}
-              placeholder="e.g., 2 puffs twice daily"
-              className="min-h-[72px] mt-1.5"
-            />
-          </FormField>
-        </QuestionCard>
-      )}
-
-      {/* Repeat eligibility requires the patient's explicit confirmation. */}
-      {showRepeatDetails && (
-        <QuestionCard compact>
-          <YesNoDetailQuestion
-            label="Has the dose or the way you take this medicine changed since it was last prescribed?"
-            helpText="This includes how much you take, how often you take it, and the directions on the label."
-            noLabel="No, unchanged"
-            yesLabel="Yes, changed"
-            value={doseChanged}
-            onSelect={(value) => {
-              setAnswer("doseChanged", value)
-              setTouched((prev) => ({ ...prev, doseChanged: true }))
-              setErrors((prev) => {
-                const next = { ...prev }
-                if (value) next.doseChanged = DOSE_CHANGE_REQUIRES_REVIEW
-                else delete next.doseChanged
-                return next
-              })
-              setBlockedReasons((prev) => {
-                const remaining = prev.filter((reason) =>
-                  reason !== DOSE_CONFIRMATION_REQUIRED && reason !== DOSE_CHANGE_REQUIRES_REVIEW
-                )
-                return value ? [...remaining, DOSE_CHANGE_REQUIRES_REVIEW] : remaining
-              })
-            }}
-            error={touched.doseChanged ? errors.doseChanged : undefined}
-          />
-        </QuestionCard>
-      )}
-
-      {/* Indication — what the medication is for */}
-      {showRepeatDetails && (
-        <QuestionCard compact>
-          <FormField
-            label="What is this medication for?"
-            required
-            error={touched.indication ? errors.indication : undefined}
-            hint="The condition or reason you take it — e.g., asthma, blood pressure, acne."
-          >
-            <Input
-              value={indication}
-              onChange={(e) => setAnswer("indication", e.target.value)}
-              onBlur={() => setTouched((prev) => ({ ...prev, indication: true }))}
-              placeholder="e.g., asthma"
-              className="h-11 mt-2"
-            />
-          </FormField>
-        </QuestionCard>
-      )}
-
-      {/* Side effects */}
-      {showRepeatDetails && (
-        <QuestionCard compact>
-          <YesNoDetailQuestion
-            label="Any side effects with this medication?"
-            helpText="This helps the doctor decide whether a repeat is safe."
-            noLabel="No side effects"
-            yesLabel="Yes"
-            value={hasSideEffects}
-            onSelect={(value) => {
-              setAnswer("hasSideEffects", value)
-              if (!value) setAnswer("sideEffects", "")
-            }}
-            detail={sideEffects}
-            onDetailChange={(value) => setAnswer("sideEffects", value)}
-            detailPlaceholder="Briefly describe what happened"
-            error={errors.sideEffects}
-          />
-        </QuestionCard>
       )}
 
       {/* Always clickable so a tap surfaces the blocking reason instead of a

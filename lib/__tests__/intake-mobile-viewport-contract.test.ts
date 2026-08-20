@@ -1,4 +1,4 @@
-import { existsSync,readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -161,7 +161,8 @@ describe("intake mobile viewport contract", () => {
     expect(source).toContain('{ value: "less_than_3_months", label: "Under 3 months" }')
     expect(source).not.toContain('{ value: "never", label: "Never" }')
     expect(source).toContain("I have not been prescribed this before")
-    expect(source).toContain('columns="two"')
+    expect(source).toContain('label="Last prescribed"')
+    expect(source).toContain('columns="auto"')
     expect(source).not.toContain("Less than 3 months ago")
     expect(source).not.toContain("Never prescribed this medication")
   })
@@ -183,11 +184,18 @@ describe("intake mobile viewport contract", () => {
     const source = readProjectFile("components/request/steps/medication-step.tsx")
 
     // Every question the merged screen owns.
-    expect(source).toContain("When were you last prescribed this medication?")
-    expect(source).toContain("How much do you take, and how often?")
-    expect(source).toContain("What is this medication for?")
-    expect(source).toContain("Has the dose or the way you take this medicine changed since it was last prescribed?")
-    expect(source).toContain("Any side effects with this medication?")
+    expect(source).toContain('label="Last prescribed"')
+    expect(source).toContain('label="Current directions"')
+    expect(source).toContain('label="What is it for?"')
+    expect(source).toContain('label="Same dose and directions as last time?"')
+    expect(source).toContain('label="Any side effects?"')
+
+    // Common regimens are complete button/select answers, not frequency words
+    // copied into a textarea that still fail the amount requirement.
+    expect(source).toContain("composeRepeatRxRegimen")
+    expect(source).toContain('ariaLabel="How much do you take?"')
+    expect(source).toContain('ariaLabel="How often do you take it?"')
+    expect(source).not.toContain("No side effects")
 
     // The dropped field stays dropped — optional, desktop-only, unused clinically.
     expect(source).not.toContain("Who prescribed it last?")
@@ -198,6 +206,17 @@ describe("intake mobile viewport contract", () => {
     expect(source).toContain("const showRepeatDetails = !isNeverPrescribed")
     expect(source).not.toContain("needsDose")
     expect(source).not.toContain("hasPrescriptionHistory")
+  })
+
+  it("keeps repeat-prescription identity details compact and visually restrained", () => {
+    const source = readProjectFile("components/request/steps/patient-details-step.tsx")
+
+    expect(source).toContain('<QuestionCard compact className="space-y-4">')
+    expect(source).toContain("grid-cols-[minmax(0,1fr)_4.5rem]")
+    expect(source).toContain("For your medical record and eScript.")
+    expect(source).toContain("border-primary bg-primary/5 text-foreground")
+    expect(source).not.toContain("AES-256 encrypted")
+    expect(source).not.toContain("Payments by Stripe")
   })
 
   // Retargeted to ed-goals-step on 2026-07-19: the severity question (and the
