@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react"
 
+import {
+  calculateLiveWaitTime,
+  getQueueClockTickDelayMs,
+  getQueueWaitTargetState,
+  type WaitTimeSeverity,
+} from "@/lib/doctor/queue-utils"
 import { cn } from "@/lib/utils"
 
 interface SlaChipProps {
@@ -33,42 +39,37 @@ const LABEL_COLOR: Record<Tone, string> = {
 }
 
 const WAIT_SECONDS_CADENCE = 15
+const WAIT_HOUR_CADENCE_MS = 60_000
 
-function formatRelative(diffMs: number, mode: "paid" | "waiting"): string {
-  const prefix = mode === "waiting" ? "Waiting" : "Paid"
+function formatPaidRelative(diffMs: number): string {
   if (diffMs < 60_000) {
-    if (mode !== "waiting") return "Paid just now"
-    const seconds = Math.max(0, Math.floor(diffMs / 1000))
-    return seconds < 5 ? "Waiting now" : `Waiting ${seconds}s`
+    return "Paid just now"
   }
   const minutes = Math.floor(diffMs / 60_000)
   if (minutes < 60) {
-    if (mode !== "waiting") return `Paid ${minutes}m ago`
-    const seconds = Math.floor((diffMs % 60_000) / 1000)
-    const visibleSeconds = Math.floor(seconds / WAIT_SECONDS_CADENCE) * WAIT_SECONDS_CADENCE
-    return visibleSeconds > 0 ? `Waiting ${minutes}m ${visibleSeconds}s` : `Waiting ${minutes}m`
+    return `Paid ${minutes}m ago`
   }
   const hours = Math.floor(minutes / 60)
   const remainderMin = minutes % 60
   if (hours < 24) {
-    if (mode === "waiting") return remainderMin > 0 ? `${prefix} ${hours}h ${remainderMin}m` : `${prefix} ${hours}h`
-    return remainderMin > 0 && hours < 4 ? `${prefix} ${hours}h ${remainderMin}m ago` : `${prefix} ${hours}h ago`
+    return remainderMin > 0 && hours < 4 ? `Paid ${hours}h ${remainderMin}m ago` : `Paid ${hours}h ago`
   }
   const days = Math.floor(hours / 24)
-  return mode === "waiting"
-    ? days === 1 ? `${prefix} 1d` : `${prefix} ${days}d`
-    : days === 1 ? `${prefix} 1d ago` : `${prefix} ${days}d ago`
+  return days === 1 ? "Paid 1d ago" : `Paid ${days}d ago`
 }
 
-function targetStateFor(diffMs: number, targetMinutes: number): { label: string; tone: Tone } {
-  const ratio = diffMs / (targetMinutes * 60_000)
-  if (ratio >= 1) return { label: "Over target", tone: "critical" }
-  if (ratio >= 0.6) return { label: "At risk", tone: "warning" }
-  return { label: "On track", tone: "success" }
+function waitingLabelFor(paidAt: string, now: Date): string {
+  const waitLabel = calculateLiveWaitTime(paidAt, now, {
+    afterFirstMinuteSecondsCadence: WAIT_SECONDS_CADENCE,
+  })
+  return waitLabel === "just now" ? "Waiting now" : `Waiting ${waitLabel}`
 }
 
-function toneFor(diffMs: number, targetMinutes?: number): Tone {
-  if (targetMinutes) return targetStateFor(diffMs, targetMinutes).tone
+function chipToneForTarget(tone: WaitTimeSeverity): Tone {
+  return tone === "normal" ? "success" : tone
+}
+
+function toneFor(diffMs: number): Tone {
   const hours = diffMs / 3_600_000
   if (hours < 4) return "success"
   if (hours < 24) return "warning"
@@ -77,18 +78,42 @@ function toneFor(diffMs: number, targetMinutes?: number): Tone {
 
 /**
  * SLA chip rendered next to the patient name on the intake slide header.
- * Shows how long since the intake was paid with a calm-chrome 8px dot
- * coloured against the 24h review SLA. Uses the same dot visual primitive
+ * Shows how long since the intake entered the queue with a calm-chrome 8px dot.
+ * Waiting mode can carry the shared queue-target state; paid mode retains the
+ * broader operational age tone. Uses the same dot visual primitive
  * as `StatusDot` (`components/operator/cases/status-dot.tsx`) so the
  * cockpit reads as one system.
  */
 export function SlaChip({ paidAt, className, mode = "paid", showTargetState = false, targetMinutes }: SlaChipProps) {
   const [nowMs, setNowMs] = useState(() => Date.now())
   useEffect(() => {
-    const intervalMs = mode === "waiting" ? 1000 : 30_000
-    const interval = window.setInterval(() => setNowMs(Date.now()), intervalMs)
-    return () => window.clearInterval(interval)
-  }, [mode])
+    if (!paidAt) return
+
+    if (mode === "paid") {
+      const interval = window.setInterval(() => setNowMs(Date.now()), 30_000)
+      return () => window.clearInterval(interval)
+    }
+
+    let timeout: number | undefined
+    let cancelled = false
+    const schedule = () => {
+      const currentNow = new Date()
+      setNowMs(currentNow.getTime())
+      const delay = getQueueClockTickDelayMs([paidAt], currentNow, {
+        postMinuteCadenceMs: WAIT_SECONDS_CADENCE * 1000,
+        postHourCadenceMs: WAIT_HOUR_CADENCE_MS,
+      }) ?? WAIT_HOUR_CADENCE_MS
+      timeout = window.setTimeout(() => {
+        if (!cancelled) schedule()
+      }, delay)
+    }
+
+    schedule()
+    return () => {
+      cancelled = true
+      if (timeout) window.clearTimeout(timeout)
+    }
+  }, [mode, paidAt])
 
   if (!paidAt) {
     return (
@@ -115,9 +140,13 @@ export function SlaChip({ paidAt, className, mode = "paid", showTargetState = fa
   const paidAtDate = new Date(paidAt)
   const diffMs = nowMs - paidAtDate.getTime()
   const safeDiffMs = Number.isFinite(diffMs) && diffMs >= 0 ? diffMs : 0
-  const targetState = showTargetState && targetMinutes ? targetStateFor(safeDiffMs, targetMinutes) : null
-  const tone = toneFor(safeDiffMs, targetState ? targetMinutes : undefined)
-  const label = formatRelative(safeDiffMs, mode)
+  const targetState = showTargetState && targetMinutes
+    ? getQueueWaitTargetState(paidAt, new Date(nowMs), targetMinutes)
+    : null
+  const tone = targetState ? chipToneForTarget(targetState.tone) : toneFor(safeDiffMs)
+  const label = mode === "waiting"
+    ? waitingLabelFor(paidAt, new Date(nowMs))
+    : formatPaidRelative(safeDiffMs)
   const title = paidAtDate.toLocaleString("en-AU", {
     day: "numeric",
     month: "short",

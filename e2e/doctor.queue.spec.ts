@@ -129,6 +129,34 @@ test.describe("Doctor Queue", () => {
     await expect(reviewPanel.getByRole("button", { name: /decline/i }).first()).toBeVisible()
   })
 
+  test("queue QoL controls stay explicit without duplicating the live wait", async ({ page }) => {
+    test.skip(!SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY required")
+
+    await resetIntakeForRetest(SEEDED_INTAKE_ID)
+    await page.setViewportSize({ width: 1600, height: 900 })
+    await page.goto("/dashboard?showTestData=1&onlyTestData=1")
+    await waitForPageLoad(page)
+    const queueRegion = await expectQueueSurface(page)
+
+    await expect(queueRegion.getByRole("button", { name: /Needs review/ })).toBeVisible()
+    await expect(queueRegion.getByRole("button", { name: /Needs info/ })).toBeVisible()
+
+    await queueRegion.getByRole("button", { name: "Keyboard shortcuts" }).click()
+    await expect(page.getByText("Keyboard shortcuts", { exact: true })).toBeVisible()
+    await expect(page.getByText("Move selection", { exact: true })).toBeVisible()
+    await page.keyboard.press("Escape")
+
+    await queueRegion.getByRole("button", { name: "Refresh queue" }).click()
+    await expect(queueRegion.getByText("Queue updated just now", { exact: true })).toBeVisible()
+
+    const queueRow = page.getByTestId(`queue-row-${SEEDED_INTAKE_ID}`)
+    await queueRow.getByRole("button", { name: `Open case for ${SEEDED_PATIENT_NAME}` }).click()
+    const reviewPanel = page.getByTestId("intake-review-panel")
+    await expect(reviewPanel).toBeVisible({ timeout: 15000 })
+    await expect(reviewPanel.locator("[data-live-wait-counter]")).toHaveCount(0)
+    await expect(reviewPanel.locator("[data-decision-wait-signal]")).toHaveCount(0)
+  })
+
   test("full approval flow from queue to approved status", async ({ page }) => {
     test.skip(!SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY required")
 

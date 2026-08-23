@@ -56,6 +56,10 @@ const queueTableSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/queue-table.tsx"),
   "utf8",
 )
+const queueUtilsSource = readFileSync(
+  join(process.cwd(), "lib/doctor/queue-utils.ts"),
+  "utf8",
+)
 const queueEmptyStateSource = readFileSync(
   join(process.cwd(), "lib/doctor/queue-empty-state.ts"),
   "utf8",
@@ -373,9 +377,10 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).toContain("resolveStaffCaseActionLabel")
     expect(queueTableSource).toContain("Next action:")
     expect(queueTableSource).toContain("data-queue-status-chip")
-    expect(queueTableSource).toContain("On track")
-    expect(queueTableSource).toContain("At risk")
-    expect(queueTableSource).toContain("Over target")
+    expect(queueTableSource).toContain("getWaitTargetState(queueEnteredAt).label")
+    expect(queueUtilsSource).toContain('label: "On track"')
+    expect(queueUtilsSource).toContain('label: "At risk"')
+    expect(queueUtilsSource).toContain("`${formatMinutes(deltaMinutes)} over`")
     expect(queueTableSource).toContain("compactStatusChipClass")
     expect(queueTableSource).toContain("compactTaxonomyChipClass")
     expect(queueTableSource).toContain("bg-background text-foreground")
@@ -440,11 +445,21 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).toContain("Last opened")
   })
 
-  it("visually marks paid queue cases that have passed the review target", () => {
-    expect(queueTableSource).toContain("REVIEW_TARGET_MINUTES = 120")
-    expect(queueTableSource).toContain("isPastReviewTarget")
-    expect(queueTableSource).toContain("Over review target")
-    expect(queueTableSource).toContain("isFulfilmentEntitledPaymentStatus(intake.payment_status)")
+  it("uses one live row wait signal with a useful shared target label", () => {
+    expect(queueTableSource).toContain("getWaitTargetState(queueEnteredAt).label")
+    expect(queueTableSource).toContain("data-live-wait-counter")
+    expect(queueTableSource).not.toContain("Over review target")
+    expect(queueTableSource).not.toContain("isFulfilmentEntitledPaymentStatus(intake.payment_status)")
+    expect(queueClientSource).toContain("postHourCadenceMs")
+  })
+
+  it("keeps compact queue controls explicit and confirms manual refreshes", () => {
+    expect(queueFiltersSource).toContain('desktopLabel: "Needs review"')
+    expect(queueFiltersSource).toContain('desktopLabel: "Needs info"')
+    expect(queueFiltersSource).toContain('aria-label="Keyboard shortcuts"')
+    expect(queueFiltersSource).toContain("Queue updated just now")
+    expect(queueTableSource).toContain("Reviewing: you")
+    expect(intakeReviewPanelSource).toContain("{!inline ? (")
   })
 
   it("keeps note guidance inline and avoids global 50-character blockers", () => {

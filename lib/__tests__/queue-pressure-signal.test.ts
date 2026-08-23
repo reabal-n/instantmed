@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs"
 
-import { describe, expect, it } from "vitest"
+import * as React from "react"
+import { renderToStaticMarkup } from "react-dom/server"
+import { describe, expect, it, vi } from "vitest"
 
+import { QueuePressureSignal } from "@/components/operator/queue-pressure-signal"
 import {
   getQueuePressureSeverity,
   getQueuePressureState,
@@ -35,14 +38,14 @@ describe("queue pressure signal", () => {
     expect(signalSource).toContain('root: "border-border/70 bg-white text-slate-700')
     expect(signalSource).not.toContain('root: "border-warning-border bg-warning-light text-warning')
     expect(signalSource).toContain("formatRefreshAge(nowMs, mountedAtRef.current)")
-    expect(signalSource).toContain("window.setInterval(() => setNowMs(Date.now()), 1000)")
+    expect(signalSource).toContain("calculateLiveWaitTime")
+    expect(signalSource).toContain("getQueueClockTickDelayMs")
+    expect(signalSource).toContain("window.setTimeout")
+    expect(signalSource).toContain("postHourCadenceMs")
+    expect(signalSource).not.toContain("window.setInterval(() => setNowMs(Date.now()), 1000)")
     expect(signalSource).toContain("oldestWaitingEnteredAt?: string | null")
-    expect(signalSource).toContain('padStart(2, "0")')
-    expect(signalSource).toContain("liveElapsedSeconds % 60")
-    expect(signalSource).toContain('liveElapsedSeconds < 60')
-    expect(signalSource).toContain('`${liveElapsedSeconds}s`')
     expect(signalSource).toContain("liveWaitValue")
-    expect(signalSource).toContain("{liveSecondsLabel ? (")
+    expect(signalSource).not.toContain("liveSecondsLabel")
     expect(signalSource).toContain("data-live-wait-dot")
     expect(signalSource).toContain("suppressHydrationWarning")
     expect(queueTableSource).toContain("suppressHydrationWarning")
@@ -52,6 +55,23 @@ describe("queue pressure signal", () => {
     expect(readFileSync("app/globals.css", "utf8")).toContain("@keyframes queue-live-breath")
     expect(filterSource).toContain('dot: "bg-slate-500"')
     expect(filterSource).toContain('value: "text-slate-700 dark:text-muted-foreground"')
+  })
+
+  it("renders waits over an hour with minutes but no seconds", () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-08-24T12:00:00Z"))
+    try {
+      const html = renderToStaticMarkup(React.createElement(QueuePressureSignal, {
+        oldestWaitingMinutes: 200,
+        oldestWaitingEnteredAt: "2026-08-24T08:39:45Z",
+        prominent: true,
+      }))
+
+      expect(html).toContain("3h 20m")
+      expect(html).not.toContain("15s")
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
 

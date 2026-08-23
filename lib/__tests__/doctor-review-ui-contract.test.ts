@@ -67,13 +67,14 @@ describe("doctor review prescribing controls", () => {
     expect(queueSheetActionsSource).not.toContain('"Complete Consultation"')
   })
 
-  it("removes pre-send readiness and wait signals after durable prescription evidence", () => {
+  it("removes pre-send readiness after durable prescription evidence without adding a duplicate wait signal", () => {
     expect(queueSheetActionsSource).toContain(
       "const hasRecordedPrescription = isPrescribingWorkflow && intake.script_sent === true",
     )
     expect(queueSheetActionsSource).toContain("const showPreSendSignals")
     expect(queueSheetActionsSource).toContain("!hasRecordedPrescription")
-    expect(queueSheetActionsSource.match(/\{showPreSendSignals \? \(/g)).toHaveLength(2)
+    expect(queueSheetActionsSource.match(/\{showPreSendSignals \? \(/g)).toHaveLength(1)
+    expect(queueSheetActionsSource).not.toContain("data-decision-wait-signal")
     expect(queueSheetActionsSource).toMatch(/const canDecline =\s*intake\.script_sent !== true/)
   })
 

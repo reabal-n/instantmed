@@ -8,6 +8,7 @@ import {
   QUEUE_WAIT_TARGET_MINUTES,
   type QueuePressureSeverity,
 } from "@/lib/doctor/queue-pressure"
+import { calculateLiveWaitTime, getQueueClockTickDelayMs } from "@/lib/doctor/queue-utils"
 import { formatMinutes } from "@/lib/format/dates"
 import { formatRefreshAge } from "@/lib/hooks/use-relative-refresh-age"
 import { cn } from "@/lib/utils"
@@ -49,6 +50,18 @@ const reviewOpenUrgentClasses = {
   icon: "text-muted-foreground",
   dot: "bg-slate-400",
   value: "text-slate-700 dark:text-foreground",
+}
+
+const VISIBLE_WAIT_SECONDS_CADENCE = 15
+const VISIBLE_WAIT_HOUR_CADENCE_MS = 60_000
+
+function getRefreshAgeTickDelayMs(nowMs: number, refreshedAtMs: number): number {
+  const ageMs = Math.max(0, nowMs - refreshedAtMs)
+  if (ageMs < 60_000) return 1_000
+
+  const cadenceMs = ageMs < 60 * 60_000 ? 60_000 : 60 * 60_000
+  const elapsedInCadence = ageMs % cadenceMs
+  return elapsedInCadence === 0 ? cadenceMs : cadenceMs - elapsedInCadence
 }
 
 type TargetTokenTone = "idle" | "clear" | "watch" | "urgent"
@@ -107,9 +120,37 @@ export function QueuePressureSignal({
   const [reviewOpen, setReviewOpen] = useState(false)
 
   useEffect(() => {
-    const interval = window.setInterval(() => setNowMs(Date.now()), 1000)
-    return () => window.clearInterval(interval)
-  }, [])
+    let timeout: number | undefined
+    let cancelled = false
+
+    const schedule = () => {
+      const currentNow = new Date()
+      const currentNowMs = currentNow.getTime()
+      setNowMs(currentNowMs)
+      const waitDelayMs = getQueueClockTickDelayMs(
+        [oldestWaitingEnteredAt],
+        currentNow,
+        {
+          postMinuteCadenceMs: VISIBLE_WAIT_SECONDS_CADENCE * 1000,
+          postHourCadenceMs: VISIBLE_WAIT_HOUR_CADENCE_MS,
+        },
+      )
+      const refreshDelayMs = getRefreshAgeTickDelayMs(currentNowMs, mountedAtRef.current)
+      const nextDelayMs = waitDelayMs == null
+        ? refreshDelayMs
+        : Math.min(waitDelayMs, refreshDelayMs)
+
+      timeout = window.setTimeout(() => {
+        if (!cancelled) schedule()
+      }, nextDelayMs)
+    }
+
+    schedule()
+    return () => {
+      cancelled = true
+      if (timeout) window.clearTimeout(timeout)
+    }
+  }, [oldestWaitingEnteredAt])
 
   useEffect(() => {
     if (!softenWhenReviewOpen) return
@@ -136,12 +177,11 @@ export function QueuePressureSignal({
     typeof liveElapsedSeconds === "number"
       ? Math.floor(liveElapsedSeconds / 60)
       : oldestWaitingMinutes
-  const liveSecondsLabel = typeof liveElapsedSeconds === "number" && liveElapsedSeconds >= 60
-    ? `${String(liveElapsedSeconds % 60).padStart(2, "0")}s`
-    : null
   const state = getQueuePressureState(liveOldestWaitingMinutes, targetMinutes)
-  const liveWaitValue = typeof liveElapsedSeconds === "number" && liveElapsedSeconds < 60
-    ? `${liveElapsedSeconds}s`
+  const liveWaitValue = typeof liveElapsedSeconds === "number" && oldestWaitingEnteredAt
+    ? calculateLiveWaitTime(oldestWaitingEnteredAt, new Date(nowMs), {
+        afterFirstMinuteSecondsCadence: VISIBLE_WAIT_SECONDS_CADENCE,
+      })
     : state.value
   const softenUrgent = softenWhenReviewOpen && reviewOpen && state.severity === "urgent"
   const classes = softenUrgent ? reviewOpenUrgentClasses : severityClasses[state.severity]
@@ -200,18 +240,6 @@ export function QueuePressureSignal({
         data-live-wait-counter
       >
         {liveWaitValue}
-        {liveSecondsLabel ? (
-          <>
-            {" "}
-            <span
-              key={liveSecondsLabel}
-              className="ml-1.5 align-baseline text-sm font-medium text-muted-foreground motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]"
-              suppressHydrationWarning
-            >
-              {liveSecondsLabel}
-            </span>
-          </>
-        ) : null}
       </span>
       {showTarget ? (
         <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
@@ -258,14 +286,6 @@ export function QueuePressureSignal({
         data-live-wait-counter
       >
         {liveWaitValue}
-        {liveSecondsLabel ? (
-          <>
-            {" "}
-            <span className="text-[11px] font-medium text-muted-foreground" suppressHydrationWarning>
-              {liveSecondsLabel}
-            </span>
-          </>
-        ) : null}
       </span>
       {trailingLabel ? (
         <span className={cn("hidden font-medium opacity-80 tabular-nums sm:inline", compact ? "text-[11px]" : "text-xs")}>
