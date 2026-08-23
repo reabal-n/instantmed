@@ -189,7 +189,7 @@ export function calculateWaitTime(createdAt: string, now = new Date()): string {
   return `${diffMins}m`
 }
 
-/** Live wait label with seconds during the first minute for visible queue rows. */
+/** Live wait label with an optional subdued seconds cadence for visible queue rows. */
 export function calculateLiveWaitTime(
   createdAt: string,
   now = new Date(),
@@ -204,10 +204,10 @@ export function calculateLiveWaitTime(
 
   if (options.afterFirstMinuteSecondsCadence) {
     const cadence = Math.max(1, Math.floor(options.afterFirstMinuteSecondsCadence))
-    const minutes = Math.floor(diffSeconds / 60)
     const seconds = diffSeconds % 60
     const visibleSeconds = Math.floor(seconds / cadence) * cadence
-    return visibleSeconds > 0 ? `${minutes}m ${visibleSeconds}s` : `${minutes}m`
+    const compactWaitTime = calculateWaitTime(createdAt, now)
+    return visibleSeconds > 0 ? `${compactWaitTime} ${visibleSeconds}s` : compactWaitTime
   }
 
   return calculateWaitTime(createdAt, now)

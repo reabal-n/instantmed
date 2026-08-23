@@ -101,6 +101,14 @@ describe("calculateLiveWaitTime", () => {
       }),
     ).toBe("15m 45s")
   })
+
+  it("switches older live wait chips from full minutes to hours and minutes", () => {
+    expect(
+      calculateLiveWaitTime("2026-04-09T08:39:45Z", new Date("2026-04-09T12:00:00Z"), {
+        afterFirstMinuteSecondsCadence: 15,
+      }),
+    ).toBe("3h 20m 15s")
+  })
 })
 
 describe("getQueueClockTickDelayMs", () => {
