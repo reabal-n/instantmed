@@ -123,7 +123,7 @@ describe("project docs drift contract", () => {
       expect(source).toContain("`20260817095854_allow_direct_codex_ads_approval.sql`")
       expect(source).toContain("`20260819055501_allow_partially_refunded_fulfilment.sql`")
       expect(source).toContain("`20260823101500_fix_partially_refunded_review_claim.sql`")
-      expect(source).toContain("linked migration history aligned through `20260819055501`")
+      expect(source).toContain("linked migration history aligned through `20260823101500`")
       expect(source).toContain("recovery issue count returned zero in both test and live mode")
       expect(source).toContain("17 refunds and 17 cash movements totalling A$549.00 (54,900 cents)")
       expect(source).toContain("17 linked, 0 ambiguous, and 0 unlinked")
@@ -136,11 +136,12 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("Latest: `20260823101500_fix_partially_refunded_review_claim.sql`")
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
+    expect(architecture).toContain("Production receipt (2026-08-23)")
     expect(architecture).toContain("the linked DB lint error gate")
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Latest applied and verified production migration (2026-08-19): `20260819055501_allow_partially_refunded_fulfilment.sql`",
+      "Latest applied and verified production migration (2026-08-23): `20260823101500_fix_partially_refunded_review_claim.sql`",
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
