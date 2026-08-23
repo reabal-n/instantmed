@@ -14,9 +14,9 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 | `lib/` | 1,284 files |
 | E2E TypeScript files under `e2e/` | 78 (68 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 130 |
+| SQL migrations under `supabase/migrations/` | 131 |
 
-Latest applied and verified production migration (2026-08-19): `20260819055501_allow_partially_refunded_fulfilment.sql`. Linked migration history is aligned through that version. The migration keeps partially refunded but otherwise paid requests fulfilment-entitled while retaining service-role-only doctor claims and blocking fully refunded or disputed requests. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, passed its linked DB lint and ACL gates. Detailed database receipts live in `docs/ARCHITECTURE.md`.
+Latest applied and verified production migration (2026-08-19): `20260819055501_allow_partially_refunded_fulfilment.sql`. Linked migration history is aligned through that version. It keeps partially refunded but otherwise paid requests queue-entitled, but created an unused two-argument doctor-claim overload while the app continued calling the older exact-paid three-argument overload. Latest on disk, pending a production receipt: `20260823101500_fix_partially_refunded_review_claim.sql`, which repairs the canonical app-called function without admitting fully refunded or disputed requests. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, passed its linked DB lint and ACL gates. Detailed database receipts live in `docs/ARCHITECTURE.md`.
 
 ## Runtime Shape
 
