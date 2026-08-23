@@ -4,10 +4,19 @@
  */
 
 import type { QueueStatusFilter } from "@/lib/dashboard/routes"
+import { QUEUE_WAIT_TARGET_MINUTES } from "@/lib/doctor/queue-pressure"
+import { formatMinutes } from "@/lib/format/dates"
 import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import type { IntakeStatus } from "@/types/intake"
 
 export type WaitTimeSeverity = "normal" | "warning" | "critical"
+
+export interface QueueWaitTargetState {
+  label: string
+  tone: WaitTimeSeverity
+  elapsedMinutes: number
+  deltaMinutes: number
+}
 
 export const QUEUE_REVIEW_STATUSES = [
   "paid",
@@ -189,7 +198,7 @@ export function calculateWaitTime(createdAt: string, now = new Date()): string {
   return `${diffMins}m`
 }
 
-/** Live wait label with seconds during the first minute for visible queue rows. */
+/** Live wait label with an optional subdued seconds cadence for visible queue rows. */
 export function calculateLiveWaitTime(
   createdAt: string,
   now = new Date(),
@@ -202,12 +211,16 @@ export function calculateLiveWaitTime(
   if (diffSeconds < 5) return "just now"
   if (diffSeconds < 60) return `${diffSeconds}s`
 
+  // Once a wait reaches an hour, seconds add noise without changing the
+  // operator's decision. Keep every long-wait surface on the same h/m label.
+  if (diffSeconds >= 60 * 60) return calculateWaitTime(createdAt, now)
+
   if (options.afterFirstMinuteSecondsCadence) {
     const cadence = Math.max(1, Math.floor(options.afterFirstMinuteSecondsCadence))
-    const minutes = Math.floor(diffSeconds / 60)
     const seconds = diffSeconds % 60
     const visibleSeconds = Math.floor(seconds / cadence) * cadence
-    return visibleSeconds > 0 ? `${minutes}m ${visibleSeconds}s` : `${minutes}m`
+    const compactWaitTime = calculateWaitTime(createdAt, now)
+    return visibleSeconds > 0 ? `${compactWaitTime} ${visibleSeconds}s` : compactWaitTime
   }
 
   return calculateWaitTime(createdAt, now)
@@ -225,10 +238,11 @@ export function calculateLiveWaitTime(
 export function getQueueClockTickDelayMs(
   queueEnteredAtValues: Array<string | null | undefined>,
   now = new Date(),
-  options: { postMinuteCadenceMs?: number } = {},
+  options: { postMinuteCadenceMs?: number; postHourCadenceMs?: number } = {},
 ): number | null {
   const nowMs = now.getTime()
   const postMinuteCadenceMs = Math.max(1_000, options.postMinuteCadenceMs ?? 60_000)
+  const postHourCadenceMs = Math.max(1_000, options.postHourCadenceMs ?? 60_000)
   const ages = queueEnteredAtValues
     .map((value) => {
       if (!value) return null
@@ -243,12 +257,52 @@ export function getQueueClockTickDelayMs(
 
   const nextBoundaryMs = Math.min(
     ...ages.map((age) => {
-      const elapsedInCadence = age % postMinuteCadenceMs
-      return elapsedInCadence === 0 ? postMinuteCadenceMs : postMinuteCadenceMs - elapsedInCadence
+      const cadenceMs = age >= 60 * 60_000 ? postHourCadenceMs : postMinuteCadenceMs
+      const elapsedInCadence = age % cadenceMs
+      return elapsedInCadence === 0 ? cadenceMs : cadenceMs - elapsedInCadence
     }),
   )
 
-  return Math.max(1_000, Math.min(postMinuteCadenceMs, nextBoundaryMs))
+  return Math.max(1_000, nextBoundaryMs)
+}
+
+/** One shared target label and tone for every live queue wait surface. */
+export function getQueueWaitTargetState(
+  queueEnteredAt: string,
+  now = new Date(),
+  targetMinutes = QUEUE_WAIT_TARGET_MINUTES,
+): QueueWaitTargetState {
+  const enteredAtMs = new Date(queueEnteredAt).getTime()
+  const elapsedMinutes = Number.isFinite(enteredAtMs)
+    ? Math.max(0, Math.floor((now.getTime() - enteredAtMs) / 60_000))
+    : 0
+  const safeTargetMinutes = Math.max(1, Math.floor(targetMinutes))
+  const deltaMinutes = elapsedMinutes - safeTargetMinutes
+
+  if (deltaMinutes >= 0) {
+    return {
+      label: deltaMinutes === 0 ? "At target" : `${formatMinutes(deltaMinutes)} over`,
+      tone: "critical",
+      elapsedMinutes,
+      deltaMinutes,
+    }
+  }
+
+  if (elapsedMinutes >= safeTargetMinutes * 0.75) {
+    return {
+      label: "At risk",
+      tone: "warning",
+      elapsedMinutes,
+      deltaMinutes,
+    }
+  }
+
+  return {
+    label: "On track",
+    tone: "normal",
+    elapsedMinutes,
+    deltaMinutes,
+  }
 }
 
 /** Color-coding severity based on wait time or SLA deadline. */
@@ -266,13 +320,7 @@ export function getWaitTimeSeverity(
     if (diffMins < 30) return "warning"
     return "normal"
   }
-  const created = new Date(createdAt)
-  const diffMins = Math.floor(
-    (now.getTime() - created.getTime()) / (1000 * 60),
-  )
-  if (diffMins > 120) return "critical"
-  if (diffMins >= 90) return "warning"
-  return "normal"
+  return getQueueWaitTargetState(createdAt, now).tone
 }
 
 /** SLA countdown string (e.g. "2h 15m left" or "10m overdue"). */

@@ -8,6 +8,7 @@ import {
   getQueueEnteredAt,
   getQueueStatusesForFilter,
   getQueueStatusMeta,
+  getQueueWaitTargetState,
   getWaitTimeSeverity,
   isHydratedQueueRealtimeInsert,
   QUEUE_REVIEW_STATUSES,
@@ -101,6 +102,14 @@ describe("calculateLiveWaitTime", () => {
       }),
     ).toBe("15m 45s")
   })
+
+  it("switches older live wait chips from full minutes to hours and minutes", () => {
+    expect(
+      calculateLiveWaitTime("2026-04-09T08:39:45Z", new Date("2026-04-09T12:00:00Z"), {
+        afterFirstMinuteSecondsCadence: 15,
+      }),
+    ).toBe("3h 20m")
+  })
 })
 
 describe("getQueueClockTickDelayMs", () => {
@@ -139,6 +148,34 @@ describe("getQueueClockTickDelayMs", () => {
         { postMinuteCadenceMs: 15_000 },
       ),
     ).toBe(7_000)
+  })
+
+  it("stops quarter-minute ticks after an hour and waits for the next minute boundary", () => {
+    expect(
+      getQueueClockTickDelayMs(
+        ["2026-04-09T08:39:45Z"],
+        new Date("2026-04-09T12:00:00Z"),
+        { postMinuteCadenceMs: 15_000, postHourCadenceMs: 60_000 },
+      ),
+    ).toBe(45_000)
+  })
+})
+
+describe("getQueueWaitTargetState", () => {
+  const now = new Date("2026-04-09T12:00:00Z")
+
+  it("replaces a generic breach label with the useful amount over target", () => {
+    expect(getQueueWaitTargetState("2026-04-09T08:40:00Z", now)).toMatchObject({
+      label: "1h 20m over",
+      tone: "critical",
+      elapsedMinutes: 200,
+      deltaMinutes: 80,
+    })
+  })
+
+  it("keeps pre-target states concise", () => {
+    expect(getQueueWaitTargetState("2026-04-09T11:08:00Z", now).label).toBe("On track")
+    expect(getQueueWaitTargetState("2026-04-09T10:20:00Z", now).label).toBe("At risk")
   })
 })
 

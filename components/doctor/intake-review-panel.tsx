@@ -578,12 +578,14 @@ export function IntakeReviewPanel({
                 <Badge className={getStatusColor(intake.status)}>
                   {formatIntakeStatus(intake.status)}
                 </Badge>
-                <SlaChip
-                  paidAt={queueEnteredAt}
-                  mode="waiting"
-                  targetMinutes={QUEUE_WAIT_TARGET_MINUTES}
-                  showTargetState
-                />
+                {!inline ? (
+                  <SlaChip
+                    paidAt={queueEnteredAt}
+                    mode="waiting"
+                    targetMinutes={QUEUE_WAIT_TARGET_MINUTES}
+                    showTargetState
+                  />
+                ) : null}
                 {visibleClaimStateLabel ? (
                   <span
                     className={cn(

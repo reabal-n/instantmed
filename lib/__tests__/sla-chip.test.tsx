@@ -72,6 +72,20 @@ describe("SlaChip", () => {
     expect(html).toContain("Waiting 15m 45s")
   })
 
+  it("shows long waits as hours and minutes with the useful target delta", () => {
+    const html = render(
+      <SlaChip
+        paidAt="2026-05-26T06:39:45Z"
+        mode="waiting"
+        targetMinutes={120}
+        showTargetState
+      />,
+    )
+    expect(html).toContain("Waiting 3h 20m")
+    expect(html).toContain("1h 20m over")
+    expect(html).not.toContain("15s")
+  })
+
   it("keeps sub-minute patient waiting time aligned with the queue row", () => {
     const html = render(<SlaChip paidAt="2026-05-26T09:59:48Z" mode="waiting" />)
     expect(html).toContain("Waiting 12s")

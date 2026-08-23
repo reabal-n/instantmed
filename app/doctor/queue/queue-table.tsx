@@ -45,7 +45,6 @@ import {
 } from "@/lib/doctor/renewal-format"
 import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { formatServiceType } from "@/lib/format/intake"
-import { isFulfilmentEntitledPaymentStatus } from "@/lib/stripe/fulfilment-entitlement"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient, RecentlyCompletedIntake } from "@/types/db"
 
@@ -80,8 +79,6 @@ function getCompactQueueReason(service: { type?: string; name?: string; short_na
   return `${service?.short_name || service?.name || "Clinical"} request`
 }
 
-const REVIEW_TARGET_MINUTES = 120
-const REVIEW_TARGET_STATUSES = new Set(["paid", "in_review", "pending_info", "awaiting_script"])
 const QUEUE_DOM_WINDOW_LIMIT = 100
 
 // Soft-claim lock timeout — matches the server-side claim TTL in
@@ -110,13 +107,6 @@ function getPlainSearchHighlight(query: string | null | undefined): string {
     .trim()
 }
 
-export function isPastReviewTarget(queueEnteredAt: string | null | undefined, now = Date.now()): boolean {
-  if (!queueEnteredAt) return false
-  const enteredAt = new Date(queueEnteredAt).getTime()
-  if (!Number.isFinite(enteredAt)) return false
-  return now - enteredAt >= REVIEW_TARGET_MINUTES * 60 * 1000
-}
-
 export interface QueueTableProps {
   filteredIntakes: IntakeWithPatient[]
   expandedId: string | null
@@ -125,7 +115,8 @@ export interface QueueTableProps {
   onApprove: (intakeId: string, serviceType?: string | null, subtype?: string | null) => void
   hasRedFlags: (intake: IntakeWithPatient) => boolean
   calculateWaitTime: (createdAt: string) => string
-  getWaitTimeSeverity: (createdAt: string, slaDeadline?: string | null) => "normal" | "warning" | "critical"
+  getWaitTimeSeverity: (createdAt: string) => "normal" | "warning" | "critical"
+  getWaitTargetState: (createdAt: string) => { label: string }
   openReviewPanel: (intakeId: string) => void
   onPrimeReviewPanelCode?: () => void
   openIntakeId: string | null
@@ -171,6 +162,7 @@ export function QueueTable({
   hasRedFlags,
   calculateWaitTime,
   getWaitTimeSeverity,
+  getWaitTargetState,
   openReviewPanel,
   onPrimeReviewPanelCode,
   openIntakeId,
@@ -294,7 +286,7 @@ export function QueueTable({
           {renderedIntakes.map((intake, index) => {
             const isFocused = expandedId === intake.id
             const queueEnteredAt = getQueueEnteredAt(intake)
-            const waitSeverity = getWaitTimeSeverity(queueEnteredAt, intake.sla_deadline)
+            const waitSeverity = getWaitTimeSeverity(queueEnteredAt)
             const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
             const answers = (intake.answers as Array<{ answers: Record<string, unknown> }> | null | undefined)?.[0]?.answers
             const repeatRxAttestationConfirmed = getRepeatRxAttestationStatus(answers) === "confirmed_unchanged"
@@ -332,10 +324,6 @@ export function QueueTable({
             const claimantName =
               (intake as IntakeWithPatient & { reviewing_doctor_name?: string | null })
                 .reviewing_doctor_name ?? null
-            const overReviewTarget =
-              isFulfilmentEntitledPaymentStatus(intake.payment_status) &&
-              REVIEW_TARGET_STATUSES.has(intake.status) &&
-              isPastReviewTarget(queueEnteredAt)
             const showIdentityFix =
               compactShell &&
               intake.status === "awaiting_script" &&
@@ -366,11 +354,7 @@ export function QueueTable({
             const showInlineWaitTime = true
             const waitLabel = calculateWaitTime(queueEnteredAt)
             const displayWaitLabel = waitLabel === "just now" ? "Just arrived" : `Waiting ${waitLabel}`
-            const waitTargetLabel = waitSeverity === "critical"
-              ? "Over target"
-              : waitSeverity === "warning"
-                ? "At risk"
-                : "On track"
+            const waitTargetLabel = getWaitTargetState(queueEnteredAt).label
             const compactQueueReason = compactShell
               ? getCompactQueueReason(service, intake.subtype)
               : null
@@ -560,17 +544,12 @@ export function QueueTable({
                       data-queue-status-chip
                     >
                       <Eye className="h-3 w-3 mr-1" />
-                      You
+                      Reviewing: you
                     </Badge>
                   )}
                   {!compactShell && claimLabel && !claimActive && (
                     <Badge variant="outline" className="text-xs text-muted-foreground border-border/50">
                       {claimLabel}
-                    </Badge>
-                  )}
-                  {!compactShell && overReviewTarget && (
-                    <Badge className="bg-amber-50 text-amber-700 border-amber-200 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
-                      <Clock className="w-3 h-3 mr-1" />Over review target
                     </Badge>
                   )}
                   {handoffSummary.tone !== "success" && !showIdentityFix && (

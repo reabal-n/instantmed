@@ -1,10 +1,11 @@
 "use client"
 
-import { ArrowRight, RefreshCw, Search, X } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { ArrowRight, Keyboard, RefreshCw, Search, X } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { QueueStatusFilter } from "@/lib/dashboard/routes"
 import {
   getQueuePressureState,
@@ -89,6 +90,10 @@ export function QueueFilters({
   showOldestWaiting = true,
 }: QueueFiltersProps) {
   const searchRef = useRef<HTMLInputElement>(null)
+  const manualRefreshRequestedRef = useRef(false)
+  const manualRefreshStartedRef = useRef(false)
+  const refreshReceiptTimerRef = useRef<number | null>(null)
+  const [showRefreshReceipt, setShowRefreshReceipt] = useState(false)
   const hasActiveSearch = searchQuery.trim().length > 0
   const matchLabel = isSearchPending
     ? "Searching…"
@@ -119,6 +124,39 @@ export function QueueFilters({
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
   }, [])
+
+  useEffect(() => {
+    if (!manualRefreshRequestedRef.current) return
+    if (isRefreshing) {
+      manualRefreshStartedRef.current = true
+      return
+    }
+    if (!manualRefreshStartedRef.current) return
+
+    manualRefreshRequestedRef.current = false
+    manualRefreshStartedRef.current = false
+    setShowRefreshReceipt(true)
+    if (refreshReceiptTimerRef.current) {
+      window.clearTimeout(refreshReceiptTimerRef.current)
+    }
+    refreshReceiptTimerRef.current = window.setTimeout(() => {
+      setShowRefreshReceipt(false)
+      refreshReceiptTimerRef.current = null
+    }, 3_000)
+  }, [isRefreshing])
+
+  useEffect(() => () => {
+    if (refreshReceiptTimerRef.current) {
+      window.clearTimeout(refreshReceiptTimerRef.current)
+    }
+  }, [])
+
+  const handleManualRefresh = () => {
+    manualRefreshRequestedRef.current = true
+    manualRefreshStartedRef.current = false
+    setShowRefreshReceipt(false)
+    onRefresh()
+  }
 
   return (
     <>
@@ -174,6 +212,7 @@ export function QueueFilters({
               <Input
                 ref={searchRef}
                 aria-label="Search active requests"
+                aria-keyshortcuts="/"
                 placeholder={compactShell ? "Search name, email or request" : "Search… or / to focus"}
                 autoComplete="off"
                 autoCorrect="off"
@@ -213,11 +252,40 @@ export function QueueFilters({
                 }
               />
             </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="hidden h-8 w-8 shrink-0 text-muted-foreground sm:inline-flex"
+                  aria-label="Keyboard shortcuts"
+                  title="Keyboard shortcuts"
+                >
+                  <Keyboard className="h-3.5 w-3.5" aria-hidden="true" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" sideOffset={8} className="w-64 rounded-xl p-3">
+                <p className="text-xs font-semibold text-foreground">Keyboard shortcuts</p>
+                <dl className="mt-2 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
+                  <dt><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">/</kbd></dt>
+                  <dd>Focus search</dd>
+                  <dt className="flex gap-1"><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">J</kbd><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">K</kbd><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">↑↓</kbd></dt>
+                  <dd>Move selection</dd>
+                  <dt><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">Enter</kbd></dt>
+                  <dd>Open selected</dd>
+                  <dt className="flex gap-1"><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">A</kbd><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">D</kbd></dt>
+                  <dd>Review or decline</dd>
+                  <dt><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">Esc</kbd></dt>
+                  <dd>Clear selection</dd>
+                </dl>
+              </PopoverContent>
+            </Popover>
             <Button
               variant="ghost"
               size="icon"
               className="h-11 w-11 shrink-0 sm:h-8 sm:w-8"
-              onClick={onRefresh}
+              onClick={handleManualRefresh}
               disabled={isRefreshing}
               title={isRefreshing ? "Refreshing queue" : "Refresh queue"}
               aria-label={isRefreshing ? "Refreshing queue" : "Refresh queue"}
@@ -225,9 +293,15 @@ export function QueueFilters({
               <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
             </Button>
           </div>
-          {hasActiveSearch && (
-            <p className="pr-10 text-[11px] leading-none text-muted-foreground" aria-live="polite">
-              {matchLabel}
+          {(hasActiveSearch || showRefreshReceipt) && (
+            <p
+              className="pr-10 text-[11px] leading-none text-muted-foreground"
+              aria-live="polite"
+              data-queue-refresh-receipt={showRefreshReceipt ? "complete" : undefined}
+            >
+              {hasActiveSearch ? matchLabel : null}
+              {hasActiveSearch && showRefreshReceipt ? " · " : null}
+              {showRefreshReceipt ? "Queue updated just now" : null}
             </p>
           )}
         </div>
@@ -236,10 +310,10 @@ export function QueueFilters({
       {/* Status Filter Tabs */}
       <div className="grid w-full grid-cols-4 gap-1 rounded-lg bg-muted/25 p-1 sm:flex sm:w-fit sm:flex-wrap sm:gap-1.5">
         {([
-          { key: "all", label: "All" },
-          { key: "review", label: compactShell ? "Review" : "Needs Review" },
-          { key: "pending_info", label: compactShell ? "Info" : "Pending Info" },
-          { key: "scripts", label: compactShell ? "Scripts to write" : "Scripts" },
+          { key: "all", mobileLabel: "All", desktopLabel: "All" },
+          { key: "review", mobileLabel: "Review", desktopLabel: "Needs review" },
+          { key: "pending_info", mobileLabel: "Info", desktopLabel: "Needs info" },
+          { key: "scripts", mobileLabel: "Scripts", desktopLabel: "Scripts to write" },
         ] as const).map((tab) => {
           const count = statusCounts?.[tab.key] ?? null
           return (
@@ -255,12 +329,12 @@ export function QueueFilters({
                   : "text-slate-600 hover:bg-card/60 hover:text-foreground dark:text-muted-foreground"
               )}
             >
-              {compactShell && tab.key === "scripts" ? (
+              {compactShell && tab.mobileLabel !== tab.desktopLabel ? (
                 <>
-                  <span className="sm:hidden">Scripts</span>
-                  <span className="hidden sm:inline">Scripts to write</span>
+                  <span className="sm:hidden">{tab.mobileLabel}</span>
+                  <span className="hidden sm:inline">{tab.desktopLabel}</span>
                 </>
-              ) : tab.label}
+              ) : tab.desktopLabel}
               <span
                 className={cn("ml-1 tabular-nums sm:ml-1.5", count === 0 && "text-muted-foreground")}
                 aria-label={count === null ? "count unavailable" : undefined}

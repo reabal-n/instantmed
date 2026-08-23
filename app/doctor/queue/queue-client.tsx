@@ -23,7 +23,7 @@ import {
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
-import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
+import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getQueueWaitTargetState, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
@@ -49,6 +49,7 @@ import { useQueueDialogs } from "./use-queue-dialogs"
 // for the whole session — pure jank. 15s keeps the label sane without the
 // per-second re-render storm.
 const QUEUE_VISIBLE_WAIT_SECONDS_CADENCE = 15
+const QUEUE_VISIBLE_WAIT_HOUR_CADENCE_MS = 60_000
 
 interface ActiveQueueSearchView {
   query: string
@@ -554,7 +555,10 @@ export function QueueClient({
     const tickDelayMs = getQueueClockTickDelayMs(
       intakes.map((intake) => getQueueEnteredAt(intake)),
       clockNow,
-      { postMinuteCadenceMs: QUEUE_VISIBLE_WAIT_SECONDS_CADENCE * 1000 },
+      {
+        postMinuteCadenceMs: QUEUE_VISIBLE_WAIT_SECONDS_CADENCE * 1000,
+        postHourCadenceMs: QUEUE_VISIBLE_WAIT_HOUR_CADENCE_MS,
+      },
     )
     if (tickDelayMs == null) return
     const tickTimeout = window.setTimeout(() => {
@@ -569,8 +573,14 @@ export function QueueClient({
     })
   }, [clockNow])
 
-  const getStableWaitTimeSeverity = useCallback((createdAt: string, slaDeadline?: string | null) => {
-    return getWaitTimeSeverity(createdAt, slaDeadline, clockNow)
+  const getStableWaitTimeSeverity = useCallback((createdAt: string) => {
+    // The visible row state describes the shared two-hour queue target. A
+    // separate deadline still drives the priority banner, not this label.
+    return getWaitTimeSeverity(createdAt, undefined, clockNow)
+  }, [clockNow])
+
+  const getStableWaitTargetState = useCallback((createdAt: string) => {
+    return getQueueWaitTargetState(createdAt, clockNow)
   }, [clockNow])
 
   // Track row IDs that just arrived via realtime so the queue can flash a
@@ -1155,6 +1165,7 @@ export function QueueClient({
                   hasRedFlags={hasRedFlags}
                   calculateWaitTime={calculateStableWaitTime}
                   getWaitTimeSeverity={getStableWaitTimeSeverity}
+                  getWaitTargetState={getStableWaitTargetState}
                   openReviewPanel={openReviewPanel}
                   onPrimeReviewPanelCode={primeReviewPanelCode}
                   dialogs={dialogs}
@@ -1240,6 +1251,7 @@ export function QueueClient({
             hasRedFlags={hasRedFlags}
             calculateWaitTime={calculateStableWaitTime}
             getWaitTimeSeverity={getStableWaitTimeSeverity}
+            getWaitTargetState={getStableWaitTargetState}
             openReviewPanel={openReviewPanel}
             onPrimeReviewPanelCode={primeReviewPanelCode}
             dialogs={dialogs}
