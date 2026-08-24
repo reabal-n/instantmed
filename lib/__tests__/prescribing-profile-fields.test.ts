@@ -138,6 +138,13 @@ describe("validateRequiredPrescribingProfileAnswers", () => {
     expect(validateRequiredPrescribingProfileAnswers(completeAnswers)).toBeNull()
   })
 
+  it("requires a street number before checkout creates a prescribing profile", () => {
+    expect(validateRequiredPrescribingProfileAnswers({
+      ...completeAnswers,
+      addressLine1: "Forster Street Sydney 2000 NSW",
+    })).toBe("Include the street number, for example 12 Smith Street.")
+  })
+
   it("accepts a valid IHI instead of Medicare for prescribing requests", () => {
     expect(validateRequiredPrescribingProfileAnswers({
       ...completeAnswers,

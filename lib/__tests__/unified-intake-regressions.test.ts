@@ -614,6 +614,29 @@ describe("unified intake regressions", () => {
     }, identity)).toBeNull()
   })
 
+  it("blocks prescription checkout when the street number is missing", () => {
+    const result = validateAnswersServerSide("repeat-script", {
+      medicationName: "Budesonide + formoterol",
+      medicationStrength: "100/3 micrograms",
+      medicationForm: "inhaler",
+      prescriptionHistory: "6 to 12 months",
+      doseChanged: false,
+      currentDose: "2 puffs twice daily",
+      indication: "asthma",
+      hasSideEffects: false,
+      ...sharedMedicalHistory,
+      medicareNumber: "1111111111",
+      medicareIrn: "2",
+      addressLine1: "Forster Street Sydney 2000 NSW",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }, identity)
+
+    expect(result).toBe("Include the street number, for example 12 Smith Street.")
+  })
+
   it("blocks prescription checkout when Medicare IRN is missing but does not require card expiry", () => {
     const validPrescriptionAnswers = {
       medicationName: "Budesonide + formoterol",

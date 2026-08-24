@@ -30,6 +30,10 @@ import {
   validateWomensHealthTypeStep,
   type ValidationResult,
 } from "@/lib/request/validation"
+import {
+  hasAustralianStreetNumber,
+  STREET_NUMBER_REQUIRED_ERROR,
+} from "@/lib/validation/australian-address"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import { normalizeIdentifierDigits, normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 import type { UnifiedServiceType } from "@/types/services"
@@ -243,6 +247,7 @@ function validateStructuredAddressAnswers(
   const postcode = firstStringAnswer(answers, ["postcode"])
 
   if (!addressLine1) return `Street address is required for ${requestLabel}.`
+  if (!hasAustralianStreetNumber(addressLine1)) return STREET_NUMBER_REQUIRED_ERROR
   if (!suburb || !state || !postcode) {
     return `Address suburb, state, and postcode are required for ${requestLabel}.`
   }
