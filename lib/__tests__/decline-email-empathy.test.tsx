@@ -25,6 +25,12 @@ describe("RequestDeclinedEmail empathy wrapping", () => {
     expect(html).toMatch(/Symptoms warrant in-person review/)
   })
 
+  it("presents the reason as an explanation from the clinic", () => {
+    const html = render(<RequestDeclinedEmail {...baseProps} />)
+    expect(html).toMatch(/Why we declined your request/i)
+    expect(html).not.toMatch(/Doctor(?:'|&#x27;)s note/i)
+  })
+
   it("includes a category-aware next-step paragraph", () => {
     const inPerson = render(<RequestDeclinedEmail {...baseProps} reasonCode="requires_in_person" />)
     expect(inPerson).toMatch(/in-person appointment with your GP/i)

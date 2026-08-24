@@ -9,20 +9,20 @@ export interface DeclineReason {
 export const DECLINE_REASONS: DeclineReason[] = [
   {
     code: "not_telehealth_suitable",
-    label: "Not suitable for telehealth",
+    label: "Not suitable online",
     template:
-      "Based on the information provided, this request is not suitable for an asynchronous telehealth consultation. Please see your regular doctor or book an in-person appointment.",
+      "Thanks for your request. Based on the information provided, we're unable to safely manage this request through InstantMed. Please book an in-person appointment with your regular doctor.",
   },
   {
     code: "prescribing_guidelines",
-    label: "Frequent medicine requests",
+    label: "Frequent requests",
     template:
-      "Thanks for your request. I'm sorry, but due to the number and frequency of your recent requests for this medicine, we're unable to safely issue this prescription. Please contact the clinician managing your condition to review your treatment. If you paid, you'll receive a full refund.",
+      "Thanks for your request. Due to the number and frequency of your recent requests for this medicine, we're unable to safely issue this prescription. Please contact the clinician managing your condition to review your treatment. If you paid, we'll issue a full refund.",
   },
   {
     code: "urgent_care_needed",
-    label: "Refer to urgent care",
+    label: "Urgent care",
     template:
-      "Based on your symptoms, you may need more urgent assessment. Please visit your nearest emergency department or call 000 if experiencing a medical emergency.",
+      "Based on the symptoms provided, we recommend urgent in-person assessment. If this is a medical emergency, call 000 or go to your nearest emergency department.",
   },
 ]

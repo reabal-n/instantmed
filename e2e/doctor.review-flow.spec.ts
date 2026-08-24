@@ -55,16 +55,16 @@ test.describe("Doctor Review - Decline Flow", () => {
     await expect(patientDetails).toBeVisible()
     await expect(quickDrafts).toHaveCount(3)
     await expect(
-      dialog.getByRole("button", { name: "Not suitable for telehealth" }),
+      dialog.getByRole("button", { name: "Not suitable online" }),
     ).toBeVisible()
     await expect(
-      dialog.getByRole("button", { name: "Frequent medicine requests" }),
+      dialog.getByRole("button", { name: "Frequent requests" }),
     ).toBeVisible()
     await expect(
-      dialog.getByRole("button", { name: "Refer to urgent care" }),
+      dialog.getByRole("button", { name: "Urgent care" }),
     ).toBeVisible()
 
-    await dialog.getByRole("button", { name: "Frequent medicine requests" }).click()
+    await dialog.getByRole("button", { name: "Frequent requests" }).click()
     await expect(patientDetails).toHaveValue(/number and frequency/)
     await expect(patientDetails).toHaveValue(/full refund/)
 

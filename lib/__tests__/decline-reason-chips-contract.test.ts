@@ -22,6 +22,11 @@ describe("Decline reason chips contract", () => {
       "prescribing_guidelines",
       "urgent_care_needed",
     ])
+    expect(DECLINE_REASONS.map((reason) => reason.label)).toEqual([
+      "Not suitable online",
+      "Frequent requests",
+      "Urgent care",
+    ])
   })
 
   it("includes a reusable frequent-medicine-request draft", () => {
@@ -30,11 +35,17 @@ describe("Decline reason chips contract", () => {
     )
 
     expect(frequentRequest).toMatchObject({
-      label: "Frequent medicine requests",
+      label: "Frequent requests",
     })
     expect(frequentRequest?.template).toContain("number and frequency")
     expect(frequentRequest?.template).toContain("this medicine")
     expect(frequentRequest?.template).toContain("full refund")
+  })
+
+  it("keeps every patient draft in the clinic's voice", () => {
+    for (const reason of DECLINE_REASONS) {
+      expect(reason.template).not.toMatch(/\bI(?:'m|'ve|'d|'ll)?\b/)
+    }
   })
 
   it("review-actions imports DECLINE_REASONS so the chips have a source of truth", () => {
