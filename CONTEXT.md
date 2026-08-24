@@ -57,3 +57,13 @@ _Avoid_: Automatic clear, acknowledgement, stale-data waiver
 **AI Attribution Expansion Gate**:
 The evidence threshold that reopens dedicated AI-channel attribution work: at least 10 reportable AI-attributed paid orders in a closed 30-day window, or a concrete acquisition decision that cannot be made without separating named assistant traffic from Direct.
 _Avoid_: Citation-volume trigger, speculative instrumentation, zero-detection mandate
+
+## Acquisition & Content
+
+**Order-proven Page**:
+A public page with at least 3 free-channel-attributed paid orders in a closed 30-day window, measured from payment truth. Order evidence qualifies a page for bounded deepening (at 10 or more) or maintenance (3 to 9) work the same way GSC-proven query evidence does; it never authorises new page production.
+_Avoid_: Traffic-proven page, ranking winner, citation winner
+
+**Free-channel Order**:
+A paid order whose attribution carries no paid-click identifier (no gclid, gbraid, wbraid, campaign id, or cpc medium). Recovery and lifecycle email orders sit inside this bucket unless a comparison explicitly separates them with the canonical classifier.
+_Avoid_: Organic order (narrower), unattributed order
