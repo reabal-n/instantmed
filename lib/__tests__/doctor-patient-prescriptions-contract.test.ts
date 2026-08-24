@@ -225,6 +225,8 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain('error?.startsWith("Missing prescribing details:")')
     expect(panelSource).toContain('error?.startsWith("Parchment rejected the patient details")')
     expect(panelSource).toContain("Edit patient details")
+    expect(panelSource).toContain("correct the listed fields, then retry")
+    expect(panelSource).not.toContain("collect a valid Medicare number or IHI")
   })
 
   it("treats a Parchment identity-service outage as a provider recovery, not a patient edit", () => {

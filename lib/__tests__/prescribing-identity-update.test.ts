@@ -160,6 +160,26 @@ describe("buildPrescribingIdentityProfileUpdates", () => {
     })
   })
 
+  it("rejects a prescribing address without a street number", () => {
+    const result = buildPrescribingIdentityProfileUpdates({
+      dateOfBirth: "1988-01-01",
+      sex: "F",
+      phone: "0412 345 678",
+      medicareNumber: "1111 11111 1",
+      medicareIrn: "2",
+      medicareExpiry: "2029-05",
+      addressLine1: "Forster Street Mascot 2020 NSW",
+      suburb: "Mascot",
+      state: "NSW",
+      postcode: "2020",
+    })
+
+    expect(result.valid).toBe(false)
+    expect(result.fieldErrors.addressLine1).toBe(
+      "Include the street number, for example 12 Smith Street.",
+    )
+  })
+
   it("returns field errors instead of partial updates for unsafe prescribing identity", () => {
     const result = buildPrescribingIdentityProfileUpdates({
       dateOfBirth: "",
