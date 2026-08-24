@@ -3,7 +3,7 @@
 > Canonical advertising rules for InstantMed marketing, Google Ads, landing pages, metadata, schema, and reusable copy.
 > Read this before changing any public acquisition surface.
 
-**Last updated:** 2026-08-18
+**Last updated:** 2026-08-24
 
 > **In an active complaint?** Stop and load the runbook before doing anything else: [`docs/runbooks/comparative-tagline-complaint.md`](runbooks/comparative-tagline-complaint.md). It covers AHPRA notifications, TGA notices, Medical Board letters, Google Ads disapprovals, competitor cease-and-desists, patient complaints about ad copy, and media inquiries.
 
@@ -258,6 +258,8 @@ Keep negative keywords in three explicit layers: account hard exclusions, servic
 Adding, removing, or moving a negative keyword between layers is a Google Ads mutation and requires the exact approval workflow in `docs/OPERATIONS.md`.
 
 The enabled account list `IM | Never Serve` is the required account-hard-exclusion layer. `lib/ads-agent/policy.ts` owns the paid medicine terms that must exist in that list. A new Search campaign now fails validation when the list is absent or incomplete, attaches it in the same atomic create request, and must fresh-read the link before verification. The restricted `shared_negative_list` repair may attach only that exact enabled list and may add only the exact code-owned terms missing from the fresh baseline; arbitrary shared-list edits remain unsupported.
+
+Proposal `ADS-20260824-01` attached that canonical list to Women's Health and completed its code-owned exclusions. A separate 2026-08-24 account read verified the campaign enabled at A$20/day, the shared list enabled and attached, and zero missing code-owned exclusions.
 
 ## 10. Audience Rules
 
