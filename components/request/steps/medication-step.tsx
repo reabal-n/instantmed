@@ -661,23 +661,48 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     }
   }, [controlledBlock, declineRiskActive, steerActive, serviceSteer, validate, medications, onNext])
 
-  const activeMedications = medications.filter((m) => m.name.trim())
+  const activeMedications = useMemo(
+    () => medications.filter((m) => m.name.trim()),
+    [medications],
+  )
   // Readiness: a named medicine with a concrete strength (structured or
   // reliably inferred from text such as "Sertraline 100mg"), when it was last
   // prescribed, and — for a genuine repeat — current directions/frequency,
   // what it treats, the unchanged-regimen attestation, and an explicit
   // side-effect answer. Form remains optional.
+  //
+  // Built as a list of outstanding answers so the "N to finish" line above
+  // Continue and the readiness gate share ONE source — a display list computed
+  // separately would eventually drift and lie about completeness. Each entry
+  // mirrors one clause of the original readiness predicate exactly.
+  const remainingAnswers = useMemo(() => {
+    const remaining: string[] = []
+    if (activeMedications.length === 0) {
+      remaining.push("medicine name")
+    } else if (
+      !activeMedications.every((medication) =>
+        Boolean(getRepeatScriptMedicationConcreteStrength(medication)),
+      )
+    ) {
+      remaining.push("medicine strength")
+    }
+    if (!prescriptionHistory) remaining.push("when it was last prescribed")
+    if (showRepeatDetails) {
+      if (!hasCompleteRepeatRxRegimen(currentDose)) remaining.push("your directions")
+      if (!indication.trim()) remaining.push("what it's for")
+      if (doseChanged === undefined) remaining.push("same-dose confirmation")
+      if (hasSideEffects === undefined) remaining.push("side-effects question")
+      else if (hasSideEffects && !sideEffects.trim()) remaining.push("side-effect details")
+    }
+    return remaining
+  }, [activeMedications, prescriptionHistory, showRepeatDetails, currentDose, indication, doseChanged, hasSideEffects, sideEffects])
+  // doseChanged === true is not a missing answer (the inline error explains the
+  // GP-review boundary), but it still blocks readiness — hence the explicit
+  // `doseChanged === false` alongside the empty remaining list.
   const isComplete = Boolean(
-    activeMedications.length > 0
-    && activeMedications.every((medication) =>
-      Boolean(getRepeatScriptMedicationConcreteStrength(medication)),
-    )
-    && prescriptionHistory
-    && !isNeverPrescribed
-    && hasCompleteRepeatRxRegimen(currentDose)
-    && indication.trim()
+    !isNeverPrescribed
+    && remainingAnswers.length === 0
     && doseChanged === false
-    && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
   )
   // Live-computed; controlledBlock stays (a real clinical block), the stale
   // `errors` object does not gate readiness.
@@ -824,6 +849,19 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         </QuestionCard>
       )}
 
+      {/* Three labelled regions — Your medicine / How you take it / Quick
+          confirmation — so the single long screen scans as three short jobs on
+          mobile instead of one undifferentiated wall. Visual grouping only:
+          everything stays mounted (#209) and every answer key, handler, and
+          clinical backstop is unchanged. */}
+      <section aria-labelledby="medication-region-medicine" className="space-y-2.5">
+      <h3
+        id="medication-region-medicine"
+        className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+      >
+        Your medicine
+      </h3>
+
       {/* Recent medications suggestion */}
       {recentMeds.length > 0 && !medications.some((m) => m.name.trim()) && (
         <div className="rounded-2xl border border-border/50 bg-white p-3 shadow-md shadow-primary/[0.06] dark:bg-card dark:shadow-none">
@@ -933,10 +971,18 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
           </QuestionCard>
         )
       })}
+      </section>
 
-      {/* The repeat questions share one surface. Related answers stay together,
-          while free typing is progressively disclosed only for uncommon dosing
-          directions or a reported side effect. */}
+      {/* The repeat questions stay on one surface per region. Related answers
+          stay together, while free typing is progressively disclosed only for
+          uncommon dosing directions or a reported side effect. */}
+      <section aria-labelledby="medication-region-directions" className="space-y-2.5">
+      <h3
+        id="medication-region-directions"
+        className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+      >
+        How you take it
+      </h3>
       <QuestionCard compact>
         <div className="divide-y divide-border/40">
           <div className="space-y-2.5 pb-3">
@@ -997,7 +1043,10 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-[minmax(0,1fr)_8.5rem] items-end gap-2">
+                    {/* Amount chips + unit select stack on mobile: side by side
+                        they leave the three-column segmented group ~10rem at
+                        375px, which is what made this row read as cramped. */}
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_8.5rem] sm:items-end sm:gap-2">
                       <div className="space-y-1.5">
                         <Label className="text-xs text-muted-foreground">Amount</Label>
                         <SegmentedChoiceGroup
@@ -1060,6 +1109,51 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                 )}
               </div>
 
+              <div className="py-3">
+                <FormField
+                  label="What is it for?"
+                  required
+                  error={touched.indication ? errors.indication : undefined}
+                >
+                  <Input
+                    id="medication-indication"
+                    value={indication}
+                    onChange={(event) => {
+                      const value = event.target.value
+                      setAnswer("indication", value)
+                      if (value.trim()) {
+                        setErrors((prev) => {
+                          const next = { ...prev }
+                          delete next.indication
+                          return next
+                        })
+                      }
+                    }}
+                    onBlur={() => setTouched((prev) => ({ ...prev, indication: true }))}
+                    placeholder="e.g. asthma"
+                    className="mt-1.5 h-12 sm:h-11"
+                  />
+                </FormField>
+              </div>
+            </>
+          )}
+        </div>
+      </QuestionCard>
+      </section>
+
+      {/* The two yes/no confirmations sit apart from the free-entry fields so
+          the end of the form reads as a short, finishable job. Same rows, same
+          answer keys, same attestation semantics as before the split. */}
+      {showRepeatDetails && (
+      <section aria-labelledby="medication-region-confirm" className="space-y-2.5">
+      <h3
+        id="medication-region-confirm"
+        className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+      >
+        Quick confirmation
+      </h3>
+      <QuestionCard compact>
+        <div className="divide-y divide-border/40">
               <CompactChoiceRow
                 label="Same dose and directions as last time?"
                 required
@@ -1094,33 +1188,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                   yesLabel="Changed"
                 />
               </CompactChoiceRow>
-
-              <div className="py-3">
-                <FormField
-                  label="What is it for?"
-                  required
-                  error={touched.indication ? errors.indication : undefined}
-                >
-                  <Input
-                    id="medication-indication"
-                    value={indication}
-                    onChange={(event) => {
-                      const value = event.target.value
-                      setAnswer("indication", value)
-                      if (value.trim()) {
-                        setErrors((prev) => {
-                          const next = { ...prev }
-                          delete next.indication
-                          return next
-                        })
-                      }
-                    }}
-                    onBlur={() => setTouched((prev) => ({ ...prev, indication: true }))}
-                    placeholder="e.g. asthma"
-                    className="mt-1.5 h-12 sm:h-11"
-                  />
-                </FormField>
-              </div>
 
               <CompactChoiceRow
                 label="Any side effects?"
@@ -1170,10 +1237,10 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                   yesLabel="Yes"
                 />
               </CompactChoiceRow>
-            </>
-          )}
         </div>
       </QuestionCard>
+      </section>
+      )}
 
       {/* New medication detected - repeat-script boundary */}
       {isNeverPrescribed && (
@@ -1208,6 +1275,25 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Live "what's left" line: bottom-adjacent feedback for the sticky
+          mobile CTA, whose blocked-tap summary otherwise scrolls the patient
+          back to the top of a long screen. Derived from the same list that
+          gates readiness, so it can never disagree with Continue. Calm helper
+          text, not an error — hidden while a block/steer alert owns the screen
+          and once everything is answered. */}
+      {!canContinue
+        && !isNeverPrescribed
+        && !controlledBlock
+        && !steerActive
+        && !declineRiskActive
+        && remainingAnswers.length > 0 && (
+        <p className="text-sm text-muted-foreground text-center">
+          {remainingAnswers.length === 1
+            ? `One thing left: ${remainingAnswers[0]}`
+            : `${remainingAnswers.length} to finish: ${remainingAnswers.join(" · ")}`}
+        </p>
       )}
 
       {/* Always clickable so a tap surfaces the blocking reason instead of a
