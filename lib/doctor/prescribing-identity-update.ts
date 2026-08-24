@@ -240,7 +240,7 @@ export function buildPrescribingIdentityProfileUpdates(
     suburb: input.suburb,
     state,
     postcode: input.postcode,
-  })
+  }, { requireStreetNumber: true })
 
   if (addressResult.errors.addressLine1) fieldErrors.addressLine1 = addressResult.errors.addressLine1
   if (addressResult.errors.suburb) fieldErrors.suburb = addressResult.errors.suburb

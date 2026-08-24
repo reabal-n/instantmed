@@ -9,6 +9,57 @@ import type { AustralianState } from "@/types/db"
 
 export type { AustralianState }
 
+export const STREET_NUMBER_REQUIRED_ERROR = "Include the street number, for example 12 Smith Street."
+
+export interface ParsedAustralianStreetAddress {
+  street_number?: string
+  street_name?: string
+}
+
+/**
+ * Split the street number from an Australian street-address line for eScript
+ * integrations. Locality, state, and postcode belong in their own fields and
+ * must never be mistaken for a street number.
+ */
+export function parseAustralianStreetAddress(addressLine1: string | null | undefined): ParsedAustralianStreetAddress {
+  if (!addressLine1?.trim()) return {}
+
+  const trimmed = addressLine1.trim()
+  const unitCommaMatch = trimmed.match(
+    /^(?:unit|apt|suite|lot|level)\s+(\S+)\s*,\s*(\d[\d/a-zA-Z-]*)\s+(.+)$/i,
+  )
+  if (unitCommaMatch) {
+    return {
+      street_number: `${unitCommaMatch[1]}/${unitCommaMatch[2]}`,
+      street_name: unitCommaMatch[3],
+    }
+  }
+
+  const keywordNoCommaMatch = trimmed.match(
+    /^(?:unit|apt|suite|lot|level)\s+(\d[\d/a-zA-Z-]*)\s+(.+)$/i,
+  )
+  if (keywordNoCommaMatch) {
+    return {
+      street_number: keywordNoCommaMatch[1],
+      street_name: keywordNoCommaMatch[2],
+    }
+  }
+
+  const numberMatch = trimmed.match(/^(\d[\d/a-zA-Z-]*)\s+(.+)$/)
+  if (numberMatch) {
+    return {
+      street_number: numberMatch[1],
+      street_name: numberMatch[2],
+    }
+  }
+
+  return { street_name: trimmed }
+}
+
+export function hasAustralianStreetNumber(addressLine1: string | null | undefined): boolean {
+  return Boolean(parseAustralianStreetAddress(addressLine1).street_number)
+}
+
 /**
  * Postcode ranges for each Australian state/territory
  * Source: Australia Post
@@ -131,7 +182,7 @@ export function validateAustralianAddress(address: {
   suburb?: string
   state?: AustralianState | string | null
   postcode?: string
-}): AddressValidationResult {
+}, options: { requireStreetNumber?: boolean } = {}): AddressValidationResult {
   const errors: AddressValidationResult["errors"] = {}
 
   // Address line 1
@@ -139,6 +190,8 @@ export function validateAustralianAddress(address: {
     errors.addressLine1 = "Street address is required"
   } else if (address.addressLine1.trim().length < 5) {
     errors.addressLine1 = "Please enter a complete street address"
+  } else if (options.requireStreetNumber && !hasAustralianStreetNumber(address.addressLine1)) {
+    errors.addressLine1 = STREET_NUMBER_REQUIRED_ERROR
   }
 
   // Suburb

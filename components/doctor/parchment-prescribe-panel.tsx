@@ -55,8 +55,8 @@ function getParchmentErrorCopy(error: string | null): { title: string; detail: s
 
   if (error.startsWith("Missing prescribing details:")) {
     return {
-      title: "Prescribing identity incomplete",
-      detail: `${error}. Edit the patient details, collect a valid Medicare number or IHI, then retry.`,
+      title: "Patient details incomplete",
+      detail: `${error}. Edit the patient details, correct the listed fields, then retry.`,
     }
   }
 

@@ -1,3 +1,7 @@
+import {
+  hasAustralianStreetNumber,
+  STREET_NUMBER_REQUIRED_ERROR,
+} from "@/lib/validation/australian-address"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import { normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 import type { AustralianState, Profile } from "@/types/db"
@@ -136,6 +140,7 @@ export function validateRequiredPrescribingProfileAnswers(
   }
 
   if (!addressLine1) return `Street address is required for ${requestLabel}.`
+  if (!hasAustralianStreetNumber(addressLine1)) return STREET_NUMBER_REQUIRED_ERROR
   if (!suburb) return `Address suburb is required for ${requestLabel}.`
   if (!state) return `A valid Australian state is required for ${requestLabel}.`
   if (!postcode || !/^\d{4}$/.test(postcode)) return `A valid 4-digit postcode is required for ${requestLabel}.`

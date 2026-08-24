@@ -46,6 +46,8 @@ interface AddressAutocompleteProps {
   onVerificationChange?: (isVerified: boolean) => void
   /** Called when the patient explicitly chooses to enter a manual address */
   onManualEntry?: () => void
+  /** Called when the address input loses focus */
+  onBlur?: () => void
 }
 
 export function AddressAutocomplete({
@@ -60,6 +62,7 @@ export function AddressAutocomplete({
   requireVerified = false,
   onVerificationChange,
   onManualEntry,
+  onBlur,
 }: AddressAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -271,17 +274,20 @@ export function AddressAutocomplete({
         id={id}
         value={value}
         onChange={handleInputChange}
+        onBlur={onBlur}
         onKeyDown={handleKeyDown}
         onFocus={() => suggestions.length > 0 && setIsOpen(true)}
         placeholder={placeholder}
         className={cn(
           className,
-          error && "border-red-500",
+          error && "border-destructive",
           isVerified && "border-green-500/50",
           showVerificationWarning && "border-amber-500/50"
         )}
         disabled={disabled}
         autoComplete="off"
+        aria-invalid={Boolean(error)}
+        data-error={error ? "true" : undefined}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-controls={listboxIdRef.current}
@@ -408,7 +414,7 @@ export function AddressAutocomplete({
         </div>
       )}
 
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
     </div>
   )
 }
