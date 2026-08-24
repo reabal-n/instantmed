@@ -257,6 +257,8 @@ Keep negative keywords in three explicit layers: account hard exclusions, servic
 
 Adding, removing, or moving a negative keyword between layers is a Google Ads mutation and requires the exact approval workflow in `docs/OPERATIONS.md`.
 
+The enabled account list `IM | Never Serve` is the required account-hard-exclusion layer. `lib/ads-agent/policy.ts` owns the paid medicine terms that must exist in that list. A new Search campaign now fails validation when the list is absent or incomplete, attaches it in the same atomic create request, and must fresh-read the link before verification. The restricted `shared_negative_list` repair may attach only that exact enabled list and may add only the exact code-owned terms missing from the fresh baseline; arbitrary shared-list edits remain unsupported.
+
 ## 10. Audience Rules
 
 Do not use for health campaigns:

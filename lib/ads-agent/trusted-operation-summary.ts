@@ -59,6 +59,7 @@ export function formatTrustedAdsOperationSummary(
         "Bidding: Manual CPC (enhanced CPC off)",
         "Networks: Google Search only (Search Partners and Display off)",
         `Targeting: Australia only (${operation.locationResourceName}); English (${operation.languageResourceName}); presence only`,
+        "Shared exclusions: IM | Never Serve",
         `Final URL: ${operation.finalUrl}`,
         ...operation.adGroups.flatMap((adGroup, adGroupIndex) => [
           `Ad group ${adGroupIndex + 1}/${operation.adGroups.length}: ${adGroup.name}`,
@@ -150,6 +151,20 @@ export function formatTrustedAdsOperationSummary(
         `Text: ${JSON.stringify(operation.text)}`,
         `Match type: ${operation.matchType}`,
         "Status: ENABLED (negative criterion)",
+      ]
+    }
+
+    if (operation.kind === "shared_negative_list") {
+      return [
+        heading,
+        `Campaign: ${operation.campaignResourceName}`,
+        `Shared exclusion list: ${operation.sharedSetResourceName}`,
+        "Expected → next: not attached → attached",
+        `Missing code-owned exclusions (${operation.keywords.length}):`,
+        ...operation.keywords.map(
+          ({ matchType, text }, keywordIndex) =>
+            `${keywordIndex + 1}. ${matchType} ${JSON.stringify(text)}`,
+        ),
       ]
     }
 
