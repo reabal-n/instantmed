@@ -333,7 +333,7 @@ export function PrescriptionsLanding() {
               title="Before you start"
               subtitle="Short answers about approval, eScripts, and repeats."
               items={PRESCRIPTION_LANDING_FAQ}
-              initialCount={PRESCRIPTION_LANDING_FAQ.length}
+              initialCount={4}
               viewAllHref="/faq"
               className="bg-muted/30 dark:bg-white/[0.02]"
             />
