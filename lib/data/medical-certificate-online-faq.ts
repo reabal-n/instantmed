@@ -59,6 +59,11 @@ export const MEDICAL_CERTIFICATE_ONLINE_FAQ = [
   {
     question: "How do I receive the certificate if approved?",
     answer:
-      "If approved, the certificate is delivered digitally as a secure PDF with verification details. You can use the verification page if an employer or institution needs to check authenticity.",
+      "If approved, the certificate is delivered digitally as a secure PDF with verification details. An employer or institution can check authenticity on the verification page at instantmed.com.au/verify.",
+  },
+  {
+    question: "How can an employer check the certificate is real?",
+    answer:
+      "Every issued certificate carries a unique verification reference printed on the PDF. Anyone can enter that reference at instantmed.com.au/verify, without an account, and the result confirms whether the certificate is genuine, the certificate type, the issuing doctor, the issue date, and the dates covered. The public check shows a masked patient name, such as “Jane D.”, to protect privacy.",
   },
 ] as const

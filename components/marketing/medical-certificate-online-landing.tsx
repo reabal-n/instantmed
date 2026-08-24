@@ -153,11 +153,34 @@ const REVIEW_OUTCOMES = [
   },
 ] as const
 
+const VERIFICATION_FACTS = [
+  {
+    icon: FileText,
+    title: "A unique reference on every certificate",
+    body: "Every certificate PDF includes a verification reference printed on the document itself.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Independent check, no account needed",
+    body: "An employer or institution enters the reference on the public verification page and gets the answer directly from InstantMed's records, not from the document holder.",
+  },
+  {
+    icon: Lock,
+    title: "Privacy-safe by design",
+    body: "The public check shows a masked patient name, such as “Jane D.”, so an employer can confirm authenticity without seeing private details.",
+  },
+] as const
+
 const INTERNAL_LINKS = [
   {
     title: "Medical certificate service",
     href: MONEY_PAGE_HREF,
     body: "The main service page for starting a short medical certificate request.",
+  },
+  {
+    title: "Verify a certificate",
+    href: "/verify",
+    body: "Employers and institutions can confirm a certificate's authenticity using its verification reference.",
   },
   {
     title: "Cold and flu",
@@ -555,6 +578,31 @@ export function MedicalCertificateOnlineLanding({
               {REVIEW_OUTCOMES.map((outcome) => (
                 <InfoCard key={outcome.title} icon={outcome.icon} title={outcome.title} body={outcome.body} />
               ))}
+            </div>
+          </SectionShell>
+
+          <SectionShell
+            pill="Verification"
+            title="Employers can check the certificate themselves."
+            subtitle="You do not have to take legitimacy on trust. Every issued certificate can be independently checked, and the check answers from InstantMed's records."
+          >
+            <div className="grid gap-4 lg:grid-cols-3">
+              {VERIFICATION_FACTS.map((item) => (
+                <InfoCard key={item.title} title={item.title} body={item.body} icon={item.icon} />
+              ))}
+            </div>
+            <div className="mt-6 rounded-2xl border border-border/50 bg-white p-5 text-sm leading-relaxed text-muted-foreground shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
+              <p>
+                Anyone holding the reference can check it at{" "}
+                <Link href="/verify" className="font-medium text-primary underline underline-offset-4">
+                  instantmed.com.au/verify
+                </Link>{" "}
+                without an account. The result confirms whether the certificate is
+                genuine, the certificate type, the issuing doctor, the issue date, and
+                the dates covered. Certificates do not expire: only a revoked
+                certificate fails verification, and a corrected certificate points the
+                verifier to its current version.
+              </p>
             </div>
           </SectionShell>
 
