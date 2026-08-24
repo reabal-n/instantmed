@@ -102,3 +102,11 @@ Homepage changes · any new public URL · medicine-name acquisition content · e
 4. Maintain-tier freshness passes fold into normal doc/content hygiene, not dedicated sessions.
 
 ROADMAP status cells get one-line links as each item starts and lands, per its refresh rule. This plan is complete when all three items have shipped and each measurement gate has been read out once (success, iterate, or stop — recorded here as an addendum).
+
+---
+
+## Addendum — delivery and baseline receipts (2026-08-25)
+
+- **Item 3 shipped 2026-08-24** (PR #493, repeat-Rx medication-step repair). The §4 pre-ship baseline was re-pulled at merge with a pinned lineage: closed window 2026-07-25T00:00 → 2026-08-24T00:00 UTC, unique `flow_instance_id`, `step_id = 'medication'`, `is_e2e` excluded. Result: 234 step views (200 mobile) → 124 completions (104 mobile); **mobile completion 52.0%**. Guardrail baselines: `service_steer` 13 flows (9 mobile) and `clinical_hard_block` 10 flows (10 mobile) — steer+block share 9.5% of mobile views; validation-blocked 56 of 200 mobile flows. **Correction:** the originating audit's 43.1% mobile completion did not reproduce under any stated lineage; 52.0% is the canonical pre-ship baseline. The ≥55% success gate stands — now a +3pp bar, so a passing readout is read with proportionate modesty. The post-ship readout uses this exact lineage once ≥60 post-ship mobile views have accumulated.
+- **Item 1 shipped 2026-08-24** (PR #494, `/medical-certificate-online` verification-loop deepening: Verification section, employer-check FAQ, `/verify` internal link). Readout per §2: page-level free-channel paid orders across the next two closed 30-day windows.
+- Item 2 (`/prescriptions` session) remains queued behind Item 1's compliance context per §7.
