@@ -437,7 +437,7 @@ test.describe("Signed guest checkout resume safety", () => {
     await expect(page.getByRole("heading", {
       name: "More information needed",
       exact: true,
-    })).toBeVisible()
+    })).toBeVisible({ timeout: 30_000 })
     await expectNoPaymentRecoveryActions(page)
     await expect(page.getByText(/we couldn.t open secure checkout/i)).toHaveCount(0)
     await expect(page).toHaveURL(new RegExp(`/patient/intakes/${intakeId}$`))

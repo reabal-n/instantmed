@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
+import {
+  applyQueueRealtimeUpdate,
+  removeCompletedIntakeFromQueue,
+} from "@/lib/doctor/queue-state"
 
 const row = (id: string) => ({ id, label: `case-${id}` })
 
@@ -25,5 +28,24 @@ describe("removeCompletedIntakeFromQueue", () => {
 
     expect(result.remaining).toBe(intakes)
     expect(result.nextIntake).toBeNull()
+  })
+})
+
+describe("applyQueueRealtimeUpdate", () => {
+  it("merges a realtime update into an existing queue row", () => {
+    const intakes = [row("a"), row("b")]
+    const result = applyQueueRealtimeUpdate(intakes, { id: "b", label: "updated" })
+
+    expect(result.matched).toBe(true)
+    expect(result.intakes).toEqual([row("a"), { id: "b", label: "updated" }])
+    expect(result.intakes).not.toBe(intakes)
+  })
+
+  it("requests an authoritative refresh when the updated row is not in the queue", () => {
+    const intakes = [row("a")]
+    const result = applyQueueRealtimeUpdate(intakes, { id: "new", label: "newly paid" })
+
+    expect(result).toEqual({ intakes, matched: false })
+    expect(result.intakes).toBe(intakes)
   })
 })

@@ -21,7 +21,7 @@ import {
   getQueueCompletionOutcome,
 } from "@/lib/doctor/queue-empty-state"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
-import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
+import { applyQueueRealtimeUpdate, removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
 import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getQueueWaitTargetState, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
@@ -66,6 +66,12 @@ interface QueueSearchIntent {
   query: string
   statusFilter: QueueStatusFilter
   page: number
+}
+
+interface QueueRefreshOptions {
+  force?: boolean
+  allowWhilePanelOpen?: boolean
+  bypassThrottle?: boolean
 }
 
 interface LazyIntakeReviewPanelProps {
@@ -248,6 +254,7 @@ export function QueueClient({
     ? activePanel.id.replace("intake-review-", "")
     : null
   const [intakes, setIntakes] = useState(initialIntakes)
+  const intakesRef = useRef(intakes)
   const [activeSearchView, setActiveSearchView] = useState<ActiveQueueSearchView | null>(null)
   const activeSearchViewRef = useRef<ActiveQueueSearchView | null>(null)
   // Keep a live ref to filtered intakes for use in panel callbacks
@@ -259,6 +266,10 @@ export function QueueClient({
   useEffect(() => {
     if (!activeSearchViewRef.current) setIntakes(initialIntakes)
   }, [initialIntakes])
+
+  useEffect(() => {
+    intakesRef.current = intakes
+  }, [intakes])
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [lastOpenedIntakeId, setLastOpenedIntakeId] = useState<string | null>(() => {
@@ -448,14 +459,22 @@ export function QueueClient({
     void runQueueSearch(normalizedSearch, { statusFilter, page: 1 })
   }, [debouncedSearch, initialIntakes, runQueueSearch, statusFilter])
 
-  const refreshQueue = useCallback((force = false) => {
+  const refreshQueue = useCallback((options: QueueRefreshOptions = {}) => {
+    const {
+      force = false,
+      allowWhilePanelOpen = false,
+      bypassThrottle = false,
+    } = options
     const desiredSearch = desiredSearchIntentRef.current
     // A memory-only search refresh updates local queue state and does not
     // remount the selected review pane, so it remains safe while a case is
-    // open. Only unsearched router refreshes need the panel-protection gate.
-    if (!force && panelOpenRef.current && !desiredSearch) return
+    // open. Unsearched background refreshes keep the panel-protection gate;
+    // the explicit Realtime reconciliation path is the narrow exception that
+    // lets a newly paid request enter the queue while the current case stays
+    // selected.
+    if (!force && !allowWhilePanelOpen && panelOpenRef.current && !desiredSearch) return
     const now = Date.now()
-    if (!force && now - lastQueueRefreshAtRef.current < 5000) return
+    if (!force && !bypassThrottle && now - lastQueueRefreshAtRef.current < 5000) return
     lastQueueRefreshAtRef.current = now
     if (desiredSearch) {
       void runQueueSearch(desiredSearch.query, {
@@ -468,6 +487,10 @@ export function QueueClient({
       router.refresh()
     })
   }, [router, runQueueSearch])
+
+  const reconcileRealtimeQueue = useCallback(() => {
+    refreshQueue({ allowWhilePanelOpen: true, bypassThrottle: true })
+  }, [refreshQueue])
 
   useEffect(() => {
     lastQueueRefreshAtRef.current = Date.now()
@@ -595,7 +618,7 @@ export function QueueClient({
       // A raw realtime row cannot prove whether a joined patient/reference
       // predicate matches. Re-run the authoritative server search instead of
       // injecting an unverified row into the filtered result set.
-      refreshQueue()
+      reconcileRealtimeQueue()
       return
     }
 
@@ -622,12 +645,21 @@ export function QueueClient({
         return next
       })
     }, 1500)
-  }, [refreshQueue])
+  }, [reconcileRealtimeQueue])
 
   const handleUpdate = useCallback((updated: Partial<IntakeWithPatient> & { id: string }) => {
-    setIntakes((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)))
+    const reconciled = applyQueueRealtimeUpdate(intakesRef.current, updated)
+    if (!reconciled.matched) {
+      // Draft intakes enter the actionable queue through an UPDATE to `paid`.
+      // A raw Realtime row has no joined patient data, so refresh the
+      // authoritative server queue instead of injecting an incomplete row.
+      reconcileRealtimeQueue()
+      return
+    }
+
+    setIntakes((prev) => applyQueueRealtimeUpdate(prev, updated).intakes)
     if (activeSearchViewRef.current) refreshQueue()
-  }, [refreshQueue])
+  }, [reconcileRealtimeQueue, refreshQueue])
 
   const handleDelete = useCallback((id: string) => {
     setIntakes((prev) => prev.filter((r) => r.id !== id))
@@ -638,7 +670,7 @@ export function QueueClient({
     onInsert: handleInsert,
     onUpdate: handleUpdate,
     onDelete: handleDelete,
-    onRefreshRequested: refreshQueue,
+    onRefreshRequested: reconcileRealtimeQueue,
   })
 
   // Keep the ref read by the blanket-refresh interval (declared above) in sync.
@@ -652,7 +684,7 @@ export function QueueClient({
   const handleIntakeActionComplete = useCallback(
     (intakeId: string, options?: { advance?: boolean }) => {
       if (options?.advance === false) {
-        refreshQueue(true)
+        refreshQueue({ force: true })
         return
       }
 
@@ -668,9 +700,9 @@ export function QueueClient({
       // server state, so ordinary advances use the throttled refresh. If the
       // visible page is exhausted while the authoritative total says cases
       // remain, force reconciliation rather than claiming the queue is clear.
-      refreshQueue(
-        completion.forceRefresh || Boolean(desiredSearchIntentRef.current),
-      )
+      refreshQueue({
+        force: completion.forceRefresh || Boolean(desiredSearchIntentRef.current),
+      })
       if (nextIntake) {
         rememberOpenedCase(nextIntake.id)
         setExpandedId(nextIntake.id)
@@ -797,7 +829,7 @@ export function QueueClient({
         return
       }
       if (result.success) {
-        refreshQueue(true)
+        refreshQueue({ force: true })
         toast.success("Request approved", {
             action: {
               label: "Undo",
@@ -805,7 +837,7 @@ export function QueueClient({
                 const revert = await updateStatusAction(intakeId, "paid")
                 if (revert.success) {
                   restoreRemovedIntake()
-                  refreshQueue(true)
+                  refreshQueue({ force: true })
                   toast.success("Approval undone")
                 } else {
                   toast.error("Couldn't undo approval")
@@ -1066,7 +1098,7 @@ export function QueueClient({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => refreshQueue(true)}
+            onClick={() => refreshQueue({ force: true })}
             disabled={queueRequestPending}
             className="h-7 shrink-0 text-xs"
           >
@@ -1089,7 +1121,7 @@ export function QueueClient({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => refreshQueue(true)}
+              onClick={() => refreshQueue({ force: true })}
               disabled={queueRequestPending}
               className="h-6 shrink-0 px-1.5 text-xs text-warning hover:bg-warning/10 hover:text-warning"
             >
@@ -1110,7 +1142,7 @@ export function QueueClient({
         <QueueFilters
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onRefresh={() => refreshQueue(true)}
+          onRefresh={() => refreshQueue({ force: true })}
           onOpenSingleMatch={
             committedSearchQuery
               && visibleSearchState === "ready"

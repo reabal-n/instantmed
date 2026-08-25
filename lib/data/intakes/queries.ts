@@ -1434,11 +1434,16 @@ export async function getFormToInboxStats(opts: {
  * `includeAutoIssued` is caller-supplied because auto-issued certificates have
  * no reviewing doctor, so they fall outside the per-doctor patient-access
  * boundary. Pass it only for operators with admin access.
+ *
+ * `allowSeeded` and `onlySeeded` are the same admin/test-mode boundary used by
+ * the active queue. Without them, seeded rows stay out of live review history.
  */
 export async function getRecentlyCompletedIntakes(opts: {
   limit?: number
   reviewerId: string
   includeAutoIssued?: boolean
+  allowSeeded?: boolean
+  onlySeeded?: boolean
 }): Promise<{
   data: RecentlyCompletedIntake[]
   degraded: boolean
@@ -1447,11 +1452,13 @@ export async function getRecentlyCompletedIntakes(opts: {
   const supabase = createServiceRoleClient()
   const limit = opts.limit || 8
   const queryLimit = limit + 1
+  const allowSeeded = opts.allowSeeded ?? false
+  const onlySeeded = allowSeeded && opts.onlySeeded === true
   // The actor's Sydney calendar day, including AEST/AEDT transitions.
   const todayStartISO = startOfDaySydney(new Date()).toISOString()
 
   try {
-    const ordinaryQuery = supabase
+    let ordinaryQuery = filterSeededE2EIntakes(supabase
       .from("intakes")
       .select(`
         id,
@@ -1466,35 +1473,45 @@ export async function getRecentlyCompletedIntakes(opts: {
       .eq("reviewed_by", opts.reviewerId)
       // Legacy manual decisions may have NULL here. Only explicit TRUE marks
       // protocol issuance, which is read by the auto-issued stream below.
-      .or("ai_approved.is.false,ai_approved.is.null")
+      .or("ai_approved.is.false,ai_approved.is.null"), { allowSeeded })
+
+    if (onlySeeded) {
+      ordinaryQuery = ordinaryQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+    }
+
+    ordinaryQuery = ordinaryQuery
       .order("reviewed_at", { ascending: false })
       .limit(queryLimit)
 
-    // Seeded E2E rows must never enter the operator's real daily review list:
-    // unlike the actor-scoped stream above, this one has no reviewer predicate
-    // to keep test data out on its own.
-    const autoIssuedQuery = opts.includeAutoIssued
-      ? filterSeededE2EIntakes(supabase
-          .from("intakes")
-          .select(`
-            id,
-            patient_id,
-            status,
-            ai_approved_at,
-            risk_flags,
-            patient:profiles!patient_id(full_name),
-            service:services!service_id(name, type, short_name)
-          `)
-          .eq("ai_approved", true)
-          .eq("status", "approved")
-          // Only medical certificates are auto-issued. Without this, any future
-          // service that sets `ai_approved` silently joins the med-cert
-          // oversight stream under a med-cert-shaped review affordance.
-          .eq("category", "medical_certificate")
-          .gte("ai_approved_at", todayStartISO))
-          .order("ai_approved_at", { ascending: false })
-          .limit(queryLimit)
-      : null
+    let autoIssuedQuery = null
+    if (opts.includeAutoIssued) {
+      let query = filterSeededE2EIntakes(supabase
+        .from("intakes")
+        .select(`
+          id,
+          patient_id,
+          status,
+          ai_approved_at,
+          risk_flags,
+          patient:profiles!patient_id(full_name),
+          service:services!service_id(name, type, short_name)
+        `)
+        .eq("ai_approved", true)
+        .eq("status", "approved")
+        // Only medical certificates are auto-issued. Without this, any future
+        // service that sets `ai_approved` silently joins the med-cert
+        // oversight stream under a med-cert-shaped review affordance.
+        .eq("category", "medical_certificate")
+        .gte("ai_approved_at", todayStartISO), { allowSeeded })
+
+      if (onlySeeded) {
+        query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+      }
+
+      autoIssuedQuery = query
+        .order("ai_approved_at", { ascending: false })
+        .limit(queryLimit)
+    }
 
     // Flagged certificates are prioritised in the merged list, but that sort
     // runs in JS AFTER the queries return — so on a high-volume day a flagged
@@ -1502,27 +1519,34 @@ export async function getRecentlyCompletedIntakes(opts: {
     // before it could ever be sorted to the top. `risk_flags` is JSONB and
     // cannot be ordered by in PostgREST, so fetch the flagged rows as their own
     // bounded stream and merge. Deduped by id below.
-    const flaggedAutoIssuedQuery = opts.includeAutoIssued
-      ? filterSeededE2EIntakes(supabase
-          .from("intakes")
-          .select(`
-            id,
-            patient_id,
-            status,
-            ai_approved_at,
-            risk_flags,
-            patient:profiles!patient_id(full_name),
-            service:services!service_id(name, type, short_name)
-          `)
-          .eq("ai_approved", true)
-          .eq("status", "approved")
-          .eq("category", "medical_certificate")
-          .gte("ai_approved_at", todayStartISO)
-          .not("risk_flags", "eq", "[]")
-          .not("risk_flags", "is", null))
-          .order("ai_approved_at", { ascending: false })
-          .limit(queryLimit)
-      : null
+    let flaggedAutoIssuedQuery = null
+    if (opts.includeAutoIssued) {
+      let query = filterSeededE2EIntakes(supabase
+        .from("intakes")
+        .select(`
+          id,
+          patient_id,
+          status,
+          ai_approved_at,
+          risk_flags,
+          patient:profiles!patient_id(full_name),
+          service:services!service_id(name, type, short_name)
+        `)
+        .eq("ai_approved", true)
+        .eq("status", "approved")
+        .eq("category", "medical_certificate")
+        .gte("ai_approved_at", todayStartISO)
+        .not("risk_flags", "eq", "[]")
+        .not("risk_flags", "is", null), { allowSeeded })
+
+      if (onlySeeded) {
+        query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+      }
+
+      flaggedAutoIssuedQuery = query
+        .order("ai_approved_at", { ascending: false })
+        .limit(queryLimit)
+    }
 
     const [ordinaryResult, autoIssuedResult, flaggedAutoIssuedResult] = await Promise.all([
       ordinaryQuery,

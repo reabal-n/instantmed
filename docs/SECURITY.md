@@ -162,6 +162,8 @@ FOR SELECT USING (
 
 **Baseline replay:** permissive internal `FOR ALL` policies now name `service_role` explicitly, so a clean reset matches production's service-role-only `stripe_disputes` boundary; a contract test rejects new role-less instances.
 
+**Authenticated helper boundary (pending production apply):** migration `20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` scopes `profiles_select_own_or_doctor`, `doctors_manage_documents`, and `Doctors can insert verifications` to `TO authenticated`, matching the roles allowed to execute `is_doctor()`. Its apply-time `pg_policies` check fails closed if any policy is absent or retains a broader role. The linked production database still has the pre-migration `{public}` policy roles until migration history and post-apply catalog receipts prove otherwise.
+
 **Hardened 2026-04-08** via migration `20260408000001_lock_down_intake_drafts_and_safety_audit.sql` (applied to live Supabase):
 
 - `intake_drafts`: dropped the previous `intake_drafts_user_select` policy that used `user_id = auth.uid() OR session_id IS NOT NULL` (the OR clause was always true, allowing any direct Supabase client call to read every draft — a PHI exfiltration vector). Also dropped `intake_drafts_claim_guest` which let any authenticated user take ownership of anonymous drafts and then read their contents. All access now flows through the service-role API at `/api/flow/drafts/[draftId]` which validates ownership at the API layer.

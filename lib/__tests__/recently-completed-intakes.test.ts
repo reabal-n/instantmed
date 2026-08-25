@@ -1,4 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+
+import { SEEDED_E2E_PATIENT_PROFILE_ID } from "@/lib/data/seeded-e2e-data"
 
 const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
@@ -180,6 +182,10 @@ describe("getRecentlyCompletedIntakes", () => {
     vi.useRealTimers()
   })
 
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it("returns ordinary manual decisions with explicit activity provenance", async () => {
     const manual = row("manual", {
       reviewed_at: "2026-07-29T01:15:00.000Z",
@@ -220,6 +226,46 @@ describe("getRecentlyCompletedIntakes", () => {
       ["order", "reviewed_at", { ascending: false }],
       ["limit", 51],
     ]))
+  })
+
+  it("excludes seeded rows from live review history by default", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    const harness = createHarness([{ data: [] }])
+    mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
+
+    const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
+    await getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })
+
+    expect(harness.queries[0]).toContainEqual([
+      "not",
+      "patient_id",
+      "in",
+      expect.any(String),
+    ])
+  })
+
+  it("keeps seeded-only dashboard history isolated across every review stream", async () => {
+    const harness = createHarness([
+      { data: [] },
+      { data: [] },
+      { data: [] },
+    ])
+    mocks.createServiceRoleClient.mockReturnValue(harness.supabase)
+
+    const { getRecentlyCompletedIntakes } = await import("@/lib/data/intakes/queries")
+    await getRecentlyCompletedIntakes({
+      limit: 8,
+      reviewerId: "doctor-1",
+      includeAutoIssued: true,
+      allowSeeded: true,
+      onlySeeded: true,
+    })
+
+    expect(harness.queries).toHaveLength(3)
+    for (const query of harness.queries) {
+      expect(query).toContainEqual(["eq", "patient_id", SEEDED_E2E_PATIENT_PROFILE_ID])
+      expect(query).not.toContainEqual(["not", "patient_id", "in", expect.any(String)])
+    }
   })
 
   it("applies actor and time predicates and omits auto-issued work by default", async () => {

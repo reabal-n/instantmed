@@ -34,8 +34,8 @@ const realtimeSource = readFileSync(
   "utf8",
 )
 
-const intakeNotificationListenerSource = readFileSync(
-  join(process.cwd(), "components/doctor/intake-notification-listener.tsx"),
+const doctorShellSource = readFileSync(
+  join(process.cwd(), "app/doctor/doctor-shell.tsx"),
   "utf8",
 )
 
@@ -110,6 +110,10 @@ const reviewActionsSource = readFileSync(
   join(process.cwd(), "components/doctor/review-actions.tsx"),
   "utf8",
 )
+const dashboardKeyboardSafetyE2ESource = readFileSync(
+  join(process.cwd(), "e2e/dashboard.keyboard-safety.spec.ts"),
+  "utf8",
+)
 
 const caseActionGuardSource = readFileSync(
   join(process.cwd(), "lib/doctor/case-action-guard.ts"),
@@ -163,15 +167,24 @@ describe("doctor queue production contract", () => {
     expect(realtimeSource).toContain("router.refresh()")
   })
 
-  it("keeps in-dashboard doctor toasts limited to fresh paid request transitions", () => {
-    expect(intakeNotificationListenerSource).toContain("PAID_REQUEST_TOAST_WINDOW_MS")
-    expect(intakeNotificationListenerSource).toContain("PAYMENT_WRITE_DRIFT_MS")
-    expect(intakeNotificationListenerSource).toContain("isFreshPaidRequestNotification")
-    expect(intakeNotificationListenerSource).toContain("if (!paidAt) return false")
-    expect(intakeNotificationListenerSource).toContain('event: "UPDATE"')
-    expect(intakeNotificationListenerSource).not.toContain('event: "INSERT"')
-    expect(intakeNotificationListenerSource).not.toContain("payment completed")
-    expect(intakeNotificationListenerSource).not.toContain("New request received")
+  it("keeps new-request paging in Telegram instead of duplicating it in the dashboard", () => {
+    expect(existsSync(join(process.cwd(), "components/doctor/intake-notification-listener.tsx"))).toBe(false)
+    expect(doctorShellSource).not.toContain("IntakeNotificationListener")
+    expect(doctorShellSource).not.toContain("useAuth")
+    expect(realtimeSource).toContain("Telegram is the canonical channel")
+    expect(realtimeSource).not.toContain("queue-sound-muted")
+    expect(queueClientSource).toContain("applyQueueRealtimeUpdate")
+    expect(queueClientSource).toContain("if (!reconciled.matched)")
+    expect(queueClientSource).toContain("const reconcileRealtimeQueue = useCallback")
+    expect(queueClientSource).toContain(
+      "refreshQueue({ allowWhilePanelOpen: true, bypassThrottle: true })",
+    )
+    expect(queueClientSource).toContain("onRefreshRequested: reconcileRealtimeQueue")
+    expect(dashboardKeyboardSafetyE2ESource).toContain("hasIsolatedRealtimeProject()")
+    expect(dashboardKeyboardSafetyE2ESource).toContain("PRODUCTION_SUPABASE_PROJECT_REF")
+    expect(dashboardKeyboardSafetyE2ESource).toContain("process.env.SUPABASE_URL")
+    expect(dashboardKeyboardSafetyE2ESource).toContain("process.env.NEXT_PUBLIC_SUPABASE_URL")
+    expect(dashboardKeyboardSafetyE2ESource).toContain("new Set(projectRefs).size !== 1")
   })
 
   it("keeps queue refreshes throttled and runs a refresh after successful decisions", () => {
@@ -180,7 +193,7 @@ describe("doctor queue production contract", () => {
     // (isStaleRef), at a 3min backstop (was an unconditional 45s full re-render).
     expect(queueClientSource).toContain("isStaleRef.current")
     expect(queueClientSource).toContain("}, 180000)")
-    expect(queueClientSource).toContain("refreshQueue(true)")
+    expect(queueClientSource).toContain("refreshQueue({ force: true })")
     expect(queueClientSource).toContain("onActionComplete={(options)")
     expect(queueClientSource).not.toContain("onActionComplete={(options) => {\n            router.refresh()")
     expect(reviewActionsSource).toContain("if (onActionComplete)")
@@ -315,7 +328,9 @@ describe("doctor queue production contract", () => {
       queueClientSource.indexOf("useEffect(() => {\n    lastQueueRefreshAtRef.current"),
     )
     expect(refreshContract).toContain("desiredSearchIntentRef.current")
-    expect(refreshContract).toContain("panelOpenRef.current && !desiredSearch")
+    expect(refreshContract).toContain(
+      "!allowWhilePanelOpen && panelOpenRef.current && !desiredSearch",
+    )
     expect(refreshContract).not.toContain("activeSearchViewRef.current")
     expect(queueClientSource).toContain(
       "completion.forceRefresh || Boolean(desiredSearchIntentRef.current)",

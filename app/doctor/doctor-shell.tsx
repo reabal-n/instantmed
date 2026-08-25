@@ -1,18 +1,18 @@
 'use client'
 
-import { type ReactNode,Suspense } from 'react'
+import { type ReactNode, Suspense } from 'react'
 
-import { IntakeNotificationListener } from '@/components/doctor/intake-notification-listener'
 import { PanelProvider } from '@/components/panels/panel-provider'
 import { DoctorMobileNav } from '@/components/ui/mobile-nav'
-import { useAuth } from '@/lib/supabase/auth-provider'
 
 /**
  * DoctorShell - Client wrapper for doctor pages
  *
  * Provides:
  * - Panel system (slide-over review panels from queue)
- * - Real-time notifications for new intakes
+ *
+ * Queue updates are owned by the dashboard queue. Telegram is the canonical
+ * off-screen alert for newly paid requests.
  *
  * Session timeout warning removed - Supabase Auth handles session refresh automatically.
  * Keyboard shortcuts discovery hint removed 2026-05-25 — shortcuts still work via
@@ -26,11 +26,8 @@ interface DoctorShellProps {
 }
 
 export function DoctorShell({ children, isAdmin = false }: DoctorShellProps) {
-  const { user } = useAuth()
-
   return (
     <PanelProvider>
-      {user && <IntakeNotificationListener />}
       {children}
       <Suspense fallback={null}>
         <DoctorMobileNav isAdmin={isAdmin} />
