@@ -29,6 +29,8 @@ Prior to these, the canonical refund code had **zero unit coverage** — only th
 
 **Required CI secrets:** `E2E_SECRET`, `ENCRYPTION_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are required for ops/admin E2E pages and seeded auth. The paid-flow E2E gate also requires `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`) and `PARCHMENT_WEBHOOK_SECRET`; CI fails fast if any required secret is missing so payment/prescribing specs cannot silently skip. The signed guest-resume E2E runs in its own step and derives test-only `INTERNAL_API_SECRET` and `PHI_MASTER_KEY` values from `E2E_SECRET` and `ENCRYPTION_KEY`; it deliberately seeds stale benign plaintext beside encrypted high-stakes truth to prove the route reads authoritative encrypted answers. Focused unit coverage separately proves decrypt failure, disabled reads, malformed envelopes, invalid payloads, Session-replacement/expiry interleaving, exact guest email completion links, and redirect-before-webhook conversion values.
 
+The real-session queue Realtime regression is fail-closed: it runs only with `E2E_ISOLATED_SUPABASE=1` against an isolated, non-production Supabase project. Never enable that flag against the shared production project; an authenticated staff Realtime subscription can receive live queue frames even when the page itself renders seeded fixtures.
+
 ---
 
 ## Unit Tests (Vitest)

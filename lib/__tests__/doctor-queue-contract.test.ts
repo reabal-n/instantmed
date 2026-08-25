@@ -110,6 +110,10 @@ const reviewActionsSource = readFileSync(
   join(process.cwd(), "components/doctor/review-actions.tsx"),
   "utf8",
 )
+const dashboardKeyboardSafetyE2ESource = readFileSync(
+  join(process.cwd(), "e2e/dashboard.keyboard-safety.spec.ts"),
+  "utf8",
+)
 
 const caseActionGuardSource = readFileSync(
   join(process.cwd(), "lib/doctor/case-action-guard.ts"),
@@ -171,7 +175,10 @@ describe("doctor queue production contract", () => {
     expect(realtimeSource).not.toContain("queue-sound-muted")
     expect(queueClientSource).toContain("applyQueueRealtimeUpdate")
     expect(queueClientSource).toContain("if (!reconciled.matched)")
-    expect(queueClientSource).toContain("refreshQueue()")
+    expect(queueClientSource).toContain("refreshQueue({ bypassThrottle: true })")
+    expect(dashboardKeyboardSafetyE2ESource).toContain(
+      'process.env.E2E_ISOLATED_SUPABASE !== "1"',
+    )
   })
 
   it("keeps queue refreshes throttled and runs a refresh after successful decisions", () => {
@@ -180,7 +187,7 @@ describe("doctor queue production contract", () => {
     // (isStaleRef), at a 3min backstop (was an unconditional 45s full re-render).
     expect(queueClientSource).toContain("isStaleRef.current")
     expect(queueClientSource).toContain("}, 180000)")
-    expect(queueClientSource).toContain("refreshQueue(true)")
+    expect(queueClientSource).toContain("refreshQueue({ force: true })")
     expect(queueClientSource).toContain("onActionComplete={(options)")
     expect(queueClientSource).not.toContain("onActionComplete={(options) => {\n            router.refresh()")
     expect(reviewActionsSource).toContain("if (onActionComplete)")
