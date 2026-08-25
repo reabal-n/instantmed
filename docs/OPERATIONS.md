@@ -644,6 +644,25 @@ Operational rules:
 - Add content depth only to public canonical pages that should rank and convert. Do not create duplicate route trees for redirect aliases.
 - For selected priority URLs, use Search Console inspection/request indexing manually after deploy and recrawl validation. Do not use Google's Indexing API for ordinary website pages; Google Search Central scopes it to `JobPosting` and livestream `BroadcastEvent` pages.
 
+### OpenSEO Research Supplier
+
+**Current gate (2026-08-25): blocked.** OpenSEO is not approved for an InstantMed account, hosted project context, MCP authentication, or Search Console data. Before any of those actions, the operator must approve a vendor/privacy review covering requested scopes, data categories, retention and deletion, onward AI providers, cross-border handling, contractual/DPA terms, revocation, and incident response. That decision must also record whether `docs/CLINICAL.md` and the public privacy disclosure require a processor update. Until then, use the existing first-party commands and public-source research. Never send PHI, patient/staff data, support correspondence, credentials, intake data, or private operational records.
+
+After approval, `instantmed-openseo-research` is mandatory before any OpenSEO skill or MCP call. OpenSEO remains a projection and evidence store, never a second strategy owner:
+
+| OpenSEO field/output | Owner and write rule |
+|---|---|
+| `business_overview` | Projection from `docs/BUSINESS_PLAN.md` and current platform identity only. |
+| `current_goal` | Projection from `docs/ROADMAP.md` plus the active rung in `docs/REVENUE_MODEL.md`. |
+| `positioning` | Projection from `docs/BUSINESS_PLAN.md` and `docs/BRAND.md`. |
+| `writing_preferences` and compliance/exclusion custom sections | Projection from `docs/VOICE.md`, `docs/SEO_CONTENT_POLICY.md`, `docs/ADVERTISING_COMPLIANCE.md`, and, for guides, `docs/ARTICLE_TEMPLATE.md`. |
+| Research log | Dated factual receipt: scope, tools, credits, and result. It cannot contain strategy or queue changes. |
+| Competitors and key pages | Source-dated candidates saved only after confirmation. They do not authorise comparative claims, new pages, or priority changes. |
+
+Reference plans, memory, interviews, and tool suggestions do not overwrite repo-owned fields. A projection refresh requires an explicit request and an exact field diff; normal research may append its receipt but may not "sharpen" strategy. Check the research log before paid calls and reuse a matching result under 30 days old unless the decision requires fresher evidence. Credit spend requires an explicit request for that research scope or separate approval of the exact call.
+
+Approved upstream helpers are `keyword-research`, `keyword-clustering`, `competitor-analysis`, `competitive-landscape`, `link-prospecting`, and the projection-constrained `seo-project-setup`. Do not use `seo-audit`: internal GSC indexing and content audits own technical triage, and `docs/ROADMAP.md` owns the next action. `local-seo`, `seo-coach`, and `simple-issue-description` also remain pruned.
+
 ---
 
 ## Production Launch Checklist

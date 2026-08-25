@@ -8,7 +8,7 @@
 > On conflict: SEO_CONTENT_POLICY wins on compliance, this doc wins on structure/workflow.
 > For condition, symptom, medication, comparison, and money-page template boundaries, start with `docs/SEO_CONTENT_POLICY.md` and `docs/ADVERTISING_COMPLIANCE.md`; this document controls only health-guide structure and visual workflow.
 
-**Last updated:** 2026-07-08
+**Last updated:** 2026-08-25
 
 **Status:** the template-foundation branch adds the parser, renderer, audit, registry, and visual-generation support described below. Legacy guides are held to this standard when touched.
 
@@ -156,6 +156,8 @@ Work backwards from pages Google already trusts:
 5. Brand-new pages last, after cannibalisation + internal-link checks.
 
 Refresh the queue from GSC (`pnpm seo:gsc-index-audit`) before each batch. Never plan from stale pasted numbers.
+
+Third-party keyword, SERP, competitor, or backlink research may annotate candidates but must not create a parallel queue. It may refine order only within the current GSC-first lane. A brand-new page still requires selection by fresh GSC evidence or current service strategy under `docs/ROADMAP.md`, plus cannibalisation and internal-link checks, and remains last in this queue.
 
 **Indexing-ready means all of:** PR merged · deploy complete · live production HTML shows the new content · live images return 200 · canonical correct · sitemap lists the URL · no noindex/robots/redirect issue. Only then request indexing in GSC.
 

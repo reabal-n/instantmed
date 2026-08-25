@@ -1,0 +1,8 @@
+interface:
+  display_name: "InstantMed OpenSEO Research"
+  short_description: "Govern third-party SEO research safely"
+  default_prompt: "Use $instantmed-openseo-research to run this InstantMed SEO research within the repo-owned strategy and compliance boundaries."
+
+policy:
+  allow_implicit_invocation: true
+

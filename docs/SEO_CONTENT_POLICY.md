@@ -3,7 +3,7 @@
 > Canonical policy for organic educational content, prescription information pages, condition pages, symptom pages, and high-intent SEO pages.
 > Read this before creating or editing public SEO content.
 
-**Last updated:** 2026-07-08
+**Last updated:** 2026-08-25
 
 ---
 
@@ -293,7 +293,13 @@ Use:
 
 > Issued only when clinically appropriate. Standard certificate requests may follow the Medical Director-approved protocol; concerning or uncertain requests require doctor review before issue. Employer and institution policies may vary.
 
-## 9. Review Checklist
+## 9. Third-Party SEO Research
+
+Third-party SEO tools may supply dated SERP, keyword-volume, backlink, competitor, and Search Console evidence. Their output is evidence, not permission to publish, create a page, make a claim, or change strategy. Before adopting a result, map it to an active service, the page-template contract above, and the current `docs/ROADMAP.md` priority.
+
+Tool demand never overrides the prohibitions in this policy. In particular, it cannot justify prescription-medicine acquisition pages, medicine-specific request paths, testimonials or review claims, unsupported comparisons, city/local-pack pages, or a new service. OpenSEO authentication, credits, project-context ownership, and research writebacks are governed by `docs/OPERATIONS.md` and `instantmed-openseo-research`.
+
+## 10. Review Checklist
 
 Before publishing or editing SEO content:
 

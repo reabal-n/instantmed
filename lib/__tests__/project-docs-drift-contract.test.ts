@@ -60,6 +60,7 @@ const roadmap = readProjectFile("docs/ROADMAP.md")
 const clinical = readProjectFile("docs/CLINICAL.md")
 const advertisingCompliance = readProjectFile("docs/ADVERTISING_COMPLIANCE.md")
 const seoContentPolicy = readProjectFile("docs/SEO_CONTENT_POLICY.md")
+const articleTemplate = readProjectFile("docs/ARTICLE_TEMPLATE.md")
 const voice = readProjectFile("docs/VOICE.md")
 const citationKit = readProjectFile("docs/audits/2026-06-04-citation-kit.md")
 const comparisonSubmissionKit = readProjectFile(
@@ -77,6 +78,7 @@ const expectedInstantMedSkills = [
   "instantmed-clinical-safety-review",
   "instantmed-doc-drift-repair",
   "instantmed-marketing-compliance-review",
+  "instantmed-openseo-research",
   "instantmed-production-incident-review",
   "instantmed-ui-browser-verification",
 ]
@@ -278,6 +280,22 @@ describe("project docs drift contract", () => {
       expect(skillMarkdown).toContain("description: InstantMed")
       expect(openAiConfig).toContain("allow_implicit_invocation: true")
     }
+
+    const openSeoSkill = readProjectFile(
+      ".agent-skills/instantmed-openseo-research/SKILL.md",
+    )
+    const approvedHelpers = openSeoSkill.slice(
+      openSeoSkill.indexOf("## Approved Upstream Helpers"),
+      openSeoSkill.indexOf("## Research Path"),
+    )
+
+    expect(operations).toContain("Current gate (2026-08-25): blocked")
+    expect(operations).toContain("OpenSEO remains a projection and evidence store")
+    expect(seoContentPolicy).toContain("Their output is evidence, not permission")
+    expect(articleTemplate).toContain("must not create a parallel queue")
+    expect(approvedHelpers).toContain("`keyword-research`")
+    expect(approvedHelpers).toContain("`seo-project-setup`")
+    expect(approvedHelpers).not.toContain("| `seo-audit` |")
   })
 
   it("keeps product and design docs pointed at one compact operator experience", () => {
