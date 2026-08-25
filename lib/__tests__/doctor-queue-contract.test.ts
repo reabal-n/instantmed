@@ -175,10 +175,13 @@ describe("doctor queue production contract", () => {
     expect(realtimeSource).not.toContain("queue-sound-muted")
     expect(queueClientSource).toContain("applyQueueRealtimeUpdate")
     expect(queueClientSource).toContain("if (!reconciled.matched)")
-    expect(queueClientSource).toContain("refreshQueue({ bypassThrottle: true })")
-    expect(dashboardKeyboardSafetyE2ESource).toContain(
-      'process.env.E2E_ISOLATED_SUPABASE !== "1"',
+    expect(queueClientSource).toContain("const reconcileRealtimeQueue = useCallback")
+    expect(queueClientSource).toContain(
+      "refreshQueue({ allowWhilePanelOpen: true, bypassThrottle: true })",
     )
+    expect(queueClientSource).toContain("onRefreshRequested: reconcileRealtimeQueue")
+    expect(dashboardKeyboardSafetyE2ESource).toContain("hasIsolatedRealtimeProject()")
+    expect(dashboardKeyboardSafetyE2ESource).toContain("PRODUCTION_SUPABASE_PROJECT_REF")
   })
 
   it("keeps queue refreshes throttled and runs a refresh after successful decisions", () => {
@@ -322,7 +325,9 @@ describe("doctor queue production contract", () => {
       queueClientSource.indexOf("useEffect(() => {\n    lastQueueRefreshAtRef.current"),
     )
     expect(refreshContract).toContain("desiredSearchIntentRef.current")
-    expect(refreshContract).toContain("panelOpenRef.current && !desiredSearch")
+    expect(refreshContract).toContain(
+      "!allowWhilePanelOpen && panelOpenRef.current && !desiredSearch",
+    )
     expect(refreshContract).not.toContain("activeSearchViewRef.current")
     expect(queueClientSource).toContain(
       "completion.forceRefresh || Boolean(desiredSearchIntentRef.current)",

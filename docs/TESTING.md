@@ -29,7 +29,7 @@ Prior to these, the canonical refund code had **zero unit coverage** — only th
 
 **Required CI secrets:** `E2E_SECRET`, `ENCRYPTION_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are required for ops/admin E2E pages and seeded auth. The paid-flow E2E gate also requires `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`) and `PARCHMENT_WEBHOOK_SECRET`; CI fails fast if any required secret is missing so payment/prescribing specs cannot silently skip. The signed guest-resume E2E runs in its own step and derives test-only `INTERNAL_API_SECRET` and `PHI_MASTER_KEY` values from `E2E_SECRET` and `ENCRYPTION_KEY`; it deliberately seeds stale benign plaintext beside encrypted high-stakes truth to prove the route reads authoritative encrypted answers. Focused unit coverage separately proves decrypt failure, disabled reads, malformed envelopes, invalid payloads, Session-replacement/expiry interleaving, exact guest email completion links, and redirect-before-webhook conversion values.
 
-The real-session queue Realtime regression is fail-closed: it runs only with `E2E_ISOLATED_SUPABASE=1` against an isolated, non-production Supabase project. Never enable that flag against the shared production project; an authenticated staff Realtime subscription can receive live queue frames even when the page itself renders seeded fixtures.
+The real-session queue Realtime regression is fail-closed: it runs only with `E2E_ISOLATED_SUPABASE=1` against an isolated, non-production Supabase project, and its runtime guard rejects the linked production project ref. It creates one ephemeral doctor auth account and one synthetic patient profile, verifies draft-to-paid queue arrival while another review stays selected, then deletes both. Never enable that flag against the shared production project; an authenticated staff Realtime subscription can receive live queue frames even when the page itself renders seeded fixtures.
 
 ---
 
@@ -130,7 +130,7 @@ Every active `/api/test/*` endpoint must use the same local/CI seam: `PLAYWRIGHT
 
 The client auth provider also treats the readable `__e2e_auth_role` cookie as a minimal signed-in browser user. Server-side authorization still resolves through the httpOnly `__e2e_auth_user_id` cookie, but public client surfaces such as the marketing nav can render signed-in UI in Playwright without creating a real Supabase browser session.
 
-**Never** use real auth credentials in E2E. The auth bypass is the only supported pattern.
+**Never** use real auth credentials against the shared Supabase project. The auth bypass is the only supported shared-project pattern. The sole exception is the isolated-project queue Realtime regression described above: credentials are random, ephemeral, created through the service role, and removed in `afterEach`.
 
 Do not use public inboxes such as Mailinator for staff, admin, privileged, or PHI-like test accounts. Manual patient smoke accounts may use disposable addresses only when they contain fabricated data and no privileged role; otherwise use the seeded E2E auth bypass or a controlled private test inbox.
 
@@ -155,6 +155,7 @@ When `PLAYWRIGHT=1` is set:
 - **Stripe:** use test mode keys — no real charges
 - **Rate limiting:** Redis TTLs may need manual reset between tests if hitting limits
 - **Auth:** bypass cookie accepted by middleware
+- **Real-session Realtime:** ephemeral credentials are allowed only when `E2E_ISOLATED_SUPABASE=1` points at an isolated non-production project; the spec must delete the auth/profile/intake fixtures in `afterEach`
 - **Intake status reset:** use `e2e_reset_intake_status()` RPC (see below) — direct status updates are blocked by the state machine trigger
 - **Seeded queue data:** the fixed `E2E Test Patient` seed is hidden from live operational queue reads unless an E2E/test env flag is set
 

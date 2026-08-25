@@ -12,11 +12,29 @@ import {
 import { waitForPageLoad } from "./helpers/test-utils"
 
 const E2E_OPERATOR_ID = "e2e00000-0000-0000-0000-000000000001"
+const PRODUCTION_SUPABASE_PROJECT_REF = "witzcrovsoumktyndqgz"
+
+function hasIsolatedRealtimeProject(): boolean {
+  if (process.env.E2E_ISOLATED_SUPABASE !== "1") return false
+
+  const configuredUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!configuredUrl) return false
+
+  try {
+    const hostname = new URL(configuredUrl).hostname
+    if (hostname === "localhost" || hostname === "127.0.0.1") return true
+    if (!hostname.endsWith(".supabase.co")) return false
+    return hostname.split(".")[0] !== PRODUCTION_SUPABASE_PROJECT_REF
+  } catch {
+    return false
+  }
+}
 
 interface RealtimeDoctorFixture {
   authUserId: string
   email: string
   password: string
+  patientProfileId: string
 }
 
 async function createRealtimeDoctor(): Promise<RealtimeDoctorFixture> {
@@ -24,6 +42,7 @@ async function createRealtimeDoctor(): Promise<RealtimeDoctorFixture> {
   const email = `e2e-realtime-doctor-${Date.now()}-${randomUUID()}@example.com`
   const password = `E2e-${randomUUID()}!`
   const profileId = randomUUID()
+  const patientProfileId = randomUUID()
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email,
     password,
@@ -62,12 +81,39 @@ async function createRealtimeDoctor(): Promise<RealtimeDoctorFixture> {
     throw new Error(`Could not create realtime doctor profile: ${doctorProfileError.message}`)
   }
 
-  return { authUserId, email, password }
+  const { error: patientProfileError } = await supabase.from("profiles").insert({
+    id: patientProfileId,
+    auth_user_id: null,
+    email: `e2e-realtime-patient-${patientProfileId}@example.com`,
+    full_name: "E2E Realtime Patient",
+    date_of_birth: "1990-06-20",
+    role: "patient",
+    onboarding_completed: true,
+    email_verified: true,
+    email_verified_at: new Date().toISOString(),
+  })
+  if (patientProfileError) {
+    await supabase.auth.admin.deleteUser(authUserId)
+    throw new Error(`Could not create realtime patient profile: ${patientProfileError.message}`)
+  }
+
+  return { authUserId, email, password, patientProfileId }
 }
 
 async function cleanupRealtimeDoctor(fixture: RealtimeDoctorFixture): Promise<void> {
-  const { error } = await getSupabaseClient().auth.admin.deleteUser(fixture.authUserId)
-  if (error) throw new Error(`Could not clean up realtime doctor fixture: ${error.message}`)
+  const supabase = getSupabaseClient()
+  const { error: patientError } = await supabase
+    .from("profiles")
+    .delete()
+    .eq("id", fixture.patientProfileId)
+  const { error: doctorError } = await supabase.auth.admin.deleteUser(fixture.authUserId)
+  const cleanupErrors = [
+    patientError ? `patient profile: ${patientError.message}` : null,
+    doctorError ? `doctor auth: ${doctorError.message}` : null,
+  ].filter(Boolean)
+  if (cleanupErrors.length > 0) {
+    throw new Error(`Could not clean up realtime fixtures (${cleanupErrors.join("; ")})`)
+  }
 }
 
 async function installNotificationProbe(page: Page): Promise<void> {
@@ -408,12 +454,21 @@ test.describe("Doctor keyboard shortcut safety", () => {
     // k returns to the first case.
     await pressQueueKey("k")
     await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${firstIntakeId}$`), { timeout: 15_000 })
+
+    // Realtime reconciliation uses the same router refresh as this explicit
+    // queue refresh. Keep the selected review stable across that server merge.
+    await page.getByRole("button", { name: "Refresh queue" }).click()
+    await expect(fullRecordLink).toHaveAttribute(
+      "href",
+      new RegExp(`${firstIntakeId}$`),
+      { timeout: 15_000 },
+    )
   })
 })
 
 test.describe("Doctor queue realtime notification policy", () => {
   let doctorFixture: RealtimeDoctorFixture | null = null
-  let intakeId: string | null = null
+  const intakeIds: string[] = []
 
   test.beforeEach(async ({ browserName }) => {
     test.skip(
@@ -421,8 +476,8 @@ test.describe("Doctor queue realtime notification policy", () => {
       "Realtime notification regression runs on chromium only",
     )
     test.skip(
-      process.env.E2E_ISOLATED_SUPABASE !== "1",
-      "Isolated Supabase project required for real staff Realtime E2E",
+      !hasIsolatedRealtimeProject(),
+      "Isolated non-production Supabase project required for real staff Realtime E2E",
     )
     test.skip(!isDbAvailable(), "Database required for queue Realtime E2E")
 
@@ -431,9 +486,9 @@ test.describe("Doctor queue realtime notification policy", () => {
 
   test.afterEach(async ({ page }) => {
     await page.context().clearCookies()
-    if (intakeId) {
-      await cleanupTestIntake(intakeId)
-      intakeId = null
+    while (intakeIds.length > 0) {
+      const intakeId = intakeIds.pop()
+      if (intakeId) await cleanupTestIntake(intakeId)
     }
     if (doctorFixture) {
       await cleanupRealtimeDoctor(doctorFixture)
@@ -441,19 +496,32 @@ test.describe("Doctor queue realtime notification policy", () => {
     }
   })
 
-  test("a newly paid request enters the queue without a browser toast or chime", async ({ page }) => {
+  test("a newly paid request enters the queue without disturbing an open review", async ({ page }) => {
     if (!doctorFixture) throw new Error("Realtime doctor fixture was not created")
 
-    const seeded = await seedTestIntake({
+    const existing = await seedTestIntake({
+      status: "paid",
+      payment_status: "paid",
+      category: "medical_certificate",
+      patient_id: doctorFixture.patientProfileId,
+    })
+    if (!existing.success || !existing.intakeId) {
+      throw new Error(existing.error || "Could not seed existing realtime queue intake")
+    }
+    intakeIds.push(existing.intakeId)
+
+    const pending = await seedTestIntake({
       status: "pending_payment",
       payment_status: "pending",
       category: "medical_certificate",
+      patient_id: doctorFixture.patientProfileId,
     })
-    if (!seeded.success || !seeded.intakeId) {
-      throw new Error(seeded.error || "Could not seed pending-payment realtime intake")
+    if (!pending.success || !pending.intakeId) {
+      throw new Error(pending.error || "Could not seed pending-payment realtime intake")
     }
-    intakeId = seeded.intakeId
+    intakeIds.push(pending.intakeId)
 
+    await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto("/sign-in?redirect=%2Fdashboard")
     await waitForPageLoad(page)
     await page.getByLabel("Email address").fill(doctorFixture.email)
@@ -465,8 +533,20 @@ test.describe("Doctor queue realtime notification policy", () => {
     ])
     await waitForPageLoad(page)
 
-    const queueRow = page.getByTestId(`queue-row-${intakeId}`)
-    await expect(queueRow).toHaveCount(0)
+    const existingRow = page.getByTestId(`queue-row-${existing.intakeId}`)
+    const arrivingRow = page.getByTestId(`queue-row-${pending.intakeId}`)
+    await expect(existingRow).toBeVisible({ timeout: 15_000 })
+    await expect(arrivingRow).toHaveCount(0)
+
+    await existingRow.getByRole("button", { name: /Open case/ }).click()
+    const reviewPanel = page.getByTestId("intake-review-panel")
+    const fullRecordLink = reviewPanel.getByRole("link", { name: "Open full record" })
+    await expect(reviewPanel).toBeVisible({ timeout: 15_000 })
+    await expect(fullRecordLink).toHaveAttribute(
+      "href",
+      new RegExp(`${existing.intakeId}$`),
+      { timeout: 15_000 },
+    )
     await installNotificationProbe(page)
 
     const paidAt = new Date().toISOString()
@@ -482,14 +562,19 @@ test.describe("Doctor queue realtime notification policy", () => {
         is_priority: true,
         updated_at: paidAt,
       })
-      .eq("id", intakeId)
+      .eq("id", pending.intakeId)
       .eq("status", "pending_payment")
       .select("id")
       .single()
 
     expect(transitionError, `Paid transition should succeed: ${transitionError?.message}`).toBeNull()
-    expect(transitioned?.id).toBe(intakeId)
-    await expect(queueRow).toBeVisible({ timeout: 15_000 })
+    expect(transitioned?.id).toBe(pending.intakeId)
+    await expect(arrivingRow).toBeVisible({ timeout: 15_000 })
+    await expect(fullRecordLink).toHaveAttribute(
+      "href",
+      new RegExp(`${existing.intakeId}$`),
+      { timeout: 15_000 },
+    )
 
     const notificationResult = await page.evaluate(() => {
       const state = window as typeof window & {

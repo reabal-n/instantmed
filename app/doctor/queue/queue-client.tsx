@@ -70,6 +70,7 @@ interface QueueSearchIntent {
 
 interface QueueRefreshOptions {
   force?: boolean
+  allowWhilePanelOpen?: boolean
   bypassThrottle?: boolean
 }
 
@@ -459,12 +460,19 @@ export function QueueClient({
   }, [debouncedSearch, initialIntakes, runQueueSearch, statusFilter])
 
   const refreshQueue = useCallback((options: QueueRefreshOptions = {}) => {
-    const { force = false, bypassThrottle = false } = options
+    const {
+      force = false,
+      allowWhilePanelOpen = false,
+      bypassThrottle = false,
+    } = options
     const desiredSearch = desiredSearchIntentRef.current
     // A memory-only search refresh updates local queue state and does not
     // remount the selected review pane, so it remains safe while a case is
-    // open. Only unsearched router refreshes need the panel-protection gate.
-    if (!force && panelOpenRef.current && !desiredSearch) return
+    // open. Unsearched background refreshes keep the panel-protection gate;
+    // the explicit Realtime reconciliation path is the narrow exception that
+    // lets a newly paid request enter the queue while the current case stays
+    // selected.
+    if (!force && !allowWhilePanelOpen && panelOpenRef.current && !desiredSearch) return
     const now = Date.now()
     if (!force && !bypassThrottle && now - lastQueueRefreshAtRef.current < 5000) return
     lastQueueRefreshAtRef.current = now
@@ -479,6 +487,10 @@ export function QueueClient({
       router.refresh()
     })
   }, [router, runQueueSearch])
+
+  const reconcileRealtimeQueue = useCallback(() => {
+    refreshQueue({ allowWhilePanelOpen: true, bypassThrottle: true })
+  }, [refreshQueue])
 
   useEffect(() => {
     lastQueueRefreshAtRef.current = Date.now()
@@ -606,7 +618,7 @@ export function QueueClient({
       // A raw realtime row cannot prove whether a joined patient/reference
       // predicate matches. Re-run the authoritative server search instead of
       // injecting an unverified row into the filtered result set.
-      refreshQueue({ bypassThrottle: true })
+      reconcileRealtimeQueue()
       return
     }
 
@@ -633,7 +645,7 @@ export function QueueClient({
         return next
       })
     }, 1500)
-  }, [refreshQueue])
+  }, [reconcileRealtimeQueue])
 
   const handleUpdate = useCallback((updated: Partial<IntakeWithPatient> & { id: string }) => {
     const reconciled = applyQueueRealtimeUpdate(intakesRef.current, updated)
@@ -641,13 +653,13 @@ export function QueueClient({
       // Draft intakes enter the actionable queue through an UPDATE to `paid`.
       // A raw Realtime row has no joined patient data, so refresh the
       // authoritative server queue instead of injecting an incomplete row.
-      refreshQueue({ bypassThrottle: true })
+      reconcileRealtimeQueue()
       return
     }
 
     setIntakes((prev) => applyQueueRealtimeUpdate(prev, updated).intakes)
     if (activeSearchViewRef.current) refreshQueue()
-  }, [refreshQueue])
+  }, [reconcileRealtimeQueue, refreshQueue])
 
   const handleDelete = useCallback((id: string) => {
     setIntakes((prev) => prev.filter((r) => r.id !== id))
@@ -658,7 +670,7 @@ export function QueueClient({
     onInsert: handleInsert,
     onUpdate: handleUpdate,
     onDelete: handleDelete,
-    onRefreshRequested: refreshQueue,
+    onRefreshRequested: reconcileRealtimeQueue,
   })
 
   // Keep the ref read by the blanket-refresh interval (declared above) in sync.
