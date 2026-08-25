@@ -5,7 +5,7 @@
  * Tone: empathetic, reassuring, action-oriented. NOT clinical or alarming.
  *
  * Empathy wrapping (2026-05-26):
- * - Empathetic preamble before the doctor's verbatim note.
+ * - Empathetic preamble before the clinic's patient-facing explanation.
  * - Category-aware next-step paragraph after the note (driven by reasonCode).
  * - Soft, name-led sign-off.
  *
@@ -66,7 +66,7 @@ export interface RequestDeclinedEmailProps {
   requestId?: string
   /** Purpose-scoped, short-lived link to the narrow request-access surface. */
   requestAccessUrl: string
-  /** Doctor's note. Rendered verbatim in the highlighted block. */
+  /** Patient-facing decline explanation. Rendered verbatim in the highlighted block. */
   reason?: string
   /** Structured decline-reason code. Drives the next-step paragraph. */
   reasonCode?: DeclineEmailReasonCode | string
@@ -242,7 +242,7 @@ export function RequestDeclinedEmail({
               fontFamily,
             }}
           >
-            Doctor&apos;s note
+            Why we declined your request
           </p>
           <Text style={{ margin: 0 }}>{reason}</Text>
         </Box>

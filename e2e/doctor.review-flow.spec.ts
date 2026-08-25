@@ -49,10 +49,55 @@ test.describe("Doctor Review - Decline Flow", () => {
 
     const dialog = page.getByRole("alertdialog", { name: /decline request/i })
     await expect(dialog).toBeVisible()
-    await expect(dialog.getByLabel(/details for the patient/i)).toBeVisible()
+    const patientDetails = dialog.getByLabel(/details for the patient/i)
+    const quickDrafts = dialog.locator("button[aria-pressed]")
+
+    await expect(patientDetails).toBeVisible()
+    await expect(quickDrafts).toHaveCount(3)
     await expect(
-      dialog.getByRole("button", { name: /not suitable for telehealth/i }),
+      dialog.getByRole("button", { name: "Not suitable online" }),
     ).toBeVisible()
+    await expect(
+      dialog.getByRole("button", { name: "Frequent requests" }),
+    ).toBeVisible()
+    await expect(
+      dialog.getByRole("button", { name: "Urgent care" }),
+    ).toBeVisible()
+
+    await dialog.getByRole("button", { name: "Frequent requests" }).click()
+    await expect(patientDetails).toHaveValue(/number and frequency/)
+    await expect(patientDetails).toHaveValue(/full refund/)
+
+    const desktopBoxes = await quickDrafts.evaluateAll((buttons) =>
+      buttons.map((button) => {
+        const bounds = button.getBoundingClientRect()
+        return { left: bounds.left, top: bounds.top, width: bounds.width }
+      }),
+    )
+    expect(desktopBoxes[0]?.top).toBe(desktopBoxes[1]?.top)
+    expect(desktopBoxes[2]?.top).toBeGreaterThan(desktopBoxes[0]?.top ?? 0)
+    expect(desktopBoxes[2]?.width).toBeGreaterThan(desktopBoxes[0]?.width ?? 0)
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await expect(dialog).toBeVisible()
+    const mobileLayout = await quickDrafts.evaluateAll((buttons) =>
+      buttons.map((button) => {
+        const bounds = button.getBoundingClientRect()
+        const label = button.querySelector("span")
+        return {
+          height: bounds.height,
+          left: bounds.left,
+          right: bounds.right,
+          top: bounds.top,
+          labelFits: label ? label.scrollWidth <= label.clientWidth : false,
+        }
+      }),
+    )
+    expect(mobileLayout.every((button) => button.left >= 0 && button.right <= 390)).toBe(true)
+    expect(mobileLayout[1]?.top).toBeGreaterThan(mobileLayout[0]?.top ?? 0)
+    expect(mobileLayout[2]?.top).toBeGreaterThan(mobileLayout[1]?.top ?? 0)
+    expect(mobileLayout.every((button) => button.labelFits)).toBe(true)
+    expect(mobileLayout.every((button) => button.height >= 44)).toBe(true)
   })
 
   test("declining updates intake status to declined", async ({ page }) => {
@@ -72,7 +117,7 @@ test.describe("Doctor Review - Decline Flow", () => {
 
     const dialog = page.getByRole("alertdialog", { name: /decline request/i })
     await expect(dialog).toBeVisible()
-    await dialog.getByRole("button", { name: /not suitable for telehealth/i }).click()
+    await dialog.getByRole("button", { name: "Not suitable online" }).click()
     await dialog
       .getByLabel(/details for the patient/i)
       .fill("Not appropriate for telehealth consultation")

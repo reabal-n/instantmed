@@ -3,6 +3,8 @@ import { resolve } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { DECLINE_REASONS } from "@/lib/doctor/constants"
+
 const reviewActionsSource = readFileSync(
   resolve(process.cwd(), "components/doctor/review-actions.tsx"),
   "utf-8",
@@ -14,6 +16,38 @@ const dialogSource = readFileSync(
 )
 
 describe("Decline reason chips contract", () => {
+  it("keeps the quick-draft row to three high-coverage reasons", () => {
+    expect(DECLINE_REASONS.map((reason) => reason.code)).toEqual([
+      "not_telehealth_suitable",
+      "prescribing_guidelines",
+      "urgent_care_needed",
+    ])
+    expect(DECLINE_REASONS.map((reason) => reason.label)).toEqual([
+      "Not suitable online",
+      "Frequent requests",
+      "Urgent care",
+    ])
+  })
+
+  it("includes a reusable frequent-medicine-request draft", () => {
+    const frequentRequest = DECLINE_REASONS.find(
+      (reason) => reason.code === "prescribing_guidelines",
+    )
+
+    expect(frequentRequest).toMatchObject({
+      label: "Frequent requests",
+    })
+    expect(frequentRequest?.template).toContain("number and frequency")
+    expect(frequentRequest?.template).toContain("this medicine")
+    expect(frequentRequest?.template).toContain("full refund")
+  })
+
+  it("keeps every patient draft in the clinic's voice", () => {
+    for (const reason of DECLINE_REASONS) {
+      expect(reason.template).not.toMatch(/\bI(?:'m|'ve|'d|'ll)?\b/)
+    }
+  })
+
   it("review-actions imports DECLINE_REASONS so the chips have a source of truth", () => {
     expect(reviewActionsSource).toMatch(
       /import\s*\{[^}]*DECLINE_REASONS[^}]*\}\s*from\s*["']@\/lib\/doctor\/constants["']/,
@@ -39,7 +73,7 @@ describe("Decline reason chips contract", () => {
   })
 
   it("decline dialog no longer splits into Common/All sections", () => {
-    // With the reason list trimmed to 5, the two-section split was redundant.
+    // With the quick drafts trimmed to 3, the two-section split is redundant.
     expect(dialogSource).not.toMatch(/Common reasons/)
     expect(dialogSource).not.toMatch(/All reasons/)
   })

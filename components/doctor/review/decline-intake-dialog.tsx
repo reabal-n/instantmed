@@ -22,31 +22,11 @@ import { isFulfilmentEntitledPaymentStatus } from "@/lib/stripe/fulfilment-entit
 import { cn } from "@/lib/utils"
 import type { DeclineReasonCode } from "@/types/db"
 
-// Operator-judgment reasons that warrant typed confirmation. Misclicks
-// here are expensive: "other" lets the doctor go off-template, and the
-// urgent-care reason directs the patient to the ED. Both deserve a
-// deliberate keystroke.
+// The urgent-care draft directs the patient to the ED, so selecting it
+// warrants a deliberate typed confirmation before the message is sent.
 const TYPED_CONFIRM_REASONS: ReadonlySet<DeclineReasonCode> = new Set([
-  "other",
   "urgent_care_needed",
 ])
-
-/**
- * Short labels for the chip grid. Source-of-truth long labels live in
- * lib/doctor/constants.ts; these are the compact versions that fit two
- * to a row in the dialog without wrapping at common dialog widths.
- */
-const CHIP_LABELS: Partial<Record<DeclineReasonCode, string>> = {
-  not_telehealth_suitable: "Not suitable for telehealth",
-  prescribing_guidelines: "Against guidelines",
-  controlled_substance: "Controlled substance",
-  urgent_care_needed: "Refer to urgent care",
-  other: "Other",
-}
-
-function chipLabel(code: DeclineReasonCode): string {
-  return CHIP_LABELS[code] || code
-}
 
 export function DeclineIntakeDialog() {
   const {
@@ -100,9 +80,12 @@ export function DeclineIntakeDialog() {
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Reason
             </Label>
-            <div className="grid grid-cols-2 gap-2">
-              {DECLINE_REASONS.map((reason) => {
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {DECLINE_REASONS.map((reason, index) => {
                 const active = reason.code === declineReasonCode
+                const spansRow =
+                  DECLINE_REASONS.length % 2 === 1 &&
+                  index === DECLINE_REASONS.length - 1
                 return (
                   <button
                     key={reason.code}
@@ -114,13 +97,14 @@ export function DeclineIntakeDialog() {
                       setTypedConfirm("")
                     }}
                     className={cn(
-                      "inline-flex h-9 items-center justify-start gap-2 rounded-md border px-3 text-left text-sm font-medium transition-colors",
+                      "inline-flex h-11 items-center justify-start gap-2 rounded-md border px-3 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 sm:h-9",
+                      spansRow && "sm:col-span-2",
                       active
-                        ? "border-primary/60 bg-primary/10 text-primary"
+                        ? "border-primary/60 bg-primary/10 text-primary-strong"
                         : "border-border bg-card text-foreground hover:bg-muted",
                     )}
                   >
-                    <span className="truncate">{chipLabel(reason.code)}</span>
+                    <span className="truncate">{reason.label}</span>
                   </button>
                 )
               })}
