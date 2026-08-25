@@ -646,9 +646,11 @@ Operational rules:
 
 ### OpenSEO Research Supplier
 
-**Current gate (2026-08-25): blocked.** OpenSEO is not approved for an InstantMed account, hosted project context, MCP authentication, or Search Console data. Before any of those actions, the operator must approve a vendor/privacy review covering requested scopes, data categories, retention and deletion, onward AI providers, cross-border handling, contractual/DPA terms, revocation, and incident response. That decision must also record whether `docs/CLINICAL.md` and the public privacy disclosure require a processor update. Until then, use the existing first-party commands and public-source research. Never send PHI, patient/staff data, support correspondence, credentials, intake data, or private operational records.
+**Current gate (2026-08-25): approved by the operator.** The operator accepts OpenSEO's hosted and cross-border vendor/privacy posture for this bounded SEO use without vendor outreach or DPA negotiation. This authorises an InstantMed business account, MCP authentication, repo-derived hosted project context, a read-only Search Console connection, and the approved research helpers below. OpenSEO may receive only public or sanitised business/SEO context, aggregate Search Console data, and the minimum account identity and OAuth tokens required for authentication. It must never receive PHI, patient data, clinical notes, personnel records, support correspondence, intake data, credentials pasted into project context, or raw private operational records.
 
-After approval, `instantmed-openseo-research` is mandatory before any OpenSEO skill or MCP call. OpenSEO remains a projection and evidence store, never a second strategy owner:
+The approved posture relies on read-only scopes, on-demand Search Console reports that OpenSEO says it does not retain, encrypted OAuth-token storage, and revocation/disconnection controls. Claude may process MCP calls; OpenRouter or OpenAI may process data only when an operator deliberately invokes OpenSEO's in-app AI features. Because this approval excludes patient, clinical, staff-record, and private operational data, it does not require an update to `docs/CLINICAL.md` or the public patient privacy disclosure. Any expansion beyond this boundary stops the workflow and reopens the vendor, disclosure, and DPA review.
+
+`instantmed-openseo-research` is mandatory before any OpenSEO skill or MCP call. OpenSEO remains a projection and evidence store, never a second strategy owner:
 
 | OpenSEO field/output | Owner and write rule |
 |---|---|

@@ -289,7 +289,8 @@ describe("project docs drift contract", () => {
       openSeoSkill.indexOf("## Research Path"),
     )
 
-    expect(operations).toContain("Current gate (2026-08-25): blocked")
+    expect(operations).toContain("Current gate (2026-08-25): approved by the operator")
+    expect(operations).toContain("Any expansion beyond this boundary stops the workflow")
     expect(operations).toContain("OpenSEO remains a projection and evidence store")
     expect(seoContentPolicy).toContain("Their output is evidence, not permission")
     expect(articleTemplate).toContain("must not create a parallel queue")
