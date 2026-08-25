@@ -117,7 +117,7 @@ test.describe("Doctor Review - Decline Flow", () => {
 
     const dialog = page.getByRole("alertdialog", { name: /decline request/i })
     await expect(dialog).toBeVisible()
-    await dialog.getByRole("button", { name: /not suitable for telehealth/i }).click()
+    await dialog.getByRole("button", { name: "Not suitable online" }).click()
     await dialog
       .getByLabel(/details for the patient/i)
       .fill("Not appropriate for telehealth consultation")
