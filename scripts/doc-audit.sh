@@ -60,6 +60,7 @@ ACTUAL=$(find . -name "*.md" \
   -not -path "./.playwright-cli/*" \
   -not -path "./.superpowers/*" \
   -not -path "./.agents/*" \
+  -not -path "./.claude/*" \
   -not -path "./docs/reviews/*/*" \
   -not -path "./scripts/blog-photos/*" \
   | wc -l | tr -d ' ')

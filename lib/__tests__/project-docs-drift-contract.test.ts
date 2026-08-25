@@ -87,6 +87,8 @@ describe("project docs drift contract", () => {
   it("excludes linked worktrees and ignored task-execution artifacts from the canonical documentation count", () => {
     expect(docAudit).toContain('-not -path "./.worktrees/*"')
     expect(docAudit).toContain('-not -path "./.superpowers/*"')
+    expect(docAudit).toContain('-not -path "./.agents/*"')
+    expect(docAudit).toContain('-not -path "./.claude/*"')
   })
 
   it("keeps root assistant docs aligned on hours, gated services, and staff dashboard rules", () => {
