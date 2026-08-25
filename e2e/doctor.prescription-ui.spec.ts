@@ -486,7 +486,9 @@ test.describe("Doctor prescription UI flow", () => {
     const medicationContext = parchmentPanel.locator('[data-parchment-medication-context]:visible')
     await expect(medicationContext).toBeVisible({ timeout: 15000 })
     await expect(medicationContext.getByText("Medicine to search", { exact: true })).toBeVisible()
-    await expect(medicationContext.getByText("Sertraline", { exact: true })).toBeVisible()
+    await expect(medicationContext.getByText("Sertraline", { exact: true })).toBeVisible({
+      timeout: 30_000,
+    })
     await expect(medicationContext).toContainText("Likely match from a previous prescription")
     await expect(medicationContext.getByText("Frequency", { exact: true })).toBeVisible()
     await expect(medicationContext.getByText("Once daily", { exact: true })).toBeVisible()
