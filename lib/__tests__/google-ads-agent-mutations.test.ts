@@ -13,6 +13,7 @@ import {
   hashGoogleAdsMutateOperations,
   validateAdsMutationPolicy,
 } from "@/lib/ads-agent/mutations"
+import { PROHIBITED_PAID_MEDICINE_TERMS } from "@/lib/ads-agent/policy"
 import {
   type AdsChangeProposal,
   type AdsMutationOperation,
@@ -38,6 +39,7 @@ const adGroupResourceName = "customers/123/adGroups/111"
 const keywordResourceName = "customers/123/adGroupCriteria/111~222"
 const createdAdResourceName = "customers/123/adGroupAds/111~333"
 const createdKeywordResourceName = "customers/123/adGroupCriteria/111~444"
+const sharedSetResourceName = "customers/123/sharedSets/999"
 
 function resource(
   resourceName: string,
@@ -124,8 +126,25 @@ function accountState(
     customerUserAccess: [],
     readAt: "2026-07-30T09:30:00.000Z",
     responsiveSearchAds: [],
-    sharedCriteria: [],
-    sharedSets: [],
+    sharedCriteria: PROHIBITED_PAID_MEDICINE_TERMS.map((text, index) =>
+      resource(`customers/123/sharedCriteria/999~${index + 1}`, {
+        sharedCriterion: {
+          keyword: { matchType: "BROAD", text },
+          resourceName: `customers/123/sharedCriteria/999~${index + 1}`,
+          sharedSet: sharedSetResourceName,
+          type: "KEYWORD",
+        },
+      })),
+    sharedSets: [
+      resource(sharedSetResourceName, {
+        sharedSet: {
+          name: "IM | Never Serve",
+          resourceName: sharedSetResourceName,
+          status: "ENABLED",
+          type: "NEGATIVE_KEYWORDS",
+        },
+      }),
+    ],
     ...overrides,
   }
 }
@@ -379,6 +398,25 @@ function stateWithCreatedKeyword(
   return next
 }
 
+function stateWithSharedNegativeList(
+  state: GoogleAdsAccountState,
+): GoogleAdsAccountState {
+  const next = structuredClone(state)
+  next.campaignSharedSets.push(resource(
+    "customers/123/campaignSharedSets/456~999",
+    {
+      campaignSharedSet: {
+        campaign: campaignResourceName,
+        resourceName: "customers/123/campaignSharedSets/456~999",
+        sharedSet: sharedSetResourceName,
+        status: "ENABLED",
+      },
+    },
+  ))
+  next.readAt = "2026-07-30T09:31:00.000Z"
+  return next
+}
+
 function stateWithCreatedCampaign(
   state: GoogleAdsAccountState,
 ): GoogleAdsAccountState {
@@ -414,6 +452,17 @@ function stateWithCreatedCampaign(
       status: "ENABLED",
     },
   }))
+  next.campaignSharedSets.push(resource(
+    "customers/123/campaignSharedSets/900~999",
+    {
+      campaignSharedSet: {
+        campaign: createdCampaignResourceName,
+        resourceName: "customers/123/campaignSharedSets/900~999",
+        sharedSet: sharedSetResourceName,
+        status: "ENABLED",
+      },
+    },
+  ))
   next.campaignCriteria.push(
     resource("customers/123/campaignCriteria/900~2036", {
       campaignCriterion: {
@@ -1009,7 +1058,7 @@ describe("Google Ads mutation gateway", () => {
       harness.gateway.applyProposal("ADS-20260730-01"),
     ).resolves.toMatchObject({ outcome: "applied" })
     expect(harness.store.getCurrent().status).toBe("verified")
-    expect(harness.mutate.mock.calls[0][0].operations).toHaveLength(7)
+    expect(harness.mutate.mock.calls[0][0].operations).toHaveLength(8)
 
     await harness.gateway.buildRollbackProposal("ADS-20260730-01")
     expect(harness.store.rollbacks[0].operations).toEqual([{
@@ -1018,6 +1067,32 @@ describe("Google Ads mutation gateway", () => {
       next: "PAUSED",
       resourceName: createdCampaignResourceName,
     }])
+  })
+
+  it("does not verify a new campaign without the medicine-exclusion list", async () => {
+    const before = accountState()
+    const after = stateWithCreatedCampaign(before)
+    after.campaignSharedSets = []
+    const initial = proposal(before, {
+      operations: [campaignCreateOperation],
+      rationale: {
+        boundedImpact: "A$20/day with an A$3 max CPC",
+        campaign: "IM | Search | Women's Health | AU",
+        currentValue: "No paid Women's Health campaign",
+        reason: "Approved bounded acquisition launch",
+        requestedValue: "Enabled Search campaign",
+        service: "womens_health",
+      },
+    })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("failed")
+    expect(harness.store.getCurrent().verificationReceipt).toMatchObject({
+      outcome: "mismatch",
+    })
   })
 
   it("binds a campaign launch approval card to the exact service and name", async () => {
@@ -1564,6 +1639,158 @@ describe("Google Ads mutation gateway", () => {
         },
       },
     ])
+  })
+
+  it("attaches the reviewed shared medicine-exclusion list", () => {
+    const state = accountState()
+    expect(buildGoogleAdsMutateOperations([{
+      campaignResourceName,
+      kind: "shared_negative_list",
+      keywords: [
+        { matchType: "BROAD", text: "nitrofurantoin" },
+        { matchType: "BROAD", text: "trimethoprim" },
+      ],
+      sharedSetResourceName,
+    }], state)).toEqual([
+      {
+        campaignSharedSetOperation: {
+          create: {
+            campaign: campaignResourceName,
+            sharedSet: sharedSetResourceName,
+          },
+        },
+      },
+      {
+        sharedCriterionOperation: {
+          create: {
+            keyword: { matchType: "BROAD", text: "nitrofurantoin" },
+            sharedSet: sharedSetResourceName,
+          },
+        },
+      },
+      {
+        sharedCriterionOperation: {
+          create: {
+            keyword: { matchType: "BROAD", text: "trimethoprim" },
+            sharedSet: sharedSetResourceName,
+          },
+        },
+      },
+    ])
+  })
+
+  it("rejects any shared list except the canonical medicine-exclusion list", () => {
+    expect(() => validateAdsMutationPolicy({
+      operations: [{
+        campaignResourceName,
+        kind: "shared_negative_list",
+        keywords: [],
+        sharedSetResourceName: "customers/123/sharedSets/888",
+      }],
+      state: accountState(),
+    })).toThrow("shared_negative_list_mismatch")
+  })
+
+  it("repairs exactly the code-owned medicine terms missing from the list", () => {
+    const state = accountState()
+    state.sharedCriteria = state.sharedCriteria.filter((resource) => {
+      const criterion = resource.values.sharedCriterion as Record<string, unknown>
+      const keyword = criterion.keyword as Record<string, unknown>
+      return keyword.text !== "nitrofurantoin" && keyword.text !== "trimethoprim"
+    })
+    const operation = {
+      campaignResourceName,
+      kind: "shared_negative_list",
+      keywords: [
+        { matchType: "BROAD", text: "nitrofurantoin" },
+        { matchType: "BROAD", text: "trimethoprim" },
+      ],
+      sharedSetResourceName,
+    } satisfies AdsMutationOperation
+
+    expect(() => validateAdsMutationPolicy({
+      operations: [operation],
+      state,
+    })).not.toThrow()
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...operation, keywords: operation.keywords.slice(0, 1) }],
+      state,
+    })).toThrow("shared_negative_list_terms_mismatch")
+  })
+
+  it("fresh-reads the shared exclusion-list attachment before verification", async () => {
+    const before = accountState()
+    const after = stateWithSharedNegativeList(before)
+    const operation = {
+      campaignResourceName,
+      kind: "shared_negative_list",
+      keywords: [],
+      sharedSetResourceName,
+    } satisfies AdsMutationOperation
+    const initial = proposal(before, {
+      operations: [operation],
+      rationale: {
+        boundedImpact: "Blocks excluded searches on the existing campaign",
+        campaign: "Scripts Search",
+        currentValue: "Shared exclusion list not attached",
+        reason: "Restore the account medicine-exclusion invariant",
+        requestedValue: "Shared exclusion list attached",
+        service: "scripts",
+      },
+    })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("verified")
+
+    await harness.gateway.buildRollbackProposal("ADS-20260730-01")
+    expect(harness.store.rollbacks[0].operations).toEqual([{
+      expected: "ENABLED",
+      kind: "campaign_status",
+      next: "PAUSED",
+      resourceName: campaignResourceName,
+    }])
+  })
+
+  it("does not verify the repair until every missing medicine term reads back", async () => {
+    const before = accountState()
+    before.sharedCriteria = before.sharedCriteria.filter((resource) => {
+      const criterion = resource.values.sharedCriterion as Record<string, unknown>
+      const keyword = criterion.keyword as Record<string, unknown>
+      return keyword.text !== "nitrofurantoin" && keyword.text !== "trimethoprim"
+    })
+    const after = stateWithSharedNegativeList(before)
+    const operation = {
+      campaignResourceName,
+      kind: "shared_negative_list",
+      keywords: [
+        { matchType: "BROAD", text: "nitrofurantoin" },
+        { matchType: "BROAD", text: "trimethoprim" },
+      ],
+      sharedSetResourceName,
+    } satisfies AdsMutationOperation
+    const initial = proposal(before, {
+      operations: [operation],
+      rationale: {
+        boundedImpact: "Blocks excluded searches on the existing campaign",
+        campaign: "Scripts Search",
+        currentValue: "Shared exclusion list incomplete",
+        reason: "Restore the account medicine-exclusion invariant",
+        requestedValue: "Shared exclusion list complete and attached",
+        service: "scripts",
+      },
+    })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("failed")
+    expect(harness.store.getCurrent().verificationReceipt).toMatchObject({
+      outcome: "mismatch",
+    })
   })
 
   it("maps RSA and exact-keyword creates to the reviewed Google shapes", () => {

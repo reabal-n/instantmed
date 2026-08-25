@@ -119,6 +119,15 @@ export type AdsMutationOperation =
       text: string
     }
   | {
+      campaignResourceName: string
+      kind: "shared_negative_list"
+      keywords: Array<{
+        matchType: "BROAD"
+        text: string
+      }>
+      sharedSetResourceName: string
+    }
+  | {
       kind: "asset_link_status"
       resourceName: string
       expected: string
@@ -876,6 +885,55 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
         "matchType",
       ),
       text,
+    }
+  }
+  if (record.kind === "shared_negative_list") {
+    assertExactKeys(
+      record,
+      ["kind", "campaignResourceName", "keywords", "sharedSetResourceName"],
+      "shared_negative_list",
+    )
+    if (!Array.isArray(record.keywords) || record.keywords.length > 30) {
+      throw new Error("Shared negative list accepts at most 30 keywords")
+    }
+    const keywords = record.keywords.map((value) => {
+      const keyword = asRecord(value)
+      if (!keyword) throw new Error("Invalid shared negative keyword")
+      assertExactKeys(
+        keyword,
+        ["matchType", "text"],
+        "shared negative keyword",
+      )
+      const text = requiredString(keyword.text, "shared negative keyword")
+      if (text.length > 80) throw new Error("Shared negative keyword is too long")
+      return {
+        matchType: enumValue(
+          keyword.matchType,
+          ["BROAD"] as const,
+          "matchType",
+        ),
+        text,
+      }
+    })
+    if (
+      new Set(keywords.map(({ text }) => text.toLowerCase())).size
+        !== keywords.length
+    ) {
+      throw new Error("Shared negative keywords must be unique")
+    }
+    return {
+      campaignResourceName: resourceName(
+        record.campaignResourceName,
+        "campaigns",
+        "campaignResourceName",
+      ),
+      kind: "shared_negative_list",
+      keywords,
+      sharedSetResourceName: resourceName(
+        record.sharedSetResourceName,
+        "sharedSets",
+        "sharedSetResourceName",
+      ),
     }
   }
   if (record.kind === "asset_link_status") {

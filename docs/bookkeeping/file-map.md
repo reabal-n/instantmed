@@ -133,6 +133,7 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 | [docs/plans/2026-07-27-google-ads-rebuild-plan.md](../plans/2026-07-27-google-ads-rebuild-plan.md) | Approval-gated Google Ads Agent implementation plan; ROADMAP rank 4 decides activation and every live mutation remains separately approved |
 | [docs/plans/2026-08-05-repeat-rx-dedicated-service-routing.md](../plans/2026-08-05-repeat-rx-dedicated-service-routing.md) | Implemented record for tiered dedicated-service routing out of the repeat-Rx lane (ED + hair loss hard-routed, weight-loss class flagged); reference only, shipped in PR #433 |
 | [docs/plans/2026-08-07-weight-loss-launch-plan.md](../plans/2026-08-07-weight-loss-launch-plan.md) | Implemented decision record for the weight-management launch (operator decisions D-A..D-E; production go-live PR #447 on 2026-08-10); paid advertising remains separately gated |
+| [docs/plans/2026-08-24-free-channel-compounding-and-repeat-rx-conversion.md](../plans/2026-08-24-free-channel-compounding-and-repeat-rx-conversion.md) | Execution plan under ROADMAP ranks 6 and 1: deepen order-proven free-channel pages, one bounded on-site prescription experiment, repeat-Rx medication-step mobile conversion repair; records the AI Attribution Expansion Gate as cleared |
 
 Root plan files preserve implementation detail only. They are not active merely because they remain outside the archive; `docs/ROADMAP.md` is the sole queue.
 

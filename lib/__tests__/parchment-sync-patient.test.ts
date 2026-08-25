@@ -135,6 +135,25 @@ describe("getParchmentPatientIdentityIssues", () => {
     })).toEqual(["Address suburb", "Address state", "Address postcode"])
   })
 
+  it("flags a single-name legacy profile before Parchment can reject it", () => {
+    expect(getParchmentPatientIdentityIssues({
+      ...baseProfile,
+      full_name: "Joshua",
+      first_name: null,
+      last_name: null,
+    })).toEqual(["Family name"])
+  })
+
+  it("flags an address without a parsable street number before Parchment can reject it", () => {
+    expect(getParchmentPatientIdentityIssues({
+      ...baseProfile,
+      address_line1: "Forster Street Mascot 2020 NSW",
+      suburb: "Mascot",
+      state: "NSW",
+      postcode: "2020",
+    })).toEqual(["Address street number"])
+  })
+
   it("blocks Parchment sync when Medicare IRN is missing but allows absent card expiry", () => {
     expect(getParchmentPatientIdentityIssues({
       ...baseProfile,

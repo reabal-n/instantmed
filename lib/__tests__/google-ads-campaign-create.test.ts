@@ -5,11 +5,14 @@ import {
   buildGoogleAdsMutateOperations,
   validateAdsMutationPolicy,
 } from "@/lib/ads-agent/mutations"
+import { PROHIBITED_PAID_MEDICINE_TERMS } from "@/lib/ads-agent/policy"
 import {
   type AdsMutationOperation,
   normalizeAdsMutationOperations,
 } from "@/lib/ads-agent/proposals"
 import { formatTrustedAdsOperationSummary } from "@/lib/ads-agent/trusted-operation-summary"
+
+const sharedSetResourceName = "customers/123/sharedSets/999"
 
 const campaignCreateOperation = {
   adGroups: [
@@ -195,8 +198,28 @@ function accountState(
     optionalQueryFailures: [],
     readAt: "2026-08-18T04:00:00.000Z",
     responsiveSearchAds: [],
-    sharedCriteria: [],
-    sharedSets: [],
+    sharedCriteria: PROHIBITED_PAID_MEDICINE_TERMS.map((text, index) => ({
+      resourceName: `customers/123/sharedCriteria/999~${index + 1}`,
+      values: {
+        sharedCriterion: {
+          keyword: { matchType: "BROAD", text },
+          resourceName: `customers/123/sharedCriteria/999~${index + 1}`,
+          sharedSet: sharedSetResourceName,
+          type: "KEYWORD",
+        },
+      },
+    })),
+    sharedSets: [{
+      resourceName: sharedSetResourceName,
+      values: {
+        sharedSet: {
+          name: "IM | Never Serve",
+          resourceName: sharedSetResourceName,
+          status: "ENABLED",
+          type: "NEGATIVE_KEYWORDS",
+        },
+      },
+    }],
     ...overrides,
   }
 }
@@ -308,13 +331,27 @@ describe("Google Ads campaign creation boundary", () => {
     })).toThrow("specialty_cpc_ceiling_exceeded")
   })
 
+  it("requires the account medicine-exclusion list for every new campaign", () => {
+    expect(() => validateAdsMutationPolicy({
+      operations: [campaignCreateOperation],
+      state: accountState({ sharedSets: [] }),
+    })).toThrow("required_shared_negative_list_missing")
+  })
+
+  it("requires every code-owned medicine exclusion before campaign launch", () => {
+    expect(() => validateAdsMutationPolicy({
+      operations: [campaignCreateOperation],
+      state: accountState({ sharedCriteria: [] }),
+    })).toThrow("required_shared_negative_terms_missing")
+  })
+
   it("builds the entire launch as one temporary-name atomic request", () => {
     const operations = buildGoogleAdsMutateOperations(
       [campaignCreateOperation],
       accountState(),
     )
 
-    expect(operations).toHaveLength(20)
+    expect(operations).toHaveLength(21)
     expect(operations[0]).toEqual({
       campaignBudgetOperation: {
         create: {
@@ -371,7 +408,15 @@ describe("Google Ads campaign creation boundary", () => {
         },
       },
     ])
-    expect(operations.slice(4, 6)).toEqual([
+    expect(operations[4]).toEqual({
+      campaignSharedSetOperation: {
+        create: {
+          campaign: "customers/123/campaigns/-2",
+          sharedSet: sharedSetResourceName,
+        },
+      },
+    })
+    expect(operations.slice(5, 7)).toEqual([
       expect.objectContaining({
         adGroupOperation: {
           create: expect.objectContaining({
@@ -397,11 +442,11 @@ describe("Google Ads campaign creation boundary", () => {
         },
       }),
     ])
-    expect(operations.slice(6, 8).every((operation) =>
+    expect(operations.slice(7, 9).every((operation) =>
       "adGroupAdOperation" in operation)).toBe(true)
-    expect(operations.slice(8).every((operation) =>
+    expect(operations.slice(9).every((operation) =>
       "adGroupCriterionOperation" in operation)).toBe(true)
-    expect(operations[9]).toEqual(expect.objectContaining({
+    expect(operations[10]).toEqual(expect.objectContaining({
       adGroupCriterionOperation: expect.objectContaining({
         exemptPolicyViolationKeys: [{
           policyName: "HEALTH_IN_PERSONALIZED_ADS",
@@ -409,7 +454,7 @@ describe("Google Ads campaign creation boundary", () => {
         }],
       }),
     }))
-    expect(operations[17]).toEqual(expect.objectContaining({
+    expect(operations[18]).toEqual(expect.objectContaining({
       adGroupCriterionOperation: expect.objectContaining({
         exemptPolicyViolationKeys: [
           {
@@ -433,6 +478,7 @@ describe("Google Ads campaign creation boundary", () => {
     expect(summary).toContain("A$20.00/day")
     expect(summary).toContain("A$3.00 max CPC")
     expect(summary).toContain("Australia only")
+    expect(summary).toContain("Shared exclusions: IM | Never Serve")
     expect(summary).toContain("AG | UTI Assessment")
     expect(summary).toContain("online uti assessment")
     expect(summary).toContain("AG | Contraception Assessment")
@@ -443,5 +489,21 @@ describe("Google Ads campaign creation boundary", () => {
     )
     expect(summary).toContain("https://instantmed.com.au/womens-health")
     expect(Array.from(summary).length).toBeLessThan(3_600)
+  })
+
+  it("renders every shared exclusion-list repair in the approval summary", () => {
+    const summary = formatTrustedAdsOperationSummary([{
+      campaignResourceName: "customers/123/campaigns/456",
+      kind: "shared_negative_list",
+      keywords: [
+        { matchType: "BROAD", text: "nitrofurantoin" },
+        { matchType: "BROAD", text: "trimethoprim" },
+      ],
+      sharedSetResourceName,
+    }]).lines.join("\n")
+
+    expect(summary).toContain("Shared exclusion list")
+    expect(summary).toContain('BROAD "nitrofurantoin"')
+    expect(summary).toContain('BROAD "trimethoprim"')
   })
 })

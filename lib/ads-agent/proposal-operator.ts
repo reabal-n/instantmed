@@ -40,6 +40,7 @@ const MUTATION_FAMILIES = new Set<AdsMutationFamily>([
   "ad_status",
   "keyword_status",
   "negative_keyword",
+  "shared_negative_list",
   "asset_link_status",
   "schedule_replace",
   "responsive_search_ad_create",

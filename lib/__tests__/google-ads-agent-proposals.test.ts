@@ -112,6 +112,12 @@ describe("Google Ads proposal operation boundary", () => {
         text: "free medicine",
       },
       {
+        campaignResourceName: "customers/123/campaigns/789",
+        kind: "shared_negative_list",
+        keywords: [{ matchType: "BROAD", text: "nitrofurantoin" }],
+        sharedSetResourceName: "customers/123/sharedSets/456",
+      },
+      {
         kind: "asset_link_status",
         resourceName: "customers/123/campaignAssets/789~34~SITELINK",
         expected: "ENABLED",
@@ -153,7 +159,7 @@ describe("Google Ads proposal operation boundary", () => {
         status: "ENABLED",
         text: "online medical certificate",
       },
-    ])).toHaveLength(11)
+    ])).toHaveLength(12)
   })
 
   it("rejects raw Google mutate JSON and unknown operation fields", () => {

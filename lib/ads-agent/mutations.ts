@@ -15,6 +15,7 @@ import {
   authorizeScriptsScaleEligibility,
   containsProhibitedPaidMedicineTerm,
   POLICY,
+  PROHIBITED_PAID_MEDICINE_TERMS,
   resolveAdsCampaignService,
 } from "@/lib/ads-agent/policy"
 import {
@@ -139,6 +140,8 @@ interface AdsMutationGatewayDependencies {
 
 type UnknownRecord = Record<string, unknown>
 
+const REQUIRED_SHARED_NEGATIVE_SET_NAME = "IM | Never Serve"
+
 const AUDIT_ACTION = "google_ads_agent_mutation"
 const TRACKING_GATE_MAX_AGE_MS = 26 * 60 * 60 * 1000
 const PROHIBITED_POSITIVE_MATCH_TYPES = new Set(["BROAD"])
@@ -155,6 +158,40 @@ function asRecord(value: unknown): UnknownRecord | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as UnknownRecord
     : null
+}
+
+function requiredSharedNegativeSetResourceName(
+  state: GoogleAdsAccountState,
+): string {
+  const matches = state.sharedSets.flatMap((resource) => {
+    const sharedSet = asRecord(resource.values.sharedSet)
+    if (
+      !resource.resourceName
+      || asString(sharedSet?.name) !== REQUIRED_SHARED_NEGATIVE_SET_NAME
+      || asString(sharedSet?.type) !== "NEGATIVE_KEYWORDS"
+      || asString(sharedSet?.status) !== "ENABLED"
+    ) {
+      return []
+    }
+    return [resource.resourceName]
+  })
+  if (matches.length !== 1) {
+    throw new Error("required_shared_negative_list_missing")
+  }
+  return matches[0]
+}
+
+function missingRequiredSharedNegativeTerms(
+  state: GoogleAdsAccountState,
+  sharedSetResourceName: string,
+): string[] {
+  const current = new Set(state.sharedCriteria.flatMap((resource) => {
+    const criterion = asRecord(resource.values.sharedCriterion)
+    const keyword = asRecord(criterion?.keyword)
+    const text = asString(keyword?.text)?.toLowerCase()
+    return criterion?.sharedSet === sharedSetResourceName && text ? [text] : []
+  }))
+  return PROHIBITED_PAID_MEDICINE_TERMS.filter((term) => !current.has(term))
 }
 
 function asString(value: unknown): string | null {
@@ -488,6 +525,21 @@ function campaignCriterionTargets(args: {
   }).sort((left, right) => left.localeCompare(right))
 }
 
+function campaignHasSharedSet(args: {
+  campaignResourceName: string
+  sharedSetResourceName: string
+  state: GoogleAdsAccountState
+}): boolean {
+  return args.state.campaignSharedSets.some((resource) => {
+    const link = asRecord(resource.values.campaignSharedSet)
+    return (
+      link?.campaign === args.campaignResourceName
+      && link?.sharedSet === args.sharedSetResourceName
+      && asString(link.status) === "ENABLED"
+    )
+  })
+}
+
 function campaignCreateAdGroupMatches(args: {
   actualResourceName: string
   operation: CampaignCreateOperation
@@ -552,6 +604,7 @@ function matchingCampaignCreates(
   state: GoogleAdsAccountState,
   operation: CampaignCreateOperation,
 ): Array<{ resourceName: string; status: string | null }> {
+  const sharedSetResourceName = requiredSharedNegativeSetResourceName(state)
   return activeCampaignsNamed(state, operation.campaignName).filter((match) => {
     const campaign = campaignValue(state, match.resourceName)
     const budgetResourceName = asString(campaign?.campaignBudget)
@@ -576,6 +629,11 @@ function matchingCampaignCreates(
       || asString(geo?.negativeGeoTargetType) !== "PRESENCE"
       || asNumber(budget?.amountMicros) !== operation.dailyBudgetMicros
       || budget?.explicitlyShared !== false
+      || !campaignHasSharedSet({
+        campaignResourceName: match.resourceName,
+        sharedSetResourceName,
+        state,
+      })
       || JSON.stringify(campaignCriterionTargets({
         campaignResourceName: match.resourceName,
         field: "location",
@@ -663,6 +721,27 @@ function operationProjection(
   if (operation.kind === "negative_keyword") {
     return { exists: negativeKeywordExists(state, operation) }
   }
+  if (operation.kind === "shared_negative_list") {
+    const keywordCount = operation.keywords.filter((requested) =>
+      state.sharedCriteria.some((resource) => {
+        const criterion = asRecord(resource.values.sharedCriterion)
+        const keyword = asRecord(criterion?.keyword)
+        return (
+          criterion?.sharedSet === operation.sharedSetResourceName
+          && asString(keyword?.text)?.toLowerCase()
+            === requested.text.toLowerCase()
+          && asString(keyword?.matchType) === requested.matchType
+        )
+      })).length
+    return {
+      attached: campaignHasSharedSet({
+        campaignResourceName: operation.campaignResourceName,
+        sharedSetResourceName: operation.sharedSetResourceName,
+        state,
+      }),
+      keywordCount,
+    }
+  }
   if (operation.kind === "asset_link_status") {
     return {
       status: asString(
@@ -731,6 +810,12 @@ function operationMatches(
   }
   if (operation.kind === "negative_keyword") {
     return projection.exists === (target === "next")
+  }
+  if (operation.kind === "shared_negative_list") {
+    return target === "expected"
+      ? projection.attached === false && projection.keywordCount === 0
+      : projection.attached === true
+        && projection.keywordCount === operation.keywords.length
   }
   if (
     operation.kind === "responsive_search_ad_create"
@@ -822,6 +907,7 @@ export function buildGoogleAdsMutateOperations(
       const budgetResourceName =
         `customers/${customerId}/campaignBudgets/-1`
       const campaignResourceName = `customers/${customerId}/campaigns/-2`
+      const sharedSetResourceName = requiredSharedNegativeSetResourceName(state)
       const adGroups = operation.adGroups.map((adGroup, index) => ({
         ...adGroup,
         resourceName: `customers/${customerId}/adGroups/${-(index + 3)}`,
@@ -882,6 +968,14 @@ export function buildGoogleAdsMutateOperations(
               },
               negative: false,
               status: "ENABLED",
+            },
+          },
+        },
+        {
+          campaignSharedSetOperation: {
+            create: {
+              campaign: campaignResourceName,
+              sharedSet: sharedSetResourceName,
             },
           },
         },
@@ -1022,6 +1116,26 @@ export function buildGoogleAdsMutateOperations(
           },
         },
       }]
+    }
+    if (operation.kind === "shared_negative_list") {
+      return [
+        {
+          campaignSharedSetOperation: {
+            create: {
+              campaign: operation.campaignResourceName,
+              sharedSet: operation.sharedSetResourceName,
+            },
+          },
+        },
+        ...operation.keywords.map((keyword) => ({
+          sharedCriterionOperation: {
+            create: {
+              keyword,
+              sharedSet: operation.sharedSetResourceName,
+            },
+          },
+        })),
+      ]
     }
     if (operation.kind === "asset_link_status") {
       if (operation.next === "REMOVED") {
@@ -1171,12 +1285,55 @@ function specialtyCpcCeilingMicros(
   return POLICY.womensHealth.pilot.initialCpcCeilingCents * 10_000
 }
 
+function assertSharedNegativeListSafe(
+  operations: AdsMutationOperation[],
+  state: GoogleAdsAccountState,
+): void {
+  const attachments = operations.filter(
+    (
+      operation,
+    ): operation is Extract<
+      AdsMutationOperation,
+      { kind: "shared_negative_list" }
+    > => operation.kind === "shared_negative_list",
+  )
+  if (attachments.length === 0) return
+
+  const requiredResourceName = requiredSharedNegativeSetResourceName(state)
+  const missingTerms = missingRequiredSharedNegativeTerms(
+    state,
+    requiredResourceName,
+  ).sort()
+  for (const operation of attachments) {
+    const campaign = campaignValue(state, operation.campaignResourceName)
+    if (
+      operation.sharedSetResourceName !== requiredResourceName
+      || !campaign
+      || asString(campaign.status) !== "ENABLED"
+      || asString(campaign.advertisingChannelType) !== "SEARCH"
+      || campaignNameService(asString(campaign.name)) == null
+    ) {
+      throw new Error("shared_negative_list_mismatch")
+    }
+    const requestedTerms = operation.keywords
+      .map(({ text }) => text.toLowerCase())
+      .sort()
+    if (JSON.stringify(requestedTerms) !== JSON.stringify(missingTerms)) {
+      throw new Error("shared_negative_list_terms_mismatch")
+    }
+  }
+}
+
 function assertCampaignCreateSafe(
   operations: AdsMutationOperation[],
   state: GoogleAdsAccountState,
 ): void {
   for (const operation of operations) {
     if (operation.kind !== "campaign_create") continue
+    const sharedSetResourceName = requiredSharedNegativeSetResourceName(state)
+    if (missingRequiredSharedNegativeTerms(state, sharedSetResourceName).length) {
+      throw new Error("required_shared_negative_terms_missing")
+    }
     if (
       state.customer?.currencyCode !== "AUD"
       || state.customer.timeZone !== "Australia/Sydney"
@@ -1603,6 +1760,7 @@ export function validateAdsMutationPolicy(args: {
 }): AdsMutationOperation[] {
   const operations = normalizeAdsMutationOperations(args.operations)
   assertGovernedCampaignConstitution(operations, args.state)
+  assertSharedNegativeListSafe(operations, args.state)
   assertCampaignCreateSafe(operations, args.state)
   assertSpecialtyCpcCeiling(operations, args.state)
   assertCreateOperationsSafe(operations, args.state)
@@ -1881,7 +2039,8 @@ function reverseOperations(
 ): AdsMutationOperation[] {
   return operations.map((operation): AdsMutationOperation => {
     if (operation.kind === "campaign_create") {
-      const matches = matchingCampaignCreates(state, operation)
+      const matches = activeCampaignsNamed(state, operation.campaignName)
+        .filter(({ status }) => status === operation.status)
       if (matches.length !== 1) {
         throw new Error("campaign_create_rollback_resource_missing")
       }
@@ -1963,6 +2122,21 @@ function reverseOperations(
         kind: "keyword_status",
         next: "REMOVED",
         resourceName: matches[0].resourceName,
+      }
+    }
+    if (operation.kind === "shared_negative_list") {
+      if (
+        asString(
+          campaignValue(state, operation.campaignResourceName)?.status,
+        ) !== "ENABLED"
+      ) {
+        throw new Error("shared_negative_list_rollback_campaign_missing")
+      }
+      return {
+        expected: "ENABLED",
+        kind: "campaign_status",
+        next: "PAUSED",
+        resourceName: operation.campaignResourceName,
       }
     }
 

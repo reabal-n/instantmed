@@ -13,6 +13,7 @@ import { createHash } from "crypto"
 import { getProfileById } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { parseAustralianStreetAddress } from "@/lib/validation/australian-address"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import { normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 import type { AustralianState } from "@/types/db"
@@ -194,69 +195,12 @@ function mapSex(rawSex: unknown): "M" | "F" | "N" | "I" {
   return "N"
 }
 
-/**
- * Parse street number from address line 1.
- *
- * Australian addresses typically look like:
- *   "1 Main Street"
- *   "12/34 Smith Road"          → street_number: "12/34"
- *   "Unit 5, 22 King Street"    → street_number: "5/22"   (normalise to slash)
- *   "Level 1/457-459 Elizabeth Street" → street_number: "1/457-459"
- *
- * Parchment requires `street_number` and `street_name` as separate fields.
- * If we can't parse a number, we put everything in `street_name` and leave
- * `street_number` undefined - Parchment may still reject, but this handles
- * the common 95% case.
- */
-function parseStreetAddress(addressLine1: string | null): {
-  street_number?: string
-  street_name?: string
-} {
-  if (!addressLine1) return {}
-
-  const trimmed = addressLine1.trim()
-
-  // Try: "Unit X, Y Street Name" or "Apt X, Y Street Name"
-  const unitCommaMatch = trimmed.match(
-    /^(?:unit|apt|suite|lot|level)\s+(\S+)\s*,\s*(\d[\d/a-zA-Z-]*)\s+(.+)$/i
-  )
-  if (unitCommaMatch) {
-    return {
-      street_number: `${unitCommaMatch[1]}/${unitCommaMatch[2]}`,
-      street_name: unitCommaMatch[3],
-    }
-  }
-
-  // Try: "Level 1/457 Elizabeth Street" - keyword + number(s) + street (no comma)
-  const keywordNoCommaMatch = trimmed.match(
-    /^(?:unit|apt|suite|lot|level)\s+(\d[\d/a-zA-Z-]*)\s+(.+)$/i
-  )
-  if (keywordNoCommaMatch) {
-    return {
-      street_number: keywordNoCommaMatch[1],
-      street_name: keywordNoCommaMatch[2],
-    }
-  }
-
-  // Try: leading number(s) possibly with slash/dash (e.g. "12/34", "457-459", "1A")
-  const numberMatch = trimmed.match(/^(\d[\d/a-zA-Z-]*)\s+(.+)$/)
-  if (numberMatch) {
-    return {
-      street_number: numberMatch[1],
-      street_name: numberMatch[2],
-    }
-  }
-
-  // Fallback: can't parse - put everything in street_name
-  return { street_name: trimmed }
-}
-
 function buildParchmentAddress(
   profile: PatientProfile,
   intakeAnswers?: Record<string, unknown>,
 ): CreatePatientRequest["australian_street_address"] {
   const { addressLine1, suburb, state, postcode } = resolveParchmentAddressComponents(profile, intakeAnswers)
-  const parsed = parseStreetAddress(addressLine1)
+  const parsed = parseAustralianStreetAddress(addressLine1)
 
   if (!parsed.street_number && !parsed.street_name && !suburb && !state && !postcode) {
     return undefined
@@ -274,8 +218,8 @@ function buildParchmentAddress(
 function splitFullName(fullName: string): { givenName: string; familyName: string } {
   const nameParts = fullName.trim().split(/\s+/).filter(Boolean)
   return {
-    givenName: nameParts[0] || "Unknown",
-    familyName: nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Unknown",
+    givenName: nameParts[0] || "",
+    familyName: nameParts.length > 1 ? nameParts.slice(1).join(" ") : "",
   }
 }
 
@@ -332,7 +276,11 @@ export function getParchmentPatientIdentityIssues(
   const medicareExpiry = normalizeMedicareExpiry(answerOrProfile(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
   const validIhi = normalizeValidIhiNumber(answerOrProfile(profile.ihi_number, intakeAnswers, ["ihi_number", "ihiNumber"]))
   const { addressLine1, suburb, state, postcode } = resolveParchmentAddressComponents(profile, intakeAnswers)
+  const { givenName, familyName } = resolveParchmentName(profile)
+  const parsedStreetAddress = parseAustralianStreetAddress(addressLine1)
 
+  if (!givenName) issues.push("Given name")
+  if (!familyName) issues.push("Family name")
   if (!dateOfBirth) issues.push("DOB")
   if (!rawSex) issues.push("Sex")
   if (!phone) issues.push("Phone")
@@ -348,6 +296,7 @@ export function getParchmentPatientIdentityIssues(
     }
   }
   if (!addressLine1) issues.push("Address street")
+  if (addressLine1 && !parsedStreetAddress.street_number) issues.push("Address street number")
   if (!suburb) issues.push("Address suburb")
   if (!state || !AUSTRALIAN_STATES.has(state)) issues.push("Address state")
   if (!postcode || !/^\d{4}$/.test(postcode)) issues.push("Address postcode")

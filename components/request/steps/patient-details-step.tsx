@@ -34,7 +34,12 @@ import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { validateDOB, validateEmail, validateName, validatePhone } from "@/lib/request/validation"
 import { cn } from "@/lib/utils"
-import { suggestStateFromPostcode, validatePostcodeState } from "@/lib/validation/australian-address"
+import {
+  hasAustralianStreetNumber,
+  STREET_NUMBER_REQUIRED_ERROR,
+  suggestStateFromPostcode,
+  validatePostcodeState,
+} from "@/lib/validation/australian-address"
 import { detectRelayEmail, getRelayEmailMessage } from "@/lib/validation/email-relay"
 import { detectEmailTypo } from "@/lib/validation/email-typo"
 import { formatIHI, validateIHI } from "@/lib/validation/ihi"
@@ -264,7 +269,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   }, [savedData, setIdentity, setAnswer])
   
   const handleAddressSelect = (address: AddressComponents) => {
-    setAnswer("addressLine1", address.addressLine1 || address.fullAddress)
+    const selectedAddressLine = address.addressLine1 || address.fullAddress
+    const hasStreetNumber = hasAustralianStreetNumber(selectedAddressLine)
+    setAnswer("addressLine1", selectedAddressLine)
     setAnswer("addressLine2", address.addressLine2 || "")
     setAnswer("suburb", address.suburb)
     setAnswer("state", address.state)
@@ -272,6 +279,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     setAnswer("addressVerified", address.isVerified || false)
     setAnswer("addressProviderPlaceId", address.providerPlaceId || address.pxid || "")
     setManualAddressEntry(false)
+    setTouched((prev) => hasStreetNumber ? prev : { ...prev, addressLine1: true })
     setErrors((prev) => {
       const {
         addressLine1: _addressLine1,
@@ -280,7 +288,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         postcode: _postcode,
         ...rest
       } = prev
-      return rest
+      return hasStreetNumber
+        ? rest
+        : { ...rest, addressLine1: STREET_NUMBER_REQUIRED_ERROR }
     })
   }
 
@@ -374,6 +384,8 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       case 'addressLine1':
         if (needsAddress && !value?.trim()) {
           error = "Your address is needed to issue the prescription"
+        } else if (needsAddress && !hasAustralianStreetNumber(value)) {
+          error = STREET_NUMBER_REQUIRED_ERROR
         }
         break
       case 'suburb':
@@ -518,6 +530,8 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     if (needsAddress) {
       if (!addressLine1.trim()) {
         newErrors.addressLine1 = "Your address is needed to issue the prescription"
+      } else if (!hasAustralianStreetNumber(addressLine1)) {
+        newErrors.addressLine1 = STREET_NUMBER_REQUIRED_ERROR
       }
       if (!suburb.trim()) {
         newErrors.suburb = 'Suburb is required'
@@ -596,7 +610,13 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     }
   }
 
-  const addressComplete = !needsAddress || (addressLine1 && suburb && state && postcode)
+  const addressComplete = !needsAddress || (
+    addressLine1 &&
+    hasAustralianStreetNumber(addressLine1) &&
+    suburb &&
+    state &&
+    postcode
+  )
   const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareIdentityReady && sex)) && addressComplete
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
@@ -1030,12 +1050,13 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         <FormField
           label="Address"
           required
-          error={touched.addressLine1 ? errors.addressLine1 : undefined}
           hint="Choose a suggestion to fill the rest automatically."
         >
           <AddressAutocomplete
             value={addressLine1}
             onChange={handleAddressLineChange}
+            onBlur={() => handleBlur('addressLine1', addressLine1)}
+            error={touched.addressLine1 ? errors.addressLine1 : undefined}
             onAddressSelect={handleAddressSelect}
             onVerificationChange={(verified) => {
               setAnswer("addressVerified", verified)
