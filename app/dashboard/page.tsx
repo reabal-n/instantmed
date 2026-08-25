@@ -140,6 +140,8 @@ export default async function StaffDashboardPage({
       limit: 50,
       reviewerId: profile.id,
       includeAutoIssued: isAdmin && canReviewMedicalCertificates,
+      allowSeeded: showTestData,
+      onlySeeded: onlyTestData,
     }),
     getDoctorIdentity(profile.id),
     getFormToInboxStats(),

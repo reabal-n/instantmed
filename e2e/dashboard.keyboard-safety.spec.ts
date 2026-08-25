@@ -14,20 +14,33 @@ import { waitForPageLoad } from "./helpers/test-utils"
 const E2E_OPERATOR_ID = "e2e00000-0000-0000-0000-000000000001"
 const PRODUCTION_SUPABASE_PROJECT_REF = "witzcrovsoumktyndqgz"
 
+function getSupabaseProjectRef(configuredUrl: string): string | null {
+  try {
+    const url = new URL(configuredUrl)
+    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+      return url.origin
+    }
+    if (!url.hostname.endsWith(".supabase.co")) return null
+    return url.hostname.split(".")[0] || null
+  } catch {
+    return null
+  }
+}
+
 function hasIsolatedRealtimeProject(): boolean {
   if (process.env.E2E_ISOLATED_SUPABASE !== "1") return false
 
-  const configuredUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!configuredUrl) return false
+  const configuredUrls = [
+    process.env.SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+  ].filter((url): url is string => Boolean(url))
+  if (configuredUrls.length === 0) return false
 
-  try {
-    const hostname = new URL(configuredUrl).hostname
-    if (hostname === "localhost" || hostname === "127.0.0.1") return true
-    if (!hostname.endsWith(".supabase.co")) return false
-    return hostname.split(".")[0] !== PRODUCTION_SUPABASE_PROJECT_REF
-  } catch {
-    return false
-  }
+  const projectRefs = configuredUrls.map(getSupabaseProjectRef)
+  if (projectRefs.some((projectRef) => projectRef === null)) return false
+  if (new Set(projectRefs).size !== 1) return false
+
+  return projectRefs[0] !== PRODUCTION_SUPABASE_PROJECT_REF
 }
 
 interface RealtimeDoctorFixture {

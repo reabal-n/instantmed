@@ -182,6 +182,9 @@ describe("doctor queue production contract", () => {
     expect(queueClientSource).toContain("onRefreshRequested: reconcileRealtimeQueue")
     expect(dashboardKeyboardSafetyE2ESource).toContain("hasIsolatedRealtimeProject()")
     expect(dashboardKeyboardSafetyE2ESource).toContain("PRODUCTION_SUPABASE_PROJECT_REF")
+    expect(dashboardKeyboardSafetyE2ESource).toContain("process.env.SUPABASE_URL")
+    expect(dashboardKeyboardSafetyE2ESource).toContain("process.env.NEXT_PUBLIC_SUPABASE_URL")
+    expect(dashboardKeyboardSafetyE2ESource).toContain("new Set(projectRefs).size !== 1")
   })
 
   it("keeps queue refreshes throttled and runs a refresh after successful decisions", () => {

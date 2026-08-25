@@ -304,6 +304,13 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(queueClientSource).not.toContain("Median form-to-inbox")
   })
 
+  it("keeps seeded-only queue and review history on the same test-data boundary", () => {
+    const dashboardSource = read("app/dashboard/page.tsx")
+
+    expect(dashboardSource.match(/allowSeeded: showTestData/g)).toHaveLength(2)
+    expect(dashboardSource.match(/onlySeeded: onlyTestData/g)).toHaveLength(2)
+  })
+
   it("keeps split-view loading and row chrome calm under interaction", () => {
     const queueClientSource = read("app/doctor/queue/queue-client.tsx")
     const queueTableSource = read("app/doctor/queue/queue-table.tsx")
