@@ -10,13 +10,13 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 | Route-like files under `app/` | 239 |
 | API route files under `app/api/` | 88 |
 | Cron route files under `app/api/cron/` | 29 |
-| `components/` | 406 files |
-| `lib/` | 1,286 files |
+| `components/` | 405 files |
+| `lib/` | 1,287 files |
 | E2E TypeScript files under `e2e/` | 78 (68 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 131 |
+| SQL migrations under `supabase/migrations/` | 132 |
 
-Latest applied and verified production migration (2026-08-23): `20260823101500_fix_partially_refunded_review_claim.sql`. Linked migration history is aligned through that version. It removes the unused two-argument doctor-claim overload and repairs the canonical three-argument function used by the app so `paid|partially_refunded` obligations are claimable while fully refunded and disputed requests remain blocked. Live metadata confirmed service-role-only execution, zero SECURITY DEFINER ACL violations, and an unchanged actionable partial-refund obligation. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, passed its linked DB lint and ACL gates. Detailed database receipts live in `docs/ARCHITECTURE.md`.
+Newest on disk is the unapplied `20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`. Latest applied and verified production migration (2026-08-23) remains `20260823101500_fix_partially_refunded_review_claim.sql`. Linked migration history is aligned through that version. It removes the unused two-argument doctor-claim overload and repairs the canonical three-argument function used by the app so `paid|partially_refunded` obligations are claimable while fully refunded and disputed requests remain blocked. Live metadata confirmed service-role-only execution, zero SECURITY DEFINER ACL violations, and an unchanged actionable partial-refund obligation. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, passed its linked DB lint and ACL gates. Detailed database receipts live in `docs/ARCHITECTURE.md`.
 
 ## Runtime Shape
 

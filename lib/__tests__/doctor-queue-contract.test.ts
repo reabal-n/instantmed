@@ -34,8 +34,8 @@ const realtimeSource = readFileSync(
   "utf8",
 )
 
-const intakeNotificationListenerSource = readFileSync(
-  join(process.cwd(), "components/doctor/intake-notification-listener.tsx"),
+const doctorShellSource = readFileSync(
+  join(process.cwd(), "app/doctor/doctor-shell.tsx"),
   "utf8",
 )
 
@@ -163,15 +163,15 @@ describe("doctor queue production contract", () => {
     expect(realtimeSource).toContain("router.refresh()")
   })
 
-  it("keeps in-dashboard doctor toasts limited to fresh paid request transitions", () => {
-    expect(intakeNotificationListenerSource).toContain("PAID_REQUEST_TOAST_WINDOW_MS")
-    expect(intakeNotificationListenerSource).toContain("PAYMENT_WRITE_DRIFT_MS")
-    expect(intakeNotificationListenerSource).toContain("isFreshPaidRequestNotification")
-    expect(intakeNotificationListenerSource).toContain("if (!paidAt) return false")
-    expect(intakeNotificationListenerSource).toContain('event: "UPDATE"')
-    expect(intakeNotificationListenerSource).not.toContain('event: "INSERT"')
-    expect(intakeNotificationListenerSource).not.toContain("payment completed")
-    expect(intakeNotificationListenerSource).not.toContain("New request received")
+  it("keeps new-request paging in Telegram instead of duplicating it in the dashboard", () => {
+    expect(existsSync(join(process.cwd(), "components/doctor/intake-notification-listener.tsx"))).toBe(false)
+    expect(doctorShellSource).not.toContain("IntakeNotificationListener")
+    expect(doctorShellSource).not.toContain("useAuth")
+    expect(realtimeSource).toContain("Telegram is the canonical channel")
+    expect(realtimeSource).not.toContain("queue-sound-muted")
+    expect(queueClientSource).toContain("applyQueueRealtimeUpdate")
+    expect(queueClientSource).toContain("if (!reconciled.matched)")
+    expect(queueClientSource).toContain("refreshQueue()")
   })
 
   it("keeps queue refreshes throttled and runs a refresh after successful decisions", () => {

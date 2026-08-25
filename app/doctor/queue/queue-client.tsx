@@ -21,7 +21,7 @@ import {
   getQueueCompletionOutcome,
 } from "@/lib/doctor/queue-empty-state"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
-import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
+import { applyQueueRealtimeUpdate, removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
 import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getQueueWaitTargetState, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
@@ -248,6 +248,7 @@ export function QueueClient({
     ? activePanel.id.replace("intake-review-", "")
     : null
   const [intakes, setIntakes] = useState(initialIntakes)
+  const intakesRef = useRef(intakes)
   const [activeSearchView, setActiveSearchView] = useState<ActiveQueueSearchView | null>(null)
   const activeSearchViewRef = useRef<ActiveQueueSearchView | null>(null)
   // Keep a live ref to filtered intakes for use in panel callbacks
@@ -259,6 +260,10 @@ export function QueueClient({
   useEffect(() => {
     if (!activeSearchViewRef.current) setIntakes(initialIntakes)
   }, [initialIntakes])
+
+  useEffect(() => {
+    intakesRef.current = intakes
+  }, [intakes])
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [lastOpenedIntakeId, setLastOpenedIntakeId] = useState<string | null>(() => {
@@ -625,7 +630,16 @@ export function QueueClient({
   }, [refreshQueue])
 
   const handleUpdate = useCallback((updated: Partial<IntakeWithPatient> & { id: string }) => {
-    setIntakes((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)))
+    const reconciled = applyQueueRealtimeUpdate(intakesRef.current, updated)
+    if (!reconciled.matched) {
+      // Draft intakes enter the actionable queue through an UPDATE to `paid`.
+      // A raw Realtime row has no joined patient data, so refresh the
+      // authoritative server queue instead of injecting an incomplete row.
+      refreshQueue()
+      return
+    }
+
+    setIntakes((prev) => applyQueueRealtimeUpdate(prev, updated).intakes)
     if (activeSearchViewRef.current) refreshQueue()
   }, [refreshQueue])
 

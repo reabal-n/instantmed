@@ -76,10 +76,9 @@ export function useQueueRealtime({
 
             if (payload.eventType === "INSERT") {
               const newRow = payload.new as Partial<IntakeWithPatient> & { id: string }
-              // Notification is handled by IntakeNotificationListener (toast)
-              // + Telegram (canonical channel for "new intake arrived").
-              // Desktop notification sound retired 2026-05-25 — Telegram is
-              // the source of truth for ping-when-not-looking.
+              // Telegram is the canonical channel for newly paid request
+              // alerts. Realtime keeps the visible queue current without a
+              // second browser toast or sound.
               if (isHydratedQueueRealtimeInsert(newRow)) {
                 onInsertRef.current(newRow as IntakeWithPatient)
               } else if (onRefreshRequestedRef.current) {

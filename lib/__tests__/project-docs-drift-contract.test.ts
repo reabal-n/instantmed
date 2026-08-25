@@ -119,7 +119,10 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **131 migration files**")
+      expect(source).toContain("Current count on disk: **132 migration files**")
+      expect(source).toContain(
+        "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`",
+      )
       expect(source).toContain("`20260814163645_reconcile_manual_certificate_delivery.sql`")
       expect(source).toContain("`20260814171919_harden_audit_function_search_paths.sql`")
       expect(source).toContain("`20260814190000_fix_support_refund_attempt_role_cast.sql`")
@@ -137,7 +140,12 @@ describe("project docs drift contract", () => {
       expect(source).toContain("On-disk presence is not deployment proof")
     }
 
-    expect(architecture).toContain("Latest: `20260823101500_fix_partially_refunded_review_claim.sql`")
+    expect(architecture).toContain(
+      "Latest on disk: `20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`",
+    )
+    expect(architecture).toContain(
+      "latest applied and verified production migration remains `20260823101500_fix_partially_refunded_review_claim.sql`",
+    )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
     expect(architecture).toContain("Production receipt (2026-08-23)")
@@ -145,7 +153,7 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Latest applied and verified production migration (2026-08-23): `20260823101500_fix_partially_refunded_review_claim.sql`",
+      "Latest applied and verified production migration (2026-08-23) remains `20260823101500_fix_partially_refunded_review_claim.sql`",
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
