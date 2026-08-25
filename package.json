@@ -161,6 +161,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-simple-import-sort": "^13.0.0",
+    "googleapis": "148.0.0",
     "import-in-the-middle": "^2.0.6",
     "knip": "6.26.0",
     "playwright": "1.60.0",
