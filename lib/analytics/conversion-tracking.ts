@@ -8,6 +8,8 @@
  * - Google Consent Mode v2 support
  */
 
+import { GOOGLE_ANALYTICS_ID } from '@/lib/analytics/google-tag-ids'
+
 // Conversion action IDs — Google Ads account AW-17795889471 (account 920-501-0513)
 // Get conversion labels from: Google Ads → Goals → Conversions → click each action → Tag setup
 const CONVERSION_IDS = {
@@ -214,6 +216,7 @@ export function trackConversion(event: ConversionEvent, data?: ConversionData) {
       items: data?.items,
       page_location: pageLocation,
       page_path: window.location.pathname,
+      send_to: GOOGLE_ANALYTICS_ID,
     })
   }
 
@@ -279,6 +282,7 @@ export async function trackFunnelStep(
     getOrCreateGtag()('event', 'funnel_milestone', {
       event_category: 'funnel',
       funnel_step: step,
+      send_to: GOOGLE_ANALYTICS_ID,
       service_type: service,
     })
   }
@@ -302,6 +306,7 @@ export function trackStepEvent(params: {
   if (typeof window === 'undefined') return
 
   const eventParams = {
+    send_to: GOOGLE_ANALYTICS_ID,
     step_name: params.stepName,
     step_index: params.stepIndex,
     service_type: params.serviceType,

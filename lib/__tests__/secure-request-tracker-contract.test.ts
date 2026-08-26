@@ -125,6 +125,9 @@ describe("secure request tracker contract", () => {
     expect(globalClients).toContain("allowExternalTelemetry && Analytics")
     expect(posthogProvider).toContain("isExternalAnalyticsExcludedPathname(pathname)")
     expect(googleTags).toContain("send_page_view: false")
+    expect(googleTags).toMatch(
+      /window\.gtag\?\.\("event", "page_view", \{[\s\S]*?send_to: GOOGLE_ANALYTICS_ID/,
+    )
     expect(instrumentation).toContain("capture_pageleave: false")
     expect(instrumentation).toContain("isExternalAnalyticsExcludedPath()")
   })

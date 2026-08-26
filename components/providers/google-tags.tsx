@@ -81,6 +81,7 @@ export function GoogleTags() {
     window.gtag?.("event", "page_view", {
       page_location: `${window.location.origin}${pathname}`,
       page_path: pathname,
+      send_to: GOOGLE_ANALYTICS_ID,
     })
   }, [allowPageView, pathname, scriptReady])
 
