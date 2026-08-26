@@ -248,6 +248,41 @@ test.describe("Doctor Approval Email Pipeline", () => {
     await expect(page.getByText("Reason / Condition", { exact: true })).toHaveCount(0)
     await expect(page.getByText("Work Capacity", { exact: true })).toHaveCount(0)
   })
+
+  test("renders the certificate PDF before approval without a CSP block", async ({ page }) => {
+    const cspErrors: string[] = []
+    page.on("console", (message) => {
+      const text = message.text()
+      if (/content security policy|refused to frame/i.test(text)) cspErrors.push(text)
+    })
+
+    await page.goto(`/doctor/intakes/${SEEDED_INTAKE_ID}`)
+    await waitForPageLoad(page)
+    await waitForPageLoad(page)
+
+    const approveButton = page.getByRole("button", { name: "Approve certificate" })
+    await expect(approveButton).toBeVisible({ timeout: 15_000 })
+    await expect(approveButton).toBeEnabled({ timeout: 15_000 })
+    await approveButton.click()
+
+    const confirmationDialog = page.getByRole("dialog", { name: "Confirm before sending" })
+    await expect(confirmationDialog).toBeVisible({ timeout: 15_000 })
+    // Playwright disables Chromium's PDF viewer, so an allowed PDF iframe is
+    // surfaced as a download in headless runs. A CSP-blocked frame produces no
+    // download and emits a console violation instead.
+    const pdfDownloadPromise = page.waitForEvent("download")
+    await confirmationDialog.getByRole("button", { name: "Preview PDF" }).click()
+
+    const previewFrame = confirmationDialog.getByTitle("Certificate PDF Preview")
+    await expect(previewFrame).toBeVisible({ timeout: 15_000 })
+    await expect(previewFrame).toHaveAttribute("src", /^blob:/)
+    const pdfDownload = await pdfDownloadPromise
+    expect(pdfDownload.suggestedFilename()).toMatch(/\.pdf$/)
+    expect(cspErrors).toEqual([])
+
+    await confirmationDialog.getByRole("button", { name: "Cancel" }).click()
+    await expect(confirmationDialog).toBeHidden()
+  })
 })
 
 // ============================================================================

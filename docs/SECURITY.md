@@ -257,7 +257,7 @@ style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src 'self' https://fonts.gstatic.com data:;
 img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://raw.githubusercontent.com https://svgl.app https://api.dicebear.com https://*.googleusercontent.com https://*.gravatar.com https://*.stripe.com https://pagead2.googlesyndication.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.googleadservices.com https://www.google.com https://google.com https://www.google.com.au;
 connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.google.com https://google.com https://*.google.com.au https://www.googletagmanager.com https://*.googletagmanager.com https://www.googleadservices.com https://*.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com;
-frame-src 'self' https://js.stripe.com https://www.googletagmanager.com https://challenges.cloudflare.com https://portal.parchment.health;
+frame-src 'self' blob: https://js.stripe.com https://www.googletagmanager.com https://challenges.cloudflare.com https://portal.parchment.health;
 form-action 'self' https://*.supabase.co https://accounts.google.com;
 frame-ancestors 'self';
 object-src 'none';
@@ -271,7 +271,9 @@ upgrade-insecure-requests;
 
 **Why Parchment frame hosts:** Embedded prescribing loads only from Parchment portal hosts. Parchment confirmed `https://instantmed.com.au` and `https://www.instantmed.com.au` are allowed embedding origins on 2026-05-01; InstantMed still restricts which local hostnames may use the iframe through `lib/parchment/embed-policy.ts`.
 
-**CSP violation reporting:** A separate `Content-Security-Policy-Report-Only` header (stricter, no `unsafe-inline`) reports violations to `/api/csp-report` via `report-uri`. The main enforced CSP does **not** include `report-uri`.
+**Why `blob:` frames:** Authenticated staff certificate previews return PDF bytes from a doctor/admin-only Server Action, convert them to a short-lived browser object URL, and render that object URL before approval. `frame-src blob:` permits that local PDF preview without making the certificate public or weakening `object-src 'none'`; the client revokes the object URL when the confirmation dialog closes.
+
+**CSP violation reporting:** Production sends both the enforced policy and a separate `Content-Security-Policy-Report-Only` policy to `/api/csp-report` via `report-uri`. The report-only policy keeps the inline allowances required by the current Next.js App Router so it does not flood the endpoint with known framework violations. Development omits the report-only header and reporting directives to avoid HMR noise.
 
 ---
 
