@@ -5,6 +5,7 @@ import {
   initConsentMode,
   trackConversion,
   trackFunnelStep,
+  trackStepEvent,
   updateConsent,
 } from "../analytics/conversion-tracking"
 
@@ -89,6 +90,9 @@ describe("conversion tracking", () => {
       page_path: "/auth/complete-account",
     })
     expect(JSON.stringify(conversionCall?.[2])).not.toContain("cs_sensitive")
+
+    const purchaseCall = calls.find(([kind, event]) => kind === "event" && event === "purchase")
+    expect(purchaseCall?.[2].send_to).toBe("G-X0QJQRLL2Y")
   })
 
   it("queues fallback gtag calls in the same arguments shape as the Google tag shim", () => {
@@ -142,9 +146,27 @@ describe("conversion tracking", () => {
       {
         event_category: "funnel",
         funnel_step: "checkout",
+        send_to: "G-X0QJQRLL2Y",
         service_type: "prescription",
       },
     ])
+  })
+
+  it("routes intake-step analytics only to GA4", () => {
+    trackStepEvent({
+      serviceType: "prescription",
+      stepIndex: 2,
+      stepName: "medication",
+      totalSteps: 6,
+    })
+
+    expect(gtagMock).toHaveBeenCalledWith("event", "funnel_step", {
+      send_to: "G-X0QJQRLL2Y",
+      service_type: "prescription",
+      step_index: 2,
+      step_name: "medication",
+      total_steps: 6,
+    })
   })
 
   it("builds the enhanced-conversion user data payload with explicit hashed fields", async () => {
