@@ -33,7 +33,10 @@ import {
   PageRefreshStatus,
 } from "@/components/operator"
 import { Button } from "@/components/ui/button"
-import type { BusinessCampaignRow } from "@/lib/admin/business-read-model"
+import type {
+  BusinessCampaignRow,
+  BusinessReadModel,
+} from "@/lib/admin/business-read-model"
 import type {
   BusinessProfitRow,
   BusinessTrendsViewModel,
@@ -50,29 +53,14 @@ const AUD = new Intl.NumberFormat("en-AU", {
   style: "currency",
 })
 
-const DECISION_COPY = {
-  ACTION: {
-    detail: "A specific Ads change is ready for operator approval.",
-    label: "Approval required",
-    status: "warning" as const,
-  },
-  CHECK: {
-    detail: "Resolve the named evidence issue before proposing a change.",
-    label: "Investigate",
-    status: "warning" as const,
-  },
-  HOLD: {
-    detail: "Keep campaign settings unchanged until the truth gate clears.",
-    label: "Hold changes",
-    status: "neutral" as const,
-  },
-}
-
 const REASON_COPY: Record<string, string> = {
+  ADS_ACTION_EVIDENCE_UNAVAILABLE: "Ads action readiness could not be verified",
   ADS_EVIDENCE_INVALID_RECORD: "Delivered Ads evidence could not be validated",
   ADS_EVIDENCE_NOT_FOUND: "No delivered Ads Agent report is available",
   ADS_EVIDENCE_QUERY_FAILED: "Delivered Ads evidence could not be read",
   ADS_EVIDENCE_STALE: "Ads economics evidence is older than 36 hours",
+  ADS_EXACT_PROPOSAL_READY: "An exact Ads proposal is ready for approval",
+  ADS_EXACT_PROPOSAL_REQUIRED: "The Ads evidence gate passed; an exact proposal is still required",
   ECONOMICS_UNAVAILABLE: "Spend, Stripe fees, or attributed revenue is incomplete",
   ATTRIBUTION_INVESTIGATION_HOLD: "Scripts attribution investigation remains open",
   MEDCERT_OBSERVATION_HOLD: "Med Certs remain in the protocol observation window",
@@ -99,7 +87,72 @@ function formatRatio(value: number | null): string {
   return value === null ? "Unavailable" : `${value.toFixed(2)}x`
 }
 
-function reasonLabel(reason: string): string {
+function formatDailyBudget(cents: number): string {
+  return `A$${(cents / 100).toLocaleString("en-AU", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+  })}/day`
+}
+
+function decisionCopy(business: BusinessReadModel): {
+  detail: string
+  label: string
+  status: StatusBadgeStatus
+} {
+  const action = business.adsAction
+  if (action.kind === "approval_ready") {
+    return {
+      detail: `${action.proposalKey}: ${action.currentValue} → ${action.requestedValue}. Review and approve that exact Ads change.`,
+      label: "Approval required",
+      status: "warning",
+    }
+  }
+  if (action.kind === "observation") {
+    return {
+      detail: `Keep Scripts at ${formatDailyBudget(action.currentBudgetCents)} until both post-change evidence gates clear.`,
+      label: "Observation in progress",
+      status: "neutral",
+    }
+  }
+  if (action.kind === "proposal_required") {
+    return {
+      detail: "The evidence gate has cleared. Prepare and validate one exact Ads change before approval.",
+      label: "Proposal required",
+      status: "warning",
+    }
+  }
+  if (action.kind === "unavailable" && business.scaleDecision === "HOLD") {
+    return {
+      detail: "Approval readiness could not be verified. Keep campaign settings unchanged.",
+      label: "Hold changes",
+      status: "neutral",
+    }
+  }
+  if (business.scaleDecision === "CHECK") {
+    return {
+      detail: "Resolve the named evidence issue before proposing a change.",
+      label: "Investigate",
+      status: "warning",
+    }
+  }
+  return {
+    detail: "Keep campaign settings unchanged until the truth gate clears.",
+    label: "Hold changes",
+    status: "neutral",
+  }
+}
+
+function reasonLabel(reason: string, business: BusinessReadModel): string {
+  const action = business.adsAction
+  if (
+    reason === "SCRIPTS_POST_CHANGE_EVIDENCE_IMMATURE"
+    && action.kind === "observation"
+  ) {
+    return `Scripts observation: ${action.closedDays} of ${action.requiredClosedDays} closed days · ${action.attributedOrders} of ${action.requiredAttributedOrders} attributed orders`
+  }
+  if (reason === "ADS_EXACT_PROPOSAL_READY" && action.kind === "approval_ready") {
+    return `${action.proposalKey} is ready for exact operator approval`
+  }
   return REASON_COPY[reason] ?? reason
     .toLowerCase()
     .replaceAll("_", " ")
@@ -399,7 +452,7 @@ function ProfitCell({ row }: { row: BusinessProfitRow }) {
 
 export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
   const { business, intakeFunnel, recordedAttribution, heardAboutUs, reviewRequestFunnel, trends } = data
-  const decision = DECISION_COPY[business.scaleDecision]
+  const decision = decisionCopy(business)
   const summary = intakeFunnel.summary
   const serviceGatesStillApply = business.reasonCodes.some((reason) => (
     SERVICE_GATE_REASON_CODES.has(reason)
@@ -467,7 +520,7 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
                   {business.reasonCodes.slice(0, 3).map((reason) => (
                     <li key={reason} className="flex items-start gap-2">
                       <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
-                      <span>{reasonLabel(reason)}</span>
+                      <span>{reasonLabel(reason, business)}</span>
                     </li>
                   ))}
                   {business.reasonCodes.length > 3 ? (

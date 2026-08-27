@@ -47,10 +47,22 @@ test.describe("Admin - Business", () => {
 
     await expect(page.getByText("Scale gate", { exact: true })).toBeVisible()
     await expect(page.getByText(/Active milestone|Revenue milestone unavailable/).first()).toBeVisible()
-    await expect(page.getByText("30d net retained", { exact: true })).toBeVisible()
-    await expect(page.getByText("Paid orders", { exact: true })).toBeVisible()
+    await expect(page.getByText(/^30d net retained /).first()).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Ads performance", exact: true })).toBeVisible()
+    await expect(page.getByText("Spend", { exact: true }).first()).toBeVisible()
+    await expect(page.getByText("CPA", { exact: true }).first()).toBeVisible()
     await expect(page.getByText("First-order contribution", { exact: true })).toBeVisible()
-    await expect(page.getByText("Gate issues", { exact: true })).toBeVisible()
+    await expect(page.getByText(/^(ACTION|CHECK|HOLD) · /).first()).toBeVisible()
+
+    const approvalBadges = page.getByText("Approval required", { exact: true })
+    if (await approvalBadges.count()) {
+      await expect(page.getByText(/ADS-\d{8}-\d{2}:/).first()).toBeVisible()
+    }
+    await expect(
+      page.getByText("A specific Ads change is ready for operator approval.", {
+        exact: true,
+      }),
+    ).toHaveCount(0)
   })
 
   test("business page keeps conversion and acquisition evidence separate", async ({ page }) => {

@@ -67,6 +67,14 @@ const revenue = {
 describe("buildBusinessReadModel", () => {
   it("computes fee-aware contribution from delivered evidence and preserves approval semantics", () => {
     const model = buildBusinessReadModel({
+      adsAction: {
+        currentValue: "A$79/day",
+        kind: "approval_ready",
+        mutationFamily: "campaign_budget",
+        proposalKey: "ADS-20260827-01",
+        requestedValue: "A$106/day",
+        service: "scripts",
+      },
       adsRun: {
         availability: "available",
         reason: null,
@@ -74,8 +82,8 @@ describe("buildBusinessReadModel", () => {
           recommendations: [{
             kind: "APPROVAL_NEEDED",
             proposedMutationFamily: "campaign_budget",
-            reasonCodes: ["MEDCERT_SCALE_READY"],
-            service: "med_certs",
+            reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+            service: "scripts",
           }],
         }),
       },
@@ -84,6 +92,14 @@ describe("buildBusinessReadModel", () => {
     })
 
     expect(model.scaleDecision).toBe("ACTION")
+    expect(model.adsAction).toEqual({
+      currentValue: "A$79/day",
+      kind: "approval_ready",
+      mutationFamily: "campaign_budget",
+      proposalKey: "ADS-20260827-01",
+      requestedValue: "A$106/day",
+      service: "scripts",
+    })
     expect(model.economics).toEqual({
       adsNetRetainedCents: 20_000,
       clicksTotal: null,
@@ -95,6 +111,74 @@ describe("buildBusinessReadModel", () => {
       stripeFeeCents: 2_000,
     })
     expect(model.milestone?.activeMilestone.key).toBe("five_thousand")
+  })
+
+  it("keeps an Ads approval candidate on hold while post-change evidence is immature", () => {
+    const model = buildBusinessReadModel({
+      adsAction: {
+        attributedOrders: 8,
+        closedDays: 2,
+        currentBudgetCents: 7_900,
+        kind: "observation",
+        mutationFamily: "campaign_budget",
+        requiredAttributedOrders: 10,
+        requiredClosedDays: 3,
+        service: "scripts",
+      },
+      adsRun: {
+        availability: "available",
+        reason: null,
+        run: evidence({
+          recommendations: [{
+            kind: "APPROVAL_NEEDED",
+            proposedMutationFamily: "campaign_budget",
+            reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+            service: "scripts",
+          }],
+        }),
+      },
+      now: NOW,
+      revenue,
+    })
+
+    expect(model.scaleDecision).toBe("HOLD")
+    expect(model.adsAction).toMatchObject({
+      attributedOrders: 8,
+      closedDays: 2,
+      kind: "observation",
+    })
+    expect(model.reasonCodes).toContain("SCRIPTS_POST_CHANGE_EVIDENCE_IMMATURE")
+    expect(model.reasonCodes).not.toContain("SCRIPTS_SCALE_GATES_PASSED")
+  })
+
+  it("requires an exact proposal after the post-change gate clears", () => {
+    const model = buildBusinessReadModel({
+      adsAction: {
+        currentBudgetCents: 7_900,
+        kind: "proposal_required",
+        mutationFamily: "campaign_budget",
+        service: "scripts",
+      },
+      adsRun: {
+        availability: "available",
+        reason: null,
+        run: evidence({
+          recommendations: [{
+            kind: "APPROVAL_NEEDED",
+            proposedMutationFamily: "campaign_budget",
+            reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+            service: "scripts",
+          }],
+        }),
+      },
+      now: NOW,
+      revenue,
+    })
+
+    expect(model.scaleDecision).toBe("HOLD")
+    expect(model.adsAction.kind).toBe("proposal_required")
+    expect(model.reasonCodes).toContain("ADS_EXACT_PROPOSAL_REQUIRED")
+    expect(model.reasonCodes).not.toContain("SCRIPTS_SCALE_GATES_PASSED")
   })
 
   it("exposes per-campaign rows that survive the partial availability which nulls the aggregate", () => {
