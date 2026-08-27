@@ -93,3 +93,7 @@ _Avoid_: Automatic callback, guaranteed callback, callback deadline
 **Public Voice Number**:
 The sole customer-facing phone number, routed to the AI Voice Secretary. The legacy support and recovery mobile remains private and must not appear on public-rendered surfaces.
 _Avoid_: Public recovery number, multiple customer-facing phone numbers, legacy support number
+
+**Approved Service Fact**:
+A current public fact sourced from InstantMed's canonical service, pricing, availability, refund, or contact records that the AI Voice Secretary may answer directly. It never includes Patient-specific information, clinical advice, or an improvised model answer.
+_Avoid_: Model knowledge, estimated answer, Patient status, clinical guidance
