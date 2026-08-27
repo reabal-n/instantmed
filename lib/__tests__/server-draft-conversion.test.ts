@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest"
 import {
   findConvertedPartialIntakeForCheckout,
   markPartialIntakeConverted,
+  readBoundPartialIntakeGrowthExperienceVersion,
 } from "@/lib/request/server-draft-conversion"
 
 const SESSION_ID = "11111111-1111-4111-8111-111111111111"
@@ -65,6 +66,57 @@ describe("server draft conversion marker", () => {
 
     expect(result).toEqual({ marked: false, reason: "invalid_id" })
     expect(calls.from).not.toHaveBeenCalled()
+  })
+})
+
+describe("bound draft growth experience", () => {
+  it("reads only the unexpired, unconverted row bound to the exact bearer and flow", async () => {
+    const maybeSingle = vi.fn(async () => ({
+      data: { growth_experience_version: "spx_h1_20260828" },
+      error: null,
+    }))
+    const chain = {
+      eq: vi.fn(() => chain),
+      gt: vi.fn(() => chain),
+      is: vi.fn(() => chain),
+      maybeSingle,
+    }
+    const select = vi.fn(() => chain)
+    const from = vi.fn(() => ({ select }))
+
+    await expect(
+      readBoundPartialIntakeGrowthExperienceVersion(
+        { from } as never,
+        {
+          flowInstanceId: FLOW_INSTANCE_ID,
+          serviceType: "consult",
+          sessionId: SESSION_ID,
+        },
+      ),
+    ).resolves.toBe("spx_h1_20260828")
+
+    expect(from).toHaveBeenCalledWith("partial_intakes")
+    expect(chain.eq).toHaveBeenCalledWith("session_id", SESSION_ID)
+    expect(chain.eq).toHaveBeenCalledWith("flow_instance_id", FLOW_INSTANCE_ID)
+    expect(chain.eq).toHaveBeenCalledWith("service_type", "consult")
+    expect(chain.gt).toHaveBeenCalledWith("expires_at", expect.any(String))
+    expect(chain.is).toHaveBeenCalledWith("converted_to_intake_id", null)
+  })
+
+  it("does not query storage without both valid bearer coordinates", async () => {
+    const from = vi.fn()
+
+    await expect(
+      readBoundPartialIntakeGrowthExperienceVersion(
+        { from } as never,
+        {
+          flowInstanceId: "not-a-uuid",
+          serviceType: "consult",
+          sessionId: SESSION_ID,
+        },
+      ),
+    ).resolves.toBeUndefined()
+    expect(from).not.toHaveBeenCalled()
   })
 })
 

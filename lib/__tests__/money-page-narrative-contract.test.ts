@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { ED_LANDING_FAQ } from "@/lib/data/ed-faq"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 const root = process.cwd()
 
@@ -95,14 +96,13 @@ describe("money-page narrative compression", () => {
     const identityFaq = ED_LANDING_FAQ.find(({ question }) => question === "Do I need Medicare?")
 
     expect(ed.match(/The practical facts/g)).toHaveLength(1)
-    expect(ed).toContain("Medicare or IHI plus an Australian address")
+    expect(ed).toContain('getApprovedClaim("prescribing_identity_required")')
     expect(ed).toContain("ED_SERVICE.effort")
     expect(timingFaq).toEqual({
       question: "How fast will I hear back?",
       answer: "Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. You will receive email updates as the request progresses.",
     })
-    expect(identityFaq?.answer).toContain("Medicare or IHI")
-    expect(identityFaq?.answer).toContain("Australian address")
+    expect(identityFaq?.answer).toContain(getApprovedClaim("prescribing_identity_required"))
     expect(ED_LANDING_FAQ.some(({ answer }) => answer.includes("review window"))).toBe(false)
     expect(ED_LANDING_FAQ.some(({ answer }) => answer.includes("suitable identity details"))).toBe(false)
   })

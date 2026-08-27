@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it, vi } from "vitest"
 
 import {
@@ -69,6 +72,38 @@ describe("specialty landing analytics", () => {
     })
   })
 
+  it("emits no versioned events until availability resolves enabled, then one view", () => {
+    const capture = vi.fn()
+    const unavailableAnalytics = createLandingAnalyticsTracker({
+      service: "hair-loss",
+      growthExperienceVersion: "spx_h1_20260828",
+      capture,
+      enabled: false,
+    })
+
+    unavailableAnalytics.trackLandingExperienceViewed()
+    unavailableAnalytics.trackCTAClick("hero")
+    unavailableAnalytics.trackFAQOpen("How does this work?", 0)
+    unavailableAnalytics.trackSectionView("assessment-model")
+    unavailableAnalytics.trackScrollDepth(25)
+    expect(capture).not.toHaveBeenCalled()
+
+    const enabledAnalytics = createLandingAnalyticsTracker({
+      service: "hair-loss",
+      growthExperienceVersion: "spx_h1_20260828",
+      capture,
+      enabled: true,
+    })
+    enabledAnalytics.trackLandingExperienceViewed()
+    enabledAnalytics.trackLandingExperienceViewed()
+
+    expect(capture).toHaveBeenCalledTimes(1)
+    expect(capture).toHaveBeenCalledWith("landing_experience_viewed", {
+      service: "hair-loss",
+      growth_experience_version: "spx_h1_20260828",
+    })
+  })
+
   it("never lets an analytics failure interrupt a CTA action", () => {
     const analytics = createLandingAnalyticsTracker({
       service: "ed",
@@ -120,5 +155,30 @@ describe("specialty landing analytics", () => {
         subtype: "hair_loss",
       }),
     ).toBeNull()
+  })
+
+  it("gates the landing hook on resolved availability", () => {
+    const shell = readFileSync(
+      join(process.cwd(), "components/marketing/shared/landing-page-shell.tsx"),
+      "utf8",
+    )
+
+    expect(shell).toContain("!isLoading && !isDisabled")
+    expect(shell).toMatch(
+      /useLandingAnalytics\(\s*config\.analyticsId,\s*growthExperienceVersion,\s*analyticsEnabled,?\s*\)/,
+    )
+  })
+
+  it("keeps disabled-service contact fallbacks operable", () => {
+    for (const path of [
+      "components/marketing/shared/sticky-cta.tsx",
+      "components/marketing/erectile-dysfunction-landing.tsx",
+      "components/marketing/hair-loss-landing.tsx",
+      "components/marketing/sections/how-it-works-inline.tsx",
+    ]) {
+      const component = readFileSync(join(process.cwd(), path), "utf8")
+      expect(component, path).toContain('isDisabled ? "/contact"')
+      expect(component, path).not.toContain("disabled={isDisabled}")
+    }
   })
 })

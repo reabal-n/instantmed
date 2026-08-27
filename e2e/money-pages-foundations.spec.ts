@@ -7,6 +7,8 @@ import {
   type TestInfo,
 } from "@playwright/test"
 
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
 import {
   assertResolvedTheme,
   finishFiniteEntranceAnimations,
@@ -665,8 +667,9 @@ test("ED E1 leads with the private one-off outcome before clinical detail", asyn
       `${state.name} Hero facts should remain in practical decision order`,
     ).toEqual(["Eligibility", "Review fee", "Assessment", "If approved"])
 
-    await expect(heroFactGroups.nth(0)).toContainText("Medicare or IHI")
-    await expect(heroFactGroups.nth(0)).toContainText("Australian address")
+    await expect(heroFactGroups.nth(0)).toContainText(
+      getApprovedClaim("prescribing_identity_required"),
+    )
     await expect(heroFactGroups.nth(1)).toContainText("$49.95")
     await expect(heroFactGroups.nth(1)).toContainText("Full refund if the doctor declines.")
     await expect(heroFactGroups.nth(2)).toContainText("~4 min")
@@ -831,13 +834,15 @@ test("ED E1 preserves unavailable-service behavior", async ({ page }) => {
   await seedMoneyPageState(page, "light")
   await gotoPublicRoute(page, "/erectile-dysfunction")
 
-  const unavailableNotice = page.getByText("This service is temporarily unavailable.")
+  const unavailableNotice = page.getByText("This service is currently unavailable.")
   await expect(unavailableNotice).toBeVisible()
   await expectCenterPointNotCovered(unavailableNotice)
-  await expect(page.locator('main a[href="/contact"]').first()).toHaveAttribute(
-    "href",
-    "/contact",
-  )
+  await expect(page.getByText("Contact us if you have questions.")).toBeVisible()
+  const contactLinks = page.locator('a[href="/contact"]')
+  expect(await contactLinks.count()).toBeGreaterThan(1)
+  for (let index = 0; index < await contactLinks.count(); index += 1) {
+    await expect(contactLinks.nth(index)).not.toHaveAttribute("aria-disabled", "true")
+  }
 })
 
 test("Hair H1 leads with the qualified one-off outcome before education", async ({ browser }, testInfo) => {
@@ -974,13 +979,15 @@ test("Hair H1 preserves unavailable-service behavior", async ({ page }) => {
   await seedMoneyPageState(page, "light")
   await gotoPublicRoute(page, "/hair-loss")
 
-  const unavailableNotice = page.getByText("This service is temporarily unavailable.")
+  const unavailableNotice = page.getByText("This service is currently unavailable.")
   await expect(unavailableNotice).toBeVisible()
   await expectCenterPointNotCovered(unavailableNotice)
-  await expect(page.locator('main a[href="/contact"]').first()).toHaveAttribute(
-    "href",
-    "/contact",
-  )
+  await expect(page.getByText("Contact us if you have questions.")).toBeVisible()
+  const contactLinks = page.locator('a[href="/contact"]')
+  expect(await contactLinks.count()).toBeGreaterThan(1)
+  for (let index = 0; index < await contactLinks.count(); index += 1) {
+    await expect(contactLinks.nth(index)).not.toHaveAttribute("aria-disabled", "true")
+  }
 })
 
 test.describe("money-page theme foundations", () => {

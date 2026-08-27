@@ -129,6 +129,18 @@ describe("specialty experience attribution", () => {
       }),
     ).toBeNull()
     expect(
+      normalizeIncomingGrowthExperienceVersion("spx_h3_20260828", {
+        serviceType: "consult",
+        subtype: "hair_loss",
+      }),
+    ).toBeNull()
+    expect(
+      normalizeIncomingGrowthExperienceVersion("spx_e3_20260828", {
+        serviceType: "consult",
+        subtype: "ed",
+      }),
+    ).toBeNull()
+    expect(
       normalizeIncomingGrowthExperienceVersion("patient@example.com", {
         serviceType: "consult",
         subtype: "hair_loss",
@@ -165,6 +177,16 @@ describe("specialty experience attribution", () => {
     expect(
       normalizePersistedGrowthExperienceVersion("spx_e1_20260828", context),
     ).toBeNull()
+    expect(
+      normalizePersistedGrowthExperienceVersion("spx_h3_20260828", context),
+    ).toBeNull()
+    expect(
+      selectGrowthExperienceVersion({
+        storedValue: null,
+        candidateValue: "spx_h3_20260828",
+        context,
+      }),
+    ).toBeNull()
 
     // A non-null persisted slot remains authoritative even if it no longer
     // normalizes under the current registry/service context. Fail open to null
@@ -183,6 +205,35 @@ describe("specialty experience attribution", () => {
         context,
       }),
     ).toBeNull()
+  })
+
+  it("uses strict incoming normalization at every fresh server trust boundary", () => {
+    const draftRoute = source("app/api/draft/route.ts")
+    const unifiedCheckout = source("app/actions/unified-checkout.ts")
+    const authenticatedCheckout = source("lib/stripe/checkout.ts")
+    const guestCheckout = source("lib/stripe/guest-checkout.ts")
+
+    for (const [path, boundarySource] of [
+      ["app/api/draft/route.ts", draftRoute],
+      ["app/actions/unified-checkout.ts", unifiedCheckout],
+      ["lib/stripe/checkout.ts", authenticatedCheckout],
+      ["lib/stripe/guest-checkout.ts", guestCheckout],
+    ] as const) {
+      expect(boundarySource, path).toContain("normalizeIncomingGrowthExperienceVersion")
+    }
+
+    expect(draftRoute).toMatch(
+      /normalizeIncomingGrowthExperienceVersion\(\s*body\.growthExperienceVersion/,
+    )
+    expect(unifiedCheckout).toMatch(
+      /normalizeIncomingGrowthExperienceVersion\(\s*input\.growthExperienceVersion/,
+    )
+    expect(authenticatedCheckout).toMatch(
+      /normalizeIncomingGrowthExperienceVersion\(\s*input\.growthExperienceVersion/,
+    )
+    expect(guestCheckout).toMatch(
+      /normalizeIncomingGrowthExperienceVersion\(\s*input\.growthExperienceVersion/,
+    )
   })
 
   it("adds constrained non-clinical columns with database-owned set-once rules", () => {

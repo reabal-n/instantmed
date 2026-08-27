@@ -1211,6 +1211,38 @@ describe("checkout operating hours", () => {
     )
   })
 
+  it("does not let a direct guest action persist a never-activated specialty version", async () => {
+    const { inserts, supabase } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getPriceIdForRequest.mockReturnValue("price_hair")
+
+    const result = await createGuestCheckoutAction({
+      ...hairLossGuestCheckoutInput(),
+      growthExperienceVersion: "spx_h3_20260828",
+    })
+
+    expect(result.success).toBe(true)
+    expect(inserts).toContainEqual({
+      table: "intakes",
+      payload: expect.objectContaining({
+        growth_experience_version: null,
+      }),
+    })
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.not.objectContaining({
+          growth_experience_version: expect.anything(),
+        }),
+        payment_intent_data: expect.objectContaining({
+          metadata: expect.not.objectContaining({
+            growth_experience_version: expect.anything(),
+          }),
+        }),
+      }),
+      { idempotencyKey: "guest-checkout-intake-1" },
+    )
+  })
+
   it("copies the stored cohort to rebuilt guest Session and PaymentIntent metadata", async () => {
     const duplicateIntake = makeDuplicateRepeatIntake({
       category: "consult",

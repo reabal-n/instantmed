@@ -18,10 +18,9 @@ export function UnavailableBanner({ show }: UnavailableBannerProps) {
       <AlertCircle className="h-5 w-5 text-warning shrink-0" aria-hidden="true" />
       <div>
         <p className="text-sm font-medium text-warning">
-          This service is temporarily unavailable.
+          This service is currently unavailable.
         </p>
         <p className="text-xs text-amber-700 dark:text-amber-200">
-          We&apos;ll be back soon.{" "}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
             className="underline hover:no-underline"

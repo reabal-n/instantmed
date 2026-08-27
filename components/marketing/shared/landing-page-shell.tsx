@@ -102,7 +102,8 @@ interface LandingPageShellProps {
 // ---------------------------------------------------------------------------
 
 export function LandingPageShell({ config, children, afterFooter }: LandingPageShellProps) {
-  const isDisabled = useServiceAvailability().isServiceDisabled(config.serviceId)
+  const { isLoading, isServiceDisabled } = useServiceAvailability()
+  const isDisabled = isServiceDisabled(config.serviceId)
   const heroCTARef = useRef<HTMLDivElement>(null!)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
   const growthExperienceVersion = config.growthExperience
@@ -111,7 +112,12 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
       config.growthExperience.version,
     )
     : null
-  const analytics = useLandingAnalytics(config.analyticsId, growthExperienceVersion)
+  const analyticsEnabled = !isLoading && !isDisabled
+  const analytics = useLandingAnalytics(
+    config.analyticsId,
+    growthExperienceVersion,
+    analyticsEnabled,
+  )
 
   useEffect(() => {
     const el = heroCTARef.current

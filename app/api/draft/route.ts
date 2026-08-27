@@ -17,7 +17,10 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
 import { isMaintenanceModeStrict } from "@/lib/feature-flags"
-import { normalizePersistedGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
+import {
+  normalizeIncomingGrowthExperienceVersion,
+  normalizePersistedGrowthExperienceVersion,
+} from "@/lib/growth/specialty-experience-attribution"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { decryptJSONB, type EncryptedPHI, encryptJSONB } from "@/lib/security/phi-encryption"
@@ -198,7 +201,7 @@ export async function POST(req: NextRequest) {
     return draftJson({ error: "flowInstanceId must be a valid UUID v4" }, { status: 400 })
   }
 
-  const growthExperienceVersion = normalizePersistedGrowthExperienceVersion(
+  const growthExperienceVersion = normalizeIncomingGrowthExperienceVersion(
     body.growthExperienceVersion,
     {
       serviceType: body.serviceType,

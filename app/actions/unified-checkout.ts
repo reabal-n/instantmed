@@ -13,7 +13,7 @@ import { getAppUrl } from "@/lib/config/env"
 import { updateProfile } from "@/lib/data/profiles"
 import { buildSignedCheckoutResumeUrl } from "@/lib/email/recovery-links"
 import {
-  normalizePersistedGrowthExperienceVersion,
+  normalizeIncomingGrowthExperienceVersion,
   selectGrowthExperienceVersion,
 } from "@/lib/growth/specialty-experience-attribution"
 import { findConvertedPartialIntakeForCheckout } from "@/lib/request/server-draft-conversion"
@@ -134,7 +134,7 @@ export async function createCheckoutFromUnifiedFlow(
     subtype: finalSubtype,
   }
   const candidateGrowthExperienceVersion =
-    normalizePersistedGrowthExperienceVersion(
+    normalizeIncomingGrowthExperienceVersion(
       input.growthExperienceVersion,
       growthContext,
     )

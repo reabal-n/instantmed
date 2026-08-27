@@ -25,13 +25,19 @@ import {
 } from "@/lib/data/intake-answers"
 import { decryptProfilePhi, updateProfile } from "@/lib/data/profiles"
 import { isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
-import { normalizePersistedGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
+import {
+  normalizeIncomingGrowthExperienceVersion,
+  selectGrowthExperienceVersion,
+} from "@/lib/growth/specialty-experience-attribution"
 import { createLogger } from "@/lib/observability/logger"
 import { isAtCapacity } from "@/lib/operational-controls/config"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
-import { markPartialIntakeConverted } from "@/lib/request/server-draft-conversion"
+import {
+  markPartialIntakeConverted,
+  readBoundPartialIntakeGrowthExperienceVersion,
+} from "@/lib/request/server-draft-conversion"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import {
   checkSafetyForServer,
@@ -413,7 +419,7 @@ async function markGuestCheckoutFailed(
 export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
   try {
     const resolvedAttribution = await resolveCheckoutAttribution(input.attribution)
-    const growthExperienceVersion = normalizePersistedGrowthExperienceVersion(
+    const candidateGrowthExperienceVersion = normalizeIncomingGrowthExperienceVersion(
       input.growthExperienceVersion,
       { category: input.category, subtype: input.subtype },
     )
@@ -535,6 +541,18 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     }
 
     const supabase = createServiceRoleClient()
+    const storedGrowthExperienceVersion = input.category === "consult"
+      ? await readBoundPartialIntakeGrowthExperienceVersion(supabase, {
+          flowInstanceId: input.flowInstanceId,
+          serviceType: "consult",
+          sessionId: input.serverDraftSessionId,
+        })
+      : undefined
+    const growthExperienceVersion = selectGrowthExperienceVersion({
+      storedValue: storedGrowthExperienceVersion,
+      candidateValue: candidateGrowthExperienceVersion,
+      context: { category: input.category, subtype: input.subtype },
+    })
     const baseUrl = getBaseUrl()
 
     if (!isValidUrl(baseUrl)) {

@@ -23,15 +23,17 @@ type LandingAnalyticsCapture = (event: string, properties: LandingAnalyticsPrope
 export function createLandingExperienceViewLatch({
   service,
   growthExperienceVersion,
+  enabled = true,
 }: {
   service: string
   growthExperienceVersion: SpecialtyExperienceVersion | null
+  enabled?: boolean
 }) {
   let hasTracked = false
 
   return {
     track: (capture: LandingAnalyticsCapture | null | undefined) => {
-      if (!growthExperienceVersion || !capture || hasTracked) return
+      if (!enabled || !growthExperienceVersion || !capture || hasTracked) return
       hasTracked = true
       try {
         capture("landing_experience_viewed", {
@@ -49,20 +51,24 @@ export function createLandingAnalyticsTracker({
   service,
   growthExperienceVersion = null,
   capture,
+  enabled = true,
 }: {
   service: string
   growthExperienceVersion?: SpecialtyExperienceVersion | null
   capture?: LandingAnalyticsCapture
+  enabled?: boolean
 }) {
   const experienceView = createLandingExperienceViewLatch({
     service,
     growthExperienceVersion,
+    enabled,
   })
   const versionProperties = growthExperienceVersion
     ? { growth_experience_version: growthExperienceVersion }
     : {}
 
   const track = (event: string, properties: LandingAnalyticsProperties) => {
+    if (!enabled) return
     try {
       capture?.(event, properties)
     } catch {
@@ -112,20 +118,22 @@ export function createLandingAnalyticsTracker({
 export function useLandingAnalytics(
   service: string,
   growthExperienceVersion: SpecialtyExperienceVersion | null = null,
+  enabled = true,
 ) {
   const posthog = usePostHog()
   const scrollMilestones = useRef(new Set<number>())
   const experienceView = useMemo(
-    () => createLandingExperienceViewLatch({ service, growthExperienceVersion }),
-    [growthExperienceVersion, service],
+    () => createLandingExperienceViewLatch({ service, growthExperienceVersion, enabled }),
+    [enabled, growthExperienceVersion, service],
   )
   const analytics = useMemo(
     () => createLandingAnalyticsTracker({
       service,
       growthExperienceVersion,
       capture: posthog?.capture.bind(posthog),
+      enabled,
     }),
-    [growthExperienceVersion, posthog, service],
+    [enabled, growthExperienceVersion, posthog, service],
   )
 
   useEffect(() => {
@@ -152,6 +160,8 @@ export function useLandingAnalytics(
 
   // Scroll depth tracking (25/50/75/100%)
   useEffect(() => {
+    if (!enabled) return
+
     const handleScroll = () => {
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
       if (scrollHeight <= 0) return
@@ -167,7 +177,7 @@ export function useLandingAnalytics(
 
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [analytics])
+  }, [analytics, enabled])
 
   return {
     trackCTAClick,

@@ -241,7 +241,6 @@ function EdHero({
               asChild
               size="lg"
               className="h-auto min-h-12 w-full whitespace-normal py-3 text-center shadow-lg shadow-primary/20 sm:w-auto"
-              disabled={isDisabled}
               onClick={onStart}
             >
               <Link href={isDisabled ? "/contact" : requestCtaHref}>
@@ -489,7 +488,7 @@ function EdReviewCostOutcomeSection({
             </div>
           </dl>
           <div className="border-t border-border/50 p-5 text-center">
-            <Button asChild size="lg" disabled={isDisabled} onClick={onStart}>
+            <Button asChild size="lg" onClick={onStart}>
               <Link href={isDisabled ? "/contact" : requestCtaHref}>
                 {isDisabled ? "Contact us" : "Start private assessment"}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -573,7 +572,7 @@ function EdFinalCta({
             Complete the secure form. An AHPRA-registered doctor reviews your answers and decides whether online care is appropriate.
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg" className="w-full sm:w-auto" disabled={isDisabled} onClick={onStart}>
+            <Button asChild size="lg" className="w-full sm:w-auto" onClick={onStart}>
               <Link href={isDisabled ? "/contact" : requestCtaHref}>
                 {isDisabled ? "Contact us" : `Request assessment - ${PRICING_DISPLAY.MENS_HEALTH}`}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />

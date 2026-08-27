@@ -1,4 +1,5 @@
 import {
+  hasSpecialtyExperienceActivationHistory,
   normalizeSpecialtyExperienceVersion,
   SPECIALTY_EXPERIENCES,
   type SpecialtyExperienceService,
@@ -83,7 +84,8 @@ export function normalizePersistedGrowthExperienceVersion(
     (candidate) =>
       candidate.id === value &&
       candidate.service === service &&
-      candidate.surface === "landing",
+      candidate.surface === "landing" &&
+      hasSpecialtyExperienceActivationHistory(candidate),
   )
   return (experience?.id as SpecialtyExperienceVersion | undefined) ?? null
 }
@@ -94,7 +96,9 @@ export function normalizeOpaqueGrowthExperienceVersion(
 ): SpecialtyExperienceVersion | null {
   if (typeof value !== "string" || value.length > 64) return null
   const experience = SPECIALTY_EXPERIENCES.find(
-    (candidate) => candidate.id === value,
+    (candidate) =>
+      candidate.id === value &&
+      hasSpecialtyExperienceActivationHistory(candidate),
   )
   return (experience?.id as SpecialtyExperienceVersion | undefined) ?? null
 }
@@ -112,5 +116,5 @@ export function selectGrowthExperienceVersion({
   if (storedValue !== null && storedValue !== undefined) {
     return normalizePersistedGrowthExperienceVersion(storedValue, context)
   }
-  return normalizePersistedGrowthExperienceVersion(candidateValue, context)
+  return normalizeIncomingGrowthExperienceVersion(candidateValue, context)
 }

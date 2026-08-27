@@ -104,6 +104,28 @@ export const ACTIVE_SPECIALTY_EXPERIENCES = SPECIALTY_EXPERIENCES.filter(
   (experience) => experience.status === "active",
 )
 
+/**
+ * A persisted cohort is historical truth only after the version has really
+ * opened. Baseline definitions with no activation timestamp are planning
+ * inventory, not cohorts, and must never become durable attribution merely
+ * because their opaque id is present in the registry.
+ */
+export function hasSpecialtyExperienceActivationHistory(
+  experience: SpecialtyExperienceDefinition,
+): boolean {
+  if (experience.status === "baseline" || experience.activationTimestamp === null) {
+    return false
+  }
+
+  const activatedAt = Date.parse(experience.activationTimestamp)
+  if (!Number.isFinite(activatedAt)) return false
+  if (experience.status === "active") return experience.retirementTimestamp === null
+  if (experience.retirementTimestamp === null) return false
+
+  const retiredAt = Date.parse(experience.retirementTimestamp)
+  return Number.isFinite(retiredAt) && retiredAt > activatedAt
+}
+
 function assertRegistryInvariants(
   registry: readonly SpecialtyExperienceDefinition[],
 ): void {
@@ -112,6 +134,13 @@ function assertRegistryInvariants(
   for (const experience of registry) {
     if (!/^spx_[he][1-3]_20260828$/.test(experience.id)) {
       throw new Error(`Invalid specialty experience version: ${experience.id}`)
+    }
+
+    if (
+      experience.status !== "baseline" &&
+      !hasSpecialtyExperienceActivationHistory(experience)
+    ) {
+      throw new Error(`Invalid specialty experience lifecycle: ${experience.id}`)
     }
 
     if (experience.status !== "active") continue

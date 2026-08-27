@@ -30,7 +30,7 @@ function expectFirstFoldContract(source: string, firstSectionId: string, nextCho
 
   expect(firstFold).toContain("Australia only")
   expect(firstFold).toContain("18+")
-  expect(firstFold).toContain("Medicare required")
+  expect(firstFold).toContain('getApprovedClaim("prescribing_identity_required")')
   expect(firstFold).toContain("PRICING_DISPLAY.WOMENS_HEALTH")
   expect(firstFold).toContain("AHPRA-registered doctor")
   expect(firstFold).toContain("GUARANTEE")

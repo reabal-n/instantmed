@@ -29,8 +29,13 @@ import { cookies } from "next/headers"
 import { normalizeAttributionForStorage } from "@/lib/analytics/attribution-storage"
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { resolveCheckoutAttribution } from "@/lib/analytics/server-attribution"
+import {
+  normalizeIncomingGrowthExperienceVersion,
+  selectGrowthExperienceVersion,
+} from "@/lib/growth/specialty-experience-attribution"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
+import { readBoundPartialIntakeGrowthExperienceVersion } from "@/lib/request/server-draft-conversion"
 import { runFraudChecks } from "@/lib/security/fraud-detector"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
@@ -51,7 +56,7 @@ import {
   buildCheckoutSessionParams,
   createStripeSessionWithRollback,
 } from "./checkout/stripe-session"
-import type { CheckoutResult,CreateCheckoutInput } from "./checkout/types"
+import type { CheckoutResult, CreateCheckoutInput } from "./checkout/types"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest } from "./client"
 import { createReferralCouponIfEligible } from "./referral-coupon"
@@ -68,6 +73,10 @@ export async function createIntakeAndCheckoutAction(
 
   try {
     const resolvedAttribution = await resolveCheckoutAttribution(input.attribution)
+    const candidateGrowthExperienceVersion = normalizeIncomingGrowthExperienceVersion(
+      input.growthExperienceVersion,
+      { category: input.category, subtype: input.subtype },
+    )
 
     // 1. Pre-checkout gates: env + DB kill switches, capacity.
     const gatesResult = await runPreCheckoutGates(input)
@@ -84,6 +93,22 @@ export async function createIntakeAndCheckoutAction(
     const { patientId, patientEmail, stripeCustomerId, baseUrl } = authResult.data
 
     const supabase = createServiceRoleClient()
+    const storedGrowthExperienceVersion = input.category === "consult"
+      ? await readBoundPartialIntakeGrowthExperienceVersion(supabase, {
+          flowInstanceId: input.flowInstanceId,
+          serviceType: "consult",
+          sessionId: input.serverDraftSessionId,
+        })
+      : undefined
+    const growthExperienceVersion = selectGrowthExperienceVersion({
+      storedValue: storedGrowthExperienceVersion,
+      candidateValue: candidateGrowthExperienceVersion,
+      context: { category: input.category, subtype: input.subtype },
+    })
+    const attributedInput: CreateCheckoutInput = {
+      ...input,
+      growthExperienceVersion: growthExperienceVersion ?? undefined,
+    }
 
     // 4. Resolve service row.
     const serviceSlug = input.serviceSlug || getServiceSlug(input.category, input.subtype)
@@ -183,7 +208,7 @@ export async function createIntakeAndCheckoutAction(
     // 8. Insert intake + answers (atomic), with idempotency-collision routing
     //    to either the existing-paid success page or a retry-payment session.
     const persistResult = await createIntakeWithAnswers(supabase, {
-      input,
+      input: attributedInput,
       patientId,
       serviceId: service.id,
       serviceSlug,
@@ -249,7 +274,7 @@ export async function createIntakeAndCheckoutAction(
       referralCoupon,
       posthogDistinctId: input.posthogDistinctId,
       flowInstanceId: input.flowInstanceId,
-      growthExperienceVersion: input.growthExperienceVersion,
+      growthExperienceVersion: growthExperienceVersion ?? undefined,
       attribution,
     })
 
@@ -302,7 +327,7 @@ export async function createIntakeAndCheckoutAction(
       anonymousId: input.posthogDistinctId,
       flowInstanceId: input.flowInstanceId,
       metadata: {
-        growth_experience_version: input.growthExperienceVersion ?? null,
+        growth_experience_version: growthExperienceVersion,
       },
     })
 

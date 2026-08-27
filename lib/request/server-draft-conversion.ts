@@ -44,6 +44,46 @@ function normalizeEmail(value: string | null | undefined): string {
 }
 
 /**
+ * Read attribution only from an unconverted, unexpired draft whose bearer,
+ * flow id, and service all match. `undefined` means there is no authoritative
+ * draft slot; `null` means the authoritative slot exists and is intentionally
+ * unassigned.
+ */
+export async function readBoundPartialIntakeGrowthExperienceVersion(
+  supabase: SupabaseClient,
+  {
+    flowInstanceId,
+    serviceType,
+    sessionId,
+  }: {
+    flowInstanceId: string | null | undefined
+    serviceType: "consult"
+    sessionId: string | null | undefined
+  },
+): Promise<string | null | undefined> {
+  if (!isUuid(sessionId) || !isUuid(flowInstanceId)) return undefined
+
+  const { data, error } = await supabase
+    .from("partial_intakes")
+    .select("growth_experience_version")
+    .eq("session_id", sessionId)
+    .eq("flow_instance_id", flowInstanceId)
+    .eq("service_type", serviceType)
+    .gt("expires_at", new Date().toISOString())
+    .is("converted_to_intake_id", null)
+    .maybeSingle<{ growth_experience_version: string | null }>()
+
+  if (error) {
+    logger.warn("Failed to load bound draft growth experience", {
+      error: error.message,
+    })
+    return undefined
+  }
+
+  return data ? data.growth_experience_version : undefined
+}
+
+/**
  * Resolve the intake already created from a saved draft before checkout tries
  * to insert another one. The draft session id is a bearer token, but we still
  * pin it to the captured email and request shape before exposing a payment

@@ -324,7 +324,7 @@ function HairLossPricingSection({
                 <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />Medicine cost is separate and paid to the pharmacy. Prescription is not guaranteed.</li>
                 <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />{REFUND_GUARANTEE_CLAIM}</li>
               </ul>
-              <Button asChild size="lg" className="mt-6 w-full" disabled={isDisabled} onClick={onStart}>
+              <Button asChild size="lg" className="mt-6 w-full" onClick={onStart}>
                 <Link href={isDisabled ? "/contact" : requestCtaHref}>
                   {isDisabled ? "Contact us" : "Start assessment"}
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />

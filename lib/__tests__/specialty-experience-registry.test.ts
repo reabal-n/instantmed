@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   ACTIVE_SPECIALTY_EXPERIENCES,
+  hasSpecialtyExperienceActivationHistory,
   isSpecialtyExperienceAvailableAt,
   normalizeSpecialtyExperienceVersion,
   SPECIALTY_EXPERIENCES,
@@ -98,6 +99,12 @@ describe("specialty experience registry", () => {
     expect(isSpecialtyExperienceAvailableAt(retiredVersion, "2026-08-10T00:00:00.000Z")).toBe(true)
     expect(isSpecialtyExperienceAvailableAt(retiredVersion, "2026-08-15T00:00:00.000Z")).toBe(false)
     expect(isSpecialtyExperienceAvailableAt(retiredVersion, "2026-08-20T00:00:00.000Z")).toBe(false)
+    expect(hasSpecialtyExperienceActivationHistory(retiredVersion)).toBe(true)
+    expect(
+      hasSpecialtyExperienceActivationHistory(
+        SPECIALTY_EXPERIENCES.find(({ id }) => id === "spx_h3_20260828")!,
+      ),
+    ).toBe(false)
   })
 
   it("keeps identifiers free of personal, clinical, and acquisition meaning", () => {

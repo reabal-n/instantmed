@@ -588,6 +588,14 @@ export function RequestFlow({
         hydratedState.setAnswer(seed.key, seed.value, { touch: false })
       }
 
+      // A consult URL can render its first subtype step before Zustand has
+      // hydrated. Reconcile the store against the newly seeded subtype before
+      // exposing the hydrated state so Continue advances from the same step
+      // the patient can see.
+      if (initialService && hydratedState.serviceType === initialService) {
+        hydratedState.setServiceType(initialService)
+      }
+
       if (decision.redirectPath) {
         router.replace(decision.redirectPath)
       }
@@ -948,7 +956,7 @@ export function RequestFlow({
     currentStepIndex,
     serviceType,
     analyticsServiceType,
-    currentStepId,
+    currentStepId: visibleStepId,
     flowInstanceId,
     posthog,
   })
@@ -987,7 +995,7 @@ export function RequestFlow({
     analyticsServiceType,
     patientEmail,
     trackStepCompleted,
-    currentStepId,
+    currentStepId: visibleStepId,
     currentStepIndex,
     effectiveService,
     answers,

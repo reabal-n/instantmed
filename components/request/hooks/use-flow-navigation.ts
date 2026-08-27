@@ -9,7 +9,7 @@ import {
   INTAKE_ANALYTICS_EVENTS,
 } from "@/lib/analytics/intake-events"
 import { getConsultSubtypeResetKeys } from "@/lib/request/consult-flow"
-import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
+import type { StepDefinition, UnifiedServiceType, UnifiedStepId } from "@/lib/request/step-registry"
 import type { SafetyEvaluationResult } from "@/lib/safety/types"
 
 import { type RequestProfilePrefill, useRequestStore } from "../store"
@@ -59,7 +59,7 @@ interface UseFlowNavigationOptions {
   patientEmail: string | undefined
   trackStepCompleted: () => void
   // Derived state (computed in parent)
-  currentStepId: string
+  currentStepId: UnifiedStepId
   currentStepIndex: number
   effectiveService: UnifiedServiceType | null
   answers: Record<string, unknown>
@@ -109,7 +109,7 @@ export function useFlowNavigation({
   const router = useRouter()
   const {
     flowInstanceId,
-    nextStep,
+    advanceRenderedStep,
     prevStep,
     goToStep,
     setServiceType,
@@ -219,19 +219,26 @@ export function useFlowNavigation({
       }
     }
 
-    // Only count the step as completed once the safety pre-check has passed and
-    // the step actually advances — firing before the early-return above would
-    // over-count completions on friction-prone clinical steps (a DECLINE /
-    // REQUIRES_CALL block keeps the patient on the step).
-    trackStepCompleted()
+    const advanced = effectiveService
+      ? advanceRenderedStep({
+        serviceType: effectiveService,
+        stepId: currentStepId,
+        subtype: initialSubtype,
+      })
+      : false
+    if (!advanced) return
 
-    nextStep()
+    // Only count the step as completed once the safety pre-check has passed and
+    // the step actually advances — firing before either early return above
+    // would over-count safety blocks or a hydration race that revealed real
+    // saved work behind the URL-rendered fallback.
+    trackStepCompleted()
     // Push a history entry so the browser's Back button maps to "previous step"
     // rather than "leave the flow entirely". The popstate listener calls prevStep()
     // to sync Zustand when the browser pops this entry.
     history.pushState({ instantmedFlow: true }, '')
     flowHistoryDepth.current++
-  }, [trackStepCompleted, analyticsServiceType, currentStepId, currentStepIndex, activeSteps.length, nextStep, posthog, effectiveService, answers, setSafetyBlock, flowInstanceId])
+  }, [trackStepCompleted, analyticsServiceType, currentStepId, currentStepIndex, activeSteps.length, advanceRenderedStep, posthog, effectiveService, initialSubtype, answers, setSafetyBlock, flowInstanceId])
 
   const handleComplete = useCallback(() => {
     posthog?.capture('request_flow_completed', {

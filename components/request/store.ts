@@ -126,6 +126,12 @@ export interface RequestProfilePrefill {
 export interface RequestActions {
   // Service
   setServiceType: (type: UnifiedServiceType) => void
+  /** Align a URL-rendered step with hydrated state, then advance exactly once. */
+  advanceRenderedStep: (input: {
+    serviceType: UnifiedServiceType
+    stepId: UnifiedStepId
+    subtype?: string
+  }) => boolean
   /** Fill the fresh-flow cohort once; restored state remains authoritative. */
   claimGrowthExperienceVersion: (version: string | null | undefined) => void
   
@@ -753,6 +759,49 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             currentStepId: (steps[0]?.id || 'certificate') as UnifiedStepId,
           })
         }
+      },
+
+      advanceRenderedStep: ({ serviceType, stepId, subtype }) => {
+        let state = get()
+        if (state.serviceType !== serviceType) {
+          state.setServiceType(serviceType)
+          state = get()
+        }
+
+        if (
+          serviceType === "consult" &&
+          subtype &&
+          typeof state.answers.consultSubtype !== "string"
+        ) {
+          state.setAnswer("consultSubtype", subtype, { touch: false })
+          state.setServiceType(serviceType)
+          state = get()
+        }
+
+        const context = {
+          ...state.authContext,
+          serviceType,
+          answers: state.answers,
+        }
+        let activeStepIds: UnifiedStepId[] = []
+        try {
+          activeStepIds = _getStepsForService(serviceType, context).map(({ id }) => id)
+        } catch {
+          // Navigation below keeps the existing fail-open behavior.
+        }
+
+        const currentStepIsAuthoritative = Boolean(
+          state.lastSavedAt && activeStepIds.includes(state.currentStepId),
+        )
+        if (state.currentStepId !== stepId) {
+          // Hydration may reveal real saved work after the URL fallback has
+          // already painted. Never overwrite or advance that unseen step.
+          if (currentStepIsAuthoritative) return false
+          state.goToStep(stepId)
+        }
+
+        get().nextStep()
+        return true
       },
 
       claimGrowthExperienceVersion: (version) => {

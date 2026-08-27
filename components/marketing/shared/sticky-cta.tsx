@@ -75,7 +75,6 @@ export function StickyCTA({
             asChild
             size="lg"
             className="h-auto min-h-12 w-full whitespace-normal py-3 text-center text-base font-semibold shadow-md shadow-primary/20"
-            disabled={isDisabled}
             onClick={onCTAClick}
           >
             <Link href={resolvedHref}>
