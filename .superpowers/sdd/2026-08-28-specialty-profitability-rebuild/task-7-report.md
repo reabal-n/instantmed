@@ -131,3 +131,80 @@ Result: 2 tests passed.
 ## Concerns
 
 None. Medicare-or-IHI/address is intentionally truthful local E1 copy rather than new shared canon; Task 8 remains the owner of that later canonicalisation. Browser evidence is local and does not claim deployment or production receipt.
+
+## Fix round 1
+
+### Scope and commit
+
+- Review base: `8d61fd5d87fe4d9833f296164b56321adb33c5f0`
+- Fix commit: `acb326ab336c10a1bec2d26a82a878a4262dcb52` (`fix(marketing): expose ED timing and preserve reflow`)
+- Files: `components/marketing/erectile-dysfunction-landing.tsx`, `lib/data/ed-faq.ts`, `lib/__tests__/money-page-narrative-contract.test.ts`, and `e2e/money-pages-foundations.spec.ts`.
+- No intake, clinical, price/payment, metadata, database, Ads, external-system, deployment, or user-owned `output/` change was made.
+
+### RED evidence
+
+The exported FAQ behavior and rendered adjacency/reflow checks were added before either production correction.
+
+Runtime FAQ RED:
+
+```bash
+corepack pnpm exec vitest run lib/__tests__/money-page-narrative-contract.test.ts
+```
+
+Result: 1 file failed, with 1 failed and 4 passed. Importing the real `ED_LANDING_FAQ` returned `undefined` for `How fast will I hear back?`, proving that the approved answer existed only in the private source array and did not reach the landing FAQ or its schema source.
+
+Rendered browser RED:
+
+```bash
+corepack pnpm exec playwright test \
+  e2e/money-pages-foundations.spec.ts \
+  --config=playwright.task7-fix1.config.ts \
+  --project=chromium \
+  --grep "ED E1"
+```
+
+Result: 3 tests ran, with 2 failed and 1 passed.
+
+- The ordinary Hero test timed out locating the absent rendered `How fast will I hear back?` button.
+- At the 188px zoom proxy, the H1 text range escaped its own layout box because `[overflow-wrap:normal]` overrode the shared emergency wrapping rule.
+- Unavailable-service behavior stayed green. The new direct-adjacency and ordinary whole-word assertions were already present before production changed.
+
+### GREEN and regression evidence
+
+After adding `ED_FAQ[3]` to the exported landing list and removing only `[overflow-wrap:normal]`, the runtime FAQ test passed: 1 file and 5 tests passed.
+
+The required Task 7 suite remained green:
+
+```text
+Test Files  6 passed (6)
+Tests       74 passed (74)
+```
+
+The Task 1 invariant plus prescribing identity/address, marketing, voice, hours, speed, TGA, paid, and Ads suite remained green:
+
+```text
+Test Files  10 passed (10)
+Tests       109 passed (109)
+```
+
+Scoped ESLint over the four changed files, `corepack pnpm typecheck`, `git diff --check`, and scoped no-intake/no-clinical/no-payment/no-`output/` diff checks all passed.
+
+### Browser evidence
+
+The final isolated no-global-setup run passed 3/3 in installed system Chrome on port 3060. The temporary configuration was removed and the `/tmp` screenshots were visually inspected, then moved to Trash; no browser artifact was committed and no test database setup/teardown ran.
+
+- Desktop light, 1440x900, and mobile dark, 375x800: the browser rendered and expanded `How fast will I hear back?` with the exact approved 24/7 variable-timing answer. The exported item therefore reaches both the public FAQ and the `ED_LANDING_FAQ` schema input.
+- Both ordinary viewports keep every character of `assessment` on one rendered line and retain `hyphens: none`.
+- Both ordinary viewports assert that the Hero's immediate next element is `#how-it-works`, not merely that the practical section occurs somewhere before eligibility.
+- Zoom proxy, 188x422 at device scale 2: the H1 element, text ranges, CTA, and practical-facts semantics remained horizontally contained; document width and semantic overflow audits were clean.
+- Enlarged text, 375x844 with root `font-size: 32px`: the same H1/text/viewport containment and no-horizontal-overflow checks passed.
+- Revised wrap claim: the H1 never inserts hyphens. It remains whole-word at ordinary 1440px and 375px viewports; at accessibility stress sizes, the restored shared `overflow-wrap:anywhere` may break inside a long word without a hyphen to prevent clipping.
+- The exact E1 CTA destination, initial/normal-scroll facts, dark mode, sticky CTA, unavailable routing, and empty console/page-error collections remained green.
+
+### Self-review and concerns
+
+- The production fix is two one-line changes: expose the already-approved timing FAQ item and stop overriding the shared emergency wrap policy. No copy, claim, layout, or behavior beyond the independent findings changed.
+- The FAQ contract now imports and interrogates the exported runtime list rather than grepping the private source array. It asserts the exact approved answer and rejects retired review-window/identity wording across every exported answer.
+- The browser contract proves public rendering, exact answer expansion, direct Hero adjacency, ordinary whole-word behavior, and semantic containment at both required accessibility stress states.
+- `hyphens-none`, the shared Heading primitive, Hero `overflow-hidden`, design tokens, intake, clinical rules, pricing/payment, and the E1 analytics destination remain intact.
+- No concerns remain. Browser receipts are local proof only, not deployment or production evidence.
