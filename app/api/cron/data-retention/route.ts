@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
       rate_limits_cleaned: 0,
       sessions_cleaned: 0,
       intakes_anonymized: 0,
+      resolved_voice_messages_deleted: 0,
       errors: 0,
     }
 
@@ -146,6 +147,22 @@ export async function GET(request: NextRequest) {
           })
         }
       }
+    }
+
+    // 4. Delete the transient encrypted payload after a voice message has been
+    // resolved for 30 days. Open messages are never silently deleted.
+    const { data: deletedVoiceMessages, error: voiceCleanupError } = await supabase.rpc(
+      "cleanup_resolved_medical_director_voice_messages",
+      { p_limit: 100, p_retention_days: 30 },
+    )
+    if (voiceCleanupError) {
+      // The migration may not be deployed yet while this branch is in preview.
+      if (voiceCleanupError.code !== "42883") {
+        logger.warn("Failed to clean resolved Medical Director voice messages", {}, voiceCleanupError)
+        stats.errors++
+      }
+    } else {
+      stats.resolved_voice_messages_deleted = Number(deletedVoiceMessages ?? 0)
     }
 
     logger.info("Data retention policy executed", stats)

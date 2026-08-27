@@ -2,6 +2,12 @@ import { EventEmitter } from "node:events"
 
 import { describe, expect, it, vi } from "vitest"
 
+import {
+  LENA_EMERGENCY_DIRECTION,
+  LENA_GREETING,
+  LENA_SAVE_FAILURE,
+  LENA_SAVE_SUCCESS,
+} from "@/lib/twilio/openai-realtime"
 import { attachTwilioOpenAIRealtimeBridge } from "@/lib/twilio/openai-realtime-bridge"
 
 class FakeSocket extends EventEmitter {
@@ -13,9 +19,16 @@ class FakeSocket extends EventEmitter {
   }
 
   close() {
+    if (this.readyState === 3) return
     this.readyState = 3
     this.emit("close")
   }
+}
+
+const parsedSession = {
+  callSid: "CA00000000000000000000000000000000",
+  startedAt: "2026-08-27T10:00:00.000Z",
+  expiresAt: "2026-08-27T10:05:00.000Z",
 }
 
 function startEvent(sessionToken = "valid-session-token") {
@@ -25,7 +38,7 @@ function startEvent(sessionToken = "valid-session-token") {
     streamSid: "MZ00000000000000000000000000000000",
     start: {
       accountSid: "AC00000000000000000000000000000000",
-      callSid: "CA00000000000000000000000000000000",
+      callSid: parsedSession.callSid,
       customParameters: { sessionToken },
       mediaFormat: {
         channels: 1,
@@ -38,27 +51,42 @@ function startEvent(sessionToken = "valid-session-token") {
   }
 }
 
+function functionCall(name: string, argumentsValue = "{}") {
+  return Buffer.from(JSON.stringify({
+    type: "response.done",
+    response: {
+      output: [{
+        type: "function_call",
+        name,
+        call_id: "call_123",
+        arguments: argumentsValue,
+      }],
+    },
+  }))
+}
+
+function dependencies(openai: FakeSocket, executeVoiceMessageTool = vi.fn()) {
+  return {
+    clearCallTimeout: vi.fn(),
+    createOpenAISocket: vi.fn(() => openai),
+    executeVoiceMessageTool,
+    parseSessionToken: vi.fn(() => parsedSession),
+    setCallTimeout: vi.fn((
+      _callback: () => void,
+      _milliseconds: number,
+    ) => ({}) as ReturnType<typeof setTimeout>),
+  }
+}
+
 describe("Twilio to OpenAI Realtime bridge", () => {
-  it("opens OpenAI only after a valid consent token and relays native PCMU audio both ways", () => {
+  it("opens after a valid session, delivers the exact greeting, and relays native PCMU audio", () => {
     const twilio = new FakeSocket()
     const openai = new FakeSocket()
-    const createOpenAISocket = vi.fn(() => openai)
+    const deps = dependencies(openai)
 
-    attachTwilioOpenAIRealtimeBridge(twilio, {
-      createOpenAISocket,
-      executeCallbackTool: vi.fn(),
-      parseSessionToken: () => ({
-        callSid: "CA00000000000000000000000000000000",
-        caller: "+61412345678",
-        consentedAt: "2026-08-27T10:00:00.000Z",
-        expiresAt: "2026-08-27T10:05:00.000Z",
-      }),
-      setCallTimeout: () => ({}) as ReturnType<typeof setTimeout>,
-      clearCallTimeout: vi.fn(),
-    })
-
+    attachTwilioOpenAIRealtimeBridge(twilio, deps)
     twilio.emit("message", Buffer.from(JSON.stringify(startEvent())))
-    expect(createOpenAISocket).toHaveBeenCalledOnce()
+    expect(deps.createOpenAISocket).toHaveBeenCalledOnce()
 
     openai.emit("open")
     expect(JSON.parse(openai.sent[0])).toMatchObject({
@@ -72,14 +100,11 @@ describe("Twilio to OpenAI Realtime bridge", () => {
     })
     expect(JSON.parse(openai.sent[1])).toEqual({
       type: "response.create",
-      response: {
-        instructions: "Briefly thank the caller for consenting, identify yourself as InstantMed's automated support assistant, and ask what you can help with.",
-      },
+      response: { instructions: `Say exactly: "${LENA_GREETING}"` },
     })
 
     twilio.emit("message", Buffer.from(JSON.stringify({
       event: "media",
-      streamSid: "MZ00000000000000000000000000000000",
       media: { payload: "dHdpbGlvLWF1ZGlv" },
     })))
     expect(JSON.parse(openai.sent[2])).toEqual({
@@ -96,80 +121,109 @@ describe("Twilio to OpenAI Realtime bridge", () => {
       streamSid: "MZ00000000000000000000000000000000",
       media: { payload: "b3BlbmFpLWF1ZGlv" },
     })
-
-    openai.emit("message", Buffer.from(JSON.stringify({
-      type: "input_audio_buffer.speech_started",
-    })))
-    expect(JSON.parse(twilio.sent[1])).toEqual({
-      event: "clear",
-      streamSid: "MZ00000000000000000000000000000000",
-    })
   })
 
-  it("returns the durable callback tool result to OpenAI before asking the model to continue", async () => {
+  it.each([
+    [true, LENA_SAVE_SUCCESS],
+    [false, LENA_SAVE_FAILURE],
+  ])("speaks the code-gated final line after save recorded=%s", async (recorded, finalLine) => {
     const twilio = new FakeSocket()
     const openai = new FakeSocket()
-    const executeCallbackTool = vi.fn(async () => JSON.stringify({ recorded: true }))
+    const executeVoiceMessageTool = vi.fn(async () => JSON.stringify({ recorded }))
+    const deps = dependencies(openai, executeVoiceMessageTool)
 
-    attachTwilioOpenAIRealtimeBridge(twilio, {
-      createOpenAISocket: () => openai,
-      executeCallbackTool,
-      parseSessionToken: () => ({
-        callSid: "CA00000000000000000000000000000000",
-        caller: "+61412345678",
-        consentedAt: "2026-08-27T10:00:00.000Z",
-        expiresAt: "2026-08-27T10:05:00.000Z",
-      }),
-      setCallTimeout: () => ({}) as ReturnType<typeof setTimeout>,
-      clearCallTimeout: vi.fn(),
-    })
-
+    attachTwilioOpenAIRealtimeBridge(twilio, deps)
     twilio.emit("message", Buffer.from(JSON.stringify(startEvent())))
     openai.emit("open")
-    openai.emit("message", Buffer.from(JSON.stringify({
-      type: "response.done",
-      response: {
-        output: [{
-          type: "function_call",
-          name: "create_callback_request",
-          call_id: "call_123",
-          arguments: "{\"category\":\"other\",\"summary\":\"Please call me back.\"}",
-        }],
-      },
-    })))
+    openai.emit("message", functionCall(
+      "create_medical_director_message",
+      JSON.stringify({ callback_requested: false }),
+    ))
 
-    await vi.waitFor(() => expect(executeCallbackTool).toHaveBeenCalledOnce())
+    await vi.waitFor(() => expect(executeVoiceMessageTool).toHaveBeenCalledOnce())
     expect(JSON.parse(openai.sent.at(-2)!)).toEqual({
       type: "conversation.item.create",
       item: {
         type: "function_call_output",
         call_id: "call_123",
-        output: "{\"recorded\":true}",
+        output: JSON.stringify({ recorded }),
       },
     })
-    expect(JSON.parse(openai.sent.at(-1)!)).toEqual({ type: "response.create" })
+    expect(JSON.parse(openai.sent.at(-1)!)).toEqual({
+      type: "response.create",
+      response: { instructions: `Say exactly: "${finalLine}"` },
+    })
   })
 
-  it("rejects a stream when its call SID does not match the consent token", () => {
+  it("uses the fixed triple-zero direction without assessing the caller", async () => {
     const twilio = new FakeSocket()
-    const createOpenAISocket = vi.fn(() => new FakeSocket())
+    const openai = new FakeSocket()
+    const deps = dependencies(openai)
 
-    attachTwilioOpenAIRealtimeBridge(twilio, {
-      createOpenAISocket,
-      executeCallbackTool: vi.fn(),
-      parseSessionToken: () => ({
-        callSid: "CA11111111111111111111111111111111",
-        caller: "+61412345678",
-        consentedAt: "2026-08-27T10:00:00.000Z",
-        expiresAt: "2026-08-27T10:05:00.000Z",
-      }),
-      setCallTimeout: () => ({}) as ReturnType<typeof setTimeout>,
-      clearCallTimeout: vi.fn(),
+    attachTwilioOpenAIRealtimeBridge(twilio, deps)
+    twilio.emit("message", Buffer.from(JSON.stringify(startEvent())))
+    openai.emit("open")
+    openai.emit("message", functionCall("deliver_emergency_direction"))
+
+    await vi.waitFor(() => expect(openai.sent.at(-1)).toBeTruthy())
+    expect(JSON.parse(openai.sent.at(-1)!)).toEqual({
+      type: "response.create",
+      response: {
+        instructions: `Say exactly: "${LENA_EMERGENCY_DIRECTION}" Then stop and wait.`,
+      },
+    })
+    expect(deps.executeVoiceMessageTool).not.toHaveBeenCalled()
+  })
+
+  it("lets a confirmed durable save finish if the caller disconnects", async () => {
+    const twilio = new FakeSocket()
+    const openai = new FakeSocket()
+    let resolveSave: ((value: string) => void) | undefined
+    const save = new Promise<string>((resolve) => {
+      resolveSave = resolve
+    })
+    const executeVoiceMessageTool = vi.fn(() => save)
+    const deps = dependencies(openai, executeVoiceMessageTool)
+
+    attachTwilioOpenAIRealtimeBridge(twilio, deps)
+    twilio.emit("message", Buffer.from(JSON.stringify(startEvent())))
+    openai.emit("open")
+    openai.emit("message", functionCall("create_medical_director_message"))
+
+    await vi.waitFor(() => expect(executeVoiceMessageTool).toHaveBeenCalledOnce())
+    twilio.close()
+    resolveSave?.(JSON.stringify({ recorded: true }))
+
+    await expect(save).resolves.toBe(JSON.stringify({ recorded: true }))
+    expect(executeVoiceMessageTool).toHaveBeenCalledOnce()
+  })
+
+  it("rejects a stream whose call SID does not match its session token", () => {
+    const twilio = new FakeSocket()
+    const openai = new FakeSocket()
+    const deps = dependencies(openai)
+    deps.parseSessionToken.mockReturnValue({
+      ...parsedSession,
+      callSid: "CA11111111111111111111111111111111",
     })
 
+    attachTwilioOpenAIRealtimeBridge(twilio, deps)
     twilio.emit("message", Buffer.from(JSON.stringify(startEvent())))
 
-    expect(createOpenAISocket).not.toHaveBeenCalled()
+    expect(deps.createOpenAISocket).not.toHaveBeenCalled()
     expect(twilio.readyState).toBe(3)
+  })
+
+  it("installs the one-minute warning and hard call limit", () => {
+    const twilio = new FakeSocket()
+    const openai = new FakeSocket()
+    const deps = dependencies(openai)
+
+    attachTwilioOpenAIRealtimeBridge(twilio, deps)
+
+    expect(deps.setCallTimeout.mock.calls.map((call) => call[1])).toEqual([
+      12 * 60 * 1_000,
+      11 * 60 * 1_000,
+    ])
   })
 })

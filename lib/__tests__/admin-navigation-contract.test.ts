@@ -461,6 +461,8 @@ describe("admin navigation contract", () => {
         "app/admin/ops/patient-merge-audit/page.tsx",
         "app/admin/ops/prescribing-identity/page.tsx",
         "app/admin/ops/reconciliation/page.tsx",
+        "app/admin/ops/voice-messages/[id]/page.tsx",
+        "app/admin/ops/voice-messages/page.tsx",
         "app/admin/webhook-dlq/page.tsx",
       ],
       money: [

@@ -2,9 +2,9 @@
 
 > **Authority:** Reference only. This file does not change production behaviour or independently enter work into the active queue; `docs/ROADMAP.md` remains the sole active priority queue.
 >
-> **Status:** Ready for Fable review. Implementation has not started.
+> **Status:** Fable-reviewed and implemented locally. Default-OFF production activation and a controlled live call remain unverified.
 >
-> **Purpose:** Replace the staged callback prototype with Lena: a natural-speaking voice secretary that takes a short Patient message for the Medical Director. Fable should review this plan before Codex implements it.
+> **Purpose:** Define Lena: a natural-speaking voice secretary that takes a short patient message for the Medical Director.
 
 ## Outcome
 
@@ -141,7 +141,7 @@ Make **0495 049 555** the only public support number and use `+61495049555` for 
 - Make the incoming TwiML route start the stream directly; remove the consent keypad route.
 - Keep the fallback and status routes, but direct failed calls to the contact page rather than claiming a message exists.
 - Add an early self-only check, confirmation gate, optional callback branch, incomplete-details branch, disconnect handling, two-strike comprehension fallback, and 12-minute warning.
-- Audition current Realtime voices and choose the closest warm young-adult Australian result. Do not launch a clearly non-Australian or robotic voice.
+- Use the closest launchable warm, natural Realtime voice. `marin` is the current warm-neutral choice; an Australian accent remains an unverified live-audio quality check rather than a blocker hidden in code.
 
 ### 4. Admin inbox
 
@@ -160,7 +160,7 @@ Make **0495 049 555** the only public support number and use `+61495049555` for 
 
 - Add the retention schedule and unresolved-reminder schedule.
 - Add abuse controls: hashed-caller rate limiting, global concurrency cap, and an operator denylist without storing raw caller ID.
-- Keep `TWILIO_VOICE_AI_ENABLED=false` through development and preview testing.
+- Keep `TWILIO_AI_VOICE_ENABLED=false` through development and preview testing.
 - Configure Twilio only after the production deployment passes the checks below, then enable the kill switch and make one controlled live call.
 - Rollback is one env change: disable Lena and return a short TwiML fallback directing Patients to the contact page.
 
@@ -198,7 +198,7 @@ Release evidence:
 - Automatic clinical-record notes.
 - SMS, outbound campaigns, live transfer, multilingual support, or promised callback times.
 
-## Fable review brief
+## Fable review brief (completed)
 
 Review this as a production plan, not as permission to implement. Return **APPROVE**, **REVISE**, or **BLOCK**, followed only by material issues and the smallest corrections. Focus on:
 

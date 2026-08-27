@@ -70,6 +70,7 @@ hydrateLocalEnv([
   "TWILIO_AUTH_TOKEN",
   "TWILIO_VOICE_PUBLIC_BASE_URL",
   "TWILIO_VOICE_SESSION_SECRET",
+  "TWILIO_VOICE_BLOCKED_CALLER_HASHES",
   "PHI_ENCRYPTION_ENABLED",
   "PHI_ENCRYPTION_WRITE_ENABLED",
   "PHI_ENCRYPTION_READ_ENABLED",
@@ -652,7 +653,7 @@ function checkTwilioVoiceReadiness(): CheckResult[] {
   if (!baseUrl.startsWith("https://")) {
     return [result("fail", "Twilio AI voice", "TWILIO_VOICE_PUBLIC_BASE_URL must use HTTPS.")]
   }
-  return [result("pass", "Twilio AI voice", "Enabled with signed webhooks, encrypted callbacks, and an explicit kill switch.")]
+  return [result("pass", "Twilio AI voice", "Enabled with signed webhooks, encrypted Medical Director messages, and an explicit kill switch.")]
 }
 
 async function checkParchmentReadiness(): Promise<CheckResult[]> {

@@ -142,7 +142,7 @@ export interface SendGoogleAdsProposalCardOptions {
   rejectCallbackData: string
 }
 
-export interface VoiceCallbackAlertReceipt {
+export interface VoiceMessageAlertReceipt {
   delivered: boolean
   messageId: number | null
 }
@@ -456,27 +456,30 @@ export async function sendCriticalBusinessAlertViaTelegram(
 }
 
 /**
- * PHI-free alert for a voice callback request. Caller identity, phone number,
- * transcript content, and clinical category remain in the encrypted database
- * record and are only visible after staff authentication.
+ * PHI-free alert for a confirmed Medical Director voice message. Patient
+ * identity, callback number, and message text remain in the encrypted record.
  */
-export async function sendVoiceCallbackRequestViaTelegram(
-  requestId: string,
+export async function sendMedicalDirectorVoiceMessageViaTelegram(
+  options: {
+    categoryLabel: string
+    messageId: string
+    receivedAt: string
+  },
   appUrl?: string,
-): Promise<VoiceCallbackAlertReceipt> {
+): Promise<VoiceMessageAlertReceipt> {
   const token = getToken()
   const chatId = getChatId()
   if (!token || !chatId) {
     return { delivered: false, messageId: null }
   }
 
-  const secureUrl = `${getNotificationAppUrl(appUrl)}/admin/ops/voice-callbacks/${encodeURIComponent(requestId)}`
+  const secureUrl = `${getNotificationAppUrl(appUrl)}/admin/ops/voice-messages/${encodeURIComponent(options.messageId)}`
   const message = [
-    "*☎️ Voice callback requested*",
+    "*☎️ New voice message*",
     "",
-    escapeMarkdown("A caller asked for a follow-up. Caller and medical details are only available in InstantMed."),
+    escapeMarkdown(`${options.categoryLabel} · ${options.receivedAt}`),
     "",
-    `[Open secure request →](${secureUrl})`,
+    `[Open secure message →](${secureUrl})`,
   ].join("\n")
 
   try {
@@ -489,9 +492,10 @@ export async function sendVoiceCallbackRequestViaTelegram(
         parse_mode: "MarkdownV2",
         text: message,
       }),
+      signal: AbortSignal.timeout(TELEGRAM_EDIT_TIMEOUT_MS),
     })
     if (!response.ok) {
-      log.error("Voice callback Telegram alert failed", { status: response.status })
+      log.error("Medical Director voice-message Telegram alert failed", { status: response.status })
       return { delivered: false, messageId: null }
     }
 
@@ -500,12 +504,31 @@ export async function sendVoiceCallbackRequestViaTelegram(
     return { delivered: messageId !== null, messageId }
   } catch (error) {
     log.error(
-      "Voice callback Telegram alert errored",
+      "Medical Director voice-message Telegram alert errored",
       {},
       error instanceof Error ? error : new Error(String(error)),
     )
     return { delivered: false, messageId: null }
   }
+}
+
+export async function sendMedicalDirectorVoiceReminderViaTelegram(
+  options: {
+    oldestWaitingMinutes: number
+    waitingCount: number
+  },
+  appUrl?: string,
+): Promise<boolean> {
+  const app = getNotificationAppUrl(appUrl)
+  const noun = options.waitingCount === 1 ? "message" : "messages"
+  const message = [
+    `*☎️ ${options.waitingCount} voice ${noun} waiting*`,
+    "",
+    escapeMarkdown(`Oldest has waited ${formatWaitDuration(options.oldestWaitingMinutes)}.`),
+    "",
+    `[Open voice inbox →](${app}/admin/ops/voice-messages)`,
+  ].join("\n")
+  return postOperationalTelegramMessage(message, "medical_director_voice_reminder")
 }
 
 /**

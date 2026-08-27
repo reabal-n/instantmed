@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   CreditCard,
   FileWarning,
+  PhoneCall,
   RefreshCw,
   Stethoscope,
   UserRoundCheck,
@@ -32,6 +33,7 @@ import type {
   OpsActionIssue,
   OpsActionModel,
 } from "@/lib/admin/ops-action-model"
+import { ADMIN_VOICE_MESSAGES_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 const GROUP_ICONS: Record<OpsActionGroupKey, typeof CreditCard> = {
@@ -193,7 +195,13 @@ function IssueGroup({
   )
 }
 
-export function OpsDashboardClient({ model }: { model: OpsActionModel }) {
+export function OpsDashboardClient({
+  isAdmin,
+  model,
+}: {
+  isAdmin: boolean
+  model: OpsActionModel
+}) {
   const router = useRouter()
   const [resendingIntakeId, setResendingIntakeId] = useState<string | null>(null)
   const [repairingArmed, setRepairingArmed] = useState(false)
@@ -258,6 +266,29 @@ export function OpsDashboardClient({ model }: { model: OpsActionModel }) {
       />
 
       <OperatorScrollArea className="space-y-3">
+        {isAdmin ? (
+          <Link href={ADMIN_VOICE_MESSAGES_HREF}>
+            <DashboardCard
+              interactive
+              padding="md"
+              className="flex items-center justify-between gap-4"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <PhoneCall className="h-4 w-4" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-semibold text-foreground">Voice inbox</h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Confirmed patient messages taken by Lena for the Medical Director.
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+            </DashboardCard>
+          </Link>
+        ) : null}
+
         {model.allClear ? (
           <DashboardCard
             padding="lg"

@@ -13,8 +13,8 @@ export async function POST(request: Request): Promise<Response> {
 
   const response = new twilio.twiml.VoiceResponse()
   response.say(
-    "The automated support assistant is temporarily unavailable. " +
-      "Please contact support by email at support at instantmed dot com dot au. Goodbye.",
+    "We're unable to take your message right now. " +
+      "Please use instant med dot com dot au slash contact. Goodbye.",
   )
   response.hangup()
   return twimlResponse(response.toString())

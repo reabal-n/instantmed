@@ -23,6 +23,8 @@ export function getTwilioVoiceReadiness(
     environment.PHI_ENCRYPTION_WRITE_ENABLED === "true" ? null : "PHI_ENCRYPTION_WRITE_ENABLED=true",
     environment.PHI_ENCRYPTION_READ_ENABLED === "true" ? null : "PHI_ENCRYPTION_READ_ENABLED=true",
     environment.PHI_MASTER_KEY?.trim() ? null : "PHI_MASTER_KEY",
+    environment.UPSTASH_REDIS_REST_URL?.trim() ? null : "UPSTASH_REDIS_REST_URL",
+    environment.UPSTASH_REDIS_REST_TOKEN?.trim() ? null : "UPSTASH_REDIS_REST_TOKEN",
   ].filter((value): value is string => Boolean(value))
 
   return { enabled, missing, ready: missing.length === 0 }

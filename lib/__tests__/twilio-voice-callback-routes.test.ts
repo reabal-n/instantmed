@@ -41,8 +41,8 @@ describe("Twilio voice fallback and status callbacks", () => {
     const xml = await response.text()
 
     expect(response.status).toBe(200)
-    expect(xml).toContain("automated support assistant is temporarily unavailable")
-    expect(xml).toContain("support at instantmed dot com dot au")
+    expect(xml).toContain("unable to take your message right now")
+    expect(xml).toContain("instant med dot com dot au slash contact")
     expect(xml).toContain("<Hangup/>")
     expect(xml).not.toContain("<Record")
   })

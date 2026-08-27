@@ -6,7 +6,7 @@ import { ContactClient } from "./contact-client"
 
 export const metadata: Metadata = {
   title: "Contact Us | Telehealth Support",
-  description: "Get in touch with InstantMed. Our support team helps with medical certificates, prescriptions, and telehealth questions. Available 7 days.",
+  description: "Contact InstantMed by email or leave a phone message for our Medical Director. Requests and reviews operate 24/7.",
   openGraph: {
     title: "Contact InstantMed | Get Support",
     description: "Contact our support team for help with telehealth services, medical certificates, and prescriptions.",

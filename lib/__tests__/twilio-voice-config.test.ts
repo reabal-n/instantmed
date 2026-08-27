@@ -12,6 +12,8 @@ const configured = {
   TWILIO_AUTH_TOKEN: "auth-token",
   TWILIO_VOICE_PUBLIC_BASE_URL: "https://instantmed.com.au",
   TWILIO_VOICE_SESSION_SECRET: "session-secret-with-at-least-32-characters",
+  UPSTASH_REDIS_REST_TOKEN: "redis-token",
+  UPSTASH_REDIS_REST_URL: "https://redis.example.com",
 }
 
 describe("Twilio AI voice readiness", () => {
@@ -35,6 +37,8 @@ describe("Twilio AI voice readiness", () => {
         "PHI_ENCRYPTION_WRITE_ENABLED=true",
         "PHI_ENCRYPTION_READ_ENABLED=true",
         "PHI_MASTER_KEY",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
       ],
       ready: false,
     })

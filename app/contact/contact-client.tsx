@@ -32,7 +32,12 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { scrollRevealConfig } from "@/components/ui/scroll-reveal"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
-import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE } from "@/lib/constants"
+import {
+  CONTACT_EMAIL,
+  CONTACT_EMAIL_COMPLAINTS,
+  CONTACT_PHONE,
+  CONTACT_PHONE_TEL,
+} from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 const CONTACT_CONFIG = {
@@ -248,13 +253,16 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
               <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-sm font-medium">Phone</p>
+              <p className="text-sm font-medium">Phone message support</p>
               <a
-                href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`}
+                href={`tel:${CONTACT_PHONE_TEL}`}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 {CONTACT_PHONE}
               </a>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Lena will take your message for our Medical Director.
+              </p>
             </div>
           </div>
           <div className="flex items-start gap-4">

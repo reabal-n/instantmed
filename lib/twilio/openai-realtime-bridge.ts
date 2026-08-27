@@ -7,7 +7,12 @@ import { z } from "zod"
 
 import {
   buildOpenAIRealtimeSessionUpdate,
-  executeVoiceCallbackTool,
+  executeMedicalDirectorVoiceMessageTool,
+  LENA_EMERGENCY_DIRECTION,
+  LENA_GREETING,
+  LENA_SAVE_FAILURE,
+  LENA_SAVE_SUCCESS,
+  LENA_TIME_WARNING,
   OPENAI_REALTIME_MODEL,
 } from "@/lib/twilio/openai-realtime"
 import {
@@ -19,6 +24,7 @@ const OPEN_SOCKET = 1
 const MAX_QUEUED_AUDIO_CHUNKS = 100
 const MAX_AUDIO_CHUNK_LENGTH = 64 * 1024
 const CALL_LIMIT_MS = 12 * 60 * 1000
+const CALL_WARNING_MS = 11 * 60 * 1000
 const OPENAI_REALTIME_URL = `wss://api.openai.com/v1/realtime?model=${OPENAI_REALTIME_MODEL}`
 
 const startEventSchema = z.object({
@@ -47,7 +53,10 @@ const mediaEventSchema = z.object({
 const functionCallSchema = z.object({
   arguments: z.string().max(8_192),
   call_id: z.string().min(1).max(256),
-  name: z.literal("create_callback_request"),
+  name: z.enum([
+    "create_medical_director_message",
+    "deliver_emergency_direction",
+  ]),
   type: z.literal("function_call"),
 })
 
@@ -61,12 +70,12 @@ export interface VoiceSocket {
   send(data: string): void
 }
 
-type CallbackTool = typeof executeVoiceCallbackTool
+type VoiceMessageTool = typeof executeMedicalDirectorVoiceMessageTool
 
 export interface TwilioOpenAIRealtimeBridgeDependencies {
   clearCallTimeout: (timeout: ReturnType<typeof setTimeout>) => void
   createOpenAISocket: (session: TwilioVoiceSession) => VoiceSocket
-  executeCallbackTool: CallbackTool
+  executeVoiceMessageTool: VoiceMessageTool
   parseSessionToken: typeof parseTwilioVoiceSessionToken
   setCallTimeout: (callback: () => void, milliseconds: number) => ReturnType<typeof setTimeout>
 }
@@ -113,7 +122,7 @@ function defaultDependencies(): TwilioOpenAIRealtimeBridgeDependencies {
   return {
     clearCallTimeout: clearTimeout,
     createOpenAISocket: defaultOpenAISocket,
-    executeCallbackTool: executeVoiceCallbackTool,
+    executeVoiceMessageTool: executeMedicalDirectorVoiceMessageTool,
     parseSessionToken: parseTwilioVoiceSessionToken,
     setCallTimeout: setTimeout,
   }
@@ -124,7 +133,7 @@ export function attachTwilioOpenAIRealtimeBridge(
   dependencies: TwilioOpenAIRealtimeBridgeDependencies = defaultDependencies(),
 ): void {
   let closed = false
-  let callbackToolUsed = false
+  let voiceMessageToolUsed = false
   let openaiReady = false
   let openaiSocket: VoiceSocket | null = null
   let session: TwilioVoiceSession | null = null
@@ -134,6 +143,16 @@ export function attachTwilioOpenAIRealtimeBridge(
   const callTimeout = dependencies.setCallTimeout(() => {
     if (!closed) twilioSocket.close(1000, "Call duration limit reached")
   }, CALL_LIMIT_MS)
+  const warningTimeout = dependencies.setCallTimeout(() => {
+    if (!closed) {
+      send(openaiSocket, {
+        type: "response.create",
+        response: {
+          instructions: `Say exactly: "${LENA_TIME_WARNING}"`,
+        },
+      })
+    }
+  }, CALL_WARNING_MS)
 
   function send(socket: VoiceSocket | null, event: unknown): boolean {
     if (!socket || socket.readyState !== OPEN_SOCKET) return false
@@ -145,6 +164,7 @@ export function attachTwilioOpenAIRealtimeBridge(
     if (closed) return
     closed = true
     dependencies.clearCallTimeout(callTimeout)
+    dependencies.clearCallTimeout(warningTimeout)
     if (origin !== "openai" && openaiSocket?.readyState === OPEN_SOCKET) {
       openaiSocket.close(code, reason)
     }
@@ -158,12 +178,34 @@ export function attachTwilioOpenAIRealtimeBridge(
     const parsed = functionCallSchema.safeParse(value)
     if (!parsed.success) return
 
+    if (parsed.data.name === "deliver_emergency_direction") {
+      const output = JSON.stringify({ delivered: true })
+      if (!send(openaiSocket, {
+        type: "conversation.item.create",
+        item: {
+          type: "function_call_output",
+          call_id: parsed.data.call_id,
+          output,
+        },
+      })) return
+      send(openaiSocket, {
+        type: "response.create",
+        response: {
+          instructions: `Say exactly: "${LENA_EMERGENCY_DIRECTION}" Then stop and wait.`,
+        },
+      })
+      return
+    }
+
     let output: string
-    if (callbackToolUsed) {
-      output = JSON.stringify({ recorded: false, reason: "callback_already_requested" })
+    if (voiceMessageToolUsed) {
+      output = JSON.stringify({ recorded: false, reason: "message_already_recorded" })
     } else {
-      callbackToolUsed = true
-      output = await dependencies.executeCallbackTool(parsed.data.arguments, session)
+      voiceMessageToolUsed = true
+      // Once the caller has confirmed and the model invokes the save tool, the
+      // durable write is allowed to finish even if the media socket drops. No
+      // socket AbortSignal is passed into the persistence path.
+      output = await dependencies.executeVoiceMessageTool(parsed.data.arguments, session)
     }
 
     if (!send(openaiSocket, {
@@ -175,7 +217,19 @@ export function attachTwilioOpenAIRealtimeBridge(
       },
     })) return
 
-    send(openaiSocket, { type: "response.create" })
+    let recorded = false
+    try {
+      recorded = JSON.parse(output)?.recorded === true
+    } catch {
+      recorded = false
+    }
+    const finalLine = recorded ? LENA_SAVE_SUCCESS : LENA_SAVE_FAILURE
+    send(openaiSocket, {
+      type: "response.create",
+      response: {
+        instructions: `Say exactly: "${finalLine}"`,
+      },
+    })
   }
 
   function handleOpenAIMessage(data: unknown) {
@@ -224,7 +278,7 @@ export function attachTwilioOpenAIRealtimeBridge(
         send(openaiSocket, {
           type: "response.create",
           response: {
-            instructions: "Briefly thank the caller for consenting, identify yourself as InstantMed's automated support assistant, and ask what you can help with.",
+            instructions: `Say exactly: "${LENA_GREETING}"`,
           },
         })
         for (const audio of queuedAudio.splice(0)) {

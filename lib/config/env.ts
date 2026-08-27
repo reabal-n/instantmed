@@ -73,6 +73,7 @@ const serverEnvSchema = z.object({
   TWILIO_AUTH_TOKEN: z.string().optional(),
   TWILIO_VOICE_PUBLIC_BASE_URL: z.string().url().optional(),
   TWILIO_VOICE_SESSION_SECRET: z.string().min(32).optional(),
+  TWILIO_VOICE_BLOCKED_CALLER_HASHES: z.string().optional(),
 
   // Rate limiting (optional but recommended)
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),

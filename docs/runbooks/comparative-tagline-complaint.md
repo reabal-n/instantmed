@@ -90,7 +90,7 @@ Rey <surname>
 Founder, InstantMed Pty Ltd
 ABN 64 694 559 334
 Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
-complaints@instantmed.com.au · 0450 722 549
+complaints@instantmed.com.au · 0495 049 555
 ```
 
 Save the sent acknowledgment to the Linear ticket.

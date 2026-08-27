@@ -8,7 +8,13 @@ import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { MEDICAL_DIRECTOR_SIGNATURE } from "@/lib/brand/doctor-signature"
-import { ABN, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/constants"
+import {
+  ABN,
+  COMPANY_NAME,
+  CONTACT_EMAIL,
+  CONTACT_PHONE,
+  CONTACT_PHONE_TEL,
+} from "@/lib/constants"
 import { footerLinks } from "@/lib/marketing/homepage"
 
 interface FooterProps {
@@ -36,14 +42,14 @@ export function Footer({ variant = "marketing" }: FooterProps) {
                   <Mail className="w-3 h-3 shrink-0" />
                   {CONTACT_EMAIL}
                 </a>
-                <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="flex min-h-6 items-center gap-1.5 py-1 hover:text-foreground transition-colors">
+                <a href={`tel:${CONTACT_PHONE_TEL}`} className="flex min-h-6 items-center gap-1.5 py-1 hover:text-foreground transition-colors">
                   <Phone className="w-3 h-3 shrink-0" />
                   {CONTACT_PHONE}
                 </a>
               </div>
             )}
             {!isMarketing && (
-              <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <a href={`tel:${CONTACT_PHONE_TEL}`} className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors">
                 <Phone className="w-3 h-3 shrink-0" />
                 {CONTACT_PHONE}
               </a>

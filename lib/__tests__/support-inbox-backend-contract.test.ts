@@ -39,15 +39,16 @@ describe("support inbox alert ownership contract", () => {
     expect(heartbeat).toContain('"telegram-notifications"')
     expect(operations).toContain("Manual-only and disabled in production")
     // Operator decision 2026-07-17 plus the bounded 2026-08-27 voice lane:
-    // request pings, PHI-free voice callback pages, hourly waiting-queue
-    // reminders, and critical-only business alerts. Never a general channel.
+    // Request pings, PHI-free voice-message pages, count-only reminders, and
+    // critical-only business alerts. Never a general channel.
     expect(operations).toContain(
       "Telegram carries request notifications plus bounded operational sends",
     )
     expect(operations).toContain("not a general second monitoring channel")
     expect(security).toContain("request notifications plus bounded operational sends")
-    expect(operations).toContain('generic "Voice callback requested" page')
-    expect(security).toContain("generic AI voice callback page")
+    expect(operations).toContain("PHI-free Medical Director voice-message alert")
+    expect(security).toContain("PHI-free Medical Director voice-message alert")
+    expect(operations).toContain("Patient identity, date of birth, callback number, and confirmed summary")
     expect(operations).toContain("New medical-certificate titles stay neutral")
     expect(security).toContain("New medical-certificate titles stay neutral")
     expect(operations).not.toContain("new paid request notifications only")

@@ -10,8 +10,7 @@ const MAX_TOKEN_AGE_MS = 5 * 60 * 1000
 
 const sessionPayloadSchema = z.object({
   callSid: z.string().regex(/^CA[a-fA-F0-9]{32}$/),
-  caller: z.string().min(1).max(64),
-  consentedAt: z.string().datetime(),
+  startedAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
 })
 
@@ -28,14 +27,12 @@ function getSessionKey(): Buffer {
 
 export function createTwilioVoiceSessionToken(input: {
   callSid: string
-  caller: string
   now?: Date
 }): string {
   const now = input.now ?? new Date()
   const payload = sessionPayloadSchema.parse({
     callSid: input.callSid,
-    caller: input.caller,
-    consentedAt: now.toISOString(),
+    startedAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + MAX_TOKEN_AGE_MS).toISOString(),
   })
 
@@ -71,9 +68,9 @@ export function parseTwilioVoiceSessionToken(token: string, now: Date = new Date
     ]).toString("utf8")
     const parsed = sessionPayloadSchema.parse(JSON.parse(plaintext))
     const expiresAt = Date.parse(parsed.expiresAt)
-    const consentedAt = Date.parse(parsed.consentedAt)
+    const startedAt = Date.parse(parsed.startedAt)
 
-    if (expiresAt <= now.getTime() || consentedAt > now.getTime() + 30_000) {
+    if (expiresAt <= now.getTime() || startedAt > now.getTime() + 30_000) {
       throw new Error("Expired Twilio voice session token")
     }
 
@@ -82,4 +79,3 @@ export function parseTwilioVoiceSessionToken(token: string, now: Date = new Date
     throw new Error("Invalid or expired Twilio voice session token")
   }
 }
-

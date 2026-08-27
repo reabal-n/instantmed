@@ -44,7 +44,8 @@ export const CONTACT_EMAIL_ADMIN = "admin@instantmed.com.au"
 export const CONTACT_EMAIL_COMPLAINTS = "complaints@instantmed.com.au"
 export const CONTACT_EMAIL_PRIVACY = "privacy@instantmed.com.au"
 export const CONTACT_EMAIL_LEGAL = "legal@instantmed.com.au"
-export const CONTACT_PHONE = "0450 722 549"
+export const CONTACT_PHONE = "0495 049 555"
+export const CONTACT_PHONE_TEL = "+61495049555"
 
 // Google Business Profile review link - SINGLE SOURCE OF TRUTH
 // Used in all email templates, dashboard, and post-delivery flows

@@ -99,6 +99,11 @@ export const ADMIN_STALE_INTAKES_HREF = "/admin/ops/intakes-stuck" as const
 export const ADMIN_RECONCILIATION_HREF = "/admin/ops/reconciliation" as const
 export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" as const
 export const ADMIN_PRESCRIBING_IDENTITY_HREF = "/admin/ops/prescribing-identity" as const
+export const ADMIN_VOICE_MESSAGES_HREF = "/admin/ops/voice-messages" as const
+
+export function buildAdminVoiceMessageHref(messageId: string): string {
+  return `${ADMIN_VOICE_MESSAGES_HREF}/${encodeURIComponent(messageId)}`
+}
 
 export function buildStaffLedgerHref(options: {
   service?: string | null

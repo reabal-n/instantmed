@@ -293,7 +293,7 @@ The engine's remaining **soft flags** — co-symptom mental-health / injury / ch
 |----------|------|
 | **File separation** | `lib/clinical/` = deterministic safety logic (no AI); `lib/ai/` = documentation assistance only |
 | **Output status** | AI-generated content remains a draft and is never copied into the final clinical record without doctor review. The certificate protocol may read an AI `requiresReview` signal only to narrow the lane and route to a doctor; it cannot use draft prose to authorise issuance |
-| **Audit logging** | `ai_audit_log` owns the auto-approval pipeline, while `ai_chat_audit_log` and `ai_chat_transcripts` own the separate chat-intake feature. The voice receptionist stores no raw audio or full transcript; `voice_callback_requests` stores only one encrypted, caller-confirmed callback payload plus consent, delivery, and operator-status metadata. |
+| **Audit logging** | `ai_audit_log` owns the auto-approval pipeline, while `ai_chat_audit_log` and `ai_chat_transcripts` own the separate chat-intake feature. Lena stores no raw audio or full transcript; `medical_director_voice_messages` stores only one encrypted, caller-confirmed message plus delivery and operator-workflow metadata. |
 | **System prompts** | Documentation prompts must include the documentation-only/doctor-review boundary. The voice prompt must include the narrower administrative boundary, no unauthenticated patient disclosure, no record changes or promises, fixed triple-zero direction, and the durable-write-before-confirmation rule. |
 
 ### AI Input/Output Rules
@@ -490,7 +490,7 @@ Patients must be informed at intake of:
 | Clinical intakes | 7 years from creation | Medical records obligation |
 | Compliance audit logs | 7 years (immutable, append-only) | Compliance requirement |
 | AI interaction logs | 7 years (truncated content, metadata only) | Clinical safety audit |
-| AI voice callback requests | Medical-record schedule where the message relates to care; encrypted confirmed summary only, with no raw audio or full transcript | Clinical communication and continuity |
+| Medical Director voice messages | Resolved queue payload deleted after 30 days unless the resulting clinical action must be recorded in the canonical patient record; no raw audio or full transcript | Administrative message handling and clinical continuity |
 | Payment records | 7 years | Tax Act (ATO requirement) |
 | Profile data | Indefinite while active; deleted 1 year after account closure | Service delivery |
 | Session/auth tokens | 30 days (auto-purged by Supabase Auth) | Security best practice |

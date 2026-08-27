@@ -121,28 +121,27 @@ Parchment linkage and demographic refresh are separate operations. If `profiles.
 
 **DB insert sequence:** INSERT `intakes` (status=pending_payment) -> INSERT `intake_answers` -> Stripe redirect -> UPDATE `intakes` status=paid (webhook) -> INSERT `intake_drafts` (via `generateDraftsForIntake`).
 
-**Tables:** `intakes`, `intake_answers`, `safety_audit_log`, `ai_chat_transcripts`, `ai_chat_audit_log`, `ai_safety_blocks`, and the separate staged administrative `voice_callback_requests` queue.
+**Tables:** `intakes`, `intake_answers`, `safety_audit_log`, `ai_chat_transcripts`, `ai_chat_audit_log`, `ai_safety_blocks`, and the separate administrative `medical_director_voice_messages` queue.
 
-### AI Voice Receptionist (staged OFF)
+### Lena AI Voice Secretary (default OFF)
 
-The Twilio voice path is a consent-first administrative receptionist, not clinical intake or autonomous case handling. `TWILIO_AI_VOICE_ENABLED` defaults to `false`; enabled readiness also requires the Twilio Account Auth Token, exact public base URL, session-encryption secret, OpenAI key, and active PHI write/read encryption.
+The Twilio voice path is a short administrative message service, not clinical intake or autonomous case handling. `TWILIO_AI_VOICE_ENABLED` defaults to `false`; enabled readiness also requires the Twilio Account Auth Token, exact public base URL, session-encryption secret, OpenAI key, active PHI write/read encryption, and Upstash Redis for the caller and concurrency limits.
 
 ```text
 Twilio AU1 signed incoming POST
-  -> static AI/transcription disclosure + DTMF consent
-  -> signed consent POST
   -> short-lived encrypted call session token
   -> signed bidirectional Twilio Media Stream (PCMU/8 kHz)
   -> server-side OpenAI Realtime WebSocket
-  -> one narrow create_callback_request tool
-  -> caller-confirmed encrypted voice_callback_requests row
+  -> exact Lena greeting and bounded message-taking conversation
+  -> one narrow create_medical_director_message tool
+  -> caller-confirmed encrypted medical_director_voice_messages row
   -> PHI-free Telegram page with authenticated admin link
-  -> Medical Director calls and records contacted/resolved state
+  -> Medical Director claims and resolves the message
 ```
 
 `lib/twilio/voice-webhook.ts` owns exact-URL Twilio signature validation for both form POSTs and the WebSocket upgrade. `lib/twilio/openai-realtime-bridge.ts` relays bounded audio frames, handles interruption, enforces a twelve-minute call limit, and never logs or stores raw audio/transcript content. `lib/twilio/openai-realtime.ts` owns the narrow administrative prompt and the only tool. The tool response exposes only `recorded: true|false`; it never sends a database ID or message content back to the model.
 
-`voice_callback_requests` is RLS-enabled with no authenticated/anonymous policies. The service role stores one HMAC call identifier plus an AES-256-GCM envelope containing callback number, optional preferred name, bounded category, and concise caller-confirmed summary. Notification claiming is atomic and bounded to six attempts. Telegram carries no caller or message data. An authenticated admin-only read/update surface is an activation dependency; until that surface and the public processor notice exist, the feature remains OFF.
+`medical_director_voice_messages` is RLS-enabled with no authenticated/anonymous policies. The service role stores one HMAC Call SID fingerprint plus an AES-256-GCM envelope containing patient name, date of birth, concise caller-confirmed summary, and a callback number only when explicitly requested. Notification claiming is atomic and bounded to six attempts. Telegram carries only category, received time, and the secure admin link; it never carries caller or message data. The admin-only inbox owns `new`, `in_review`, and `resolved` workflow. Resolved queue payloads are deleted after 30 days.
 
 ---
 
@@ -820,7 +819,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 565 files, 245 route files
+### `app/` — 568 files, 246 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -830,7 +829,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (94 route files) | `stripe/webhook/`, `webhooks/twilio/voice/` (six staged signed voice endpoints), `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` diagnostic bridge |
+| `app/api/` | API routes (93 route files) | `stripe/webhook/`, `webhooks/twilio/voice/` (five signed direct-to-Lena voice endpoints), `cron/`, `health/`, `certificates/`, `intakes/`, and the count-only `internal/support-inbox-alert/` diagnostic bridge |
 | `app/api/cron/` | Scheduled jobs (29) | `refund-reconciliation/`, `stale-queue/`, `telegram-notifications/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `google-ads-daily-brief`, `cert-reactivation`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 9 registered handler modules cover 14 event types: Checkout completed/expired/async success/async failure; `charge.refunded`; Refund created/updated/failed; PaymentIntent failure; and dispute created/updated/closed/funds withdrawn/funds reinstated. Repeat Rx subscription handlers are retired; unsupported events are acknowledged and claimed without business logic. `handlers/index.ts` is the registry. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
@@ -886,7 +885,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `lib/request/` | Step registry | `step-registry.ts` (step definitions), `validation.ts` (per-step Zod schemas) |
 | `lib/security/` | Encryption | `phi-encryption.ts` (AES-256-GCM), `phi-field-wrappers.ts` (data layer wrappers) |
 | `lib/stripe/` | Payments | Checkout/session owners plus exact refund evidence, durable attempts, intake resolution, notification finalization, and bounded recovery |
-| `lib/twilio/` | Staged AI voice receptionist | Twilio signature validation, consent session tokens, OpenAI Realtime bridge, encrypted callback persistence, and kill-switch readiness |
+| `lib/twilio/` | Lena voice secretary | Twilio signature validation, signed session tokens, OpenAI Realtime bridge, abuse/concurrency controls, encrypted Medical Director message persistence, and kill-switch readiness |
 | `lib/seo/data/` | SEO content | `conditions.ts`, `symptoms.ts`, `guides.ts`, `comparisons.ts`, `audience-pages.ts`, `condition-location-combos.ts`, `deep-city-content.ts` — drive programmatic pages |
 | `lib/blog/` | Health guide content system | MDX loader/parser, article registry, shared heading slugs, visual registry |
 | `lib/notifications/` | Alerts | `telegram.ts` + `paid-request-telegram.ts` (broad-service-class request pager), `service.ts` (payment notifications), `support-inbox-alert.ts` + processor (manual aggregate-only support count diagnostics) |
@@ -909,7 +908,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
 | `e2e/` | 78 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 133 SQL migration files (1 squashed baseline + 132 incremental). Latest on disk: unapplied `20260827210500_twilio_voice_callback_requests.sql`; it creates the encrypted, service-role-only staged AI voice callback queue and bounded notification-claim RPC. The latest applied and verified production migration remains `20260823101500_fix_partially_refunded_review_claim.sql`. On-disk presence is not deployment proof; linked migration history and post-apply receipts own production status. |
+| `supabase/migrations/` | 133 SQL migration files (1 squashed baseline + 132 incremental). Latest on disk: unapplied `20260827210500_twilio_voice_callback_requests.sql`; it creates the encrypted, service-role-only Medical Director voice-message queue, bounded notification claims, and resolved-message cleanup RPC. The latest applied and verified production migration remains `20260823101500_fix_partially_refunded_review_claim.sql`. On-disk presence is not deployment proof; linked migration history and post-apply receipts own production status. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |

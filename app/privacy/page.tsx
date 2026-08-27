@@ -7,7 +7,11 @@ import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { CTABanner } from "@/components/sections/cta-banner"
 import { LegalSection } from "@/components/shared/legal-section"
 import { Navbar } from "@/components/shared/navbar"
-import { CONTACT_EMAIL_PRIVACY, CONTACT_PHONE } from "@/lib/constants"
+import {
+  CONTACT_EMAIL_PRIVACY,
+  CONTACT_PHONE,
+  CONTACT_PHONE_TEL,
+} from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
@@ -35,7 +39,7 @@ export default function PrivacyPage() {
           <CenteredHero
             pill="Legal"
             title="Privacy Policy"
-            subtitle="Last updated: July 2026"
+            subtitle="Last updated: August 2026"
           />
 
           {/* Content card */}
@@ -51,7 +55,7 @@ export default function PrivacyPage() {
                       [1, "Introduction"],
                       [2, "Information We Collect"],
                       [3, "How We Use Your Information"],
-                      [4, "AI-Assisted Documentation"],
+                      [4, "AI-Assisted Services"],
                       [5, "Third-Party Service Providers"],
                       [6, "Health Information"],
                       [7, "Data Security"],
@@ -132,7 +136,7 @@ export default function PrivacyPage() {
                   </p>
                 </LegalSection>
 
-                <LegalSection number="4" title="AI-Assisted Documentation" id="ai">
+                <LegalSection number="4" title="AI-Assisted Services" id="ai">
                   <p>
                     InstantMed uses Anthropic (Claude) to assist with certain administrative tasks, including
                     organising intake information and drafting clinical documentation. In the bounded
@@ -143,6 +147,13 @@ export default function PrivacyPage() {
                   <p>
                     {CLINICAL_DECISION_MODEL} Health information shared during intake may be processed by
                     Anthropic&apos;s systems in accordance with their data processing agreements with us.
+                  </p>
+                  <p>
+                    Our phone message service uses Lena, an automated voice assistant, to speak with you and
+                    take one message for our Medical Director. The live call audio is processed to run the
+                    conversation. InstantMed stores the name, date of birth, callback number if requested,
+                    and concise message that you confirm. We do not retain the raw call audio or a full
+                    transcript.
                   </p>
                 </LegalSection>
 
@@ -166,6 +177,10 @@ export default function PrivacyPage() {
                     </li>
                     <li>
                       <strong>Anthropic (Claude):</strong> AI-assisted documentation drafting
+                    </li>
+                    <li>
+                      <strong>Twilio and OpenAI:</strong> Phone call routing and automated voice message
+                      processing
                     </li>
                     <li>
                       <strong>Parchment:</strong> Electronic prescription generation
@@ -283,6 +298,11 @@ export default function PrivacyPage() {
                       Pseudonymous analytics events: retained for service improvement and deleted
                       or aggregated when no longer required
                     </li>
+                    <li>
+                      Confirmed phone messages: deleted 30 days after our Medical Director resolves them.
+                      Any resulting clinical action that must be retained is recorded separately in the
+                      patient&apos;s health record
+                    </li>
                   </ul>
                 </LegalSection>
 
@@ -317,7 +337,7 @@ export default function PrivacyPage() {
                     </li>
                     <li>
                       <strong>Phone:</strong>{" "}
-                      <a href={`tel:${CONTACT_PHONE}`} className="text-primary hover:underline">
+                      <a href={`tel:${CONTACT_PHONE_TEL}`} className="text-primary hover:underline">
                         {CONTACT_PHONE}
                       </a>
                     </li>
