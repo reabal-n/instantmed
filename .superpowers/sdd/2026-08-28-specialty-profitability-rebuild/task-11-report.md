@@ -2,13 +2,15 @@
 
 ## Status
 
-PASS for the scoped product behavior on the current branch.
+PASS for the scoped Task 11 product behavior at the interactive proof checkpoint, with final-review corrections to unavailable-state claims noted below.
 
-The committed Playwright runner could not execute test bodies because the local Playwright cache does not contain the exact Chromium headless-shell revision it requests. This is a harness limitation, not a product failure; the same cases were exercised interactively in fresh real-browser sessions and the affected specs parse and enumerate correctly.
+The original Task 11 Playwright run could not execute test bodies because the local cache did not contain its exact Chromium headless-shell revision. Those Task 11 cases were exercised interactively in fresh real-browser sessions and the affected specs parsed and enumerated correctly. Task 12 later installed the exact pinned browser outside the repository and executed 101 tests safely; Task 12 owns those results and the final-SHA rerun, so this report does not claim them as Task 11 proof.
 
 Series base supplied for this task: `03f706d5f`
 
-Final implementation HEAD exercised: `15bc733ed`
+Interactive proof checkpoint: `15bc733ed`
+
+Unavailable-state final-review code checkpoint verified by focused contracts: `67ac15cbc`
 
 Proof roots, both outside tracked source:
 
@@ -28,8 +30,8 @@ Proof roots, both outside tracked source:
 | Hair reproductive terminal and correction | PASS | Terminal block appeared; correction returned to Health, cleared the contraindicating answer, and preserved unrelated safety work |
 | ED nitrate terminal and correction | PASS | Terminal block appeared; correction returned to Health with the nitrate answer corrected |
 | IHI-only identity and structured address | PASS | No Medicare inputs were required; incomplete structured address was blocked with field/address validation; a complete synthetic structured address permitted Review/Pay |
-| Unavailable Hair and ED | PASS after scoped repair | Notice is visibly below the navbar at 390 and 195 CSS px, `/contact` is the only acquisition destination, no `/request` link or cohort/draft is started, and the notice scrolls with content |
-| Committed Playwright execution | HARNESS BLOCKED | Exact expected headless-shell build 1223 is absent locally; cached builds are 1217 and 1228. Failure occurred at browser launch before test bodies. Dependency versions were not changed and no browser build was fetched. |
+| Unavailable Hair and ED | IMPLEMENTATION PASS; final browser rerun pending | Earlier geometry proof keeps the notice below the navbar. Final review now gates versioned analytics until availability resolves enabled, keeps every scoped `/contact` fallback operable without `aria-disabled`, and uses the exact no-return-timing copy. |
+| Original Task 11 Playwright execution | HARNESS BLOCKED AT THAT CHECKPOINT | The original run failed at browser launch before test bodies. Task 12 later installed the exact pinned browser outside the repository and executed its 101-test verification; those results are reported by Task 12. |
 
 ## Landing-Page Proof
 
@@ -155,7 +157,7 @@ The first browser inspection found that the notice existed in the accessibility 
 
 Commit `15bc733ed` moves the shared unavailable banner into normal flow below the fixed navigation with safe-area-aware spacing and adds a durable center-point `elementFromPoint` assertion to both money-page E2E cases.
 
-Current proof:
+Interactive geometry proof at `15bc733ed`:
 
 - at 390px the banner begins at y=80 after the navbar ends at y=74;
 - at 195 CSS px the notice reflows without horizontal overflow and leaves the H1 and CTA unobscured;
@@ -165,6 +167,14 @@ Current proof:
 - there are no `/request` links in the unavailable acquisition surface;
 - clicking `/contact` creates neither a specialty cohort nor a draft;
 - dark-mode notice text measured 9.49:1 after compositing the translucent warning surface.
+
+Final review found three additional correctness gaps that the earlier geometry pass did not cover:
+
+- loading or disabled pages could still emit versioned view, CTA, FAQ, section, and scroll analytics;
+- scoped `/contact` fallbacks were wrapped in disabled button semantics and could expose `aria-disabled` despite being real navigation;
+- `temporarily unavailable` and `We'll be back soon` made an unsupported return-timing claim.
+
+Commit `67ac15cbc` gates the versioned tracker on resolved enabled availability, leaves the scoped `/contact` links operable, and uses the exact heading `This service is currently unavailable.` with the sentence `Contact us if you have questions.` Focused unit/source contracts pass. The updated unavailable cases were not run in Playwright or an interactive browser at this final checkpoint.
 
 Before/after receipts:
 
@@ -201,11 +211,11 @@ RED evidence covered unrelated med-cert work, expired consult work, active same-
 
 ### Static and browser-spec checks
 
-- scoped ESLint over every changed TypeScript/TSX file: passed
-- `corepack pnpm typecheck`: passed
-- `git diff --check`: passed
-- unavailable-state Playwright collection: exactly two matching tests listed and parsed
-- targeted Playwright launch: five selected cases failed at 0ms before test code because Chromium headless shell revision 1223 was missing; HTML report is `/tmp/instantmed-task11.KPkyGd/playwright-report/index.html` and runner receipt is `/tmp/instantmed-task11.KPkyGd/playwright-results/.last-run.json`
+- At the Task 11 interactive checkpoint, scoped ESLint over its changed TypeScript/TSX files passed.
+- At final-review checkpoint `67ac15cbc`, the unavailable-state source/analytics contracts were green as part of a 9-file / 119-test focused run; `corepack pnpm typecheck` and `git diff --check` also passed.
+- At the earlier Task 11 checkpoint, unavailable-state Playwright collection listed and parsed exactly two matching tests.
+- The earlier targeted Playwright launch failed five selected cases at 0ms before test code because Chromium headless shell revision 1223 was missing; HTML report is `/tmp/instantmed-task11.KPkyGd/playwright-report/index.html` and runner receipt is `/tmp/instantmed-task11.KPkyGd/playwright-results/.last-run.json`.
+- This Task 11 report does not claim Task 12's later 101-test Playwright run or its final-SHA rerun. No new interactive-browser, full lint, build, or full-CI gate was run for the unavailable-state final-review checkpoint recorded here.
 
 No dependency version, lockfile, browser cache, or stack pin was changed.
 
@@ -218,6 +228,9 @@ No dependency version, lockfile, browser cache, or stack pin was changed.
 | fallback/expired unrelated work could suppress a genuine claim | draft fallback was treated as authoritative before hydration | decide ownership from hydrated, unexpired, same-request-service work; preserve active target work and recovery authority | `69d3855e3` |
 | ED reflow test contradicted the approved E1 hierarchy | expected two equal-weight CTA classes | parameterise ED=1 while preserving UTI/pill=2 | `95df20840` |
 | unavailable notice visually covered by fixed nav | accessibility-visible box, occluded center | place notice below nav in normal flow and assert center-point visibility | `15bc733ed` |
+| unavailable/loading pages could emit versioned analytics | tracker activated before service availability resolved and remained active when disabled | gate view, CTA, FAQ, section, and scroll events on resolved enabled availability; emit one view after loading settles | `67ac15cbc` |
+| real `/contact` fallbacks carried disabled semantics | disabled Button wrappers could make the fallback inoperable or expose `aria-disabled` | remove disabled semantics from the shared sticky/how-it-works and scoped Hair/ED fallbacks | `67ac15cbc` |
+| unavailable copy implied a return time | `temporarily unavailable` plus `We'll be back soon` | exact current-unavailability heading and question-contact sentence, with no timing claim | `67ac15cbc` |
 
 ## Skill Gates and Their Influence
 
@@ -239,8 +252,8 @@ No dependency version, lockfile, browser cache, or stack pin was changed.
 
 ## Residual Risks
 
-1. The committed Playwright test bodies still need execution when the exact pinned Chromium headless-shell revision is available. Installing or changing that browser build was intentionally deferred; the runner failure is preserved as evidence rather than hidden by a dependency change.
-2. The full safe flow traversal was recorded at `95df20840`, while current HEAD includes the later entry-time cohort-ownership repair. Fresh current-HEAD first-screen and ownership-matrix browser proof plus 128 focused unit regressions cover that delta, but a same-build end-to-end rerun remains the strongest release-gate receipt once the browser harness is restored.
+1. Task 11's original Playwright launch failure remains a historical harness receipt, not a current browser-availability claim. Task 12 later installed the exact pinned browser outside the repository, ran its 101-test verification, and owns the final-SHA rerun/result.
+2. The updated unavailable-service cases still need their final-SHA Task 12 receipt for exact copy, operable `/contact` links, and no versioned events while loading or disabled; this report claims only focused source/unit proof for that delta.
 3. Browser proof is local development evidence, not production deployment proof. No deployment was in scope.
 
 ## Commits
@@ -250,3 +263,4 @@ No dependency version, lockfile, browser cache, or stack pin was changed.
 - `95df20840` — `test(marketing): align ED reflow CTA contract`
 - `69d3855e3` — `fix(growth): preserve specialty cohort ownership on hydration`
 - `15bc733ed` — `fix(marketing): keep unavailable notice below navigation`
+- `67ac15cbc` — `fix(growth): close specialty review gaps`
