@@ -33,6 +33,10 @@ import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import { markPartialIntakeConverted } from "@/lib/request/server-draft-conversion"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
+import {
+  checkSafetyForServer,
+  validateSafetyFieldsPresent,
+} from "@/lib/safety/evaluate"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
 
@@ -759,7 +763,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (intakeError?.code === "23505") {
         const { data: existingIntake } = await supabase
           .from("intakes")
-          .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id, growth_experience_version")
+          .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id, growth_experience_version, service:services!service_id(slug)")
           .eq("idempotency_key", guestIdempotencyKey)
           .eq("patient_id", guestProfileId)
           .maybeSingle()
@@ -777,14 +781,42 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
             }
           }
 
+          const storedServiceRelation = existingIntake.service as
+            | { slug?: string | null }
+            | { slug?: string | null }[]
+            | null
+          const storedServiceSlug = Array.isArray(storedServiceRelation)
+            ? storedServiceRelation[0]?.slug
+            : storedServiceRelation?.slug
+          const storedServiceSlugForSafety =
+            storedServiceSlug ||
+            getServiceSlug(
+              (existingIntake.category || input.category) as ServiceCategory,
+              existingIntake.subtype || "",
+            )
+          const storedAnswersForSafety =
+            existingIntake.category === "consult" && existingIntake.subtype
+              ? {
+                  ...existingAnswers,
+                  consultSubtype: existingIntake.subtype,
+                }
+              : existingAnswers
+          const fieldCheck = validateSafetyFieldsPresent(
+            storedServiceSlugForSafety,
+            storedAnswersForSafety,
+          )
           const repeatDoseMissingFields =
             isRepeatPrescriptionRequest(existingIntake.category, existingIntake.subtype)
             && hasRepeatRxDoseContractMarker(existingAnswers)
               ? getRepeatRxDoseMissingFields(existingAnswers)
               : []
-          if (repeatDoseMissingFields.length > 0) {
+          const missingFields = [...new Set([
+            ...fieldCheck.missingFields,
+            ...repeatDoseMissingFields,
+          ])]
+          if (!fieldCheck.valid || repeatDoseMissingFields.length > 0) {
             await recordSafetyEvaluationForOperators({
-              answers: existingAnswers,
+              answers: storedAnswersForSafety,
               context: "guest_resume",
               requestId: existingIntake.id,
               result: {
@@ -795,11 +827,11 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
                 requiresCall: false,
                 triggeredRuleIds: ["missing_safety_fields"],
               },
-              serviceSlug: serviceSlugForSafety,
+              serviceSlug: storedServiceSlugForSafety,
             })
             const hold = await holdCheckoutForMissingSafetyInformation({
               intakeId: existingIntake.id,
-              missingFields: repeatDoseMissingFields,
+              missingFields,
               patientId: guestProfileId,
               source: "guest_duplicate",
               supabase,
@@ -807,7 +839,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
             if (hold === "held") {
               return {
                 success: false,
-                error: "Some required medical information is missing. Please start the request again and complete the required dose questions before continuing.",
+                error:
+                  repeatDoseMissingFields.length > 0
+                    ? "Some required medical information is missing. Please start the request again and complete the required dose questions before continuing."
+                    : "Some required medical information is missing. Please start the request again and complete all required questions before continuing.",
               }
             }
             if (hold === "payment_in_flight") {
@@ -834,6 +869,32 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
               success: false,
               error:
                 "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
+            }
+          }
+
+          const storedSafetyCheck = checkSafetyForServer(
+            storedServiceSlugForSafety,
+            storedAnswersForSafety,
+          )
+          if (!storedSafetyCheck.isAllowed) {
+            logger.warn("Safety rules blocked duplicate guest checkout recovery", {
+              intakeId: existingIntake.id,
+              outcome: storedSafetyCheck.outcome,
+              serviceSlug: storedServiceSlugForSafety,
+              triggeredRules: storedSafetyCheck.triggeredRuleIds,
+            })
+            await recordSafetyEvaluationForOperators({
+              answers: storedAnswersForSafety,
+              context: "guest_resume",
+              requestId: existingIntake.id,
+              result: storedSafetyCheck,
+              serviceSlug: storedServiceSlugForSafety,
+            })
+            return {
+              success: false,
+              error:
+                storedSafetyCheck.blockReason ||
+                "This request cannot be processed online. Please see your regular doctor.",
             }
           }
 

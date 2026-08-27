@@ -134,6 +134,7 @@ interface DuplicateGuestIntake {
   is_priority: boolean
   payment_id: string
   payment_status: string
+  service?: { slug: string } | null
   status: string
   stripe_price_id: string
   subtype: string
@@ -153,6 +154,25 @@ function makeDuplicateRepeatIntake(
     status: "checkout_failed",
     stripe_price_id: "price_repeat",
     subtype: "repeat",
+    ...overrides,
+  }
+}
+
+function makeDuplicateHairIntake(
+  overrides: Partial<DuplicateGuestIntake> = {},
+): DuplicateGuestIntake {
+  return {
+    category: "consult",
+    checkout_error: null,
+    guest_email: "patient@example.test",
+    id: "intake-existing",
+    is_priority: false,
+    payment_id: "cs_current",
+    payment_status: "pending",
+    service: { slug: "mens-health-hair" },
+    status: "pending_payment",
+    stripe_price_id: "price_hair",
+    subtype: "hair_loss",
     ...overrides,
   }
 }
@@ -195,6 +215,9 @@ function hairLossGuestCheckoutInput() {
       medicareExpiry: "2028-12-01",
       medicareIrn: "1",
       medicareNumber: "2123456701",
+      consultSubtype: "hair_loss",
+      emergency_symptoms: [],
+      hairReproductive: "no",
       postcode: "2000",
       sex: "M",
       state: "NSW",
@@ -609,6 +632,157 @@ describe("checkout operating hours", () => {
     expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
+
+  it("blocks duplicate Hair recovery from authoritative contraindicating answers before Stripe", async () => {
+    const duplicateIntake = makeDuplicateHairIntake()
+    const persistedAnswers = {
+      emergency_symptoms: [],
+      hairReproductive: "yes",
+    }
+    const safetyAnswers = {
+      ...persistedAnswers,
+      consultSubtype: "hair_loss",
+    }
+    const { supabase, updates } = createGuestCheckoutSupabaseMock({
+      duplicateAnswerPayload: persistedAnswers,
+      duplicateIntake,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.checkSafetyForServer.mockImplementation((_serviceSlug, answers) =>
+      !("medicareNumber" in answers)
+        ? {
+            blockReason: "Hair reproductive safety block.",
+            isAllowed: false,
+            outcome: "DECLINE",
+            riskTier: "high",
+            triggeredRuleIds: ["hair_reproductive_contraindication"],
+          }
+        : {
+            blockReason: null,
+            isAllowed: true,
+            outcome: "ALLOW",
+            riskTier: "low",
+            triggeredRuleIds: [],
+          },
+    )
+
+    const result = await createGuestCheckoutAction(hairLossGuestCheckoutInput())
+
+    expect(result).toEqual({
+      error: "Hair reproductive safety block.",
+      success: false,
+    })
+    expect(mocks.validateSafetyFieldsPresent).toHaveBeenLastCalledWith(
+      "mens-health-hair",
+      safetyAnswers,
+    )
+    expect(mocks.checkSafetyForServer).toHaveBeenLastCalledWith(
+      "mens-health-hair",
+      safetyAnswers,
+    )
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(updates.filter(({ payload }) => "payment_id" in payload)).toHaveLength(0)
+  })
+
+  it.each([undefined, "", "invalid"])(
+    "holds duplicate Hair recovery with authoritative incomplete reproductive value %o before Stripe",
+    async (hairReproductive) => {
+      const duplicateIntake = makeDuplicateHairIntake()
+      const persistedAnswers = {
+        emergency_symptoms: [],
+        hairReproductive,
+      }
+      const safetyAnswers = {
+        ...persistedAnswers,
+        consultSubtype: "hair_loss",
+      }
+      const { supabase, updates } = createGuestCheckoutSupabaseMock({
+        duplicateAnswerPayload: persistedAnswers,
+        duplicateIntake,
+      })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+      mocks.validateSafetyFieldsPresent.mockImplementation((_serviceSlug, answers) =>
+        !("medicareNumber" in answers)
+          ? {
+              valid: false,
+              missingFields: ["hairReproductive"],
+            }
+          : { valid: true, missingFields: [] },
+      )
+
+      const result = await createGuestCheckoutAction(hairLossGuestCheckoutInput())
+
+      expect(result).toMatchObject({
+        success: false,
+        error: expect.stringMatching(/required medical information is missing/i),
+      })
+      expect(mocks.validateSafetyFieldsPresent).toHaveBeenLastCalledWith(
+        "mens-health-hair",
+        safetyAnswers,
+      )
+      expect(mocks.holdCheckoutForMissingSafetyInformation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          intakeId: "intake-existing",
+          missingFields: ["hairReproductive"],
+          source: "guest_duplicate",
+        }),
+      )
+      expect(mocks.checkSafetyForServer).toHaveBeenCalledTimes(1)
+      expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(updates.filter(({ payload }) => "payment_id" in payload)).toHaveLength(0)
+    },
+  )
+
+  it.each(["no", "na"])(
+    "continues duplicate Hair recovery for authoritative safe value %s",
+    async (hairReproductive) => {
+      const duplicateIntake = makeDuplicateHairIntake()
+      const persistedAnswers = {
+        emergency_symptoms: [],
+        hairReproductive,
+      }
+      const safetyAnswers = {
+        ...persistedAnswers,
+        consultSubtype: "hair_loss",
+      }
+      const { supabase, updates } = createGuestCheckoutSupabaseMock({
+        duplicateAnswerPayload: persistedAnswers,
+        duplicateIntake,
+      })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+      mocks.stripeSessionRetrieve.mockResolvedValue({
+        id: "cs_current",
+        metadata: { intake_id: "intake-existing" },
+        payment_status: "unpaid",
+        status: "open",
+        url: "https://checkout.stripe.test/pay/cs_current",
+      })
+
+      const result = await createGuestCheckoutAction(hairLossGuestCheckoutInput())
+
+      expect(result).toEqual({
+        checkoutUrl: "https://checkout.stripe.test/pay/cs_current",
+        intakeId: "intake-existing",
+        success: true,
+      })
+      expect(mocks.validateSafetyFieldsPresent).toHaveBeenLastCalledWith(
+        "mens-health-hair",
+        safetyAnswers,
+      )
+      expect(mocks.checkSafetyForServer).toHaveBeenLastCalledWith(
+        "mens-health-hair",
+        safetyAnswers,
+      )
+      expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_current")
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(updates.filter(({ payload }) => "payment_id" in payload)).toHaveLength(0)
+    },
+  )
 
   it.each([
     "state_changed",
