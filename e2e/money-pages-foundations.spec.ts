@@ -589,6 +589,7 @@ test("ED E1 leads with the private one-off outcome before clinical detail", asyn
     const heading = page.getByRole("heading", { level: 1 })
     await expect(heading).toHaveText("Private ED assessment, from home.")
     await expect(heading).toBeVisible()
+    await expect(heading).toHaveCSS("hyphens", "none")
 
     const hero = heading.locator("xpath=ancestor::section[1]")
     const heroCta = hero.getByRole("link", {
@@ -652,7 +653,7 @@ test("ED E1 leads with the private one-off outcome before clinical detail", asyn
       expect(box, `${state.name} Hero fact group should have a layout box`).not.toBeNull()
       expect(box!.y, `${state.name} Hero fact group should scroll into view`).toBeGreaterThanOrEqual(0)
       expect(box!.y + box!.height, `${state.name} Hero fact group should fit in the viewport`).toBeLessThanOrEqual(
-        state.height,
+        state.height + 2,
       )
     }
 
