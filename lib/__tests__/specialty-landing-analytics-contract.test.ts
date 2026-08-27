@@ -5,7 +5,10 @@ import {
   resolveLandingGrowthExperienceVersion,
 } from "@/components/marketing/shared/landing-page-shell"
 import { normalizeIncomingGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
-import { createLandingAnalyticsTracker } from "@/lib/hooks/use-landing-analytics"
+import {
+  createLandingAnalyticsTracker,
+  createLandingExperienceViewLatch,
+} from "@/lib/hooks/use-landing-analytics"
 
 describe("specialty landing analytics", () => {
   it("uses the code-owned active landing version for each specialty", () => {
@@ -48,6 +51,24 @@ describe("specialty landing analytics", () => {
     expect(capture.mock.calls[2]?.[1]).not.toHaveProperty("question")
   })
 
+  it("waits for the lazy PostHog client before consuming the landing-view event", () => {
+    const capture = vi.fn()
+    const viewLatch = createLandingExperienceViewLatch({
+      service: "hair-loss",
+      growthExperienceVersion: "spx_h1_20260828",
+    })
+
+    viewLatch.track(null)
+    viewLatch.track(capture)
+    viewLatch.track(capture)
+
+    expect(capture).toHaveBeenCalledTimes(1)
+    expect(capture).toHaveBeenCalledWith("landing_experience_viewed", {
+      service: "hair-loss",
+      growth_experience_version: "spx_h1_20260828",
+    })
+  })
+
   it("never lets an analytics failure interrupt a CTA action", () => {
     const analytics = createLandingAnalyticsTracker({
       service: "ed",
@@ -63,11 +84,11 @@ describe("specialty landing analytics", () => {
   it("adds only a validated landing token to internal request CTAs", () => {
     expect(
       buildGrowthExperienceRequestHref(
-        "/request?service=consult&subtype=hair_loss&intent=existing",
+        "/request?service=consult&subtype=hair_loss&intent=existing#start",
         "spx_h1_20260828",
       ),
     ).toBe(
-      "/request?service=consult&subtype=hair_loss&intent=existing&growth_experience_version=spx_h1_20260828",
+      "/request?service=consult&subtype=hair_loss&intent=existing&growth_experience_version=spx_h1_20260828#start",
     )
     expect(
       buildGrowthExperienceRequestHref("/request?service=consult&subtype=ed", "spx_h1_20260828"),
@@ -75,6 +96,15 @@ describe("specialty landing analytics", () => {
     expect(
       buildGrowthExperienceRequestHref("https://example.com/request?service=consult", "spx_h1_20260828"),
     ).toBe("https://example.com/request?service=consult")
+    for (const href of [
+      "http://instantmed.local/request?service=consult&subtype=hair_loss",
+      "https://instantmed.local/request?service=consult&subtype=hair_loss",
+      "//instantmed.local/request?service=consult&subtype=hair_loss",
+      "https://",
+      "/request?service=consult&subtype=%",
+    ]) {
+      expect(buildGrowthExperienceRequestHref(href, "spx_h1_20260828")).toBe(href)
+    }
   })
 
   it("leaves invalid incoming tokens unassigned while the request boundary keeps stored cohorts authoritative", () => {

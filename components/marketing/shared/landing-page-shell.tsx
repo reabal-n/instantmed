@@ -65,12 +65,17 @@ export function buildGrowthExperienceRequestHref(
   href: string,
   growthExperienceVersion: SpecialtyExperienceVersion | null,
 ): string {
-  if (!growthExperienceVersion) return href
-
-  const requestUrl = new URL(href, "https://instantmed.local")
-  if (requestUrl.origin !== "https://instantmed.local" || requestUrl.pathname !== "/request") {
+  if (!growthExperienceVersion || !href.startsWith("/request") || href.startsWith("//")) {
     return href
   }
+
+  let requestUrl: URL
+  try {
+    requestUrl = new URL(href, "https://instantmed.local")
+  } catch {
+    return href
+  }
+  if (requestUrl.pathname !== "/request") return href
 
   const validatedVersion = normalizeIncomingGrowthExperienceVersion(
     growthExperienceVersion,

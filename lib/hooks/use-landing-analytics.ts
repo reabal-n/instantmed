@@ -20,6 +20,31 @@ export type CTALocation =
 type LandingAnalyticsProperties = Record<string, unknown>
 type LandingAnalyticsCapture = (event: string, properties: LandingAnalyticsProperties) => void
 
+export function createLandingExperienceViewLatch({
+  service,
+  growthExperienceVersion,
+}: {
+  service: string
+  growthExperienceVersion: SpecialtyExperienceVersion | null
+}) {
+  let hasTracked = false
+
+  return {
+    track: (capture: LandingAnalyticsCapture | null | undefined) => {
+      if (!growthExperienceVersion || !capture || hasTracked) return
+      hasTracked = true
+      try {
+        capture("landing_experience_viewed", {
+          service,
+          growth_experience_version: growthExperienceVersion,
+        })
+      } catch {
+        // A concrete analytics attempt is best-effort and must not interrupt navigation.
+      }
+    },
+  }
+}
+
 export function createLandingAnalyticsTracker({
   service,
   growthExperienceVersion = null,
@@ -29,7 +54,10 @@ export function createLandingAnalyticsTracker({
   growthExperienceVersion?: SpecialtyExperienceVersion | null
   capture?: LandingAnalyticsCapture
 }) {
-  let hasTrackedExperienceView = false
+  const experienceView = createLandingExperienceViewLatch({
+    service,
+    growthExperienceVersion,
+  })
   const versionProperties = growthExperienceVersion
     ? { growth_experience_version: growthExperienceVersion }
     : {}
@@ -44,9 +72,7 @@ export function createLandingAnalyticsTracker({
 
   return {
     trackLandingExperienceViewed: () => {
-      if (!growthExperienceVersion || hasTrackedExperienceView) return
-      hasTrackedExperienceView = true
-      track("landing_experience_viewed", { service, ...versionProperties })
+      experienceView.track(capture)
     },
     trackCTAClick: (location: CTALocation) => {
       track("landing_cta_clicked", {
@@ -89,7 +115,10 @@ export function useLandingAnalytics(
 ) {
   const posthog = usePostHog()
   const scrollMilestones = useRef(new Set<number>())
-  const trackedExperienceVersion = useRef<SpecialtyExperienceVersion | null>(null)
+  const experienceView = useMemo(
+    () => createLandingExperienceViewLatch({ service, growthExperienceVersion }),
+    [growthExperienceVersion, service],
+  )
   const analytics = useMemo(
     () => createLandingAnalyticsTracker({
       service,
@@ -100,10 +129,8 @@ export function useLandingAnalytics(
   )
 
   useEffect(() => {
-    if (!growthExperienceVersion || trackedExperienceVersion.current === growthExperienceVersion) return
-    trackedExperienceVersion.current = growthExperienceVersion
-    analytics.trackLandingExperienceViewed()
-  }, [analytics, growthExperienceVersion])
+    experienceView.track(posthog?.capture.bind(posthog))
+  }, [experienceView, posthog])
 
   // Track CTA clicks
   const trackCTAClick = useCallback(
