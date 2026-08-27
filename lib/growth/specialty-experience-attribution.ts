@@ -13,8 +13,7 @@ export interface SpecialtyExperienceRequestContext {
 
 export interface SpecialtyExperienceEntryState {
   hasExplicitRecovery: boolean
-  hasStoredDraft: boolean
-  hadPatientWork: boolean
+  hasAuthoritativePatientWork: boolean
 }
 
 /**
@@ -24,10 +23,9 @@ export interface SpecialtyExperienceEntryState {
  */
 export function canClaimSpecialtyExperienceAtEntry({
   hasExplicitRecovery,
-  hasStoredDraft,
-  hadPatientWork,
+  hasAuthoritativePatientWork,
 }: SpecialtyExperienceEntryState): boolean {
-  return !hasExplicitRecovery && !hasStoredDraft && !hadPatientWork
+  return !hasExplicitRecovery && !hasAuthoritativePatientWork
 }
 
 function resolveService(
@@ -48,6 +46,25 @@ export function normalizeIncomingGrowthExperienceVersion(
   const service = resolveService(context)
   if (!service) return null
   return normalizeSpecialtyExperienceVersion(value, service, "landing")
+}
+
+/** Resolve a landing claim only after hydrated work has established ownership. */
+export function resolveSpecialtyExperienceEntryClaim(
+  value: unknown,
+  context: SpecialtyExperienceRequestContext,
+  entry: SpecialtyExperienceEntryState,
+): SpecialtyExperienceVersion | null {
+  if (!canClaimSpecialtyExperienceAtEntry(entry)) return null
+  return normalizeIncomingGrowthExperienceVersion(value, context)
+}
+
+/** A captured claim waits until the live store owns the matching subtype. */
+export function isSpecialtyExperienceClaimContextReady(
+  value: unknown,
+  context: SpecialtyExperienceRequestContext,
+): boolean {
+  if (typeof value !== "string") return false
+  return normalizeIncomingGrowthExperienceVersion(value, context) === value
 }
 
 /**

@@ -405,6 +405,15 @@ export function migrateLegacyDraft(): DraftData | null {
     const draft: DraftData = {
       serviceType: canonical,
       flowInstanceId: normalizeFlowInstanceId(legacyState.flowInstanceId) ?? undefined,
+      growthExperienceVersion: normalizePersistedGrowthExperienceVersion(
+        legacyState.growthExperienceVersion,
+        {
+          serviceType: canonical,
+          subtype: isPlainRecord(legacyState.answers)
+            ? legacyState.answers.consultSubtype
+            : undefined,
+        },
+      ) ?? undefined,
       currentStepId: legacyState.currentStepId || 'review',
       furthestVisitedStepId: legacyState.furthestVisitedStepId ?? legacyState.currentStepId ?? 'review',
       stepsNeedingRevalidation: Array.isArray(legacyState.stepsNeedingRevalidation)

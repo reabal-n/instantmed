@@ -27,10 +27,14 @@ import { INTAKE_PRIMARY_ACTION_CHANGE_EVENT, RequestButton } from "@/components/
 import { requestCx } from "@/components/request/request-cx"
 import { TimeRemaining } from "@/components/request/time-remaining"
 import { ensureFlowInstanceId } from "@/lib/analytics/flow-instance"
-import { canClaimSpecialtyExperienceAtEntry } from "@/lib/growth/specialty-experience-attribution"
+import {
+  isSpecialtyExperienceClaimContextReady,
+  resolveSpecialtyExperienceEntryClaim,
+} from "@/lib/growth/specialty-experience-attribution"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
   getStoredDraftRestoreCandidate,
+  hasActivePatientWorkForRequestedService,
   shouldOfferDraftRestore,
 } from "@/lib/request/draft-restore"
 import {
@@ -496,13 +500,7 @@ export function RequestFlow({
   if (storedDraftAtEntryRef.current === undefined) {
     storedDraftAtEntryRef.current = getStoredDraftRestoreCandidate(initialService)
   }
-  const growthClaimEligibleAtEntryRef = useRef(
-    canClaimSpecialtyExperienceAtEntry({
-      hasExplicitRecovery,
-      hasStoredDraft: Boolean(storedDraftAtEntryRef.current),
-      hadPatientWork: Boolean(lastSavedAt),
-    }),
-  )
+  const growthExperienceClaimAtEntryRef = useRef<string | null>(null)
   
   // Rehydrate persisted store after mount (SSR-safe pattern).
   // The store uses skipHydration:true to avoid a server/client mismatch on first render.
@@ -532,6 +530,35 @@ export function RequestFlow({
     }
 
     const hydrationCutoffToken = beginRequestDraftHydrationCutoff(savedBefore)
+
+    const captureGrowthExperienceClaim = () => {
+      const hydratedState = useRequestStore.getState()
+      const hasAuthoritativePatientWork = hasActivePatientWorkForRequestedService({
+        requestedService: initialService,
+        serviceType: hydratedState.serviceType,
+        lastSavedAt: hydratedState.lastSavedAt,
+        savedBefore,
+      })
+      growthExperienceClaimAtEntryRef.current = resolveSpecialtyExperienceEntryClaim(
+        initialGrowthExperienceVersion,
+        {
+          serviceType: initialService,
+          subtype: initialSubtype,
+        },
+        {
+          hasExplicitRecovery,
+          hasAuthoritativePatientWork,
+        },
+      )
+    }
+
+    const alignHydratedServiceWithRequest = () => {
+      if (hasExplicitRecovery || !initialService) return
+      const hydratedState = useRequestStore.getState()
+      if (hydratedState.serviceType !== initialService) {
+        hydratedState.setServiceType(initialService)
+      }
+    }
 
     // Decide URL-vs-draft AFTER hydration, from the store's real restored
     // values. Runs once per mount.
@@ -572,6 +599,7 @@ export function RequestFlow({
       clearRequestDraftHydrationCutoff(hydrationCutoffToken)
 
       if (hasExplicitRecovery) {
+        captureGrowthExperienceClaim()
         if (!initialDraftId) {
           if (!cancelled) setRecoveryUnavailable(true)
           return
@@ -623,6 +651,12 @@ export function RequestFlow({
         return
       }
 
+      // Select the requested service's scoped state before deciding whether
+      // patient work already owns the cohort slot. A newer unrelated draft
+      // must not suppress a fresh specialty claim, while an active target
+      // draft (including Review/Pay) remains authoritative.
+      alignHydratedServiceWithRequest()
+      captureGrowthExperienceClaim()
       const hasSubtypeMismatch = applyUrlDecision()
       setHydrated(true)
       if (!hasSubtypeMismatch) offerExistingDraft()
@@ -642,6 +676,8 @@ export function RequestFlow({
         }
         // Local hydration failed: unblock a fresh flow without pretending a
         // stale or unrelated draft was restored.
+        alignHydratedServiceWithRequest()
+        captureGrowthExperienceClaim()
         applyUrlDecision()
         setHydrated(true)
       })
@@ -779,22 +815,24 @@ export function RequestFlow({
   // The URL token is only an invitation to claim a cohort. Existing local or
   // server work always wins, and an untagged/direct flow remains null.
   useEffect(() => {
+    const growthExperienceClaim = growthExperienceClaimAtEntryRef.current
     if (
       !hydrated ||
-      hasExplicitRecovery ||
-      !initialGrowthExperienceVersion ||
+      !growthExperienceClaim ||
       !initialService ||
       serviceType !== initialService ||
-      !growthClaimEligibleAtEntryRef.current
+      !isSpecialtyExperienceClaimContextReady(growthExperienceClaim, {
+        serviceType,
+        subtype: answers.consultSubtype,
+      })
     ) {
       return
     }
-    claimGrowthExperienceVersion(initialGrowthExperienceVersion)
+    claimGrowthExperienceVersion(growthExperienceClaim)
   }, [
+    answers.consultSubtype,
     claimGrowthExperienceVersion,
-    hasExplicitRecovery,
     hydrated,
-    initialGrowthExperienceVersion,
     initialService,
     serviceType,
   ])
@@ -878,11 +916,9 @@ export function RequestFlow({
 
   const growthClaimPending = Boolean(
     hydrated &&
-    !hasExplicitRecovery &&
-    initialGrowthExperienceVersion &&
+    growthExperienceClaimAtEntryRef.current &&
     initialService &&
     serviceType === initialService &&
-    growthClaimEligibleAtEntryRef.current &&
     !growthExperienceVersion,
   )
   const { analyticsServiceType, patientEmail, posthog, trackStepCompleted } = useFlowAnalytics({

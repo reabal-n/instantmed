@@ -5,8 +5,10 @@ import { describe, expect, it } from "vitest"
 
 import {
   canClaimSpecialtyExperienceAtEntry,
+  isSpecialtyExperienceClaimContextReady,
   normalizeIncomingGrowthExperienceVersion,
   normalizePersistedGrowthExperienceVersion,
+  resolveSpecialtyExperienceEntryClaim,
   selectGrowthExperienceVersion,
 } from "@/lib/growth/specialty-experience-attribution"
 
@@ -31,30 +33,71 @@ describe("specialty experience attribution", () => {
     expect(
       canClaimSpecialtyExperienceAtEntry({
         hasExplicitRecovery: false,
-        hasStoredDraft: false,
-        hadPatientWork: false,
+        hasAuthoritativePatientWork: false,
       }),
     ).toBe(true)
 
     expect(
       canClaimSpecialtyExperienceAtEntry({
         hasExplicitRecovery: true,
-        hasStoredDraft: false,
-        hadPatientWork: false,
+        hasAuthoritativePatientWork: false,
       }),
     ).toBe(false)
     expect(
       canClaimSpecialtyExperienceAtEntry({
         hasExplicitRecovery: false,
-        hasStoredDraft: true,
-        hadPatientWork: false,
+        hasAuthoritativePatientWork: true,
+      }),
+    ).toBe(false)
+  })
+
+  it("resolves only a valid tagged fresh entry after hydrated ownership is known", () => {
+    const hairContext = { serviceType: "consult", subtype: "hair_loss" }
+    const freshEntry = {
+      hasExplicitRecovery: false,
+      hasAuthoritativePatientWork: false,
+    }
+
+    expect(
+      resolveSpecialtyExperienceEntryClaim("spx_h1_20260828", hairContext, freshEntry),
+    ).toBe("spx_h1_20260828")
+    expect(
+      resolveSpecialtyExperienceEntryClaim(undefined, hairContext, freshEntry),
+    ).toBeNull()
+    expect(
+      resolveSpecialtyExperienceEntryClaim("spx_e1_20260828", hairContext, freshEntry),
+    ).toBeNull()
+    expect(
+      resolveSpecialtyExperienceEntryClaim("spx_h1_20260828", hairContext, {
+        hasExplicitRecovery: false,
+        hasAuthoritativePatientWork: true,
+      }),
+    ).toBeNull()
+    expect(
+      resolveSpecialtyExperienceEntryClaim("spx_h1_20260828", hairContext, {
+        hasExplicitRecovery: true,
+        hasAuthoritativePatientWork: false,
+      }),
+    ).toBeNull()
+  })
+
+  it("waits to claim until the active store has the matching specialty subtype", () => {
+    expect(
+      isSpecialtyExperienceClaimContextReady("spx_h1_20260828", {
+        serviceType: "consult",
+        subtype: undefined,
       }),
     ).toBe(false)
     expect(
-      canClaimSpecialtyExperienceAtEntry({
-        hasExplicitRecovery: false,
-        hasStoredDraft: false,
-        hadPatientWork: true,
+      isSpecialtyExperienceClaimContextReady("spx_h1_20260828", {
+        serviceType: "consult",
+        subtype: "hair_loss",
+      }),
+    ).toBe(true)
+    expect(
+      isSpecialtyExperienceClaimContextReady("spx_h1_20260828", {
+        serviceType: "consult",
+        subtype: "ed",
       }),
     ).toBe(false)
   })
