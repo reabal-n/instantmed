@@ -260,3 +260,40 @@ The reviewed placements were natural and legible; no cramped or awkward claim us
 The committed diff changes only copy, canon, the approved-claim registry/source receipt, and their contracts. It does not change validators, intake steps, required answers, identity fields, eScript/Parchment behavior, clinical decisions, or payment logic. The exact medical-certificate claim `No Medicare required` remains unchanged. No medicine names, employer outreach, external mutation, database mutation, deployment, or `output/` changes were introduced.
 
 No blocking concerns. Browser coverage is representative; deterministic contracts cover the active prescribing mirrors in scope.
+
+## Independent Re-review Follow-up
+
+Contract correction commit: `4402dc9a33b86205b2ea3a495f9673ccec23e8b9`
+
+The re-review found one remaining stale assertion in `lib/__tests__/consult-services-index-contract.test.ts`. No production or runtime code required another change.
+
+### RED and GREEN evidence
+
+The isolated contract reproduced the finding before the edit:
+
+```bash
+corepack pnpm exec vitest run \
+  lib/__tests__/consult-services-index-contract.test.ts
+```
+
+RED result: 1 file failed, 1 failed / 10 passed. The failing assertion expected the retired sentence `do not require Medicare; prescribing pathways require Medicare` in `/consult`.
+
+The contract now asserts that `/consult` consumes `getApprovedClaim("prescribing_identity_required")` and rejects the stale `prescribing pathways require Medicare` literal.
+
+Isolated GREEN: 1 file passed, 11 tests passed.
+
+The complete Task 8 focused suite now explicitly includes the directly affected consult contract:
+
+```bash
+corepack pnpm exec vitest run \
+  lib/__tests__/marketing-copy-contract.test.ts \
+  lib/__tests__/money-page-narrative-compression-contract.test.ts \
+  lib/__tests__/project-docs-drift-contract.test.ts \
+  lib/__tests__/unified-intake-regressions.test.ts \
+  lib/__tests__/approved-claims-contract.test.ts \
+  lib/__tests__/consult-services-index-contract.test.ts
+```
+
+Focused GREEN result: 6 files passed, 104 tests passed. Scoped ESLint for the changed contract and `git diff --check` also passed.
+
+Only `lib/__tests__/consult-services-index-contract.test.ts` changed in the implementation commit. No validator, intake-step, identity-field, clinical, payment, eScript, Parchment, public-copy, or other runtime behavior changed. `output/` remained untouched.
