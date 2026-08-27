@@ -123,3 +123,78 @@ Other verification:
 ## Concern
 
 The only remaining concern is environmental: Supabase's local schema lint could not execute without the local Docker/Postgres service. No live or linked database check was substituted. CI or a developer with the local Supabase stack should run the pinned lint command before applying the migration.
+
+## Fix round 1
+
+### Scope and commits
+
+- Revision base: `d9dbaa376ece6a88c9c862a7c92095ab2a8a086e`
+- Fix implementation: `7f8388e89a3d783e6edec8dd71281f25e1a9acce` (`fix(growth): harden specialty cohort recovery`)
+- No worktree, push, deployment, remote migration, linked Supabase command, Ads mutation, external-system mutation, or user-owned `output/` change was made.
+
+### Files
+
+- Production fixes: `lib/growth/specialty-experience-attribution.ts`, `lib/stripe/guest-checkout.ts`
+- Runtime behavior tests: `lib/__tests__/specialty-experience-attribution-contract.test.ts`, `lib/__tests__/specialty-experience-payment-propagation.test.ts`, `lib/__tests__/specialty-experience-payment-finalization.test.ts`, `lib/__tests__/stripe/checkout-operating-hours.test.ts`, `lib/__tests__/stripe-checkout-retry.test.ts`
+- Source-shape coverage removed where executable payment behavior now exists: `lib/__tests__/flow-instance-attribution-contract.test.ts`, `lib/__tests__/specialty-experience-attribution-contract.test.ts`
+- Local database harness: `scripts/test-specialty-experience-attribution-db.sh`, `scripts/sql/specialty-experience-attribution-db.test.sql`, and the `db:test:specialty-attribution` package script.
+
+### RED evidence
+
+Before either production fix, this focused command was run:
+
+```bash
+corepack pnpm exec vitest run \
+  lib/__tests__/specialty-experience-attribution-contract.test.ts \
+  lib/__tests__/specialty-experience-payment-propagation.test.ts \
+  lib/__tests__/stripe/checkout-operating-hours.test.ts \
+  lib/__tests__/stripe-checkout-retry.test.ts \
+  lib/__tests__/specialty-experience-payment-finalization.test.ts
+```
+
+It exited nonzero with 2 failed and 69 passed tests. The failures were the intended reviewer findings:
+
+- a non-null unknown persisted marker was replaced by the later valid candidate;
+- rebuilt duplicate guest checkout arguments had the Session marker but no `payment_intent_data.metadata` marker.
+
+The authenticated initial builder, initial guest checkout, retry, and finalizer DB-over-Session tests already passed in RED, proving those paths rather than merely finding identifier strings in source.
+
+### GREEN and regression evidence
+
+- The same focused command passed: 5 files, 71 tests.
+- The original Task 4 focused command passed: 5 files, 33 tests.
+- The payment/draft regression command from the original report passed: 13 files, 175 tests.
+- Supabase migration-history, SECURITY DEFINER ACL-ratchet, and search-path static contracts passed: 3 files, 21 tests.
+- Scoped ESLint with `--max-warnings 0` passed over every changed TypeScript file.
+- `corepack pnpm typecheck` passed.
+- `bash -n scripts/test-specialty-experience-attribution-db.sh`, `git diff --check`, and `git diff --cached --check` passed.
+
+### Database execution evidence
+
+The committed harness is local-only: it targets the fixed Supabase CLI container derived from `supabase/config.toml` (`supabase_db_witzcrovsoumktyndqgz`) via `docker exec`; it accepts no URL, project ref, credentials, `--linked`, or remote mode. It exits nonzero when the local container or an invariant is unavailable.
+
+The SQL transaction checks both migrated columns, coexistence of the existing updated-at and flow-identity triggers with the new growth trigger, null-to-value and value-to-different/null draft behavior, service identity protection, the existing checkout-claim/conversion RPC, and realised-intake immutability. The shell then uses two local PostgreSQL connections to verify the first concurrent non-null writer remains authoritative. Fixed test identifiers are rolled back or cleaned with their discard tombstone so the harness is repeatable.
+
+Attempted command:
+
+```bash
+corepack pnpm db:test:specialty-attribution
+```
+
+It exited 1 before any SQL because Docker could not find the local container: `Local Supabase DB container supabase_db_witzcrovsoumktyndqgz is unavailable.` No linked or remote fallback was used.
+
+Required local pre-apply gate when Docker is available:
+
+```bash
+corepack pnpm dlx supabase@2.72.7 start
+corepack pnpm dlx supabase@2.72.7 db reset --local
+corepack pnpm db:test:specialty-attribution
+corepack pnpm dlx supabase@2.72.7 db lint --local --schema public,extensions --fail-on error
+```
+
+### Self-review and remaining concern
+
+- Persisted truth now wins by slot presence: any non-null database value is normalized and returned, including `null` for unknown or wrong-service values. Only a genuinely null/undefined stored slot consults the candidate.
+- Duplicate guest recovery builds one metadata object and assigns it to both Checkout Session and PaymentIntent metadata. The recovery idempotency key, current-session invalidation, attach compare-and-set, confirmation, and retryability checks are unchanged.
+- Executable tests now cover authenticated initial, initial guest, rebuilt guest, retry, and confirmed-payment precedence. The remaining migration-shape and forbidden-clinical-tree assertions are retained because those are static schema/privacy boundaries rather than practical application runtime behavior.
+- The only remaining concern is environmental: the committed PostgreSQL concurrency and trigger/RPC harness, and local Supabase lint, remain unexecuted until a local Docker/Supabase stack is available. They are an explicit pre-apply gate; no remote evidence was substituted.
