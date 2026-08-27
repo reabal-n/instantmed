@@ -1,5 +1,8 @@
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
+
+const AVAILABILITY_24_7_CLAIM = getApprovedClaim("availability_24_7")
 
 const ED_FAQ = [
   {
@@ -16,7 +19,7 @@ const ED_FAQ = [
   },
   {
     question: "How fast will I hear back?",
-    answer: "Requests can be submitted any time. Doctor review occurs during the review window and depends on clinical detail and queue volume. You will receive email updates as the request progresses.",
+    answer: `${AVAILABILITY_24_7_CLAIM} You will receive email updates as the request progresses.`,
   },
   {
     question: "What makes ED unsafe to assess online?",
@@ -24,7 +27,7 @@ const ED_FAQ = [
   },
   {
     question: "Why does the form ask about heart health?",
-    answer: "ED can be linked with blood-vessel health, diabetes, high blood pressure, cholesterol, smoking, medicines, alcohol, sleep, stress, and mental health. Some heart symptoms or medicines make common ED treatment unsafe, so the doctor needs that context before deciding.",
+    answer: "The doctor needs your current heart or stroke history, very low blood pressure, medicines, allergies, and relevant conditions before deciding whether remote care is suitable. Some heart conditions or medicines can make ED prescribing unsafe.",
   },
   {
     question: "Which treatment can I be prescribed?",
@@ -36,7 +39,7 @@ const ED_FAQ = [
   },
   {
     question: "Do I need Medicare?",
-    answer: "Consultation and prescribing requests ask for Medicare or suitable identity details to support safe clinical records and electronic prescribing workflows. If you are unsure whether you can complete those details, contact support before paying.",
+    answer: "You need Medicare or IHI, plus an Australian address, for the clinical record and electronic prescribing workflow. If you are unsure whether you can provide those details, contact support before paying.",
   },
   {
     question: "How much does it cost?",

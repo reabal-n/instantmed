@@ -567,6 +567,158 @@ test.beforeEach(({ browserName }) => {
   test.skip(browserName !== "chromium", "Money-page foundations use Chromium layout metrics")
 })
 
+test("ED E1 leads with the private one-off outcome before clinical detail", async ({ browser }, testInfo) => {
+  test.setTimeout(120_000)
+
+  const states = [
+    { name: "desktop-light", width: 1440, height: 900, theme: "light" as const },
+    { name: "mobile-375x800-dark", width: 375, height: 800, theme: "dark" as const },
+  ]
+
+  for (const state of states) {
+    const { context, page } = await newFoundationPage(browser, testInfo, state)
+    const browserErrors: string[] = []
+    page.on("console", (message) => {
+      if (message.type() === "error") browserErrors.push(`console: ${message.text()}`)
+    })
+    page.on("pageerror", (error) => browserErrors.push(`pageerror: ${error.message}`))
+
+    await gotoPublicRoute(page, "/erectile-dysfunction")
+    await assertResolvedTheme(page, state.theme)
+
+    const heading = page.getByRole("heading", { level: 1 })
+    await expect(heading).toHaveText("Private ED assessment, from home.")
+    await expect(heading).toBeVisible()
+
+    const hero = heading.locator("xpath=ancestor::section[1]")
+    const heroCta = hero.getByRole("link", {
+      name: /Start private assessment · \$49\.95/,
+    })
+    const howItWorks = hero.getByRole("link", { name: "See how it works" })
+    await expect(heroCta).toBeVisible()
+    await expect(heroCta).toHaveAttribute(
+      "href",
+      "/request?service=consult&subtype=ed&growth_experience_version=spx_e1_20260828",
+    )
+    await expect(howItWorks).toHaveAttribute("href", "#how-it-works")
+    await expect(howItWorks).toHaveCSS("background-color", "rgba(0, 0, 0, 0)")
+
+    const initialHeroCtaBox = await heroCta.boundingBox()
+    expect(initialHeroCtaBox, `${state.name} Hero CTA should have a layout box`).not.toBeNull()
+    expect(
+      initialHeroCtaBox!.y + initialHeroCtaBox!.height,
+      `${state.name} Hero CTA should be visible before scrolling`,
+    ).toBeLessThanOrEqual(state.height)
+
+    const heroFacts = hero.getByRole("complementary", { name: "ED assessment facts" })
+    const heroFactGroups = heroFacts.locator("dl > div")
+    await expect(heroFacts).toBeVisible()
+    const initialHeroFactsBox = await heroFacts.boundingBox()
+    expect(initialHeroFactsBox, `${state.name} Hero facts should have a layout box`).not.toBeNull()
+    expect(
+      initialHeroFactsBox!.y,
+      `${state.name} Hero facts should begin in the initial viewport`,
+    ).toBeLessThan(state.height)
+    await expect(heroFactGroups).toHaveCount(4)
+    expect(
+      (await heroFactGroups.locator("dt").allTextContents()).map((text) => text.trim()),
+      `${state.name} Hero facts should remain in practical decision order`,
+    ).toEqual(["Eligibility", "Review fee", "Assessment", "If approved"])
+
+    await expect(heroFactGroups.nth(0)).toContainText("Medicare or IHI")
+    await expect(heroFactGroups.nth(0)).toContainText("Australian address")
+    await expect(heroFactGroups.nth(1)).toContainText("$49.95")
+    await expect(heroFactGroups.nth(1)).toContainText("Full refund if the doctor declines.")
+    await expect(heroFactGroups.nth(2)).toContainText("~4 min")
+    await expect(heroFactGroups.nth(2)).toContainText(
+      "A doctor reviews it and may call you briefly before prescribing.",
+    )
+    await expect(heroFactGroups.nth(3)).toContainText(
+      "If approved, your eScript goes straight to your phone.",
+    )
+    await expect(heroFactGroups.nth(3)).toContainText("Australian pharmacy")
+    await expect(heroFactGroups.nth(3)).toContainText("Medicine cost is separate.")
+    await expect(heroFactGroups.nth(3)).toContainText("Prescription is not guaranteed.")
+
+    await page.screenshot({
+      path: testInfo.outputPath(`ed-e1-${state.name}-viewport.png`),
+    })
+
+    for (let index = 0; index < 4; index += 1) {
+      const factGroup = heroFactGroups.nth(index)
+      await factGroup.scrollIntoViewIfNeeded()
+      await expect(factGroup).toBeVisible()
+      const box = await factGroup.boundingBox()
+      expect(box, `${state.name} Hero fact group should have a layout box`).not.toBeNull()
+      expect(box!.y, `${state.name} Hero fact group should scroll into view`).toBeGreaterThanOrEqual(0)
+      expect(box!.y + box!.height, `${state.name} Hero fact group should fit in the viewport`).toBeLessThanOrEqual(
+        state.height,
+      )
+    }
+
+    const practicalOffer = page.locator("#how-it-works")
+    await expect(practicalOffer).toContainText("Medicine cost is separate")
+    expect(
+      await page.evaluate(() => {
+        const practical = document.querySelector("#how-it-works")
+        const education = document.querySelector("#eligibility")
+        return Boolean(
+          practical &&
+          education &&
+          practical.compareDocumentPosition(education) & Node.DOCUMENT_POSITION_FOLLOWING,
+        )
+      }),
+    ).toBe(true)
+
+    if (state.width === 375) {
+      await practicalOffer.scrollIntoViewIfNeeded()
+      const stickyCta = page.getByRole("region", { name: "Quick purchase" })
+      await expect(stickyCta).toBeVisible()
+      await expect(stickyCta.getByRole("link")).toHaveAttribute(
+        "href",
+        "/request?service=consult&subtype=ed&growth_experience_version=spx_e1_20260828",
+      )
+    }
+
+    await page.screenshot({
+      path: testInfo.outputPath(`ed-e1-${state.name}.png`),
+      fullPage: true,
+    })
+
+    expect(browserErrors, `${state.name} browser errors`).toEqual([])
+    await context.close()
+  }
+})
+
+test("ED E1 preserves unavailable-service behavior", async ({ page }) => {
+  await page.route("**/api/availability", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        maintenance_mode: false,
+        disable_med_cert: false,
+        disable_repeat_scripts: false,
+        disable_consults: true,
+        disable_weight_loss: false,
+        urgent_notice_enabled: false,
+        urgent_notice_message: "",
+        business_hours_open: 8,
+        business_hours_close: 22,
+        business_hours_timezone: "Australia/Sydney",
+        business_hours_enabled: true,
+      }),
+    })
+  })
+  await seedMoneyPageState(page, "light")
+  await gotoPublicRoute(page, "/erectile-dysfunction")
+
+  await expect(page.getByText("This service is temporarily unavailable.")).toBeVisible()
+  await expect(page.locator('main a[href="/contact"]').first()).toHaveAttribute(
+    "href",
+    "/contact",
+  )
+})
+
 test("Hair H1 leads with the qualified one-off outcome before education", async ({ browser }, testInfo) => {
   test.setTimeout(120_000)
 

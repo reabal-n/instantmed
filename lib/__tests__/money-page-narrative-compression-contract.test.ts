@@ -141,23 +141,41 @@ describe("money-page narrative compression", () => {
     ])
   })
 
-  it("compresses ED into one safety-led decision path", () => {
+  it("puts ED E1 private outcome and cost before education and safety", () => {
     const source = read("components/marketing/erectile-dysfunction-landing.tsx")
     const page = read("app/erectile-dysfunction/page.tsx")
 
     expect(source.match(/The doctor reviews the whole picture/g)).toHaveLength(1)
     expect(source).toContain('title: "Doctor review and clarification"')
+    expect(source).toContain("Private ED assessment, from home.")
+    expect(source).toContain('const ED_SERVICE = getService("ed")')
+    expect(source).toContain('getApprovedClaim("prescription_if_approved")')
+    expect(source).toContain('getApprovedClaim("form_first_wedge")')
+    expect(source).toContain('getApprovedClaim("refund_guarantee")')
 
     for (const firstFoldFact of [
       "Australia only",
       "Ages 18+",
-      "Medicare details required",
+      "Medicare or IHI",
+      "Australian address",
       "PRICING_DISPLAY.MENS_HEALTH",
-      "About 3 minutes",
-      "Full refund if the doctor declines",
+      "ED_SERVICE.effort",
+      "REFUND_GUARANTEE_CLAIM",
+      "Medicine cost is separate",
+      "Prescription is not guaranteed",
+      "Australian pharmacy",
     ]) {
       expect(source, firstFoldFact).toContain(firstFoldFact)
     }
+
+    expect(source).toContain("Start private assessment")
+    expect(source).toContain('href="#how-it-works"')
+    expect(source).toContain("See how it works")
+    expect(source).not.toContain("About 3 minutes")
+    expect(source).not.toContain("exercise tolerance")
+    expect(source).not.toContain("blood pressure context")
+    expect(source).not.toContain("blood pressure value")
+    expect(source).not.toContain("chest symptoms")
 
     for (const retiredMarker of [
       "ED_GEO_FACTS",
@@ -172,7 +190,7 @@ describe("money-page narrative compression", () => {
     }
 
     expect(source).toContain("an erection lasting more than 4 hours")
-    expect(source).toContain("chest-pain medicines")
+    expect(source).toContain("Chest-pain medicines")
     expect(source).toContain("Medicine cost is separate")
     expect(source).toContain("items={ED_LANDING_FAQ}")
     expect(page).toContain("ED_LANDING_FAQ")
@@ -180,10 +198,10 @@ describe("money-page narrative compression", () => {
     expectInOrder(source, [
       "function EdHero",
       "<EdHero",
+      "<EdReviewCostOutcomeSection",
       "<EdEligibilitySection />",
       "<EdSafetyDecisionMap />",
       "<EdScopeBoundarySection />",
-      "<EdReviewCostOutcomeSection",
       "<EdAlternativesSection />",
       "<EdSourcesSection />",
       "items={ED_LANDING_FAQ}",

@@ -40,8 +40,8 @@ describe("money-page art-direction contract", () => {
     expect(edLanding).toContain("Online care may be suitable")
     expect(edLanding).toContain("A detail needs clarification")
     expect(edLanding).toContain("In-person care is safer")
-    expect(edLanding.indexOf("<EdSafetyDecisionMap />", renderStart)).toBeLessThan(
-      edLanding.indexOf("<EdReviewCostOutcomeSection", renderStart),
+    expect(edLanding.indexOf("<EdReviewCostOutcomeSection", renderStart)).toBeLessThan(
+      edLanding.indexOf("<EdSafetyDecisionMap />", renderStart),
     )
   })
 

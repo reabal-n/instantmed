@@ -15,7 +15,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "Erectile Dysfunction Assessment Online Australia | InstantMed" },
-  description: `Private erectile dysfunction assessment from an Australian doctor. Start with a secure safety form, no booked waiting room. From ${PRICING_DISPLAY.MENS_HEALTH}.`,
+  description: `Private one-off erectile dysfunction assessment from an Australian doctor. Start with a secure form from ${PRICING_DISPLAY.MENS_HEALTH}. Prescription is not guaranteed.`,
   keywords: [
     "ed assessment online australia",
     "erectile dysfunction assessment online",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Erectile Dysfunction Assessment Online Australia | InstantMed",
     description:
-      "Private ED assessment online with Australian doctor review, safety screening, and clear in-person care boundaries.",
+      "Private one-off ED assessment online with Australian doctor review, safety screening, and clear in-person care boundaries.",
     url: "https://instantmed.com.au/erectile-dysfunction",
     type: "website",
     locale: "en_AU",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "ED Assessment Online Australia | InstantMed",
-    description: "Private ED assessment online. Secure form-first doctor review.",
+    description: "Private one-off ED assessment online. Secure form-first doctor review.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/erectile-dysfunction",

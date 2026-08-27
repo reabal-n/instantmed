@@ -56,7 +56,7 @@ describe("money-page narrative compression", () => {
     const medCert = read("components/marketing/med-cert-landing.tsx")
 
     expect(hair).toContain('text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.HAIR_LOSS}`')
-    expect(hair).toContain('href: isDisabled ? "/contact" : ASSESSMENT_HREF')
+    expect(hair).toContain('href: isDisabled ? "/contact" : requestCtaHref')
     expect(medCert).toContain("For suitable form-only requests: {MED_CERT_WEDGE}")
     expect(medCert).not.toMatch(/^\s*\{MED_CERT_WEDGE\} Tell us/m)
   })
@@ -85,5 +85,19 @@ describe("money-page narrative compression", () => {
 
     expect(ed.match(/Call 000 for chest pain/g)).toHaveLength(1)
     expect(ed).toContain("Safety answers can change the care route")
+  })
+
+  it("keeps ED E1 identity, timing, and outcome copy truthful", () => {
+    const ed = read("components/marketing/erectile-dysfunction-landing.tsx")
+    const faq = read("lib/data/ed-faq.ts")
+
+    expect(ed.match(/The practical facts/g)).toHaveLength(1)
+    expect(ed).toContain("Medicare or IHI plus an Australian address")
+    expect(ed).toContain("ED_SERVICE.effort")
+    expect(faq).toContain('getApprovedClaim("availability_24_7")')
+    expect(faq).toContain("Medicare or IHI")
+    expect(faq).toContain("Australian address")
+    expect(faq).not.toContain("review window")
+    expect(faq).not.toContain("suitable identity details")
   })
 })
