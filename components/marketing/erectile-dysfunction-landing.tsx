@@ -29,6 +29,7 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { ED_LANDING_FAQ } from "@/lib/data/ed-faq"
+import { getActiveSpecialtyExperience } from "@/lib/growth/specialty-experiences"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 
@@ -38,11 +39,16 @@ const FAQSection = dynamic(
 )
 
 const ASSESSMENT_HREF = "/request?service=consult&subtype=ed"
+const ED_LANDING_EXPERIENCE = getActiveSpecialtyExperience("ed")
 const DOCTOR_REGISTRATION_CLAIM = getApprovedClaim("doctor_registration")
 
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "ed",
   analyticsId: "ed",
+  growthExperience: {
+    service: "ed",
+    version: ED_LANDING_EXPERIENCE?.id ?? null,
+  },
   sticky: {
     ctaText: `Start ED assessment - ${PRICING_DISPLAY.MENS_HEALTH}`,
     ctaHref: ASSESSMENT_HREF,
@@ -203,10 +209,12 @@ function EdHero({
   isDisabled,
   heroCTARef,
   onStart,
+  requestCtaHref,
 }: {
   isDisabled: boolean
   heroCTARef: RefObject<HTMLDivElement>
   onStart: () => void
+  requestCtaHref: string
 }) {
   return (
     <section className="relative overflow-hidden bg-[color:var(--morning-ivory)]/60 pb-14 pt-10 dark:bg-background sm:pt-14 lg:pb-20 lg:pt-20">
@@ -228,7 +236,7 @@ function EdHero({
               disabled={isDisabled}
               onClick={onStart}
             >
-              <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
+              <Link href={isDisabled ? "/contact" : requestCtaHref}>
                 {isDisabled ? "Contact us" : "Start ED assessment"}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
@@ -420,7 +428,15 @@ function EdScopeBoundarySection() {
   )
 }
 
-function EdReviewCostOutcomeSection({ isDisabled, onStart }: { isDisabled: boolean; onStart: () => void }) {
+function EdReviewCostOutcomeSection({
+  isDisabled,
+  onStart,
+  requestCtaHref,
+}: {
+  isDisabled: boolean
+  onStart: () => void
+  requestCtaHref: string
+}) {
   return (
     <section id="how-it-works" className="bg-muted/30 py-14 dark:bg-white/[0.02] sm:py-16 lg:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -462,7 +478,7 @@ function EdReviewCostOutcomeSection({ isDisabled, onStart }: { isDisabled: boole
           </dl>
           <div className="border-t border-border/50 p-5 text-center">
             <Button asChild size="lg" disabled={isDisabled} onClick={onStart}>
-              <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
+              <Link href={isDisabled ? "/contact" : requestCtaHref}>
                 {isDisabled ? "Contact us" : "Start the secure form"}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
@@ -526,7 +542,15 @@ function EdSourcesSection() {
   )
 }
 
-function EdFinalCta({ isDisabled, onStart }: { isDisabled: boolean; onStart: () => void }) {
+function EdFinalCta({
+  isDisabled,
+  onStart,
+  requestCtaHref,
+}: {
+  isDisabled: boolean
+  onStart: () => void
+  requestCtaHref: string
+}) {
   return (
     <section className="py-14 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -538,7 +562,7 @@ function EdFinalCta({ isDisabled, onStart }: { isDisabled: boolean; onStart: () 
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto" disabled={isDisabled} onClick={onStart}>
-              <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
+              <Link href={isDisabled ? "/contact" : requestCtaHref}>
                 {isDisabled ? "Contact us" : `Request assessment - ${PRICING_DISPLAY.MENS_HEALTH}`}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
@@ -556,13 +580,13 @@ function EdFinalCta({ isDisabled, onStart }: { isDisabled: boolean; onStart: () 
 export function ErectileDysfunctionLanding() {
   return (
     <LandingPageShell config={LANDING_CONFIG}>
-      {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
+      {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <div className="bg-background text-foreground">
-          <EdHero isDisabled={isDisabled} heroCTARef={heroCTARef} onStart={handleHeroCTA} />
+          <EdHero isDisabled={isDisabled} heroCTARef={heroCTARef} onStart={handleHeroCTA} requestCtaHref={requestCtaHref} />
           <EdEligibilitySection />
           <EdSafetyDecisionMap />
           <EdScopeBoundarySection />
-          <EdReviewCostOutcomeSection isDisabled={isDisabled} onStart={handleHowItWorksCTA} />
+          <EdReviewCostOutcomeSection isDisabled={isDisabled} onStart={handleHowItWorksCTA} requestCtaHref={requestCtaHref} />
           <EdAlternativesSection />
           <EdSourcesSection />
           <FAQSection
@@ -575,7 +599,7 @@ export function ErectileDysfunctionLanding() {
             viewAllHref="/faq"
             className="bg-background"
           />
-          <EdFinalCta isDisabled={isDisabled} onStart={handleFinalCTA} />
+          <EdFinalCta isDisabled={isDisabled} onStart={handleFinalCTA} requestCtaHref={requestCtaHref} />
         </div>
       )}
     </LandingPageShell>

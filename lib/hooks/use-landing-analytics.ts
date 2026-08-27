@@ -1,10 +1,11 @@
 "use client"
 
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import type { SpecialtyExperienceVersion } from "@/lib/growth/specialty-experiences"
 
-type CTALocation =
+export type CTALocation =
   | "hero"
   | "how_it_works"
   | "certificate_preview"
@@ -16,46 +17,110 @@ type CTALocation =
   | "about_hero"
   | "about_what_we_wont_do"
 
+type LandingAnalyticsProperties = Record<string, unknown>
+type LandingAnalyticsCapture = (event: string, properties: LandingAnalyticsProperties) => void
+
+export function createLandingAnalyticsTracker({
+  service,
+  growthExperienceVersion = null,
+  capture,
+}: {
+  service: string
+  growthExperienceVersion?: SpecialtyExperienceVersion | null
+  capture?: LandingAnalyticsCapture
+}) {
+  let hasTrackedExperienceView = false
+  const versionProperties = growthExperienceVersion
+    ? { growth_experience_version: growthExperienceVersion }
+    : {}
+
+  const track = (event: string, properties: LandingAnalyticsProperties) => {
+    try {
+      capture?.(event, properties)
+    } catch {
+      // Analytics must never delay or interrupt patient navigation.
+    }
+  }
+
+  return {
+    trackLandingExperienceViewed: () => {
+      if (!growthExperienceVersion || hasTrackedExperienceView) return
+      hasTrackedExperienceView = true
+      track("landing_experience_viewed", { service, ...versionProperties })
+    },
+    trackCTAClick: (location: CTALocation) => {
+      track("landing_cta_clicked", {
+        service,
+        cta_location: location,
+        ...versionProperties,
+      })
+    },
+    trackFAQOpen: (_question: string, index: number) => {
+      track("landing_faq_opened", {
+        service,
+        faq_index: index,
+        ...versionProperties,
+      })
+    },
+    trackSectionView: (section: string) => {
+      track("landing_section_viewed", {
+        service,
+        section,
+        ...versionProperties,
+      })
+    },
+    trackScrollDepth: (depth: number) => {
+      track("landing_scroll_depth", {
+        service,
+        depth_percent: depth,
+        ...versionProperties,
+      })
+    },
+  }
+}
+
 /**
  * Analytics hook for service landing pages.
  * Tracks CTA clicks, scroll depth milestones, section views, and interactions.
  */
-export function useLandingAnalytics(service: string) {
+export function useLandingAnalytics(
+  service: string,
+  growthExperienceVersion: SpecialtyExperienceVersion | null = null,
+) {
   const posthog = usePostHog()
   const scrollMilestones = useRef(new Set<number>())
+  const trackedExperienceVersion = useRef<SpecialtyExperienceVersion | null>(null)
+  const analytics = useMemo(
+    () => createLandingAnalyticsTracker({
+      service,
+      growthExperienceVersion,
+      capture: posthog?.capture.bind(posthog),
+    }),
+    [growthExperienceVersion, posthog, service],
+  )
+
+  useEffect(() => {
+    if (!growthExperienceVersion || trackedExperienceVersion.current === growthExperienceVersion) return
+    trackedExperienceVersion.current = growthExperienceVersion
+    analytics.trackLandingExperienceViewed()
+  }, [analytics, growthExperienceVersion])
 
   // Track CTA clicks
   const trackCTAClick = useCallback(
-    (location: CTALocation) => {
-      posthog?.capture("landing_cta_clicked", {
-        service,
-        cta_location: location,
-      })
-    },
-    [posthog, service]
+    (location: CTALocation) => analytics.trackCTAClick(location),
+    [analytics],
   )
 
   // Track FAQ interactions
   const trackFAQOpen = useCallback(
-    (question: string, index: number) => {
-      posthog?.capture("landing_faq_opened", {
-        service,
-        question,
-        faq_index: index,
-      })
-    },
-    [posthog, service]
+    (question: string, index: number) => analytics.trackFAQOpen(question, index),
+    [analytics],
   )
 
   // Track section views via IntersectionObserver
   const trackSectionView = useCallback(
-    (section: string) => {
-      posthog?.capture("landing_section_viewed", {
-        service,
-        section,
-      })
-    },
-    [posthog, service]
+    (section: string) => analytics.trackSectionView(section),
+    [analytics],
   )
 
   // Scroll depth tracking (25/50/75/100%)
@@ -68,17 +133,14 @@ export function useLandingAnalytics(service: string) {
       for (const milestone of [25, 50, 75, 100]) {
         if (percent >= milestone && !scrollMilestones.current.has(milestone)) {
           scrollMilestones.current.add(milestone)
-          posthog?.capture("landing_scroll_depth", {
-            service,
-            depth_percent: milestone,
-          })
+          analytics.trackScrollDepth(milestone)
         }
       }
     }
 
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [posthog, service])
+  }, [analytics])
 
   return {
     trackCTAClick,

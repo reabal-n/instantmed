@@ -9,6 +9,12 @@ import { UnavailableBanner } from "@/components/marketing/shared/unavailable-ban
 import { type ServiceId,useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Navbar } from "@/components/shared/navbar"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
+import { normalizeIncomingGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
+import {
+  normalizeSpecialtyExperienceVersion,
+  type SpecialtyExperienceService,
+  type SpecialtyExperienceVersion,
+} from "@/lib/growth/specialty-experiences"
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
 
 // ---------------------------------------------------------------------------
@@ -20,6 +26,11 @@ export interface LandingPageConfig {
   serviceId: ServiceId
   /** Analytics service name */
   analyticsId: string
+  /** Code-owned specialty landing cohort. Flags and analytics never assign it. */
+  growthExperience?: {
+    service: SpecialtyExperienceService
+    version: string | null
+  }
   /** Sticky CTA configuration */
   sticky: {
     ctaText: string
@@ -34,11 +45,44 @@ export interface LandingPageChildrenProps {
   isDisabled: boolean
   heroCTARef: React.RefObject<HTMLDivElement>
   analytics: ReturnType<typeof useLandingAnalytics>
+  requestCtaHref: string
   handleHeroCTA: () => void
   handleHowItWorksCTA: () => void
+  handlePricingCTA: () => void
   handleFinalCTA: () => void
   handleStickyCTA: () => void
   handleFAQOpen: (question: string, index: number) => void
+}
+
+export function resolveLandingGrowthExperienceVersion(
+  service: SpecialtyExperienceService,
+  version: unknown,
+): SpecialtyExperienceVersion | null {
+  return normalizeSpecialtyExperienceVersion(version, service, "landing")
+}
+
+export function buildGrowthExperienceRequestHref(
+  href: string,
+  growthExperienceVersion: SpecialtyExperienceVersion | null,
+): string {
+  if (!growthExperienceVersion) return href
+
+  const requestUrl = new URL(href, "https://instantmed.local")
+  if (requestUrl.origin !== "https://instantmed.local" || requestUrl.pathname !== "/request") {
+    return href
+  }
+
+  const validatedVersion = normalizeIncomingGrowthExperienceVersion(
+    growthExperienceVersion,
+    {
+      serviceType: requestUrl.searchParams.get("service"),
+      subtype: requestUrl.searchParams.get("subtype"),
+    },
+  )
+  if (!validatedVersion) return href
+
+  requestUrl.searchParams.set("growth_experience_version", validatedVersion)
+  return `${requestUrl.pathname}${requestUrl.search}${requestUrl.hash}`
 }
 
 interface LandingPageShellProps {
@@ -56,7 +100,13 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
   const isDisabled = useServiceAvailability().isServiceDisabled(config.serviceId)
   const heroCTARef = useRef<HTMLDivElement>(null!)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
-  const analytics = useLandingAnalytics(config.analyticsId)
+  const growthExperienceVersion = config.growthExperience
+    ? resolveLandingGrowthExperienceVersion(
+      config.growthExperience.service,
+      config.growthExperience.version,
+    )
+    : null
+  const analytics = useLandingAnalytics(config.analyticsId, growthExperienceVersion)
 
   useEffect(() => {
     const el = heroCTARef.current
@@ -71,11 +121,16 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
 
   const handleHeroCTA = useCallback(() => analytics.trackCTAClick("hero"), [analytics])
   const handleHowItWorksCTA = useCallback(() => analytics.trackCTAClick("how_it_works"), [analytics])
+  const handlePricingCTA = useCallback(() => analytics.trackCTAClick("pricing"), [analytics])
   const handleFinalCTA = useCallback(() => analytics.trackCTAClick("final_cta"), [analytics])
   const handleStickyCTA = useCallback(() => analytics.trackCTAClick("sticky_mobile"), [analytics])
   const handleFAQOpen = useCallback((question: string, index: number) => analytics.trackFAQOpen(question, index), [analytics])
 
-  const stickyHref = isDisabled ? "/contact" : config.sticky.ctaHref
+  const requestCtaHref = buildGrowthExperienceRequestHref(
+    config.sticky.ctaHref,
+    growthExperienceVersion,
+  )
+  const stickyHref = isDisabled ? "/contact" : requestCtaHref
   const stickyCtaText = isDisabled ? "Contact us" : config.sticky.ctaText
 
   return (
@@ -90,8 +145,10 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
             isDisabled,
             heroCTARef,
             analytics,
+            requestCtaHref,
             handleHeroCTA,
             handleHowItWorksCTA,
+            handlePricingCTA,
             handleFinalCTA,
             handleStickyCTA,
             handleFAQOpen,

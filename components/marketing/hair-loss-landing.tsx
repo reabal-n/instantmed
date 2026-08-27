@@ -27,6 +27,7 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { HAIR_LOSS_LANDING_FAQ } from "@/lib/data/hair-loss-faq"
+import { getActiveSpecialtyExperience } from "@/lib/growth/specialty-experiences"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 
 const HowItWorksInline = dynamic(
@@ -55,6 +56,7 @@ const ContentHubLinks = dynamic(
 )
 
 const ASSESSMENT_HREF = "/request?service=consult&subtype=hair_loss"
+const HAIR_LOSS_LANDING_EXPERIENCE = getActiveSpecialtyExperience("hair_loss")
 
 const HOW_IT_WORKS_STEPS = [
   {
@@ -159,6 +161,10 @@ const HAIR_SUITABILITY_OUTCOMES = [
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "hair-loss",
   analyticsId: "hair-loss",
+  growthExperience: {
+    service: "hair_loss",
+    version: HAIR_LOSS_LANDING_EXPERIENCE?.id ?? null,
+  },
   sticky: {
     ctaText: `Start assessment · ${PRICING_DISPLAY.HAIR_LOSS}`,
     ctaHref: ASSESSMENT_HREF,
@@ -278,7 +284,15 @@ function HairAssessmentModel() {
   )
 }
 
-function HairLossPricingSection({ isDisabled }: { isDisabled: boolean }) {
+function HairLossPricingSection({
+  isDisabled,
+  onStart,
+  requestCtaHref,
+}: {
+  isDisabled: boolean
+  onStart: () => void
+  requestCtaHref: string
+}) {
   return (
     <section id="pricing" aria-label="Hair loss assessment pricing" className="py-14 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -306,8 +320,8 @@ function HairLossPricingSection({ isDisabled }: { isDisabled: boolean }) {
                 <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />{GUARANTEE}</li>
                 <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />Medicine cost is separate and paid to the pharmacy if a prescription is approved.</li>
               </ul>
-              <Button asChild size="lg" className="mt-6 w-full" disabled={isDisabled}>
-                <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
+              <Button asChild size="lg" className="mt-6 w-full" disabled={isDisabled} onClick={onStart}>
+                <Link href={isDisabled ? "/contact" : requestCtaHref}>
                   {isDisabled ? "Contact us" : "Start assessment"}
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
@@ -348,13 +362,13 @@ export function HairLossLanding() {
       config={LANDING_CONFIG}
       afterFooter={<ContentHubLinks service="hair-loss" />}
     >
-      {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
+      {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handlePricingCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           <Hero
             title="Hair loss assessment, reviewed from home."
             primaryCta={{
               text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.HAIR_LOSS}`,
-              href: isDisabled ? "/contact" : ASSESSMENT_HREF,
+              href: isDisabled ? "/contact" : requestCtaHref,
               onClick: handleHeroCTA,
               ref: heroCTARef,
             }}
@@ -376,7 +390,7 @@ export function HairLossLanding() {
 
           <HowItWorksInline
             steps={HOW_IT_WORKS_STEPS}
-            ctaHref={ASSESSMENT_HREF}
+            ctaHref={requestCtaHref}
             onCTAClick={handleHowItWorksCTA}
             isDisabled={isDisabled}
             subheading="A private form first, then an Australian doctor reviews the complete picture and decides the safest next step."
@@ -384,7 +398,11 @@ export function HairLossLanding() {
           />
 
           <DoctorProfileSection instant />
-          <HairLossPricingSection isDisabled={isDisabled} />
+          <HairLossPricingSection
+            isDisabled={isDisabled}
+            onStart={handlePricingCTA}
+            requestCtaHref={requestCtaHref}
+          />
           <HairLossLimitationsSection />
 
           <FAQSection
@@ -402,7 +420,7 @@ export function HairLossLanding() {
             title="Start a hair loss assessment."
             subtitle="A doctor reviews your assessment and prescribes only when it is clinically appropriate."
             ctaText="Start assessment"
-            ctaHref={ASSESSMENT_HREF}
+            ctaHref={requestCtaHref}
             onCtaClick={handleFinalCTA}
             isDisabled={isDisabled}
             price={PRICING.HAIR_LOSS}
