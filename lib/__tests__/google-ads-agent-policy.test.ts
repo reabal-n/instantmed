@@ -423,6 +423,22 @@ describe("Google Ads Agent policy", () => {
     },
   )
 
+  it("holds a not-enabled specialty in the investigation band with a truthful reason", () => {
+    const result = recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+      rolling30: [specialtyCampaign("hair_loss", {
+        campaignStatus: null,
+        clicks: 10,
+      })],
+    })), "hair_loss")
+
+    expect(result).toEqual({
+      kind: "HOLD",
+      proposedMutationFamily: null,
+      reasonCodes: ["PILOT_WITHIN_LOSS_CAP", "CAMPAIGN_NOT_ENABLED"],
+      service: "hair_loss",
+    })
+  })
+
   it.each([
     { service: "hair_loss", clicks: 10 },
     { service: "ed", clicks: 10 },
@@ -477,6 +493,35 @@ describe("Google Ads Agent policy", () => {
         kind: "APPROVAL_NEEDED",
         proposedMutationFamily: "campaign_status",
         reasonCodes: ["SPECIALTY_ZERO_ORDER_CLICK_CAP"],
+        service,
+      })
+    },
+  )
+
+  it.each([
+    { service: "hair_loss", clicks: 10 },
+    { service: "hair_loss", clicks: 19 },
+    { service: "ed", clicks: 10 },
+    { service: "ed", clicks: 29 },
+    { service: "womens_health", clicks: 10 },
+    { service: "womens_health", clicks: 29 },
+  ] satisfies Array<{ service: SpecialtyService; clicks: number }>)(
+    "holds paused $service at $clicks clicks instead of opening an investigation",
+    ({ service, clicks }) => {
+      const result = recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+        rolling30: [specialtyCampaign(service, {
+          campaignStatus: "PAUSED",
+          clicks,
+        })],
+      })), service)
+
+      expect(result).toEqual({
+        kind: "HOLD",
+        proposedMutationFamily: null,
+        reasonCodes: [
+          "PILOT_WITHIN_LOSS_CAP",
+          "CAMPAIGN_ALREADY_PAUSED",
+        ],
         service,
       })
     },
@@ -540,9 +585,12 @@ describe("Google Ads Agent policy", () => {
     })
   })
 
-  it.each(["PAUSED", null])(
-    "holds a %s specialty instead of proposing the click-cap pause again",
-    (campaignStatus) => {
+  it.each([
+    { campaignStatus: "PAUSED", statusReason: "CAMPAIGN_ALREADY_PAUSED" },
+    { campaignStatus: null, statusReason: "CAMPAIGN_NOT_ENABLED" },
+  ])(
+    "holds a $campaignStatus specialty instead of proposing the click-cap pause again",
+    ({ campaignStatus, statusReason }) => {
       const hairLoss = specialtyCampaign("hair_loss", {
         campaignStatus,
         clicks: 40,
@@ -557,7 +605,7 @@ describe("Google Ads Agent policy", () => {
         proposedMutationFamily: null,
         reasonCodes: [
           "SPECIALTY_ZERO_ORDER_CLICK_CAP",
-          "CAMPAIGN_ALREADY_PAUSED",
+          statusReason,
         ],
         service: "hair_loss",
       })

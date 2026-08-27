@@ -453,6 +453,14 @@ function specialtyPilot(
   return POLICY.ed.pilot
 }
 
+function inactiveCampaignReason(
+  campaignStatus: CampaignEconomics["campaignStatus"],
+): "CAMPAIGN_ALREADY_PAUSED" | "CAMPAIGN_NOT_ENABLED" {
+  return campaignStatus === "PAUSED"
+    ? "CAMPAIGN_ALREADY_PAUSED"
+    : "CAMPAIGN_NOT_ENABLED"
+}
+
 function evaluateSpecialty(
   service: (typeof SPECIALTY_SERVICES)[number],
   campaign: CampaignEconomics,
@@ -465,7 +473,11 @@ function evaluateSpecialty(
   const lossCents = Math.max(0, -(campaign.contributionCents ?? 0))
   if (lossCents >= pilot.maximumLossCents) {
     if (campaign.campaignStatus !== "ENABLED") {
-      return hold(service, "SPECIALTY_LOSS_CAP", "CAMPAIGN_ALREADY_PAUSED")
+      return hold(
+        service,
+        "SPECIALTY_LOSS_CAP",
+        inactiveCampaignReason(campaign.campaignStatus),
+      )
     }
     return {
       kind: "APPROVAL_NEEDED",
@@ -493,7 +505,7 @@ function evaluateSpecialty(
         return hold(
           service,
           "SPECIALTY_ZERO_ORDER_CLICK_CAP",
-          "CAMPAIGN_ALREADY_PAUSED",
+          inactiveCampaignReason(campaign.campaignStatus),
         )
       }
       return {
@@ -504,6 +516,13 @@ function evaluateSpecialty(
       }
     }
     if (campaign.clicks >= pilot.investigateClicks) {
+      if (campaign.campaignStatus !== "ENABLED") {
+        return hold(
+          service,
+          "PILOT_WITHIN_LOSS_CAP",
+          inactiveCampaignReason(campaign.campaignStatus),
+        )
+      }
       return investigate(
         service,
         "SPECIALTY_ZERO_ORDER_CLICK_INVESTIGATION",
