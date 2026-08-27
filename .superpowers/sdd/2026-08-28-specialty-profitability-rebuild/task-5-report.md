@@ -87,3 +87,54 @@ Local dev verification used `http://localhost:3060`.
 ## Concerns
 
 None. This task deliberately does not prove a production PostHog receipt or deploy state; neither was in scope or authorised.
+
+## Fix round 1
+
+### Scope and commit
+
+- Fix commit: `2bf8c981d` (`fix(growth): defer landing view until analytics ready`)
+- Files: `lib/hooks/use-landing-analytics.ts`, `components/marketing/shared/landing-page-shell.tsx`, and `lib/__tests__/specialty-landing-analytics-contract.test.ts`.
+- No public copy, layout, intake, Ads, database, external system, or `output/` change was made.
+
+### RED evidence
+
+Before the fix, lifecycle and strict-relative-href tests were added to the existing contract and the exact command was run:
+
+```bash
+corepack pnpm exec vitest run lib/__tests__/specialty-landing-analytics-contract.test.ts
+```
+
+Result: 1 file failed, 2 tests failed, 4 passed. The intended failures were:
+
+- `createLandingExperienceViewLatch` did not exist, exposing that the production hook had no readiness-aware lifecycle seam for `null -> PostHog client -> same client`.
+- An absolute `https://instantmed.local/request?...` input was rewritten as a tagged relative URL instead of remaining untouched.
+
+### GREEN and regression evidence
+
+The same focused command passed after the minimal changes: 1 file, 6 tests passed.
+
+The prior privacy/cohort regression set also passed:
+
+```bash
+corepack pnpm exec vitest run \
+  lib/__tests__/specialty-landing-analytics-contract.test.ts \
+  lib/__tests__/specialty-experience-registry.test.ts \
+  lib/__tests__/specialty-experience-attribution-contract.test.ts \
+  lib/__tests__/flow-instance-attribution-contract.test.ts \
+  lib/__tests__/posthog-personless-analytics.test.ts
+```
+
+Result: 5 files, 32 tests passed.
+
+Scoped ESLint over the three changed files, `corepack pnpm typecheck`, and `git diff --check` passed.
+
+### Self-review
+
+- The production-used latch now treats a null PostHog context as not-ready, so the first effect does not consume the view. It records exactly one event when the concrete lazy client appears and suppresses a repeat from that same client.
+- A concrete capture attempt is still best-effort: a synchronous analytics error is contained and cannot interrupt CTA navigation.
+- The CTA helper now rejects every absolute or protocol-relative input before parsing and returns it byte-for-byte unchanged. It also catches parse failures. Only a relative `/request` path may reach the service/subtype version validation.
+- The new test invokes the same latch state machine used by the hook rather than simulating calls to the generic tracker. It covers `null -> capture client -> same client`, absolute `http:`/`https:`, protocol-relative, malformed, invalid-query, and valid query/hash preservation behavior.
+
+### Concerns
+
+None. Production PostHog delivery remains intentionally outside this local, non-deployment task.
