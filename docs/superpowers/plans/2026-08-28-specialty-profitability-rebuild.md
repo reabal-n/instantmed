@@ -51,7 +51,7 @@ corepack pnpm doc:audit
 
 Expected: PASS with the new documents registered and no placeholders.
 
-- [ ] Commit the reviewed artifacts separately:
+- [x] Commit the reviewed artifacts separately:
 
 ```bash
 git add docs/superpowers/specs/2026-08-28-specialty-profitability-rebuild-design.md docs/superpowers/plans/2026-08-28-specialty-profitability-rebuild.md docs/bookkeeping/expected-md-count docs/bookkeeping/file-map.md
@@ -73,11 +73,11 @@ git commit -m "docs(growth): approve specialty profitability rebuild"
 - Read: `lib/request/validation.ts`
 - Read: `lib/constants/index.ts`
 
-- [ ] Add a source-backed contract that records the current ED and Hair step IDs, required validation keys, prices, and terminal safety components before any conversion edit.
-- [ ] Assert that the active H1/E1 implementation does not add a request step or required answer.
-- [ ] Assert that public Hair/ED copy contains no medicine/ingredient name, guaranteed prescription, “no call needed,” review-hours window, before/after outcome, or hardcoded price.
-- [ ] Update the money-page contracts to require practical outcome/cost content before the long educational/safety sequence without requiring a new component.
-- [ ] Run the focused tests and confirm RED because the registry and rebuilt page order/copy do not exist:
+- [x] Add a source-backed contract that records the current ED and Hair step IDs, required validation keys, prices, and terminal safety components before any conversion edit.
+- [x] Assert that the active H1/E1 implementation does not add a request step or required answer.
+- [x] Assert that public Hair/ED copy contains no medicine/ingredient name, guaranteed prescription, “no call needed,” review-hours window, before/after outcome, or hardcoded price.
+- [x] Update the money-page contracts to require practical outcome/cost content before the long educational/safety sequence without requiring a new component.
+- [x] Run the focused tests and confirm RED because the registry and rebuilt page order/copy do not exist:
 
 ```bash
 corepack pnpm exec vitest run \
@@ -86,7 +86,7 @@ corepack pnpm exec vitest run \
   lib/__tests__/money-page-art-direction-contract.test.ts
 ```
 
-- [ ] Do not weaken a clinical invariant to get GREEN.
+- [x] Do not weaken a clinical invariant to get GREEN.
 
 ### Task 2: Add prescribing-identity truth contracts
 
@@ -97,9 +97,9 @@ corepack pnpm exec vitest run \
 - Read: `components/request/steps/patient-details-step.tsx`
 - Read: `lib/request/unified-checkout.ts`
 
-- [ ] Add failing assertions that active prescribing money pages say “Medicare or IHI” and do not say Medicare alone is required.
-- [ ] Assert that the validator still requires valid Medicare+IRN or valid IHI, sex, phone, DOB, and structured Australian address.
-- [ ] Run the focused tests and confirm RED on the stale public/documentation strings:
+- [x] Add failing assertions that active prescribing money pages say “Medicare or IHI” and do not say Medicare alone is required.
+- [x] Assert that the validator still requires valid Medicare+IRN or valid IHI, sex, phone, DOB, and structured Australian address.
+- [x] Run the focused tests and confirm RED on the stale public/documentation strings:
 
 ```bash
 corepack pnpm exec vitest run \
@@ -119,11 +119,11 @@ corepack pnpm exec vitest run \
 - Create: `lib/growth/specialty-experiences.ts`
 - Create: `lib/__tests__/specialty-experience-registry.test.ts`
 
-- [ ] Define the allowlisted opaque versions from the approved spec, with Hair H1 and ED E1 active and all later approaches inactive.
-- [ ] Implement normalisation that returns `null` for unknown, wrong-service, retired-at-start, overlong, or malformed values.
-- [ ] Fail tests if more than one active material version exists for a service.
-- [ ] Keep version IDs free of patient, medicine, query, and clinician meaning.
-- [ ] Run RED, implement the smallest registry, then run GREEN:
+- [x] Define the allowlisted opaque versions from the approved spec, with Hair H1 and ED E1 active and all later approaches inactive.
+- [x] Implement normalisation that returns `null` for unknown, wrong-service, retired-at-start, overlong, or malformed values.
+- [x] Fail tests if more than one active material version exists for a service.
+- [x] Keep version IDs free of patient, medicine, query, and clinician meaning.
+- [x] Run RED, implement the smallest registry, then run GREEN:
 
 ```bash
 corepack pnpm exec vitest run lib/__tests__/specialty-experience-registry.test.ts
@@ -154,17 +154,17 @@ corepack pnpm exec vitest run lib/__tests__/specialty-experience-registry.test.t
 - Modify: `lib/__tests__/posthog-personless-analytics.test.ts`
 - Create: `lib/__tests__/specialty-experience-attribution-contract.test.ts`
 
-- [ ] Add nullable `growth_experience_version` columns to `partial_intakes` and `intakes`, with a length/format check and comments declaring the field non-clinical.
-- [ ] Add database enforcement that the first non-null value is set once for a draft session and cannot be replaced by a later draft upsert; make the realised intake value immutable after insert.
-- [ ] Keep the column outside `answers`; never copy it into clinical summaries, doctor prompts, emails, or Parchment payloads.
-- [ ] Parse and validate the CTA token in `app/request/page.tsx`, pass it through `RequestFlow`, and claim it only when starting a genuinely fresh matching specialty flow.
-- [ ] Leave an untagged direct `/request` start unassigned. Never infer the cohort from the currently active registry entry.
-- [ ] Capture the allowlisted landing token when the specialty flow starts and preserve it through local/service drafts, the draft API, authenticated and guest checkout, recovered drafts, retry payment, Stripe metadata, and the server purchase event.
-- [ ] Preserve an existing saved cohort on restore; never silently reassign it to the currently active version.
-- [ ] Unknown values become `null` and never block intake, checkout, payment, or fulfilment.
-- [ ] Add the property to the PostHog privacy allowlist only after strict normalisation.
-- [ ] Confirm the version is not emitted with search terms, click IDs, answers, or free text.
-- [ ] Run the contract tests RED, implement, then GREEN:
+- [x] Add nullable `growth_experience_version` columns to `partial_intakes` and `intakes`, with a length/format check and comments declaring the field non-clinical.
+- [x] Add database enforcement that the first non-null value is set once for a draft session and cannot be replaced by a later draft upsert; make the realised intake value immutable after insert.
+- [x] Keep the column outside `answers`; never copy it into clinical summaries, doctor prompts, emails, or Parchment payloads.
+- [x] Parse and validate the CTA token in `app/request/page.tsx`, pass it through `RequestFlow`, and claim it only when starting a genuinely fresh matching specialty flow.
+- [x] Leave an untagged direct `/request` start unassigned. Never infer the cohort from the currently active registry entry.
+- [x] Capture the allowlisted landing token when the specialty flow starts and preserve it through local/service drafts, the draft API, authenticated and guest checkout, recovered drafts, retry payment, Stripe metadata, and the server purchase event.
+- [x] Preserve an existing saved cohort on restore; never silently reassign it to the currently active version.
+- [x] Unknown values become `null` and never block intake, checkout, payment, or fulfilment.
+- [x] Add the property to the PostHog privacy allowlist only after strict normalisation.
+- [x] Confirm the version is not emitted with search terms, click IDs, answers, or free text.
+- [x] Run the contract tests RED, implement, then GREEN:
 
 ```bash
 corepack pnpm exec vitest run \
@@ -175,7 +175,7 @@ corepack pnpm exec vitest run \
   lib/__tests__/conversion-value-accuracy-contract.test.ts
 ```
 
-- [ ] Run Supabase static checks used by the repo and verify the migration is additive and backward compatible.
+- [x] Run Supabase static checks used by the repo and verify the migration is additive and backward compatible.
 
 ### Task 5: Version landing analytics without making PostHog the allocator
 
@@ -187,14 +187,14 @@ corepack pnpm exec vitest run \
 - Modify: `components/marketing/erectile-dysfunction-landing.tsx`
 - Create: `lib/__tests__/specialty-landing-analytics-contract.test.ts`
 
-- [ ] Accept an allowlisted `growthExperienceVersion` in the shared landing shell.
-- [ ] Emit one best-effort `landing_experience_viewed` event and attach the same version to CTA, FAQ, section, and scroll events.
-- [ ] Append the opaque version to the internal request CTA in a controlled query parameter so the request store can claim it at start.
-- [ ] Accept the token only when it is current, allowlisted, and matches the requested service/subtype; otherwise start an unassigned flow without blocking the patient.
-- [ ] Confirm a restored flow ignores a different incoming token and retains its database-owned first cohort.
-- [ ] Keep the public landing URL and canonical URL unchanged.
-- [ ] Confirm analytics absence/failure does not block navigation.
-- [ ] Run RED then GREEN:
+- [x] Accept an allowlisted `growthExperienceVersion` in the shared landing shell.
+- [x] Emit one best-effort `landing_experience_viewed` event and attach the same version to CTA, FAQ, section, and scroll events.
+- [x] Append the opaque version to the internal request CTA in a controlled query parameter so the request store can claim it at start.
+- [x] Accept the token only when it is current, allowlisted, and matches the requested service/subtype; otherwise start an unassigned flow without blocking the patient.
+- [x] Confirm a restored flow ignores a different incoming token and retains its database-owned first cohort.
+- [x] Keep the public landing URL and canonical URL unchanged.
+- [x] Confirm analytics absence/failure does not block navigation.
+- [x] Run RED then GREEN:
 
 ```bash
 corepack pnpm exec vitest run lib/__tests__/specialty-landing-analytics-contract.test.ts
@@ -216,14 +216,14 @@ corepack pnpm exec vitest run lib/__tests__/specialty-landing-analytics-contract
 - Modify: `lib/__tests__/money-page-art-direction-contract.test.ts`
 - Modify: `e2e/money-pages-foundations.spec.ts`
 
-- [ ] Keep the existing approved `Hero`, typography, spacing, solid-depth cards, dark mode, unavailable-service behaviour, sticky CTA, and request destination.
-- [ ] Rewrite the hero around one-off private doctor assessment, A$49.95 via `PRICING_DISPLAY`, possible contact, qualified eScript outcome, Australian pharmacy handoff, medicine cost separate, prescription not guaranteed, and full refund if declined.
-- [ ] Reuse `getApprovedClaim("prescription_if_approved")`, `getApprovedClaim("form_first_wedge")`, and `getApprovedClaim("refund_guarantee")`; add only one code-owned prescribing-identity claim if Fable approves it.
-- [ ] Move the existing process/outcome/cost section directly below the hero instead of creating another panel.
-- [ ] Keep sudden/patchy/inflamed/infected scalp and broader-diagnosis boundaries intact below the practical offer.
-- [ ] Leave every Hair intake step and question unchanged during H1.
-- [ ] Keep metadata medicine-name-free and qualified; do not turn a prescription outcome into a guarantee.
-- [ ] Run:
+- [x] Keep the existing approved `Hero`, typography, spacing, solid-depth cards, dark mode, unavailable-service behaviour, sticky CTA, and request destination.
+- [x] Rewrite the hero around one-off private doctor assessment, A$49.95 via `PRICING_DISPLAY`, possible contact, qualified eScript outcome, Australian pharmacy handoff, medicine cost separate, prescription not guaranteed, and full refund if declined.
+- [x] Reuse `getApprovedClaim("prescription_if_approved")`, `getApprovedClaim("form_first_wedge")`, and `getApprovedClaim("refund_guarantee")`; add only one code-owned prescribing-identity claim if Fable approves it.
+- [x] Move the existing process/outcome/cost section directly below the hero instead of creating another panel.
+- [x] Keep sudden/patchy/inflamed/infected scalp and broader-diagnosis boundaries intact below the practical offer.
+- [x] Leave every Hair intake step and question unchanged during H1.
+- [x] Keep metadata medicine-name-free and qualified; do not turn a prescription outcome into a guarantee.
+- [x] Run:
 
 ```bash
 corepack pnpm exec vitest run \
@@ -248,15 +248,15 @@ Expected: PASS.
 - Modify: `lib/__tests__/money-page-art-direction-contract.test.ts`
 - Modify: `e2e/money-pages-foundations.spec.ts`
 
-- [ ] Use a human H1 such as “Private ED assessment, from home,” with SEO terms retained in metadata/supporting copy.
-- [ ] Put A$49.95 via `PRICING_DISPLAY`, Medicare or IHI plus Australian address, the catalog-owned `~4 min` effort, medicine cost separate, possible contact, qualified eScript outcome, no-guarantee copy, and full refund if declined beside the first CTA.
-- [ ] Make the hero CTA “Start private assessment” plus the code-owned price; make “See how it works” a quiet anchor rather than an equal-weight conversion choice.
-- [ ] Move the existing review/cost/outcome section directly after the hero; do not add a duplicate facts panel.
-- [ ] Remove unsupported public references to chest symptoms, exercise tolerance, or a collected blood-pressure value. Describe only current heart/stroke history, very low blood pressure, medicines, allergies, and conditions.
-- [ ] Preserve the one authoritative emergency boundary and all existing clinical details below the practical offer.
-- [ ] Repair the FAQ's stale Medicare-only and review-window wording with approved 24/7 variable-timing copy.
-- [ ] Leave the five-screen ED intake unchanged during E1.
-- [ ] Run:
+- [x] Use a human H1 such as “Private ED assessment, from home,” with SEO terms retained in metadata/supporting copy.
+- [x] Put A$49.95 via `PRICING_DISPLAY`, Medicare or IHI plus Australian address, the catalog-owned `~4 min` effort, medicine cost separate, possible contact, qualified eScript outcome, no-guarantee copy, and full refund if declined beside the first CTA.
+- [x] Make the hero CTA “Start private assessment” plus the code-owned price; make “See how it works” a quiet anchor rather than an equal-weight conversion choice.
+- [x] Move the existing review/cost/outcome section directly after the hero; do not add a duplicate facts panel.
+- [x] Remove unsupported public references to chest symptoms, exercise tolerance, or a collected blood-pressure value. Describe only current heart/stroke history, very low blood pressure, medicines, allergies, and conditions.
+- [x] Preserve the one authoritative emergency boundary and all existing clinical details below the practical offer.
+- [x] Repair the FAQ's stale Medicare-only and review-window wording with approved 24/7 variable-timing copy.
+- [x] Leave the five-screen ED intake unchanged during E1.
+- [x] Run:
 
 ```bash
 corepack pnpm exec vitest run \
@@ -288,19 +288,19 @@ Expected: PASS.
 - Modify: `lib/__tests__/marketing-copy-contract.test.ts`
 - Modify: `lib/__tests__/project-docs-drift-contract.test.ts`
 
-- [ ] Define `Prescribing Identity` in `CONTEXT.md` as DOB, sex, phone, structured Australian address, and valid Medicare+IRN or valid IHI.
-- [ ] Update canonical eligibility/clinical wording without changing validators or downstream fulfilment.
-- [ ] Add one approved high-repetition claim and use it on active prescribing money pages rather than forking near-duplicates.
-- [ ] Update Hair, ED, prescriptions, women's health, UTI, contraception, and the request hub where they incorrectly say Medicare alone is required.
-- [ ] Do not change the accurate “No Medicare required” medical-certificate copy.
-- [ ] Run the generator rather than editing `AGENTS.md` by hand:
+- [x] Define `Prescribing Identity` in `CONTEXT.md` as DOB, sex, phone, structured Australian address, and valid Medicare+IRN or valid IHI.
+- [x] Update canonical eligibility/clinical wording without changing validators or downstream fulfilment.
+- [x] Add one approved high-repetition claim and use it on active prescribing money pages rather than forking near-duplicates.
+- [x] Update Hair, ED, prescriptions, women's health, UTI, contraception, and the request hub where they incorrectly say Medicare alone is required.
+- [x] Do not change the accurate “No Medicare required” medical-certificate copy.
+- [x] Run the generator rather than editing `AGENTS.md` by hand:
 
 ```bash
 scripts/sync-agent-doc.sh
 scripts/sync-agent-doc.sh --check
 ```
 
-- [ ] Run:
+- [x] Run:
 
 ```bash
 corepack pnpm exec vitest run \
@@ -323,11 +323,11 @@ Expected: PASS.
 - Modify: `lib/__tests__/request-terminal-safety-blocks.test.ts`
 - Modify: `lib/__tests__/consult-validators.test.ts`
 
-- [ ] First add a failing test proving `checkSafetyForServer("consult", { consultSubtype: "hair_loss", hairReproductive: "yes", ...safeAnswers })` does not currently match unified checkout's hard block.
-- [ ] Add the smallest Hair-specific safety rule so lower-level checkout defense, recovered rows, and retry payment cannot proceed with the existing contraindicating answer.
-- [ ] Preserve the normal unified validator and exact patient-facing terminal block. Do not add or move a question during H1.
-- [ ] Confirm safe `no` and `na` values still proceed and missing safety follows the existing recoverable-hold policy rather than an invented outcome across normal checkout, recovered draft, and retry paths.
-- [ ] Run:
+- [x] First add a failing test proving `checkSafetyForServer("consult", { consultSubtype: "hair_loss", hairReproductive: "yes", ...safeAnswers })` does not currently match unified checkout's hard block.
+- [x] Add the smallest Hair-specific safety rule so lower-level checkout defense, recovered rows, and retry payment cannot proceed with the existing contraindicating answer.
+- [x] Preserve the normal unified validator and exact patient-facing terminal block. Do not add or move a question during H1.
+- [x] Confirm safe `no` and `na` values still proceed and missing safety follows the existing recoverable-hold policy rather than an invented outcome across normal checkout, recovered draft, and retry paths.
+- [x] Run:
 
 ```bash
 corepack pnpm exec vitest run \
@@ -353,14 +353,14 @@ Expected: PASS.
 - Modify: `lib/__tests__/google-ads-agent-policy-contract.test.ts`
 - Modify: `lib/__tests__/google-ads-agent-brief.test.ts` only if reason rendering changes
 
-- [ ] Add failing 9/10 investigation boundaries for each specialty, Hair-specific 19/20 pause boundaries, and 29/30 pause boundaries for ED and Women's Health when there are zero retained orders.
-- [ ] Preserve precedence: unavailable economics -> investigate; tracking not GREEN -> hold; loss cap -> approval-needed pause; already paused -> hold.
-- [ ] At 10 clicks and zero orders, return a PHI-free investigation reason rather than implying the pilot is healthy.
-- [ ] At 20 Hair clicks and zero orders, return `APPROVAL_NEEDED` for `campaign_status`; keep 30 clicks for ED and Women's Health.
-- [ ] Preserve exact stop precedence: trustworthy experiment-level Hair incremental loss of A$60 first, then Hair 20 clicks, then duration when trustworthy pilot dates exist. Do not reinterpret the generic rolling-30 campaign loss as incremental relaunch loss.
-- [ ] Do not enforce elapsed days or persisted checkout progression until campaign-scoped evidence exists. Keep the limitation explicit rather than deriving a false date/count.
-- [ ] Do not call mutation, proposal-send, or account APIs from policy evaluation.
-- [ ] Run:
+- [x] Add failing 9/10 investigation boundaries for each specialty, Hair-specific 19/20 pause boundaries, and 29/30 pause boundaries for ED and Women's Health when there are zero retained orders.
+- [x] Preserve precedence: unavailable economics -> investigate; tracking not GREEN -> hold; loss cap -> approval-needed pause; already paused -> hold.
+- [x] At 10 clicks and zero orders, return a PHI-free investigation reason rather than implying the pilot is healthy.
+- [x] At 20 Hair clicks and zero orders, return `APPROVAL_NEEDED` for `campaign_status`; keep 30 clicks for ED and Women's Health.
+- [x] Preserve exact stop precedence: trustworthy experiment-level Hair incremental loss of A$60 first, then Hair 20 clicks, then duration when trustworthy pilot dates exist. Do not reinterpret the generic rolling-30 campaign loss as incremental relaunch loss.
+- [x] Do not enforce elapsed days or persisted checkout progression until campaign-scoped evidence exists. Keep the limitation explicit rather than deriving a false date/count.
+- [x] Do not call mutation, proposal-send, or account APIs from policy evaluation.
+- [x] Run:
 
 ```bash
 corepack pnpm exec vitest run \
@@ -385,20 +385,20 @@ Expected: PASS and Hair-like 40-click/zero-order evidence produces an exact paus
 - Verify: `/request?service=consult&subtype=hair_loss`
 - Verify: `/request?service=consult&subtype=ed`
 
-- [ ] Start the app on the dedicated port:
+- [x] Start the app on the dedicated port:
 
 ```bash
 corepack pnpm dev
 ```
 
-- [ ] Verify Hair and ED landing pages at 390px mobile and desktop in light and dark mode.
-- [ ] Verify reduced motion, 200% zoom proxy, keyboard focus order, heading order, contrast, no clipped content, and sticky CTA behaviour.
-- [ ] Verify both hero/sticky CTAs route to the correct subtype and preserve only an allowlisted opaque cohort.
-- [ ] Walk safe Hair and ED guest flows through Review/Pay without submitting a real payment. Confirm H1/E1 did not add or remove an intake screen.
-- [ ] Verify Hair reproductive terminal block and ED nitrate terminal block, then correct/back behaviour.
-- [ ] Verify IHI selection works without a Medicare number and the structured address remains required.
-- [ ] Verify unavailable-service state routes to Contact and does not start a cohort.
-- [ ] Capture screenshots and console/network receipts outside tracked source files. Do not capture PHI.
+- [x] Verify Hair and ED landing pages at 390px mobile and desktop in light and dark mode.
+- [x] Verify reduced motion, 200% zoom proxy, keyboard focus order, heading order, contrast, no clipped content, and sticky CTA behaviour.
+- [x] Verify both hero/sticky CTAs route to the correct subtype and preserve only an allowlisted opaque cohort.
+- [x] Walk safe Hair and ED guest flows through Review/Pay without submitting a real payment. Confirm H1/E1 did not add or remove an intake screen.
+- [x] Verify Hair reproductive terminal block and ED nitrate terminal block, then correct/back behaviour.
+- [x] Verify IHI selection works without a Medicare number and the structured address remains required.
+- [x] Verify unavailable-service state routes to Contact and does not start a cohort.
+- [x] Capture screenshots and console/network receipts outside tracked source files. Do not capture PHI.
 
 ### Task 12: Run compliance, regression, and release checks
 
@@ -407,8 +407,8 @@ corepack pnpm dev
 - Review the complete branch diff
 - Update plan checkboxes and Fable receipt only with truthful evidence
 
-- [ ] Run focused suites from Tasks 1-10.
-- [ ] Run:
+- [x] Run focused suites from Tasks 1-10.
+- [x] Run:
 
 ```bash
 corepack pnpm lint
@@ -419,7 +419,7 @@ corepack pnpm content:audit
 corepack pnpm doc:audit
 ```
 
-- [ ] Run the relevant Playwright specs with the approved local configuration:
+- [x] Run the relevant Playwright specs with the approved local configuration:
 
 ```bash
 PLAYWRIGHT=1 corepack pnpm exec playwright test \
@@ -428,11 +428,13 @@ PLAYWRIGHT=1 corepack pnpm exec playwright test \
   e2e/intake-terminal-blocks.spec.ts
 ```
 
-- [ ] Perform the mandatory marketing-compliance review and return PASS/FAIL with findings, evidence, and smallest corrections.
-- [ ] Perform the mandatory UI/browser review and return PASS/FAIL with route, viewport, screenshot, console, network, interaction, accessibility, and residual-risk evidence.
-- [ ] Run a fresh broad branch review after all scoped tests pass.
-- [ ] Confirm no Ads mutation, deployment, external send, employer outreach, or patient data access occurred.
-- [ ] Commit implementation in coherent slices, then finish with a verification receipt commit. Do not push, merge, deploy, or mutate Ads without fresh approval.
+- [x] Perform the mandatory marketing-compliance review and return PASS/FAIL with findings, evidence, and smallest corrections.
+- [x] Perform the mandatory UI/browser review and return PASS/FAIL with route, viewport, screenshot, console, network, interaction, accessibility, and residual-risk evidence.
+- [x] Run a fresh broad branch review after all scoped tests pass.
+- [x] Confirm no Ads mutation, deployment, external send, employer outreach, or patient data access occurred.
+- [x] Commit implementation in coherent slices, then finish with a verification receipt commit. Do not push, merge, deploy, or mutate Ads without fresh approval.
+
+**Verification receipt (2026-08-28):** Branch-scope PASS at `f70dde20e`; repository release HOLD only for the inherited portfolio source-shape assertion and the unavailable local-only SQL harness. The complete evidence, including 334 focused tests and the final 7/7 Playwright slice, is recorded in `.superpowers/sdd/2026-08-28-specialty-profitability-rebuild/task-12-report.md`.
 
 ---
 
