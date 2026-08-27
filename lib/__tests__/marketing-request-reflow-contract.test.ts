@@ -43,10 +43,10 @@ describe("marketing and request reflow contract", () => {
   })
 
   it.each([
-    "components/marketing/erectile-dysfunction-landing.tsx",
-    "components/marketing/uti-assessment-landing.tsx",
-    "components/marketing/contraceptive-pill-assessment-landing.tsx",
-  ])("%s uses explicit single-column hero tracks", (path) => {
+    ["components/marketing/erectile-dysfunction-landing.tsx", 1],
+    ["components/marketing/uti-assessment-landing.tsx", 2],
+    ["components/marketing/contraceptive-pill-assessment-landing.tsx", 2],
+  ])("%s uses explicit single-column hero tracks", (path, expectedReflowableCtas) => {
     const landing = read(path)
 
     expect(landing).toContain(
@@ -54,7 +54,9 @@ describe("marketing and request reflow contract", () => {
     )
     expect(landing).toContain('<Reveal instant className="min-w-0 max-w-2xl">')
     expect(landing).toContain('<Reveal instant className="min-w-0">')
-    expect(landing.match(/h-auto min-h-12 w-full whitespace-normal py-3 text-center/g)).toHaveLength(2)
+    expect(landing.match(/h-auto min-h-12 w-full whitespace-normal py-3 text-center/g)).toHaveLength(
+      expectedReflowableCtas,
+    )
   })
 
   it("keeps pricing cards and their calls to action reflowable", () => {
