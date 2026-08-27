@@ -81,3 +81,7 @@ _Avoid_: Clinical intake, correction order, resolution, call transcript
 **Caller**:
 The unauthenticated person speaking with the AI Voice Receptionist. A Caller may be the Patient or a third party and may provide relevant Patient information, but the receptionist never treats that information as identity verification or discloses Patient information in return.
 _Avoid_: Verified Patient, authenticated Patient
+
+**Patient Match Details**:
+The Patient's full name and date of birth, supplied by a Caller so the Medical Director can locate the likely Patient record. These details support record matching but do not authenticate the Caller.
+_Avoid_: Verified identity, order reference, account authentication
