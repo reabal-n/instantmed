@@ -38,10 +38,11 @@ const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 // ============================================================================
 
 const CANONICAL = "https://instantmed.com.au/telehealth-australia"
+const SEARCH_DESCRIPTION = "Telehealth in Australia explained: how online care works, what Medicare may cover, private costs and when in-person care is the safer choice."
 
 export const metadata: Metadata = {
-  title: { absolute: "Telehealth Australia | Online, No Waiting Room | InstantMed" },
-  description: `Telehealth in Australia explained: how it works, what it costs, Medicare and PBS rules, and which conditions suit virtual care. AHPRA-governed, from ${PRICING_DISPLAY.MED_CERT}.`,
+  title: { absolute: "Telehealth in Australia | Costs, Rules & Care Options | InstantMed" },
+  description: SEARCH_DESCRIPTION,
   keywords: [
     "telehealth australia",
     "australian telehealth",
@@ -55,8 +56,8 @@ export const metadata: Metadata = {
     "telehealth consultation australia",
   ],
   openGraph: {
-    title: "Telehealth Australia | Online, No Waiting Room | InstantMed",
-    description: `A practical guide to telehealth in Australia: regulation, cost, Medicare, suitable conditions, and how to get started. ${PRICING_DISPLAY.FROM_MED_CERT} with AHPRA-registered doctors.`,
+    title: "Telehealth in Australia | Costs, Rules & Care Options | InstantMed",
+    description: SEARCH_DESCRIPTION,
     url: CANONICAL,
     siteName: "InstantMed",
     locale: "en_AU",
@@ -64,9 +65,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Telehealth Australia | InstantMed",
-    description:
-      "How telehealth works in Australia - regulation, cost, Medicare, and which conditions it's safe for.",
+    title: "Telehealth in Australia | InstantMed",
+    description: SEARCH_DESCRIPTION,
   },
   alternates: { canonical: CANONICAL },
 }

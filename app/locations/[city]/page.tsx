@@ -378,8 +378,7 @@ const seoRoute = defineProgrammaticSeoRoute({
   getSlugs: () => Object.keys(cities),
   indexable: ({ slug }) => shouldIndexLocation(slug),
   metadata: ({ entry }) => {
-    const description = `Get an online medical certificate in ${entry.name} from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors review online, so you can skip the GP queue. Repeat scripts and online doctor requests too. No appointment needed.`
-    const socialDescription = `Get an online medical certificate in ${entry.name} from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors review online, so you can skip the GP queue. Repeat scripts too. No appointment needed.`
+    const description = `InstantMed serves ${entry.name} with routine medical certificate requests and repeat medication reviews online. Secure form, no booked appointment, from ${PRICING_DISPLAY.MED_CERT}.`
 
     return {
       description,
@@ -392,7 +391,7 @@ const seoRoute = defineProgrammaticSeoRoute({
         `telehealth ${entry.name.toLowerCase()}`,
       ],
       openGraph: {
-        description: socialDescription,
+        description,
         title: `Online Medical Certificate ${entry.name} | InstantMed`,
       },
       title: {
@@ -400,7 +399,7 @@ const seoRoute = defineProgrammaticSeoRoute({
       },
       twitter: {
         card: "summary_large_image",
-        description: socialDescription,
+        description,
         title: `Online Medical Certificate ${entry.name} | InstantMed`,
       },
     }

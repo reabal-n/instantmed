@@ -15,9 +15,11 @@ import { MEDICAL_CERTIFICATE_ONLINE_FAQ } from "@/lib/data/medical-certificate-o
 
 export const revalidate = 86400
 
+const SEARCH_DESCRIPTION = `Understand routine online medical certificates in Australia: costs, eligibility, safety limits and verification. Start a 1-3 day request from ${PRICING_DISPLAY.MED_CERT}.`
+
 export const metadata: Metadata = {
-  title: { absolute: "Medical Certificate Online Australia | InstantMed" },
-  description: `Request a routine one-to-three-day work, study, or carer's leave certificate through a bounded clinical pathway. From ${PRICING_DISPLAY.MED_CERT}.`,
+  title: { absolute: "Online Medical Certificates: Costs, Rules & Safety | InstantMed" },
+  description: SEARCH_DESCRIPTION,
   keywords: [
     "medical certificate online",
     "medical certificate online australia",
@@ -27,9 +29,8 @@ export const metadata: Metadata = {
     "carer's leave certificate online",
   ],
   openGraph: {
-    title: "Medical Certificate Online Australia | InstantMed",
-    description:
-      "Request a routine medical certificate online. Secure form, bounded clinical pathway, clear safety boundaries.",
+    title: "Online Medical Certificates: Costs, Rules & Safety | InstantMed",
+    description: SEARCH_DESCRIPTION,
     url: "https://instantmed.com.au/medical-certificate-online",
     type: "website",
     locale: "en_AU",
@@ -37,8 +38,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Medical Certificate Online Australia | InstantMed",
-    description: "Routine online medical certificate requests through a Medical Director-approved clinical pathway.",
+    title: "Online Medical Certificates: Costs, Rules & Safety | InstantMed",
+    description: SEARCH_DESCRIPTION,
   },
   alternates: {
     canonical: "https://instantmed.com.au/medical-certificate-online",

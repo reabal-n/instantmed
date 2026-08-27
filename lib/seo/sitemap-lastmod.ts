@@ -13,13 +13,13 @@
  * SITEMAP_LASTMOD_FALLBACK.
  */
 export const ROUTE_LAST_MODIFIED: Record<string, string> = {
-  "/": "2026-05-26",
+  "/": "2026-08-28",
   // Head-term pillars
   "/online-doctor-australia": "2026-06-06",
-  "/telehealth-australia": "2026-06-06",
+  "/telehealth-australia": "2026-08-28",
   // Money + service landing pages
-  "/medical-certificate": "2026-05-19",
-  "/medical-certificate-online": "2026-06-25",
+  "/medical-certificate": "2026-08-28",
+  "/medical-certificate-online": "2026-08-28",
   // Med-cert intent children + employer evidence (deepened 2026-06-30 batch)
   "/medical-certificate/work": "2026-06-30",
   "/medical-certificate/study": "2026-06-30",
@@ -51,7 +51,8 @@ export const ROUTE_LAST_MODIFIED: Record<string, string> = {
   "/pricing": "2026-06-05",
   "/how-it-works": "2026-06-05",
   "/faq": "2026-05-19",
-  "/about": "2026-06-11",
+  "/about": "2026-08-28",
+  "/contact": "2026-08-28",
   "/our-doctors": "2026-06-05",
   "/how-we-decide": "2026-06-06",
   "/clinical-governance": "2026-06-06",

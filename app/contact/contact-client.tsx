@@ -33,12 +33,14 @@ import { scrollRevealConfig } from "@/components/ui/scroll-reveal"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { cn } from "@/lib/utils"
 
 const CONTACT_CONFIG = {
   analyticsId: "contact" as const,
   sticky: false as const,
 }
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
 
 const contactReasons = [
   { id: "general", label: "General Inquiry", icon: MessageSquare },
@@ -134,9 +136,9 @@ export function ContactClient() {
         <>
         {/* Hero */}
         <CenteredHero
-          title="Got a question? We're here to help."
-          highlightWords={["here to help."]}
-          subtitle="Real people who read and reply to every message."
+          title="Contact InstantMed support."
+          highlightWords={["InstantMed support."]}
+          subtitle="Help with an existing request, payment or account. Real people read every message."
           className="pt-32 pb-16"
         />
 
@@ -287,7 +289,7 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
               >
                 {CONTACT_EMAIL_COMPLAINTS}
               </a>
-              <p className="text-xs text-muted-foreground mt-1">14 business day response, AHPRA escalation path</p>
+              <p className="text-xs text-muted-foreground mt-1">{COMPLAINTS_TIMING}</p>
             </div>
           </div>
         </address>

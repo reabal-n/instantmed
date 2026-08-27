@@ -1,6 +1,7 @@
 import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, PRICING_DISPLAY } from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
+import { BRANDED_SEARCH_LINKS } from "@/lib/seo/branded-search-links"
 import {
   type CanonicalServiceId,
   getService,
@@ -223,28 +224,16 @@ export const footerLinks = {
     { label: "Weight Management", href: "/weight-loss" },
   ],
   company: [
-    { label: "About Us", href: "/about" },
+    { label: "About InstantMed", href: "/about" },
     { label: "For Business", href: "/business" },
-    { label: "Pricing", href: "/pricing" },
     { label: "Health Guides", href: "/blog" },
     { label: "Your Options", href: "/alternatives" },
     { label: "What we won't do", href: "/what-we-wont-do" },
     { label: "Why we're faster", href: "/why-instant" },
-    { label: "Contact", href: "/contact" },
   ],
-  // Indexed location pages, surfaced in the footer so the homepage + every
-  // money page passes crawl demand to them. These were orphaned (no internal
-  // links from any indexed surface), which starved them of crawl budget.
-  // Keep this list in sync with KEEP_INDEXED_LOCATIONS in lib/seo/index-policy.ts
-  // (only link cities we actually want indexed).
-  locations: [
-    { label: "Sydney", href: "/locations/sydney" },
-    { label: "Melbourne", href: "/locations/melbourne" },
-    { label: "Brisbane", href: "/locations/brisbane" },
-    { label: "Perth", href: "/locations/perth" },
-    { label: "Adelaide", href: "/locations/adelaide" },
-    { label: "Canberra", href: "/locations/canberra" },
-    { label: "Newcastle", href: "/locations/newcastle" },
+  help: [
+    ...BRANDED_SEARCH_LINKS.slice(2),
+    { label: "All locations", href: "/locations" },
   ],
 }
 
