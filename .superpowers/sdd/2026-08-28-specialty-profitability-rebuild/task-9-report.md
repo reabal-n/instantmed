@@ -121,3 +121,64 @@ The required `lib/__tests__/hair-loss-health-validation.test.ts` remained unchan
 ## Residual Risks
 
 No blocking concerns. Stripe non-contact is proven through the repository's mocked orchestration harnesses rather than a live Stripe request, intentionally matching the no-external-calls boundary. This change mirrors the existing documented contraindication; it does not broaden or independently validate the underlying clinical policy.
+
+## Independent Review Follow-up: Duplicate Guest Recovery
+
+Follow-up implementation commit: `e6d0f7d741592cc7048bb49ec6c85fd0a10f564d`
+
+The independent review found one additional duplicate-guest idempotency-recovery branch in `lib/stripe/guest-checkout.ts`. That branch loaded authoritative stored answers but only applied the repeat-prescription dose contract before inspecting or rebuilding Stripe state. It did not run the shared safety completeness validator or safety rules engine against a recovered Hair intake.
+
+### Follow-up Repair
+
+- The duplicate lookup now loads the stored service relation through the explicit `service_id` relationship.
+- Safety evaluation uses authoritative stored answers, the stored service slug, and the stored intake subtype. For consult rows, the stored subtype is injected as `consultSubtype`, so a legacy answer blob cannot evade the Hair rule merely because routing context is absent from the blob.
+- `validateSafetyFieldsPresent()` runs before `checkSafetyForServer()`.
+- General safety completeness and the existing repeat-dose completeness result are combined into one deduplicated missing-field list and passed to the existing `holdCheckoutForMissingSafetyInformation()` owner.
+- Missing, blank, and invalid Hair values enter the established `guest_duplicate` recoverable hold branch. They do not become a clinical decline.
+- A contraindicating stored Hair answer records the safety result and returns before the payment lock, session classifier, or rebuild path.
+- Exact stored `no` and `na` answers continue through the existing safe recovery branch.
+
+No intake UI, question, step, copy, clinical policy, price, payment-state owner, or Stripe session helper was changed.
+
+### Follow-up Strict TDD Evidence
+
+The direct duplicate-guest harness was expanded before the recovery implementation. The clean RED run was:
+
+```bash
+corepack pnpm exec vitest run \
+  lib/__tests__/stripe/checkout-operating-hours.test.ts
+```
+
+Witnessed result: 1 test file failed; 6 tests failed and 28 passed. The failures proved that:
+
+- authoritative `yes` answers reached the terminal payment fallback instead of the Hair decline;
+- missing, blank, and invalid answers did not enter the missing-safety hold;
+- `no` and `na` recoveries had no second-call evidence for persisted safety evaluation; and
+- the recovered call did not use the stored `mens-health-hair` service slug.
+
+The stored-subtype contract was then strengthened with legacy-style Hair answer blobs that omit `consultSubtype`. Before subtype injection, the same six cases failed because the shared evaluators received no stored `hair_loss` routing context.
+
+After implementation, the isolated harness passed: 1 file, 34 tests.
+
+### Follow-up Payment and Safety GREEN
+
+The combined verification command covered the original Task 9 focused and broader suites plus duplicate guest recovery, signed resume, retry payment, missing-safety hold, payment integrity, abandoned checkout, cancellation links, price-config recovery, and operational source contracts.
+
+Result: 16 test files passed, 374 tests passed.
+
+Additional checks:
+
+- Scoped ESLint over all three follow-up TypeScript files: passed.
+- `corepack pnpm typecheck`: passed.
+- `corepack pnpm doc:audit`: passed — 10 doc-pinning files and 120 tests passed.
+- `git diff --check`: passed.
+
+### Exact Follow-up Files
+
+- `lib/stripe/guest-checkout.ts`
+- `lib/__tests__/stripe/checkout-operating-hours.test.ts`
+- `lib/__tests__/guest-checkout-operational-contract.test.ts`
+
+### Follow-up Residual Risk
+
+No blocking concern. The direct duplicate-guest tests prove that the branch itself does not retrieve, expire, create, or persist a replacement Stripe Session for contraindicating or incomplete Hair answers. The missing-information hold remains the existing shared financial owner and may invalidate an already-attached exact-current Session when required; that behavior is covered separately by its payment-hold suite. No live Stripe or database call was made. User-owned untracked `output/` remained untouched.
