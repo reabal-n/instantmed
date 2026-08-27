@@ -9,11 +9,12 @@ const client = read("app/admin/analytics/analytics-client.tsx")
 const adsRuns = read("lib/ads-agent/runs.ts")
 
 describe("Business decision surface contract", () => {
-  it("is admin-only and assembles seven bounded read-only evidence sources", () => {
+  it("is admin-only and assembles bounded read-only evidence sources", () => {
     expect(page).toContain('requireRole(["admin"])')
     expect(page).toContain("Promise.allSettled")
     expect(page).toContain("getRevenueDashboard")
     expect(page).toContain("getLatestDeliveredAdsAgentRun")
+    expect(page).toContain("getBusinessAdsActionEvidence")
     expect(page).toContain("getRecentDeliveredAdsAgentRunDailySpend")
     expect(page).toContain("buildBusinessTrends")
     expect(page).toContain("getPostHogCanonicalIntakeFunnelSnapshot")
@@ -53,6 +54,14 @@ describe("Business decision surface contract", () => {
     expect(client).toContain("Med Certs remain in the protocol observation window")
     expect(client).toContain("Specialty pilots remain within approved loss caps")
     expect(client).toContain("service gates still apply")
+  })
+
+  it("reserves approval copy for an exact proposal and names observation evidence", () => {
+    expect(client).toContain("Observation in progress")
+    expect(client).toContain("both post-change evidence gates clear")
+    expect(client).toContain("Review and approve that exact Ads change")
+    expect(client).toContain("Scripts observation:")
+    expect(client).not.toContain("A specific Ads change is ready for operator approval")
   })
 
   it("does not reintroduce the superseded metrics wall", () => {

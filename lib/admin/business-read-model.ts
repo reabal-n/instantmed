@@ -2,7 +2,12 @@ import type {
   DeliveredAdsAgentRunEvidence,
   LatestDeliveredAdsAgentRunRead,
 } from "@/lib/ads-agent/runs"
-import type { CampaignEconomics } from "@/lib/ads-agent/types"
+import type {
+  AdsMutationFamily,
+  AdsRecommendation,
+  AdsService,
+  CampaignEconomics,
+} from "@/lib/ads-agent/types"
 import {
   buildRevenueMilestoneProgress,
   type RevenueMilestoneProgress,
@@ -12,6 +17,35 @@ const ADS_EVIDENCE_STALE_HOURS = 36
 const HOUR_MS = 60 * 60 * 1000
 
 type BusinessScaleDecision = "ACTION" | "CHECK" | "HOLD"
+
+export type BusinessAdsActionEvidence =
+  | {
+      kind: "none" | "unavailable"
+    }
+  | {
+      attributedOrders: number
+      closedDays: number
+      currentBudgetCents: number
+      kind: "observation"
+      mutationFamily: AdsMutationFamily
+      requiredAttributedOrders: number
+      requiredClosedDays: number
+      service: AdsService
+    }
+  | {
+      currentBudgetCents: number
+      kind: "proposal_required"
+      mutationFamily: AdsMutationFamily
+      service: AdsService
+    }
+  | {
+      currentValue: string
+      kind: "approval_ready"
+      mutationFamily: AdsMutationFamily
+      proposalKey: string
+      requestedValue: string
+      service: AdsService
+    }
 
 export interface BusinessRevenueEvidence {
   availability: "available" | "unavailable"
@@ -55,6 +89,7 @@ export interface BusinessCampaignRow {
 }
 
 export interface BusinessReadModel {
+  adsAction: BusinessAdsActionEvidence
   campaigns: BusinessCampaignRow[]
   economics: BusinessEconomics
   evidenceAgeHours: number | null
@@ -216,7 +251,24 @@ function uniqueReasons(reasons: string[]): string[] {
   return Array.from(new Set(reasons))
 }
 
+function matchesApprovalRecommendation(
+  action: BusinessAdsActionEvidence,
+  recommendations: AdsRecommendation[],
+): boolean {
+  if (action.kind !== "approval_ready") return false
+  const approvalRecommendations = recommendations.filter(
+    ({ kind }) => kind === "APPROVAL_NEEDED",
+  )
+  return (
+    approvalRecommendations.length === 1
+    && approvalRecommendations[0].service === action.service
+    && approvalRecommendations[0].proposedMutationFamily
+      === action.mutationFamily
+  )
+}
+
 export function buildBusinessReadModel(args: {
+  adsAction?: BusinessAdsActionEvidence
   adsRun: LatestDeliveredAdsAgentRunRead
   now?: Date
   revenue: BusinessRevenueEvidence
@@ -230,6 +282,7 @@ export function buildBusinessReadModel(args: {
     ? buildRevenueMilestoneProgress(args.revenue.netRetainedCents!)
     : null
   const run = args.adsRun.run
+  const adsAction = args.adsAction ?? { kind: "unavailable" as const }
   const ageHours = run ? evidenceAgeHours(run, now) : null
   const stale = ageHours === null || ageHours > ADS_EVIDENCE_STALE_HOURS
   const aggregate = run ? aggregateCampaignEconomics(run.snapshot.rolling30) : null
@@ -243,20 +296,43 @@ export function buildBusinessReadModel(args: {
   if (run && trackingState !== "GREEN") reasons.push("TRACKING_NOT_GREEN")
   if (run) {
     reasons.push(...run.snapshot.tracking.reasonCodes)
-    reasons.push(...run.recommendations.flatMap((recommendation) => recommendation.reasonCodes))
+    for (const recommendation of run.recommendations) {
+      if (recommendation.kind !== "APPROVAL_NEEDED") {
+        reasons.push(...recommendation.reasonCodes)
+        continue
+      }
+      if (
+        adsAction.kind === "observation"
+        && adsAction.service === recommendation.service
+        && adsAction.mutationFamily === recommendation.proposedMutationFamily
+      ) {
+        reasons.push("SCRIPTS_POST_CHANGE_EVIDENCE_IMMATURE")
+      } else if (
+        adsAction.kind === "proposal_required"
+        && adsAction.service === recommendation.service
+        && adsAction.mutationFamily === recommendation.proposedMutationFamily
+      ) {
+        reasons.push("ADS_EXACT_PROPOSAL_REQUIRED")
+      } else if (matchesApprovalRecommendation(adsAction, run.recommendations)) {
+        reasons.push("ADS_EXACT_PROPOSAL_READY")
+      } else {
+        reasons.push("ADS_ACTION_EVIDENCE_UNAVAILABLE")
+      }
+    }
   }
 
   const truthGatePassed = revenueAvailable && Boolean(run) && !stale && Boolean(aggregate) && trackingState === "GREEN"
   const economics = revenueAvailable && !stale ? aggregate : null
   const scaleDecision: BusinessScaleDecision = !truthGatePassed
     ? "HOLD"
-    : run!.recommendations.some(({ kind }) => kind === "APPROVAL_NEEDED")
+    : matchesApprovalRecommendation(adsAction, run!.recommendations)
       ? "ACTION"
       : run!.recommendations.some(({ kind }) => kind === "INVESTIGATE")
         ? "CHECK"
         : "HOLD"
 
   return {
+    adsAction,
     // Per-campaign rows survive staleness and partial availability: they are
     // the evidence the operator reads to decide WHICH lane to change, and the
     // page labels their age rather than hiding them.

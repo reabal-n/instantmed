@@ -1,3 +1,4 @@
+import { getBusinessAdsActionEvidence } from "@/lib/admin/business-ads-action"
 import { buildBusinessReadModel } from "@/lib/admin/business-read-model"
 import { buildBusinessTrends } from "@/lib/admin/business-trends"
 import { getHeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
@@ -51,7 +52,13 @@ export default async function AnalyticsDashboardPage() {
   const adsRun = reads[1].status === "fulfilled"
     ? reads[1].value
     : { availability: "unavailable" as const, reason: "query_failed" as const, run: null }
+  const adsAction = await getBusinessAdsActionEvidence({
+    now,
+    run: adsRun.run,
+    supabase,
+  })
   const business = buildBusinessReadModel({
+    adsAction,
     adsRun,
     now,
     revenue: revenueAvailable
