@@ -184,3 +184,79 @@ The request-footer claim wraps across three compact lines at 375 px but remains 
 ## Concerns
 
 No blocking concerns. Browser evidence is representative rather than an exhaustive visual pass across every mirror; deterministic source contracts cover the complete active mirror inventory changed here.
+
+## Independent Review Follow-up
+
+Follow-up implementation commit: `5e4def7b83449b1a1a8e40010f51fab0c2028bee`
+
+This follow-up supersedes the earlier wording and mirror-status notes where they differ. The approved repeated claim is now:
+
+> For prescribing, you need either Medicare details or a valid IHI, plus an Australian address.
+
+### Review RED evidence
+
+Before changing the money-page contract, the following command witnessed the reviewer-reported stale assertions:
+
+```bash
+corepack pnpm exec vitest run \
+  lib/__tests__/money-page-narrative-compression-contract.test.ts
+```
+
+Result: 1 file failed, with 4 failed and 2 passed tests. The four failures were the retired Medicare-only literals for prescriptions, ED, hair loss, and women's health.
+
+After strengthening the marketing and project-doc contracts but before repairing public copy and canon, the focused run produced the intended RED:
+
+- `marketing-copy-contract.test.ts` failed because the registry still contained the superseded approved claim.
+- `project-docs-drift-contract.test.ts` failed because the scoped CLAUDE/AGENTS identity-gate paragraph did not contain the complete canonical definition.
+- The updated money-page contract already passed because those four pages consumed the shared approved claim.
+
+The approved-claim source receipt was also added before its registry correction. Its isolated RED was 1 failed / 7 passed because the claim did not cite `lib/request/prescribing-identity.ts`; after the registry change it passed 8/8.
+
+### Follow-up repair
+
+- Replaced stale literal assertions in the prescriptions, ED, hair-loss, and women's-health money-page contracts with direct ownership assertions for `getApprovedClaim("prescribing_identity_required")`.
+- Added `/consult` to the prescribing-mirror sweep and repaired its Medicare-only sentence.
+- Added the imported NSW deep-city content to the sweep so `/locations/sydney` cannot receive a false green from scanning only its route file.
+- Consolidated `/online-doctor-australia` and the Sydney Medicare FAQ onto the approved claim, including its Australian-address requirement.
+- Corrected the CLAUDE identity-gate paragraph to the exact date-of-birth, sex, phone, structured-address, and Medicare-plus-IRN-or-IHI bundle; regenerated `AGENTS.md` only through `scripts/sync-agent-doc.sh`.
+- Strengthened the project-doc contract to inspect that specific identity-gate paragraph and reject the two former Medicare-only shorthands even if correct wording appears elsewhere.
+- Replaced the approved claim's source receipt with the canonical gate owner, `lib/request/prescribing-identity.ts`, and pinned that ownership in the approved-claims contract.
+
+Exact follow-up implementation files:
+
+- `AGENTS.md`
+- `CLAUDE.md`
+- `app/consult/page.tsx`
+- `app/online-doctor-australia/page.tsx`
+- `lib/__tests__/approved-claims-contract.test.ts`
+- `lib/__tests__/marketing-copy-contract.test.ts`
+- `lib/__tests__/money-page-narrative-compression-contract.test.ts`
+- `lib/__tests__/project-docs-drift-contract.test.ts`
+- `lib/marketing/approved-claims.ts`
+- `lib/seo/data/deep-city-content/nsw.ts`
+
+### Follow-up GREEN evidence
+
+- Focused review suite: 4 files passed, 63 tests passed.
+- Broader prescribing identity/address/can-skip/unified intake/women's-health/marketing/approved-claims/voice/paid/advertising suite: 18 files passed, 178 tests passed.
+- `scripts/sync-agent-doc.sh --check`: passed.
+- `corepack pnpm doc:audit`: passed, including 10 doc-pinning files / 120 tests, 123-document count, and plan-reference checks.
+- Scoped ESLint across every changed TypeScript/TSX file: passed.
+- `corepack pnpm typecheck`: passed.
+- `git diff --check`: passed.
+
+### Follow-up browser evidence
+
+No authentication, PHI, form filling, or submission was used.
+
+- `/consult`, 1440 x 900 light: revised claim rendered, no horizontal overflow, no browser errors. Screenshot: `/tmp/task8-review-consult-desktop-light.png`.
+- `/online-doctor-australia`, 375 x 812 dark: revised claim rendered, `scrollWidth === innerWidth === 375`, no browser errors. Screenshot: `/tmp/task8-review-online-doctor-mobile-dark.png`.
+- `/locations/sydney`, 1280 px: the collapsed Medicare FAQ was expanded and the revised claim rendered, no horizontal overflow, no browser errors.
+
+The reviewed placements were natural and legible; no cramped or awkward claim usage was found.
+
+### Follow-up self-review and concerns
+
+The committed diff changes only copy, canon, the approved-claim registry/source receipt, and their contracts. It does not change validators, intake steps, required answers, identity fields, eScript/Parchment behavior, clinical decisions, or payment logic. The exact medical-certificate claim `No Medicare required` remains unchanged. No medicine names, employer outreach, external mutation, database mutation, deployment, or `output/` changes were introduced.
+
+No blocking concerns. Browser coverage is representative; deterministic contracts cover the active prescribing mirrors in scope.
