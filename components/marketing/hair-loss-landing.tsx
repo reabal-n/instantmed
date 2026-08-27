@@ -28,7 +28,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { HAIR_LOSS_LANDING_FAQ } from "@/lib/data/hair-loss-faq"
 import { getActiveSpecialtyExperience } from "@/lib/growth/specialty-experiences"
-import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 const HowItWorksInline = dynamic(
   () => import("@/components/marketing/sections/how-it-works-inline").then((module) => module.HowItWorksInline),
@@ -57,6 +57,9 @@ const ContentHubLinks = dynamic(
 
 const ASSESSMENT_HREF = "/request?service=consult&subtype=hair_loss"
 const HAIR_LOSS_LANDING_EXPERIENCE = getActiveSpecialtyExperience("hair_loss")
+const FORM_FIRST_CLAIM = getApprovedClaim("form_first_wedge")
+const PRESCRIPTION_IF_APPROVED_CLAIM = getApprovedClaim("prescription_if_approved")
+const REFUND_GUARANTEE_CLAIM = getApprovedClaim("refund_guarantee")
 
 const HOW_IT_WORKS_STEPS = [
   {
@@ -93,19 +96,19 @@ const HAIR_HERO_FACTS = [
     icon: WalletCards,
     label: "Review fee",
     value: PRICING_DISPLAY.HAIR_LOSS,
-    body: "One-off doctor review. Full refund if the doctor declines.",
+    body: `One-off private doctor assessment. ${REFUND_GUARANTEE_CLAIM}`,
   },
   {
     icon: ScanSearch,
     label: "Assessment",
     value: "3-min form",
-    body: "Pattern, timing, scalp symptoms, medicines, and health context are reviewed together.",
+    body: FORM_FIRST_CLAIM,
   },
   {
     icon: Stethoscope,
-    label: "Boundary",
-    value: "Doctor decides",
-    body: "Pattern alone is not a diagnosis, and a prescription is never guaranteed.",
+    label: "If approved",
+    value: PRESCRIPTION_IF_APPROVED_CLAIM,
+    body: "Fill it at an Australian pharmacy. Medicine cost is separate. Prescription is not guaranteed.",
   },
 ] as const
 
@@ -317,8 +320,9 @@ function HairLossPricingSection({
             <div className="p-6">
               <ul className="space-y-3">
                 <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />AHPRA-registered Australian doctor review</li>
-                <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />{GUARANTEE}</li>
-                <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />Medicine cost is separate and paid to the pharmacy if a prescription is approved.</li>
+                <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />{PRESCRIPTION_IF_APPROVED_CLAIM} Fill it at an Australian pharmacy.</li>
+                <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />Medicine cost is separate and paid to the pharmacy. Prescription is not guaranteed.</li>
+                <li className="flex gap-2 text-sm leading-6 text-muted-foreground"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />{REFUND_GUARANTEE_CLAIM}</li>
               </ul>
               <Button asChild size="lg" className="mt-6 w-full" disabled={isDisabled} onClick={onStart}>
                 <Link href={isDisabled ? "/contact" : requestCtaHref}>
@@ -365,7 +369,7 @@ export function HairLossLanding() {
       {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handlePricingCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           <Hero
-            title="Hair loss assessment, reviewed from home."
+            title="Private hair loss assessment, from home."
             primaryCta={{
               text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.HAIR_LOSS}`,
               href: isDisabled ? "/contact" : requestCtaHref,
@@ -382,9 +386,15 @@ export function HairLossLanding() {
             mockup={<HairHeroFacts />}
           >
             <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0 lg:text-lg">
-              {FORM_FIRST_WEDGE} Pattern, timing, scalp symptoms, and health context are reviewed together. {GUARANTEE}
+              A one-off private doctor assessment for {PRICING_DISPLAY.HAIR_LOSS}. {FORM_FIRST_CLAIM}
             </p>
           </Hero>
+
+          <HairLossPricingSection
+            isDisabled={isDisabled}
+            onStart={handlePricingCTA}
+            requestCtaHref={requestCtaHref}
+          />
 
           <HairAssessmentModel />
 
@@ -398,11 +408,6 @@ export function HairLossLanding() {
           />
 
           <DoctorProfileSection instant />
-          <HairLossPricingSection
-            isDisabled={isDisabled}
-            onStart={handlePricingCTA}
-            requestCtaHref={requestCtaHref}
-          />
           <HairLossLimitationsSection />
 
           <FAQSection

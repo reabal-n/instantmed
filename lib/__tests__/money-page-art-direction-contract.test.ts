@@ -69,6 +69,9 @@ describe("money-page art-direction contract", () => {
     expect(hairLanding.indexOf("<HairAssessmentModel />")).toBeLessThan(
       hairLanding.indexOf("<HowItWorksInline"),
     )
+    expect(hairLanding.indexOf("<HairLossPricingSection")).toBeLessThan(
+      hairLanding.indexOf("<HairAssessmentModel />"),
+    )
   })
 
   it("removes generic hair-loss photography and the superseded card treatment list", () => {

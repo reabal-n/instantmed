@@ -60,8 +60,10 @@ async function newFoundationPage(
     height: number
     deviceScaleFactor?: number
     reducedMotion?: "reduce" | "no-preference"
+    theme?: "light" | "dark"
   },
 ) {
+  const theme = options.theme ?? "light"
   const context = await browser.newContext({
     baseURL: projectBaseURL(testInfo),
     viewport: { width: options.width, height: options.height },
@@ -69,13 +71,13 @@ async function newFoundationPage(
     deviceScaleFactor: options.deviceScaleFactor ?? 1,
     isMobile: options.width <= 390,
     hasTouch: options.width <= 390,
-    colorScheme: "light",
+    colorScheme: theme,
     reducedMotion: options.reducedMotion ?? "no-preference",
     locale: "en-AU",
     timezoneId: "Australia/Sydney",
   })
   const page = await context.newPage()
-  await seedMoneyPageState(page, "light")
+  await seedMoneyPageState(page, theme)
 
   return { context, page }
 }
@@ -563,6 +565,102 @@ async function inspectSequentialHeaderControls(page: Page) {
 
 test.beforeEach(({ browserName }) => {
   test.skip(browserName !== "chromium", "Money-page foundations use Chromium layout metrics")
+})
+
+test("Hair H1 leads with the qualified one-off outcome before education", async ({ browser }, testInfo) => {
+  test.setTimeout(120_000)
+
+  const states = [
+    { name: "desktop-light", width: 1440, height: 900, theme: "light" as const },
+    { name: "mobile-375x800-dark", width: 375, height: 800, theme: "dark" as const },
+  ]
+
+  for (const state of states) {
+    const { context, page } = await newFoundationPage(browser, testInfo, state)
+    const browserErrors: string[] = []
+    page.on("console", (message) => {
+      if (message.type() === "error") browserErrors.push(`console: ${message.text()}`)
+    })
+    page.on("pageerror", (error) => browserErrors.push(`pageerror: ${error.message}`))
+
+    await gotoPublicRoute(page, "/hair-loss")
+    await assertResolvedTheme(page, state.theme)
+
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Private hair loss assessment, from home.",
+    )
+    const heroCta = page.getByRole("link", { name: /Start assessment · \$49\.95/ }).first()
+    await expect(heroCta).toHaveAttribute(
+      "href",
+      "/request?service=consult&subtype=hair_loss&growth_experience_version=spx_h1_20260828",
+    )
+
+    const practicalOffer = page.locator("#pricing")
+    await expect(practicalOffer).toContainText("Medicine cost is separate")
+    await expect(practicalOffer).toContainText("Australian pharmacy")
+    await expect(practicalOffer).toContainText("Prescription is not guaranteed")
+    expect(
+      await page.evaluate(() => {
+        const practical = document.querySelector("#pricing")
+        const education = document.querySelector("#assessment-model")
+        return Boolean(
+          practical &&
+          education &&
+          practical.compareDocumentPosition(education) & Node.DOCUMENT_POSITION_FOLLOWING,
+        )
+      }),
+    ).toBe(true)
+
+    await page.screenshot({
+      path: testInfo.outputPath(`hair-h1-${state.name}-viewport.png`),
+    })
+
+    if (state.width === 375) {
+      await practicalOffer.scrollIntoViewIfNeeded()
+      const stickyCta = page.getByRole("region", { name: "Quick purchase" })
+      await expect(stickyCta).toBeVisible()
+      await expect(stickyCta.getByRole("link")).toHaveAttribute(
+        "href",
+        "/request?service=consult&subtype=hair_loss&growth_experience_version=spx_h1_20260828",
+      )
+    }
+
+    await page.screenshot({
+      path: testInfo.outputPath(`hair-h1-${state.name}.png`),
+      fullPage: true,
+    })
+    expect(browserErrors, `${state.name} browser errors`).toEqual([])
+    await context.close()
+  }
+})
+
+test("Hair H1 preserves unavailable-service behavior", async ({ page }) => {
+  await page.route("**/api/availability", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        maintenance_mode: false,
+        disable_med_cert: false,
+        disable_repeat_scripts: false,
+        disable_consults: true,
+        disable_weight_loss: false,
+        urgent_notice_enabled: false,
+        urgent_notice_message: "",
+        business_hours_open: 8,
+        business_hours_close: 22,
+        business_hours_timezone: "Australia/Sydney",
+        business_hours_enabled: true,
+      }),
+    })
+  })
+  await seedMoneyPageState(page, "light")
+  await gotoPublicRoute(page, "/hair-loss")
+
+  await expect(page.getByText("This service is temporarily unavailable.")).toBeVisible()
+  await expect(page.locator('main a[href="/contact"]').first()).toHaveAttribute(
+    "href",
+    "/contact",
+  )
 })
 
 test.describe("money-page theme foundations", () => {

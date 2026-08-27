@@ -191,12 +191,16 @@ describe("money-page narrative compression", () => {
     ])
   })
 
-  it("compresses hair loss around assessment, doctor proof, fee, and limits", () => {
+  it("puts Hair H1 practical outcome and cost before education and safety", () => {
     const source = read("components/marketing/hair-loss-landing.tsx")
     const page = read("app/hair-loss/page.tsx")
 
     expect(source).toContain('mobileSummary: "3-min form"')
     expect(source).not.toContain('mobileSummary: "3-min form · Doctor-reviewed"')
+    expect(source).toContain('title="Private hair loss assessment, from home."')
+    expect(source).toContain('getApprovedClaim("prescription_if_approved")')
+    expect(source).toContain('getApprovedClaim("form_first_wedge")')
+    expect(source).toContain('getApprovedClaim("refund_guarantee")')
 
     for (const firstFoldFact of [
       "Australia only",
@@ -204,7 +208,6 @@ describe("money-page narrative compression", () => {
       "Medicare details required",
       "3-min form",
       "PRICING_DISPLAY.HAIR_LOSS",
-      "Full refund if the doctor declines",
     ]) {
       expect(source, firstFoldFact).toContain(firstFoldFact)
     }
@@ -227,6 +230,8 @@ describe("money-page narrative compression", () => {
     expect(pricingEnd).toBeGreaterThan(pricingStart)
     expect(source.slice(pricingStart, pricingEnd)).toContain("<RegulatoryPartners")
     expect(source.slice(pricingStart, pricingEnd)).toContain("Medicine cost is separate")
+    expect(source.slice(pricingStart, pricingEnd)).toContain("Australian pharmacy")
+    expect(source.slice(pricingStart, pricingEnd)).toContain("Prescription is not guaranteed")
     expect(source).toContain("does not diagnose the cause of hair loss")
     expect(source).toContain("items={HAIR_LOSS_LANDING_FAQ}")
     expect(source).toContain('afterFooter={<ContentHubLinks service="hair-loss" />}')
@@ -234,10 +239,10 @@ describe("money-page narrative compression", () => {
 
     expectInOrder(source, [
       "<HairHeroFacts />",
+      "<HairLossPricingSection",
       "<HairAssessmentModel />",
       "<HowItWorksInline",
       "<DoctorProfileSection",
-      "<HairLossPricingSection",
       "<HairLossLimitationsSection />",
       "items={HAIR_LOSS_LANDING_FAQ}",
       "<CTABanner",

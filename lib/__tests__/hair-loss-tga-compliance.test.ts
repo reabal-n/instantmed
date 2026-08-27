@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 
-import { describe, expect,it } from "vitest"
+import { describe, expect, it } from "vitest"
 
 /**
  * TGA compliance regression test
@@ -32,6 +32,11 @@ const PATIENT_FACING_STEPS = [
   "components/request/steps/womens-health-assessment-step.tsx",
   "components/request/steps/womens-health-type-step.tsx",
 ]
+
+const HAIR_LOSS_ACQUISITION_SURFACES = [
+  "components/marketing/hair-loss-landing.tsx",
+  "app/hair-loss/page.tsx",
+] as const
 
 /**
  * Extract all user-facing string literals from a TSX source file.
@@ -110,6 +115,18 @@ describe("TGA compliance — no Schedule 4 drug names in patient-facing steps", 
           }
         }
       })
+    })
+  }
+})
+
+describe("TGA compliance — Hair landing remains service-level and qualified", () => {
+  for (const surfacePath of HAIR_LOSS_ACQUISITION_SURFACES) {
+    it(`${surfacePath} contains no medicine names or guaranteed prescribing claim`, () => {
+      const source = readFileSync(resolve(process.cwd(), surfacePath), "utf-8")
+      expect(source).not.toMatch(SCHEDULE_4_DRUG_RE)
+      expect(source).not.toMatch(/\b(?:guaranteed prescription|guaranteed treatment|treatment guaranteed)\b/i)
+      expect(source).not.toMatch(/\bno call needed\b/i)
+      expect(source).not.toMatch(/\b(?:before[- ]and[- ]after|before\/after)\b/i)
     })
   }
 })
