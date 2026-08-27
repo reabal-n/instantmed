@@ -8,6 +8,7 @@ const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
 const advertising = read("docs/ADVERTISING_COMPLIANCE.md")
 const context = read("CONTEXT.md")
 const operations = read("docs/OPERATIONS.md")
+const policy = read("lib/ads-agent/policy.ts")
 const revenue = read("docs/REVENUE_MODEL.md")
 
 describe("Google Ads Agent policy documentation", () => {
@@ -57,5 +58,13 @@ describe("Google Ads Agent policy documentation", () => {
     ]) {
       expect(context).toContain(`**${term}**:`)
     }
+  })
+
+  it("keeps policy evaluation recommendation-only", () => {
+    expect(policy).not.toMatch(
+      /from ["']@\/lib\/ads-agent\/(?:account-state|client|mutations|proposals)["']/,
+    )
+    expect(policy).not.toMatch(/\bfetch\s*\(/)
+    expect(policy).not.toContain("proposal:send")
   })
 })

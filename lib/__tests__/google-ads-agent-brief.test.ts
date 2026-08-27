@@ -293,6 +293,32 @@ describe("Google Ads Agent daily brief", () => {
     ].join("\n"))
   })
 
+  it.each([
+    {
+      copy: "Zero retained orders after the specialty click checkpoint",
+      reasonCode: "SPECIALTY_ZERO_ORDER_CLICK_INVESTIGATION",
+    },
+    {
+      copy: "Paid click evidence is unavailable for a zero-order specialty",
+      reasonCode: "SPECIALTY_CLICK_EVIDENCE_UNAVAILABLE",
+    },
+  ])("explains $reasonCode without generic copy", ({ copy, reasonCode }) => {
+    const { snapshot } = briefFixture()
+    const recommendations: AdsRecommendation[] = [
+      {
+        kind: "INVESTIGATE",
+        proposedMutationFamily: null,
+        reasonCodes: [reasonCode],
+        service: "hair_loss",
+      },
+    ]
+
+    const message = formatDailyAdsBrief(snapshot, recommendations)
+
+    expect(message).toContain(`Check: Hair · ${copy}`)
+    expect(message).not.toContain("Review needed")
+  })
+
   it("never formats routine diagnostics or sensitive attribution payloads", () => {
     const { recommendations, snapshot } = briefFixture()
     const message = formatDailyAdsBrief(snapshot, recommendations)
