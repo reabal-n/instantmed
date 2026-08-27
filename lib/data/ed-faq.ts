@@ -59,6 +59,7 @@ const ED_FAQ = [
 export const ED_LANDING_FAQ = [
   ED_FAQ[0],
   ED_FAQ[1],
+  ED_FAQ[3],
   ED_FAQ[4],
   ED_FAQ[8],
   ED_FAQ[9],

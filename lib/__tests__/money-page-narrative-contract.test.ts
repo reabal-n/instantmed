@@ -3,6 +3,8 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { ED_LANDING_FAQ } from "@/lib/data/ed-faq"
+
 const root = process.cwd()
 
 function read(relativePath: string): string {
@@ -89,15 +91,19 @@ describe("money-page narrative compression", () => {
 
   it("keeps ED E1 identity, timing, and outcome copy truthful", () => {
     const ed = read("components/marketing/erectile-dysfunction-landing.tsx")
-    const faq = read("lib/data/ed-faq.ts")
+    const timingFaq = ED_LANDING_FAQ.find(({ question }) => question === "How fast will I hear back?")
+    const identityFaq = ED_LANDING_FAQ.find(({ question }) => question === "Do I need Medicare?")
 
     expect(ed.match(/The practical facts/g)).toHaveLength(1)
     expect(ed).toContain("Medicare or IHI plus an Australian address")
     expect(ed).toContain("ED_SERVICE.effort")
-    expect(faq).toContain('getApprovedClaim("availability_24_7")')
-    expect(faq).toContain("Medicare or IHI")
-    expect(faq).toContain("Australian address")
-    expect(faq).not.toContain("review window")
-    expect(faq).not.toContain("suitable identity details")
+    expect(timingFaq).toEqual({
+      question: "How fast will I hear back?",
+      answer: "Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. You will receive email updates as the request progresses.",
+    })
+    expect(identityFaq?.answer).toContain("Medicare or IHI")
+    expect(identityFaq?.answer).toContain("Australian address")
+    expect(ED_LANDING_FAQ.some(({ answer }) => answer.includes("review window"))).toBe(false)
+    expect(ED_LANDING_FAQ.some(({ answer }) => answer.includes("suitable identity details"))).toBe(false)
   })
 })

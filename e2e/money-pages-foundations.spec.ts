@@ -48,6 +48,8 @@ const STICKY_STRESS_STATES = [
   { name: "root-32-at-375", width: 375, height: 844, deviceScaleFactor: 1, rootFontSize: 32 },
 ] as const
 
+const ED_TIMING_FAQ_ANSWER = "Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. You will receive email updates as the request progresses."
+
 function projectBaseURL(testInfo: TestInfo): string {
   return String(testInfo.project.use.baseURL ?? process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3001")
 }
@@ -590,6 +592,24 @@ test("ED E1 leads with the private one-off outcome before clinical detail", asyn
     await expect(heading).toHaveText("Private ED assessment, from home.")
     await expect(heading).toBeVisible()
     await expect(heading).toHaveCSS("hyphens", "none")
+    expect(
+      await heading.evaluate((element) => {
+        const text = element.firstChild
+        const value = text?.textContent ?? ""
+        const start = value.indexOf("assessment")
+        if (!(text instanceof Text) || start < 0) return 0
+
+        const lines = new Set<number>()
+        for (let index = start; index < start + "assessment".length; index += 1) {
+          const range = document.createRange()
+          range.setStart(text, index)
+          range.setEnd(text, index + 1)
+          for (const rect of range.getClientRects()) lines.add(Math.round(rect.top * 10) / 10)
+        }
+        return lines.size
+      }),
+      `${state.name} should keep assessment on one line at an ordinary viewport`,
+    ).toBe(1)
 
     const hero = heading.locator("xpath=ancestor::section[1]")
     const heroCta = hero.getByRole("link", {
@@ -660,6 +680,10 @@ test("ED E1 leads with the private one-off outcome before clinical detail", asyn
     const practicalOffer = page.locator("#how-it-works")
     await expect(practicalOffer).toContainText("Medicine cost is separate")
     expect(
+      await hero.evaluate((element) => element.nextElementSibling?.id ?? null),
+      `${state.name} practical offer should directly follow the Hero`,
+    ).toBe("how-it-works")
+    expect(
       await page.evaluate(() => {
         const practical = document.querySelector("#how-it-works")
         const education = document.querySelector("#eligibility")
@@ -670,6 +694,12 @@ test("ED E1 leads with the private one-off outcome before clinical detail", asyn
         )
       }),
     ).toBe(true)
+
+    const timingFaq = page.getByRole("button", { name: "How fast will I hear back?" })
+    await timingFaq.scrollIntoViewIfNeeded()
+    await expect(timingFaq).toBeVisible()
+    await timingFaq.click()
+    await expect(page.getByText(ED_TIMING_FAQ_ANSWER, { exact: true })).toBeVisible()
 
     if (state.width === 375) {
       await practicalOffer.scrollIntoViewIfNeeded()
@@ -688,6 +718,75 @@ test("ED E1 leads with the private one-off outcome before clinical detail", asyn
 
     expect(browserErrors, `${state.name} browser errors`).toEqual([])
     await context.close()
+  }
+})
+
+test("ED E1 contains the Hero at narrow zoom and enlarged text", async ({ browser }, testInfo) => {
+  test.setTimeout(120_000)
+
+  const states = [
+    { name: "zoom-200-proxy", width: 188, height: 422, deviceScaleFactor: 2 },
+    { name: "root-32-at-375", width: 375, height: 844, deviceScaleFactor: 1, rootFontSize: 32 },
+  ] as const
+
+  for (const state of states) {
+    const { context, page } = await newFoundationPage(browser, testInfo, state)
+    try {
+      await gotoPublicRoute(page, "/erectile-dysfunction")
+      await applyRootFontSize(page, "rootFontSize" in state ? state.rootFontSize : undefined)
+      await finishFiniteEntranceAnimations(page)
+
+      const heading = page.getByRole("heading", { level: 1 })
+      await expect(heading).toHaveText("Private ED assessment, from home.")
+      await expect(heading).toHaveCSS("hyphens", "none")
+      const hero = heading.locator("xpath=ancestor::section[1]")
+      await expect(hero).toContainText("Start private assessment")
+      await expect(hero.getByRole("complementary", { name: "ED assessment facts" })).toContainText(
+        "The practical facts",
+      )
+
+      const containment = await heading.evaluate((element) => {
+        const headingRect = element.getBoundingClientRect()
+        const heroRect = element.closest("section")?.getBoundingClientRect()
+        const range = document.createRange()
+        range.selectNodeContents(element)
+        const textRects = Array.from(range.getClientRects())
+        const tolerance = 2
+
+        return {
+          headingInHero: Boolean(
+            heroRect &&
+            headingRect.left >= heroRect.left - tolerance &&
+            headingRect.right <= heroRect.right + tolerance,
+          ),
+          textInHeading: textRects.every(
+            (rect) =>
+              rect.left >= headingRect.left - tolerance &&
+              rect.right <= headingRect.right + tolerance,
+          ),
+          textInViewport: textRects.every(
+            (rect) =>
+              rect.left >= -tolerance &&
+              rect.right <= document.documentElement.clientWidth + tolerance,
+          ),
+          textRectCount: textRects.length,
+        }
+      })
+      expect(containment.textRectCount, `${state.name} H1 should render semantic text`).toBeGreaterThan(0)
+      expect(containment.headingInHero, `${state.name} H1 box should stay inside the Hero`).toBe(true)
+      expect(containment.textInHeading, `${state.name} H1 text should stay inside its box`).toBe(true)
+      expect(containment.textInViewport, `${state.name} H1 text should stay inside the viewport`).toBe(true)
+
+      const audit = await inspectMeaningfulHorizontalOverflow(page)
+      expect(audit.scrollWidth, `${state.name} ED document width`).toBeLessThanOrEqual(audit.clientWidth + 1)
+      expect(audit.findings, `${state.name} ED semantic overflow`).toEqual([])
+
+      await page.screenshot({
+        path: testInfo.outputPath(`ed-e1-${state.name}-viewport.png`),
+      })
+    } finally {
+      await context.close()
+    }
   }
 })
 
