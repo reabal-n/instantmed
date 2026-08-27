@@ -70,16 +70,16 @@ _Avoid_: Organic order (narrower), unattributed order
 
 ## Voice Operations
 
-**AI Voice Receptionist**:
-The consent-first automated administrative message-taker that collects a caller-confirmed issue for Medical Director review. It is not a clinical consultation, triage service, or patient-authentication channel.
+**AI Voice Secretary**:
+The consent-first automated assistant that speaks with a Caller, collects a caller-confirmed message, and relays it to the Medical Director. It does not handle the issue itself and is not a clinical consultation, triage service, or patient-authentication channel.
 _Avoid_: AI doctor, voice doctor, phone consultation, autonomous support agent
 
-**Voice Callback Request**:
-The minimal issue record a caller confirms for Medical Director follow-up. It is not a promised correction, clinical decision, completed outcome, recording, or transcript.
-_Avoid_: Clinical intake, correction order, resolution, call transcript
+**Medical Director Message**:
+The minimal message a Caller confirms for Medical Director review. It may include an optional callback number but does not imply that a callback, correction, clinical decision, or completed outcome has been promised.
+_Avoid_: Callback request, clinical intake, correction order, resolution, call transcript
 
 **Caller**:
-The unauthenticated person speaking with the AI Voice Receptionist. A Caller may be the Patient or a third party and may provide relevant Patient information, but the receptionist never treats that information as identity verification or discloses Patient information in return.
+The unauthenticated person speaking with the AI Voice Secretary. A Caller may be the Patient or a third party and may provide relevant Patient information, but the secretary never treats that information as identity verification or discloses Patient information in return.
 _Avoid_: Verified Patient, authenticated Patient
 
 **Patient Match Details**:
