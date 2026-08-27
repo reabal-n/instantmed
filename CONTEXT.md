@@ -67,3 +67,13 @@ _Avoid_: Traffic-proven page, ranking winner, citation winner
 **Free-channel Order**:
 A paid order whose attribution carries no paid-click identifier (no gclid, gbraid, wbraid, campaign id, or cpc medium). Recovery and lifecycle email orders sit inside this bucket unless a comparison explicitly separates them with the canonical classifier.
 _Avoid_: Organic order (narrower), unattributed order
+
+## Voice Operations
+
+**AI Voice Receptionist**:
+The consent-first automated administrative message-taker that collects a caller-confirmed issue for Medical Director review. It is not a clinical consultation, triage service, or patient-authentication channel.
+_Avoid_: AI doctor, voice doctor, phone consultation, autonomous support agent
+
+**Voice Callback Request**:
+The minimal issue record a caller confirms for Medical Director follow-up. It is not a promised correction, clinical decision, completed outcome, recording, or transcript.
+_Avoid_: Clinical intake, correction order, resolution, call transcript
