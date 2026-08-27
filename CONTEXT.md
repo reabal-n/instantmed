@@ -85,3 +85,7 @@ _Avoid_: Verified Patient, authenticated Patient
 **Patient Match Details**:
 The Patient's full name and date of birth, supplied by a Caller so the Medical Director can locate the likely Patient record. These details support record matching but do not authenticate the Caller.
 _Avoid_: Verified identity, order reference, account authentication
+
+**Callback Preference**:
+The Caller's explicit choice between leaving a Medical Director Message only or requesting a return call. A callback number is collected only for a requested return call, and the preference does not promise that or when a call will occur.
+_Avoid_: Automatic callback, guaranteed callback, callback deadline
