@@ -83,6 +83,7 @@ describe("converted server draft checkout reuse", () => {
       data: {
         category: "prescription",
         flow_instance_id: FLOW_INSTANCE_ID,
+        growth_experience_version: null,
         guest_email: "patient@example.com",
         id: INTAKE_ID,
         patient_id: "patient-1",
@@ -129,6 +130,7 @@ describe("converted server draft checkout reuse", () => {
         paymentStatus: "pending",
         status: "pending_payment",
         subtype: "repeat",
+        growthExperienceVersion: null,
       },
     })
     expect(rpc).toHaveBeenCalledWith(
@@ -185,35 +187,51 @@ describe("converted server draft checkout reuse", () => {
                 converted_to_intake_id: null,
                 email: "patient@example.com",
                 flow_instance_id: FLOW_INSTANCE_ID,
-                service_type: "prescription",
+                service_type: "consult",
               },
               error: null,
             }),
       }
     })
-    const from = vi.fn()
+    const growthMaybeSingle = vi.fn(async () => ({
+      data: { growth_experience_version: "spx_h1_20260828" },
+      error: null,
+    }))
+    const from = vi.fn((table: string) => {
+      if (table !== "partial_intakes") throw new Error(`Unexpected table ${table}`)
+      const chain = {
+        select: vi.fn(() => chain),
+        eq: vi.fn(() => chain),
+        maybeSingle: growthMaybeSingle,
+      }
+      return chain
+    })
 
     await expect(findConvertedPartialIntakeForCheckout(
       { from, rpc } as never,
       {
-        category: "prescription",
+        category: "consult",
         email: "patient@example.com",
         flowInstanceId: FLOW_INSTANCE_ID,
-        serviceType: "prescription",
+        serviceType: "consult",
         sessionId: SESSION_ID,
-        subtype: "repeat",
+        subtype: "hair_loss",
       },
-    )).resolves.toEqual({ kind: "none", reason: "not_converted" })
+    )).resolves.toEqual({
+      kind: "none",
+      reason: "not_converted",
+      growthExperienceVersion: "spx_h1_20260828",
+    })
 
     await expect(findConvertedPartialIntakeForCheckout(
       { from, rpc } as never,
       {
-        category: "prescription",
+        category: "consult",
         email: "patient@example.com",
         flowInstanceId: OTHER_FLOW_INSTANCE_ID,
-        serviceType: "prescription",
+        serviceType: "consult",
         sessionId: SESSION_ID,
-        subtype: "repeat",
+        subtype: "hair_loss",
       },
     )).resolves.toEqual({ kind: "blocked", reason: "request_mismatch" })
   })

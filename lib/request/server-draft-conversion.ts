@@ -20,6 +20,7 @@ interface ConvertedDraftCheckoutIntake {
   paymentStatus: string | null
   status: string | null
   subtype: string | null
+  growthExperienceVersion: string | null
 }
 
 export type ConvertedDraftCheckoutResult =
@@ -28,7 +29,11 @@ export type ConvertedDraftCheckoutResult =
       kind: "blocked"
       reason: "discarded" | "identity_mismatch" | "query_error" | "request_mismatch"
     }
-  | { kind: "none"; reason: "invalid_id" | "not_converted" | "not_found" }
+  | {
+      kind: "none"
+      reason: "invalid_id" | "not_converted" | "not_found"
+      growthExperienceVersion?: string | null
+    }
 
 function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID_REGEX.test(value)
@@ -115,18 +120,38 @@ export async function findConvertedPartialIntakeForCheckout(
     return { kind: "blocked", reason: "identity_mismatch" }
   }
   if (!draft.converted_to_intake_id) {
-    return { kind: "none", reason: "not_converted" }
+    // The established checkout-claim RPC has an explicit return table, so the
+    // additive column is read immediately after the claim. Set-once database
+    // enforcement makes this value stable after the RPC transaction releases
+    // its row lock.
+    const { data: growthRow, error: growthError } = await supabase
+      .from("partial_intakes")
+      .select("growth_experience_version")
+      .eq("session_id", sessionId)
+      .maybeSingle<{ growth_experience_version: string | null }>()
+    if (growthError) {
+      logger.warn("Failed to load partial intake growth experience", {
+        error: growthError.message,
+      })
+      return { kind: "blocked", reason: "query_error" }
+    }
+    return {
+      kind: "none",
+      reason: "not_converted",
+      growthExperienceVersion: growthRow?.growth_experience_version ?? null,
+    }
   }
 
   const { data: intake, error: intakeError } = await supabase
     .from("intakes")
-    .select("id, patient_id, status, payment_status, payment_id, guest_email, category, subtype, flow_instance_id")
+    .select("id, patient_id, status, payment_status, payment_id, guest_email, category, subtype, flow_instance_id, growth_experience_version")
     .eq("id", draft.converted_to_intake_id)
     .maybeSingle<{
       category: string | null
       guest_email: string | null
       id: string
       flow_instance_id: string | null
+      growth_experience_version: string | null
       patient_id: string | null
       payment_id: string | null
       payment_status: string | null
@@ -163,6 +188,7 @@ export async function findConvertedPartialIntakeForCheckout(
       paymentStatus: intake.payment_status,
       status: intake.status,
       subtype: intake.subtype,
+      growthExperienceVersion: intake.growth_experience_version,
     },
   }
 }

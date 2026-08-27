@@ -25,6 +25,7 @@ import {
 } from "@/lib/data/intake-answers"
 import { decryptProfilePhi, updateProfile } from "@/lib/data/profiles"
 import { isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
+import { normalizePersistedGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
 import { createLogger } from "@/lib/observability/logger"
 import { isAtCapacity } from "@/lib/operational-controls/config"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
@@ -131,6 +132,7 @@ interface GuestCheckoutInput {
   }
   posthogDistinctId?: string // Anonymous browser ID for personless funnel continuity
   flowInstanceId?: string
+  growthExperienceVersion?: string
   serverDraftSessionId?: string
   checkoutSubmissionKey?: string
 }
@@ -248,6 +250,7 @@ async function rebuildExpiredGuestSession(
     payment_status: string | null
     status: string | null
     flow_instance_id: string | null
+    growth_experience_version: string | null
   },
   fallbackGuestEmail: string,
   baseUrl: string,
@@ -323,6 +326,9 @@ async function rebuildExpiredGuestSession(
           intake_id: intake.id,
           ...(intake.flow_instance_id
             ? { flow_instance_id: intake.flow_instance_id }
+            : {}),
+          ...(intake.growth_experience_version
+            ? { growth_experience_version: intake.growth_experience_version }
             : {}),
           is_retry: "true",
           category: intake.category || "",
@@ -403,6 +409,10 @@ async function markGuestCheckoutFailed(
 export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
   try {
     const resolvedAttribution = await resolveCheckoutAttribution(input.attribution)
+    const growthExperienceVersion = normalizePersistedGrowthExperienceVersion(
+      input.growthExperienceVersion,
+      { category: input.category, subtype: input.subtype },
+    )
 
     // KILL SWITCH (ENV): Fast env-var based kill switch (no DB round-trip)
     const envKillSwitch = checkCheckoutBlocked(input.category, input.subtype)
@@ -713,6 +723,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         is_priority: isPriority,
         idempotency_key: guestIdempotencyKey,
         flow_instance_id: input.flowInstanceId ?? null,
+        growth_experience_version: growthExperienceVersion,
         guest_email: normalizedEmail, // P1 FIX: Store for abandoned checkout recovery
         stripe_price_id: priceId || null, // P3 FIX: Store for retry pricing consistency
         // Attribution: store UTM params for payment attribution in PostHog
@@ -748,7 +759,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (intakeError?.code === "23505") {
         const { data: existingIntake } = await supabase
           .from("intakes")
-          .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id")
+          .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id, growth_experience_version")
           .eq("idempotency_key", guestIdempotencyKey)
           .eq("patient_id", guestProfileId)
           .maybeSingle()
@@ -998,6 +1009,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       serviceType: input.category,
       subtype: input.subtype,
       anonymousId: input.posthogDistinctId,
+      metadata: {
+        growth_experience_version: growthExperienceVersion,
+      },
     })
 
     // 4. Insert the answers (ATOMIC - fail if answers cannot be saved)
@@ -1124,6 +1138,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         ...(isPriority ? { is_priority: "true" } : {}),
         ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
         ...(input.flowInstanceId ? { flow_instance_id: input.flowInstanceId } : {}),
+        ...(growthExperienceVersion
+          ? { growth_experience_version: growthExperienceVersion }
+          : {}),
         // Google Ads click IDs for Enhanced Conversions attribution
         ...(attribution.gclid ? { gclid: attribution.gclid } : {}),
         ...(attribution.gbraid ? { gbraid: attribution.gbraid } : {}),
@@ -1239,6 +1256,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       serviceType: input.category,
       subtype: input.subtype,
       anonymousId: input.posthogDistinctId,
+      metadata: {
+        growth_experience_version: growthExperienceVersion,
+      },
     })
 
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }

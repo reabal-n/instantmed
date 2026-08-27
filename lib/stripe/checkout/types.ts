@@ -40,6 +40,8 @@ export interface CreateCheckoutInput {
   posthogDistinctId?: string
   /** Opaque UUID identifying one intake attempt across draft and payment. */
   flowInstanceId?: string
+  /** Opaque non-clinical product-experience cohort. */
+  growthExperienceVersion?: string
   /** Server draft session id used to mark a recovered partial intake converted. */
   serverDraftSessionId?: string
   /** Legacy fields. Patient info now comes from auth. */

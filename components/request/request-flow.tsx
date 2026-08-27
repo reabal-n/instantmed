@@ -376,6 +376,8 @@ interface RequestFlowProps {
   initialDuration?: string
   /** Validated explicit server-draft token. null means a malformed token was supplied. */
   initialDraftId?: string | null
+  /** Strictly validated landing token; claimed only by a genuinely fresh flow. */
+  initialGrowthExperienceVersion?: string | null
   isAuthenticated: boolean
   hasProfile: boolean
   /** Profile has complete identity (incl. date_of_birth) - details step can be skipped */
@@ -417,6 +419,7 @@ export function RequestFlow({
   initialCertType,
   initialDuration,
   initialDraftId,
+  initialGrowthExperienceVersion,
   isAuthenticated,
   hasProfile,
   hasCompleteIdentity,
@@ -454,10 +457,12 @@ export function RequestFlow({
   const {
     serviceType,
     flowInstanceId,
+    growthExperienceVersion,
     currentStepId,
     furthestVisitedStepId,
     stepsNeedingRevalidation,
     setServiceType,
+    claimGrowthExperienceVersion,
     prevStep,
     goToStep,
     answers,
@@ -763,6 +768,31 @@ export function RequestFlow({
     }
   }, [hydrated, hasExplicitRecovery, initialService, serviceType, setServiceType])
 
+  // The URL token is only an invitation to claim a cohort. Existing local or
+  // server work always wins, and an untagged/direct flow remains null.
+  useEffect(() => {
+    if (
+      !hydrated ||
+      hasExplicitRecovery ||
+      !initialGrowthExperienceVersion ||
+      !initialService ||
+      serviceType !== initialService ||
+      storedDraftAtEntryRef.current ||
+      lastSavedAt
+    ) {
+      return
+    }
+    claimGrowthExperienceVersion(initialGrowthExperienceVersion)
+  }, [
+    claimGrowthExperienceVersion,
+    hasExplicitRecovery,
+    hydrated,
+    initialGrowthExperienceVersion,
+    initialService,
+    lastSavedAt,
+    serviceType,
+  ])
+
   // (URL answer seeds + subtype-mismatch detection now run post-hydration in
   // applyUrlDecision inside the rehydrate effect above.)
 
@@ -840,6 +870,16 @@ export function RequestFlow({
 
   // --- Extracted hooks ---
 
+  const growthClaimPending = Boolean(
+    hydrated &&
+    !hasExplicitRecovery &&
+    initialGrowthExperienceVersion &&
+    initialService &&
+    serviceType === initialService &&
+    !storedDraftAtEntryRef.current &&
+    !lastSavedAt &&
+    !growthExperienceVersion,
+  )
   const { analyticsServiceType, patientEmail, posthog, trackStepCompleted } = useFlowAnalytics({
     serviceType,
     currentStep,
@@ -847,6 +887,8 @@ export function RequestFlow({
     currentStepIndex,
     totalSteps: activeSteps.length,
     answers: resolvedStepAnswers,
+    growthAttributionReady: !growthClaimPending,
+    growthExperienceVersion,
     userEmail,
   })
 
@@ -941,8 +983,9 @@ export function RequestFlow({
     posthog.capture('request_draft_restored', {
       service_type: analyticsServiceType,
       flow_instance_id: flowInstanceId,
+      growth_experience_version: growthExperienceVersion,
     })
-  }, [analyticsServiceType, flowInstanceId, posthog, restoredDraftStepId])
+  }, [analyticsServiceType, flowInstanceId, growthExperienceVersion, posthog, restoredDraftStepId])
 
   // Keyboard navigation: Escape to go back
   // Note: Enter to continue is handled by individual step components

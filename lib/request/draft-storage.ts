@@ -6,6 +6,7 @@
  */
 
 import { normalizeFlowInstanceId } from '@/lib/analytics/flow-instance'
+import { normalizePersistedGrowthExperienceVersion } from '@/lib/growth/specialty-experience-attribution'
 import {
   isDraftFlowRetired,
   retireDraftFlow,
@@ -27,6 +28,7 @@ const DRAFT_EXPIRY_HOURS = 24
 export interface DraftData {
   serviceType: CanonicalServiceType
   flowInstanceId?: string
+  growthExperienceVersion?: string
   currentStepId: UnifiedStepId
   furthestVisitedStepId?: UnifiedStepId | null
   stepsNeedingRevalidation?: UnifiedStepId[]
@@ -126,6 +128,13 @@ export function getDraft(service: CanonicalServiceType): DraftData | null {
 
     draft.answers = isPlainRecord(draft.answers) ? draft.answers : {}
     draft.flowInstanceId = normalizeFlowInstanceId(draft.flowInstanceId) ?? undefined
+    draft.growthExperienceVersion = normalizePersistedGrowthExperienceVersion(
+      draft.growthExperienceVersion,
+      {
+        serviceType: draft.serviceType,
+        subtype: draft.answers.consultSubtype,
+      },
+    ) ?? undefined
     if (isDraftFlowRetired(draft.flowInstanceId)) {
       localStorage.removeItem(key)
       return null
@@ -177,6 +186,13 @@ export function saveDraft(service: CanonicalServiceType, data: Omit<DraftData, '
       saveServerDraftDebounced({
         serviceType: service,
         flowInstanceId: normalizeFlowInstanceId(data.flowInstanceId) ?? undefined,
+        growthExperienceVersion: normalizePersistedGrowthExperienceVersion(
+          data.growthExperienceVersion,
+          {
+            serviceType: service,
+            subtype: data.answers.consultSubtype,
+          },
+        ) ?? undefined,
         currentStepId: data.currentStepId,
         answers: isPlainRecord(data.answers) ? data.answers : {},
         identity: {

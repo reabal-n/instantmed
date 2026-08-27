@@ -15,6 +15,7 @@ import {
   type SupabaseClient,
 } from "@supabase/supabase-js"
 
+import { normalizePersistedGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
 import { createLogger } from "@/lib/observability/logger"
 
 import { reportCheckoutSessionFailure } from "../checkout-error-alarm"
@@ -47,6 +48,7 @@ export interface BuildSessionParamsInput {
   referralCoupon: ReferralCoupon | null
   posthogDistinctId: string | undefined
   flowInstanceId: string | undefined
+  growthExperienceVersion: string | undefined
   attribution: {
     gclid: string | null
     gbraid: string | null
@@ -73,6 +75,10 @@ export function buildCheckoutSessionParams(args: BuildSessionParamsInput) {
   if (args.isPriority && args.priorityPriceId) {
     lineItems.push({ price: args.priorityPriceId, quantity: 1 })
   }
+  const growthExperienceVersion = normalizePersistedGrowthExperienceVersion(
+    args.growthExperienceVersion,
+    { category: args.category, subtype: args.subtype },
+  )
 
   const sessionMetadata: Record<string, string> = {
     intake_id: args.intakeId,
@@ -89,6 +95,11 @@ export function buildCheckoutSessionParams(args: BuildSessionParamsInput) {
       : {}),
     ...(args.posthogDistinctId ? { ph_distinct_id: args.posthogDistinctId } : {}),
     ...(args.flowInstanceId ? { flow_instance_id: args.flowInstanceId } : {}),
+    ...(growthExperienceVersion
+      ? {
+          growth_experience_version: growthExperienceVersion,
+        }
+      : {}),
     ...(args.isPriority ? { is_priority: "true" } : {}),
     ...(args.attribution.gclid ? { gclid: args.attribution.gclid } : {}),
     ...(args.attribution.gbraid ? { gbraid: args.attribution.gbraid } : {}),

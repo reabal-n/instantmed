@@ -249,6 +249,7 @@ export async function createIntakeAndCheckoutAction(
       referralCoupon,
       posthogDistinctId: input.posthogDistinctId,
       flowInstanceId: input.flowInstanceId,
+      growthExperienceVersion: input.growthExperienceVersion,
       attribution,
     })
 
@@ -300,6 +301,9 @@ export async function createIntakeAndCheckoutAction(
       subtype: input.subtype,
       anonymousId: input.posthogDistinctId,
       flowInstanceId: input.flowInstanceId,
+      metadata: {
+        growth_experience_version: input.growthExperienceVersion ?? null,
+      },
     })
 
     if (latencyMs > 5000) {
