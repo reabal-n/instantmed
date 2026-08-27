@@ -39,6 +39,20 @@ describe("SEO indexing contracts", () => {
     expect(contactPage).toContain('getApprovedClaim("complaints_timing")')
   })
 
+  it("consolidates the legacy Canberra certificate URL into the proven location canonical", () => {
+    const nextConfig = read("next.config.mjs")
+    const sitemap = read("app/sitemap.ts")
+    const medCertLocationBlock = sitemap.match(
+      /const medCertLocationSlugs = \[([\s\S]*?)\]/,
+    )?.[1]
+
+    expect(nextConfig).toContain(
+      '{ source: "/medical-certificate/canberra", destination: "/locations/canberra", permanent: true }',
+    )
+    expect(medCertLocationBlock).toBeDefined()
+    expect(medCertLocationBlock).not.toContain('"canberra"')
+  })
+
   it("allows ChatGPT Search crawler to discover public source pages", () => {
     const robots = read("app/robots.ts")
 
