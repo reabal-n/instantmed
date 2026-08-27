@@ -38,12 +38,12 @@
 - Review: `docs/superpowers/plans/2026-08-28-specialty-profitability-rebuild.md`
 - Modify after review: both files above
 
-- [ ] Give a fresh independent reviewer only the two artifacts plus the canonical business, revenue, clinical, advertising, architecture, and roadmap docs.
-- [ ] Require `KEEP`, `REVISE`, or `BLOCK`, with load-bearing findings ordered by risk and the smallest correction for each.
-- [ ] Require explicit review of economics, sample size, experiment isolation, privacy, clinical invariants, no-friction constraint, marketing compliance, payment/recovery, Ads authority, rollback, and employer-outreach exclusion.
-- [ ] Add a dated `Fable Review Receipt` section to the spec containing the verdict, material findings, accepted corrections, and any rejected suggestion with evidence.
-- [ ] Revise every affected task before implementation. No product code changes precede this gate.
-- [ ] Run:
+- [x] Give a fresh independent reviewer only the two artifacts plus the canonical business, revenue, clinical, advertising, architecture, and roadmap docs.
+- [x] Require `KEEP`, `REVISE`, or `BLOCK`, with load-bearing findings ordered by risk and the smallest correction for each.
+- [x] Require explicit review of economics, sample size, experiment isolation, privacy, clinical invariants, no-friction constraint, marketing compliance, payment/recovery, Ads authority, rollback, and employer-outreach exclusion.
+- [x] Add a dated `Fable Review Receipt` section to the spec containing the verdict, material findings, accepted corrections, and any rejected suggestion with evidence.
+- [x] Revise every affected task before implementation. No product code changes preceded this gate.
+- [x] Run:
 
 ```bash
 corepack pnpm doc:audit
@@ -134,17 +134,20 @@ corepack pnpm exec vitest run lib/__tests__/specialty-experience-registry.test.t
 **Files:**
 
 - Create: `supabase/migrations/20260828090000_specialty_experience_attribution.sql`
-- Modify: `types/supabase.ts`
+- Modify: `types/db.ts`
 - Modify: `components/request/store.ts`
 - Modify: `lib/request/draft-storage.ts`
 - Modify: `lib/request/server-draft.ts`
 - Modify: `lib/request/server-draft-conversion.ts`
+- Modify: `app/api/draft/route.ts`
+- Modify: `app/request/page.tsx`
+- Modify: `components/request/request-flow.tsx`
 - Modify: `app/actions/unified-checkout.ts`
 - Modify: `lib/stripe/checkout/types.ts`
 - Modify: `lib/stripe/checkout/persistence.ts`
 - Modify: `lib/stripe/guest-checkout.ts`
 - Modify: `lib/stripe/checkout/retry-payment.ts`
-- Modify: `lib/stripe/stripe-session.ts`
+- Modify: `lib/stripe/checkout/stripe-session.ts`
 - Modify: `lib/stripe/confirmed-payment-finalization.ts`
 - Modify: `lib/analytics/posthog-privacy.ts`
 - Modify: `lib/__tests__/flow-instance-attribution-contract.test.ts`
@@ -152,8 +155,11 @@ corepack pnpm exec vitest run lib/__tests__/specialty-experience-registry.test.t
 - Create: `lib/__tests__/specialty-experience-attribution-contract.test.ts`
 
 - [ ] Add nullable `growth_experience_version` columns to `partial_intakes` and `intakes`, with a length/format check and comments declaring the field non-clinical.
+- [ ] Add database enforcement that the first non-null value is set once for a draft session and cannot be replaced by a later draft upsert; make the realised intake value immutable after insert.
 - [ ] Keep the column outside `answers`; never copy it into clinical summaries, doctor prompts, emails, or Parchment payloads.
-- [ ] Capture an allowlisted version when a specialty flow starts and preserve it through local/service drafts, authenticated and guest checkout, recovered drafts, retry payment, Stripe metadata, and the server purchase event.
+- [ ] Parse and validate the CTA token in `app/request/page.tsx`, pass it through `RequestFlow`, and claim it only when starting a genuinely fresh matching specialty flow.
+- [ ] Leave an untagged direct `/request` start unassigned. Never infer the cohort from the currently active registry entry.
+- [ ] Capture the allowlisted landing token when the specialty flow starts and preserve it through local/service drafts, the draft API, authenticated and guest checkout, recovered drafts, retry payment, Stripe metadata, and the server purchase event.
 - [ ] Preserve an existing saved cohort on restore; never silently reassign it to the currently active version.
 - [ ] Unknown values become `null` and never block intake, checkout, payment, or fulfilment.
 - [ ] Add the property to the PostHog privacy allowlist only after strict normalisation.
@@ -184,6 +190,8 @@ corepack pnpm exec vitest run \
 - [ ] Accept an allowlisted `growthExperienceVersion` in the shared landing shell.
 - [ ] Emit one best-effort `landing_experience_viewed` event and attach the same version to CTA, FAQ, section, and scroll events.
 - [ ] Append the opaque version to the internal request CTA in a controlled query parameter so the request store can claim it at start.
+- [ ] Accept the token only when it is current, allowlisted, and matches the requested service/subtype; otherwise start an unassigned flow without blocking the patient.
+- [ ] Confirm a restored flow ignores a different incoming token and retains its database-owned first cohort.
 - [ ] Keep the public landing URL and canonical URL unchanged.
 - [ ] Confirm analytics absence/failure does not block navigation.
 - [ ] Run RED then GREEN:
@@ -315,10 +323,10 @@ Expected: PASS.
 - Modify: `lib/__tests__/request-terminal-safety-blocks.test.ts`
 - Modify: `lib/__tests__/consult-validators.test.ts`
 
-- [ ] First add a failing test proving `checkSafetyForServer("consult", hairReproductive=yes)` does not currently match unified checkout's hard block.
+- [ ] First add a failing test proving `checkSafetyForServer("consult", { consultSubtype: "hair_loss", hairReproductive: "yes", ...safeAnswers })` does not currently match unified checkout's hard block.
 - [ ] Add the smallest Hair-specific safety rule so lower-level checkout defense, recovered rows, and retry payment cannot proceed with the existing contraindicating answer.
 - [ ] Preserve the normal unified validator and exact patient-facing terminal block. Do not add or move a question during H1.
-- [ ] Confirm safe `no` and `na` values still proceed and missing safety follows the existing recoverable-hold policy rather than an invented outcome.
+- [ ] Confirm safe `no` and `na` values still proceed and missing safety follows the existing recoverable-hold policy rather than an invented outcome across normal checkout, recovered draft, and retry paths.
 - [ ] Run:
 
 ```bash
@@ -345,10 +353,11 @@ Expected: PASS.
 - Modify: `lib/__tests__/google-ads-agent-policy-contract.test.ts`
 - Modify: `lib/__tests__/google-ads-agent-brief.test.ts` only if reason rendering changes
 
-- [ ] Add failing 9/10 and 29/30 click boundary tests for a specialty with zero retained orders.
+- [ ] Add failing 9/10 investigation boundaries for each specialty, Hair-specific 19/20 pause boundaries, and 29/30 pause boundaries for ED and Women's Health when there are zero retained orders.
 - [ ] Preserve precedence: unavailable economics -> investigate; tracking not GREEN -> hold; loss cap -> approval-needed pause; already paused -> hold.
 - [ ] At 10 clicks and zero orders, return a PHI-free investigation reason rather than implying the pilot is healthy.
-- [ ] At 30 clicks and zero orders, return `APPROVAL_NEEDED` for `campaign_status`.
+- [ ] At 20 Hair clicks and zero orders, return `APPROVAL_NEEDED` for `campaign_status`; keep 30 clicks for ED and Women's Health.
+- [ ] Preserve exact stop precedence: trustworthy experiment-level Hair incremental loss of A$60 first, then Hair 20 clicks, then duration when trustworthy pilot dates exist. Do not reinterpret the generic rolling-30 campaign loss as incremental relaunch loss.
 - [ ] Do not enforce elapsed days or persisted checkout progression until campaign-scoped evidence exists. Keep the limitation explicit rather than deriving a false date/count.
 - [ ] Do not call mutation, proposal-send, or account APIs from policy evaluation.
 - [ ] Run:
@@ -431,10 +440,12 @@ PLAYWRIGHT=1 corepack pnpm exec playwright test \
 
 ### Task 13: Close H1/E1 before activating an intake-presentation approach
 
+- [ ] Before activation, write an opening receipt containing exact SHA, timestamp, service status, price, campaign configuration/status, tracking state, and closed pre-window economics.
 - [ ] Wait for the directional floor or 21 days, then allow 24 hours for settlement.
 - [ ] Read versioned, aggregate, PHI-free funnel and retained-cash evidence.
 - [ ] Call the commercial result only at 10 retained orders; otherwise label it directional or inconclusive.
 - [ ] Confirm no Ads/acquisition variable overlapped the service's product window.
+- [ ] Write a closing receipt comparing the same controls. Any product/acquisition/price/clinical/checkout drift, or a missing receipt, makes the result contaminated/inconclusive rather than causal.
 - [ ] Choose at most one next material approach for that service:
   - Hair H2 merged opener, or Hair H3 privacy-led landing.
   - ED E2 optional-BMI removal, or ED E3 privacy-led landing.

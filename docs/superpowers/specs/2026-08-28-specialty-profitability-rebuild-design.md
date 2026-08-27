@@ -1,6 +1,6 @@
 # Hair Loss and ED Profitability Rebuild Design
 
-**Status:** Draft for independent Fable review. No live Google Ads mutation or production deployment is authorised by this document.
+**Status:** Fable-reviewed and revised for implementation on 2026-08-28. No live Google Ads mutation or production deployment is authorised by this document.
 
 ## Decision
 
@@ -128,7 +128,7 @@ Use one nullable, allowlisted, non-clinical field named `growth_experience_versi
 The marker is captured when the intake starts and follows the existing `flow_instance_id` through:
 
 ```text
-landing CTA / direct specialty start
+validated landing CTA token
   -> request store and service-scoped draft
   -> partial_intakes
   -> authenticated or guest checkout
@@ -137,7 +137,9 @@ landing CTA / direct specialty start
   -> canonical funnel events and purchase_completed_server
 ```
 
-The value must be normalised against the registry at every trust boundary. Unknown values become `null`; they never block care or checkout. It must not be stored inside the clinical answers JSON and must not overload UTM fields.
+Only a validated, current, service-matched landing CTA token may create an H1/E1 cohort on a genuinely fresh flow. An untagged direct `/request` start remains `null` and is reported separately; the application never infers a version merely because that version is active today. A restored flow keeps its first stored cohort even when a different query token is present.
+
+The value must be normalised against the registry at every trust boundary. Unknown values become `null`; they never block care or checkout. It must not be stored inside the clinical answers JSON and must not overload UTM fields. Database rules make the value set-once for a draft session and immutable after intake creation, matching the existing `flow_instance_id` ownership boundary.
 
 ### Code-owned registry
 
@@ -247,14 +249,15 @@ This rebuild changes code and prepares evidence; it does not mutate Google Ads.
 
 The deterministic evaluator currently declares but does not enforce specialty click/day gates. The first safe repair is:
 
-- zero retained orders at 30 clicks -> campaign-status `APPROVAL_NEEDED`;
+- Hair with zero retained orders at 20 clicks -> campaign-status `APPROVAL_NEEDED`;
+- ED or Women's Health with zero retained orders at 30 clicks -> campaign-status `APPROVAL_NEEDED`;
 - zero retained orders at 10 clicks -> `INVESTIGATE` until persisted-progression evidence is available;
 - loss cap takes precedence;
 - already-paused campaigns remain `HOLD`;
 - missing economics remain `INVESTIGATE`;
 - no code path directly mutates the account.
 
-Elapsed-day and persisted-progression enforcement may be added only with a trustworthy, campaign-scoped evidence source. Do not invent a pilot date from a rolling window.
+Elapsed-day and persisted-progression enforcement may be added only with a trustworthy, campaign-scoped evidence source. Do not invent a pilot date from a rolling window. For an approved Hair relaunch, the experiment-level A$60 incremental-loss stop precedes the 20-click stop; the generic rolling-campaign evaluator retains its code-owned lifetime loss cap until a relaunch baseline is durably bound.
 
 ## Prescribing Identity Truth
 
@@ -268,6 +271,8 @@ together with date of birth, sex, phone, and structured Australian address for p
 This is a truth repair, not a relaxed identity rule. The validator, address requirements, eScript matching, Parchment sync, and downstream doctor workflow remain unchanged.
 
 ## Measurement Readout
+
+Every product window starts with an immutable opening receipt containing the exact deployed SHA, activation timestamp, service availability, price, campaign status/configuration, tracking state, and closed pre-window economics. It ends with a closing receipt that confirms whether price, product version, campaign/ad/keyword/bid/budget/schedule, clinical workflow, or checkout changed during the window. If any material input changed, or either receipt is missing, label the result **contaminated/inconclusive** and do not describe movement as causal product lift.
 
 For each version report, separately by paid and free acquisition:
 
@@ -309,3 +314,21 @@ Before product code changes, an independent reviewer must return `KEEP`, `REVISE
 - whether rollback and production proof are concrete.
 
 Implementation starts only after all load-bearing `REVISE`/`BLOCK` findings are resolved in this document and the implementation plan.
+
+## Fable Review Receipt — 2026-08-28
+
+**Reviewed commit:** `9bb139866`
+
+**Verdict:** `REVISE`
+**Resolution:** All six load-bearing findings were accepted and applied before product-code work.
+
+| Finding | Correction applied |
+|---|---|
+| Saved cohort could be overwritten | Cohort is now set-once per draft session and immutable after intake creation, with database and recovery tests required. |
+| Draft/persistence plan had two wrong paths and omitted the live draft API | The implementation plan now names `types/db.ts`, `lib/stripe/checkout/stripe-session.ts`, `app/api/draft/route.ts`, `app/request/page.tsx`, and `components/request/request-flow.tsx`. |
+| Direct specialty starts would contaminate landing-version results | Only a validated landing CTA token can assign H1/E1; direct and untagged starts remain unassigned. |
+| Hair used contradictory 20- and 30-click stops | Hair now has an exact 19/20 boundary; 29/30 remains for ED/Women's Health. The Hair experiment's A$60 incremental loss pre-empts clicks when trustworthy experiment evidence exists. |
+| Hair safety test omitted the subtype that activates the rule | Tests now require `consultSubtype: "hair_loss"` and cover `yes`, `no`, `na`, and missing values through normal, recovery, and retry paths. |
+| Sequential windows lacked verifiable opening/closing controls | Exact opening and closing receipts are now mandatory; drift makes the result contaminated/inconclusive. |
+
+The reviewer found no basis to close Hair or ED, add intake friction, include employer outreach, or broaden live Ads authority.
