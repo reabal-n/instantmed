@@ -12,6 +12,8 @@ Interactive proof checkpoint: `15bc733ed`
 
 Unavailable-state final-review code checkpoint verified by focused contracts: `67ac15cbc`
 
+Availability-pending attribution correction verified by focused contracts: `19f0be8c9`
+
 Proof roots, both outside tracked source:
 
 - landing, reflow, cohort, and unavailable-state evidence: `/tmp/instantmed-task11.KPkyGd/`
@@ -30,7 +32,7 @@ Proof roots, both outside tracked source:
 | Hair reproductive terminal and correction | PASS | Terminal block appeared; correction returned to Health, cleared the contraindicating answer, and preserved unrelated safety work |
 | ED nitrate terminal and correction | PASS | Terminal block appeared; correction returned to Health with the nitrate answer corrected |
 | IHI-only identity and structured address | PASS | No Medicare inputs were required; incomplete structured address was blocked with field/address validation; a complete synthetic structured address permitted Review/Pay |
-| Unavailable Hair and ED | IMPLEMENTATION PASS; final browser rerun pending | Earlier geometry proof keeps the notice below the navbar. Final review now gates versioned analytics until availability resolves enabled, keeps every scoped `/contact` fallback operable without `aria-disabled`, and uses the exact no-return-timing copy. |
+| Unavailable Hair and ED | IMPLEMENTATION PASS; final browser rerun pending | Earlier geometry proof keeps the notice below the navbar. Final review now gates versioned analytics and cohort-bearing links until availability resolves enabled, keeps every scoped `/contact` fallback operable without `aria-disabled`, and uses the exact no-return-timing copy. |
 | Original Task 11 Playwright execution | HARNESS BLOCKED AT THAT CHECKPOINT | The original run failed at browser launch before test bodies. Task 12 later installed the exact pinned browser outside the repository and executed its 101-test verification; those results are reported by Task 12. |
 
 ## Landing-Page Proof
@@ -176,6 +178,8 @@ Final review found three additional correctness gaps that the earlier geometry p
 
 Commit `67ac15cbc` gates the versioned tracker on resolved enabled availability, leaves the scoped `/contact` links operable, and uses the exact heading `This service is currently unavailable.` with the sentence `Contact us if you have questions.` Focused unit/source contracts pass. The updated unavailable cases were not run in Playwright or an interactive browser at this final checkpoint.
 
+Commit `19f0be8c9` closes the remaining pending-state attribution edge without adding a gate or delay: a click while availability is still resolving stays operable but carries no cohort token; enabled Hair/ED links receive H1/E1, and unavailable links remain untagged. Focused unit/source contracts cover all three states.
+
 Before/after receipts:
 
 - before: `/tmp/instantmed-task11.KPkyGd/hair-mobile-390-unavailable-light.png`
@@ -213,6 +217,7 @@ RED evidence covered unrelated med-cert work, expired consult work, active same-
 
 - At the Task 11 interactive checkpoint, scoped ESLint over its changed TypeScript/TSX files passed.
 - At final-review checkpoint `67ac15cbc`, the unavailable-state source/analytics contracts were green as part of a 9-file / 119-test focused run; `corepack pnpm typecheck` and `git diff --check` also passed.
+- At correction checkpoint `19f0be8c9`, 5 focused files / 85 tests, targeted ESLint, `corepack pnpm typecheck`, and `git diff --check` passed.
 - At the earlier Task 11 checkpoint, unavailable-state Playwright collection listed and parsed exactly two matching tests.
 - The earlier targeted Playwright launch failed five selected cases at 0ms before test code because Chromium headless shell revision 1223 was missing; HTML report is `/tmp/instantmed-task11.KPkyGd/playwright-report/index.html` and runner receipt is `/tmp/instantmed-task11.KPkyGd/playwright-results/.last-run.json`.
 - This Task 11 report does not claim Task 12's later 101-test Playwright run or its final-SHA rerun. No new interactive-browser, full lint, build, or full-CI gate was run for the unavailable-state final-review checkpoint recorded here.
@@ -229,6 +234,7 @@ No dependency version, lockfile, browser cache, or stack pin was changed.
 | ED reflow test contradicted the approved E1 hierarchy | expected two equal-weight CTA classes | parameterise ED=1 while preserving UTI/pill=2 | `95df20840` |
 | unavailable notice visually covered by fixed nav | accessibility-visible box, occluded center | place notice below nav in normal flow and assert center-point visibility | `15bc733ed` |
 | unavailable/loading pages could emit versioned analytics | tracker activated before service availability resolved and remained active when disabled | gate view, CTA, FAQ, section, and scroll events on resolved enabled availability; emit one view after loading settles | `67ac15cbc` |
+| availability-pending clicks could carry a cohort before service truth resolved | CTA href used the active registry marker while the availability provider was still loading | keep the link immediately operable but append H1/E1 only after availability resolves enabled | `19f0be8c9` |
 | real `/contact` fallbacks carried disabled semantics | disabled Button wrappers could make the fallback inoperable or expose `aria-disabled` | remove disabled semantics from the shared sticky/how-it-works and scoped Hair/ED fallbacks | `67ac15cbc` |
 | unavailable copy implied a return time | `temporarily unavailable` plus `We'll be back soon` | exact current-unavailability heading and question-contact sentence, with no timing claim | `67ac15cbc` |
 
@@ -264,3 +270,4 @@ No dependency version, lockfile, browser cache, or stack pin was changed.
 - `69d3855e3` — `fix(growth): preserve specialty cohort ownership on hydration`
 - `15bc733ed` — `fix(marketing): keep unavailable notice below navigation`
 - `67ac15cbc` — `fix(growth): close specialty review gaps`
+- `19f0be8c9` — `fix(growth): preserve authoritative attribution slots`
