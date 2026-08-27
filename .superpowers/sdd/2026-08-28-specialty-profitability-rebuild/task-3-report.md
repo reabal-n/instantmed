@@ -64,7 +64,7 @@ git diff --check
 
 ## Commit
 
-Pending final commit SHA.
+Implementation commit: `4252cf0bb`
 
 ## Concerns
 
