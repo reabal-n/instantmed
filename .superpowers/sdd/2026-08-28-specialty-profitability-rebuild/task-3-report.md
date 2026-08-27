@@ -135,4 +135,4 @@ git diff --check
 
 ### Commit
 
-Pending fix commit SHA.
+Fix commit: `98a108ac5`
