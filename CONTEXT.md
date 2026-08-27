@@ -89,3 +89,7 @@ _Avoid_: Verified identity, order reference, account authentication
 **Callback Preference**:
 The Caller's explicit choice between leaving a Medical Director Message only or requesting a return call. A callback number is collected only for a requested return call, and the preference does not promise that or when a call will occur.
 _Avoid_: Automatic callback, guaranteed callback, callback deadline
+
+**Public Voice Number**:
+The sole customer-facing phone number, routed to the AI Voice Secretary. The legacy support and recovery mobile remains private and must not appear on public-rendered surfaces.
+_Avoid_: Public recovery number, multiple customer-facing phone numbers, legacy support number
