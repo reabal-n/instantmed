@@ -428,6 +428,55 @@ describe("retryPaymentForIntakeAction", () => {
     )
   })
 
+  it("does not inspect, reuse, or create Stripe state for a contraindicating persisted Hair retry", async () => {
+    const hairAnswers = {
+      consultSubtype: "hair_loss",
+      emergency_symptoms: [],
+      hairReproductive: "yes",
+    }
+    const { supabase, updateRecords } = createRetrySupabaseMock({
+      category: "consult",
+      service: {
+        id: "svc-hair",
+        name: "Hair loss",
+        price_cents: 4995,
+        slug: "mens-health-hair",
+        type: "consult",
+      },
+      stripe_price_id: "price_hair",
+      subtype: "hair_loss",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue(hairAnswers)
+    mocks.checkSafetyForServer.mockReturnValue({
+      isAllowed: false,
+      outcome: "DECLINE",
+      riskTier: "high",
+      blockReason: "Hair reproductive safety block.",
+      requiresCall: false,
+      triggeredRuleIds: ["hair_reproductive_contraindication"],
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error: "Hair reproductive safety block.",
+      success: false,
+    })
+    expect(mocks.validateSafetyFieldsPresent).toHaveBeenCalledWith(
+      "mens-health-hair",
+      hairAnswers,
+    )
+    expect(mocks.checkSafetyForServer).toHaveBeenCalledWith(
+      "mens-health-hair",
+      hairAnswers,
+    )
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(updateRecords).toHaveLength(0)
+  })
+
   it("does not revive an older duplicate unpaid request", async () => {
     const { supabase } = createRetrySupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)

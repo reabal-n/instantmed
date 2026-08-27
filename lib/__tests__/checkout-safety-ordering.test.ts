@@ -123,6 +123,20 @@ function repeatScriptInput(sideEffectAnswers: Record<string, unknown>) {
   } as never
 }
 
+function hairConsultInput(hairReproductive: unknown) {
+  return {
+    category: "consult",
+    subtype: "hair_loss",
+    type: "consult",
+    idempotencyKey: "idem-key-1234567890",
+    answers: {
+      consultSubtype: "hair_loss",
+      emergency_symptoms: [],
+      hairReproductive,
+    },
+  } as never
+}
+
 beforeEach(() => {
   resetAllMocks()
   mock(validateSafetyFieldsPresent).mockClear()
@@ -190,6 +204,66 @@ describe("shared checkout path (authenticated + guest via runClinicalValidation)
     })
     expect(checkSafetyForServer).not.toHaveBeenCalled()
   })
+
+  it.each(["no", "na", "yes"])(
+    "accepts the exact persisted Hair reproductive answer %s as complete",
+    (hairReproductive) => {
+      expect(validateSafetyFieldsPresent("consult", {
+        consultSubtype: "hair_loss",
+        emergency_symptoms: [],
+        hairReproductive,
+      })).toEqual({ valid: true, missingFields: [] })
+    },
+  )
+
+  it.each([undefined, null, "", "   ", "unknown", false])(
+    "treats a missing or invalid Hair reproductive answer as incomplete: %o",
+    (hairReproductive) => {
+      expect(validateSafetyFieldsPresent("consult", {
+        consultSubtype: "hair_loss",
+        emergency_symptoms: [],
+        hairReproductive,
+      })).toEqual({ valid: false, missingFields: ["hairReproductive"] })
+    },
+  )
+
+  it("does not require the Hair-only answer for another consult subtype", () => {
+    const result = validateSafetyFieldsPresent("consult", {
+      consultSubtype: "ed",
+      emergency_symptoms: [],
+      edNitrates: false,
+      edRecentHeartEvent: false,
+      edSevereHeart: false,
+    })
+
+    expect(result.valid).toBe(true)
+    expect(result.missingFields).not.toContain("hairReproductive")
+  })
+
+  it("blocks a contraindicating Hair answer in shared authenticated/guest clinical validation", async () => {
+    const result = await runClinicalValidation(hairConsultInput("yes"))
+
+    expect(result.ok).toBe(false)
+    expect("error" in result ? result.error : "").toMatch(/pregnant|conceive/i)
+    expect(checkSafetyForServer).toHaveBeenCalledWith(
+      "consult",
+      expect.objectContaining({
+        consultSubtype: "hair_loss",
+        hairReproductive: "yes",
+      }),
+    )
+  })
+
+  it.each([undefined, "", "invalid"])(
+    "holds an incomplete Hair answer before shared safety evaluation: %o",
+    async (hairReproductive) => {
+      const result = await runClinicalValidation(hairConsultInput(hairReproductive))
+
+      expect(result.ok).toBe(false)
+      expect("error" in result ? result.error : "").toMatch(/required medical information is missing/i)
+      expect(checkSafetyForServer).not.toHaveBeenCalled()
+    },
+  )
 })
 
 describe("retry-payment path (retryPaymentForIntakeAction)", () => {

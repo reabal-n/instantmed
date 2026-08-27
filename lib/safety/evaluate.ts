@@ -540,6 +540,13 @@ function hasAnsweredSafetyField(fieldId: string, value: unknown): boolean {
     return typeof value === 'boolean'
   }
 
+  if (fieldId === 'hairReproductive') {
+    // These are the exact values emitted by the existing three-option Hair
+    // safety question. A non-empty but unknown restored value is incomplete,
+    // not an implied safe answer.
+    return value === 'no' || value === 'na' || value === 'yes'
+  }
+
   if (fieldId === 'pregnancyStatus') {
     return isExactStringValue(value, PILL_PREGNANCY_STATUS_VALUES)
   }
@@ -584,6 +591,10 @@ function getRequiredSafetyFields(
       if (answers.edRecentHeartEvent === true || answers.edSevereHeart === true) {
         fields.add('edGpCleared')
       }
+    }
+
+    if (subtype === 'hair_loss') {
+      fields.add('hairReproductive')
     }
 
     if (subtype === 'womens_health') {

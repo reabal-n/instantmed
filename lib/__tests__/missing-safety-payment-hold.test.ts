@@ -183,6 +183,41 @@ describe("missing safety information payment hold", () => {
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
   })
 
+  it("keeps a recovered Hair request with no reproductive answer in the recoverable hold lane", async () => {
+    const heldState: PaymentState = {
+      checkout_error: "safety_missing_required_information",
+      id: "hair-intake-1",
+      payment_id: null,
+      payment_status: "unpaid",
+      status: "checkout_failed",
+    }
+    const { supabase, updatePayloads } = createHoldSupabaseMock({
+      heldRows: [heldState],
+    })
+
+    const result = await holdCheckoutForMissingSafetyInformation({
+      intakeId: "hair-intake-1",
+      missingFields: ["hairReproductive"],
+      patientId: "patient-1",
+      source: "guest_resume",
+      supabase: supabase as never,
+    })
+
+    expect(result).toBe("held")
+    expect(updatePayloads).toEqual([
+      expect.objectContaining({
+        checkout_error: "safety_missing_required_information",
+        status: "checkout_failed",
+        triage_reasons: ["missing_safety_fields"],
+        triage_result: "request_more_info",
+      }),
+    ])
+    expect(updatePayloads[0]).not.toHaveProperty("declined_at")
+    expect(updatePayloads[0]).not.toHaveProperty("cancelled_at")
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+  })
+
   it("withholds an inspected open Session when a safety lock is visible on the final row read", async () => {
     const selectChain = {
       eq: vi.fn(() => selectChain),

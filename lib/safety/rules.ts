@@ -576,6 +576,25 @@ const consultRules: SafetyRule[] = [
     services: ['gp-consult', 'consult'],
   },
   // ----------------------------------------
+  // HAIR REPRODUCTIVE SAFETY - Existing terminal exclusion
+  // ----------------------------------------
+  {
+    id: 'hair_reproductive_contraindication',
+    name: 'Reproductive Safety - Hair Loss',
+    description: 'Hair-loss request where a partner is pregnant or trying to conceive - existing pathway exclusion, enforced again for persisted checkout recovery.',
+    conditions: [
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'hair_loss' },
+      { fieldId: 'hairReproductive', operator: 'equals', value: 'yes' },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Some prescription hair loss medicines cannot be used when a partner is pregnant or trying to conceive. Please speak with your GP about other options.',
+    doctorNote: 'Hair-loss reproductive contraindication reported - existing pre-payment exclusion enforced.',
+    priority: 950,
+    services: ['gp-consult', 'consult', 'mens-health-hair', 'hair-loss'],
+  },
+  // ----------------------------------------
   // UNDER 18: Age restriction for hair loss
   // ----------------------------------------
   {
@@ -1009,6 +1028,8 @@ export const safetyConfigs: Record<string, SafetyRulesConfig> = {
   consult: consultSafetyConfig,
   'gp-consult': consultSafetyConfig, // backward compat
   consultation: consultSafetyConfig,
+  'mens-health-hair': consultSafetyConfig, // legacy/persisted Hair service rows
+  'hair-loss': consultSafetyConfig,
 }
 
 export function getSafetyConfig(serviceSlug: string): SafetyRulesConfig | null {
