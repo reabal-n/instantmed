@@ -77,3 +77,7 @@ _Avoid_: AI doctor, voice doctor, phone consultation, autonomous support agent
 **Voice Callback Request**:
 The minimal issue record a caller confirms for Medical Director follow-up. It is not a promised correction, clinical decision, completed outcome, recording, or transcript.
 _Avoid_: Clinical intake, correction order, resolution, call transcript
+
+**Caller**:
+The unauthenticated person speaking with the AI Voice Receptionist. A Caller may be the Patient or a third party and may provide relevant Patient information, but the receptionist never treats that information as identity verification or discloses Patient information in return.
+_Avoid_: Verified Patient, authenticated Patient
