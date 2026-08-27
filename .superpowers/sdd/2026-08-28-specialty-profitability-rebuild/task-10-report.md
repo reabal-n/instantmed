@@ -115,3 +115,41 @@ PASS.
 The rolling evaluator still has no trustworthy campaign-scoped relaunch baseline, persisted-checkout progression series, or pilot start date. It therefore cannot enforce Hair's A$60 incremental relaunch loss, the 10-click no-progression stop, or 30 elapsed days. Those controls are deliberately recorded as inactive rather than inferred from rolling-30 evidence. Activating them requires a separate durable campaign-scoped evidence source and tests.
 
 The result is a recommendation, not an immutable Ads proposal. Preparing, approving, and applying any live pause remains a separate approval-gated task.
+
+## Independent Review Follow-up: Paused Mid-band Precedence
+
+Follow-up implementation commit: `6e6a72f2f`
+
+The independent review found that a paused specialty with zero orders returned `INVESTIGATE` after the 10-click checkpoint but before its pause threshold. Status was checked at the generic loss cap and final click cap, but not before the mid-band investigation return.
+
+### Follow-up Repair
+
+- A non-enabled campaign now returns `HOLD` before the mid-band investigation branch.
+- A genuinely paused campaign reports `CAMPAIGN_ALREADY_PAUSED`.
+- A campaign whose status is absent or otherwise not enabled reports `CAMPAIGN_NOT_ENABLED` rather than falsely claiming it is paused.
+- The mid-band hold retains `PILOT_WITHIN_LOSS_CAP` as its bounded policy context.
+- Missing click evidence still returns `INVESTIGATE` before status handling because unknown clicks are not fabricated as zero.
+- The A$150 generic loss cap still runs before every click/status branch.
+- Enabled zero-order campaigns still investigate at 10 clicks and propose a pause only at the service threshold.
+
+### Follow-up Strict TDD Evidence
+
+The missing paused boundaries were added first for Hair at 10/19 clicks, ED at 10/29, and Women's Health at 10/29:
+
+```bash
+corepack pnpm exec vitest run lib/__tests__/google-ads-agent-policy.test.ts
+```
+
+Witnessed RED: 1 file failed; 6 tests failed and 34 passed. Every failure returned `INVESTIGATE / SPECIALTY_ZERO_ORDER_CLICK_INVESTIGATION` where `HOLD` was required.
+
+After the precedence repair, the focused three-file suite passed: 3 files, 54 tests.
+
+The broader Ads/read-path suite passed: 7 files, 86 tests.
+
+Additional verification:
+
+- Scoped ESLint over the policy and policy tests: passed.
+- `corepack pnpm typecheck`: passed.
+- `git diff --check`: passed.
+
+No external API, Ads account, proposal, deployment, database, or user-owned `output/` content was accessed or changed.
