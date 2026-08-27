@@ -7,6 +7,8 @@ import { PRICING } from "@/lib/constants"
 import { getStepsForService, type StepContext } from "@/lib/request/step-registry"
 import { deriveEdNitrateTerminalBlock } from "@/lib/request/terminal-safety-blocks"
 import {
+  validateCheckoutStep,
+  validateDetailsStep,
   validateEdGoalsStep,
   validateEdHealthStep,
   validateEdPreferencesStep,
@@ -80,6 +82,19 @@ const HAIR_VALID = {
   hairMedicationPreference: "doctor_recommendation",
 } as const
 
+const SPECIALTY_DETAILS_VALID = {
+  firstName: "Ava",
+  lastName: "Miller",
+  email: "ava.miller@example.com",
+  phone: "0412345678",
+  dob: "1990-01-01",
+} as const
+
+const CHECKOUT_VALID = {
+  agreedToTerms: true,
+  confirmedAccuracy: true,
+} as const
+
 describe("specialty experience clinical and no-friction invariants", () => {
   it("keeps the five-screen ED and six-screen Hair sequences unchanged", () => {
     expect(getStepsForService("consult", consultContext("ed")).map((step) => step.id)).toEqual([
@@ -116,6 +131,12 @@ describe("specialty experience clinical and no-friction invariants", () => {
     expect(validateEdHealthStep({ ...ED_VALID, edRecentHeartEvent: true, edGpCleared: true }).isValid).toBe(true)
     expect(validateEdHealthStep({ ...ED_VALID, takes_medications: "yes" }).isValid).toBe(false)
     expect(validateEdHealthStep({ ...ED_VALID, takes_medications: "yes", current_medications: "recorded" }).isValid).toBe(true)
+    expect(validateEdHealthStep({ ...ED_VALID, has_allergies: "yes" }).isValid).toBe(false)
+    expect(validateEdHealthStep({ ...ED_VALID, has_allergies: "yes", known_allergies: "recorded" }).isValid).toBe(true)
+    expect(validateEdHealthStep({ ...ED_VALID, has_conditions: "yes" }).isValid).toBe(false)
+    expect(validateEdHealthStep({ ...ED_VALID, has_conditions: "yes", existing_conditions: "recorded" }).isValid).toBe(true)
+    expect(validateEdHealthStep({ ...ED_VALID, edSevereHeart: true }).isValid).toBe(false)
+    expect(validateEdHealthStep({ ...ED_VALID, edSevereHeart: true, edGpCleared: true }).isValid).toBe(true)
     expect(validateEdPreferencesStep({ ...ED_VALID, previousEdMeds: true }).isValid).toBe(false)
     expect(validateEdPreferencesStep({ ...ED_VALID, previousEdMeds: true, edPreviousTreatment: "recorded" }).isValid).toBe(true)
   })
@@ -138,6 +159,32 @@ describe("specialty experience clinical and no-friction invariants", () => {
     expect(validateHairLossHealthStep({ ...HAIR_VALID, has_allergies: "yes", known_allergies: "recorded" }).isValid).toBe(true)
     expect(validateHairLossHealthStep({ ...HAIR_VALID, takes_medications: "yes" }).isValid).toBe(false)
     expect(validateHairLossHealthStep({ ...HAIR_VALID, takes_medications: "yes", current_medications: "recorded" }).isValid).toBe(true)
+    expect(validateHairLossHealthStep({ ...HAIR_VALID, has_conditions: "yes" }).isValid).toBe(false)
+    expect(validateHairLossHealthStep({ ...HAIR_VALID, has_conditions: "yes", existing_conditions: "recorded" }).isValid).toBe(true)
+  })
+
+  it("keeps shared Details and Review/Pay requirements unchanged", () => {
+    expect(validateDetailsStep(SPECIALTY_DETAILS_VALID, { requirePhone: true }).isValid).toBe(true)
+
+    for (const key of ["firstName", "lastName", "email", "phone", "dob"] as const) {
+      expect(
+        validateDetailsStep({ ...SPECIALTY_DETAILS_VALID, [key]: undefined }, { requirePhone: true }).isValid,
+        `${key} must remain required for a specialty Details screen`,
+      ).toBe(false)
+    }
+
+    expect(validateCheckoutStep(CHECKOUT_VALID).isValid).toBe(true)
+    for (const key of ["agreedToTerms", "confirmedAccuracy"] as const) {
+      expect(
+        validateCheckoutStep({ ...CHECKOUT_VALID, [key]: false }).isValid,
+        `${key} must remain required on Review/Pay`,
+      ).toBe(false)
+    }
+
+    // The wider prescribing identity bundle (Medicare-or-IHI + sex + phone +
+    // structured address) is owned by prescribing-identity-gate-contract.test.ts
+    // and patient-details-canskip-contract.test.ts. This invariant freezes only
+    // the Details validator signature shared by the visible ED/Hair sequences.
   })
 
   it("keeps terminal safety behavior present in validation and patient UI", () => {
