@@ -64,7 +64,15 @@ const serverEnvSchema = z.object({
   RESEND_WEBHOOK_SECRET: z.string().optional(),
   VERCEL_AI_GATEWAY_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
+  OPENAI_API_KEY: z.string().optional(),
   ADMIN_EMAILS: z.string().optional(),
+
+  // Twilio AI voice receptionist. The kill switch defaults off; runtime
+  // readiness additionally requires PHI encryption through voice-config.ts.
+  TWILIO_AI_VOICE_ENABLED: z.enum(["true", "false"]).optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_VOICE_PUBLIC_BASE_URL: z.string().url().optional(),
+  TWILIO_VOICE_SESSION_SECRET: z.string().min(32).optional(),
 
   // Rate limiting (optional but recommended)
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),

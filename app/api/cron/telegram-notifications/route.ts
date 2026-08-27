@@ -6,6 +6,7 @@ import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { deliverVoiceCallbackAlert } from "@/lib/twilio/voice-callback-request"
 
 const logger = createLogger("cron-telegram-notifications")
 
@@ -25,6 +26,11 @@ type PendingPaidTelegramIntake = {
   subtype: string | null
   payment_status: string | null
   paid_request_telegram_attempts: number | null
+}
+
+type PendingVoiceCallbackRequest = {
+  id: string
+  telegram_notification_attempts: number
 }
 
 async function processPendingPaidTelegramNotifications(signal?: AbortSignal) {
@@ -88,8 +94,40 @@ async function processPendingPaidTelegramNotifications(signal?: AbortSignal) {
     }
   }
 
+  signal?.throwIfAborted()
+  const { data: pendingVoiceRows, error: pendingVoiceError } = await supabase
+    .from("voice_callback_requests")
+    .select("id, telegram_notification_attempts")
+    .eq("status", "pending")
+    .is("telegram_notification_sent_at", null)
+    .lt("telegram_notification_attempts", MAX_ATTEMPTS)
+    .order("created_at", { ascending: true })
+    .limit(BATCH_SIZE)
+
+  if (pendingVoiceError) throw pendingVoiceError
+
+  const pendingVoice = (pendingVoiceRows ?? []) as PendingVoiceCallbackRequest[]
+  for (const callbackRequest of pendingVoice) {
+    signal?.throwIfAborted()
+    try {
+      const delivered = await deliverVoiceCallbackAlert(callbackRequest.id)
+      if (delivered) sent++
+      else skipped++
+    } catch (err) {
+      if (signal?.aborted) throw err
+      failed++
+      logger.error("Voice callback Telegram retry failed", {
+        attempts: callbackRequest.telegram_notification_attempts,
+      })
+      Sentry.captureException(err, {
+        tags: { source: "telegram-notification-cron", notificationType: "voice-callback" },
+        extra: { attempts: callbackRequest.telegram_notification_attempts },
+      })
+    }
+  }
+
   return {
-    processed: pending.length,
+    processed: pending.length + pendingVoice.length,
     sent,
     failed,
     skipped,

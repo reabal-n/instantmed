@@ -230,13 +230,14 @@ Default: **original script + 2 repeats** (≈ 3 months for a daily medicine, fro
 
 ## AI Boundary Rules
 
-**Core principle: AI assists with documentation only. All triage and decline decisions are rule-based.**
+**Core principle: AI assists with documentation and narrowly bounded administrative support only. All triage and decline decisions are rule-based.**
 
 ### What AI CAN Do
 
 | Category | Permitted Actions |
 |----------|------------------|
 | **Documentation** | Generate clinical note drafts from intake answers; suggest certificate wording; pre-populate forms with structured data; summarize patient history for doctor review |
+| **Administrative support** | Answer approved general service questions; collect a caller-confirmed callback summary; create a durable callback request for Medical Director review |
 | **Formatting** | Structure free-text into clinical format; format medication names/dosages; generate PDF-ready content |
 | **Quality** | Flag spelling/grammar issues; suggest completeness improvements; highlight missing fields |
 
@@ -247,6 +248,21 @@ Default: **original script + 2 repeats** (≈ 3 months for a daily medicine, fro
 | **Safety decisions** | Override safety knockout rules; approve requests failing eligibility; bypass emergency detection; modify triage outcomes |
 | **Prescribing** | Recommend medications; suggest dosages; indicate PBS eligibility; imply prescribing authority |
 | **Diagnosis** | Provide diagnostic conclusions; suggest conditions from symptoms; recommend treatment paths |
+| **Patient record actions** | Change or promise to change a prescription, certificate, consultation outcome, document, charge, account, or clinical record |
+| **Unauthenticated disclosure** | Disclose patient-specific status or information to an unauthenticated phone caller |
+
+### AI Voice Administrative Support Boundary
+
+The staged Twilio voice receptionist is an **administrative message-taking channel**, not a consultation, clinical intake, triage service, or substitute for a doctor call.
+
+- The caller must hear that the assistant is automated, that the call is transcribed and processed by AI, and that it cannot provide medical advice or make clinical decisions. Streaming starts only after an affirmative DTMF consent.
+- The agent may answer only approved general service facts. It must not authenticate a patient, disclose patient-specific status, diagnose, assess clinical urgency, recommend treatment, approve an adjustment, change a record, or promise a refund, prescription, certificate, correction, outcome, callback time, or resolution.
+- Emergency handling is a fixed instruction to hang up and call triple zero. The model does not triage or decide whether the caller is safe.
+- For an adjustment, correction, prescription or clinical question, patient-specific matter, or unresolved problem, the agent collects the minimum necessary summary, reads it back for caller confirmation, and creates one durable callback request.
+- The agent may say, "I've securely recorded your callback request for the Medical Director" only after the database write succeeds. If persistence cannot be confirmed, it directs the caller to `support@instantmed.com.au` and must not imply that a request was saved.
+- Raw audio and full call transcripts are not stored by InstantMed. Only the caller-confirmed callback number, optional preferred name, bounded category, and concise summary are stored, field-level encrypted. Operational alerts contain no caller identity or message content.
+- The Medical Director reviews the callback record and owns every clinical, prescribing, certificate, correction, and return-call decision. The AI never converts a phone message into a clinical outcome.
+- Production activation remains blocked until the public collection/privacy notice names the voice processors and overseas handling, processor agreements and retention settings are approved, the authenticated callback queue is live, and consent/decline/failure/end-to-end call tests have passed.
 
 ### Human Clinical Decisions and the Protocol Boundary
 
@@ -277,8 +293,8 @@ The engine's remaining **soft flags** — co-symptom mental-health / injury / ch
 |----------|------|
 | **File separation** | `lib/clinical/` = deterministic safety logic (no AI); `lib/ai/` = documentation assistance only |
 | **Output status** | AI-generated content remains a draft and is never copied into the final clinical record without doctor review. The certificate protocol may read an AI `requiresReview` signal only to narrow the lane and route to a doctor; it cannot use draft prose to authorise issuance |
-| **Audit logging** | Two tables: `ai_audit_log` (auto-approval pipeline, with `input_hash`/`output_hash` for content integrity) and `ai_chat_audit_log` (chat interactions, with `user_input_preview`/`ai_output_preview` truncated previews). Full chat transcripts stored in `ai_chat_transcripts` (JSONB). |
-| **System prompts** | Must include: "You are a documentation assistant only. You DO NOT make clinical decisions. You DO NOT approve or deny requests. You DO NOT recommend treatments or medications. All output requires doctor review before use." |
+| **Audit logging** | `ai_audit_log` owns the auto-approval pipeline, while `ai_chat_audit_log` and `ai_chat_transcripts` own the separate chat-intake feature. The voice receptionist stores no raw audio or full transcript; `voice_callback_requests` stores only one encrypted, caller-confirmed callback payload plus consent, delivery, and operator-status metadata. |
+| **System prompts** | Documentation prompts must include the documentation-only/doctor-review boundary. The voice prompt must include the narrower administrative boundary, no unauthenticated patient disclosure, no record changes or promises, fixed triple-zero direction, and the durable-write-before-confirmation rule. |
 
 ### AI Input/Output Rules
 
@@ -430,6 +446,7 @@ Patients must be informed at intake of:
 | PHI in logs | Production logs sanitized; no PHI in error/debug logs |
 | Telegram | Operational alerts only. Never include patient identity, medicine names, presenting complaints, symptoms, consultation subtype, intake answers, or clinical notes. |
 | AI data sharing | Clinical notes sent to Anthropic (Claude) with no patient identifiers; DPA in place |
+| Staged AI voice processing | Consented live call audio is streamed through Twilio and OpenAI Realtime only while the call is active. InstantMed stores no raw audio or full transcript. Production remains disabled until processor, retention, APP 5, APP 8, and public-disclosure gates are approved. |
 
 ### Australian Privacy Principles (APP 1-13) Summary
 
@@ -439,10 +456,10 @@ Patients must be informed at intake of:
 | 2 | Anonymity/pseudonymity | N/A -- healthcare requires identification (documented justification) |
 | 3 | Collection of solicited info | Only necessary data collected; consent obtained; lawful collection direct from patient |
 | 4 | Unsolicited information | Support team procedures in place |
-| 5 | Notification of collection | Purpose stated at intake; third parties identified in privacy policy; access rights explained |
+| 5 | Notification of collection | Purpose stated at intake; third parties identified in privacy policy; access rights explained. The staged voice receptionist cannot activate until its call-opening notice and public processor disclosure are current. |
 | 6 | Use or disclosure | Clinical care only; marketing opt-in separate; subpoena process documented |
 | 7 | Direct marketing | Unsubscribe mechanism; health data not used for marketing |
-| 8 | Cross-border disclosure | Overseas recipients (US, EU) identified; DPAs with all processors |
+| 8 | Cross-border disclosure | Overseas recipients (US, EU) identified; DPAs with active processors. The staged Twilio/OpenAI voice path remains disabled until its overseas-processing assessment and agreements are approved. |
 | 9 | Government identifiers | Medicare number use limited to eligibility; not used as internal ID |
 | 10 | Quality of personal info | Patient can update profile; Medicare validation |
 | 11 | Security | TLS + AES-256-GCM + RLS + retention policy |
@@ -460,6 +477,8 @@ Patients must be informed at intake of:
 | Sentry | Error context (sanitized) | US | Signed |
 | PostHog | Pseudonymous product events only; no direct identity, clinical answers, raw search terms, click identifiers, or production request IDs | US | Signed |
 | Anthropic | Clinical notes (no identifiers) | US | DPA (data processing agreement) |
+| Twilio | Consented live phone audio and call-routing metadata for the staged voice receptionist | AU1 regional voice service; subprocessors may be overseas | **Activation blocked pending approval** |
+| OpenAI Realtime | Consented live phone audio and transient model context for the staged voice receptionist | Overseas processing | **Activation blocked pending approval and retention configuration** |
 
 ---
 
@@ -471,6 +490,7 @@ Patients must be informed at intake of:
 | Clinical intakes | 7 years from creation | Medical records obligation |
 | Compliance audit logs | 7 years (immutable, append-only) | Compliance requirement |
 | AI interaction logs | 7 years (truncated content, metadata only) | Clinical safety audit |
+| AI voice callback requests | Medical-record schedule where the message relates to care; encrypted confirmed summary only, with no raw audio or full transcript | Clinical communication and continuity |
 | Payment records | 7 years | Tax Act (ATO requirement) |
 | Profile data | Indefinite while active; deleted 1 year after account closure | Service delivery |
 | Session/auth tokens | 30 days (auto-purged by Supabase Auth) | Security best practice |

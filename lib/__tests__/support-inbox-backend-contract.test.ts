@@ -38,13 +38,16 @@ describe("support inbox alert ownership contract", () => {
     })
     expect(heartbeat).toContain('"telegram-notifications"')
     expect(operations).toContain("Manual-only and disabled in production")
-    // Operator decision 2026-07-17: request pings + hourly waiting-queue
-    // reminder + critical-only business alerts. Never a general second channel.
+    // Operator decision 2026-07-17 plus the bounded 2026-08-27 voice lane:
+    // request pings, PHI-free voice callback pages, hourly waiting-queue
+    // reminders, and critical-only business alerts. Never a general channel.
     expect(operations).toContain(
-      "Telegram carries request notifications plus two operational sends",
+      "Telegram carries request notifications plus bounded operational sends",
     )
-    expect(operations).toContain("not a general second alerting channel")
-    expect(security).toContain("request notifications plus two operational sends")
+    expect(operations).toContain("not a general second monitoring channel")
+    expect(security).toContain("request notifications plus bounded operational sends")
+    expect(operations).toContain('generic "Voice callback requested" page')
+    expect(security).toContain("generic AI voice callback page")
     expect(operations).toContain("New medical-certificate titles stay neutral")
     expect(security).toContain("New medical-certificate titles stay neutral")
     expect(operations).not.toContain("new paid request notifications only")
@@ -55,7 +58,7 @@ describe("support inbox alert ownership contract", () => {
     expect(roadmap).not.toContain("support Inbox unread counts through the active aggregate-only Telegram bridge")
     expect(roadmap).not.toContain("route aggregate support counts to Telegram")
     expect(roadmap).not.toContain("the hourly Vercel cron reads only Gmail's aggregate")
-    expect(roadmap).toContain("Support conversations stay in Gmail and are handled manually")
+    expect(roadmap).toContain("Email support conversations stay in Gmail and are handled manually")
     expect(roadmap).toContain("support-inbox Telegram paging remain retired")
     expect(operations).toContain("there is no scheduled support-inbox cron or Gmail reader")
     expect(fileDirectory).not.toContain("app/api/cron/support-inbox-alert/route.ts")

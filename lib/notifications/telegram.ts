@@ -142,6 +142,11 @@ export interface SendGoogleAdsProposalCardOptions {
   rejectCallbackData: string
 }
 
+export interface VoiceCallbackAlertReceipt {
+  delivered: boolean
+  messageId: number | null
+}
+
 function parseMessageId(json: unknown): number | null {
   if (!json || typeof json !== "object") return null
   const result = (json as { result?: { message_id?: unknown } }).result
@@ -448,6 +453,59 @@ export async function sendCriticalBusinessAlertViaTelegram(
 ): Promise<boolean> {
   const message = [`*🚨 Critical business alert*`, ``, escapeMarkdown(detail)].join("\n")
   return postOperationalTelegramMessage(message, "critical_business_alert")
+}
+
+/**
+ * PHI-free alert for a voice callback request. Caller identity, phone number,
+ * transcript content, and clinical category remain in the encrypted database
+ * record and are only visible after staff authentication.
+ */
+export async function sendVoiceCallbackRequestViaTelegram(
+  requestId: string,
+  appUrl?: string,
+): Promise<VoiceCallbackAlertReceipt> {
+  const token = getToken()
+  const chatId = getChatId()
+  if (!token || !chatId) {
+    return { delivered: false, messageId: null }
+  }
+
+  const secureUrl = `${getNotificationAppUrl(appUrl)}/admin/ops/voice-callbacks/${encodeURIComponent(requestId)}`
+  const message = [
+    "*☎️ Voice callback requested*",
+    "",
+    escapeMarkdown("A caller asked for a follow-up. Caller and medical details are only available in InstantMed."),
+    "",
+    `[Open secure request →](${secureUrl})`,
+  ].join("\n")
+
+  try {
+    const response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        disable_web_page_preview: true,
+        parse_mode: "MarkdownV2",
+        text: message,
+      }),
+    })
+    if (!response.ok) {
+      log.error("Voice callback Telegram alert failed", { status: response.status })
+      return { delivered: false, messageId: null }
+    }
+
+    const json = await response.json().catch(() => null)
+    const messageId = parseMessageId(json)
+    return { delivered: messageId !== null, messageId }
+  } catch (error) {
+    log.error(
+      "Voice callback Telegram alert errored",
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    )
+    return { delivered: false, messageId: null }
+  }
 }
 
 /**

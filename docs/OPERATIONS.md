@@ -491,7 +491,7 @@ For the 16 jobs in `CRITICAL_CRONS`, a heartbeat is a **terminal outcome**, not 
 | Refill Reminders | `/api/cron/refill-reminders` | Daily (11 PM UTC / 9 AM AEST) | One-off reactivation: nudges patients to reorder a repeatable script ~week 10-11 after issue (before a script + 2 repeats supply runs out; window in `lib/clinical/repeats-policy.ts`). Ships OFF; no-ops until `REFILL_REMINDER_EMAILS_ENABLED=true`. Marketing-consent gated per patient. NOT the retired subscription nudge — creates no order |
 | Cert Reactivation | `/api/cron/cert-reactivation` | Daily (10 PM UTC / 8 AM AEST) | One reactivation nudge per past med-cert patient whose most recent certificate is 35-120 days old (`lib/email/cert-reactivation.ts`). Ships OFF; no-ops until `CERT_REACTIVATION_EMAILS_ENABLED=true`. Marketing-consent gated; `intakes.reactivation_email_sent_at` dedups; reorder link carries `utm_source=cert_reactivation`. NOT a subscription — creates no order. Pre-flight: `?testEmail=you@x.com` |
 | Emergency Flags | `/api/cron/emergency-flags` | Hourly | Sentry-logs red-flag abandoned intakes for clinical monitoring. Does NOT send outbound SMS/email (the route is logging-only; corrected 2026-06-11). |
-| Telegram Notifications | `/api/cron/telegram-notifications` | Every 5 min | Retry missed paid-request Telegram notifications when webhook-time sends fail |
+| Telegram Notifications | `/api/cron/telegram-notifications` | Every 5 min | Retry missed paid-request Telegram notifications and PHI-free AI voice callback pages when the first delivery attempt fails. Voice pages contain only a secure admin link; caller identity and message content stay in the encrypted database record. |
 | AHPRA Re-verification | `/api/cron/ahpra-reverification` | Daily (6 AM AEST) | Flag overdue AHPRA verifications; disable approval for 30+ days overdue |
 | Daily Reconciliation | `/api/cron/daily-reconciliation` | Daily (7 AM AEST) | Identify mismatches: paid without delivery, failed refunds, failed deliveries |
 | Parchment Smoke | `/api/cron/parchment-smoke` | Daily (7:30 AM AEST) | Validate production Parchment token and organisation access without creating a patient or prescription; heartbeat appears in `/admin/ops/parchment` |
@@ -1087,11 +1087,12 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | Business Alerts | Failed payments, no-purchase revenue safety, SLA breaches | Sentry + admin operations surfaces; essential critical aggregate detail also goes to Telegram |
 | Queue Waiting Reminder | One or more paid requests older than 30 minutes still awaiting review | Telegram hourly, count + oldest wait only |
 | Paid Request Notifications | Successful paid request | Telegram (real-time, with retry cron); new medical certificates start neutral |
+| AI Voice Callback Request | Durable caller-confirmed callback record | Telegram (generic page + authenticated admin link only; no caller identity, number, category, or summary) |
 | Support Inbox | Manual-only and disabled in production; no scheduled mailbox polling. | No automatic Telegram alerts. The PHI-safe aggregate count receiver remains available for deliberate diagnostics only. |
 | Request Flow Synthetic | Any production request-path render/click failure | GitHub Actions failure |
 | Staff Role Gate | More than one auth-linked human admin, owner-admin missing doctor identity, or doctor missing required prescribing/certificate identity | `pnpm check:staff-roles` release failure |
 
-**Telegram carries request notifications plus two operational sends (operator decision 2026-07-17).** Automatic sends are: a newly paid request, an hourly count-only reminder while paid requests older than 30 minutes wait for review (from the stale-queue cron), and essential CRITICAL-severity business alerts (the same aggregate detail string the Sentry critical capture uses). New medical-certificate titles stay neutral until the real routing outcome is known; approval, decline, or manual-review routing edits the original message instead of sending another. Those lifecycle edits are awaited, with five-second timeouts on both the intake lookup and outbound Telegram call, and remain fail-soft. This prevents serverless shutdown from silently dropping an edit without allowing Telegram to change or indefinitely delay the clinical outcome. It is deliberately not a general second alerting channel — warnings, routine metrics, and cron watchdog failures stay in Sentry/admin surfaces. Titles contain only the broad service class. Patient identity, contact or government identifiers, medicine names or free-text descriptions, symptoms, presenting condition, consultation subtype, notes, payment details, and intake answers are prohibited. The support Inbox bridge is manual-only and disabled in production: there is no scheduled support-inbox cron or Gmail reader. The `CRON_SECRET`-protected `/api/internal/support-inbox-alert` receiver remains only for deliberate aggregate-count diagnostics and requires `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1`; production keeps it `0`. When deliberately enabled but delivery fails, it records `delivery_failed` and returns HTTP 502. Warning-severity business alerts and cron watchdog failures remain in Sentry/admin surfaces and do not send Telegram messages.
+**Telegram carries request notifications plus bounded operational sends.** Automatic sends are: a newly paid request; a generic "Voice callback requested" page after a durable caller-confirmed AI voice callback record exists; an hourly count-only reminder while paid requests older than 30 minutes wait for review; and essential CRITICAL-severity business alerts using the same aggregate detail string as Sentry. The voice page contains only an authenticated admin link. Caller identity, callback number, category, and summary remain field-level encrypted in `voice_callback_requests` and are prohibited from Telegram. New medical-certificate titles stay neutral until the real routing outcome is known; approval, decline, or manual-review routing edits the original message instead of sending another. Those lifecycle edits are awaited, with five-second timeouts on both the intake lookup and outbound Telegram call, and remain fail-soft. This prevents serverless shutdown from silently dropping an edit without allowing Telegram to change or indefinitely delay the clinical outcome. Telegram is deliberately not a general second monitoring channel — warnings, routine metrics, and cron watchdog failures stay in Sentry/admin surfaces. Patient identity, contact or government identifiers, medicine names or free-text descriptions, symptoms, presenting condition, consultation subtype, notes, payment details, and intake answers are prohibited. The support Inbox bridge is manual-only and disabled in production: there is no scheduled support-inbox cron or Gmail reader. The `CRON_SECRET`-protected `/api/internal/support-inbox-alert` receiver remains only for deliberate aggregate-count diagnostics and requires `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED=1`; production keeps it `0`. When deliberately enabled but delivery fails, it records `delivery_failed` and returns HTTP 502. Warning-severity business alerts and cron watchdog failures remain in Sentry/admin surfaces and do not send Telegram messages.
 
 ### Health Endpoints
 
@@ -1140,18 +1141,56 @@ Required env vars validated at startup via Zod in `lib/config/env.ts`:
 - **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, active one-off `STRIPE_PRICE_*` IDs, and `STRIPE_PRICE_PRIORITY_FEE`. Repeat Rx subscription acquisition is inactive and has no production price env requirement.
 - **Email**: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET`
-- **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`, `INTERNAL_API_SECRET`
+- **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`, `PHI_ENCRYPTION_WRITE_ENABLED`, `PHI_ENCRYPTION_READ_ENABLED`, `INTERNAL_API_SECRET`
 - **Redis**: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
-- **AI**: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `VERCEL_AI_GATEWAY_API_KEY`
+- **AI**: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `VERCEL_AI_GATEWAY_API_KEY`, `OPENAI_API_KEY` (required only for the staged realtime voice receptionist)
 - **Cron**: `CRON_SECRET`
 - **Monitoring**: `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`
 - **Analytics**: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
 - **Google Ads / Data Manager purchase uploads**: `GOOGLE_ADS_CUSTOMER_ID`, `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` (must be an offline click-import `UPLOAD_CLICKS` action, not the browser purchase tag), and optional `GOOGLE_ADS_LOGIN_CUSTOMER_ID`. Legacy Google Ads API upload/reporting/preflight also needs `GOOGLE_ADS_DEVELOPER_TOKEN`, `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, `GOOGLE_ADS_REFRESH_TOKEN`, optional `GOOGLE_ADS_QUOTA_PROJECT_ID`, `GOOGLE_ADS_API_VERSION`, and `GOOGLE_ADS_CLICK_IDENTIFIER_MAX_AGE_DAYS` (defaults to 90; lower only if the conversion action's click-through window is shorter). Data Manager rollout needs `GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED=true`, `GOOGLE_DATA_MANAGER_CLIENT_ID`, `GOOGLE_DATA_MANAGER_CLIENT_SECRET`, `GOOGLE_DATA_MANAGER_REFRESH_TOKEN`, and optional `GOOGLE_DATA_MANAGER_QUOTA_PROJECT_ID`; diagnostics watch uses `GOOGLE_ADS_DIAGNOSTICS_WATCH_REQUEST_ID` for Data Manager request IDs or legacy `GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID`, plus `GOOGLE_ADS_DIAGNOSTICS_WATCH_UPLOADED_AT`.
 - **Alerts**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` (optional), `TELEGRAM_SUPPORT_INBOX_ALERTS_ENABLED` (`0` in production; retained only for deliberate aggregate-count diagnostics). The database flag `telegram_notifications_enabled` gates paid-request notifications. The hourly aggregate queue reminder and essential critical-only business alerts are separate policy-bounded operational sends.
+- **Twilio AI voice (staged OFF)**: `TWILIO_AI_VOICE_ENABLED=false`, `TWILIO_AUTH_TOKEN` (the Account Auth Token used to validate `X-Twilio-Signature`, not an API-key secret), `TWILIO_VOICE_PUBLIC_BASE_URL=https://instantmed.com.au`, and a random `TWILIO_VOICE_SESSION_SECRET` of at least 32 characters. Enabling also requires `OPENAI_API_KEY`, `PHI_MASTER_KEY`, and all three PHI encryption flags set to `true`.
 - **Parchment**: `PARCHMENT_API_URL`, `PARCHMENT_PARTNER_ID`, `PARCHMENT_PARTNER_SECRET`, `PARCHMENT_ORGANIZATION_ID`, `PARCHMENT_ORGANIZATION_SECRET`, `PARCHMENT_WEBHOOK_SECRET` (all optional — required only when `parchment_embedded_prescribing` feature flag is enabled); optional `NEXT_PUBLIC_PARCHMENT_IFRAME_ALLOWED_HOSTS` override if the default iframe host allow-list needs to change
 - **Parchment smoke test**: `PARCHMENT_SMOKE_USER_ID` (sandbox/linked prescriber user ID required for `pnpm smoke:parchment`)
 - **Address search**: `ADDRESSFINDER_KEY` or existing `NEXT_PUBLIC_ADDRESSFINDER_KEY`, `ADDRESSFINDER_SECRET` (primary AU address provider), `GOOGLE_PLACES_API_KEY` (fallback + server-side geocoding). Prefer `ADDRESSFINDER_KEY` for new deployments because the key is only used server-side.
 - **Other**: `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`, `ADMIN_EMAILS`, `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`
+
+## Twilio AI Voice Receptionist — Staged Activation
+
+The InstantMed number `+61 495 049 555` is intended for a consent-first AI administrative receptionist. It is not a clinical consultation, triage service, patient-authentication channel, or autonomous correction workflow. Keep `TWILIO_AI_VOICE_ENABLED=false` and do not activate AU1 routing until every gate below is complete.
+
+### Exact Twilio Console values
+
+On **Phone Numbers → Active numbers → +61 495 049 555 → Configure**, use full public URLs and POST for every HTTP callback:
+
+| Field | Value |
+|-------|-------|
+| Configure with | `Webhook` |
+| A call comes in | `https://instantmed.com.au/api/webhooks/twilio/voice/incoming` |
+| Incoming method | `HTTP POST` |
+| Primary handler fails | `https://instantmed.com.au/api/webhooks/twilio/voice/fallback` |
+| Fallback method | `HTTP POST` |
+| Call status changes | `https://instantmed.com.au/api/webhooks/twilio/voice/status` |
+| Status method | `HTTP POST` |
+| Caller Name Lookup | `Disabled` |
+
+Do not paste relative paths into the Console. Messaging routing is separate and is not part of this voice launch; the AU1 screen may continue to say messaging routing is unavailable. The bidirectional media stream and its stream-status callback are returned by the signed incoming-call flow and do not need another Console field.
+
+### Activation gates
+
+1. Apply `20260827210500_twilio_voice_callback_requests.sql` and verify RLS leaves the callback table service-role-only.
+2. Deploy the signed HTTP and WebSocket routes with `TWILIO_AI_VOICE_ENABLED=false`; verify invalid signatures fail closed and the disabled path returns the support fallback.
+3. Approve the Twilio/OpenAI processor agreements, retention settings, and APP 8 overseas-processing assessment. Update the public privacy/collection notice before any caller audio is sent to OpenAI.
+4. Ship the authenticated admin-only callback queue. The operator must be able to read the decrypted caller-confirmed summary, call the person, and mark the request contacted or resolved. Telegram remains a PHI-free pager, not the record.
+5. Configure the production env values, redeploy, then change only `TWILIO_AI_VOICE_ENABLED` to `true` and redeploy again.
+6. Save the exact Console callbacks above, then activate/re-route the number to the Australia (`AU1`) configuration.
+7. Make controlled test calls covering consent, decline, anonymous caller, interruption/barge-in, durable callback creation, Telegram retry, provider failure, and the twelve-minute call limit. Confirm no raw audio, transcript, caller identity, or message text appears in Vercel, Sentry, PostHog, or Telegram.
+
+The opening disclosure must say the caller is speaking with an automated assistant, that the call is transcribed and processed by AI, and that the assistant cannot provide medical advice or make clinical decisions. Streaming starts only after the caller presses 1. For adjustments, corrections, prescription or clinical questions, patient-specific matters, and unresolved issues, the agent captures the minimum necessary caller-confirmed summary. It may say the request was recorded for the Medical Director only after the database receipt succeeds. It never promises a fix, approval, callback time, or outcome.
+
+### Rollback
+
+Set `TWILIO_AI_VOICE_ENABLED=false` and redeploy to make the consent endpoint fail closed to the support-email fallback. If routing itself is unhealthy, remove or replace the number's incoming webhook/re-route setting in Twilio after resolving the exact target. Existing encrypted callback records remain available for operator follow-up; rollback never deletes them.
 
 ### PostHog Production Settings
 

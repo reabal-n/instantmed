@@ -119,7 +119,10 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **132 migration files**")
+      expect(source).toContain("Current count on disk: **133 migration files**")
+      expect(source).toContain(
+        "`20260827210500_twilio_voice_callback_requests.sql`",
+      )
       expect(source).toContain(
         "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`",
       )
@@ -141,7 +144,7 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest on disk: `20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`",
+      "Latest on disk: unapplied `20260827210500_twilio_voice_callback_requests.sql`",
     )
     expect(architecture).toContain(
       "latest applied and verified production migration remains `20260823101500_fix_partially_refunded_review_claim.sql`",

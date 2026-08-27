@@ -6,17 +6,17 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 
 | Area | Current count |
 |------|---------------|
-| `app/` | 559 files |
-| Route-like files under `app/` | 239 |
-| API route files under `app/api/` | 88 |
+| `app/` | 565 files |
+| Route-like files under `app/` | 245 |
+| API route files under `app/api/` | 94 |
 | Cron route files under `app/api/cron/` | 29 |
 | `components/` | 405 files |
-| `lib/` | 1,291 files |
+| `lib/` | 1,305 files |
 | E2E TypeScript files under `e2e/` | 78 (68 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 132 |
+| SQL migrations under `supabase/migrations/` | 133 |
 
-Newest on disk is the unapplied `20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`, which scopes and verifies all three RLS policies that call `is_doctor()` as authenticated-only. Latest applied and verified production migration (2026-08-23) remains `20260823101500_fix_partially_refunded_review_claim.sql`. Linked migration history is aligned through that version. It removes the unused two-argument doctor-claim overload and repairs the canonical three-argument function used by the app so `paid|partially_refunded` obligations are claimable while fully refunded and disputed requests remain blocked. Live metadata confirmed service-role-only execution, zero SECURITY DEFINER ACL violations, and an unchanged actionable partial-refund obligation. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, passed its linked DB lint and ACL gates. Detailed database receipts live in `docs/ARCHITECTURE.md`.
+Newest on disk is the unapplied `20260827210500_twilio_voice_callback_requests.sql`, which creates the encrypted, service-role-only staged AI voice callback queue and bounded notification-claim RPC. Latest applied and verified production migration (2026-08-23) remains `20260823101500_fix_partially_refunded_review_claim.sql`. Linked migration history is aligned through that version. It removes the unused two-argument doctor-claim overload and repairs the canonical three-argument function used by the app so `paid|partially_refunded` obligations are claimable while fully refunded and disputed requests remain blocked. Live metadata confirmed service-role-only execution, zero SECURITY DEFINER ACL violations, and an unchanged actionable partial-refund obligation. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, passed its linked DB lint and ACL gates. Detailed database receipts live in `docs/ARCHITECTURE.md`.
 
 ## Runtime Shape
 
