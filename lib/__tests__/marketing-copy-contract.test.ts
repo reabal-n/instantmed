@@ -213,7 +213,9 @@ describe("marketing copy contracts", () => {
   })
 
   it("keeps medical certificate trust copy specific instead of slogan-like", () => {
-    expect(medCertPageSource).toContain("Online Medical Certificate | Bounded Clinical Pathway | InstantMed")
+    expect(medCertPageSource).toContain(
+      "Medical Certificates Online | From ${PRICING_DISPLAY.MED_CERT} | InstantMed",
+    )
     expect(medCertPageSource).not.toContain("Under 30 Minutes, No Call")
     expect(medCertPageSource).not.toContain("no call, no appointment")
     expect(medCertPageSource).not.toContain("in under 30 minutes")
