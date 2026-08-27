@@ -27,6 +27,7 @@ import { INTAKE_PRIMARY_ACTION_CHANGE_EVENT, RequestButton } from "@/components/
 import { requestCx } from "@/components/request/request-cx"
 import { TimeRemaining } from "@/components/request/time-remaining"
 import { ensureFlowInstanceId } from "@/lib/analytics/flow-instance"
+import { canClaimSpecialtyExperienceAtEntry } from "@/lib/growth/specialty-experience-attribution"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
   getStoredDraftRestoreCandidate,
@@ -495,6 +496,13 @@ export function RequestFlow({
   if (storedDraftAtEntryRef.current === undefined) {
     storedDraftAtEntryRef.current = getStoredDraftRestoreCandidate(initialService)
   }
+  const growthClaimEligibleAtEntryRef = useRef(
+    canClaimSpecialtyExperienceAtEntry({
+      hasExplicitRecovery,
+      hasStoredDraft: Boolean(storedDraftAtEntryRef.current),
+      hadPatientWork: Boolean(lastSavedAt),
+    }),
+  )
   
   // Rehydrate persisted store after mount (SSR-safe pattern).
   // The store uses skipHydration:true to avoid a server/client mismatch on first render.
@@ -777,8 +785,7 @@ export function RequestFlow({
       !initialGrowthExperienceVersion ||
       !initialService ||
       serviceType !== initialService ||
-      storedDraftAtEntryRef.current ||
-      lastSavedAt
+      !growthClaimEligibleAtEntryRef.current
     ) {
       return
     }
@@ -789,7 +796,6 @@ export function RequestFlow({
     hydrated,
     initialGrowthExperienceVersion,
     initialService,
-    lastSavedAt,
     serviceType,
   ])
 
@@ -876,8 +882,7 @@ export function RequestFlow({
     initialGrowthExperienceVersion &&
     initialService &&
     serviceType === initialService &&
-    !storedDraftAtEntryRef.current &&
-    !lastSavedAt &&
+    growthClaimEligibleAtEntryRef.current &&
     !growthExperienceVersion,
   )
   const { analyticsServiceType, patientEmail, posthog, trackStepCompleted } = useFlowAnalytics({

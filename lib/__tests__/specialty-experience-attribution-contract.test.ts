@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import {
+  canClaimSpecialtyExperienceAtEntry,
   normalizeIncomingGrowthExperienceVersion,
   normalizePersistedGrowthExperienceVersion,
   selectGrowthExperienceVersion,
@@ -26,6 +27,38 @@ function filesUnder(path: string): string[] {
 }
 
 describe("specialty experience attribution", () => {
+  it("claims a tagged fresh entry without letting existing patient work be relabelled", () => {
+    expect(
+      canClaimSpecialtyExperienceAtEntry({
+        hasExplicitRecovery: false,
+        hasStoredDraft: false,
+        hadPatientWork: false,
+      }),
+    ).toBe(true)
+
+    expect(
+      canClaimSpecialtyExperienceAtEntry({
+        hasExplicitRecovery: true,
+        hasStoredDraft: false,
+        hadPatientWork: false,
+      }),
+    ).toBe(false)
+    expect(
+      canClaimSpecialtyExperienceAtEntry({
+        hasExplicitRecovery: false,
+        hasStoredDraft: true,
+        hadPatientWork: false,
+      }),
+    ).toBe(false)
+    expect(
+      canClaimSpecialtyExperienceAtEntry({
+        hasExplicitRecovery: false,
+        hasStoredDraft: false,
+        hadPatientWork: true,
+      }),
+    ).toBe(false)
+  })
+
   it("claims only a current service-matched specialty landing token", () => {
     expect(
       normalizeIncomingGrowthExperienceVersion("spx_h1_20260828", {

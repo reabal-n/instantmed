@@ -11,6 +11,25 @@ export interface SpecialtyExperienceRequestContext {
   subtype?: unknown
 }
 
+export interface SpecialtyExperienceEntryState {
+  hasExplicitRecovery: boolean
+  hasStoredDraft: boolean
+  hadPatientWork: boolean
+}
+
+/**
+ * Snapshot the ownership boundary at entry. Later structural URL setup may
+ * move the wizard to its first subtype step and stamp store state; that must
+ * not make a genuinely fresh tagged entry ineligible for its cohort.
+ */
+export function canClaimSpecialtyExperienceAtEntry({
+  hasExplicitRecovery,
+  hasStoredDraft,
+  hadPatientWork,
+}: SpecialtyExperienceEntryState): boolean {
+  return !hasExplicitRecovery && !hasStoredDraft && !hadPatientWork
+}
+
 function resolveService(
   context: SpecialtyExperienceRequestContext,
 ): SpecialtyExperienceService | null {
