@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import {
   ACTIVE_SPECIALTY_EXPERIENCES,
+  isSpecialtyExperienceAvailableAt,
   normalizeSpecialtyExperienceVersion,
   SPECIALTY_EXPERIENCES,
+  type SpecialtyExperienceDefinition,
 } from "@/lib/growth/specialty-experiences"
 
 describe("specialty experience registry", () => {
@@ -42,6 +44,7 @@ describe("specialty experience registry", () => {
       "spx_e1_20260828",
     ])
     expect(SPECIALTY_EXPERIENCES.filter((experience) => experience.status !== "active")).toHaveLength(4)
+    expect(SPECIALTY_EXPERIENCES.filter((experience) => experience.status === "baseline")).toHaveLength(4)
   })
 
   it("does not permit two active material versions for a service", () => {
@@ -78,6 +81,23 @@ describe("specialty experience registry", () => {
     expect(
       normalizeSpecialtyExperienceVersion("spx_h1_20260828", "hair_loss", "landing", "2026-08-28T00:00:00.000Z"),
     ).toBe("spx_h1_20260828")
+  })
+
+  it("retains a cohort started before retirement and rejects one started after it", () => {
+    const retiredVersion: SpecialtyExperienceDefinition = {
+      id: "spx_h3_20260828",
+      service: "hair_loss",
+      surface: "landing",
+      hypothesis: "Retired test definition",
+      status: "retired",
+      activationTimestamp: "2026-08-01T00:00:00.000Z",
+      retirementTimestamp: "2026-08-15T00:00:00.000Z",
+      publicLandingPathname: "/hair-loss",
+    }
+
+    expect(isSpecialtyExperienceAvailableAt(retiredVersion, "2026-08-10T00:00:00.000Z")).toBe(true)
+    expect(isSpecialtyExperienceAvailableAt(retiredVersion, "2026-08-15T00:00:00.000Z")).toBe(false)
+    expect(isSpecialtyExperienceAvailableAt(retiredVersion, "2026-08-20T00:00:00.000Z")).toBe(false)
   })
 
   it("keeps identifiers free of personal, clinical, and acquisition meaning", () => {

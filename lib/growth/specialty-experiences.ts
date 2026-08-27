@@ -53,7 +53,7 @@ export const SPECIALTY_EXPERIENCES: readonly SpecialtyExperienceDefinition[] = [
     service: "hair_loss",
     surface: "intake_presentation",
     hypothesis: "Two early presentation screens make one mental task feel longer than it is.",
-    status: "retired",
+    status: "baseline",
     activationTimestamp: null,
     retirementTimestamp: null,
     publicLandingPathname: "/hair-loss",
@@ -63,7 +63,7 @@ export const SPECIALTY_EXPERIENCES: readonly SpecialtyExperienceDefinition[] = [
     service: "hair_loss",
     surface: "landing",
     hypothesis: "Privacy-led positioning may improve fit while retaining the winning structure.",
-    status: "retired",
+    status: "baseline",
     activationTimestamp: null,
     retirementTimestamp: null,
     publicLandingPathname: "/hair-loss",
@@ -83,7 +83,7 @@ export const SPECIALTY_EXPERIENCES: readonly SpecialtyExperienceDefinition[] = [
     service: "ed",
     surface: "intake_presentation",
     hypothesis: "Optional physical-detail presentation makes the identity screen feel longer.",
-    status: "retired",
+    status: "baseline",
     activationTimestamp: null,
     retirementTimestamp: null,
     publicLandingPathname: "/erectile-dysfunction",
@@ -93,7 +93,7 @@ export const SPECIALTY_EXPERIENCES: readonly SpecialtyExperienceDefinition[] = [
     service: "ed",
     surface: "landing",
     hypothesis: "Privacy-first positioning may improve fit while retaining the qualified outcome.",
-    status: "retired",
+    status: "baseline",
     activationTimestamp: null,
     retirementTimestamp: null,
     publicLandingPathname: "/erectile-dysfunction",
@@ -152,6 +152,13 @@ function isAvailableAt(
   return experience.status === "active"
 }
 
+export function isSpecialtyExperienceAvailableAt(
+  experience: SpecialtyExperienceDefinition,
+  startedAt: Date | string | number,
+): boolean {
+  return isAvailableAt(experience, parseStartTime(startedAt))
+}
+
 /**
  * Resolve a version at a trust boundary. Invalid, unknown, mismatched, and
  * inactive values become null so attribution can never block an intake.
@@ -174,7 +181,7 @@ export function normalizeSpecialtyExperienceVersion(
       candidate.service === service &&
       candidate.surface === surface,
   )
-  if (!experience || !isAvailableAt(experience, parseStartTime(startedAt))) return null
+  if (!experience || !isSpecialtyExperienceAvailableAt(experience, startedAt ?? Date.now())) return null
 
   return experience.id as SpecialtyExperienceVersion
 }
