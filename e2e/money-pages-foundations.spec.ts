@@ -93,6 +93,25 @@ async function waitTwoFrames(page: Page) {
   )
 }
 
+async function expectCenterPointNotCovered(locator: Locator) {
+  const evidence = await locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect()
+    const x = Math.min(window.innerWidth - 1, Math.max(0, rect.left + rect.width / 2))
+    const y = Math.min(window.innerHeight - 1, Math.max(0, rect.top + rect.height / 2))
+    const hit = document.elementFromPoint(x, y)
+
+    return {
+      center: { x, y },
+      hit: hit instanceof HTMLElement
+        ? hit.getAttribute("aria-label") || hit.textContent?.trim().slice(0, 80) || hit.tagName
+        : null,
+      uncovered: hit === element || element.contains(hit),
+    }
+  })
+
+  expect(evidence.uncovered, `notice center ${JSON.stringify(evidence)}`).toBe(true)
+}
+
 async function applyRootFontSize(page: Page, size?: number) {
   if (!size) return
   await page.addStyleTag({ content: `:root { font-size: ${size}px !important; }` })
@@ -812,7 +831,9 @@ test("ED E1 preserves unavailable-service behavior", async ({ page }) => {
   await seedMoneyPageState(page, "light")
   await gotoPublicRoute(page, "/erectile-dysfunction")
 
-  await expect(page.getByText("This service is temporarily unavailable.")).toBeVisible()
+  const unavailableNotice = page.getByText("This service is temporarily unavailable.")
+  await expect(unavailableNotice).toBeVisible()
+  await expectCenterPointNotCovered(unavailableNotice)
   await expect(page.locator('main a[href="/contact"]').first()).toHaveAttribute(
     "href",
     "/contact",
@@ -953,7 +974,9 @@ test("Hair H1 preserves unavailable-service behavior", async ({ page }) => {
   await seedMoneyPageState(page, "light")
   await gotoPublicRoute(page, "/hair-loss")
 
-  await expect(page.getByText("This service is temporarily unavailable.")).toBeVisible()
+  const unavailableNotice = page.getByText("This service is temporarily unavailable.")
+  await expect(unavailableNotice).toBeVisible()
+  await expectCenterPointNotCovered(unavailableNotice)
   await expect(page.locator('main a[href="/contact"]').first()).toHaveAttribute(
     "href",
     "/contact",
