@@ -93,7 +93,7 @@ describe("money-page narrative compression", () => {
     expect(source).toContain('title="Repeat prescription, reviewed from home."')
     expect(source).toContain("Australia only")
     expect(source).toContain("Ages 18+")
-    expect(source).toContain("Medicare details required")
+    expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
     expect(source).toContain("Previously prescribed")
     expect(source).toContain("Stable medication and dose")
     expect(source).toContain("PRICING_DISPLAY.REPEAT_SCRIPT")
@@ -156,8 +156,6 @@ describe("money-page narrative compression", () => {
     for (const firstFoldFact of [
       "Australia only",
       "Ages 18+",
-      "Medicare or IHI",
-      "Australian address",
       "PRICING_DISPLAY.MENS_HEALTH",
       "ED_SERVICE.effort",
       "REFUND_GUARANTEE_CLAIM",
@@ -167,6 +165,7 @@ describe("money-page narrative compression", () => {
     ]) {
       expect(source, firstFoldFact).toContain(firstFoldFact)
     }
+    expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
 
     expect(source).toContain("Start private assessment")
     expect(source).toContain('href="#how-it-works"')
@@ -223,12 +222,12 @@ describe("money-page narrative compression", () => {
     for (const firstFoldFact of [
       "Australia only",
       "Ages 18+",
-      "Medicare details required",
       "3-min form",
       "PRICING_DISPLAY.HAIR_LOSS",
     ]) {
       expect(source, firstFoldFact).toContain(firstFoldFact)
     }
+    expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
 
     for (const retiredMarker of [
       "LiveWaitTime",
@@ -274,12 +273,12 @@ describe("money-page narrative compression", () => {
     for (const commonFact of [
       "Australia only",
       "Ages 18+",
-      "Medicare details required",
       "PRICING_DISPLAY.WOMENS_HEALTH",
       "Full refund if the doctor declines",
     ]) {
       expect(source, commonFact).toContain(commonFact)
     }
+    expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
 
     for (const retiredMarker of [
       "WomensHealthIntent",

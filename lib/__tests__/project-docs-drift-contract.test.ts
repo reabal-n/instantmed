@@ -97,6 +97,18 @@ describe("project docs drift contract", () => {
       expect(source).toContain("structured Australian address")
       expect(source).not.toContain("Medicare optional for med certs, required for Rx/consults")
     }
+
+    for (const source of [agents, claude]) {
+      const start = source.indexOf('- **Identity-required gate is "anything that is not a med cert"')
+      const end = source.indexOf("\n- **Attribution surfacing", start)
+      const identityGateCanon = source.slice(start, end)
+
+      expect(start).toBeGreaterThan(-1)
+      expect(end).toBeGreaterThan(start)
+      expect(identityGateCanon).toContain(canonicalDefinition)
+      expect(identityGateCanon).not.toContain("address + Medicare + sex on `profiles`, plus phone")
+      expect(identityGateCanon).not.toContain("address + Medicare + phone for everything EXCEPT med certs")
+    }
   })
 
   it("excludes linked worktrees and ignored task-execution artifacts from the canonical documentation count", () => {

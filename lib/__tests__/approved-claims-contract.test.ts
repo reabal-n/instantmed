@@ -54,6 +54,15 @@ describe("approved claims registry", () => {
     expect(docs).not.toContain("A doctor contacts you only if more information is clinically needed")
   })
 
+  it("cites the canonical prescribing identity gate owner", () => {
+    expect(APPROVED_CLAIMS.prescribing_identity_required.sources).toContain(
+      "lib/request/prescribing-identity.ts",
+    )
+    expect(APPROVED_CLAIMS.prescribing_identity_required.sources).not.toContain(
+      "lib/request/unified-checkout.ts",
+    )
+  })
+
   it("keeps trust badges wired to approved trust primitive copy", () => {
     const trustBadgesSource = readFileSync(
       join(root, "lib/marketing/trust-badges.ts"),

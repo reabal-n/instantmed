@@ -127,9 +127,11 @@ const prescribingIdentityMirrorPaths = [
   "app/pricing/pricing-content.tsx",
   "app/symptoms/[slug]/page.tsx",
   "app/compare/[slug]/page.tsx",
+  "app/consult/page.tsx",
   "app/locations/[city]/page.tsx",
   "app/online-doctor-australia/page.tsx",
   "app/telehealth-australia/page.tsx",
+  "lib/seo/data/deep-city-content/nsw.ts",
 ] as const
 
 const prescribingIdentityClaimConsumerPaths = [
@@ -148,8 +150,11 @@ const prescribingIdentityClaimConsumerPaths = [
   "lib/data/online-prescriptions-faq.ts",
   "lib/data/prescription-faq.ts",
   "app/compare/[slug]/page.tsx",
+  "app/consult/page.tsx",
   "app/locations/[city]/page.tsx",
+  "app/online-doctor-australia/page.tsx",
   "app/telehealth-australia/page.tsx",
+  "lib/seo/data/deep-city-content/nsw.ts",
 ] as const
 
 describe("marketing copy contracts", () => {
@@ -161,7 +166,7 @@ describe("marketing copy contracts", () => {
 
     expect(approvedClaimsSource).toContain('"prescribing_identity_required"')
     expect(approvedClaimsSource).toContain(
-      'text: "Medicare or IHI, plus an Australian address, is required for prescribing."',
+      'text: "For prescribing, you need either Medicare details or a valid IHI, plus an Australian address."',
     )
 
     for (const path of prescribingIdentityMirrorPaths) {

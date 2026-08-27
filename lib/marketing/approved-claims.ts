@@ -393,10 +393,10 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
   },
   prescribing_identity_required: {
     id: "prescribing_identity_required",
-    text: "Medicare or IHI, plus an Australian address, is required for prescribing.",
+    text: "For prescribing, you need either Medicare details or a valid IHI, plus an Australian address.",
     contexts: ["prescribing", "specialty"],
     risk: "medium",
-    sources: ["CONTEXT.md", "docs/CLINICAL.md", "lib/request/unified-checkout.ts"],
+    sources: ["CONTEXT.md", "docs/CLINICAL.md", "lib/request/prescribing-identity.ts"],
     notes: "Concise patient-facing identity claim for repeated prescribing surfaces. Canonical docs own the complete date-of-birth, sex, and phone bundle.",
   },
   employer_verify_authenticity: {
