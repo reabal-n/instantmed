@@ -17,8 +17,8 @@ import {
 import type { DeliveredAdsAgentRunEvidence } from "@/lib/ads-agent/runs"
 import {
   type AdsScaleAuthorizationEvidence,
-  readScriptsScaleAuthorizationEvidence,
 } from "@/lib/ads-agent/scripts-scale-authorization"
+import { readScriptsScaleAuthorizationEvidence } from "@/lib/ads-agent/scripts-scale-authorization-reader"
 import type { AdsAgentSnapshot } from "@/lib/ads-agent/types"
 
 function isCurrentApprovalProposal(args: {
@@ -56,7 +56,7 @@ function currentScriptsCampaign(snapshot: AdsAgentSnapshot) {
   return campaigns.length === 1 ? campaigns[0] : null
 }
 
-export function resolveBusinessAdsActionEvidence(args: {
+function resolveBusinessAdsActionEvidence(args: {
   now?: Date
   proposals: AdsChangeProposal[]
   run: DeliveredAdsAgentRunEvidence

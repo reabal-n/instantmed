@@ -1,10 +1,30 @@
-import { describe, expect, it } from "vitest"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { resolveBusinessAdsActionEvidence } from "@/lib/admin/business-ads-action"
-import type { AdsChangeProposal } from "@/lib/ads-agent/proposals"
+import { getBusinessAdsActionEvidence } from "@/lib/admin/business-ads-action"
+import {
+  type AdsChangeProposal,
+  getAdsProposalByKey,
+} from "@/lib/ads-agent/proposals"
 import type { DeliveredAdsAgentRunEvidence } from "@/lib/ads-agent/runs"
 import type { AdsScaleAuthorizationEvidence } from "@/lib/ads-agent/scripts-scale-authorization"
+import { readScriptsScaleAuthorizationEvidence } from "@/lib/ads-agent/scripts-scale-authorization-reader"
 import type { AdsAgentSnapshot, CampaignEconomics } from "@/lib/ads-agent/types"
+
+vi.mock("@/lib/ads-agent/proposals", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/ads-agent/proposals")>()
+  return {
+    ...actual,
+    getAdsProposalByKey: vi.fn(),
+  }
+})
+
+vi.mock("@/lib/ads-agent/scripts-scale-authorization-reader", () => ({
+  readScriptsScaleAuthorizationEvidence: vi.fn(),
+}))
+
+const getProposalMock = vi.mocked(getAdsProposalByKey)
+const readScaleEvidenceMock = vi.mocked(readScriptsScaleAuthorizationEvidence)
 
 const NOW = new Date("2026-08-27T00:30:00.000Z")
 
@@ -213,12 +233,45 @@ function scaleEvidence(
   }
 }
 
-describe("resolveBusinessAdsActionEvidence", () => {
-  it("reserves approval-required state for one current exact validated proposal", () => {
-    expect(resolveBusinessAdsActionEvidence({
-      now: NOW,
+function supabaseWithProposalKeys(keys: string[]): SupabaseClient {
+  const query = {
+    eq: vi.fn(() => query),
+    in: vi.fn(() => query),
+    limit: vi.fn(async () => ({
+      data: keys.map((proposalKey) => ({ proposal_key: proposalKey })),
+      error: null,
+    })),
+    select: vi.fn(() => query),
+  }
+  return {
+    from: vi.fn(() => query),
+  } as unknown as SupabaseClient
+}
+
+async function readActionEvidence(args: {
+  proposals: AdsChangeProposal[]
+  scriptsScaleEvidence: AdsScaleAuthorizationEvidence | null
+}) {
+  getProposalMock.mockImplementation(async (_supabase, proposalKey) =>
+    args.proposals.find((candidate) => candidate.proposalKey === proposalKey) ?? null)
+  readScaleEvidenceMock.mockResolvedValue(args.scriptsScaleEvidence)
+  return getBusinessAdsActionEvidence({
+    now: NOW,
+    run: run(),
+    supabase: supabaseWithProposalKeys(
+      args.proposals.map(({ proposalKey }) => proposalKey),
+    ),
+  })
+}
+
+describe("getBusinessAdsActionEvidence", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("reserves approval-required state for one current exact validated proposal", async () => {
+    expect(await readActionEvidence({
       proposals: [proposal()],
-      run: run(),
       scriptsScaleEvidence: scaleEvidence(3, 12),
     })).toEqual({
       currentValue: "A$79/day",
@@ -230,11 +283,9 @@ describe("resolveBusinessAdsActionEvidence", () => {
     })
   })
 
-  it("ignores an expired proposal and reports the live post-change observation", () => {
-    expect(resolveBusinessAdsActionEvidence({
-      now: NOW,
+  it("ignores an expired proposal and reports the live post-change observation", async () => {
+    expect(await readActionEvidence({
       proposals: [proposal({ expiresAt: "2026-08-26T23:59:59.000Z" })],
-      run: run(),
       scriptsScaleEvidence: scaleEvidence(2, 8),
     })).toEqual({
       attributedOrders: 8,
@@ -248,11 +299,9 @@ describe("resolveBusinessAdsActionEvidence", () => {
     })
   })
 
-  it("requires a proposal after the full post-change gate passes", () => {
-    expect(resolveBusinessAdsActionEvidence({
-      now: NOW,
+  it("requires a proposal after the full post-change gate passes", async () => {
+    expect(await readActionEvidence({
       proposals: [],
-      run: run(),
       scriptsScaleEvidence: scaleEvidence(3, 10),
     })).toEqual({
       currentBudgetCents: 7_900,

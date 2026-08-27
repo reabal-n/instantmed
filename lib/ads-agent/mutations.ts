@@ -38,9 +38,11 @@ import {
 import {
   type AdsScaleAuthorizationEvidence,
   previousSydneyDateKey,
-  readScriptsScaleAuthorizationEvidence,
   resolveLatestAdsMaterialChangeAt,
 } from "@/lib/ads-agent/scripts-scale-authorization"
+import {
+  readScriptsScaleAuthorizationEvidence,
+} from "@/lib/ads-agent/scripts-scale-authorization-reader"
 import type { AdsService } from "@/lib/ads-agent/types"
 import {
   type GoogleAdsMutateOperation,
