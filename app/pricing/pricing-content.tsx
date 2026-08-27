@@ -23,6 +23,7 @@ import { PricingStickyCta } from "./pricing-sticky-cta"
 
 const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
 
 const FEE_LEDGER_ITEMS = [
   "Secure service-specific form",
@@ -53,7 +54,7 @@ const pricingFaqs = [
   {
     question: "Is InstantMed bulk billed, and do I need Medicare?",
     answer:
-      "InstantMed is a private service and does not bulk bill or claim Medicare rebates. Medical certificates do not require Medicare. Prescribing requests require Medicare details for identity, prescribing records, and pharmacy continuity.",
+      `InstantMed is a private service and does not bulk bill or claim Medicare rebates. Medical certificates do not require Medicare. ${PRESCRIBING_IDENTITY_REQUIRED}`,
   },
   {
     question: "How much do prescriptions cost at the pharmacy?",
@@ -171,8 +172,7 @@ export function PricingContent() {
               <span>{`Fees from ${PRICING_DISPLAY.MED_CERT} AUD`}</span>
             </div>
             <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-              {CLINICAL_REVIEW_SEQUENCE} Medical certificates do not require Medicare; prescribing
-              requests do. Medication costs are separate.
+              {CLINICAL_REVIEW_SEQUENCE} Medical certificates do not require Medicare. {PRESCRIBING_IDENTITY_REQUIRED} Medication costs are separate.
             </p>
             <Button asChild size="lg" className="rounded-full">
               <Link href="#pricing-cards">Choose a service</Link>

@@ -59,6 +59,7 @@ export type ApprovedClaimId =
   | "trust_doctor_issued_tooltip"
   | "prescription_escript_sent"
   | "prescription_if_approved"
+  | "prescribing_identity_required"
   | "employer_verify_authenticity"
   | "employer_privacy_limited"
 
@@ -389,6 +390,14 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
     risk: "medium",
     sources: CLINICAL_RECEIPTS,
     notes: "Human alternative to sterile clinical-appropriateness copy.",
+  },
+  prescribing_identity_required: {
+    id: "prescribing_identity_required",
+    text: "Medicare or IHI, plus an Australian address, is required for prescribing.",
+    contexts: ["prescribing", "specialty"],
+    risk: "medium",
+    sources: ["CONTEXT.md", "docs/CLINICAL.md", "lib/request/unified-checkout.ts"],
+    notes: "Concise patient-facing identity claim for repeated prescribing surfaces. Canonical docs own the complete date-of-birth, sex, and phone bundle.",
   },
   employer_verify_authenticity: {
     id: "employer_verify_authenticity",

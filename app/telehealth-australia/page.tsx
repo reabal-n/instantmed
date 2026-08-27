@@ -32,6 +32,7 @@ import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
 
 // ============================================================================
 // METADATA - head-term pillar for "telehealth australia" and related
@@ -118,7 +119,7 @@ const FAQS = [
   },
   {
     question: "What does a telehealth consultation actually cost in Australia?",
-    answer: `That depends entirely on the provider and whether Medicare applies. GP-based telehealth with an established-relationship patient may be bulk-billed or carry a small gap fee. Private telehealth services like InstantMed charge a flat fee per request - medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and specialised ED or hair-loss assessments from ${PRICING_DISPLAY.CONSULT}. The trade-off is simple: you pay a small fee for structured access without booking an appointment or providing a Medicare card.`,
+    answer: `That depends entirely on the provider and whether Medicare applies. GP-based telehealth with an established-relationship patient may be bulk-billed or carry a small gap fee. Private telehealth services like InstantMed charge a flat fee per request - medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and specialised ED or hair-loss assessments from ${PRICING_DISPLAY.CONSULT}. Medical certificates do not require Medicare. ${PRESCRIBING_IDENTITY_REQUIRED}`,
   },
   {
     question: "Can a telehealth doctor send a prescription to my pharmacy?",

@@ -26,6 +26,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { PILL_LANDING_FAQ } from "@/lib/data/womens-health-faq"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
@@ -49,7 +50,7 @@ const HERO_FACTS = [
     icon: ShieldCheck,
     label: "Eligibility",
     value: "Australia only · 18+",
-    body: "Medicare required for this prescription pathway.",
+    body: getApprovedClaim("prescribing_identity_required"),
   },
   {
     icon: WalletCards,
@@ -85,7 +86,8 @@ const SAFETY_CHECKS = [
 ] as const
 
 const ELIGIBILITY_ITEMS = [
-  "You are in Australia, aged 18 or over, and have Medicare.",
+  "You are in Australia and aged 18 or over.",
+  getApprovedClaim("prescribing_identity_required"),
   "You want to start an oral contraceptive pill or switch from another method.",
   "Your pre-checkout answers allow this online pathway to continue.",
   "You can provide current contraception, blood-pressure context, medical history, and medicine details clearly.",
@@ -112,7 +114,7 @@ const REVIEW_COST_OUTCOMES = [
   {
     icon: WalletCards,
     title: `3 · ${PRICING_DISPLAY.WOMENS_HEALTH}, outcome, or refund`,
-    body: `Medicare is required and pharmacy costs are separate. If clinically appropriate, the outcome is sent digitally. Prescription is not guaranteed. ${GUARANTEE}`,
+    body: `${getApprovedClaim("prescribing_identity_required")} Pharmacy costs are separate. If clinically appropriate, the outcome is sent digitally. Prescription is not guaranteed. ${GUARANTEE}`,
   },
 ] as const
 

@@ -9,6 +9,7 @@ import { JsonLdScript } from "@/components/seo/schemas/json-ld-script"
 import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { DEFAULT_APP_URL, PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
 import { shouldIndexLocation } from "@/lib/seo/index-policy"
 
@@ -68,7 +69,7 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
   melbourne: [
     { q: "Is InstantMed available across all of Melbourne?", a: "Yes - from the CBD to the outer suburbs. We serve all of Greater Melbourne and regional Victoria." },
     { q: "Can I get an eScript filled at a Melbourne pharmacy?", a: "Yes. Your eScript can be filled at any pharmacy in Melbourne. Just show the QR code on your phone." },
-    { q: "Do I need a Medicare card to use InstantMed in Victoria?", a: "No Medicare card is required. InstantMed is a private service with transparent flat-fee pricing." },
+    { q: "Do I need a Medicare card to use InstantMed in Victoria?", a: `Medical certificates do not require Medicare. ${getApprovedClaim("prescribing_identity_required")} InstantMed is a private service with transparent flat-fee pricing.` },
   ],
   brisbane: [
     { q: "Does InstantMed work in Greater Brisbane?", a: "Yes - we serve all Brisbane suburbs, from the CBD to Logan, Ipswich and Redcliffe." },

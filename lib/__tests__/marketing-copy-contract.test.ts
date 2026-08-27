@@ -106,7 +106,81 @@ const staticTimingClaimSources = [
   "lib/social-proof/index.ts",
 ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
 
+const prescribingIdentityMirrorPaths = [
+  "components/marketing/hair-loss-landing.tsx",
+  "components/marketing/erectile-dysfunction-landing.tsx",
+  "components/marketing/prescriptions-landing.tsx",
+  "components/marketing/online-prescriptions-landing.tsx",
+  "components/marketing/womens-health-landing.tsx",
+  "components/marketing/uti-assessment-landing.tsx",
+  "components/marketing/contraceptive-pill-assessment-landing.tsx",
+  "components/marketing/mens-health-landing.tsx",
+  "components/request/service-hub-screen.tsx",
+  "components/request/help-tooltip.tsx",
+  "lib/data/ed-faq.ts",
+  "lib/data/mens-health-faq.ts",
+  "lib/data/online-prescriptions-faq.ts",
+  "lib/data/prescription-faq.ts",
+  "lib/marketing/homepage.ts",
+  "app/for/page.tsx",
+  "app/how-it-works/page.tsx",
+  "app/pricing/pricing-content.tsx",
+  "app/symptoms/[slug]/page.tsx",
+  "app/compare/[slug]/page.tsx",
+  "app/locations/[city]/page.tsx",
+  "app/online-doctor-australia/page.tsx",
+  "app/telehealth-australia/page.tsx",
+] as const
+
+const prescribingIdentityClaimConsumerPaths = [
+  "components/marketing/hair-loss-landing.tsx",
+  "components/marketing/erectile-dysfunction-landing.tsx",
+  "components/marketing/prescriptions-landing.tsx",
+  "components/marketing/online-prescriptions-landing.tsx",
+  "components/marketing/womens-health-landing.tsx",
+  "components/marketing/uti-assessment-landing.tsx",
+  "components/marketing/contraceptive-pill-assessment-landing.tsx",
+  "components/marketing/mens-health-landing.tsx",
+  "components/request/service-hub-screen.tsx",
+  "components/request/help-tooltip.tsx",
+  "lib/data/ed-faq.ts",
+  "lib/data/mens-health-faq.ts",
+  "lib/data/online-prescriptions-faq.ts",
+  "lib/data/prescription-faq.ts",
+  "app/compare/[slug]/page.tsx",
+  "app/locations/[city]/page.tsx",
+  "app/telehealth-australia/page.tsx",
+] as const
+
 describe("marketing copy contracts", () => {
+  it("keeps active prescribing mirrors on the approved Medicare-or-IHI identity claim", () => {
+    const approvedClaimsSource = readFileSync(
+      join(root, "lib/marketing/approved-claims.ts"),
+      "utf8",
+    )
+
+    expect(approvedClaimsSource).toContain('"prescribing_identity_required"')
+    expect(approvedClaimsSource).toContain(
+      'text: "Medicare or IHI, plus an Australian address, is required for prescribing."',
+    )
+
+    for (const path of prescribingIdentityMirrorPaths) {
+      const source = readFileSync(join(root, path), "utf8")
+      expect(source, path).not.toMatch(/Medicare (?:details )?(?:are|is) required/i)
+      expect(source, path).not.toMatch(/(?:prescriptions?|consultations?|prescribing requests?) require Medicare details/i)
+      expect(source, path).not.toMatch(/(?:have|provide) (?:a valid )?Medicare(?: card| details)?(?:[.,]|\b(?! or IHI))/i)
+      expect(source, path).not.toMatch(/Medicare required/i)
+    }
+
+    for (const path of prescribingIdentityClaimConsumerPaths) {
+      expect(readFileSync(join(root, path), "utf8"), path).toContain(
+        'getApprovedClaim("prescribing_identity_required")',
+      )
+    }
+
+    expect(trustBadgesSource).toContain("label: 'No Medicare required'")
+  })
+
   it("keeps the homepage hero kicker calm and clinically grounded", () => {
     expect(voiceSource).not.toContain("Three minutes. Done.")
     expect(voiceSource).toContain('export const ICONIC_HOOK = getApprovedClaim("iconic_hook")')

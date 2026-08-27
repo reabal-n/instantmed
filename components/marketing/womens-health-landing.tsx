@@ -67,8 +67,8 @@ const COMMON_FACTS = [
   {
     icon: BadgeCheck,
     label: "Clinical record",
-    value: "Medicare details required",
-    body: "Required for consultation records and electronic prescribing.",
+    value: "Medicare or IHI",
+    body: getApprovedClaim("prescribing_identity_required"),
   },
   {
     icon: WalletCards,

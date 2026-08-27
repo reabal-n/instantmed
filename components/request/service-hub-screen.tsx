@@ -16,6 +16,7 @@ import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
 import { Heading } from "@/components/ui/heading"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { buildDraftResumePath } from "@/lib/request/draft-resume-route"
 import {
   type CanonicalServiceType,
@@ -278,7 +279,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             Prescribing and any concerning certificate request is reviewed by an Australian-registered doctor.
           </p>
           <p className="text-center text-[11px] leading-snug text-muted-foreground">
-            No Medicare needed for medical certificates. Medicare details are required for prescriptions and consults.
+            No Medicare needed for medical certificates. {getApprovedClaim("prescribing_identity_required")}
           </p>
         </div>
       </main>

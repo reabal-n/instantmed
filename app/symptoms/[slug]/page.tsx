@@ -21,6 +21,7 @@ import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { symptoms } from "@/lib/seo/data/symptoms"
 import { shouldIndexSymptom } from "@/lib/seo/index-policy"
 
@@ -55,7 +56,7 @@ const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: "Do I need a Medicare card to use InstantMed?",
-    a: "No Medicare card is required for medical certificates. If you're requesting a prescription or consultation, a valid Medicare card is needed. Our service is private and does not attract a Medicare rebate, though any prescriptions issued can still attract PBS subsidies at the pharmacy.",
+    a: `No Medicare card is required for medical certificates. ${getApprovedClaim("prescribing_identity_required")} Our service is private and does not attract a Medicare rebate, though any prescriptions issued can still attract PBS subsidies at the pharmacy.`,
   },
 ]
 

@@ -58,6 +58,7 @@ const primitives = readProjectFile("docs/PRIMITIVES.md")
 const bookkeepingFileMap = readProjectFile("docs/bookkeeping/file-map.md")
 const roadmap = readProjectFile("docs/ROADMAP.md")
 const clinical = readProjectFile("docs/CLINICAL.md")
+const context = readProjectFile("CONTEXT.md")
 const advertisingCompliance = readProjectFile("docs/ADVERTISING_COMPLIANCE.md")
 const seoContentPolicy = readProjectFile("docs/SEO_CONTENT_POLICY.md")
 const articleTemplate = readProjectFile("docs/ARTICLE_TEMPLATE.md")
@@ -84,6 +85,20 @@ const expectedInstantMedSkills = [
 ]
 
 describe("project docs drift contract", () => {
+  it("keeps prescribing identity canon aligned with the runtime Medicare-or-IHI path", () => {
+    const canonicalDefinition =
+      "date of birth, sex, phone, structured Australian address, and either a valid Medicare number plus IRN or a valid IHI"
+
+    expect(context).toContain("**Prescribing Identity**:")
+    expect(context).toContain(canonicalDefinition)
+
+    for (const source of [agents, claude, clinical]) {
+      expect(source).toContain("valid Medicare number plus IRN or a valid IHI")
+      expect(source).toContain("structured Australian address")
+      expect(source).not.toContain("Medicare optional for med certs, required for Rx/consults")
+    }
+  })
+
   it("excludes linked worktrees and ignored task-execution artifacts from the canonical documentation count", () => {
     expect(docAudit).toContain('-not -path "./.worktrees/*"')
     expect(docAudit).toContain('-not -path "./.superpowers/*"')
@@ -119,10 +134,11 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **132 migration files**")
+      expect(source).toContain("Current count on disk: **133 migration files**")
       expect(source).toContain(
-        "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`",
+        "`20260828090000_specialty_experience_attribution.sql`",
       )
+      expect(source).toContain("nullable, non-clinical `growth_experience_version`")
       expect(source).toContain("`20260814163645_reconcile_manual_certificate_delivery.sql`")
       expect(source).toContain("`20260814171919_harden_audit_function_search_paths.sql`")
       expect(source).toContain("`20260814190000_fix_support_refund_attempt_role_cast.sql`")
@@ -141,7 +157,7 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest on disk: `20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`",
+      "Latest on disk: `20260828090000_specialty_experience_attribution.sql`",
     )
     expect(architecture).toContain(
       "latest applied and verified production migration remains `20260823101500_fix_partially_refunded_review_claim.sql`",

@@ -66,7 +66,7 @@ const HERO_FACTS = [
     icon: ShieldCheck,
     label: "Eligibility",
     value: "Australia only · Ages 18+",
-    body: "Medicare or IHI plus an Australian address are required for prescribing records.",
+    body: getApprovedClaim("prescribing_identity_required"),
   },
   {
     icon: WalletCards,
@@ -90,7 +90,8 @@ const HERO_FACTS = [
 
 const ELIGIBILITY_ITEMS = [
   "You are in Australia and aged 18 or over.",
-  "You can provide Medicare or IHI, an Australian address, current medicines, allergies, conditions, and heart or stroke history.",
+  getApprovedClaim("prescribing_identity_required"),
+  "You can provide current medicines, allergies, conditions, and heart or stroke history.",
   "Your main concern is ongoing difficulty getting or keeping an erection, and you can describe the pattern clearly.",
   "You understand that a prescription is not guaranteed and doctor contact may be needed before a decision.",
 ] as const

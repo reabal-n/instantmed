@@ -90,7 +90,7 @@ const HAIR_HERO_FACTS = [
     icon: ShieldCheck,
     label: "Eligibility",
     value: "Australia only · Ages 18+",
-    body: "Medicare details required for the consultation and prescribing record.",
+    body: getApprovedClaim("prescribing_identity_required"),
   },
   {
     icon: WalletCards,

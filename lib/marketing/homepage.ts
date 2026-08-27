@@ -17,6 +17,7 @@ const AVAILABILITY_24_7 = getApprovedClaim("availability_24_7")
 const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
 const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
 
 export const siteConfig = {
   name: "InstantMed",
@@ -206,7 +207,7 @@ export const faqItems = [
   },
   {
     question: "Does Medicare cover InstantMed?",
-    answer: "Not currently. InstantMed is a private telehealth service, so there's no Medicare rebate. Medical certificates do not require a Medicare card. Prescriptions and consultations require Medicare details for identity, prescribing records, and pharmacy continuity.",
+    answer: `Not currently. InstantMed is a private telehealth service, so there's no Medicare rebate. Medical certificates do not require a Medicare card. ${PRESCRIBING_IDENTITY_REQUIRED}`,
   },
   {
     question: "How do prescriptions work?",

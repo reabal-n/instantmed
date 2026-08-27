@@ -23,7 +23,7 @@ const PRESCRIPTION_FAQ = [
   {
     question: "Why do you need my Medicare details?",
     answer:
-      "Prescribing has stricter identity requirements than a medical certificate. Your Medicare details, date of birth, and contact details let the doctor confirm exactly who they are prescribing for, and let the eScript be issued correctly so an Australian pharmacy can dispense it. Medical certificates do not require Medicare, but every prescription request does.",
+      `Prescribing has stricter identity requirements than a medical certificate. ${getApprovedClaim("prescribing_identity_required")} Date of birth and contact details let the doctor confirm exactly who they are prescribing for, and let the eScript be issued correctly so an Australian pharmacy can dispense it. Medical certificates do not require Medicare.`,
   },
   {
     question: "Will my PBS subsidies still apply?",

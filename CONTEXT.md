@@ -2,6 +2,12 @@
 
 Project-specific language for InstantMed product, clinical, payment, analytics, and operations work. Use these terms consistently in code, docs, PRs, and incident notes.
 
+## Clinical Identity
+
+**Prescribing Identity**:
+The identity bundle required for prescribing pathways: date of birth, sex, phone, structured Australian address, and either a valid Medicare number plus IRN or a valid IHI.
+_Avoid_: Medicare required, Medicare-only identity, Medicare and IHI required
+
 ## Advertising Attribution
 
 **Net Retained Purchase Value**:

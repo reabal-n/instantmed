@@ -3,6 +3,7 @@
  * Used by the visible FAQ accordion and FAQPage structured data.
  */
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 export const ONLINE_PRESCRIPTIONS_FAQ = [
   {
@@ -23,7 +24,7 @@ export const ONLINE_PRESCRIPTIONS_FAQ = [
   {
     question: "Do I need Medicare?",
     answer:
-      "Medicare details are required for prescription and consultation requests because they support identity, clinical records, and electronic prescribing workflows. Medical certificate requests have different requirements.",
+      `${getApprovedClaim("prescribing_identity_required")} Medical certificate requests have different requirements.`,
   },
   {
     question: "What information does the doctor need?",

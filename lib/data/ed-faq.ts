@@ -39,7 +39,7 @@ const ED_FAQ = [
   },
   {
     question: "Do I need Medicare?",
-    answer: "You need Medicare or IHI, plus an Australian address, for the clinical record and electronic prescribing workflow. If you are unsure whether you can provide those details, contact support before paying.",
+    answer: `${getApprovedClaim("prescribing_identity_required")} If you are unsure whether you can provide those details, contact support before paying.`,
   },
   {
     question: "How much does it cost?",
