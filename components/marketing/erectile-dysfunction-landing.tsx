@@ -226,7 +226,10 @@ function EdHero({
       <div className="relative mx-auto grid min-w-0 grid-cols-1 max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:px-8">
         <Reveal instant className="min-w-0 max-w-2xl">
           <SectionPill>Men&apos;s health</SectionPill>
-          <Heading level="display" className="mt-5 hyphens-none">
+          <Heading
+            level="display"
+            className="mt-5 hyphens-none max-[240px]:text-[1.75rem] max-[240px]:hyphens-none max-[240px]:[overflow-wrap:normal]"
+          >
             Private ED assessment, from home.
           </Heading>
           <p data-speakable className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">

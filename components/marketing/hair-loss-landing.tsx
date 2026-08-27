@@ -370,6 +370,7 @@ export function HairLossLanding() {
         <>
           <Hero
             title="Private hair loss assessment, from home."
+            titleClassName="max-[240px]:text-[1.75rem] max-[240px]:hyphens-none max-[240px]:[overflow-wrap:normal]"
             primaryCta={{
               text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.HAIR_LOSS}`,
               href: isDisabled ? "/contact" : requestCtaHref,

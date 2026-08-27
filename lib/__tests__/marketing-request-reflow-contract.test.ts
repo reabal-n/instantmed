@@ -27,6 +27,21 @@ describe("marketing and request reflow contract", () => {
     expect(hero).toContain("h-auto min-h-12 whitespace-normal px-4 py-3 text-center")
   })
 
+  it("keeps the brand mark and specialty H1 words intact at the 200% zoom proxy", () => {
+    const brandLogo = read("components/shared/brand-logo.tsx")
+    const ed = read("components/marketing/erectile-dysfunction-landing.tsx")
+    const hair = read("components/marketing/hair-loss-landing.tsx")
+
+    expect(brandLogo).toContain("max-[240px]:hidden")
+    expect(brandLogo).toContain('aria-label="InstantMed home"')
+    expect(ed).toContain(
+      "max-[240px]:text-[1.75rem] max-[240px]:hyphens-none max-[240px]:[overflow-wrap:normal]",
+    )
+    expect(hair).toContain(
+      'titleClassName="max-[240px]:text-[1.75rem] max-[240px]:hyphens-none max-[240px]:[overflow-wrap:normal]"',
+    )
+  })
+
   it.each([
     "components/marketing/erectile-dysfunction-landing.tsx",
     "components/marketing/uti-assessment-landing.tsx",
