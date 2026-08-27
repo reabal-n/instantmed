@@ -71,37 +71,33 @@ _Avoid_: Organic order (narrower), unattributed order
 ## Voice Operations
 
 **AI Voice Secretary**:
-The consent-first automated assistant that speaks with a Caller, collects a caller-confirmed message, and relays it to the Medical Director. It does not handle the issue itself and is not a clinical consultation, triage service, or patient-authentication channel.
+The voice message assistant that speaks with a Patient, collects a Patient-confirmed message, and relays it to the Medical Director. It does not handle the issue itself and is not a clinical consultation, triage service, or patient-authentication channel.
 _Avoid_: AI doctor, voice doctor, phone consultation, autonomous support agent
 
 **Automated Introduction**:
-The brief, truthful opening that identifies Lena as InstantMed's automated assistant before inviting the Caller to speak. It does not present Lena as human or force the Caller through a menu or extended disclosure.
-_Avoid_: Human impersonation, AI doctor introduction, consent menu, extended opening script
+Lena's complete opening: "Hi, this is Lena from InstantMed support. How can I help?" It does not add an AI or transcription announcement, a menu, or an extended disclosure.
+_Avoid_: Jessica, consent menu, transcription announcement, extended opening script
 
 **Lena Voice Persona**:
 The AI Voice Secretary's warm, young-adult Australian speaking persona. Lena uses short, natural turns, allows the Caller to interrupt, and stays calm and conversational without claiming to be a human staff member.
 _Avoid_: Jessica, robotic IVR voice, exaggerated cheerfulness, clinical persona, human impersonation
 
 **Medical Director Message**:
-The minimal message a Caller confirms for Medical Director review. It may include an optional callback number but does not imply that a callback, correction, clinical decision, or completed outcome has been promised.
+The minimal message a Patient confirms for Medical Director review. It may include an optional callback number when the Patient asks for a return call, but does not imply that a callback, correction, clinical decision, or completed outcome has been promised.
 _Avoid_: Callback request, clinical intake, correction order, resolution, call transcript
 
 **Caller**:
-The unauthenticated person speaking with the AI Voice Secretary. A Caller may be the Patient or a third party and may provide relevant Patient information, but the secretary never treats that information as identity verification or discloses Patient information in return.
+The unauthenticated Patient speaking with the AI Voice Secretary about their own request. Lena does not accept a message for another Patient, treat supplied details as identity verification, or disclose Patient information in return.
 _Avoid_: Verified Patient, authenticated Patient
 
 **Patient Match Details**:
-The Patient's full name and date of birth, supplied by a Caller so the Medical Director can locate the likely Patient record. These details support record matching but do not authenticate the Caller.
+The Patient's full name and date of birth, supplied so InstantMed can attempt a best-effort record match. The confirmed details are retained with the Medical Director Message even when no unique match is found, and never authenticate the Caller.
 _Avoid_: Verified identity, order reference, account authentication
 
 **Callback Preference**:
-The Caller's explicit choice between leaving a Medical Director Message only or requesting a return call. A callback number is collected only for a requested return call, and the preference does not promise that or when a call will occur.
+The Patient's explicit choice between leaving a Medical Director Message only or requesting a return call. A callback number is collected only for a requested return call, and the preference does not promise that or when a call will occur. Caller ID is not silently retained as the callback number.
 _Avoid_: Automatic callback, guaranteed callback, callback deadline
 
 **Public Voice Number**:
 The sole customer-facing phone number, routed to the AI Voice Secretary. The legacy support and recovery mobile remains private and must not appear on public-rendered surfaces.
 _Avoid_: Public recovery number, multiple customer-facing phone numbers, legacy support number
-
-**Approved Service Fact**:
-A current public fact sourced from InstantMed's canonical service, pricing, availability, refund, or contact records that the AI Voice Secretary may answer directly. It never includes Patient-specific information, clinical advice, or an improvised model answer.
-_Avoid_: Model knowledge, estimated answer, Patient status, clinical guidance
