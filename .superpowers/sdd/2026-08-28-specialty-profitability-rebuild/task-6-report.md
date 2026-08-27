@@ -126,3 +126,91 @@ Result: 2 tests passed.
 ## Concerns
 
 None. Browser evidence is local and does not claim deployment or production receipt.
+
+## Fix round 1
+
+### Scope and commit
+
+- Review base: `c0e9fabd1fbde4f669a0e32b30e916d2c5742982`
+- Fix commit: `584e01b4d0207fd156edf6e878280db33da028ca` (`test(growth): strengthen Hair H1 proof`)
+- Files: `lib/__tests__/specialty-experience-invariants.test.ts` and `e2e/money-pages-foundations.spec.ts`.
+- No production, intake, clinical, product, metadata, price/payment, database, Ads, external-system, deployment, or user-owned `output/` change was made.
+
+### Test-first evidence
+
+The missing runtime assertions were added before any other revision change. This characterization command remained GREEN against the existing production validators:
+
+```bash
+corepack pnpm exec vitest run \
+  lib/__tests__/specialty-experience-invariants.test.ts \
+  lib/__tests__/prescribing-identity-gate-contract.test.ts \
+  lib/__tests__/patient-details-canskip-contract.test.ts
+```
+
+Result: 3 files and 46 tests passed. This was the expected outcome because the reviewer found missing proof, not a production validation defect. The strengthened invariant now executes:
+
+- shared Details validation for first name, last name, DOB, email, and required phone;
+- Review/Pay validation for terms and accuracy consents;
+- ED conditional details for allergies, conditions, medicines, recent cardiac events, severe heart history, and previous treatment;
+- Hair conditional details for allergies, conditions, and medicines.
+
+The test explicitly delegates the wider Medicare-or-IHI, sex, phone, and structured-address bundle to its existing owners: `lib/__tests__/prescribing-identity-gate-contract.test.ts` and `lib/__tests__/patient-details-canskip-contract.test.ts`. No Task 8 identity wording or behavior was duplicated.
+
+The first stricter browser run was RED: 1 Hair test failed and the unavailable-state test passed. The Hero contained the approved refund condition, but an exact standalone-text locator waited for `Full refund if the doctor declines.` even though production correctly renders it inside the combined one-off-assessment sentence. The minimal fix scoped content assertions to the four semantic `dl > div` fact groups under the existing accessible `Hair loss assessment facts` complementary region. No production attribute or copy change was made.
+
+### GREEN evidence
+
+Focused Task 1, identity-owner, and Task 6 suite:
+
+```text
+Test Files  8 passed (8)
+Tests       107 passed (107)
+```
+
+Broader approved-claims, marketing-copy, voice, hours, speed, paid-claims, advertising, and Hair TGA suite:
+
+```text
+Test Files  8 passed (8)
+Tests       92 passed (92)
+```
+
+Additional checks:
+
+```bash
+corepack pnpm exec eslint --max-warnings 0 \
+  lib/__tests__/specialty-experience-invariants.test.ts \
+  e2e/money-pages-foundations.spec.ts
+corepack pnpm typecheck
+git diff --check
+git diff --cached --check
+```
+
+All passed.
+
+### Browser evidence
+
+The final isolated, no-global-setup Hair browser run passed 2/2 in installed system Chrome:
+
+```bash
+corepack pnpm exec playwright test \
+  e2e/money-pages-foundations.spec.ts \
+  --config=playwright.task6.config.ts \
+  --grep "Hair H1"
+```
+
+The task-local configuration was removed before commit. It used port 3060 and did not seed or mutate the test database.
+
+- Desktop light, 1440x900: the semantic Hero and all four practical-fact groups were visible in the initial captured viewport.
+- Mobile dark, 375x800: the initial viewport shows the H1, one-off price/process copy, CTA, and start of the practical-facts card. The four fact groups do not all fit simultaneously by design; the test scrolls each group into view, asserts a visible in-viewport layout box, and preserves the order `Eligibility -> Review fee -> Assessment -> If approved`.
+- In both states the Hero itself now asserts possible doctor contact, conditional eScript-to-phone delivery, Australian-pharmacy fill, separate medicine cost, non-guarantee, and refund-on-decline copy.
+- The tagged CTA, pricing-before-education order, mobile sticky CTA, unavailable-state `/contact` route, and empty console/page-error collections remain covered.
+- Reviewable local artifacts remain at `test-results/task-6-hair-h1-fix-1/money-pages-foundations-Ha-9c756-ff-outcome-before-education-chromium/hair-h1-desktop-light-viewport.png`, `hair-h1-mobile-375x800-dark-viewport.png`, and their full-page counterparts. They are ignored local test artifacts and were not committed.
+
+This supersedes the original report's overly broad mobile wording: the required facts are accessible and visibly verified through normal Hero scroll, not claimed to fit simultaneously inside the initial 375x800 viewport.
+
+### Self-review and concerns
+
+- A realistic removal, reorder, or hiding of a Hero fact now fails the browser contract.
+- A relaxed Details/consent requirement or omitted conditional detail now fails a runtime validator assertion.
+- Tests exercise production validators and rendered browser behavior; they do not add mocks or test-only production attributes.
+- No concerns remain. The artifacts and browser result are local proof only, not deployment or production evidence.
