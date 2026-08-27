@@ -75,8 +75,12 @@ The consent-first automated assistant that speaks with a Caller, collects a call
 _Avoid_: AI doctor, voice doctor, phone consultation, autonomous support agent
 
 **Automated Introduction**:
-The brief, truthful opening that identifies Jessica as InstantMed's automated assistant before inviting the Caller to speak. It does not present Jessica as human or force the Caller through a menu or extended disclosure.
+The brief, truthful opening that identifies Lena as InstantMed's automated assistant before inviting the Caller to speak. It does not present Lena as human or force the Caller through a menu or extended disclosure.
 _Avoid_: Human impersonation, AI doctor introduction, consent menu, extended opening script
+
+**Lena Voice Persona**:
+The AI Voice Secretary's warm, young-adult Australian speaking persona. Lena uses short, natural turns, allows the Caller to interrupt, and stays calm and conversational without claiming to be a human staff member.
+_Avoid_: Jessica, robotic IVR voice, exaggerated cheerfulness, clinical persona, human impersonation
 
 **Medical Director Message**:
 The minimal message a Caller confirms for Medical Director review. It may include an optional callback number but does not imply that a callback, correction, clinical decision, or completed outcome has been promised.
