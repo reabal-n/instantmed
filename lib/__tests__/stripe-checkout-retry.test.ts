@@ -193,6 +193,8 @@ type RetryIntake = {
   category: string | null
   checkout_error: string | null
   created_at: string
+  flow_instance_id?: string | null
+  growth_experience_version?: string | null
   is_priority: boolean | null
   patient_id: string | null
   payment_id: string | null
@@ -386,6 +388,40 @@ describe("retryPaymentForIntakeAction", () => {
         metadata: expect.objectContaining({
           intake_id: "intake-1",
           is_retry: "true",
+        }),
+      }),
+      { idempotencyKey: "authenticated-retry-v2_intake-1_cs_previous" },
+    )
+  })
+
+  it("copies the stored specialty cohort to retry Session and PaymentIntent metadata", async () => {
+    const { supabase } = createRetrySupabaseMock({
+      category: "consult",
+      growth_experience_version: "spx_h1_20260828",
+      service: {
+        id: "svc-hair",
+        name: "Hair loss",
+        price_cents: 4995,
+        slug: "mens-health-hair",
+        type: "consult",
+      },
+      stripe_price_id: "price_hair",
+      subtype: "hair_loss",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result.success).toBe(true)
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          growth_experience_version: "spx_h1_20260828",
+        }),
+        payment_intent_data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            growth_experience_version: "spx_h1_20260828",
+          }),
         }),
       }),
       { idempotencyKey: "authenticated-retry-v2_intake-1_cs_previous" },

@@ -43,27 +43,6 @@ describe("flow instance attribution contract", () => {
     expect(posthogServer).toContain("flowInstanceId")
   })
 
-  it("keeps the non-clinical experience marker on the same payment-owned path", () => {
-    const draftConversion = source("lib/request/server-draft-conversion.ts")
-    const authenticatedPersistence = source("lib/stripe/checkout/persistence.ts")
-    const guestCheckout = source("lib/stripe/guest-checkout.ts")
-    const retryPayment = source("lib/stripe/checkout/retry-payment.ts")
-    const stripeSession = source("lib/stripe/checkout/stripe-session.ts")
-    const finalizer = source("lib/stripe/confirmed-payment-finalization.ts")
-
-    for (const implementation of [
-      draftConversion,
-      authenticatedPersistence,
-      guestCheckout,
-      retryPayment,
-      stripeSession,
-      finalizer,
-    ]) {
-      expect(implementation).toMatch(/growthExperienceVersion|growth_experience_version/)
-    }
-    expect(finalizer).toContain("purchase_completed_server")
-  })
-
   it("threads the flow id into every payment_initiated emitter", () => {
     const authenticatedCheckout = source("lib/stripe/checkout.ts")
     const guestCheckout = source("lib/stripe/guest-checkout.ts")

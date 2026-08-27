@@ -314,6 +314,15 @@ async function rebuildExpiredGuestSession(
   }
 
   try {
+    const sessionMetadata = buildPaymentIntentMetadata({
+      intake_id: intake.id,
+      flow_instance_id: intake.flow_instance_id,
+      growth_experience_version: intake.growth_experience_version,
+      is_retry: "true",
+      category: intake.category || "",
+      subtype: intake.subtype || "",
+      guest_checkout: "true",
+    })
     const session = await stripe.checkout.sessions.create(
       {
         line_items: lineItems,
@@ -322,18 +331,9 @@ async function rebuildExpiredGuestSession(
         cancel_url: buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id }),
         customer_email: guestEmail,
         customer_creation: "always",
-        metadata: {
-          intake_id: intake.id,
-          ...(intake.flow_instance_id
-            ? { flow_instance_id: intake.flow_instance_id }
-            : {}),
-          ...(intake.growth_experience_version
-            ? { growth_experience_version: intake.growth_experience_version }
-            : {}),
-          is_retry: "true",
-          category: intake.category || "",
-          subtype: intake.subtype || "",
-          guest_checkout: "true",
+        metadata: sessionMetadata,
+        payment_intent_data: {
+          metadata: sessionMetadata,
         },
       },
       {

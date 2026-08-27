@@ -73,8 +73,8 @@ export function selectGrowthExperienceVersion({
   candidateValue: unknown
   context: SpecialtyExperienceRequestContext
 }): SpecialtyExperienceVersion | null {
-  return (
-    normalizePersistedGrowthExperienceVersion(storedValue, context) ??
-    normalizePersistedGrowthExperienceVersion(candidateValue, context)
-  )
+  if (storedValue !== null && storedValue !== undefined) {
+    return normalizePersistedGrowthExperienceVersion(storedValue, context)
+  }
+  return normalizePersistedGrowthExperienceVersion(candidateValue, context)
 }

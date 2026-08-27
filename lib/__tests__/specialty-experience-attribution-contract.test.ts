@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs"
+import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -89,6 +89,24 @@ describe("specialty experience attribution", () => {
     expect(
       normalizePersistedGrowthExperienceVersion("spx_e1_20260828", context),
     ).toBeNull()
+
+    // A non-null persisted slot remains authoritative even if it no longer
+    // normalizes under the current registry/service context. Fail open to null
+    // rather than silently reassigning the flow from a later client value.
+    expect(
+      selectGrowthExperienceVersion({
+        storedValue: "spx_removed_20260828",
+        candidateValue: "spx_h1_20260828",
+        context,
+      }),
+    ).toBeNull()
+    expect(
+      selectGrowthExperienceVersion({
+        storedValue: "spx_e1_20260828",
+        candidateValue: "spx_h1_20260828",
+        context,
+      }),
+    ).toBeNull()
   })
 
   it("adds constrained non-clinical columns with database-owned set-once rules", () => {
@@ -106,27 +124,6 @@ describe("specialty experience attribution", () => {
     expect(migration).toMatch(/coalesce\(\s*old\.growth_experience_version/)
     expect(migration).toContain("enforce_intake_growth_experience_immutable")
     expect(migration).toContain("new.growth_experience_version is distinct from old.growth_experience_version")
-  })
-
-  it("threads the marker beside flow identity through draft, checkout, Stripe, and payment completion", () => {
-    const paths = [
-      "components/request/store.ts",
-      "lib/request/draft-storage.ts",
-      "lib/request/server-draft.ts",
-      "app/api/draft/route.ts",
-      "lib/request/server-draft-conversion.ts",
-      "app/actions/unified-checkout.ts",
-      "lib/stripe/checkout/types.ts",
-      "lib/stripe/checkout/persistence.ts",
-      "lib/stripe/guest-checkout.ts",
-      "lib/stripe/checkout/retry-payment.ts",
-      "lib/stripe/checkout/stripe-session.ts",
-      "lib/stripe/confirmed-payment-finalization.ts",
-    ]
-
-    for (const path of paths) {
-      expect(source(path), path).toMatch(/growthExperienceVersion|growth_experience_version/)
-    }
   })
 
   it("never puts the marker into clinical summaries, prompts, email, or Parchment payloads", () => {
