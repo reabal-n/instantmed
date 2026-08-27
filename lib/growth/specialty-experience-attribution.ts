@@ -103,7 +103,7 @@ export function normalizeOpaqueGrowthExperienceVersion(
   return (experience?.id as SpecialtyExperienceVersion | undefined) ?? null
 }
 
-/** Database/restored truth wins; a valid candidate can fill only a null slot. */
+/** Database/restored truth wins; only the absence of a stored row permits a fresh claim. */
 export function selectGrowthExperienceVersion({
   storedValue,
   candidateValue,
@@ -113,8 +113,7 @@ export function selectGrowthExperienceVersion({
   candidateValue: unknown
   context: SpecialtyExperienceRequestContext
 }): SpecialtyExperienceVersion | null {
-  if (storedValue !== null && storedValue !== undefined) {
-    return normalizePersistedGrowthExperienceVersion(storedValue, context)
-  }
-  return normalizeIncomingGrowthExperienceVersion(candidateValue, context)
+  return storedValue === undefined
+    ? normalizeIncomingGrowthExperienceVersion(candidateValue, context)
+    : normalizePersistedGrowthExperienceVersion(storedValue, context)
 }

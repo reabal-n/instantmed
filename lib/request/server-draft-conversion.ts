@@ -46,8 +46,8 @@ function normalizeEmail(value: string | null | undefined): string {
 /**
  * Read attribution only from an unconverted, unexpired draft whose bearer,
  * flow id, and service all match. `undefined` means there is no authoritative
- * draft slot; `null` means the authoritative slot exists and is intentionally
- * unassigned.
+ * draft slot; `null` means the authoritative slot is unassigned or could not
+ * be read safely, so a client-shaped candidate must not fill it.
  */
 export async function readBoundPartialIntakeGrowthExperienceVersion(
   supabase: SupabaseClient,
@@ -77,7 +77,7 @@ export async function readBoundPartialIntakeGrowthExperienceVersion(
     logger.warn("Failed to load bound draft growth experience", {
       error: error.message,
     })
-    return undefined
+    return null
   }
 
   return data ? data.growth_experience_version : undefined

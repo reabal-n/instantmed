@@ -61,6 +61,19 @@ export function resolveLandingGrowthExperienceVersion(
   return normalizeSpecialtyExperienceVersion(version, service, "landing")
 }
 
+export function resolveAvailableLandingGrowthExperienceVersion(
+  growthExperienceVersion: SpecialtyExperienceVersion | null,
+  {
+    isDisabled,
+    isLoading,
+  }: {
+    isDisabled: boolean
+    isLoading: boolean
+  },
+): SpecialtyExperienceVersion | null {
+  return !isLoading && !isDisabled ? growthExperienceVersion : null
+}
+
 export function buildGrowthExperienceRequestHref(
   href: string,
   growthExperienceVersion: SpecialtyExperienceVersion | null,
@@ -113,9 +126,13 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
     )
     : null
   const analyticsEnabled = !isLoading && !isDisabled
+  const availableGrowthExperienceVersion = resolveAvailableLandingGrowthExperienceVersion(
+    growthExperienceVersion,
+    { isDisabled, isLoading },
+  )
   const analytics = useLandingAnalytics(
     config.analyticsId,
-    growthExperienceVersion,
+    availableGrowthExperienceVersion,
     analyticsEnabled,
   )
 
@@ -139,7 +156,7 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
 
   const requestCtaHref = buildGrowthExperienceRequestHref(
     config.sticky.ctaHref,
-    growthExperienceVersion,
+    availableGrowthExperienceVersion,
   )
   const stickyHref = isDisabled ? "/contact" : requestCtaHref
   const stickyCtaText = isDisabled ? "Contact us" : config.sticky.ctaText

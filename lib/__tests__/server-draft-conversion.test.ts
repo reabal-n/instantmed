@@ -118,6 +118,32 @@ describe("bound draft growth experience", () => {
     ).resolves.toBeUndefined()
     expect(from).not.toHaveBeenCalled()
   })
+
+  it("treats a bound-draft read failure as an authoritative null slot", async () => {
+    const maybeSingle = vi.fn(async () => ({
+      data: null,
+      error: { message: "database unavailable" },
+    }))
+    const chain = {
+      eq: vi.fn(() => chain),
+      gt: vi.fn(() => chain),
+      is: vi.fn(() => chain),
+      maybeSingle,
+    }
+    const select = vi.fn(() => chain)
+    const from = vi.fn(() => ({ select }))
+
+    await expect(
+      readBoundPartialIntakeGrowthExperienceVersion(
+        { from } as never,
+        {
+          flowInstanceId: FLOW_INSTANCE_ID,
+          serviceType: "consult",
+          sessionId: SESSION_ID,
+        },
+      ),
+    ).resolves.toBeNull()
+  })
 })
 
 describe("converted server draft checkout reuse", () => {

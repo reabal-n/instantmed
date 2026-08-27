@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import {
   buildGrowthExperienceRequestHref,
+  resolveAvailableLandingGrowthExperienceVersion,
   resolveLandingGrowthExperienceVersion,
 } from "@/components/marketing/shared/landing-page-shell"
 import { normalizeIncomingGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
@@ -142,6 +143,29 @@ describe("specialty landing analytics", () => {
     }
   })
 
+  it("keeps pending and unavailable clicks untagged without delaying enabled clicks", () => {
+    const version = "spx_h1_20260828" as const
+
+    expect(
+      resolveAvailableLandingGrowthExperienceVersion(version, {
+        isDisabled: false,
+        isLoading: true,
+      }),
+    ).toBeNull()
+    expect(
+      resolveAvailableLandingGrowthExperienceVersion(version, {
+        isDisabled: true,
+        isLoading: false,
+      }),
+    ).toBeNull()
+    expect(
+      resolveAvailableLandingGrowthExperienceVersion(version, {
+        isDisabled: false,
+        isLoading: false,
+      }),
+    ).toBe(version)
+  })
+
   it("leaves invalid incoming tokens unassigned while the request boundary keeps stored cohorts authoritative", () => {
     expect(
       normalizeIncomingGrowthExperienceVersion("spx_h1_20260828", {
@@ -164,8 +188,12 @@ describe("specialty landing analytics", () => {
     )
 
     expect(shell).toContain("!isLoading && !isDisabled")
+    expect(shell).toContain("availableGrowthExperienceVersion")
     expect(shell).toMatch(
-      /useLandingAnalytics\(\s*config\.analyticsId,\s*growthExperienceVersion,\s*analyticsEnabled,?\s*\)/,
+      /useLandingAnalytics\(\s*config\.analyticsId,\s*availableGrowthExperienceVersion,\s*analyticsEnabled,?\s*\)/,
+    )
+    expect(shell).toMatch(
+      /buildGrowthExperienceRequestHref\(\s*config\.sticky\.ctaHref,\s*availableGrowthExperienceVersion,?\s*\)/,
     )
   })
 

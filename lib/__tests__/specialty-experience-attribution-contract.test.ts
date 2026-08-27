@@ -154,7 +154,7 @@ describe("specialty experience attribution", () => {
     ).toBeNull()
   })
 
-  it("keeps a valid stored cohort ahead of a later candidate", () => {
+  it("keeps every authoritative stored slot ahead of a later candidate", () => {
     const context = { serviceType: "consult", subtype: "hair_loss" }
 
     expect(
@@ -167,6 +167,13 @@ describe("specialty experience attribution", () => {
     expect(
       selectGrowthExperienceVersion({
         storedValue: null,
+        candidateValue: "spx_h1_20260828",
+        context,
+      }),
+    ).toBeNull()
+    expect(
+      selectGrowthExperienceVersion({
+        storedValue: undefined,
         candidateValue: "spx_h1_20260828",
         context,
       }),
