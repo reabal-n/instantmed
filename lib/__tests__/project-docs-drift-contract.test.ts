@@ -44,6 +44,7 @@ function findRouteInventoryFiles(dir: string): string[] {
 const agents = readProjectFile("AGENTS.md")
 const claude = readProjectFile("CLAUDE.md")
 const architecture = readProjectFile("docs/ARCHITECTURE.md")
+const security = readProjectFile("docs/SECURITY.md")
 const wikiArchitecture = readProjectFile("wiki/architecture.md")
 const wikiContextMap = readProjectFile("wiki/context-map.md")
 const aiProvider = readProjectFile("lib/ai/provider.ts")
@@ -158,7 +159,20 @@ describe("project docs drift contract", () => {
       expect(source).toContain("`20260817095854_allow_direct_codex_ads_approval.sql`")
       expect(source).toContain("`20260819055501_allow_partially_refunded_fulfilment.sql`")
       expect(source).toContain("`20260823101500_fix_partially_refunded_review_claim.sql`")
-      expect(source).toContain("linked migration history aligned through `20260823101500`")
+      expect(source).toContain(
+        "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`",
+      )
+      expect(source).toContain("aligned through `20260828090000`")
+      expect(source).toContain("`partial_intakes_growth_experience_version_check`")
+      expect(source).toContain("`intakes_growth_experience_version_check`")
+      expect(source).toContain("`trg_partial_intakes_preserve_growth_experience`")
+      expect(source).toContain("`trg_intakes_growth_experience_immutable`")
+      expect(source).toContain("`preserve_partial_intake_growth_experience()`")
+      expect(source).toContain("`enforce_intake_growth_experience_immutable()`")
+      expect(source).toContain("`SECURITY INVOKER`")
+      expect(source).toContain(
+        "`EXECUTE` denied to `PUBLIC`, `anon`, and `authenticated`",
+      )
       expect(source).toContain("recovery issue count returned zero in both test and live mode")
       expect(source).toContain("17 refunds and 17 cash movements totalling A$549.00 (54,900 cents)")
       expect(source).toContain("17 linked, 0 ambiguous, and 0 unlinked")
@@ -169,23 +183,35 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest on disk: `20260828090000_specialty_experience_attribution.sql`",
-    )
-    expect(architecture).toContain(
-      "latest applied and verified production migration remains `20260823101500_fix_partially_refunded_review_claim.sql`",
+      "Latest on disk and latest applied and verified production migration: `20260828090000_specialty_experience_attribution.sql`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
     expect(architecture).toContain("Production receipt (2026-08-23)")
+    expect(architecture).toContain("Production receipt (2026-08-28)")
+    expect(architecture).toContain("roles exactly `{authenticated}`")
+    expect(architecture).toContain("`partial_intakes_growth_experience_version_check`")
+    expect(architecture).toContain("`trg_partial_intakes_preserve_growth_experience`")
     expect(architecture).toContain("the linked DB lint error gate")
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Latest applied and verified production migration (2026-08-23) remains `20260823101500_fix_partially_refunded_review_claim.sql`",
+      "latest applied and verified production migration (2026-08-28), is `20260828090000_specialty_experience_attribution.sql`",
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
-      "Linked migration history is aligned through that version",
+      "Linked migration history is aligned through `20260828090000`",
+    )
+    expect(wikiArchitecture).toContain(
+      "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied",
+    )
+    expect(security).toContain(
+      "**Authenticated helper boundary (applied; verified 2026-08-28):**",
+    )
+    expect(security).toContain("roles exactly `{authenticated}`")
+    expect(security).not.toContain("pending production apply")
+    expect(security).not.toContain(
+      "still has the pre-migration `{public}` policy roles",
     )
   })
 
