@@ -881,7 +881,7 @@ The plan is successful only if the receipts support the claim. Fill this from cl
 | Date | Task | SHA / external receipt | Result | Next gate |
 |---|---|---|---|---|
 | 2026-08-28 | Plan adopted | Local documentation commit | Pending implementation | Task 1 |
-| 2026-08-28 | Task 0 reconciliation | Reconciled against current `main`; local documentation correction pending commit | Tasks 1-11 aligned to current claim, redirect, sitemap, observation, and compounding gates; product implementation is not complete | Run Task 1 locally |
+| 2026-08-28 | Task 0 reconciliation | Reconciled against current `main`; `b587df12aec7eb70b7d9ff716e0ccc3beed98255` | Tasks 1-11 aligned to current claim, redirect, sitemap, observation, and compounding gates; product implementation is not complete | Run Task 1 locally |
 
 ## Self-Review Checklist
 
