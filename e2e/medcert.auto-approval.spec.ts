@@ -8,6 +8,8 @@
  * suite tests the clinical boundary rather than wall-clock timing.
  */
 
+import { randomUUID } from "node:crypto"
+
 import { expect,test } from "@playwright/test"
 
 import {
@@ -43,19 +45,33 @@ function todayInSydney(): string {
   return `${byType.get("year")}-${byType.get("month")}-${byType.get("day")}`
 }
 
-async function createAutoApprovalPatient(): Promise<string> {
+interface AutoApprovalPatientOptions {
+  dateOfBirth?: string
+  email?: string
+  fullName?: string
+  id?: string
+}
+
+async function createAutoApprovalPatient(
+  options: AutoApprovalPatientOptions = {},
+): Promise<string> {
+  const patientId = options.id ?? AUTO_APPROVAL_PATIENT_ID
   const { error } = await getSupabaseClient()
     .from("profiles")
     .upsert({
-      id: AUTO_APPROVAL_PATIENT_ID,
+      id: patientId,
       auth_user_id: null,
-      email: "e2e-auto-approval@instantmed-e2e.test",
-      full_name: "E2E Auto Approval Patient",
-      date_of_birth: "1990-06-20",
+      email: options.email ?? "e2e-auto-approval@instantmed-e2e.test",
+      full_name: options.fullName ?? "E2E Auto Approval Patient",
+      date_of_birth: options.dateOfBirth ?? "1990-06-20",
       role: "patient",
       onboarding_completed: true,
       email_verified: true,
       email_verified_at: new Date().toISOString(),
+      merged_into_profile_id: null,
+      merged_at: null,
+      merged_by: null,
+      account_closed_at: null,
       address_line1: "456 Patient Street",
       suburb: "Melbourne",
       state: "VIC",
@@ -70,7 +86,54 @@ async function createAutoApprovalPatient(): Promise<string> {
     throw new Error(`Failed to seed auto-approval patient: ${error.message}`)
   }
 
-  return AUTO_APPROVAL_PATIENT_ID
+  return patientId
+}
+
+async function createActiveDuplicatePatient(options: Required<AutoApprovalPatientOptions>): Promise<string> {
+  const { error } = await getSupabaseClient()
+    .from("profiles")
+    .upsert({
+      id: options.id,
+      auth_user_id: null,
+      email: options.email,
+      full_name: options.fullName,
+      date_of_birth: options.dateOfBirth,
+      role: "patient",
+      onboarding_completed: true,
+      email_verified: true,
+      email_verified_at: new Date().toISOString(),
+      merged_into_profile_id: null,
+      merged_at: null,
+      merged_by: null,
+      account_closed_at: null,
+    }, { onConflict: "id" })
+
+  if (error) {
+    throw new Error(`Failed to seed active duplicate patient: ${error.message}`)
+  }
+
+  return options.id
+}
+
+function createDuplicateProfileFixture() {
+  const runId = randomUUID()
+  const fullName = `E2E Duplicate Reconciliation ${runId}`
+  const dateOfBirth = "1987-11-19"
+
+  return {
+    current: {
+      id: randomUUID(),
+      email: `e2e-duplicate-current-${runId}@instantmed-e2e.test`,
+      fullName,
+      dateOfBirth,
+    },
+    duplicate: {
+      id: randomUUID(),
+      email: `e2e-duplicate-match-${runId}@instantmed-e2e.test`,
+      fullName,
+      dateOfBirth,
+    },
+  }
 }
 
 async function deleteAutoApprovalPatient(patientId: string | null): Promise<void> {
@@ -358,6 +421,178 @@ test.describe("Medical Certificate Protocol Issuance", () => {
     }
     })
   }
+
+  test("post-payment worker routes an active duplicate profile to doctor review", async ({ request }) => {
+    test.skip(!isDbAvailable(), "Database not available")
+
+    const flagSnapshot = await setAutoApprovalFlags()
+    await resetE2EAutoApprovalRateLimits()
+    let patientId: string | null = null
+    let duplicatePatientId: string | null = null
+    let intakeId: string | null = null
+
+    try {
+      const fixture = createDuplicateProfileFixture()
+      patientId = await createAutoApprovalPatient(fixture.current)
+      duplicatePatientId = await createActiveDuplicatePatient(fixture.duplicate)
+      intakeId = await seedPaidMedCertIntake(patientId)
+      const supabase = getSupabaseClient()
+      const startDate = todayInSydney()
+
+      const { error: stateError } = await supabase
+        .from("intakes")
+        .update({
+          paid_at: new Date().toISOString(),
+          auto_approval_state: null,
+          auto_approval_state_reason: null,
+          auto_approval_state_updated_at: null,
+          auto_approval_attempts: 0,
+          ai_approved: false,
+          ai_approved_at: null,
+          risk_flags: [],
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", intakeId)
+
+      expect(stateError, stateError?.message).toBeNull()
+      await seedMedCertAnswers(intakeId, startDate)
+
+      const triggerResponse = await request.post("/api/test/medcert-immediate-auto-approve", {
+        headers: { "X-E2E-SECRET": E2E_SECRET },
+        data: {
+          intakeId,
+          startDate,
+          runDuplicateProfileDetection: true,
+        },
+        timeout: 45_000,
+      })
+
+      expect(triggerResponse.ok(), await triggerResponse.text()).toBe(true)
+      const triggerResult = await triggerResponse.json()
+      expect(triggerResult.success, JSON.stringify(triggerResult)).toBe(false)
+      expect(triggerResult.status).toBe("paid")
+      expect(triggerResult.autoApprovalState).toBe("needs_doctor")
+
+      const { data: intake, error: intakeError } = await supabase
+        .from("intakes")
+        .select("status, ai_approved, auto_approval_state, auto_approval_state_reason, risk_flags")
+        .eq("id", intakeId)
+        .single()
+
+      expect(intakeError, intakeError?.message).toBeNull()
+      expect(intake?.status).toBe("paid")
+      expect(intake?.ai_approved).toBe(false)
+      expect(intake?.auto_approval_state).toBe("needs_doctor")
+      expect(intake?.auto_approval_state_reason).toContain("duplicate_patient_name_dob")
+      expect(
+        Array.isArray(intake?.risk_flags)
+          && intake.risk_flags.some((flag) => (
+            typeof flag === "object"
+            && flag !== null
+            && (flag as { code?: unknown }).code === "duplicate_patient_name_dob"
+          )),
+      ).toBe(true)
+
+      const { data: certificate, error: certificateError } = await supabase
+        .from("issued_certificates")
+        .select("id")
+        .eq("intake_id", intakeId)
+        .maybeSingle()
+      expect(certificateError, certificateError?.message).toBeNull()
+      expect(certificate, "duplicate profile must not produce a certificate").toBeNull()
+    } finally {
+      if (intakeId) await cleanupTestIntake(intakeId)
+      await restoreFeatureFlags(flagSnapshot)
+      await resetE2EAutoApprovalRateLimits()
+      await deleteAutoApprovalPatient(duplicatePatientId)
+      await deleteAutoApprovalPatient(patientId)
+    }
+  })
+
+  test("post-payment worker ignores a duplicate profile already merged into the current patient", async ({ request }) => {
+    test.skip(!isDbAvailable(), "Database not available")
+
+    const flagSnapshot = await setAutoApprovalFlags()
+    await resetE2EAutoApprovalRateLimits()
+    let patientId: string | null = null
+    let duplicatePatientId: string | null = null
+    let intakeId: string | null = null
+
+    try {
+      const fixture = createDuplicateProfileFixture()
+      patientId = await createAutoApprovalPatient(fixture.current)
+      duplicatePatientId = await createActiveDuplicatePatient(fixture.duplicate)
+      const supabase = getSupabaseClient()
+      const { error: archiveError } = await supabase
+        .from("profiles")
+        .update({
+          merged_into_profile_id: patientId,
+          merged_at: new Date().toISOString(),
+        })
+        .eq("id", duplicatePatientId)
+      expect(archiveError, archiveError?.message).toBeNull()
+
+      intakeId = await seedPaidMedCertIntake(patientId)
+      const startDate = todayInSydney()
+
+      const { error: stateError } = await supabase
+        .from("intakes")
+        .update({
+          paid_at: new Date().toISOString(),
+          auto_approval_state: null,
+          auto_approval_state_reason: null,
+          auto_approval_state_updated_at: null,
+          auto_approval_attempts: 0,
+          ai_approved: false,
+          ai_approved_at: null,
+          risk_flags: [],
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", intakeId)
+
+      expect(stateError, stateError?.message).toBeNull()
+      await seedMedCertAnswers(intakeId, startDate)
+
+      const triggerResponse = await request.post("/api/test/medcert-immediate-auto-approve", {
+        headers: { "X-E2E-SECRET": E2E_SECRET },
+        data: {
+          intakeId,
+          startDate,
+          runDuplicateProfileDetection: true,
+        },
+        timeout: 45_000,
+      })
+
+      expect(triggerResponse.ok(), await triggerResponse.text()).toBe(true)
+      const triggerResult = await triggerResponse.json()
+      expect(triggerResult.success, JSON.stringify(triggerResult)).toBe(true)
+      expect(triggerResult.status).toBe("approved")
+      expect(triggerResult.autoApprovalState).toBe("approved")
+
+      const { data: intake, error: intakeError } = await supabase
+        .from("intakes")
+        .select("ai_approved, auto_approval_state, risk_flags")
+        .eq("id", intakeId)
+        .single()
+      expect(intakeError, intakeError?.message).toBeNull()
+      expect(intake?.ai_approved).toBe(true)
+      expect(intake?.auto_approval_state).toBe("approved")
+      expect(
+        Array.isArray(intake?.risk_flags)
+          && intake.risk_flags.some((flag) => (
+            typeof flag === "object"
+            && flag !== null
+            && (flag as { code?: unknown }).code === "duplicate_patient_name_dob"
+          )),
+      ).toBe(false)
+    } finally {
+      if (intakeId) await cleanupTestIntake(intakeId)
+      await restoreFeatureFlags(flagSnapshot)
+      await resetE2EAutoApprovalRateLimits()
+      await deleteAutoApprovalPatient(duplicatePatientId)
+      await deleteAutoApprovalPatient(patientId)
+    }
+  })
 
   test("post-payment worker flags an unsupported purpose and routes it to a doctor before issuance", async ({ request }) => {
     test.skip(!isDbAvailable(), "Database not available")

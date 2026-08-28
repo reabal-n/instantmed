@@ -19,6 +19,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const PayloadSchema = z.object({
   intakeId: z.string().uuid(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  runDuplicateProfileDetection: z.boolean().optional().default(false),
 })
 
 async function seedReadyClinicalNoteDraft(intakeId: string, startDate: string) {
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
   }
 
-  const { intakeId, startDate } = parsed.data
+  const { intakeId, runDuplicateProfileDetection, startDate } = parsed.data
   const supabase = createServiceRoleClient()
   const scheduledTasks: Promise<void>[] = []
 
@@ -107,7 +108,9 @@ export async function POST(request: NextRequest) {
   let attemptReason: string | null = null
 
   if (intake?.status === "paid" && intake.auto_approval_state === "pending") {
-    const attempt = await attemptAutoApproval(intakeId)
+    const attempt = await attemptAutoApproval(intakeId, {
+      runDuplicateProfileDetectionInE2E: runDuplicateProfileDetection,
+    })
     attemptReason = attempt.reason ?? null
     const refreshed = await supabase
       .from("intakes")

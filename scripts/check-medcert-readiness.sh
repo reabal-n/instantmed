@@ -26,6 +26,7 @@ if [ "$MEDCERT_READINESS_STATIC" = "1" ]; then
     lib/__tests__/auto-approval-state.test.ts \
     lib/__tests__/auto-approval-pipeline.test.ts \
     lib/__tests__/auto-approval-deterministic-routing-contract.test.ts \
+    lib/__tests__/duplicate-patient-detection.test.ts \
     lib/__tests__/high-stakes-keywords-contract.test.ts \
     lib/__tests__/soft-flag-persistence.test.ts \
     lib/__tests__/stripe-post-payment.test.ts \

@@ -167,7 +167,15 @@ async function logAutoApprovalAudit(
  * Returns { autoApproved: true } if the cert was issued, or
  * { autoApproved: false } if the intake stays in the doctor queue.
  */
-export async function attemptAutoApproval(intakeId: string): Promise<AutoApprovalResult> {
+export interface AutoApprovalAttemptOptions {
+  /** Test-route-only seam for the duplicate-profile clinical routing contract. */
+  runDuplicateProfileDetectionInE2E?: boolean
+}
+
+export async function attemptAutoApproval(
+  intakeId: string,
+  options: AutoApprovalAttemptOptions = {},
+): Promise<AutoApprovalResult> {
   const startTime = Date.now()
 
   const trackOutcome = (outcome: string, reason: string, extra?: Record<string, unknown>) => {
@@ -414,20 +422,24 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     // name + DOB catches that and routes the cert to a doctor instead of
     // auto-issuing a possible second cert. Fail-soft; never blocks the pipeline.
     //
-    // Skipped in E2E/test mode: the Playwright fixtures deterministically reuse
-    // one name + DOB across runs, so every test-created profile would (correctly)
-    // read as a duplicate and block the auto-approval happy-path gate. Mirrors
-    // the seeded-e2e-data read boundary — test data must not drive live logic.
+    // Skipped by default in E2E/test mode: shared fixtures reuse identity data,
+    // so unrelated synthetic profiles would correctly block the happy path.
+    // The isolated duplicate-profile contract opts in through the test-only
+    // route. Production has no option to bypass this lookup.
     const persistedFlags = attentionFlags(parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags))
     const attentionFlagCodeList = persistedFlags.map((flag) => flag.code)
 
-    const duplicateMatch = shouldIncludeSeededE2EData()
-      ? null
-      : await findDuplicatePatientProfile(supabase, {
+    const runDuplicateProfileDetection = (
+      !shouldIncludeSeededE2EData()
+      || options.runDuplicateProfileDetectionInE2E === true
+    )
+    const duplicateMatch = runDuplicateProfileDetection
+      ? await findDuplicatePatientProfile(supabase, {
           patientId,
           fullName: patientInfo?.full_name ?? null,
           dateOfBirth: patientInfo?.date_of_birth ?? null,
         })
+      : null
     if (duplicateMatch && !attentionFlagCodeList.includes("duplicate_patient_name_dob")) {
       attentionFlagCodeList.push("duplicate_patient_name_dob")
       // Persist the flag so the reviewing doctor sees the calm chip + tooltip
