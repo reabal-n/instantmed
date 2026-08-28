@@ -34,6 +34,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { MENS_HEALTH_FAQ } from "@/lib/data/mens-health-faq"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
@@ -115,7 +116,7 @@ const HOW_IT_WORKS = [
 
 const ELIGIBILITY = [
   "You are in Australia and aged 18 or over.",
-  "You can provide identity details and Medicare details for prescription-related records.",
+  getApprovedClaim("prescribing_identity_required"),
   "The main concern is ED or hair loss, not an emergency symptom or broad health check.",
   "You can describe the symptom pattern, timing, current medicines, allergies, and relevant medical history.",
   "You understand the doctor may contact you, decline, or recommend in-person care if online review is not suitable.",
@@ -165,8 +166,8 @@ const COSTS = [
   },
   {
     icon: ClipboardCheck,
-    title: "Medicare details",
-    body: "Prescription-related requests ask for Medicare or suitable identity details because records and electronic prescribing need reliable patient identification.",
+    title: "Identity details",
+    body: getApprovedClaim("prescribing_identity_required"),
   },
   {
     icon: Lock,

@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 interface HelpTooltipProps {
   title?: string
@@ -127,7 +128,7 @@ export const FIELD_HELP = {
   },
   medicare: {
     title: "Why do we ask about Medicare?",
-    content: "Prescriptions and consultations require Medicare details for identity, prescribing records, and pharmacy continuity. Medical certificates can be requested without Medicare.",
+    content: `${getApprovedClaim("prescribing_identity_required")} Medical certificates can be requested without Medicare.`,
   },
   symptoms: {
     title: "Why such detail about symptoms?",

@@ -83,7 +83,6 @@ export function HowItWorksInline({
             size="lg"
             className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-[transform,box-shadow]"
             onClick={onCTAClick}
-            disabled={isDisabled}
           >
             <Link href={isDisabled ? "/contact" : ctaHref} {...ctaDataAttributes}>
               {isDisabled ? "Contact us" : (ctaText ?? "Start your assessment")}

@@ -4,6 +4,7 @@ import {
   validateEdConsult,
   validateHairLossConsult,
 } from "../clinical/consult-validators"
+import { checkSafetyForServer } from "../safety/evaluate"
 
 // ============================================================================
 // ED CONSULT
@@ -212,6 +213,36 @@ describe("validateHairLossConsult", () => {
       expect.objectContaining({ type: "safety_block", reason: "reproductive_contraindication" })
     )
   })
+
+  it.each(["consult", "mens-health-hair", "hair-loss"])(
+    "declines the reproductive contraindication through the %s server-safety slug",
+    (serviceSlug) => {
+      const result = checkSafetyForServer(serviceSlug, {
+        ...validHair,
+        consultSubtype: "hair_loss",
+        emergency_symptoms: [],
+        hairReproductive: "yes",
+      })
+
+      expect(result.outcome).toBe("DECLINE")
+      expect(result.triggeredRuleIds).toContain("hair_reproductive_contraindication")
+    },
+  )
+
+  it.each(["no", "na"])(
+    "allows the exact safe reproductive answer %s through server safety",
+    (hairReproductive) => {
+      const result = checkSafetyForServer("consult", {
+        ...validHair,
+        consultSubtype: "hair_loss",
+        emergency_symptoms: [],
+        hairReproductive,
+      })
+
+      expect(result.outcome).toBe("ALLOW")
+      expect(result.triggeredRuleIds).not.toContain("hair_reproductive_contraindication")
+    },
+  )
 
   it("flags no visible loss", () => {
     const result = validateHairLossConsult({ ...validHair, hairPattern: "none" })

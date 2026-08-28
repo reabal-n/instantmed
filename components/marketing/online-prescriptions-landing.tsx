@@ -32,6 +32,7 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { ONLINE_PRESCRIPTIONS_FAQ } from "@/lib/data/online-prescriptions-faq"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
@@ -96,7 +97,8 @@ const HOW_IT_WORKS = [
 ] as const
 
 const SUITABLE_ITEMS = [
-  "You are in Australia, aged 18 or over, and can provide Medicare details for prescription records.",
+  "You are in Australia and aged 18 or over.",
+  getApprovedClaim("prescribing_identity_required"),
   "The request is for a medicine previously prescribed to you by a doctor.",
   "Your dose and routine are stable, and you are not asking for a dose increase or treatment change.",
   "You can provide current medicine details, allergies, medical conditions, other medicines, and usual-prescriber context.",
@@ -157,8 +159,8 @@ const COST_AND_ESCRIPT = [
   },
   {
     icon: FileText,
-    title: "Medicare and records",
-    body: "Medicare details are required for prescription and consultation requests because they support identity, clinical records, and electronic prescribing workflows.",
+    title: "Identity and records",
+    body: getApprovedClaim("prescribing_identity_required"),
   },
   {
     icon: ClipboardCheck,

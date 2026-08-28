@@ -27,6 +27,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { UTI_LANDING_FAQ } from "@/lib/data/womens-health-faq"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
@@ -49,7 +50,7 @@ const HERO_FACTS = [
     icon: ShieldCheck,
     label: "Eligibility",
     value: "Australia only · 18+",
-    body: "Medicare required for this prescription pathway.",
+    body: getApprovedClaim("prescribing_identity_required"),
   },
   {
     icon: WalletCards,
@@ -92,7 +93,8 @@ const SAFETY_CHECKS = [
 ] as const
 
 const SUITABLE_ITEMS = [
-  "You are in Australia, aged 18 or over, and have Medicare.",
+  "You are in Australia and aged 18 or over.",
+  getApprovedClaim("prescribing_identity_required"),
   "Your answers fit a possible uncomplicated lower UTI pattern.",
   "You are not pregnant or unsure about pregnancy.",
   "You can complete the safety screen, medicine history, and allergy questions clearly.",
@@ -114,7 +116,7 @@ const REVIEW_COST_OUTCOMES = [
   {
     icon: Stethoscope,
     title: `2 · Doctor review · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
-    body: "An AHPRA-registered doctor reviews a suitable request. They may call or message if a non-urgent detail needs clarification. Medicare is required; pharmacy costs are separate.",
+    body: `An AHPRA-registered doctor reviews a suitable request. They may call or message if a non-urgent detail needs clarification. ${getApprovedClaim("prescribing_identity_required")} Pharmacy costs are separate.`,
   },
   {
     icon: CheckCircle2,

@@ -100,6 +100,8 @@ export interface Intake {
   matchtype: string | null
   device: string | null
   network: string | null
+  /** Opaque non-clinical product-experience cohort; immutable after insert. */
+  growth_experience_version: string | null
   // Refund tracking
   refund_status:
     | "not_applicable"

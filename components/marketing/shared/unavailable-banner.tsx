@@ -11,14 +11,16 @@ export function UnavailableBanner({ show }: UnavailableBannerProps) {
   if (!show) return null
 
   return (
-    <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-warning-border bg-warning-light px-4 py-3 flex items-center gap-3">
+    <div
+      className="relative z-40 mx-4 mb-0 rounded-2xl border border-warning-border bg-warning-light px-4 py-3 flex items-center gap-3"
+      style={{ marginTop: "calc(max(0.5rem, env(safe-area-inset-top)) + 4.5rem)" }}
+    >
       <AlertCircle className="h-5 w-5 text-warning shrink-0" aria-hidden="true" />
       <div>
         <p className="text-sm font-medium text-warning">
-          This service is temporarily unavailable.
+          This service is currently unavailable.
         </p>
         <p className="text-xs text-amber-700 dark:text-amber-200">
-          We&apos;ll be back soon.{" "}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
             className="underline hover:no-underline"

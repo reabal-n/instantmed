@@ -464,6 +464,9 @@ const nextConfig = {
       { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: true },
       { source: "/request/consult", destination: "/consult", permanent: true },
       { source: "/medical-certificate/request", destination: "/request?service=med-cert", permanent: true },
+      // Consolidate the zero-performance legacy Canberra certificate page into
+      // the location URL Google already uses for branded and local searches.
+      { source: "/medical-certificate/canberra", destination: "/locations/canberra", permanent: true },
       { source: "/consult/request", destination: "/consult", permanent: true },
       { source: "/prescriptions/request", destination: "/request?service=repeat-script", permanent: true },
       { source: "/prescriptions/repeat", destination: "/request?service=repeat-script", permanent: true },

@@ -151,6 +151,33 @@ describe("personless PostHog analytics", () => {
     ).not.toHaveProperty("flow_instance_id")
   })
 
+  it("keeps only a strict opaque growth version and still drops raw acquisition and free text", () => {
+    expect(
+      sanitizePostHogProperties({
+        growth_experience_version: "spx_h1_20260828",
+        gclid: "raw-click-id",
+        click_id: "raw-click-id",
+        keyword: "sensitive search phrase",
+        search_terms: "sensitive search phrase",
+        answers: { hairGoal: "free text" },
+        intake_answers: { hairGoal: "free text" },
+        reason: "free text",
+      }),
+    ).toMatchObject({
+      growth_experience_version: "spx_h1_20260828",
+      $process_person_profile: false,
+      $geoip_disable: true,
+    })
+
+    const malformed = sanitizePostHogProperties({
+      growth_experience_version: "spx_h1_20260828_patient@example.com",
+    })
+    expect(malformed).not.toHaveProperty("growth_experience_version")
+    expect(sanitizePostHogProperties({ click_id: "raw" })).not.toHaveProperty("click_id")
+    expect(sanitizePostHogProperties({ search_terms: "raw" })).not.toHaveProperty("search_terms")
+    expect(sanitizePostHogProperties({ intake_answers: {} })).not.toHaveProperty("intake_answers")
+  })
+
   it("rejects captures whose distinct id is a direct identifier", () => {
     expect(
       sanitizePostHogEvent({

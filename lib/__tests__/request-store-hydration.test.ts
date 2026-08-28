@@ -52,6 +52,54 @@ describe("request store draft hydration", () => {
     expect(useRequestStore.getState().answers).toEqual({})
   })
 
+  it("advances once from the URL-rendered Weight Assessment when store navigation is not hydrated", () => {
+    useRequestStore.setState({
+      serviceType: null,
+      currentStepId: "certificate",
+      answers: {
+        weightKg: 100,
+        heightCm: 175,
+      },
+    })
+
+    useRequestStore.getState().advanceRenderedStep({
+      serviceType: "consult",
+      subtype: "weight_loss",
+      stepId: "weight-loss-assessment",
+    })
+
+    expect(useRequestStore.getState()).toMatchObject({
+      serviceType: "consult",
+      currentStepId: "medical-history",
+      answers: expect.objectContaining({
+        consultSubtype: "weight_loss",
+        weightKg: 100,
+        heightCm: 175,
+      }),
+    })
+  })
+
+  it("does not overwrite or advance a valid restored step hidden behind the URL fallback", () => {
+    useRequestStore.setState({
+      serviceType: "consult",
+      currentStepId: "details",
+      answers: { consultSubtype: "weight_loss" },
+      lastSavedAt: "2026-08-28T00:00:00.000Z",
+    })
+
+    useRequestStore.getState().advanceRenderedStep({
+      serviceType: "consult",
+      subtype: "weight_loss",
+      stepId: "weight-loss-assessment",
+    })
+
+    expect(useRequestStore.getState()).toMatchObject({
+      serviceType: "consult",
+      currentStepId: "details",
+      answers: { consultSubtype: "weight_loss" },
+    })
+  })
+
   it("does not mint a scoped draft when the patient only opens a service", async () => {
     await useRequestStore.persist.rehydrate()
 

@@ -12,6 +12,7 @@ import { getCurrentUser, getUserProfile } from "@/lib/auth/helpers"
 import { CONTACT_EMAIL_HELLO, PRICING_DISPLAY } from "@/lib/constants"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
+import { normalizeIncomingGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
 import { isAtCapacity } from "@/lib/operational-controls/config"
 import { normalizeConsultSubtypeParam } from "@/lib/request/consult-flow"
 import { normalizeWomensHealthIntentParam } from "@/lib/request/consult-subtypes"
@@ -63,6 +64,7 @@ export default async function RequestPage({
     certType?: string
     duration?: string
     d?: string
+    growth_experience_version?: string
   }>
 }) {
   const params = await searchParams
@@ -73,6 +75,13 @@ export default async function RequestPage({
   const initialIntent = initialService === "consult" && initialSubtype === "womens_health"
     ? normalizeWomensHealthIntentParam(params.intent)
     : undefined
+  const initialGrowthExperienceVersion = normalizeIncomingGrowthExperienceVersion(
+    params.growth_experience_version,
+    {
+      serviceType: initialService,
+      subtype: initialSubtype,
+    },
+  )
   const withDraftSessionScrubber = (content: ReactNode) => (
     <>
       <DraftSessionUrlScrubber active={params.d !== undefined} />
@@ -271,6 +280,7 @@ export default async function RequestPage({
             ? params.d
             : null
       }
+      initialGrowthExperienceVersion={initialGrowthExperienceVersion}
       isAuthenticated={!!user}
       hasProfile={!!profile}
       hasCompleteIdentity={hasCompleteIdentity}

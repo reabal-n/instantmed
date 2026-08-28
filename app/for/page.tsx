@@ -8,6 +8,7 @@ import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 
 export const metadata: Metadata = {
@@ -70,7 +71,7 @@ const audienceFaqs = [
   },
   {
     question: "Do I need Medicare to use InstantMed?",
-    answer: "Medicare isn't required for medical certificates. For prescriptions and consultations, you'll need a valid Medicare card. We don't bulk bill - our service sits outside the Medicare system.",
+    answer: `Medicare isn't required for medical certificates. ${getApprovedClaim("prescribing_identity_required")} We don't bulk bill - our service sits outside the Medicare system.`,
   },
 ]
 

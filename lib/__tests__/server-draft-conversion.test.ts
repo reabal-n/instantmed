@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest"
 import {
   findConvertedPartialIntakeForCheckout,
   markPartialIntakeConverted,
+  readBoundPartialIntakeGrowthExperienceVersion,
 } from "@/lib/request/server-draft-conversion"
 
 const SESSION_ID = "11111111-1111-4111-8111-111111111111"
@@ -68,6 +69,83 @@ describe("server draft conversion marker", () => {
   })
 })
 
+describe("bound draft growth experience", () => {
+  it("reads only the unexpired, unconverted row bound to the exact bearer and flow", async () => {
+    const maybeSingle = vi.fn(async () => ({
+      data: { growth_experience_version: "spx_h1_20260828" },
+      error: null,
+    }))
+    const chain = {
+      eq: vi.fn(() => chain),
+      gt: vi.fn(() => chain),
+      is: vi.fn(() => chain),
+      maybeSingle,
+    }
+    const select = vi.fn(() => chain)
+    const from = vi.fn(() => ({ select }))
+
+    await expect(
+      readBoundPartialIntakeGrowthExperienceVersion(
+        { from } as never,
+        {
+          flowInstanceId: FLOW_INSTANCE_ID,
+          serviceType: "consult",
+          sessionId: SESSION_ID,
+        },
+      ),
+    ).resolves.toBe("spx_h1_20260828")
+
+    expect(from).toHaveBeenCalledWith("partial_intakes")
+    expect(chain.eq).toHaveBeenCalledWith("session_id", SESSION_ID)
+    expect(chain.eq).toHaveBeenCalledWith("flow_instance_id", FLOW_INSTANCE_ID)
+    expect(chain.eq).toHaveBeenCalledWith("service_type", "consult")
+    expect(chain.gt).toHaveBeenCalledWith("expires_at", expect.any(String))
+    expect(chain.is).toHaveBeenCalledWith("converted_to_intake_id", null)
+  })
+
+  it("does not query storage without both valid bearer coordinates", async () => {
+    const from = vi.fn()
+
+    await expect(
+      readBoundPartialIntakeGrowthExperienceVersion(
+        { from } as never,
+        {
+          flowInstanceId: "not-a-uuid",
+          serviceType: "consult",
+          sessionId: SESSION_ID,
+        },
+      ),
+    ).resolves.toBeUndefined()
+    expect(from).not.toHaveBeenCalled()
+  })
+
+  it("treats a bound-draft read failure as an authoritative null slot", async () => {
+    const maybeSingle = vi.fn(async () => ({
+      data: null,
+      error: { message: "database unavailable" },
+    }))
+    const chain = {
+      eq: vi.fn(() => chain),
+      gt: vi.fn(() => chain),
+      is: vi.fn(() => chain),
+      maybeSingle,
+    }
+    const select = vi.fn(() => chain)
+    const from = vi.fn(() => ({ select }))
+
+    await expect(
+      readBoundPartialIntakeGrowthExperienceVersion(
+        { from } as never,
+        {
+          flowInstanceId: FLOW_INSTANCE_ID,
+          serviceType: "consult",
+          sessionId: SESSION_ID,
+        },
+      ),
+    ).resolves.toBeNull()
+  })
+})
+
 describe("converted server draft checkout reuse", () => {
   it("loads the one intake already created from the same draft", async () => {
     const partialMaybeSingle = vi.fn(async () => ({
@@ -83,6 +161,7 @@ describe("converted server draft checkout reuse", () => {
       data: {
         category: "prescription",
         flow_instance_id: FLOW_INSTANCE_ID,
+        growth_experience_version: null,
         guest_email: "patient@example.com",
         id: INTAKE_ID,
         patient_id: "patient-1",
@@ -129,6 +208,7 @@ describe("converted server draft checkout reuse", () => {
         paymentStatus: "pending",
         status: "pending_payment",
         subtype: "repeat",
+        growthExperienceVersion: null,
       },
     })
     expect(rpc).toHaveBeenCalledWith(
@@ -185,35 +265,51 @@ describe("converted server draft checkout reuse", () => {
                 converted_to_intake_id: null,
                 email: "patient@example.com",
                 flow_instance_id: FLOW_INSTANCE_ID,
-                service_type: "prescription",
+                service_type: "consult",
               },
               error: null,
             }),
       }
     })
-    const from = vi.fn()
+    const growthMaybeSingle = vi.fn(async () => ({
+      data: { growth_experience_version: "spx_h1_20260828" },
+      error: null,
+    }))
+    const from = vi.fn((table: string) => {
+      if (table !== "partial_intakes") throw new Error(`Unexpected table ${table}`)
+      const chain = {
+        select: vi.fn(() => chain),
+        eq: vi.fn(() => chain),
+        maybeSingle: growthMaybeSingle,
+      }
+      return chain
+    })
 
     await expect(findConvertedPartialIntakeForCheckout(
       { from, rpc } as never,
       {
-        category: "prescription",
+        category: "consult",
         email: "patient@example.com",
         flowInstanceId: FLOW_INSTANCE_ID,
-        serviceType: "prescription",
+        serviceType: "consult",
         sessionId: SESSION_ID,
-        subtype: "repeat",
+        subtype: "hair_loss",
       },
-    )).resolves.toEqual({ kind: "none", reason: "not_converted" })
+    )).resolves.toEqual({
+      kind: "none",
+      reason: "not_converted",
+      growthExperienceVersion: "spx_h1_20260828",
+    })
 
     await expect(findConvertedPartialIntakeForCheckout(
       { from, rpc } as never,
       {
-        category: "prescription",
+        category: "consult",
         email: "patient@example.com",
         flowInstanceId: OTHER_FLOW_INSTANCE_ID,
-        serviceType: "prescription",
+        serviceType: "consult",
         sessionId: SESSION_ID,
-        subtype: "repeat",
+        subtype: "hair_loss",
       },
     )).resolves.toEqual({ kind: "blocked", reason: "request_mismatch" })
   })

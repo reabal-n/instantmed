@@ -32,16 +32,18 @@ import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
 
 // ============================================================================
 // METADATA - head-term pillar for "telehealth australia" and related
 // ============================================================================
 
 const CANONICAL = "https://instantmed.com.au/telehealth-australia"
+const SEARCH_DESCRIPTION = "Telehealth in Australia explained: how online care works, what Medicare may cover, private costs and when in-person care is the safer choice."
 
 export const metadata: Metadata = {
-  title: { absolute: "Telehealth Australia | Online, No Waiting Room | InstantMed" },
-  description: `Telehealth in Australia explained: how it works, what it costs, Medicare and PBS rules, and which conditions suit virtual care. AHPRA-governed, from ${PRICING_DISPLAY.MED_CERT}.`,
+  title: { absolute: "Telehealth in Australia | Costs, Rules & Care Options | InstantMed" },
+  description: SEARCH_DESCRIPTION,
   keywords: [
     "telehealth australia",
     "australian telehealth",
@@ -55,8 +57,8 @@ export const metadata: Metadata = {
     "telehealth consultation australia",
   ],
   openGraph: {
-    title: "Telehealth Australia | Online, No Waiting Room | InstantMed",
-    description: `A practical guide to telehealth in Australia: regulation, cost, Medicare, suitable conditions, and how to get started. ${PRICING_DISPLAY.FROM_MED_CERT} with AHPRA-registered doctors.`,
+    title: "Telehealth in Australia | Costs, Rules & Care Options | InstantMed",
+    description: SEARCH_DESCRIPTION,
     url: CANONICAL,
     siteName: "InstantMed",
     locale: "en_AU",
@@ -64,9 +66,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Telehealth Australia | InstantMed",
-    description:
-      "How telehealth works in Australia - regulation, cost, Medicare, and which conditions it's safe for.",
+    title: "Telehealth in Australia | InstantMed",
+    description: SEARCH_DESCRIPTION,
   },
   alternates: { canonical: CANONICAL },
 }
@@ -118,7 +119,7 @@ const FAQS = [
   },
   {
     question: "What does a telehealth consultation actually cost in Australia?",
-    answer: `That depends entirely on the provider and whether Medicare applies. GP-based telehealth with an established-relationship patient may be bulk-billed or carry a small gap fee. Private telehealth services like InstantMed charge a flat fee per request - medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and specialised ED or hair-loss assessments from ${PRICING_DISPLAY.CONSULT}. The trade-off is simple: you pay a small fee for structured access without booking an appointment or providing a Medicare card.`,
+    answer: `That depends entirely on the provider and whether Medicare applies. GP-based telehealth with an established-relationship patient may be bulk-billed or carry a small gap fee. Private telehealth services like InstantMed charge a flat fee per request - medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and specialised ED or hair-loss assessments from ${PRICING_DISPLAY.CONSULT}. Medical certificates do not require Medicare. ${PRESCRIBING_IDENTITY_REQUIRED}`,
   },
   {
     question: "Can a telehealth doctor send a prescription to my pharmacy?",

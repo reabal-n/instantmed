@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   isAtCapacity: vi.fn(),
   isMedicationBlocked: vi.fn(),
   isServiceDisabled: vi.fn(),
+  runFraudChecks: vi.fn(),
   stripeSessionCreate: vi.fn(),
   stripeSessionExpire: vi.fn(),
   stripeSessionRetrieve: vi.fn(),
@@ -81,8 +82,12 @@ vi.mock("@/lib/safety/evaluate", () => ({
 }))
 
 vi.mock("@/lib/security/fraud-detector", () => ({
-  runFraudChecks: vi.fn(),
+  runFraudChecks: mocks.runFraudChecks,
   saveFraudFlags: vi.fn(),
+}))
+
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({ get: vi.fn(() => undefined) })),
 }))
 
 vi.mock("@/lib/stripe/client", () => ({
@@ -118,19 +123,27 @@ vi.mock("@/lib/validation/repeat-script-schema", () => ({
   validateRepeatScriptPayload: vi.fn(() => ({ valid: true })),
 }))
 
+import { SPECIALTY_EXPERIENCES } from "@/lib/growth/specialty-experiences"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
+
+const SPECIALTY_DRAFT_SESSION_ID = "11111111-1111-4111-8111-111111111111"
+const SPECIALTY_FLOW_INSTANCE_ID = "33333333-3333-4333-8333-333333333333"
 
 interface DuplicateGuestIntake {
   category: string
   checkout_error:
     | "safety_blocked_high_stakes"
     | "safety_missing_required_information"
+    | null
+  flow_instance_id?: string | null
   guest_email: string
+  growth_experience_version?: string | null
   id: string
   is_priority: boolean
   payment_id: string
   payment_status: string
+  service?: { slug: string } | null
   status: string
   stripe_price_id: string
   subtype: string
@@ -150,6 +163,25 @@ function makeDuplicateRepeatIntake(
     status: "checkout_failed",
     stripe_price_id: "price_repeat",
     subtype: "repeat",
+    ...overrides,
+  }
+}
+
+function makeDuplicateHairIntake(
+  overrides: Partial<DuplicateGuestIntake> = {},
+): DuplicateGuestIntake {
+  return {
+    category: "consult",
+    checkout_error: null,
+    guest_email: "patient@example.test",
+    id: "intake-existing",
+    is_priority: false,
+    payment_id: "cs_current",
+    payment_status: "pending",
+    service: { slug: "mens-health-hair" },
+    status: "pending_payment",
+    stripe_price_id: "price_hair",
+    subtype: "hair_loss",
     ...overrides,
   }
 }
@@ -183,12 +215,56 @@ function repeatGuestCheckoutInput() {
   }
 }
 
+function hairLossGuestCheckoutInput() {
+  return {
+    answers: {
+      agreedToTerms: true,
+      confirmedAccuracy: true,
+      addressLine1: "12 Clinical Way",
+      medicareExpiry: "2028-12-01",
+      medicareIrn: "1",
+      medicareNumber: "2123456701",
+      consultSubtype: "hair_loss",
+      emergency_symptoms: [],
+      hairReproductive: "no",
+      postcode: "2000",
+      sex: "M",
+      state: "NSW",
+      suburb: "Sydney",
+    },
+    category: "consult" as const,
+    guestDateOfBirth: "1985-04-01",
+    guestEmail: "patient@example.test",
+    guestName: "Test Patient",
+    guestPhone: "0400000000",
+    growthExperienceVersion: "spx_h1_20260828",
+    subtype: "hair_loss",
+    type: "consult",
+  }
+}
+
+function hairLossAuthenticatedCheckoutInput() {
+  return {
+    answers: hairLossGuestCheckoutInput().answers,
+    category: "consult" as const,
+    growthExperienceVersion: "spx_h1_20260828" as const,
+    idempotencyKey: "hair-loss-auth-checkout-key",
+    subtype: "hair_loss",
+    type: "consult",
+  }
+}
+
 function createGuestCheckoutSupabaseMock({
+  boundDraftGrowthRead,
   duplicateAnswerPayload,
   duplicateAnswers = true,
   duplicateIntake,
   forceDuplicate = false,
 }: {
+  boundDraftGrowthRead?: {
+    data: { growth_experience_version: string | null } | null
+    error: { message: string } | null
+  }
   duplicateAnswerPayload?: Record<string, unknown> | null
   duplicateAnswers?: boolean
   duplicateIntake?: DuplicateGuestIntake
@@ -252,7 +328,9 @@ function createGuestCheckoutSupabaseMock({
       }),
       maybeSingle: vi.fn(async () => ({
         data:
-          table === "intakes" && operation === "select"
+          table === "partial_intakes" && operation === "select"
+            ? boundDraftGrowthRead?.data ?? null
+            : table === "intakes" && operation === "select"
             ? duplicateIntake || null
             : table === "intake_answers" &&
                 operation === "select" &&
@@ -260,8 +338,12 @@ function createGuestCheckoutSupabaseMock({
                 duplicateAnswers
               ? { intake_id: duplicateIntake.id }
               : null,
-        error: null,
+        error:
+          table === "partial_intakes" && operation === "select"
+            ? boundDraftGrowthRead?.error ?? null
+            : null,
       })),
+      gt: vi.fn(() => builder),
       then: (resolve: (value: { data?: unknown; error: null }) => void) => {
         if (table === "profiles" && operation === "select" && selectCount > 1) {
           return Promise.resolve({ data: [], error: null }).then(resolve)
@@ -303,6 +385,11 @@ describe("checkout operating hours", () => {
     mocks.isMedicationBlocked.mockResolvedValue({ blocked: false })
     mocks.isServiceDisabled.mockResolvedValue(false)
     mocks.getPriceIdForRequest.mockReturnValue("price_med_cert")
+    mocks.runFraudChecks.mockResolvedValue({
+      flagged: false,
+      flags: [],
+      riskScore: 0,
+    })
     mocks.stripeSessionCreate.mockResolvedValue({
       id: "cs_test",
       metadata: { intake_id: "intake-1" },
@@ -581,6 +668,157 @@ describe("checkout operating hours", () => {
     expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
+
+  it("blocks duplicate Hair recovery from authoritative contraindicating answers before Stripe", async () => {
+    const duplicateIntake = makeDuplicateHairIntake()
+    const persistedAnswers = {
+      emergency_symptoms: [],
+      hairReproductive: "yes",
+    }
+    const safetyAnswers = {
+      ...persistedAnswers,
+      consultSubtype: "hair_loss",
+    }
+    const { supabase, updates } = createGuestCheckoutSupabaseMock({
+      duplicateAnswerPayload: persistedAnswers,
+      duplicateIntake,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.checkSafetyForServer.mockImplementation((_serviceSlug, answers) =>
+      !("medicareNumber" in answers)
+        ? {
+            blockReason: "Hair reproductive safety block.",
+            isAllowed: false,
+            outcome: "DECLINE",
+            riskTier: "high",
+            triggeredRuleIds: ["hair_reproductive_contraindication"],
+          }
+        : {
+            blockReason: null,
+            isAllowed: true,
+            outcome: "ALLOW",
+            riskTier: "low",
+            triggeredRuleIds: [],
+          },
+    )
+
+    const result = await createGuestCheckoutAction(hairLossGuestCheckoutInput())
+
+    expect(result).toEqual({
+      error: "Hair reproductive safety block.",
+      success: false,
+    })
+    expect(mocks.validateSafetyFieldsPresent).toHaveBeenLastCalledWith(
+      "mens-health-hair",
+      safetyAnswers,
+    )
+    expect(mocks.checkSafetyForServer).toHaveBeenLastCalledWith(
+      "mens-health-hair",
+      safetyAnswers,
+    )
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(updates.filter(({ payload }) => "payment_id" in payload)).toHaveLength(0)
+  })
+
+  it.each([undefined, "", "invalid"])(
+    "holds duplicate Hair recovery with authoritative incomplete reproductive value %o before Stripe",
+    async (hairReproductive) => {
+      const duplicateIntake = makeDuplicateHairIntake()
+      const persistedAnswers = {
+        emergency_symptoms: [],
+        hairReproductive,
+      }
+      const safetyAnswers = {
+        ...persistedAnswers,
+        consultSubtype: "hair_loss",
+      }
+      const { supabase, updates } = createGuestCheckoutSupabaseMock({
+        duplicateAnswerPayload: persistedAnswers,
+        duplicateIntake,
+      })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+      mocks.validateSafetyFieldsPresent.mockImplementation((_serviceSlug, answers) =>
+        !("medicareNumber" in answers)
+          ? {
+              valid: false,
+              missingFields: ["hairReproductive"],
+            }
+          : { valid: true, missingFields: [] },
+      )
+
+      const result = await createGuestCheckoutAction(hairLossGuestCheckoutInput())
+
+      expect(result).toMatchObject({
+        success: false,
+        error: expect.stringMatching(/required medical information is missing/i),
+      })
+      expect(mocks.validateSafetyFieldsPresent).toHaveBeenLastCalledWith(
+        "mens-health-hair",
+        safetyAnswers,
+      )
+      expect(mocks.holdCheckoutForMissingSafetyInformation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          intakeId: "intake-existing",
+          missingFields: ["hairReproductive"],
+          source: "guest_duplicate",
+        }),
+      )
+      expect(mocks.checkSafetyForServer).toHaveBeenCalledTimes(1)
+      expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(updates.filter(({ payload }) => "payment_id" in payload)).toHaveLength(0)
+    },
+  )
+
+  it.each(["no", "na"])(
+    "continues duplicate Hair recovery for authoritative safe value %s",
+    async (hairReproductive) => {
+      const duplicateIntake = makeDuplicateHairIntake()
+      const persistedAnswers = {
+        emergency_symptoms: [],
+        hairReproductive,
+      }
+      const safetyAnswers = {
+        ...persistedAnswers,
+        consultSubtype: "hair_loss",
+      }
+      const { supabase, updates } = createGuestCheckoutSupabaseMock({
+        duplicateAnswerPayload: persistedAnswers,
+        duplicateIntake,
+      })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+      mocks.stripeSessionRetrieve.mockResolvedValue({
+        id: "cs_current",
+        metadata: { intake_id: "intake-existing" },
+        payment_status: "unpaid",
+        status: "open",
+        url: "https://checkout.stripe.test/pay/cs_current",
+      })
+
+      const result = await createGuestCheckoutAction(hairLossGuestCheckoutInput())
+
+      expect(result).toEqual({
+        checkoutUrl: "https://checkout.stripe.test/pay/cs_current",
+        intakeId: "intake-existing",
+        success: true,
+      })
+      expect(mocks.validateSafetyFieldsPresent).toHaveBeenLastCalledWith(
+        "mens-health-hair",
+        safetyAnswers,
+      )
+      expect(mocks.checkSafetyForServer).toHaveBeenLastCalledWith(
+        "mens-health-hair",
+        safetyAnswers,
+      )
+      expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_current")
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(updates.filter(({ payload }) => "payment_id" in payload)).toHaveLength(0)
+    },
+  )
 
   it.each([
     "state_changed",
@@ -978,5 +1216,255 @@ describe("checkout operating hours", () => {
         process.env.STRIPE_PRICE_PRIORITY_FEE = previousPriorityPrice
       }
     }
+  })
+
+  it("copies a validated specialty cohort to initial guest Session and PaymentIntent metadata", async () => {
+    const { inserts, supabase } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getPriceIdForRequest.mockReturnValue("price_hair")
+
+    const result = await createGuestCheckoutAction(hairLossGuestCheckoutInput())
+
+    expect(result.success).toBe(true)
+    expect(inserts).toContainEqual({
+      table: "intakes",
+      payload: expect.objectContaining({
+        growth_experience_version: "spx_h1_20260828",
+      }),
+    })
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          growth_experience_version: "spx_h1_20260828",
+        }),
+        payment_intent_data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            growth_experience_version: "spx_h1_20260828",
+          }),
+        }),
+      }),
+      { idempotencyKey: "guest-checkout-intake-1" },
+    )
+  })
+
+  it("does not let a direct guest action persist a never-activated specialty version", async () => {
+    const { inserts, supabase } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getPriceIdForRequest.mockReturnValue("price_hair")
+
+    const result = await createGuestCheckoutAction({
+      ...hairLossGuestCheckoutInput(),
+      growthExperienceVersion: "spx_h3_20260828",
+    })
+
+    expect(result.success).toBe(true)
+    expect(inserts).toContainEqual({
+      table: "intakes",
+      payload: expect.objectContaining({
+        growth_experience_version: null,
+      }),
+    })
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.not.objectContaining({
+          growth_experience_version: expect.anything(),
+        }),
+        payment_intent_data: expect.objectContaining({
+          metadata: expect.not.objectContaining({
+            growth_experience_version: expect.anything(),
+          }),
+        }),
+      }),
+      { idempotencyKey: "guest-checkout-intake-1" },
+    )
+  })
+
+  describe.each(["authenticated", "guest"] as const)(
+    "%s specialty attribution boundary",
+    (checkoutKind) => {
+      it.each([
+        [
+          "keeps an authoritative null slot unassigned",
+          {
+            data: { growth_experience_version: null },
+            error: null,
+          },
+          "spx_h1_20260828",
+          null,
+          false,
+        ],
+        [
+          "fails closed when the bound draft cannot be read",
+          {
+            data: null,
+            error: { message: "database unavailable" },
+          },
+          "spx_h1_20260828",
+          null,
+          false,
+        ],
+        [
+          "accepts a current claim when no authoritative row exists",
+          {
+            data: null,
+            error: null,
+          },
+          "spx_h1_20260828",
+          "spx_h1_20260828",
+          false,
+        ],
+        [
+          "preserves an activated stored marker over a later candidate",
+          {
+            data: { growth_experience_version: "spx_h1_20260828" },
+            error: null,
+          },
+          "spx_h3_20260828",
+          "spx_h1_20260828",
+          false,
+        ],
+        [
+          "preserves a stored marker after its activated version retires",
+          {
+            data: { growth_experience_version: "spx_h1_20260828" },
+            error: null,
+          },
+          "spx_h3_20260828",
+          "spx_h1_20260828",
+          true,
+        ],
+        [
+          "rejects a never-activated claim when no authoritative row exists",
+          {
+            data: null,
+            error: null,
+          },
+          "spx_h3_20260828",
+          null,
+          false,
+        ],
+      ] as const)(
+        "%s",
+        async (
+          _name,
+          boundDraftGrowthRead,
+          candidate,
+          expected,
+          retireStoredMarker,
+        ) => {
+        const storedMarker = SPECIALTY_EXPERIENCES.find(
+          ({ id }) => id === "spx_h1_20260828",
+        ) as unknown as {
+          retirementTimestamp: string | null
+          status: "active" | "retired"
+        }
+        const originalStatus = storedMarker.status
+        const originalRetirementTimestamp = storedMarker.retirementTimestamp
+        if (retireStoredMarker) {
+          storedMarker.status = "retired"
+          storedMarker.retirementTimestamp = "2026-08-28T00:00:00.000Z"
+        }
+
+        try {
+          const { inserts, supabase } = createGuestCheckoutSupabaseMock({
+            boundDraftGrowthRead,
+          })
+          mocks.createServiceRoleClient.mockReturnValue(supabase)
+          mocks.getPriceIdForRequest.mockReturnValue("price_hair")
+
+          if (checkoutKind === "authenticated") {
+            mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
+              user: { id: "user-1", email: "patient@example.test" },
+              profile: {
+                id: "patient-1",
+                date_of_birth: "1985-04-01",
+                full_name: "Test Patient",
+                stripe_customer_id: null,
+              },
+            })
+            await createIntakeAndCheckoutAction({
+              ...hairLossAuthenticatedCheckoutInput(),
+              flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID,
+              growthExperienceVersion: candidate,
+              serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
+            })
+          } else {
+            await createGuestCheckoutAction({
+              ...hairLossGuestCheckoutInput(),
+              flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID,
+              growthExperienceVersion: candidate,
+              serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
+            })
+          }
+
+          expect(inserts).toContainEqual({
+            table: "intakes",
+            payload: expect.objectContaining({
+              growth_experience_version: expected,
+            }),
+          })
+
+          const expectedMetadata = expected
+            ? expect.objectContaining({ growth_experience_version: expected })
+            : expect.not.objectContaining({
+                growth_experience_version: expect.anything(),
+              })
+          expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+            expect.objectContaining({
+              metadata: expectedMetadata,
+              payment_intent_data: expect.objectContaining({
+                metadata: expectedMetadata,
+              }),
+            }),
+            expect.any(Object),
+          )
+        } finally {
+          storedMarker.status = originalStatus
+          storedMarker.retirementTimestamp = originalRetirementTimestamp
+        }
+      },
+      )
+    },
+  )
+
+  it("copies the stored cohort to rebuilt guest Session and PaymentIntent metadata", async () => {
+    const duplicateIntake = makeDuplicateRepeatIntake({
+      category: "consult",
+      checkout_error: null,
+      growth_experience_version: "spx_h1_20260828",
+      payment_id: "cs_expired",
+      payment_status: "failed",
+      stripe_price_id: "price_hair",
+      subtype: "hair_loss",
+    })
+    const { supabase } = createGuestCheckoutSupabaseMock({ duplicateIntake })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getPriceIdForRequest.mockReturnValue("price_hair")
+    mocks.stripeSessionRetrieve.mockResolvedValue({
+      id: "cs_expired",
+      metadata: { intake_id: "intake-existing" },
+      payment_status: "unpaid",
+      status: "expired",
+      url: null,
+    })
+
+    await createGuestCheckoutAction(hairLossGuestCheckoutInput())
+
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          growth_experience_version: "spx_h1_20260828",
+        }),
+        payment_intent_data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            growth_experience_version: "spx_h1_20260828",
+          }),
+        }),
+      }),
+      {
+        idempotencyKey:
+          "guest-duplicate-resume-v2_intake-existing_cs_expired",
+      },
+    )
   })
 })

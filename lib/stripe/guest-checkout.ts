@@ -25,13 +25,24 @@ import {
 } from "@/lib/data/intake-answers"
 import { decryptProfilePhi, updateProfile } from "@/lib/data/profiles"
 import { isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
+import {
+  normalizeIncomingGrowthExperienceVersion,
+  selectGrowthExperienceVersion,
+} from "@/lib/growth/specialty-experience-attribution"
 import { createLogger } from "@/lib/observability/logger"
 import { isAtCapacity } from "@/lib/operational-controls/config"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
-import { markPartialIntakeConverted } from "@/lib/request/server-draft-conversion"
+import {
+  markPartialIntakeConverted,
+  readBoundPartialIntakeGrowthExperienceVersion,
+} from "@/lib/request/server-draft-conversion"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
+import {
+  checkSafetyForServer,
+  validateSafetyFieldsPresent,
+} from "@/lib/safety/evaluate"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
 
@@ -131,6 +142,7 @@ interface GuestCheckoutInput {
   }
   posthogDistinctId?: string // Anonymous browser ID for personless funnel continuity
   flowInstanceId?: string
+  growthExperienceVersion?: string
   serverDraftSessionId?: string
   checkoutSubmissionKey?: string
 }
@@ -248,6 +260,7 @@ async function rebuildExpiredGuestSession(
     payment_status: string | null
     status: string | null
     flow_instance_id: string | null
+    growth_experience_version: string | null
   },
   fallbackGuestEmail: string,
   baseUrl: string,
@@ -311,6 +324,15 @@ async function rebuildExpiredGuestSession(
   }
 
   try {
+    const sessionMetadata = buildPaymentIntentMetadata({
+      intake_id: intake.id,
+      flow_instance_id: intake.flow_instance_id,
+      growth_experience_version: intake.growth_experience_version,
+      is_retry: "true",
+      category: intake.category || "",
+      subtype: intake.subtype || "",
+      guest_checkout: "true",
+    })
     const session = await stripe.checkout.sessions.create(
       {
         line_items: lineItems,
@@ -319,15 +341,9 @@ async function rebuildExpiredGuestSession(
         cancel_url: buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id }),
         customer_email: guestEmail,
         customer_creation: "always",
-        metadata: {
-          intake_id: intake.id,
-          ...(intake.flow_instance_id
-            ? { flow_instance_id: intake.flow_instance_id }
-            : {}),
-          is_retry: "true",
-          category: intake.category || "",
-          subtype: intake.subtype || "",
-          guest_checkout: "true",
+        metadata: sessionMetadata,
+        payment_intent_data: {
+          metadata: sessionMetadata,
         },
       },
       {
@@ -403,6 +419,10 @@ async function markGuestCheckoutFailed(
 export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
   try {
     const resolvedAttribution = await resolveCheckoutAttribution(input.attribution)
+    const candidateGrowthExperienceVersion = normalizeIncomingGrowthExperienceVersion(
+      input.growthExperienceVersion,
+      { category: input.category, subtype: input.subtype },
+    )
 
     // KILL SWITCH (ENV): Fast env-var based kill switch (no DB round-trip)
     const envKillSwitch = checkCheckoutBlocked(input.category, input.subtype)
@@ -521,6 +541,18 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     }
 
     const supabase = createServiceRoleClient()
+    const storedGrowthExperienceVersion = input.category === "consult"
+      ? await readBoundPartialIntakeGrowthExperienceVersion(supabase, {
+          flowInstanceId: input.flowInstanceId,
+          serviceType: "consult",
+          sessionId: input.serverDraftSessionId,
+        })
+      : undefined
+    const growthExperienceVersion = selectGrowthExperienceVersion({
+      storedValue: storedGrowthExperienceVersion,
+      candidateValue: candidateGrowthExperienceVersion,
+      context: { category: input.category, subtype: input.subtype },
+    })
     const baseUrl = getBaseUrl()
 
     if (!isValidUrl(baseUrl)) {
@@ -713,6 +745,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         is_priority: isPriority,
         idempotency_key: guestIdempotencyKey,
         flow_instance_id: input.flowInstanceId ?? null,
+        growth_experience_version: growthExperienceVersion,
         guest_email: normalizedEmail, // P1 FIX: Store for abandoned checkout recovery
         stripe_price_id: priceId || null, // P3 FIX: Store for retry pricing consistency
         // Attribution: store UTM params for payment attribution in PostHog
@@ -748,7 +781,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (intakeError?.code === "23505") {
         const { data: existingIntake } = await supabase
           .from("intakes")
-          .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id")
+          .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id, growth_experience_version, service:services!service_id(slug)")
           .eq("idempotency_key", guestIdempotencyKey)
           .eq("patient_id", guestProfileId)
           .maybeSingle()
@@ -766,14 +799,42 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
             }
           }
 
+          const storedServiceRelation = existingIntake.service as
+            | { slug?: string | null }
+            | { slug?: string | null }[]
+            | null
+          const storedServiceSlug = Array.isArray(storedServiceRelation)
+            ? storedServiceRelation[0]?.slug
+            : storedServiceRelation?.slug
+          const storedServiceSlugForSafety =
+            storedServiceSlug ||
+            getServiceSlug(
+              (existingIntake.category || input.category) as ServiceCategory,
+              existingIntake.subtype || "",
+            )
+          const storedAnswersForSafety =
+            existingIntake.category === "consult" && existingIntake.subtype
+              ? {
+                  ...existingAnswers,
+                  consultSubtype: existingIntake.subtype,
+                }
+              : existingAnswers
+          const fieldCheck = validateSafetyFieldsPresent(
+            storedServiceSlugForSafety,
+            storedAnswersForSafety,
+          )
           const repeatDoseMissingFields =
             isRepeatPrescriptionRequest(existingIntake.category, existingIntake.subtype)
             && hasRepeatRxDoseContractMarker(existingAnswers)
               ? getRepeatRxDoseMissingFields(existingAnswers)
               : []
-          if (repeatDoseMissingFields.length > 0) {
+          const missingFields = [...new Set([
+            ...fieldCheck.missingFields,
+            ...repeatDoseMissingFields,
+          ])]
+          if (!fieldCheck.valid || repeatDoseMissingFields.length > 0) {
             await recordSafetyEvaluationForOperators({
-              answers: existingAnswers,
+              answers: storedAnswersForSafety,
               context: "guest_resume",
               requestId: existingIntake.id,
               result: {
@@ -784,11 +845,11 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
                 requiresCall: false,
                 triggeredRuleIds: ["missing_safety_fields"],
               },
-              serviceSlug: serviceSlugForSafety,
+              serviceSlug: storedServiceSlugForSafety,
             })
             const hold = await holdCheckoutForMissingSafetyInformation({
               intakeId: existingIntake.id,
-              missingFields: repeatDoseMissingFields,
+              missingFields,
               patientId: guestProfileId,
               source: "guest_duplicate",
               supabase,
@@ -796,7 +857,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
             if (hold === "held") {
               return {
                 success: false,
-                error: "Some required medical information is missing. Please start the request again and complete the required dose questions before continuing.",
+                error:
+                  repeatDoseMissingFields.length > 0
+                    ? "Some required medical information is missing. Please start the request again and complete the required dose questions before continuing."
+                    : "Some required medical information is missing. Please start the request again and complete all required questions before continuing.",
               }
             }
             if (hold === "payment_in_flight") {
@@ -823,6 +887,32 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
               success: false,
               error:
                 "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
+            }
+          }
+
+          const storedSafetyCheck = checkSafetyForServer(
+            storedServiceSlugForSafety,
+            storedAnswersForSafety,
+          )
+          if (!storedSafetyCheck.isAllowed) {
+            logger.warn("Safety rules blocked duplicate guest checkout recovery", {
+              intakeId: existingIntake.id,
+              outcome: storedSafetyCheck.outcome,
+              serviceSlug: storedServiceSlugForSafety,
+              triggeredRules: storedSafetyCheck.triggeredRuleIds,
+            })
+            await recordSafetyEvaluationForOperators({
+              answers: storedAnswersForSafety,
+              context: "guest_resume",
+              requestId: existingIntake.id,
+              result: storedSafetyCheck,
+              serviceSlug: storedServiceSlugForSafety,
+            })
+            return {
+              success: false,
+              error:
+                storedSafetyCheck.blockReason ||
+                "This request cannot be processed online. Please see your regular doctor.",
             }
           }
 
@@ -998,6 +1088,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       serviceType: input.category,
       subtype: input.subtype,
       anonymousId: input.posthogDistinctId,
+      metadata: {
+        growth_experience_version: growthExperienceVersion,
+      },
     })
 
     // 4. Insert the answers (ATOMIC - fail if answers cannot be saved)
@@ -1124,6 +1217,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         ...(isPriority ? { is_priority: "true" } : {}),
         ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
         ...(input.flowInstanceId ? { flow_instance_id: input.flowInstanceId } : {}),
+        ...(growthExperienceVersion
+          ? { growth_experience_version: growthExperienceVersion }
+          : {}),
         // Google Ads click IDs for Enhanced Conversions attribution
         ...(attribution.gclid ? { gclid: attribution.gclid } : {}),
         ...(attribution.gbraid ? { gbraid: attribution.gbraid } : {}),
@@ -1239,6 +1335,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       serviceType: input.category,
       subtype: input.subtype,
       anonymousId: input.posthogDistinctId,
+      metadata: {
+        growth_experience_version: growthExperienceVersion,
+      },
     })
 
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }

@@ -23,7 +23,11 @@ const guardrailCopy: Record<string, string> = {
   MULTIPLE_SERVICE_CAMPAIGNS: "More than one campaign owns a service",
   POST_CHANGE_SAMPLE_IMMATURE: "Scripts refund data still immature",
   SCRIPTS_REFUND_GATE: "Scripts refund data still immature",
+  SPECIALTY_CLICK_EVIDENCE_UNAVAILABLE:
+    "Paid click evidence is unavailable for a zero-order specialty",
   SPECIALTY_LOSS_CAP: "Specialty pilot reached its approved loss cap",
+  SPECIALTY_ZERO_ORDER_CLICK_INVESTIGATION:
+    "Zero retained orders after the specialty click checkpoint",
   UNMAPPED_ENABLED_SEARCH_CAMPAIGN:
     "An enabled Search campaign is outside the service constitution",
 }

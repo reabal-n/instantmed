@@ -7,9 +7,11 @@ import { MED_CERT_LANDING_FAQ } from "@/lib/data/med-cert-faq"
 
 export const revalidate = 86400
 
+const SEARCH_DESCRIPTION = `Online medical certificates for routine 1-3 day work, study or carer's leave. Secure form, no appointment, from ${PRICING_DISPLAY.MED_CERT}. Issued only when clinically appropriate.`
+
 export const metadata: Metadata = {
-  title: { absolute: "Medical Certificate Online Australia | Clinical Pathway | InstantMed" },
-  description: `Get a medical certificate for work or study online. Fill out a secure form, no appointment. From ${PRICING_DISPLAY.MED_CERT}.`,
+  title: { absolute: `Medical Certificates Online | From ${PRICING_DISPLAY.MED_CERT} | InstantMed` },
+  description: SEARCH_DESCRIPTION,
   keywords: [
     "medical certificate online australia",
     "sick note online",
@@ -20,9 +22,8 @@ export const metadata: Metadata = {
     "sick certificate australia",
   ],
   openGraph: {
-    title: "Online Medical Certificate | Bounded Clinical Pathway | InstantMed",
-    description:
-      "Start with a secure form that takes about 3 minutes. Routine requests follow a bounded clinical pathway; concerns go to a doctor.",
+    title: `Medical Certificates Online | From ${PRICING_DISPLAY.MED_CERT} | InstantMed`,
+    description: SEARCH_DESCRIPTION,
     url: "https://instantmed.com.au/medical-certificate",
     type: "website",
     locale: "en_AU",
@@ -30,8 +31,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Online Medical Certificate | Bounded Clinical Pathway | InstantMed",
-    description: "Start with a secure form that takes about 3 minutes. Routine requests follow a bounded clinical pathway; concerns go to a doctor.",
+    title: `Medical Certificates Online | From ${PRICING_DISPLAY.MED_CERT} | InstantMed`,
+    description: SEARCH_DESCRIPTION,
   },
   alternates: {
     canonical: "https://instantmed.com.au/medical-certificate",

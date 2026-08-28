@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import {
@@ -9,7 +12,33 @@ import {
   deriveUtiTerminalBlock,
 } from "@/lib/request/terminal-safety-blocks"
 
+const hairLossHealthStepSource = readFileSync(
+  join(process.cwd(), "components/request/steps/hair-loss-health-step.tsx"),
+  "utf8",
+)
+const normalizedHairLossHealthStepSource = hairLossHealthStepSource.replace(/\s+/g, " ")
+
 describe("request terminal safety blocks", () => {
+  describe("Hair reproductive block", () => {
+    it("preserves the exact visible terminal block and explicit correction path", () => {
+      expect(hairLossHealthStepSource).toContain(
+        'const isBlocked = hairReproductive === "yes"',
+      )
+      expect(hairLossHealthStepSource).toContain(
+        "We can&apos;t prescribe hair loss medication right now",
+      )
+      expect(normalizedHairLossHealthStepSource).toContain(
+        "Some prescription hair loss medicines can cause serious birth defects and cannot be prescribed when a partner is pregnant or trying to conceive. We&apos;d recommend speaking with your GP about alternative options such as topical treatments available from any pharmacy. If your circumstances change, you&apos;re welcome to come back anytime.",
+      )
+      expect(hairLossHealthStepSource).toContain(
+        'onClick={() => setAnswer("hairReproductive", "")}',
+      )
+      expect(hairLossHealthStepSource).toContain(
+        "I made a mistake, let me go back",
+      )
+    })
+  })
+
   describe("ED nitrate block", () => {
     it("derives the existing terminal explanation from a persisted nitrate answer", () => {
       expect(deriveEdNitrateTerminalBlock({ edNitrates: true })).toEqual({

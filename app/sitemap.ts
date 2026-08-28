@@ -84,7 +84,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // and stays indexed. See lib/seo/index-policy.ts.
 
   const medCertLocationSlugs = [
-    "parramatta", "canberra", "hobart", "darwin",
+    "parramatta", "hobart", "darwin",
   ]
 
   const authorityAssetPages = getAuthorityAssetSummaries().map(

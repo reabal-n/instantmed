@@ -23,6 +23,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import {
   type ComparisonEntry,
@@ -500,7 +501,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "Do I need a Medicare card to use private telehealth?",
-        a: "Not necessarily. Private telehealth services that don't bill Medicare may not require a Medicare card. At InstantMed, a Medicare card is not required for medical certificates, but is needed for services where the doctor may need to verify your Medicare eligibility or prescribing history."
+        a: `Medical certificates do not require Medicare. ${getApprovedClaim("prescribing_identity_required")}`
       }
     ],
     guideContent: {

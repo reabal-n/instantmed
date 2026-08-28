@@ -51,6 +51,8 @@ interface UseFlowAnalyticsOptions {
   currentStepIndex: number
   totalSteps: number
   answers: Record<string, unknown>
+  growthAttributionReady?: boolean
+  growthExperienceVersion?: string | null
   /** Email from auth pre-fill (store email is read internally) */
   userEmail?: string
 }
@@ -71,6 +73,8 @@ export function useFlowAnalytics({
   currentStepIndex,
   totalSteps,
   answers,
+  growthAttributionReady = true,
+  growthExperienceVersion,
   userEmail,
 }: UseFlowAnalyticsOptions) {
   const posthog = usePostHog()
@@ -101,7 +105,7 @@ export function useFlowAnalytics({
 
   // Track step views in PostHog + generic gtag funnel_step analytics.
   useEffect(() => {
-    if (currentStep && serviceType) {
+    if (currentStep && serviceType && growthAttributionReady) {
       // Reset timer whenever the visible step changes
       stepEnteredAtRef.current = Date.now()
 
@@ -117,6 +121,9 @@ export function useFlowAnalytics({
           service_type: analyticsServiceType,
           flow_instance_id: flowInstanceId,
           subtype,
+          ...(growthExperienceVersion
+            ? { growth_experience_version: growthExperienceVersion }
+            : {}),
           // Allowlisted origin marker (never free text): joins a repeat-lane
           // steer to the consult flow it opened, across flow instances.
           ...(entryRef ? { entry_ref: entryRef } : {}),
@@ -147,7 +154,7 @@ export function useFlowAnalytics({
     }
     // answers.consultSubtype intentionally excluded - only track on step/service change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, totalSteps, posthog, flowInstanceId])
+  }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, totalSteps, posthog, flowInstanceId, growthAttributionReady, growthExperienceVersion])
 
   // Track Google Ads funnel milestones once per flow.
   // Pass email (from store or auth pre-fill) for Enhanced Conversions cross-device attribution.

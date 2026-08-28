@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 
 import {
   getStoredDraftRestoreCandidate,
+  hasActivePatientWorkForRequestedService,
   shouldOfferDraftRestore,
 } from "@/lib/request/draft-restore"
 
@@ -107,6 +108,43 @@ describe("request draft restore decision", () => {
         serviceType: null,
         currentStepId: "womens-health-type",
         now: NOW,
+      }),
+    ).toBe(false)
+  })
+
+  it("owns cohort attribution only for active pre-entry work on the requested service", () => {
+    const boundary = {
+      requestedService: "consult" as const,
+      savedBefore: NOW,
+      now: NOW,
+    }
+
+    expect(
+      hasActivePatientWorkForRequestedService({
+        ...boundary,
+        serviceType: "med-cert",
+        lastSavedAt: new Date(NOW - 60 * 60 * 1000).toISOString(),
+      }),
+    ).toBe(false)
+    expect(
+      hasActivePatientWorkForRequestedService({
+        ...boundary,
+        serviceType: "consult",
+        lastSavedAt: new Date(NOW - 25 * 60 * 60 * 1000).toISOString(),
+      }),
+    ).toBe(false)
+    expect(
+      hasActivePatientWorkForRequestedService({
+        ...boundary,
+        serviceType: "consult",
+        lastSavedAt: new Date(NOW - 60 * 60 * 1000).toISOString(),
+      }),
+    ).toBe(true)
+    expect(
+      hasActivePatientWorkForRequestedService({
+        ...boundary,
+        serviceType: "consult",
+        lastSavedAt: new Date(NOW + 1).toISOString(),
       }),
     ).toBe(false)
   })

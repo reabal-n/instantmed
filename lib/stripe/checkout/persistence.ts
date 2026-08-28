@@ -27,6 +27,7 @@ import {
 import type { IntakeFlag } from "@/lib/clinical/intake-flags"
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
 import { buildAnswersInsertColumns } from "@/lib/data/intake-answers"
+import { normalizePersistedGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
 import { createLogger } from "@/lib/observability/logger"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import { markPartialIntakeConverted } from "@/lib/request/server-draft-conversion"
@@ -126,6 +127,10 @@ export async function createIntakeWithAnswers(
     is_priority: isPriority,
     idempotency_key: input.idempotencyKey,
     flow_instance_id: input.flowInstanceId ?? null,
+    growth_experience_version: normalizePersistedGrowthExperienceVersion(
+      input.growthExperienceVersion,
+      { category: input.category, subtype: input.subtype },
+    ),
     stripe_price_id: priceId || null,
     utm_source: attribution.utm_source,
     utm_medium: attribution.utm_medium,
@@ -173,6 +178,12 @@ export async function createIntakeWithAnswers(
       serviceType: input.category,
       subtype: input.subtype,
       anonymousId: input.posthogDistinctId,
+      metadata: {
+        growth_experience_version: normalizePersistedGrowthExperienceVersion(
+          input.growthExperienceVersion,
+          { category: input.category, subtype: input.subtype },
+        ),
+      },
     })
   }
 

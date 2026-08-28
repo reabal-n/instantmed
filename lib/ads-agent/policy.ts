@@ -27,6 +27,7 @@ export const POLICY = {
       initialCpcCeilingCents: 300,
       investigateClicks: 10,
       maximumDays: 30,
+      maximumDaysStatus: "inactive_requires_campaign_scoped_start",
       maximumLossCents: 15_000,
       pauseProposalClicks: 30,
     },
@@ -34,11 +35,25 @@ export const POLICY = {
   hairLoss: {
     dailyBudgetCents: 1_000,
     pilot: {
+      futureRelaunch: {
+        maximumIncrementalLossCents: 6_000,
+        maximumIncrementalLossStatus:
+          "inactive_requires_campaign_scoped_baseline",
+        persistedCheckoutProgressionClicks: 10,
+        persistedCheckoutProgressionStatus:
+          "inactive_requires_campaign_scoped_progression",
+        stopPrecedence: [
+          "campaign_scoped_incremental_loss",
+          "zero_retained_order_clicks",
+          "campaign_scoped_duration",
+        ],
+      },
       initialCpcCeilingCents: 300,
       investigateClicks: 10,
       maximumDays: 30,
+      maximumDaysStatus: "inactive_requires_campaign_scoped_start",
       maximumLossCents: 15_000,
-      pauseProposalClicks: 30,
+      pauseProposalClicks: 20,
     },
   },
   keywords: {
@@ -88,6 +103,7 @@ export const POLICY = {
       initialCpcCeilingCents: 300,
       investigateClicks: 10,
       maximumDays: 30,
+      maximumDaysStatus: "inactive_requires_campaign_scoped_start",
       maximumLossCents: 15_000,
       pauseProposalClicks: 30,
     },
@@ -431,10 +447,18 @@ function evaluateMedCerts(campaign: CampaignEconomics): AdsRecommendation {
 
 function specialtyPilot(
   service: (typeof SPECIALTY_SERVICES)[number],
-): (typeof POLICY.ed.pilot) {
+) {
   if (service === "hair_loss") return POLICY.hairLoss.pilot
   if (service === "womens_health") return POLICY.womensHealth.pilot
   return POLICY.ed.pilot
+}
+
+function inactiveCampaignReason(
+  campaignStatus: CampaignEconomics["campaignStatus"],
+): "CAMPAIGN_ALREADY_PAUSED" | "CAMPAIGN_NOT_ENABLED" {
+  return campaignStatus === "PAUSED"
+    ? "CAMPAIGN_ALREADY_PAUSED"
+    : "CAMPAIGN_NOT_ENABLED"
 }
 
 function evaluateSpecialty(
@@ -445,16 +469,64 @@ function evaluateSpecialty(
     return investigate(service, "ECONOMICS_UNAVAILABLE")
   }
 
+  const pilot = specialtyPilot(service)
   const lossCents = Math.max(0, -(campaign.contributionCents ?? 0))
-  if (lossCents >= specialtyPilot(service).maximumLossCents) {
+  if (lossCents >= pilot.maximumLossCents) {
     if (campaign.campaignStatus !== "ENABLED") {
-      return hold(service, "SPECIALTY_LOSS_CAP", "CAMPAIGN_ALREADY_PAUSED")
+      return hold(
+        service,
+        "SPECIALTY_LOSS_CAP",
+        inactiveCampaignReason(campaign.campaignStatus),
+      )
     }
     return {
       kind: "APPROVAL_NEEDED",
       proposedMutationFamily: "campaign_status",
       reasonCodes: ["SPECIALTY_LOSS_CAP"],
       service,
+    }
+  }
+
+  // Click gates apply only when the campaign has no measured retained order.
+  // Historical snapshots may omit clicks; unknown is not zero. The rolling
+  // evaluator has no campaign-scoped start, progression, or relaunch baseline,
+  // so it deliberately does not enforce maximumDays, persisted-checkout
+  // progression, or Hair's future A$60 incremental-loss stop.
+  if (campaign.orders === 0) {
+    if (
+      campaign.clicks == null
+      || !Number.isInteger(campaign.clicks)
+      || campaign.clicks < 0
+    ) {
+      return investigate(service, "SPECIALTY_CLICK_EVIDENCE_UNAVAILABLE")
+    }
+    if (campaign.clicks >= pilot.pauseProposalClicks) {
+      if (campaign.campaignStatus !== "ENABLED") {
+        return hold(
+          service,
+          "SPECIALTY_ZERO_ORDER_CLICK_CAP",
+          inactiveCampaignReason(campaign.campaignStatus),
+        )
+      }
+      return {
+        kind: "APPROVAL_NEEDED",
+        proposedMutationFamily: "campaign_status",
+        reasonCodes: ["SPECIALTY_ZERO_ORDER_CLICK_CAP"],
+        service,
+      }
+    }
+    if (campaign.clicks >= pilot.investigateClicks) {
+      if (campaign.campaignStatus !== "ENABLED") {
+        return hold(
+          service,
+          "PILOT_WITHIN_LOSS_CAP",
+          inactiveCampaignReason(campaign.campaignStatus),
+        )
+      }
+      return investigate(
+        service,
+        "SPECIALTY_ZERO_ORDER_CLICK_INVESTIGATION",
+      )
     }
   }
 

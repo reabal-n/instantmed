@@ -20,6 +20,7 @@ import {
 } from "@/lib/clinical/repeat-rx-dose-requirement"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
+import { normalizePersistedGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
@@ -323,6 +324,10 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     const service = intake.service as { slug: string; price_cents: number } | null
     const storedPriceId = normalizeStripePriceId((intake as { stripe_price_id?: string }).stripe_price_id)
     const storedCategory = intake.category as ServiceCategory | null
+    const growthExperienceVersion = normalizePersistedGrowthExperienceVersion(
+      (intake as { growth_experience_version?: unknown }).growth_experience_version,
+      { category: storedCategory, subtype: intake.subtype },
+    )
 
     const priceId =
       storedPriceId ||
@@ -374,6 +379,9 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       service_slug: serviceSlugForSafety || "",
       ...(intake.flow_instance_id
         ? { flow_instance_id: String(intake.flow_instance_id) }
+        : {}),
+      ...(growthExperienceVersion
+        ? { growth_experience_version: growthExperienceVersion }
         : {}),
       ...(refCode ? { referral_code: refCode } : {}),
       ...(referralCoupon
@@ -503,6 +511,9 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       serviceType: intake.category || "",
       subtype: intake.subtype,
       flowInstanceId: intake.flow_instance_id,
+      metadata: {
+        growth_experience_version: growthExperienceVersion,
+      },
     })
 
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }

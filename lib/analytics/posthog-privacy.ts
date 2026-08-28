@@ -1,5 +1,6 @@
 import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
 import { redactExternalAnalyticsPathname } from "@/lib/browser/sensitive-capability-path"
+import { normalizeOpaqueGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
 import { scrubPHI } from "@/lib/observability/scrub-phi"
 
 const DIRECT_IDENTIFIER_RE =
@@ -28,6 +29,7 @@ const DROPPED_PROPERTY_KEYS = new Set([
   "addressline1",
   "addressline2",
   "authuserid",
+  "answers",
   "blockreason",
   "certificateid",
   "dateofbirth",
@@ -93,7 +95,14 @@ function shouldDropProperty(key: string): boolean {
     return false
   }
 
-  return DROPPED_PROPERTY_KEYS.has(normalizePropertyKey(key))
+  const normalizedKey = normalizePropertyKey(key)
+  return (
+    DROPPED_PROPERTY_KEYS.has(normalizedKey) ||
+    normalizedKey.endsWith("answers") ||
+    normalizedKey.endsWith("clickid") ||
+    normalizedKey === "searchterm" ||
+    normalizedKey === "searchterms"
+  )
 }
 
 /**
@@ -153,6 +162,11 @@ function sanitizePostHogObject(
     if (normalizePropertyKey(key) === "flowinstanceid") {
       const flowInstanceId = normalizeFlowInstanceId(value)
       if (flowInstanceId) sanitized[key] = flowInstanceId
+      continue
+    }
+    if (normalizePropertyKey(key) === "growthexperienceversion") {
+      const growthExperienceVersion = normalizeOpaqueGrowthExperienceVersion(value)
+      if (growthExperienceVersion) sanitized[key] = growthExperienceVersion
       continue
     }
     sanitized[key] = sanitizeValue(value, key)

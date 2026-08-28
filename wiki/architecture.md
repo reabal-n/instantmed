@@ -11,12 +11,12 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 | API route files under `app/api/` | 88 |
 | Cron route files under `app/api/cron/` | 29 |
 | `components/` | 405 files |
-| `lib/` | 1,291 files |
+| `lib/` | 1,302 files |
 | E2E TypeScript files under `e2e/` | 78 (68 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 132 |
+| SQL migrations under `supabase/migrations/` | 133 |
 
-Newest on disk is the unapplied `20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`, which scopes and verifies all three RLS policies that call `is_doctor()` as authenticated-only. Latest applied and verified production migration (2026-08-23) remains `20260823101500_fix_partially_refunded_review_claim.sql`. Linked migration history is aligned through that version. It removes the unused two-argument doctor-claim overload and repairs the canonical three-argument function used by the app so `paid|partially_refunded` obligations are claimable while fully refunded and disputed requests remain blocked. Live metadata confirmed service-role-only execution, zero SECURITY DEFINER ACL violations, and an unchanged actionable partial-refund obligation. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, passed its linked DB lint and ACL gates. Detailed database receipts live in `docs/ARCHITECTURE.md`.
+Newest on disk, and latest applied and verified production migration (2026-08-28), is `20260828090000_specialty_experience_attribution.sql`, which adds bounded, nullable, non-clinical `growth_experience_version` columns with set-once draft and immutable intake semantics. Linked migration history is aligned through `20260828090000`. Live metadata confirmed both nullable `text` columns, both validated constraints, both enabled triggers, and both `SECURITY INVOKER` trigger functions with `EXECUTE` denied to `PUBLIC`, `anon`, and `authenticated`. The immediately preceding `20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied; all three `is_doctor()` policies have roles exactly `{authenticated}`. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, also passed its linked DB lint and ACL gates; detailed database receipts live in `docs/ARCHITECTURE.md`.
 
 ## Runtime Shape
 
