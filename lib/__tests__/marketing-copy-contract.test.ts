@@ -230,7 +230,7 @@ describe("marketing copy contracts", () => {
 
       const renderedDeepCityContent = JSON.stringify(deepCityContent)
       expect(renderedDeepCityContent, city).not.toMatch(
-        /cannot refuse|requires acceptance|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|consultation method.{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity)/i,
+        /cannot refuse|requires acceptance|accepted under all|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|(?:consultation method|method of consultation).{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity|workplace evidence status)|(?:certificate&apos;s|certificate's|workplace evidence status).{0,120}(?:is|are) not affected by.{0,80}(?:consultation|telehealth)/i,
       )
     }
 
