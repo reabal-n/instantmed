@@ -19,6 +19,10 @@ const telehealthAustraliaSource = readFileSync(
   join(root, "app/telehealth-australia/page.tsx"),
   "utf8",
 )
+const websiteSchemaSource = readFileSync(
+  join(root, "components/seo/schemas/website.tsx"),
+  "utf8",
+)
 const voiceSource = readFileSync(join(root, "lib/marketing/voice.ts"), "utf8")
 const homePageSource = readFileSync(join(root, "app/(marketing)/page.tsx"), "utf8")
 const homepageMarketingSource = readFileSync(join(root, "lib/marketing/homepage.ts"), "utf8")
@@ -175,6 +179,7 @@ describe("marketing copy contracts", () => {
       locationPageSource,
       locationContentSource,
       telehealthAustraliaSource,
+      websiteSchemaSource,
     ].join("\n")
 
     expect(combined).not.toMatch(/within 45 minutes during business hours/i)

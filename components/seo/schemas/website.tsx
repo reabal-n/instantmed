@@ -11,7 +11,7 @@ export function WebSiteSchema({ baseUrl = "https://instantmed.com.au" }: { baseU
     "@id": `${baseUrl}/#website`,
     name: "InstantMed",
     url: baseUrl,
-    description: "Australian telehealth platform for medical certificates, prescription renewals, and online doctor consultations",
+    description: "Australian telehealth platform for medical certificates, repeat prescriptions, and specialty doctor-reviewed pathways",
     publisher: {
       "@type": "MedicalOrganization",
       "@id": `${baseUrl}/#organization`,
