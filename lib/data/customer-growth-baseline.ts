@@ -52,6 +52,7 @@ const FREE_ACQUISITION_GROUPS = new Set<AttributionSourceGroup>([
   "ai_referral",
   "referral",
 ])
+const PUBLIC_LANDING_HOSTS = new Set(["instantmed.com.au", "www.instantmed.com.au"])
 
 function publicLandingPath(value?: string | null): string {
   const landingPage = value?.trim()
@@ -60,6 +61,7 @@ function publicLandingPath(value?: string | null): string {
   try {
     const url = new URL(landingPage, "https://instantmed.com.au")
     if (url.protocol !== "http:" && url.protocol !== "https:") return "/unknown"
+    if (!PUBLIC_LANDING_HOSTS.has(url.hostname)) return "/unknown"
     return url.pathname || "/"
   } catch {
     return "/unknown"
