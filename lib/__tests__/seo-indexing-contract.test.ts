@@ -422,6 +422,9 @@ describe("SEO indexing contracts", () => {
                   { keys: [brandedInputs[3], "https://www.instantmed.com.au/prescriptions"], clicks: 7, impressions: 25 },
                   { keys: [brandedInputs[4], "https://instantmed.com.au/prescriptions/?source=domain"], clicks: 11, impressions: 30 },
                   { keys: [brandedInputs[0], "https://instantmed.com.au////?source=root"], clicks: 1, impressions: 4 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/verify/IM-WORK?source=work"], clicks: 2, impressions: 4 },
+                  { keys: [brandedInputs[0], "https://www.instantmed.com.au/verify/STUDY/#top"], clicks: 3, impressions: 6 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/verify/CARER"], clicks: 5, impressions: 10 },
                   { keys: [brandedInputs[0], "https://staging.instantmed.com.au/prescriptions"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "https://example.com/prescriptions"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "not a URL"], clicks: 100, impressions: 200 },
@@ -444,12 +447,16 @@ describe("SEO indexing contracts", () => {
     expect(publicPagePath("https://www.instantmed.com.au/prescriptions/?source=www")).toBe("/prescriptions")
     expect(publicPagePath("https://instantmed.com.au/?source=root")).toBe("/")
     expect(publicPagePath("https://instantmed.com.au////?source=root")).toBe("/")
+    expect(publicPagePath("https://instantmed.com.au/verify/IM-WORK?source=work")).toBe("/verify")
+    expect(publicPagePath("https://www.instantmed.com.au/verify/STUDY/#top")).toBe("/verify")
+    expect(publicPagePath("https://instantmed.com.au/verify/CARER")).toBe("/verify")
     expect(publicPagePath("https://staging.instantmed.com.au/prescriptions")).toBeNull()
     expect(publicPagePath("https://example.com/prescriptions")).toBeNull()
     expect(publicPagePath("ftp://instantmed.com.au/prescriptions")).toBeNull()
     expect(publicPagePath("not a URL")).toBeNull()
     expect(brandedLandingPages).toEqual([
       { page: "/prescriptions", clicks: 28, impressions: 100, ctr: 0.28 },
+      { page: "/verify", clicks: 10, impressions: 20, ctr: 0.5 },
       { page: "/", clicks: 1, impressions: 4, ctr: 0.25 },
     ])
     expect(Object.keys(brandedLandingPages[0])).toEqual([
@@ -460,6 +467,9 @@ describe("SEO indexing contracts", () => {
     ])
     expect(JSON.stringify(brandedLandingPages)).not.toContain("instant")
     expect(JSON.stringify(brandedLandingPages)).not.toContain("keys")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("IM-WORK")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("STUDY")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("CARER")
   })
 
   it("aggregates public performance pages without serializing raw page inputs", async () => {
@@ -478,6 +488,9 @@ describe("SEO indexing contracts", () => {
                 { keys: ["https://instantmed.com.au/prescriptions/"], clicks: 5, impressions: 20, position: 10 },
                 { keys: ["https://instantmed.com.au/?source=root"], clicks: 1, impressions: 4, position: 3 },
                 { keys: ["https://www.instantmed.com.au////?source=root-alias"], clicks: 2, impressions: 6, position: 5 },
+                { keys: ["https://instantmed.com.au/verify/IM-WORK?source=work"], clicks: 2, impressions: 4, position: 2 },
+                { keys: ["https://www.instantmed.com.au/verify/STUDY/#top"], clicks: 3, impressions: 6, position: 8 },
+                { keys: ["https://instantmed.com.au/verify/CARER"], clicks: 5, impressions: 10, position: 10 },
                 { keys: ["https://staging.instantmed.com.au/prescriptions?gclid=staging"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://example.com/prescriptions?gclid=external"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["not a URL"], clicks: 100, impressions: 200, position: 1 },
@@ -499,6 +512,13 @@ describe("SEO indexing contracts", () => {
         position: 23 / 3,
       },
       {
+        page: "https://instantmed.com.au/verify",
+        clicks: 10,
+        impressions: 20,
+        ctr: 0.5,
+        position: 7.8,
+      },
+      {
         page: "https://instantmed.com.au/",
         clicks: 3,
         impressions: 10,
@@ -511,6 +531,9 @@ describe("SEO indexing contracts", () => {
     expect(serialized).not.toContain("utm_source")
     expect(serialized).not.toContain("staging")
     expect(serialized).not.toContain("example.com")
+    expect(serialized).not.toContain("IM-WORK")
+    expect(serialized).not.toContain("STUDY")
+    expect(serialized).not.toContain("CARER")
   })
 
   it("inspects current money pages by default in GSC indexing audits", () => {

@@ -72,7 +72,10 @@ function publicPage(value) {
       !PUBLIC_SITE_HOSTS.has(url.hostname) ||
       (url.protocol !== "http:" && url.protocol !== "https:")
     ) return null
-    const path = url.pathname.replace(/\/+$/, "") || "/"
+    const normalizedPath = url.pathname.replace(/\/+$/, "") || "/"
+    const path = normalizedPath === "/verify" || normalizedPath.startsWith("/verify/")
+      ? "/verify"
+      : normalizedPath
 
     return {
       path,
