@@ -442,7 +442,7 @@ PLAYWRIGHT=1 corepack pnpm exec playwright test \
 
 ### Task 13: Close H1/E1 before activating an intake-presentation approach
 
-- [ ] Before activation, write an opening receipt containing exact SHA, timestamp, service status, price, campaign configuration/status, tracking state, and closed pre-window economics.
+- [x] Recover and pin the opening receipt containing exact SHA, Vercel-ready timestamp, service status, price, campaign configuration/status, tracking state, and closed pre-window economics. The original before-activation sequencing was missed; `docs/superpowers/receipts/2026-08-28-specialty-profitability-opening.json` records that timing caveat and does not relax the GREEN tracking or closing-receipt gates.
 - [ ] Wait for the directional floor or 21 days, then allow 24 hours for settlement.
 - [ ] Read versioned, aggregate, PHI-free funnel and retained-cash evidence.
 - [ ] Call the commercial result only at 10 retained orders; otherwise label it directional or inconclusive.

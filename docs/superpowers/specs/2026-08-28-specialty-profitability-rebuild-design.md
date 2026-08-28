@@ -274,6 +274,8 @@ This is a truth repair, not a relaxed identity rule. The validator, address requ
 
 Every product window starts with an immutable opening receipt containing the exact deployed SHA, activation timestamp, service availability, price, campaign status/configuration, tracking state, and closed pre-window economics. It ends with a closing receipt that confirms whether price, product version, campaign/ad/keyword/bid/budget/schedule, clinical workflow, or checkout changed during the window. If any material input changed, or either receipt is missing, label the result **contaminated/inconclusive** and do not describe movement as causal product lift.
 
+**Opening receipt recovery (2026-08-28):** the original production deployment became ready before its opening receipt was committed. The same operating-day recovery at `docs/superpowers/receipts/2026-08-28-specialty-profitability-opening.json` binds the exact deployed SHA and Vercel-ready timestamp to a closed pre-deployment Ads/economics window, the fresh account-state hash, prices, availability, and the canonical delivered `GREEN` tracking run. The registry activation timestamp was corrected from Sydney midnight to that exact ready boundary. The timing miss remains explicit: the recovery does not waive closing-receipt drift checks or the retained-order, contribution, refund, purity, fulfilment, and seven-consecutive-GREEN-day gates.
+
 For each version report, separately by paid and free acquisition:
 
 - qualified landing sessions/clicks;
