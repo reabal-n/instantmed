@@ -1,5 +1,6 @@
 "use client"
 
+import { Phone } from "lucide-react"
 import dynamic from "next/dynamic"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -11,6 +12,7 @@ import { ResourcesDropdown } from "@/components/shared/navbar/resources-dropdown
 import { ServicesDropdown } from "@/components/shared/navbar/services-dropdown"
 import { ThemeSwitch } from "@/components/shared/navbar/theme-switch"
 import { UserMenu } from "@/components/shared/navbar/user-menu"
+import { CONTACT_PHONE, CONTACT_PHONE_TEL } from "@/lib/constants"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
 
@@ -139,6 +141,13 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     Blog
                   </AnimatedNavLink>
                   <ResourcesDropdown isActivePath={isActivePath} />
+                  <AnimatedNavLink
+                    href={`tel:${CONTACT_PHONE_TEL}`}
+                    icon={<Phone className="h-3.5 w-3.5" aria-hidden="true" />}
+                  >
+                    <span className="sr-only lg:not-sr-only">{CONTACT_PHONE}</span>
+                    <span className="sr-only">Call InstantMed support</span>
+                  </AnimatedNavLink>
 
                   <UserMenu
                     variant="marketing"

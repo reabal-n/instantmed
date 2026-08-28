@@ -147,7 +147,10 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **133 migration files**")
+      expect(source).toContain("Current count on disk: **134 migration files**")
+      expect(source).toContain(
+        "`20260827210500_twilio_voice_callback_requests.sql`",
+      )
       expect(source).toContain(
         "`20260828090000_specialty_experience_attribution.sql`",
       )
@@ -183,7 +186,7 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest on disk and latest applied and verified production migration: `20260828090000_specialty_experience_attribution.sql`",
+      "Latest timestamp on disk and latest applied production timestamp: `20260828090000_specialty_experience_attribution.sql`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
@@ -196,7 +199,7 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "latest applied and verified production migration (2026-08-28), is `20260828090000_specialty_experience_attribution.sql`",
+      "latest applied production timestamp (2026-08-28), is `20260828090000_specialty_experience_attribution.sql`",
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
@@ -204,6 +207,12 @@ describe("project docs drift contract", () => {
     )
     expect(wikiArchitecture).toContain(
       "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied",
+    )
+    expect(wikiArchitecture).toContain(
+      "`20260827210500_twilio_voice_callback_requests.sql` is applied and verified in production",
+    )
+    expect(wikiArchitecture).toContain(
+      "the live SECURITY DEFINER ACL checker returned zero violations",
     )
     expect(security).toContain(
       "**Authenticated helper boundary (applied; verified 2026-08-28):**",

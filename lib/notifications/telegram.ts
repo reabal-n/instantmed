@@ -142,6 +142,11 @@ export interface SendGoogleAdsProposalCardOptions {
   rejectCallbackData: string
 }
 
+export interface VoiceMessageAlertReceipt {
+  delivered: boolean
+  messageId: number | null
+}
+
 function parseMessageId(json: unknown): number | null {
   if (!json || typeof json !== "object") return null
   const result = (json as { result?: { message_id?: unknown } }).result
@@ -448,6 +453,82 @@ export async function sendCriticalBusinessAlertViaTelegram(
 ): Promise<boolean> {
   const message = [`*🚨 Critical business alert*`, ``, escapeMarkdown(detail)].join("\n")
   return postOperationalTelegramMessage(message, "critical_business_alert")
+}
+
+/**
+ * PHI-free alert for a confirmed Medical Director voice message. Patient
+ * identity, callback number, and message text remain in the encrypted record.
+ */
+export async function sendMedicalDirectorVoiceMessageViaTelegram(
+  options: {
+    categoryLabel: string
+    messageId: string
+    receivedAt: string
+  },
+  appUrl?: string,
+): Promise<VoiceMessageAlertReceipt> {
+  const token = getToken()
+  const chatId = getChatId()
+  if (!token || !chatId) {
+    return { delivered: false, messageId: null }
+  }
+
+  const secureUrl = `${getNotificationAppUrl(appUrl)}/admin/ops/voice-messages/${encodeURIComponent(options.messageId)}`
+  const message = [
+    "*☎️ New voice message*",
+    "",
+    escapeMarkdown(`${options.categoryLabel} · ${options.receivedAt}`),
+    "",
+    `[Open secure message →](${secureUrl})`,
+  ].join("\n")
+
+  try {
+    const response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        disable_web_page_preview: true,
+        parse_mode: "MarkdownV2",
+        text: message,
+      }),
+      signal: AbortSignal.timeout(TELEGRAM_EDIT_TIMEOUT_MS),
+    })
+    if (!response.ok) {
+      log.error("Medical Director voice-message Telegram alert failed", { status: response.status })
+      return { delivered: false, messageId: null }
+    }
+
+    const json = await response.json().catch(() => null)
+    const messageId = parseMessageId(json)
+    return { delivered: messageId !== null, messageId }
+  } catch (error) {
+    log.error(
+      "Medical Director voice-message Telegram alert errored",
+      {},
+      error instanceof Error ? error : new Error(String(error)),
+    )
+    return { delivered: false, messageId: null }
+  }
+}
+
+export async function sendMedicalDirectorVoiceReminderViaTelegram(
+  options: {
+    oldestWaitingMinutes: number
+    waitingCount: number
+  },
+  appUrl?: string,
+): Promise<boolean> {
+  const app = getNotificationAppUrl(appUrl)
+  const noun = options.waitingCount === 1 ? "message" : "messages"
+  const message = [
+    `*☎️ ${options.waitingCount} voice ${noun} waiting*`,
+    "",
+    escapeMarkdown(`Oldest has waited ${formatWaitDuration(options.oldestWaitingMinutes)}.`),
+    "",
+    `[Open voice inbox →](${app}/admin/ops/voice-messages)`,
+  ].join("\n")
+  return postOperationalTelegramMessage(message, "medical_director_voice_reminder")
 }
 
 /**

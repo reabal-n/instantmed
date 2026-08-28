@@ -73,3 +73,37 @@ _Avoid_: Traffic-proven page, ranking winner, citation winner
 **Free-channel Order**:
 A paid order whose attribution carries no paid-click identifier (no gclid, gbraid, wbraid, campaign id, or cpc medium). Recovery and lifecycle email orders sit inside this bucket unless a comparison explicitly separates them with the canonical classifier.
 _Avoid_: Organic order (narrower), unattributed order
+
+## Voice Operations
+
+**AI Voice Secretary**:
+The voice message assistant that speaks with a Patient, collects a Patient-confirmed message, and relays it to the Medical Director. It does not handle the issue itself and is not a clinical consultation, triage service, or patient-authentication channel.
+_Avoid_: AI doctor, voice doctor, phone consultation, autonomous support agent
+
+**Automated Introduction**:
+Lena's complete opening: "Hi, this is Lena from InstantMed support. How can I help?" It does not add an AI or transcription announcement, a menu, or an extended disclosure.
+_Avoid_: Jessica, consent menu, transcription announcement, extended opening script
+
+**Lena Voice Persona**:
+The AI Voice Secretary's warm, young-adult Australian speaking persona. Lena uses short, natural turns, allows the Caller to interrupt, and stays calm and conversational without claiming to be a human staff member.
+_Avoid_: Jessica, robotic IVR voice, exaggerated cheerfulness, clinical persona, human impersonation
+
+**Medical Director Message**:
+The minimal message a Patient confirms for Medical Director review. It may include an optional callback number when the Patient asks for a return call, but does not imply that a callback, correction, clinical decision, or completed outcome has been promised.
+_Avoid_: Callback request, clinical intake, correction order, resolution, call transcript
+
+**Caller**:
+The unauthenticated Patient speaking with the AI Voice Secretary about their own request. Lena does not accept a message for another Patient, treat supplied details as identity verification, or disclose Patient information in return.
+_Avoid_: Verified Patient, authenticated Patient
+
+**Patient Match Details**:
+The Patient's full name and date of birth, supplied so InstantMed can attempt a best-effort record match. The confirmed details are retained with the Medical Director Message even when no unique match is found, and never authenticate the Caller.
+_Avoid_: Verified identity, order reference, account authentication
+
+**Callback Preference**:
+The Patient's explicit choice between leaving a Medical Director Message only or requesting a return call. A callback number is collected only for a requested return call, and the preference does not promise that or when a call will occur. Caller ID is not silently retained as the callback number.
+_Avoid_: Automatic callback, guaranteed callback, callback deadline
+
+**Public Voice Number**:
+The sole customer-facing phone number, routed to the AI Voice Secretary. The legacy support and recovery mobile remains private and must not appear on public-rendered surfaces.
+_Avoid_: Public recovery number, multiple customer-facing phone numbers, legacy support number

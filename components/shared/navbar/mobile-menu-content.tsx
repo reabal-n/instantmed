@@ -8,6 +8,7 @@ import {
   HelpCircle,
   Info,
   LayoutDashboard,
+  Phone,
   Settings,
   ShieldCheck,
   Stethoscope,
@@ -18,6 +19,7 @@ import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { services } from "@/components/shared/navbar/services-dropdown"
 import { AnimatedMobileMenu } from "@/components/ui/animated-mobile-menu"
+import { CONTACT_PHONE, CONTACT_PHONE_TEL } from "@/lib/constants"
 import {
   STAFF_DOCTOR_PATIENTS_HREF,
   STAFF_DOCTOR_SCRIPTS_HREF,
@@ -98,6 +100,16 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
         <AnimatedMobileMenu.Item
           item={{ label: "For Employers", href: "/employers", icon: <Building2 className="h-5 w-5" /> }}
           index={services.length + 7}
+          onClose={onClose}
+        />
+        <AnimatedMobileMenu.Item
+          item={{
+            label: `Call ${CONTACT_PHONE}`,
+            href: `tel:${CONTACT_PHONE_TEL}`,
+            description: "Leave a message for our Medical Director",
+            icon: <Phone className="h-5 w-5" />,
+          }}
+          index={services.length + 8}
           onClose={onClose}
         />
       </>

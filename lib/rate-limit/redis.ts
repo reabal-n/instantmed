@@ -128,7 +128,21 @@ export const rateLimitConfigs = {
       : null,
 	    label: "ai",
 	    failureMode: "closed",
-	  },
+  },
+
+  /** Public AI voice line: bounded per caller fingerprint to limit spend/abuse. */
+  voice: {
+    limiter: redis
+      ? new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(5, "1 h"),
+          analytics: true,
+          prefix: "ratelimit:voice",
+        })
+      : null,
+    label: "voice",
+    failureMode: "closed",
+  },
 
   /** Webhooks: 1000 per minute (high volume) */
   webhook: {

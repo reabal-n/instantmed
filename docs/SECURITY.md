@@ -41,6 +41,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `intake_drafts` | `data` (JSONB) | `data_encrypted` ✅ Phase 3 | Yes |
 | `ai_chat_transcripts` | `messages` (JSONB -- full conversation) | `messages_enc` ✅ Phase 3 | Yes |
 | `ai_chat_audit_log` | `user_input_preview`, `ai_output_preview` | Truncated 50 chars | Yes |
+| `medical_director_voice_messages` | Patient name, date of birth, confirmed summary, and callback number only when requested | Entire `payload_enc` envelope; no plaintext payload, raw audio, full transcript, raw caller ID, or raw Call SID | Service role only; RLS enabled with no patient/staff direct policy; admin-only server surface |
 | `patient_notes` | `content`, `title` | `content` ✅ Phase 2 | Yes |
 | `issued_certificates` | `generated_data` (JSONB), `patient_name`, `pdf_storage_path` | `patient_name` ✅ Phase 2 | Yes |
 | `health_summary` | N/A — computed view (aggregates from `intakes`, `issued_certificates`, `intake_answers`) | N/A (source tables encrypted) | N/A |
@@ -66,6 +67,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `document_drafts` | `data` (JSONB) | `data_enc` | `lib/data/documents.ts` | ✅ Dual-write + decrypt-on-read |
 | `document_drafts` | `edited_content` | `edited_content_enc` | `app/actions/draft-approval.ts`, `lib/ai/drafts/db.ts` | ✅ Dual-write + decrypt-on-read |
 | `ai_chat_transcripts` | `messages` | `messages_enc` | `lib/chat/audit-trail.ts` | ✅ Dual-write + decrypt-on-read |
+| `medical_director_voice_messages` | N/A (no plaintext payload column) | `payload_enc` | `lib/twilio/medical-director-voice-message.ts` | ✅ Encrypted-only write |
 | `intake_drafts` | `data` | `data_encrypted` | `app/api/flow/drafts/` | ✅ Dual-write + decrypt-on-read |
 | `issued_certificates` | `patient_name` | `patient_name_enc` | `lib/data/issued-certificates.ts` | ✅ Dual-write + decrypt-on-read |
 
@@ -314,12 +316,14 @@ All webhooks use signature verification (not CSRF).
 | **Resend** | `app/api/webhooks/resend/route.ts` | Svix: `new Webhook(RESEND_WEBHOOK_SECRET).verify(payload, headers)` |
 | **Supabase Auth Send Email** | `app/api/webhooks/supabase-auth/route.ts` | Svix-compatible Standard Webhooks verification with `SUPABASE_AUTH_WEBHOOK_HOOK_SECRET`; sends branded auth emails through Resend. |
 | **Parchment** | `app/api/webhooks/parchment/route.ts` | HMAC-SHA256: `X-Webhook-Signature: t=timestamp,v1=signature`. Signed payload: `{timestamp}.{rawBody}`. 5-min replay window. Timing-safe comparison via `crypto.timingSafeEqual`. `PARCHMENT_WEBHOOK_SECRET` from env. |
+| **Twilio Voice HTTP** | `app/api/webhooks/twilio/voice/{incoming,fallback,status,stream-status}` | Twilio SDK validation of `X-Twilio-Signature` against the exact public URL and all form parameters. POST only, bounded form body. Uses the Twilio Account Auth Token at validation time. |
+| **Twilio Voice WebSocket** | `app/api/webhooks/twilio/voice/stream` | Validates `X-Twilio-Signature` against the exact `wss://` URL before accepting the upgrade, then validates a short-lived AES-256-GCM session token and exact `CallSid` before relaying audio. Payload and pre-open buffers are bounded. |
 
 **Stripe admin replay path:** The webhook handler also accepts replays from the DLQ admin UI (`X-Admin-Replay: true` + `X-Admin-Replay-Secret` header). Replays are authenticated with `crypto.timingSafeEqual` against `INTERNAL_API_SECRET` and bypass signature verification (the payload was already verified on first receipt). This is intentional and audited.
 
 ### Telegram Pager Boundary
 
-Production Telegram is an operator pager, not a clinical record or general monitoring channel. It carries request notifications plus two operational sends: an hourly count-only reminder while paid requests wait for review, and essential CRITICAL-severity business alerts using aggregate PHI-free detail. New medical-certificate titles stay neutral until the real routing outcome is known; approval, decline, or manual-review routing edits the original message. Lifecycle edits are awaited, with five-second timeouts on both the intake lookup and outbound Telegram call, and remain fail-soft so Telegram cannot change or indefinitely delay the clinical outcome. Titles contain only the broad service class. Patient identity, contact or government identifiers, medicine names or free-text descriptions, symptoms, presenting condition, consultation subtype, notes, payment details, and intake answers are prohibited. Warning-severity, routine metric, and cron-watchdog alerts remain in Sentry and admin surfaces; the support-inbox count bridge is unscheduled and disabled in production.
+Production Telegram is an operator pager, not a clinical record or general monitoring channel. It carries request notifications plus bounded operational sends: paid-request notifications; a PHI-free Medical Director voice-message alert containing category, received time, and an authenticated admin link; count-only waiting-queue and unresolved-voice reminders; and essential CRITICAL-severity business alerts using aggregate PHI-free detail. Patient identity, date of birth, callback number, and confirmed summary remain encrypted in `medical_director_voice_messages` and are never copied into Telegram. New medical-certificate titles stay neutral until the real routing outcome is known; approval, decline, or manual-review routing edits the original message. Lifecycle edits are awaited, with five-second timeouts on both the intake lookup and outbound Telegram call, and remain fail-soft. Patient identity, contact or government identifiers, medicine names or free-text descriptions, symptoms, presenting condition, notes, payment details, and intake answers are prohibited. Warning-severity, routine metric, and cron-watchdog alerts remain in Sentry and admin surfaces; the support-inbox count bridge is unscheduled and disabled in production.
 
 ---
 
