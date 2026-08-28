@@ -63,6 +63,18 @@ function metricRow(row) {
   }
 }
 
+function normalizeBrandQuery(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "")
+}
+
+function publicPagePath(value) {
+  try {
+    return new URL(value, SITE_ORIGIN).pathname
+  } catch {
+    return "/unknown"
+  }
+}
+
 function sitemapGroup(url) {
   return new URL(url).pathname
 }
@@ -110,6 +122,38 @@ async function getPerformancePages(searchconsole, startDate, endDate) {
     .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
 }
 
+async function getBrandedLandingPages(searchconsole, startDate, endDate) {
+  const response = await searchconsole.searchanalytics.query({
+    siteUrl: SITE_URL,
+    requestBody: {
+      startDate,
+      endDate,
+      dimensions: ["query", "page"],
+      rowLimit: 25000,
+      dataState: "final",
+    },
+  })
+
+  const pages = new Map()
+  for (const row of response.data.rows ?? []) {
+    if (!normalizeBrandQuery(row.keys?.[0] ?? "").includes("instantmed")) continue
+    const page = publicPagePath(row.keys?.[1] ?? "")
+    const current = pages.get(page) ?? { page, clicks: 0, impressions: 0 }
+    current.clicks += row.clicks ?? 0
+    current.impressions += row.impressions ?? 0
+    pages.set(page, current)
+  }
+
+  return [...pages.values()]
+    .map((row) => ({
+      page: row.page,
+      clicks: row.clicks,
+      impressions: row.impressions,
+      ctr: row.impressions > 0 ? row.clicks / row.impressions : 0,
+    }))
+    .sort((left, right) => right.clicks - left.clicks || right.impressions - left.impressions)
+}
+
 async function inspectUrl(searchconsole, url) {
   const response = await searchconsole.urlInspection.index.inspect({
     requestBody: {
@@ -145,10 +189,11 @@ async function main() {
   })
   const searchconsole = google.searchconsole({ version: "v1", auth })
 
-  const [submittedSitemaps, live, performancePages] = await Promise.all([
+  const [submittedSitemaps, live, performancePages, brandedLandingPages] = await Promise.all([
     searchconsole.sitemaps.list({ siteUrl: SITE_URL }),
     getLiveSitemaps(),
     getPerformancePages(searchconsole, startDate, endDate),
+    getBrandedLandingPages(searchconsole, startDate, endDate),
   ])
 
   const performanceSet = new Set(performancePages.map((row) => row.page))
@@ -206,6 +251,7 @@ async function main() {
       zeroPerformanceSitemapUrls: zeroPerformanceUrls.length,
     },
     topPages: performancePages.slice(0, 25),
+    brandedLandingPages,
     weakSitemapGroups: live.sitemaps
       .map((sitemap) => ({
         group: sitemapGroup(sitemap.sitemap),

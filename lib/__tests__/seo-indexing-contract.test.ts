@@ -352,6 +352,17 @@ describe("SEO indexing contracts", () => {
     ).toBe(false)
   })
 
+  it("reports redacted branded landing pages without adding an indexing mutation", () => {
+    const auditScript = read("tools/gsc-mcp-server/gsc-index-audit.mjs")
+
+    expect(auditScript).toContain("getBrandedLandingPages")
+    expect(auditScript).toContain('dimensions: ["query", "page"]')
+    expect(auditScript).toContain("normalizeBrandQuery")
+    expect(auditScript).toContain("brandedLandingPages")
+    expect(auditScript).not.toContain("query: row.keys")
+    expect(auditScript).not.toContain("indexing.urlNotifications.publish")
+  })
+
   it("inspects current money pages by default in GSC indexing audits", () => {
     const auditScript = read("tools/gsc-mcp-server/gsc-index-audit.mjs")
 
