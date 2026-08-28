@@ -13,6 +13,12 @@ import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
 import { shouldIndexLocation } from "@/lib/seo/index-policy"
 
+const AVAILABILITY = getApprovedClaim("availability_24_7")
+const CERTIFICATE_SCOPE = getApprovedClaim("med_cert_document_scope")
+const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+
 // City-specific content paragraphs for unique SEO value
 const CITY_CONTENT: Record<string, string> = {
   sydney: "Sydney residents can skip crowded CBD clinics and long waits at bulk-billing practices. Whether you're in the Eastern Suburbs, Inner West or out in Parramatta, InstantMed connects you with a doctor from anywhere with phone signal.",
@@ -63,17 +69,17 @@ const CITY_CONTENT: Record<string, string> = {
 const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
   sydney: [
     { q: "Can I use InstantMed if I live in Western Sydney?", a: "Yes - InstantMed is available anywhere in Greater Sydney, from Penrith to Bondi. All you need is an internet connection." },
-    { q: "Can NSW employers use InstantMed certificates as evidence?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details. Employer policies may vary." },
-    { q: "How fast can I get a medical certificate in Sydney?", a: "Most medical certificates are reviewed within 45 minutes during business hours. You'll receive it via email as a PDF." },
+    { q: "Can NSW employers use InstantMed certificates as evidence?", a: `${CERTIFICATE_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
+    { q: "How fast can I get a medical certificate in Sydney?", a: `${AVAILABILITY} If approved, the certificate is emailed as a PDF.` },
   ],
   melbourne: [
     { q: "Is InstantMed available across all of Melbourne?", a: "Yes - from the CBD to the outer suburbs. We serve all of Greater Melbourne and regional Victoria." },
     { q: "Can I get an eScript filled at a Melbourne pharmacy?", a: "Yes. Your eScript can be filled at any pharmacy in Melbourne. Just show the QR code on your phone." },
-    { q: "Do I need a Medicare card to use InstantMed in Victoria?", a: `Medical certificates do not require Medicare. ${getApprovedClaim("prescribing_identity_required")} InstantMed is a private service with transparent flat-fee pricing.` },
+    { q: "Do I need a Medicare card to use InstantMed in Victoria?", a: `Medical certificates do not require Medicare. ${PRESCRIBING_IDENTITY_REQUIRED} InstantMed is a private service with transparent flat-fee pricing.` },
   ],
   brisbane: [
     { q: "Does InstantMed work in Greater Brisbane?", a: "Yes - we serve all Brisbane suburbs, from the CBD to Logan, Ipswich and Redcliffe." },
-    { q: "Can Queensland employers use these certificates as evidence?", a: "Yes. Our AHPRA-registered doctors issue certificates with standard workplace evidence details. Employer policies may vary." },
+    { q: "Can Queensland employers use these certificates as evidence?", a: `${CERTIFICATE_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
     { q: "Can I get a repeat script through InstantMed in Brisbane?", a: "Yes. If you have an existing prescription, we can arrange a repeat via eScript sent to your phone." },
   ],
   perth: [
@@ -91,8 +97,8 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
 // Fallback FAQs for cities without specific ones
 const DEFAULT_FAQS = [
   { q: "Is InstantMed available in my area?", a: "Yes - InstantMed works anywhere in Australia with an internet connection. No matter your location, an AHPRA-registered doctor can help." },
-  { q: "Can employers use your medical certificates as evidence?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details. Employer and institution policies may vary." },
-  { q: "How fast will I receive my medical certificate?", a: "Most medical certificates are reviewed within 45 minutes during business hours. You'll receive it as a PDF via email." },
+  { q: "Can employers use your medical certificates as evidence?", a: `${CERTIFICATE_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
+  { q: "How fast will I receive my medical certificate?", a: `${AVAILABILITY} If approved, the certificate is emailed as a PDF.` },
 ]
 
 // Local SEO Pages - Top 25 Australian cities & regions
@@ -433,7 +439,7 @@ export default async function CityPage({ params }: PageProps) {
     "@type": "Service",
     "@id": `${cityUrl}#service`,
     name: `Online Medical Certificates in ${cityData.name}`,
-    description: `Online medical certificates, repeat prescriptions, and doctor consultations for ${cityData.name} residents. AHPRA-registered Australian doctors.`,
+    description: `Online medical-certificate requests and repeat medication reviews for ${cityData.name} residents. ${CLINICAL_REVIEW_SEQUENCE}`,
     url: cityUrl,
     provider: { "@id": `${DEFAULT_APP_URL}/#organization` },
     serviceType: "Telehealth",

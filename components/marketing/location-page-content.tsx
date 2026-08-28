@@ -9,7 +9,6 @@ import {
   HelpCircle,
   Pill,
   Shield,
-  Star,
   Stethoscope,
   TrendingUp,
 } from "lucide-react"
@@ -174,10 +173,6 @@ export function LocationPageContent({
             <div className="flex items-center gap-1.5">
               <Shield className="h-4 w-4 text-primary" />
               <span>AHPRA-registered</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Star className="h-4 w-4 fill-dawn-400 text-dawn-400" />
-              <span>Google star rating</span>
             </div>
           </motion.div>
         </div>
@@ -413,8 +408,8 @@ export function LocationPageContent({
         <motion.div {...fu(0)} className="mx-auto max-w-xl text-center">
           <h2 className="text-2xl font-semibold mb-4">Ready to Get Started?</h2>
           <p className="text-muted-foreground mb-6">
-            Join thousands of {cityData.name} residents who trust InstantMed for their telehealth
-            needs.
+            Start a secure request for a medical certificate, repeat prescription review, or
+            specialty assessment.
           </p>
           <Link href="/request">
             <Button

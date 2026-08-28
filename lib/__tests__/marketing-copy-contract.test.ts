@@ -7,6 +7,18 @@ import { faqItems, footerLinks } from "@/lib/marketing/homepage"
 import { getActiveServices, getServiceMarketingHref } from "@/lib/services/service-catalog"
 
 const root = process.cwd()
+const locationPageSource = readFileSync(
+  join(root, "app/locations/[city]/page.tsx"),
+  "utf8",
+)
+const locationContentSource = readFileSync(
+  join(root, "components/marketing/location-page-content.tsx"),
+  "utf8",
+)
+const telehealthAustraliaSource = readFileSync(
+  join(root, "app/telehealth-australia/page.tsx"),
+  "utf8",
+)
 const voiceSource = readFileSync(join(root, "lib/marketing/voice.ts"), "utf8")
 const homePageSource = readFileSync(join(root, "app/(marketing)/page.tsx"), "utf8")
 const homepageMarketingSource = readFileSync(join(root, "lib/marketing/homepage.ts"), "utf8")
@@ -158,6 +170,45 @@ const prescribingIdentityClaimConsumerPaths = [
 ] as const
 
 describe("marketing copy contracts", () => {
+  it("keeps city and telehealth acquisition copy inside approved public truth", () => {
+    const combined = [
+      locationPageSource,
+      locationContentSource,
+      telehealthAustraliaSource,
+    ].join("\n")
+
+    expect(combined).not.toMatch(/within 45 minutes during business hours/i)
+    expect(combined).not.toMatch(/join thousands/i)
+    expect(combined).not.toMatch(/google star rating/i)
+    expect(combined).not.toMatch(/outcomes are comparable to in-person care/i)
+    expect(combined).not.toMatch(/sometimes superior/i)
+    expect(combined).not.toMatch(/never shared with.*third party/i)
+    expect(combined).not.toMatch(/discuss a symptom or get a treatment plan/i)
+    expect(combined).not.toContain("No Medicare card is required")
+    expect(combined).not.toContain("without booking an appointment or providing a Medicare card")
+    expect(combined).not.toContain('medicalSpecialty: "General Practice"')
+    expect(combined).not.toContain("doctor consultations")
+
+    expect(locationPageSource).toContain(
+      'getApprovedClaim("med_cert_document_scope")',
+    )
+    expect(locationPageSource).toContain(
+      'getApprovedClaim("trust_doctor_issued_tooltip")',
+    )
+    expect(telehealthAustraliaSource).toContain(
+      'getApprovedClaim("clinical_access_scope")',
+    )
+    expect(locationPageSource).toContain(
+      'getApprovedClaim("prescribing_identity_required")',
+    )
+    expect(telehealthAustraliaSource).toContain(
+      'getApprovedClaim("prescribing_identity_required")',
+    )
+    expect(locationPageSource).toContain(
+      'getApprovedClaim("clinical_review_sequence")',
+    )
+  })
+
   it("keeps active prescribing mirrors on the approved Medicare-or-IHI identity claim", () => {
     const approvedClaimsSource = readFileSync(
       join(root, "lib/marketing/approved-claims.ts"),

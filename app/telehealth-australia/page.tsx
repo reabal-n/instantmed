@@ -32,6 +32,8 @@ import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
+const AVAILABILITY = getApprovedClaim("availability_24_7")
 const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
 
 // ============================================================================
@@ -115,7 +117,7 @@ const FAQS = [
   {
     question: "Is telehealth as good as seeing a doctor in person?",
     answer:
-      "For conditions where the clinical decision can be made from history alone - short-term sick leave, repeat scripts, many UTIs, mental health check-ins, contraception - research shows telehealth outcomes are comparable to in-person care when delivered by properly trained clinicians. For anything requiring a physical examination (abdominal palpation, cardiac auscultation, ear, nose and throat exam, rashes that won't photograph well) telehealth is a poor substitute and we'll either decline or refer you to an in-person GP.",
+      "Telehealth suitability depends on what the request needs. Urgent symptoms, a required physical examination, or ongoing complex care need an in-person service. A remote request may fit when the relevant history and safe follow-up can be handled without an examination.",
   },
   {
     question: "What does a telehealth consultation actually cost in Australia?",
@@ -138,8 +140,8 @@ const FAQS = [
   },
   {
     question: "Is my information safe in a telehealth consultation?",
-    answer:
-      "Australian telehealth services are bound by the Privacy Act 1988, the Australian Privacy Principles, and state-based health records legislation (Health Records and Information Privacy Act 2002 in NSW, Health Records Act 2001 in Victoria, and equivalents elsewhere). InstantMed encrypts all Protected Health Information at rest and in transit, enforces row-level security on every database query, and limits access to the treating doctor. Your health information is not shared with employers, insurers, or any third party without explicit consent.",
+    answer: CLINICAL_ACCESS_SCOPE,
+    privacyHref: "/privacy",
   },
 ]
 
@@ -150,7 +152,7 @@ const medicalBusinessSchema = {
   "@id": `${CANONICAL}#business`,
   name: "InstantMed - Telehealth Australia",
   description:
-    "Private telehealth service operating across Australia, delivering medical certificates, prescriptions, and consultations through AHPRA-registered doctors under documented clinical governance.",
+    `Private telehealth service operating across Australia, providing medical-certificate requests, repeat prescription reviews, and specialty assessment pathways. ${CLINICAL_REVIEW_SEQUENCE}`,
   url: CANONICAL,
   logo: "https://instantmed.com.au/branding/logo.png",
   image: "https://instantmed.com.au/branding/logo.png",
@@ -174,12 +176,9 @@ const medicalBusinessSchema = {
       dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
       opens: "00:00",
       closes: "23:59",
-      description:
-        "Requests accepted and reviewed 24/7, every day of the year.",
+      description: AVAILABILITY,
     },
   ],
-  medicalSpecialty: "General Practice",
-  isAcceptingNewPatients: true,
 }
 
 // ============================================================================
@@ -325,14 +324,10 @@ export default function TelehealthAustraliaPage() {
                   rapport, while async avoids appointment scheduling for straightforward requests.
                 </p>
                 <p>
-                  Telehealth is not, despite a common misconception, a second-rate version of GP
-                  care. For many conditions it&apos;s empirically equivalent, and for some things
-                  (access from regional Australia, out-of-hours needs, mobility-limited patients)
-                  it&apos;s actually superior. What it cannot do is physically examine you. Any
-                  presentation where the diagnosis depends on palpating an abdomen, auscultating a
-                  heart, examining an ear canal, or assessing a gait is a poor fit for telehealth,
-                  and any responsible service will decline those requests rather than pretend the
-                  exam can be skipped.
+                  Telehealth suitability depends on what the request needs. Urgent symptoms, a
+                  required physical examination, or ongoing complex care need an in-person service.
+                  A remote request may fit when the relevant history and safe follow-up can be
+                  handled without an examination.
                 </p>
               </div>
             </div>
@@ -657,10 +652,11 @@ export default function TelehealthAustraliaPage() {
                 >
                   <Stethoscope className="w-5 h-5 text-primary mb-2" />
                   <div className="font-medium text-foreground group-hover:text-primary transition-colors">
-                    Telehealth consultations
+                    Specialty assessments
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Discuss a symptom or get a treatment plan
+                    Doctor-reviewed pathways for ED, hair loss, women&apos;s health, and weight
+                    management
                   </div>
                 </Link>
                 <Link
@@ -732,7 +728,20 @@ export default function TelehealthAustraliaPage() {
                     className="bg-white dark:bg-card border border-border/50 dark:border-white/10 rounded-2xl p-6 shadow-md shadow-primary/[0.06] dark:shadow-none"
                   >
                     <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {faq.answer}
+                      {faq.privacyHref ? (
+                        <>
+                          {" "}
+                          <Link
+                            href={faq.privacyHref}
+                            className="font-medium text-primary underline-offset-4 hover:underline"
+                          >
+                            Read our privacy policy.
+                          </Link>
+                        </>
+                      ) : null}
+                    </p>
                   </div>
                 ))}
               </div>
