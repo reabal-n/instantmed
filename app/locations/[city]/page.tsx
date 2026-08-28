@@ -22,10 +22,10 @@ const PRESCRIPTION_IF_APPROVED = getApprovedClaim("prescription_if_approved")
 
 // City-specific content paragraphs for unique SEO value
 const CITY_CONTENT: Record<string, string> = {
-  sydney: "Sydney residents can skip crowded CBD clinics and long waits at bulk-billing practices. Whether you're in the Eastern Suburbs, Inner West or out in Parramatta, InstantMed connects you with a doctor from anywhere with phone signal.",
-  melbourne: "From Brunswick to Brighton, Melbourne's notoriously long doctor wait times are a thing of the past. InstantMed lets you see a doctor without braving the weather or the traffic - perfect for those days when you really can't leave the house.",
-  brisbane: "Brisbane's growing population means longer doctor wait times across the city. From the CBD to the suburbs, InstantMed gives you access to Australian-registered doctors without the queue - even during school holidays and peak flu season.",
-  perth: "Perth's isolation means fewer doctor options, especially in outer suburbs. InstantMed works on WA time and connects you with doctors who understand the unique needs of Western Australian patients, no matter where you are in the metro area.",
+  sydney: "Sydney residents can submit a medical certificate or repeat prescription review request online, from the Eastern Suburbs and Inner West to Parramatta.",
+  melbourne: "Melbourne residents can submit a medical certificate or repeat prescription review request online, from Brunswick and Brighton to the outer suburbs.",
+  brisbane: "Brisbane residents can submit a medical certificate or repeat prescription review request online, from the CBD to the suburbs.",
+  perth: "Perth residents can submit a medical certificate or repeat prescription review request online, including across WA time zones.",
   adelaide: "Adelaide patients can submit a medical certificate or repeat prescription request without driving across the city, from Glenelg to the Adelaide Hills.",
   "gold-coast": "Whether you're a local or visiting the Gold Coast, getting a doctor appointment at short notice can be tricky. InstantMed lets you submit a medical certificate or repeat prescription request from Broadbeach, Burleigh or anywhere along the coast.",
   canberra: "Canberra's limited bulk-billing options and long wait times make telehealth a practical choice for public servants and students alike. InstantMed is available across the ACT, from Civic to Tuggeranong.",

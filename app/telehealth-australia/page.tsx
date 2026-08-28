@@ -440,14 +440,12 @@ export default function TelehealthAustraliaPage() {
                     <h3 className="font-semibold text-foreground">Suitable for telehealth</h3>
                   </div>
                   <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li>• Acute short-term illnesses needing a medical certificate</li>
-                    <li>• Ongoing medications you&apos;re stable on (BP, thyroid, pill, PPIs)</li>
-                    <li>• Uncomplicated UTIs in non-pregnant women</li>
-                    <li>• Most contraception requests and counselling</li>
-                    <li>• Mental health check-ins and continuing care</li>
-                    <li>• Hair loss, skin concerns with photos, acne management</li>
-                    <li>• Sexual health screening requests and referrals</li>
-                    <li>• Travel-related script needs for returning travellers</li>
+                    <li>• Medical-certificate requests when telehealth is clinically suitable</li>
+                    <li>• Repeat-prescription review for a regular medicine you already take, if clinically appropriate</li>
+                    <li>• ED assessment where a doctor considers telehealth suitable</li>
+                    <li>• Hair-loss assessment where a doctor considers telehealth suitable</li>
+                    <li>• Women&apos;s health assessment for UTI or a new or switch contraceptive pill, where clinically appropriate</li>
+                    <li>• Weight-management assessment where a doctor considers telehealth suitable</li>
                   </ul>
                 </div>
                 <div className="bg-white dark:bg-card border border-destructive/30 rounded-2xl p-6 shadow-md shadow-primary/[0.06] dark:shadow-none">
@@ -665,10 +663,10 @@ export default function TelehealthAustraliaPage() {
                 >
                   <BookOpen className="w-5 h-5 text-primary mb-2" />
                   <div className="font-medium text-foreground group-hover:text-primary transition-colors">
-                    Conditions we treat
+                    Health information
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Full list of conditions suited to telehealth
+                    Condition guides and care boundaries
                   </div>
                 </Link>
               </div>
@@ -756,8 +754,7 @@ export default function TelehealthAustraliaPage() {
               </Heading>
               <p className="text-muted-foreground mb-8">
                 Fill in a form. {CLINICAL_REVIEW_SEQUENCE} If approved, your certificate is
-                emailed or your eScript goes straight to your phone. Refund if it&apos;s not the right
-                fit.
+                emailed or your eScript goes straight to your phone. {GUARANTEE}
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg" className="rounded-full px-8">

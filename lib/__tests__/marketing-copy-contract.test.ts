@@ -197,6 +197,17 @@ describe("marketing copy contracts", () => {
     expect(combined).not.toContain("without booking an appointment or providing a Medicare card")
     expect(combined).not.toContain('medicalSpecialty: "General Practice"')
     expect(combined).not.toContain("doctor consultations")
+    expect(combined).not.toContain("InstantMed connects you with a doctor from anywhere with phone signal.")
+    expect(combined).not.toContain("InstantMed lets you see a doctor without braving the weather or the traffic")
+    expect(combined).not.toContain("InstantMed gives you access to Australian-registered doctors without the queue")
+    expect(combined).not.toContain("InstantMed works on WA time and connects you with doctors who understand the unique needs of Western Australian patients, no matter where you are in the metro area.")
+    expect(combined).not.toContain("Mental health check-ins and continuing care")
+    expect(combined).not.toContain("Hair loss, skin concerns with photos, acne management")
+    expect(combined).not.toContain("Sexual health screening requests and referrals")
+    expect(combined).not.toContain("Travel-related script needs for returning travellers")
+    expect(combined).not.toContain("Conditions we treat")
+    expect(combined).not.toContain("Full list of conditions suited to telehealth")
+    expect(combined).not.toContain("Refund if it&apos;s not the right fit.")
 
     expect(locationPageSource).toContain(
       'getApprovedClaim("med_cert_document_scope")',
@@ -225,6 +236,7 @@ describe("marketing copy contracts", () => {
     expect(telehealthAustraliaSource).toContain(
       'getApprovedClaim("prescription_if_approved")',
     )
+    expect(telehealthAustraliaSource).toContain("{GUARANTEE}")
   })
 
   it("keeps active prescribing mirrors on the approved Medicare-or-IHI identity claim", () => {
