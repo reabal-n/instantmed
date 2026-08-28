@@ -16,7 +16,10 @@ import {
   type CustomerGrowthPostHogBaseline,
   type CustomerGrowthSupabaseBaseline,
 } from "@/lib/data/customer-growth-baseline"
-import { readCustomerGrowthRevenueEvidence } from "@/lib/data/customer-growth-revenue-read"
+import {
+  buildCustomerGrowthRevenueForIntakeIds,
+  readCustomerGrowthRevenueEvidence,
+} from "@/lib/data/customer-growth-revenue-read"
 import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { REVENUE_PURCHASE_PAYMENT_STATUSES } from "@/lib/monitoring/revenue-safety"
@@ -48,15 +51,15 @@ type IntakeAggregateRow = {
 }
 
 type RecoveryPaidAttributionRow = {
+  id: string
   amount_cents: number | null
-  refund_amount_cents: number | null
 }
 
 type PaidAttributionRow = RecoveryPaidAttributionRow & AttributionClassificationInput
 
 const PAID_ATTRIBUTION_SELECT = [
+  "id",
   "amount_cents",
-  "refund_amount_cents",
   "utm_source",
   "utm_medium",
   "utm_campaign",
@@ -258,8 +261,12 @@ async function querySupabaseBaseline(
   const recoveredPaidRows = paidAttributionRows.filter(
     (row) => classifyAttributionSource(row).group === "recovery_email",
   )
-  const recoveredGrossCents = recoveredPaidRows.reduce((sum, row) => sum + Number(row.amount_cents ?? 0), 0)
-  const recoveredRefundedCents = recoveredPaidRows.reduce((sum, row) => sum + Number(row.refund_amount_cents ?? 0), 0)
+  const recoveredRevenue = buildCustomerGrowthRevenueForIntakeIds(
+    revenueEvidence,
+    new Set(recoveredPaidRows.map((row) => row.id)),
+    since,
+    now,
+  )
   const partialRecoverySent = partialRecoveryRowsSent
 
   return {
@@ -294,9 +301,9 @@ async function querySupabaseBaseline(
       emailCaptureRate: roundRate(emailCaptured, partialsCaptured),
       partialRecoverySent,
       partialsCaptured,
-      recoveredGrossRevenueAud: roundMoney(recoveredGrossCents / 100),
-      recoveredNetRevenueAud: roundMoney((recoveredGrossCents - recoveredRefundedCents) / 100),
-      recoveredPaidCount: recoveredPaidRows.length,
+      recoveredGrossRevenueAud: roundMoney(recoveredRevenue.grossCents / 100),
+      recoveredNetRevenueAud: roundMoney(recoveredRevenue.netCents / 100),
+      recoveredPaidCount: recoveredRevenue.orderCount,
       recoveryEmailCoverageRate: roundRate(partialRecoverySent, emailCaptured),
     },
   }

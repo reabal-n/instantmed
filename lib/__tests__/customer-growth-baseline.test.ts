@@ -6,7 +6,10 @@ import {
   buildCustomerGrowthBaselineSummary,
   buildFreeChannelLandingBreakdown,
 } from "@/lib/data/customer-growth-baseline"
-import { readCustomerGrowthRevenueEvidence } from "@/lib/data/customer-growth-revenue-read"
+import {
+  buildCustomerGrowthRevenueForIntakeIds,
+  readCustomerGrowthRevenueEvidence,
+} from "@/lib/data/customer-growth-revenue-read"
 import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
 
 type QueryCall = {
@@ -260,6 +263,57 @@ describe("customer growth baseline", () => {
       new Date("2026-06-01T00:00:00.000Z"),
       new Date("2026-07-01T00:00:00.000Z"),
     )).rejects.toThrow("Customer growth revenue evidence is incomplete")
+  })
+
+  it("uses dispute cash events for recovered-order net revenue", () => {
+    const since = new Date("2026-06-01T00:00:00.000Z")
+    const until = new Date("2026-07-01T00:00:00.000Z")
+    const recoveredRevenue = buildCustomerGrowthRevenueForIntakeIds(
+      {
+        paidRows: [
+          {
+            id: "recovery-order",
+            amount_cents: 4995,
+            category: "consult",
+            paid_at: "2026-06-15T00:00:00.000Z",
+            payment_status: "paid",
+            status: "paid",
+            subtype: null,
+          },
+          {
+            id: "organic-order",
+            amount_cents: 2995,
+            category: "repeat_script",
+            paid_at: "2026-06-16T00:00:00.000Z",
+            payment_status: "paid",
+            status: "paid",
+            subtype: null,
+          },
+        ],
+        refundRows: [],
+        disputeRows: [
+          {
+            funds_reinstated_at: null,
+            funds_reinstated_cents: 0,
+            funds_withdrawn_at: "2026-06-17T00:00:00.000Z",
+            funds_withdrawn_cents: 4995,
+            intake_id: "recovery-order",
+            order_amount_cents: 4995,
+          },
+        ],
+      },
+      new Set(["recovery-order"]),
+      since,
+      until,
+    )
+
+    expect(recoveredRevenue).toMatchObject({
+      disputeCents: 4995,
+      grossCents: 4995,
+      netCents: 0,
+      orderCount: 1,
+      refundCents: 0,
+    })
   })
 
   it("rejects sensitive identifiers before baseline artifacts are written", () => {

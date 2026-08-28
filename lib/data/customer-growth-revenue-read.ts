@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import {
+  buildNetRetainedPurchaseValue,
   getRecordedRefundCents,
   type NetRetainedDisputeRow,
   type NetRetainedPurchaseRow,
@@ -69,6 +70,27 @@ export type CustomerGrowthPaidRevenueRow = NetRetainedPurchaseRow & {
   payment_status: string | null
   status: string | null
   subtype: string | null
+}
+
+export function buildCustomerGrowthRevenueForIntakeIds(
+  evidence: CustomerGrowthRevenueEvidence,
+  intakeIds: ReadonlySet<string>,
+  since: Date,
+  until: Date,
+): ReturnType<typeof buildNetRetainedPurchaseValue> {
+  return buildNetRetainedPurchaseValue({
+    paidRows: evidence.paidRows.filter(
+      (row) => Boolean(row.id && intakeIds.has(row.id)),
+    ),
+    refundRows: evidence.refundRows.filter(
+      (row) => Boolean(row.id && intakeIds.has(row.id)),
+    ),
+    disputeRows: evidence.disputeRows.filter(
+      (row) => Boolean(row.intake_id && intakeIds.has(row.intake_id)),
+    ),
+    since,
+    until,
+  })
 }
 
 type QueryResponse<T> = {
