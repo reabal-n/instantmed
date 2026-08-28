@@ -18,7 +18,7 @@ function errorResponse(message: string, status: number): Response {
   return Response.json({ error: message }, { status })
 }
 
-export function getTwilioVoicePublicBaseUrl(): string {
+function getTwilioVoicePublicBaseUrl(): string {
   const configured = process.env.TWILIO_VOICE_PUBLIC_BASE_URL?.trim()
   if (!configured) {
     throw new Error("TWILIO_VOICE_PUBLIC_BASE_URL is not configured")

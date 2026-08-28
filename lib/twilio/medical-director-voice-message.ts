@@ -138,7 +138,7 @@ function readCandidateDateOfBirth(row: Record<string, unknown>): string | null {
   return typeof row.date_of_birth === "string" ? row.date_of_birth : null
 }
 
-export function fingerprintTwilioCallSid(callSid: string): string {
+function fingerprintTwilioCallSid(callSid: string): string {
   const secret = process.env.TWILIO_VOICE_SESSION_SECRET?.trim()
   if (!secret) throw new Error("TWILIO_VOICE_SESSION_SECRET is not configured")
   return createHmac("sha256", secret)

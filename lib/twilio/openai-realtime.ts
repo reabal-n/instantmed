@@ -19,12 +19,12 @@ export const LENA_SAVE_FAILURE =
   "Sorry, I couldn't confirm your message. Please use instantmed.com.au/contact."
 export const LENA_EMERGENCY_DIRECTION =
   "If you are in immediate danger, hang up and call triple zero now."
-export const LENA_UNDERSTANDING_FAILURE =
+const LENA_UNDERSTANDING_FAILURE =
   "Sorry, I couldn't get that clearly. Please use instantmed.com.au/contact."
 export const LENA_TIME_WARNING =
   "We have about one minute left. Please confirm the short message you want me to send."
 
-export const IMMEDIATE_DANGER_TRIGGER_PHRASES = [
+const IMMEDIATE_DANGER_TRIGGER_PHRASES = [
   "chest pain",
   "cannot breathe",
   "can't breathe",
@@ -63,7 +63,7 @@ const voiceMessageToolArgumentsSchema = z.object({
   }
 })
 
-export const INSTANTMED_VOICE_AGENT_INSTRUCTIONS = `
+const INSTANTMED_VOICE_AGENT_INSTRUCTIONS = `
 You are Lena from InstantMed support. You are a warm, concise voice secretary taking one message for the Medical Director.
 
 The opening is delivered separately by code. Do not repeat it and do not introduce yourself again.

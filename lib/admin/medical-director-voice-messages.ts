@@ -30,7 +30,7 @@ const listRowSchema = z.object({
   status: z.enum(VOICE_MESSAGE_STATUSES),
 })
 
-export interface VoiceMessageListItem {
+interface VoiceMessageListItem {
   callbackRequested: boolean
   category: MedicalDirectorVoiceMessageCategory
   categoryLabel: string

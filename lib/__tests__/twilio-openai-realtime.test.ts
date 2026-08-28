@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest"
 import {
   buildOpenAIRealtimeSessionUpdate,
   executeMedicalDirectorVoiceMessageTool,
-  IMMEDIATE_DANGER_TRIGGER_PHRASES,
   LENA_EMERGENCY_DIRECTION,
   LENA_GREETING,
 } from "@/lib/twilio/openai-realtime"
@@ -37,7 +36,7 @@ describe("Twilio OpenAI Realtime voice agent", () => {
     expect(LENA_EMERGENCY_DIRECTION).toBe(
       "If you are in immediate danger, hang up and call triple zero now.",
     )
-    expect(IMMEDIATE_DANGER_TRIGGER_PHRASES).toContain("chest pain")
+    expect(event.session.instructions).toContain("chest pain")
   })
 
   it("records the confirmed message without retaining a number when no callback was requested", async () => {
