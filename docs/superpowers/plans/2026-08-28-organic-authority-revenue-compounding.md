@@ -483,138 +483,40 @@ git commit -m "feat(seo): report branded Search Console landings"
 **Files:**
 
 - Modify: `lib/data/customer-growth-baseline.ts`
+- Create: `lib/data/customer-growth-revenue-read.ts`
 - Modify: `scripts/customer-growth-baseline.ts`
 - Modify: `lib/__tests__/customer-growth-baseline.test.ts`
 
 Do not invent landing-page revenue. This task reports paid-order counts by source group and public pathname; total net-retained revenue remains the canonical economic read.
 
-- [ ] Add a failing unit test with aggregate-only fixtures:
+- [ ] Add `lib/data/customer-growth-revenue-read.ts` as the single audit reader for canonical revenue evidence. Read reportable paid orders by `paid_at`, exact live-AUD refund debit/reversal movements from `stripe_refund_cash_movements`, refund-ledger health, and live-AUD dispute withdrawals/reinstatements from `stripe_disputes`. Do not use cumulative `intakes.refund_amount_cents` or `refunded_at` snapshots as window cash events.
 
-```ts
-it("groups free-channel paid orders by canonical source and public pathname", () => {
-  const rows = buildFreeChannelLandingBreakdown([
-    { referrer: "https://chatgpt.com/", landing_page: "/medical-certificate-online?utm_source=chatgpt.com" },
-    { referrer: "https://www.google.com/", landing_page: "/medical-certificate" },
-    { utm_medium: "referral", utm_source: "hrm", landing_page: "/employers?campaign=employer_verification" },
-    { gclid: "diagnostic-click-id", landing_page: "/prescriptions" },
-  ])
+- [ ] Fail closed when a revenue query fails, exact row counts are missing, a count exceeds the fetched rows/5,000-row bound, a refund movement is incomplete, or refund-ledger health reports conflicting, unlinked, unsupported-currency, unknown-mode, or otherwise incomplete evidence. Never silently calculate from truncated rows.
 
-  expect(rows).toEqual([
-    { group: "ai_referral", landingPage: "/medical-certificate-online", orders: 1 },
-    { group: "organic_nonbrand", landingPage: "/medical-certificate", orders: 1 },
-    { group: "referral", landingPage: "/employers", orders: 1 },
-  ])
-})
-```
+- [ ] Reduce that evidence through `buildNetRetainedPurchaseValue()`: purchases enter at `paid_at`; refund debits and reversals use their exact balance-transaction times; dispute withdrawals and reinstatements use their durable cash-event times. Cap the combined outstanding refund and dispute loss at the captured order amount so one payment cannot be removed twice.
 
-- [ ] Confirm the test fails because the builder does not exist:
+- [ ] Apply the canonical reportable-intake and seeded-E2E exclusions to paid orders and every linked refund/dispute row before aggregation. Test-mode or excluded evidence must not satisfy production revenue health.
 
-```bash
-corepack pnpm exec vitest run lib/__tests__/customer-growth-baseline.test.ts
-```
+- [ ] Build the free-channel paid-order breakdown from the canonical attribution classifier for `organic_nonbrand`, `organic_brand`, `ai_referral`, and `referral`. Accept only HTTP(S) landings on `instantmed.com.au` or `www.instantmed.com.au`; emit the canonical pathname with query, fragment, credentials, and non-root trailing slashes removed, and collapse external, malformed, or unsafe values to `/unknown`.
 
-- [ ] Implement a pure aggregate builder in `lib/data/customer-growth-baseline.ts`:
+- [ ] Add only `freeChannelLandingPages: FreeChannelLandingRow[]` to `CustomerGrowthSupabaseBaseline`; never persist raw attribution rows, referrers, query strings, click IDs, payment IDs, patient IDs, or credentials. Keep `assertNoSensitiveBaselineText()` on every generated artifact.
 
-```ts
-import {
-  classifyAttributionSource,
-  type AttributionClassificationInput,
-  type AttributionSourceGroup,
-} from "@/lib/analytics/source-classification"
+- [ ] Derive recovery orders with the same canonical `recovery_email` classifier and calculate recovery gross/net revenue from the same exact cash-event evidence. Include later in-window refund or dispute losses/reinstatements linked to older recovery orders even when their original payment predates the window; attribution time must not hide a current cash loss.
 
-const FREE_ACQUISITION_GROUPS = new Set<AttributionSourceGroup>([
-  "organic_nonbrand",
-  "organic_brand",
-  "ai_referral",
-  "referral",
-])
+- [ ] Count abandoned-checkout delivery only from `email_outbox` rows whose status is exactly `sent`. Do not count queued, failed, or `skipped_e2e` rows as delivered recovery emails.
 
-function publicLandingPath(value?: string | null): string {
-  if (!value) return "/unknown"
-  try {
-    return new URL(value, "https://instantmed.com.au").pathname
-  } catch {
-    return "/unknown"
-  }
-}
+- [ ] State beside the free-channel table that paid-order counts are acquisition evidence and total rolling net-retained revenue is the economic result. Keep revenue unallocated to individual landing pages.
 
-export function buildFreeChannelLandingBreakdown(
-  rows: AttributionClassificationInput[],
-): FreeChannelLandingRow[] {
-  const counts = new Map<string, number>()
-  for (const row of rows) {
-    const group = classifyAttributionSource(row).group
-    if (!FREE_ACQUISITION_GROUPS.has(group)) continue
-    const landingPage = publicLandingPath(row.landing_page)
-    const key = `${group}\t${landingPage}`
-    counts.set(key, (counts.get(key) ?? 0) + 1)
-  }
-
-  return [...counts.entries()]
-    .map(([key, orders]) => {
-      const [group, landingPage] = key.split("\t")
-      return { group: group as AttributionSourceGroup, landingPage, orders }
-    })
-    .sort((a, b) => b.orders - a.orders || a.group.localeCompare(b.group))
-}
-```
-
-- [ ] Add the aggregate to the existing output type; do not add raw rows:
-
-```ts
-export interface FreeChannelLandingRow {
-  group: AttributionSourceGroup
-  landingPage: string
-  orders: number
-}
-```
-
-Add `freeChannelLandingPages: FreeChannelLandingRow[]` as a top-level property on the existing `CustomerGrowthSupabaseBaseline` type. Keep its current `intakes` and `recovery` shapes unchanged.
-
-- [ ] Query all reportable paid attribution rows once in `scripts/customer-growth-baseline.ts`, derive both recovery and free-channel aggregates from the same canonical classifier, and write only the aggregate breakdown into `supabase-funnel-30d.json` and `summary.md`.
-
-```ts
-import {
-  classifyAttributionSource,
-  type AttributionClassificationInput,
-} from "@/lib/analytics/source-classification"
-
-type PaidAttributionRow = RecoveryPaidAttributionRow & AttributionClassificationInput
-
-const PAID_ATTRIBUTION_SELECT = [
-  "amount_cents",
-  "refund_amount_cents",
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_term",
-  "referrer",
-  "landing_page",
-  "gclid",
-  "gbraid",
-  "wbraid",
-  "campaignid",
-  "adgroupid",
-  "keyword",
-  "creative",
-  "matchtype",
-  "device",
-  "network",
-].join(", ")
-```
-
-- [ ] Replace `queryRecoveredPaidRows()` with one `queryPaidAttributionRows()` read using `PAID_ATTRIBUTION_SELECT`. Derive `recoveredPaidRows` by filtering that array through `classifyAttributionSource(row).group === "recovery_email"`, and derive `freeChannelLandingPages` through the new pure builder. Return the latter on `CustomerGrowthSupabaseBaseline`.
-
-- [ ] Keep `assertNoSensitiveBaselineText()` on every artifact. Strip query strings before aggregation and never write raw referrers or rows.
-
-- [ ] Add summary assertions for AI, organic, and referral landing rows. State beside the table that order counts are acquisition evidence and total net-retained revenue is the economic result.
+- [ ] Cover canonical public-path grouping/redaction, exact AUD refund/dispute math, double-loss capping, refund reversals, dispute reinstatements, incomplete/truncated evidence fail-closed behavior, reportable/seed exclusions, older recovery-order cash events, sent-only abandoned-checkout delivery, and sensitive-output rejection in the focused tests.
 
 - [ ] Run:
 
 ```bash
 corepack pnpm exec vitest run \
   lib/__tests__/customer-growth-baseline.test.ts \
-  lib/__tests__/attribution-source-classification.test.ts
+  lib/__tests__/attribution-source-classification.test.ts \
+  lib/__tests__/net-retained-purchase-value.test.ts \
+  lib/__tests__/revenue-dashboard.test.ts
 corepack pnpm audit:customer-growth -- --days 30 --out-dir output/revenue-compounding/pre-deploy
 ```
 
@@ -624,6 +526,7 @@ Expected: PASS; aggregate output only; no patient, payment, click, or credential
 
 ```bash
 git add lib/data/customer-growth-baseline.ts \
+  lib/data/customer-growth-revenue-read.ts \
   scripts/customer-growth-baseline.ts \
   lib/__tests__/customer-growth-baseline.test.ts
 git commit -m "feat(growth): report free-channel paid landings"
@@ -646,7 +549,9 @@ corepack pnpm exec vitest run \
   lib/__tests__/seo-indexing-contract.test.ts \
   lib/__tests__/commercial-seo-contract.test.ts \
   lib/__tests__/customer-growth-baseline.test.ts \
-  lib/__tests__/attribution-source-classification.test.ts
+  lib/__tests__/attribution-source-classification.test.ts \
+  lib/__tests__/net-retained-purchase-value.test.ts \
+  lib/__tests__/revenue-dashboard.test.ts
 ```
 
 - [ ] Run documentation and route checks:
@@ -662,11 +567,13 @@ bash scripts/check-route-conflicts.sh
 corepack pnpm lint
 corepack pnpm typecheck
 corepack pnpm test run
-corepack pnpm build
+SENTRY_AUTH_TOKEN= corepack pnpm build
 git diff --check
 ```
 
 Expected: every command PASS. A green focused suite without the full unit/build receipt is not release proof.
+
+Authenticated Sentry release/source-map uploads are authorised only in deployment or CI. Local candidate builds must clear `SENTRY_AUTH_TOKEN` as above so verification cannot create external release artifacts.
 
 - [ ] Confirm `lib/seo/sitemap-lastmod.ts` and `app/locations/sitemap.ts` have an explicit, honest `lastmod` refresh for every materially changed route. Record the route/date evidence with the candidate receipt; do not treat deployment as a `lastmod` refresh.
 
