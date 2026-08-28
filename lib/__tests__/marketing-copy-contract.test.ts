@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { faqItems, footerLinks } from "@/lib/marketing/homepage"
+import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
 import { KEEP_INDEXED_LOCATIONS } from "@/lib/seo/index-policy"
 import { getActiveServices, getServiceMarketingHref } from "@/lib/services/service-catalog"
 
@@ -209,12 +210,27 @@ describe("marketing copy contracts", () => {
     expect(combined).not.toContain("Conditions we treat")
     expect(combined).not.toContain("Full list of conditions suited to telehealth")
     expect(combined).not.toContain("Refund if it&apos;s not the right fit.")
+    expect(telehealthAustraliaSource).not.toContain("uncomplicated acute issues")
+    expect(telehealthAustraliaSource).toMatch(
+      /medical\s+certificate requests, repeat prescription review for a regular medicine you already\s+take/,
+    )
+    expect(telehealthAustraliaSource).toMatch(
+      /focused ED, hair-loss, women&apos;s-health \(UTI or a new or switch\s+contraceptive pill\), and weight-management assessments/,
+    )
 
     for (const city of KEEP_INDEXED_LOCATIONS) {
       expect(locationPageSource, city).toMatch(
         new RegExp(
           `\\b${city}:\\s*"[^"]*\\bsubmit a medical certificate or repeat prescription(?: review)? request\\b[^"]*"`,
         ),
+      )
+
+      const deepCityContent = DEEP_CITY_CONTENT[city]
+      expect(deepCityContent, city).toBeDefined()
+
+      const renderedDeepCityContent = JSON.stringify(deepCityContent)
+      expect(renderedDeepCityContent, city).not.toMatch(
+        /cannot refuse|requires acceptance|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|consultation method.{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity)/i,
       )
     }
 

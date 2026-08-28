@@ -502,11 +502,12 @@ export default function TelehealthAustraliaPage() {
                 <p>
                   Telehealth isn&apos;t a replacement for having a regular GP. If you have a complex
                   chronic condition, you should still have a GP who knows your full history and can
-                  coordinate specialist care. But for the high-volume, straightforward needs that
-                  make up the majority of Australian primary care visits - med certs, repeat
-                  scripts, uncomplicated acute issues - a private telehealth service like InstantMed
-                  can offer a structured option without appointment scheduling. It sits alongside
-                  your regular GP relationship, not on top of it.
+                  coordinate specialist care. InstantMed is limited to structured pathways: medical
+                  certificate requests, repeat prescription review for a regular medicine you already
+                  take, and focused ED, hair-loss, women&apos;s-health (UTI or a new or switch
+                  contraceptive pill), and weight-management assessments. Whether telehealth is
+                  suitable depends on the request. {CLINICAL_REVIEW_SEQUENCE} It sits alongside your
+                  regular GP relationship, not on top of it.
                 </p>
               </div>
             </div>

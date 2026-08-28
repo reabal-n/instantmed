@@ -4,8 +4,12 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 import type { DeepCityContent } from "../deep-city-content"
+
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
+const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
 
 export const ACT_CITIES: Record<string, DeepCityContent> = {
   canberra: {
@@ -35,9 +39,9 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Medical Certificates in the ACT",
         paragraphs: [
-          "The ACT follows the Fair Work Act 2009 for employment-related medical certificates. Employers cannot refuse a certificate simply because it was issued via telehealth - the Act requires a certificate from a 'registered health practitioner' without specifying consultation method. This applies to both public and private sector employers in the ACT.",
-          "APS-specific requirements vary by agency, but the standard APS Enterprise Agreement accepts certificates from registered medical practitioners. If your agency's HR team queries a telehealth certificate, the Fair Work Act and the APS Enterprise Agreement both support its validity. We've never had a certificate rejected by any Commonwealth employer.",
-          "For parliamentary staff, including ministerial advisers and APH employees - the same rules apply. The Parliamentary Service Act references the same medical certificate requirements as the Fair Work Act. A certificate from an AHPRA-registered doctor via telehealth is fully valid.",
+          `For employment-related absences, ACT employers assess medical certificates under their own policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
+          `APS-specific requirements can vary by agency. If your agency's HR team has questions about medical documentation, check its current leave-evidence policy. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
+          `For parliamentary staff, including ministerial advisers and APH employees, leave-evidence requirements are set by the relevant employer. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
         ],
       },
     ],
@@ -57,11 +61,11 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Do APS agencies assess telehealth certificates under their own policies?", a: "Yes. All APS enterprise agreements set their own policies for medical certificates from AHPRA-registered doctors. The consultation method is not relevant - what matters is that the doctor holds current registration. We've never had a certificate rejected by a Commonwealth employer." },
-      { q: "Can ANU students use InstantMed?", a: "Yes. ANU accepts medical certificates from any AHPRA-registered doctor for academic support requests. The same applies to UC, ACU, and UNSW Canberra." },
+      { q: "Do APS agencies assess telehealth certificates under their own policies?", a: `APS agencies set their own policies for medical certificates and leave evidence. Check your agency's current policy for the request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
+      { q: "How should ANU students check medical-documentation requirements?", a: "ANU, UC, ACU, and UNSW Canberra set their own academic-support and medical-documentation policies. Check the relevant institution's current process before submitting a request." },
       { q: "Is InstantMed cheaper than a GP in Canberra?", a: `With Canberra's bulk-billing rate around 47% and typical gap fees of $50–$100, InstantMed is often more affordable for straightforward needs. Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no hidden costs.` },
       { q: "Can I use InstantMed in Queanbeyan?", a: "Yes. While Queanbeyan is technically in NSW, InstantMed works anywhere in Australia. Same service, same pricing, same certificates." },
-      { q: "What about ACT public servants specifically?", a: "ACT Government employees follow the ACT Public Sector Enterprise Agreement, which accepts certificates from registered medical practitioners. Telehealth certificates meet this requirement." },
+      { q: "What about ACT public servants specifically?", a: `ACT Government employees should check the current ACT Public Sector leave-evidence process. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
     ],
   },
 }

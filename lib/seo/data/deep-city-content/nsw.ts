@@ -8,6 +8,9 @@ import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 import type { DeepCityContent } from "../deep-city-content"
 
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
+const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
+
 export const NSW_CITIES: Record<string, DeepCityContent> = {
   sydney: {
     healthStats: [
@@ -93,8 +96,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "Medical Certificates in NSW",
         paragraphs: [
           "Newcastle employers - from BHP to the University of Newcastle, from Hunter New England Health to local cafes in Darby Street - all fall under the Fair Work Act 2009. Certificates from AHPRA-registered doctors can support routine absence evidence, and employer policies still apply. The mining sector often has stricter internal processes for clearances and site medicals.",
-          "NSW education institutions provide channels for medical documentation. UoN's academic support policy requires documentation from a 'registered health practitioner' - which includes doctors providing telehealth consultations. Hunter TAFE follows the same approach.",
-          "For workers in the Hunter coal industry, enterprise agreements typically require medical certificates for absences of more than one day. These certificates must come from a registered practitioner but do not specify that the consultation must be in person. Telehealth certificates meet these requirements.",
+          "NSW education institutions publish processes for medical documentation. UoN and Hunter TAFE set their own academic-support requirements, so students should check the current policy for their request.",
+          `For workers in the Hunter coal industry, enterprise agreements may set leave-evidence requirements for absences. Check the applicable agreement and employer process. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
         ],
       },
     ],
@@ -114,11 +117,11 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Do mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies in the Hunter are bound by the Fair Work Act, which requires acceptance of certificates from AHPRA-registered doctors. The consultation method doesn't affect validity. We've never had a certificate rejected by a Hunter mining company." },
-      { q: "Can UoN students use InstantMed?", a: "Yes. The University of Newcastle sets its own policy for medical certificates from AHPRA-registered doctors for academic support. This applies to both Callaghan and city campus students." },
+      { q: "Do mining companies assess telehealth certificates under their own policies?", a: `Mining companies in the Hunter assess leave evidence under their own policies and enterprise agreements. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
+      { q: "How should UoN students check medical-documentation requirements?", a: "The University of Newcastle sets its own academic-support and medical-documentation requirements for Callaghan and city campus students. Check the current policy for your request." },
       { q: "Does InstantMed work in the Upper Hunter?", a: "Yes. Telehealth works anywhere with internet access - Muswellbrook, Singleton, Scone, Denman, or anywhere in the Upper Hunter. Same service, same pricing." },
       { q: "Is InstantMed available for RAAF Williamtown personnel?", a: "InstantMed is available to all Australians aged 18+. Defence dependants and civilian contractors can use the service for medical certificates and prescriptions." },
-      { q: "Can I get a certificate for a mining roster?", a: `Yes. Our certificates document the dates you're unfit for work - whether that's a standard Mon–Fri schedule or a mining roster pattern. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "Can I request a certificate for a mining roster?", a: `If a certificate is clinically appropriate, it records the approved absence dates. Mining employers set their own leave-evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
     ],
   },
   wollongong: {
