@@ -107,7 +107,10 @@ async function processPendingPaidTelegramNotifications(signal?: AbortSignal) {
     .order("created_at", { ascending: true })
     .limit(BATCH_SIZE)
 
-  if (pendingVoiceError && pendingVoiceError.code !== "42P01") {
+  if (
+    pendingVoiceError &&
+    !["42P01", "PGRST205"].includes(pendingVoiceError.code)
+  ) {
     throw pendingVoiceError
   }
 

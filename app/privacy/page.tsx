@@ -194,8 +194,8 @@ export default function PrivacyPage() {
                     </li>
                   </ul>
                   <p>
-                    All providers are contractually bound to use your data only for the purposes we specify
-                    and to maintain appropriate security standards.
+                    We limit each provider to the information needed for its role and apply access,
+                    configuration, retention, and security controls appropriate to that service.
                   </p>
                 </LegalSection>
 

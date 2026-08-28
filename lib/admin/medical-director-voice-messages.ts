@@ -165,7 +165,7 @@ export async function getMedicalDirectorVoiceMessageDetail(
     actorType: "admin",
     metadata: {
       action_type: "medical_director_voice_message_viewed",
-      voice_message_id: id,
+      voice_record_id: id,
     },
   })
 
@@ -214,7 +214,7 @@ export async function claimMedicalDirectorVoiceMessage(
     actorType: "admin",
     metadata: {
       action_type: "medical_director_voice_message_claimed",
-      voice_message_id: id,
+      voice_record_id: id,
     },
   })
   return true
@@ -249,7 +249,7 @@ export async function resolveMedicalDirectorVoiceMessage(
     metadata: {
       action_type: "medical_director_voice_message_resolved",
       resolution_reason: reason,
-      voice_message_id: id,
+      voice_record_id: id,
     },
   })
   return true
@@ -286,7 +286,7 @@ export async function reopenMedicalDirectorVoiceMessage(
     actorType: "admin",
     metadata: {
       action_type: "medical_director_voice_message_reopened",
-      voice_message_id: id,
+      voice_record_id: id,
     },
   })
   return true
@@ -328,7 +328,7 @@ export async function updateMedicalDirectorVoiceMessageMatch(
     metadata: {
       action_type: "medical_director_voice_message_match_updated",
       match_set: Boolean(patientId),
-      voice_message_id: id,
+      voice_record_id: id,
     },
   })
   return true

@@ -105,7 +105,7 @@ describe("Twilio to OpenAI Realtime bridge", () => {
 
     twilio.emit("message", Buffer.from(JSON.stringify({
       event: "media",
-      media: { payload: "dHdpbGlvLWF1ZGlv" },
+      media: { payload: "dHdpbGlvLWF1ZGlv", timestamp: "1200" },
     })))
     expect(JSON.parse(openai.sent[2])).toEqual({
       type: "input_audio_buffer.append",
@@ -115,12 +115,117 @@ describe("Twilio to OpenAI Realtime bridge", () => {
     openai.emit("message", Buffer.from(JSON.stringify({
       type: "response.output_audio.delta",
       delta: "b3BlbmFpLWF1ZGlv",
+      item_id: "assistant_item_1",
     })))
     expect(JSON.parse(twilio.sent[0])).toEqual({
       event: "media",
       streamSid: "MZ00000000000000000000000000000000",
       media: { payload: "b3BlbmFpLWF1ZGlv" },
     })
+    expect(JSON.parse(twilio.sent[1])).toMatchObject({
+      event: "mark",
+      streamSid: "MZ00000000000000000000000000000000",
+    })
+  })
+
+  it("clears queued audio and truncates unheard model context when the caller interrupts", () => {
+    const twilio = new FakeSocket()
+    const openai = new FakeSocket()
+    const deps = dependencies(openai)
+    const assistantAudio = Buffer.alloc(800).toString("base64")
+
+    attachTwilioOpenAIRealtimeBridge(twilio, deps)
+    twilio.emit("message", Buffer.from(JSON.stringify(startEvent())))
+    openai.emit("open")
+    twilio.emit("message", Buffer.from(JSON.stringify({
+      event: "media",
+      media: { payload: "dHdpbGlvLWF1ZGlv", timestamp: "1200" },
+    })))
+    openai.emit("message", Buffer.from(JSON.stringify({
+      type: "response.output_audio.delta",
+      delta: assistantAudio,
+      item_id: "assistant_item_1",
+    })))
+    twilio.emit("message", Buffer.from(JSON.stringify({
+      event: "media",
+      media: { payload: "bW9yZS10d2lsaW8tYXVkaW8=", timestamp: "1650" },
+    })))
+
+    openai.emit("message", Buffer.from(JSON.stringify({
+      type: "input_audio_buffer.speech_started",
+    })))
+
+    expect(JSON.parse(twilio.sent.at(-1)!)).toEqual({
+      event: "clear",
+      streamSid: "MZ00000000000000000000000000000000",
+    })
+    expect(JSON.parse(openai.sent.at(-1)!)).toEqual({
+      type: "conversation.item.truncate",
+      item_id: "assistant_item_1",
+      content_index: 0,
+      audio_end_ms: 100,
+    })
+  })
+
+  it("does not truncate a completed assistant turn when the caller speaks next", () => {
+    const twilio = new FakeSocket()
+    const openai = new FakeSocket()
+    const deps = dependencies(openai)
+
+    attachTwilioOpenAIRealtimeBridge(twilio, deps)
+    twilio.emit("message", Buffer.from(JSON.stringify(startEvent())))
+    openai.emit("open")
+    twilio.emit("message", Buffer.from(JSON.stringify({
+      event: "media",
+      media: { payload: "dHdpbGlvLWF1ZGlv", timestamp: "1200" },
+    })))
+    openai.emit("message", Buffer.from(JSON.stringify({
+      type: "response.output_audio.delta",
+      delta: Buffer.alloc(800).toString("base64"),
+      item_id: "assistant_item_1",
+    })))
+    const markName = JSON.parse(twilio.sent.at(-1)!).mark.name as string
+    openai.emit("message", Buffer.from(JSON.stringify({
+      type: "response.done",
+      response: { output: [] },
+    })))
+    twilio.emit("message", Buffer.from(JSON.stringify({
+      event: "mark",
+      mark: { name: markName },
+    })))
+    twilio.emit("message", Buffer.from(JSON.stringify({
+      event: "media",
+      media: { payload: "bmV4dC11c2VyLXR1cm4=", timestamp: "2500" },
+    })))
+
+    openai.emit("message", Buffer.from(JSON.stringify({
+      type: "input_audio_buffer.speech_started",
+    })))
+
+    expect(openai.sent.map((event) => JSON.parse(event))).not.toContainEqual(
+      expect.objectContaining({ type: "conversation.item.truncate" }),
+    )
+    expect(JSON.parse(twilio.sent.at(-1)!)).toEqual({
+      event: "clear",
+      streamSid: "MZ00000000000000000000000000000000",
+    })
+  })
+
+  it("closes both sockets when OpenAI reports a server error", () => {
+    const twilio = new FakeSocket()
+    const openai = new FakeSocket()
+    const deps = dependencies(openai)
+
+    attachTwilioOpenAIRealtimeBridge(twilio, deps)
+    twilio.emit("message", Buffer.from(JSON.stringify(startEvent())))
+    openai.emit("open")
+    openai.emit("message", Buffer.from(JSON.stringify({
+      type: "error",
+      error: { message: "provider detail must not be logged" },
+    })))
+
+    expect(twilio.readyState).toBe(3)
+    expect(openai.readyState).toBe(3)
   })
 
   it.each([
@@ -164,6 +269,44 @@ describe("Twilio to OpenAI Realtime bridge", () => {
     twilio.emit("message", Buffer.from(JSON.stringify(startEvent())))
     openai.emit("open")
     openai.emit("message", functionCall("deliver_emergency_direction"))
+
+    await vi.waitFor(() => expect(openai.sent.at(-1)).toBeTruthy())
+    expect(JSON.parse(openai.sent.at(-1)!)).toEqual({
+      type: "response.create",
+      response: {
+        instructions: `Say exactly: "${LENA_EMERGENCY_DIRECTION}" Then stop and wait.`,
+      },
+    })
+    expect(deps.executeVoiceMessageTool).not.toHaveBeenCalled()
+  })
+
+  it("prioritizes the emergency direction if a response contains another tool call", async () => {
+    const twilio = new FakeSocket()
+    const openai = new FakeSocket()
+    const deps = dependencies(openai)
+
+    attachTwilioOpenAIRealtimeBridge(twilio, deps)
+    twilio.emit("message", Buffer.from(JSON.stringify(startEvent())))
+    openai.emit("open")
+    openai.emit("message", Buffer.from(JSON.stringify({
+      type: "response.done",
+      response: {
+        output: [
+          {
+            type: "function_call",
+            name: "create_medical_director_message",
+            call_id: "call_save",
+            arguments: JSON.stringify({ caller_confirmed: true }),
+          },
+          {
+            type: "function_call",
+            name: "deliver_emergency_direction",
+            call_id: "call_emergency",
+            arguments: "{}",
+          },
+        ],
+      },
+    })))
 
     await vi.waitFor(() => expect(openai.sent.at(-1)).toBeTruthy())
     expect(JSON.parse(openai.sent.at(-1)!)).toEqual({

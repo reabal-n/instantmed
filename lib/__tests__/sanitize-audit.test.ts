@@ -20,4 +20,12 @@ describe("sanitizeAuditMetadata", () => {
       intake_id: "intake_123",
     })
   })
+
+  it("preserves the PHI-free voice record correlation ID", () => {
+    expect(sanitizeAuditMetadata({
+      voice_record_id: "9d452fcc-6e45-41cc-bb57-32fa34d04e2f",
+    })).toEqual({
+      voice_record_id: "9d452fcc-6e45-41cc-bb57-32fa34d04e2f",
+    })
+  })
 })

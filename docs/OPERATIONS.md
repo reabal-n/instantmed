@@ -1087,7 +1087,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | Business Alerts | Failed payments, no-purchase revenue safety, SLA breaches | Sentry + admin operations surfaces; essential critical aggregate detail also goes to Telegram |
 | Queue Waiting Reminder | One or more paid requests older than 30 minutes still awaiting review | Telegram hourly, count + oldest wait only |
 | Paid Request Notifications | Successful paid request | Telegram (real-time, with retry cron); new medical certificates start neutral |
-| AI Voice Callback Request | Durable caller-confirmed callback record | Telegram (generic page + authenticated admin link only; no caller identity, number, category, or summary) |
+| Medical Director Voice Message | Durable caller-confirmed message | Telegram (category, received time, and authenticated admin link only; no caller identity, date of birth, callback number, or summary) |
 | Support Inbox | Manual-only and disabled in production; no scheduled mailbox polling. | No automatic Telegram alerts. The PHI-safe aggregate count receiver remains available for deliberate diagnostics only. |
 | Request Flow Synthetic | Any production request-path render/click failure | GitHub Actions failure |
 | Staff Role Gate | More than one auth-linked human admin, owner-admin missing doctor identity, or doctor missing required prescribing/certificate identity | `pnpm check:staff-roles` release failure |
@@ -1157,7 +1157,7 @@ Required env vars validated at startup via Zod in `lib/config/env.ts`:
 
 ## Lena AI Voice Secretary — Activation
 
-The public InstantMed number `+61 495 049 555` is answered by Lena, an administrative voice secretary that takes one confirmed patient message for the Medical Director. It is not a clinical consultation, triage service, patient-authentication channel, or autonomous correction workflow. Keep `TWILIO_AI_VOICE_ENABLED=false` until the deployment and controlled-call checklist is complete.
+The public InstantMed number `+61 495 049 555` is reserved for Lena. Once activated, the administrative voice secretary takes one confirmed patient message for the Medical Director. It is not a clinical consultation, triage service, patient-authentication channel, or autonomous correction workflow. Keep `TWILIO_AI_VOICE_ENABLED=false` until the deployment and controlled-call checklist is complete.
 
 ### Exact Twilio Console values
 
@@ -1178,13 +1178,14 @@ Do not paste relative paths into the Console. Messaging routing is separate and 
 
 ### Activation checklist
 
-1. Apply `20260827210500_twilio_voice_callback_requests.sql` and verify RLS leaves `medical_director_voice_messages` service-role-only.
-2. Deploy the signed HTTP and WebSocket routes with `TWILIO_AI_VOICE_ENABLED=false`; verify invalid signatures fail closed and the disabled path returns the contact-page fallback.
-3. Publish the privacy notice describing Twilio/OpenAI live audio processing, the confirmed fields retained, and the no-audio/no-full-transcript storage boundary.
-4. Verify the authenticated admin-only Voice inbox can decrypt, claim, resolve, reopen, and correct a suggested patient match. Telegram remains a PHI-free pager, not the record.
-5. Configure the production env values, redeploy, set `TWILIO_AI_VOICE_ENABLED=true`, and redeploy again.
-6. Save the exact Console callbacks above, then activate/re-route the number to the Australia (`AU1`) configuration.
-7. Make controlled test calls covering the exact greeting, message-only and callback branches, incomplete details, interruption/barge-in, confirmed-save success/failure, disconnect during save, Telegram retry, provider failure, concurrency fallback, fixed 000 direction, and the twelve-minute limit. Confirm no raw audio, full transcript, caller ID, or message text appears in Vercel, Sentry, PostHog, Telegram, or audit metadata.
+1. Approve the Twilio/OpenAI processor agreements and retention settings, complete the APP 5/APP 8 assessment, and confirm the public processor disclosure is current. Do not enable Lena from code or the Twilio Console before this gate is evidenced.
+2. Apply `20260827210500_twilio_voice_callback_requests.sql` and verify RLS leaves `medical_director_voice_messages` service-role-only.
+3. Deploy the signed HTTP and WebSocket routes with `TWILIO_AI_VOICE_ENABLED=false`; verify invalid signatures fail closed and the disabled path returns the contact-page fallback.
+4. Publish the privacy notice describing Twilio/OpenAI live audio processing, the confirmed fields retained, and the no-audio/no-full-transcript storage boundary.
+5. Verify the authenticated admin-only Voice inbox can decrypt, claim, resolve, reopen, and correct a suggested patient match. Telegram remains a PHI-free pager, not the record.
+6. Configure the production env values, redeploy, set `TWILIO_AI_VOICE_ENABLED=true`, and redeploy again.
+7. Save the exact Console callbacks above, then activate/re-route the number to the Australia (`AU1`) configuration.
+8. Make controlled test calls covering the exact greeting, message-only and callback branches, incomplete details, interruption/barge-in, confirmed-save success/failure, disconnect during save, Telegram retry, provider failure, concurrency fallback, fixed 000 direction, and the twelve-minute limit. Confirm no raw audio, full transcript, caller ID, or message text appears in Vercel, Sentry, PostHog, Telegram, or audit metadata.
 
 Lena opens exactly with `Hi, this is Lena from InstantMed support. How can I help?` She listens to the issue, collects full name and date of birth, asks no more than two short clarifying questions, reads back one concise summary, and saves it only after confirmation. She asks for a callback number only when the patient explicitly wants a return call. The application speaks the success line only after the encrypted database write succeeds. Lena never diagnoses, triages, changes an outcome, discloses patient information, or promises a fix, approval, refund, prescription, certificate, callback time, or outcome.
 

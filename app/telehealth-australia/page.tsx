@@ -25,7 +25,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { CONTACT_PHONE_TEL, PRICING_DISPLAY } from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
@@ -153,7 +153,7 @@ const medicalBusinessSchema = {
   url: CANONICAL,
   logo: "https://instantmed.com.au/branding/logo.png",
   image: "https://instantmed.com.au/branding/logo.png",
-  telephone: "+61-450-722-549",
+  telephone: CONTACT_PHONE_TEL,
   areaServed: {
     "@type": "Country",
     name: "Australia",

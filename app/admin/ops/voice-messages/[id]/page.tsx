@@ -173,7 +173,7 @@ export default async function MedicalDirectorVoiceMessagePage({
               <VoiceMessageWorkflow
                 messageId={message.id}
                 status={message.status}
-                suggestedPatientId={message.suggestedPatient?.id ?? null}
+                suggestedPatient={message.suggestedPatient}
               />
             </DashboardCard>
 

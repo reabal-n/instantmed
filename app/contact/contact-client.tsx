@@ -253,7 +253,7 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
               <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-sm font-medium">Phone message support</p>
+              <p className="text-sm font-medium">24/7 voice message support</p>
               <a
                 href={`tel:${CONTACT_PHONE_TEL}`}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"

@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
     )
     if (voiceCleanupError) {
       // The migration may not be deployed yet while this branch is in preview.
-      if (voiceCleanupError.code !== "42883") {
+      if (!["42883", "PGRST202"].includes(voiceCleanupError.code)) {
         logger.warn("Failed to clean resolved Medical Director voice messages", {}, voiceCleanupError)
         stats.errors++
       }

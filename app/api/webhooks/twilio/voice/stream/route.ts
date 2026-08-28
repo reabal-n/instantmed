@@ -27,7 +27,7 @@ export async function GET(request: Request): Promise<Response> {
 
   return experimental_upgradeWebSocket((socket: WebSocket) => {
     // Twilio can send its start frame immediately. Attach every listener before
-    // returning from the upgrade callback so no consent/session frame is lost.
+    // returning from the upgrade callback so no start/session frame is lost.
     attachTwilioOpenAIRealtimeBridge(socket as unknown as VoiceSocket)
   }, { maxPayload: 64 * 1024 })
 }

@@ -107,7 +107,7 @@ The durable exclusions live in `docs/BUSINESS_PLAN.md`. During controlled demand
 - weight-management paid ADVERTISING (the service itself launched 2026-08-10; ads remain gated)
 - broad general consult intake
 - staff-heavy follow-up programs without approved capacity
-- conversational AI clinical intake or AI-led consultation (the staged administrative phone receptionist is limited to approved general facts and Medical Director callback capture)
+- conversational AI clinical intake or AI-led consultation (Lena is limited to taking one caller-confirmed patient message for Medical Director review)
 
 ## 7. Plan And History Rules
 

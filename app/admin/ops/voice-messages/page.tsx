@@ -116,7 +116,11 @@ export default async function MedicalDirectorVoiceInboxPage({
           const isOld = item.status !== "resolved" &&
             now - Date.parse(item.createdAt) >= 24 * 60 * 60 * 1000
           return (
-            <Link key={item.id} href={buildAdminVoiceMessageHref(item.id)}>
+            <Link
+              key={item.id}
+              href={buildAdminVoiceMessageHref(item.id)}
+              prefetch={false}
+            >
               <DashboardCard
                 interactive
                 padding="none"

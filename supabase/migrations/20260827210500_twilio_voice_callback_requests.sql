@@ -191,3 +191,33 @@ CREATE TRIGGER medical_director_voice_messages_updated_at
 
 COMMENT ON TABLE public.medical_director_voice_messages IS
   'Encrypted, caller-confirmed messages for the Medical Director; no raw audio, full transcripts, or raw Twilio Call SIDs.';
+
+-- A confirmed caller message is immutable. Only delivery, matching, and
+-- Medical Director workflow fields may change after insertion.
+CREATE OR REPLACE FUNCTION public.enforce_medical_director_voice_message_immutability()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.call_sid_fingerprint IS DISTINCT FROM OLD.call_sid_fingerprint
+    OR NEW.payload_enc IS DISTINCT FROM OLD.payload_enc
+    OR NEW.category IS DISTINCT FROM OLD.category
+    OR NEW.callback_requested IS DISTINCT FROM OLD.callback_requested
+    OR NEW.patient_details_complete IS DISTINCT FROM OLD.patient_details_complete
+    OR NEW.created_at IS DISTINCT FROM OLD.created_at
+  THEN
+    RAISE EXCEPTION 'confirmed Medical Director voice message fields are immutable';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.enforce_medical_director_voice_message_immutability()
+  FROM PUBLIC, anon, authenticated;
+
+CREATE TRIGGER medical_director_voice_messages_immutable_payload
+  BEFORE UPDATE ON public.medical_director_voice_messages
+  FOR EACH ROW
+  EXECUTE FUNCTION public.enforce_medical_director_voice_message_immutability();

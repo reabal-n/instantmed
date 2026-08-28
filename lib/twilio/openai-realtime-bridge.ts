@@ -47,6 +47,14 @@ const mediaEventSchema = z.object({
   event: z.literal("media"),
   media: z.object({
     payload: z.string().min(1).max(MAX_AUDIO_CHUNK_LENGTH),
+    timestamp: z.string().regex(/^\d+$/).optional(),
+  }),
+})
+
+const markEventSchema = z.object({
+  event: z.literal("mark"),
+  mark: z.object({
+    name: z.string().min(1).max(256),
   }),
 })
 
@@ -138,6 +146,13 @@ export function attachTwilioOpenAIRealtimeBridge(
   let openaiSocket: VoiceSocket | null = null
   let session: TwilioVoiceSession | null = null
   let streamSid: string | null = null
+  let latestTwilioMediaTimestampMs = 0
+  let assistantItemId: string | null = null
+  let assistantResponseStartedAtMs: number | null = null
+  let assistantAudioDurationMs = 0
+  let assistantResponseDone = false
+  let assistantMarkSequence = 0
+  const pendingAssistantMarks = new Set<string>()
   const queuedAudio: string[] = []
 
   const callTimeout = dependencies.setCallTimeout(() => {
@@ -171,6 +186,14 @@ export function attachTwilioOpenAIRealtimeBridge(
     if (origin !== "twilio" && twilioSocket.readyState === OPEN_SOCKET) {
       twilioSocket.close(code, reason)
     }
+  }
+
+  function resetAssistantPlaybackState() {
+    assistantItemId = null
+    assistantResponseStartedAtMs = null
+    assistantAudioDurationMs = 0
+    assistantResponseDone = false
+    pendingAssistantMarks.clear()
   }
 
   async function handleFunctionCall(value: unknown) {
@@ -238,26 +261,94 @@ export function attachTwilioOpenAIRealtimeBridge(
     const value = event as Record<string, unknown>
 
     if (value.type === "response.output_audio.delta" && typeof value.delta === "string" && streamSid) {
+      const itemId = typeof value.item_id === "string" ? value.item_id : null
+      if (itemId && itemId !== assistantItemId) {
+        resetAssistantPlaybackState()
+        assistantItemId = itemId
+        assistantResponseStartedAtMs = latestTwilioMediaTimestampMs
+      } else if (assistantResponseStartedAtMs === null) {
+        assistantResponseStartedAtMs = latestTwilioMediaTimestampMs
+      }
+      assistantAudioDurationMs += Buffer.from(value.delta, "base64").byteLength / 8
       send(twilioSocket, {
         event: "media",
         streamSid,
         media: { payload: value.delta },
       })
+      const markName = `assistant-audio-${++assistantMarkSequence}`
+      if (send(twilioSocket, {
+        event: "mark",
+        streamSid,
+        mark: { name: markName },
+      })) {
+        pendingAssistantMarks.add(markName)
+      }
       return
     }
 
     if (value.type === "input_audio_buffer.speech_started" && streamSid) {
       send(twilioSocket, { event: "clear", streamSid })
+      if (
+        assistantItemId &&
+        assistantResponseStartedAtMs !== null &&
+        pendingAssistantMarks.size > 0
+      ) {
+        send(openaiSocket, {
+          type: "conversation.item.truncate",
+          item_id: assistantItemId,
+          content_index: 0,
+          audio_end_ms: Math.round(Math.max(
+            0,
+            Math.min(
+              latestTwilioMediaTimestampMs - assistantResponseStartedAtMs,
+              assistantAudioDurationMs,
+            ),
+          )),
+        })
+      }
+      resetAssistantPlaybackState()
       return
     }
 
     if (value.type === "response.done") {
+      assistantResponseDone = true
+      if (pendingAssistantMarks.size === 0) {
+        resetAssistantPlaybackState()
+      }
+
       const output = (value.response as { output?: unknown } | undefined)?.output
       if (!Array.isArray(output)) return
-      const call = output.find((item) =>
+      const functionCalls = output.filter((item) =>
         typeof item === "object" && item !== null && (item as { type?: unknown }).type === "function_call",
       )
+      const call = functionCalls.find((item) =>
+        (item as { name?: unknown }).name === "deliver_emergency_direction",
+      ) ?? functionCalls[0]
       if (call) void handleFunctionCall(call)
+      return
+    }
+
+    if (value.type === "response.output_audio.done") {
+      assistantResponseDone = true
+      if (pendingAssistantMarks.size === 0) {
+        resetAssistantPlaybackState()
+      }
+      return
+    }
+
+    if (value.type === "error") {
+      shutdown("openai", 1011, "Assistant connection failed")
+      if (openaiSocket?.readyState === OPEN_SOCKET) {
+        openaiSocket.close(1011, "Assistant connection failed")
+      }
+      return
+    }
+  }
+
+  function handleTwilioMark(event: z.infer<typeof markEventSchema>) {
+    pendingAssistantMarks.delete(event.mark.name)
+    if (assistantResponseDone && pendingAssistantMarks.size === 0) {
+      resetAssistantPlaybackState()
     }
   }
 
@@ -306,11 +397,19 @@ export function attachTwilioOpenAIRealtimeBridge(
     const maybeMedia = mediaEventSchema.safeParse(event)
     if (maybeMedia.success) {
       const audio = maybeMedia.data.media.payload
+      const timestamp = maybeMedia.data.media.timestamp
+      if (timestamp) latestTwilioMediaTimestampMs = Number.parseInt(timestamp, 10)
       if (openaiReady) {
         send(openaiSocket, { type: "input_audio_buffer.append", audio })
       } else if (queuedAudio.length < MAX_QUEUED_AUDIO_CHUNKS) {
         queuedAudio.push(audio)
       }
+      return
+    }
+
+    const maybeMark = markEventSchema.safeParse(event)
+    if (maybeMark.success) {
+      handleTwilioMark(maybeMark.data)
       return
     }
 
