@@ -73,6 +73,17 @@ describe("commercial SEO contract", () => {
     }
   })
 
+  it("renders only intent-hub clusters backed by the registry", () => {
+    const intentHub = read("app/intent/page.tsx")
+
+    for (const cluster of ["medical-certificate", "repeat-prescription", "comparison"]) {
+      expect(intentPages.some((page) => page.commercial.cluster === cluster)).toBe(true)
+    }
+
+    expect(intentHub).not.toContain('location: "City and state pages"')
+    expect(intentHub).not.toContain('"location",')
+  })
+
   it("requires every page to have first-screen answer, price, source links, internal links, FAQs, and a local visual", () => {
     for (const page of intentPages) {
       expect(page.commercial.answer.length, page.slug).toBeGreaterThan(70)
@@ -199,18 +210,21 @@ describe("commercial SEO contract", () => {
   it("resolves retired city certificate URLs to their selected final owners", async () => {
     const { default: nextConfig } = await import("../../next.config.mjs")
     const redirects = await nextConfig.redirects?.()
-    const redirectBySource = new Map(
-      (redirects ?? []).map((redirect) => [redirect.source, redirect]),
-    )
     const rootSitemap = read("app/sitemap.ts")
 
+    function redirectFor(source: string) {
+      const matches = (redirects ?? []).filter((redirect) => redirect.source === source)
+      expect(matches, source).toHaveLength(1)
+      return matches[0]
+    }
+
     for (const city of ["sydney", "melbourne", "brisbane", "perth", "adelaide"]) {
-      expect(redirectBySource.get(`/medical-certificate/${city}`)).toMatchObject({
+      expect(redirectFor(`/medical-certificate/${city}`)).toMatchObject({
         destination: `/locations/${city}`,
         permanent: true,
       })
       expect(
-        redirectBySource.get(`/intent/medical-certificate-online-${city}`),
+        redirectFor(`/intent/medical-certificate-online-${city}`),
       ).toMatchObject({
         destination: `/locations/${city}`,
         permanent: true,
@@ -222,7 +236,7 @@ describe("commercial SEO contract", () => {
       "/medical-certificate/gold-coast",
       "/intent/medical-certificate-online-gold-coast",
     ]) {
-      expect(redirectBySource.get(source)).toMatchObject({
+      expect(redirectFor(source)).toMatchObject({
         destination: "/medical-certificate",
         permanent: true,
       })

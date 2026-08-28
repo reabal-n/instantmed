@@ -55,27 +55,30 @@ async function fetchText(url) {
   }
 }
 
-function metricRow(row) {
-  return {
-    page: row.keys?.[0] ?? "",
-    clicks: row.clicks ?? 0,
-    impressions: row.impressions ?? 0,
-    ctr: row.ctr ?? 0,
-    position: row.position ?? 0,
-  }
-}
-
 function normalizeBrandQuery(value) {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "")
 }
 
-function publicPagePath(value) {
+function publicPage(value) {
   try {
     const url = new URL(value)
-    return PUBLIC_SITE_HOSTS.has(url.hostname) ? url.pathname : null
+    if (!PUBLIC_SITE_HOSTS.has(url.hostname)) return null
+
+    return {
+      path: url.pathname,
+      url: `${SITE_ORIGIN}${url.pathname}`,
+    }
   } catch {
     return null
   }
+}
+
+function publicPagePath(value) {
+  return publicPage(value)?.path ?? null
+}
+
+function publicPageUrl(value) {
+  return publicPage(value)?.url ?? null
 }
 
 function sitemapGroup(url) {
@@ -120,8 +123,34 @@ async function getPerformancePages(searchconsole, startDate, endDate) {
     },
   })
 
-  return (response.data.rows ?? [])
-    .map(metricRow)
+  const pages = new Map()
+  for (const row of response.data.rows ?? []) {
+    const page = publicPageUrl(row.keys?.[0] ?? "")
+    if (!page) continue
+
+    const clicks = row.clicks ?? 0
+    const impressions = row.impressions ?? 0
+    const position = row.position ?? 0
+    const current = pages.get(page) ?? {
+      page,
+      clicks: 0,
+      impressions: 0,
+      positionImpressions: 0,
+    }
+    current.clicks += clicks
+    current.impressions += impressions
+    current.positionImpressions += position * impressions
+    pages.set(page, current)
+  }
+
+  return [...pages.values()]
+    .map((row) => ({
+      page: row.page,
+      clicks: row.clicks,
+      impressions: row.impressions,
+      ctr: row.impressions > 0 ? row.clicks / row.impressions : 0,
+      position: row.impressions > 0 ? row.positionImpressions / row.impressions : 0,
+    }))
     .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
 }
 
@@ -269,7 +298,7 @@ async function main() {
   console.log(JSON.stringify(report, null, 2))
 }
 
-export { getBrandedLandingPages, publicPagePath }
+export { getBrandedLandingPages, getPerformancePages, publicPagePath }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((error) => {

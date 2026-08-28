@@ -4,8 +4,31 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { BRANDED_SEARCH_LINKS } from "@/lib/seo/branded-search-links"
+import { getAllIntentSlugs } from "@/lib/seo/intents"
 
 const root = process.cwd()
+
+const EXPECTED_INTENT_SLUGS = [
+  "same-day-medical-certificate",
+  "medical-certificate-for-work",
+  "online-sick-certificate",
+  "one-day-medical-certificate",
+  "two-day-medical-certificate",
+  "medical-certificate-for-cold-and-flu",
+  "medical-certificate-for-mental-health-day",
+  "carers-leave-certificate-online",
+  "student-medical-certificate-online",
+  "medical-certificate-for-shift-workers",
+  "repeat-prescription-online",
+  "after-hours-repeat-prescription",
+  "weekend-repeat-prescription",
+  "urgent-repeat-prescription-online",
+  "online-doctor-certificate-australia",
+  "telehealth-medical-certificate-vs-gp",
+  "online-medical-certificate-comparison",
+  "instant-scripts-alternative-medical-certificate",
+  "bulk-billed-telehealth-vs-instantmed",
+]
 
 function read(path: string) {
   return readFileSync(join(root, path), "utf8")
@@ -42,60 +65,45 @@ describe("SEO indexing contracts", () => {
   it("gives each indexed city pair one resolved HTTP 308 canonical owner", async () => {
     const { default: nextConfig } = await import("../../next.config.mjs")
     const redirects = await nextConfig.redirects?.()
-    const redirectBySource = new Map(
-      (redirects ?? []).map((redirect) => [redirect.source, redirect]),
-    )
     const sitemap = read("app/sitemap.ts")
     const locationPolicy = read("lib/seo/index-policy.ts")
     const medCertLocationBlock = sitemap.match(
       /const medCertLocationSlugs = \[([\s\S]*?)\]/,
     )?.[1]
 
-    for (const city of [
-      "sydney",
-      "melbourne",
-      "brisbane",
-      "perth",
-      "adelaide",
-      "canberra",
-    ]) {
-      expect(redirectBySource.get(`/medical-certificate/${city}`)).toMatchObject({
-        destination: `/locations/${city}`,
-        permanent: true,
-      })
-      expect(medCertLocationBlock).not.toContain(`"${city}"`)
-      expect(locationPolicy).toContain(`"${city}"`)
+    const redirectOwners = [
+      ...["sydney", "melbourne", "brisbane", "perth", "adelaide", "canberra"].map(
+        (city) => ({ source: `/medical-certificate/${city}`, destination: `/locations/${city}` }),
+      ),
+      ...["sydney", "melbourne", "brisbane", "perth", "adelaide"].map(
+        (city) => ({
+          source: `/intent/medical-certificate-online-${city}`,
+          destination: `/locations/${city}`,
+        }),
+      ),
+      { source: "/medical-certificate/gold-coast", destination: "/medical-certificate" },
+      {
+        source: "/intent/medical-certificate-online-gold-coast",
+        destination: "/medical-certificate",
+      },
+    ]
+
+    expect(redirectOwners).toHaveLength(13)
+    for (const { source, destination } of redirectOwners) {
+      const matches = (redirects ?? []).filter((redirect) => redirect.source === source)
+      expect(matches, source).toHaveLength(1)
+      expect(matches[0]).toMatchObject({ destination, permanent: true })
     }
 
-    for (const city of [
-      "sydney",
-      "melbourne",
-      "brisbane",
-      "perth",
-      "adelaide",
-    ]) {
-      expect(
-        redirectBySource.get(`/intent/medical-certificate-online-${city}`),
-      ).toMatchObject({
-        destination: `/locations/${city}`,
-        permanent: true,
-      })
+    for (const city of ["sydney", "melbourne", "brisbane", "perth", "adelaide", "canberra"]) {
+      expect(medCertLocationBlock).not.toContain(`"${city}"`)
+      expect(locationPolicy).toContain(`"${city}"`)
     }
 
     for (const city of ["parramatta", "hobart", "darwin"]) {
       expect(medCertLocationBlock).toContain(`"${city}"`)
     }
 
-    expect(redirectBySource.get("/medical-certificate/gold-coast")).toMatchObject({
-      destination: "/medical-certificate",
-      permanent: true,
-    })
-    expect(
-      redirectBySource.get("/intent/medical-certificate-online-gold-coast"),
-    ).toMatchObject({
-      destination: "/medical-certificate",
-      permanent: true,
-    })
     expect(
       (redirects ?? []).some(
         (redirect) =>
@@ -127,6 +135,15 @@ describe("SEO indexing contracts", () => {
     }
 
     expect(intentSitemap).toContain("return []")
+  })
+
+  it("executes the pruned intent registry for static params", async () => {
+    const { generateStaticParams } = await import("../../app/intent/[slug]/page")
+
+    expect(getAllIntentSlugs()).toEqual(EXPECTED_INTENT_SLUGS)
+    expect(generateStaticParams()).toEqual(
+      EXPECTED_INTENT_SLUGS.map((slug) => ({ slug })),
+    )
   })
 
   it("allows ChatGPT Search crawler to discover public source pages", () => {
@@ -368,11 +385,14 @@ describe("SEO indexing contracts", () => {
     expect(auditScript).not.toContain("indexing.urlNotifications.publish")
   })
 
-  it("keeps branded landing helpers importable without running the audit", () => {
-    const auditScript = read("tools/gsc-mcp-server/gsc-index-audit.mjs")
+  it("keeps branded landing helpers importable without running the audit", async () => {
+    const { getBrandedLandingPages, getPerformancePages, publicPagePath } = await import(
+      "../../tools/gsc-mcp-server/gsc-index-audit.mjs"
+    )
 
-    expect(auditScript).toContain("export { getBrandedLandingPages, publicPagePath }")
-    expect(auditScript).toContain("import.meta.url")
+    expect(getBrandedLandingPages).toBeTypeOf("function")
+    expect(getPerformancePages).toBeTypeOf("function")
+    expect(publicPagePath).toBeTypeOf("function")
   })
 
   it("aggregates branded landings only for public InstantMed hosts", async () => {
@@ -423,6 +443,47 @@ describe("SEO indexing contracts", () => {
     ])
     expect(JSON.stringify(brandedLandingPages)).not.toContain(brandedInput)
     expect(JSON.stringify(brandedLandingPages)).not.toContain("keys")
+  })
+
+  it("aggregates public performance pages without serializing raw page inputs", async () => {
+    const { getPerformancePages } = await import(
+      "../../tools/gsc-mcp-server/gsc-index-audit.mjs"
+    )
+
+    const performancePages = await getPerformancePages(
+      {
+        searchanalytics: {
+          query: async () => ({
+            data: {
+              rows: [
+                { keys: ["https://instantmed.com.au/prescriptions?gclid=first#top"], clicks: 2, impressions: 10, position: 2 },
+                { keys: ["https://www.instantmed.com.au/prescriptions?utm_source=www"], clicks: 3, impressions: 30, position: 8 },
+                { keys: ["https://staging.instantmed.com.au/prescriptions?gclid=staging"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://example.com/prescriptions?gclid=external"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["not a URL"], clicks: 100, impressions: 200, position: 1 },
+              ],
+            },
+          }),
+        },
+      },
+      "2026-05-27",
+      "2026-08-25",
+    )
+
+    expect(performancePages).toEqual([
+      {
+        page: "https://instantmed.com.au/prescriptions",
+        clicks: 5,
+        impressions: 40,
+        ctr: 0.125,
+        position: 6.5,
+      },
+    ])
+    const serialized = JSON.stringify(performancePages)
+    expect(serialized).not.toContain("gclid")
+    expect(serialized).not.toContain("utm_source")
+    expect(serialized).not.toContain("staging")
+    expect(serialized).not.toContain("example.com")
   })
 
   it("inspects current money pages by default in GSC indexing audits", () => {

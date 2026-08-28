@@ -16,26 +16,26 @@ import {
 export const metadata: Metadata = {
   robots: ICEBOX_ROBOTS,
   title: "Commercial Telehealth Pages | InstantMed",
-  description: "Find InstantMed's highest-intent service pages: medical certificates, repeat prescription review, city pages, and service comparisons.",
+  description: "Find InstantMed's highest-intent service pages: medical certificates, repeat prescription review, and service comparisons.",
   openGraph: {
     title: "Commercial Telehealth Pages | InstantMed",
-    description: "Medical certificate, repeat prescription, city, and comparison pages reviewed for compliant commercial intent.",
+    description: "Medical certificate, repeat prescription, and comparison pages reviewed for compliant commercial intent.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/intent",
   },
 }
 
-const clusterLabels: Record<CommercialIntentCluster, string> = {
+type IntentHubCluster = Exclude<CommercialIntentCluster, "location">
+
+const clusterLabels: Record<IntentHubCluster, string> = {
   "medical-certificate": "Medical certificates",
   "repeat-prescription": "Repeat prescriptions",
-  location: "City and state pages",
   comparison: "Service comparisons",
 }
 
-const clusterOrder: CommercialIntentCluster[] = [
+const clusterOrder: IntentHubCluster[] = [
   "medical-certificate",
-  "location",
   "repeat-prescription",
   "comparison",
 ]
