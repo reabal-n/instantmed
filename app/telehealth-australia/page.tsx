@@ -247,7 +247,7 @@ export default function TelehealthAustraliaPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-primary" />
-                  Doctor review before certificate issue
+                  Clinical assessment before issue
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Shield className="w-4 h-4 text-primary" />

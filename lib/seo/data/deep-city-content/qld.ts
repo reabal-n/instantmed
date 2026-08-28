@@ -32,7 +32,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Medical Certificates for Queensland Workers",
         paragraphs: [
           "Queensland's economy has a significant proportion of shift workers, FIFO (fly-in, fly-out) workers, and casual employees. Mining, construction, hospitality, and healthcare are all major employers - and all involve work schedules that don't align with standard GP clinic hours. Getting a medical certificate shouldn't require taking an additional day off.",
-          "Under the Fair Work Act, Queensland employees have the same leave entitlements as workers in other states. Employers can request a medical certificate for any personal/carer's leave absence, and certificates from AHPRA-registered doctors via telehealth can be used as evidence. Queensland government departments, local councils, and all major employers assess telehealth-issued certificates under their own policies.",
+          `Under the Fair Work Act, Queensland employees have the same leave entitlements as workers in other states. Employers set their own policies for medical certificates and leave evidence. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
           "For FIFO workers based in Brisbane but working in remote Queensland, telehealth is particularly valuable. If you're on R&R in Brisbane and fall ill, you may need documentation for an employer based in Perth or elsewhere. InstantMed certificates are issued by AHPRA-registered doctors and employer policies may vary across Australia.",
         ],
       },

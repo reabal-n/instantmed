@@ -171,13 +171,18 @@ describe("customer growth baseline", () => {
       { utm_medium: "referral", landing_page: "/verify/IM-WORK-20260815-12345678" },
       { utm_medium: "referral", landing_page: "/verify/IM-STUDY-20260815-12345678" },
       { utm_medium: "referral", landing_page: "/verify/IM-CARER-20260815-12345678" },
+      { utm_medium: "referral", landing_page: "/track/signed-request-access-token" },
+      { utm_medium: "referral", landing_page: "/resume/signed-checkout-resume-token" },
+      { utm_medium: "referral", landing_page: "/auth/complete-account/signed-account-token" },
+      { utm_medium: "referral", landing_page: "/dashboard/intakes/2c82f788-1769-4cf7-97d7-d40db36ad859" },
+      { utm_medium: "referral", landing_page: "/campaign/2c82f788-1769-4cf7-97d7-d40db36ad859" },
       { gclid: "diagnostic-click-id", landing_page: "/prescriptions" },
       { utm_medium: "referral", landing_page: "http://[" },
       { utm_medium: "referral" },
     ])
 
     expect(rows).toEqual([
-      { group: "referral", landingPage: "/unknown", orders: 5 },
+      { group: "referral", landingPage: "/unknown", orders: 10 },
       { group: "ai_referral", landingPage: "/medical-certificate-online", orders: 3 },
       { group: "referral", landingPage: "/verify", orders: 3 },
       { group: "organic_brand", landingPage: "/", orders: 2 },
@@ -190,6 +195,10 @@ describe("customer growth baseline", () => {
     expect(JSON.stringify(rows)).not.toContain("IM-WORK-20260815-12345678")
     expect(JSON.stringify(rows)).not.toContain("IM-STUDY-20260815-12345678")
     expect(JSON.stringify(rows)).not.toContain("IM-CARER-20260815-12345678")
+    expect(JSON.stringify(rows)).not.toContain("signed-request-access-token")
+    expect(JSON.stringify(rows)).not.toContain("signed-checkout-resume-token")
+    expect(JSON.stringify(rows)).not.toContain("signed-account-token")
+    expect(JSON.stringify(rows)).not.toContain("2c82f788-1769-4cf7-97d7-d40db36ad859")
   })
 
   it("uses exact AUD refund and dispute cash events for rolling net-retained revenue", async () => {

@@ -11,6 +11,7 @@ import type { DeepCityContent } from "../deep-city-content"
 const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
 const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
 export const NSW_CITIES: Record<string, DeepCityContent> = {
   sydney: {
@@ -32,8 +33,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "When Telehealth Makes Sense in Sydney",
         paragraphs: [
-          "Telehealth isn't a replacement for your regular GP - it's a practical alternative for specific situations. Medical certificates for straightforward illnesses (cold, flu, gastro, migraine) are ideal for telehealth because they rarely require a physical examination. The doctor reviews your symptoms, medical history, and assesses whether a certificate is clinically appropriate - the same process as an in-person consult, without the waiting room.",
-          "Repeat prescriptions for stable, ongoing medications are another area where telehealth excels. If you've been taking the same blood pressure medication for two years and just need a repeat, there's no clinical reason you need to sit in a waiting room for 45 minutes. Your GP remains your primary care provider for medication reviews and changes.",
+          `Telehealth isn't a replacement for your regular GP. Whether an online request is suitable depends on the symptoms, history, and whether an examination or other in-person care is needed. ${CLINICAL_REVIEW_SEQUENCE}`,
+          "Repeat-prescription review may fit when the medicine, dose, and clinical history are stable. Every prescribing request requires an AHPRA-registered doctor outcome, and the doctor may ask questions, call, decline, or recommend in-person care.",
           `That said, some things genuinely need an in-person visit: workplace injuries requiring WorkCover certificates, conditions that need physical examination (suspicious skin lesions, joint injuries, chest pain), and anything requiring blood tests or imaging. ${REFUND_PAYMENT_PROCESS}`,
         ],
       },
@@ -41,8 +42,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "Understanding Medical Certificates in NSW",
         paragraphs: [
           "Under the Fair Work Act 2009, Australian employees are entitled to personal/carer's leave (10 days per year for full-time workers). Employers can request evidence for absences, and the Act uses an evidence standard rather than a consultation-format rule. A certificate from an AHPRA-registered doctor via telehealth can support routine absence review.",
-          "NSW employers, including state government agencies, assess telehealth-issued medical certificates under their own policies. The certificate must include the doctor's name and AHPRA registration, the date of consultation, and the recommended period of absence. InstantMed certificates include all required elements and are formatted identically to what you'd receive from a GP clinic.",
-          "For university students in Sydney - whether at USYD, UNSW, UTS, Macquarie, or WSU - our certificates are used as supporting documentation for academic support requests, coursework documentation, and missed assessment documentation. Each university has slightly different requirements, but all set their own policies for certificates from AHPRA-registered doctors regardless of consultation method.",
+          `NSW employers, including state government agencies, assess medical documentation under their own policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
+          `Sydney universities, including USYD, UNSW, UTS, Macquarie, and WSU, set their own requirements for academic support, coursework documentation, and missed assessments. Check the current policy before submitting a request. ${MED_CERT_DOCUMENT_SCOPE}`,
         ],
       },
     ],
@@ -64,7 +65,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Do I need a Medicare card to use InstantMed in Sydney?", a: `Medical certificates do not require Medicare. ${getApprovedClaim("prescribing_identity_required")} PBS eligibility and final pharmacy pricing are confirmed separately at the pharmacy if a prescription is approved.` },
       { q: "Can I get a medical certificate for a mental health day?", a: "Yes. Mental health is a valid reason for a medical certificate. Our doctors assess mental health-related requests with the same clinical rigour as physical illness. You don't need to disclose the specific nature of your condition to your employer - the certificate simply states you were unfit for work." },
-      { q: "Is a telehealth medical certificate legal in NSW?", a: "Yes. There is no legal requirement for medical certificates to be issued in person. The Fair Work Act requires a certificate from a registered health practitioner - our AHPRA-registered doctors meet this requirement. NSW government employers, universities, and private employers all assess telehealth-issued certificates under their own policies." },
+      { q: "How should I check NSW workplace documentation requirements?", a: `NSW employers set their own policies for medical certificates and leave evidence. Check the current policy for your request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "What suburbs does InstantMed cover in Sydney?", a: "InstantMed is available everywhere in Greater Sydney and NSW - from the Northern Beaches to Campbelltown, Penrith to the Eastern Suburbs. It's an online service, so your location doesn't matter as long as you have internet access." },
       { q: "Can I use InstantMed if I'm visiting Sydney?", a: "Yes. You don't need to be a Sydney resident. If you're visiting for work or travel and need a medical certificate, our doctors can help. You don't need a local address or a GP in the area." },
     ],

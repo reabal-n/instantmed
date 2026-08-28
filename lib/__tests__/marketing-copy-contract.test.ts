@@ -231,9 +231,13 @@ describe("marketing copy contracts", () => {
 
       const renderedDeepCityContent = JSON.stringify(deepCityContent)
       expect(renderedDeepCityContent, city).not.toMatch(
-        /cannot refuse|requires acceptance|accepted under all|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|(?:consultation method|method of consultation).{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity|workplace evidence status)|(?:certificate&apos;s|certificate's|workplace evidence status).{0,120}(?:is|are) not affected by.{0,80}(?:consultation|telehealth)|(?:recognis(?:e|es)|recogniz(?:e|es)).{0,120}(?:medical cert|telehealth-issued certificate|certificate)|meets (?:your )?leave requirements|(?:medical certificates?|telehealth-issued certificates?|certificates?).{0,100}(?:are|can be).{0,60}evidence for leave|(?:certificate|cert).{0,100}next working day|(?:you|we) (?:won&apos;t|won't|will not|aren&apos;t|aren't|are not) charged/i,
+        /cannot refuse|requires acceptance|accepted under all|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|ideal for telehealth|no clinical reason.{0,80}(?:in-person|waiting room)|same process as an in-person|(?:consultation method|method of consultation).{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity|workplace evidence status)|(?:certificate&apos;s|certificate's|workplace evidence status).{0,120}(?:is|are) not affected by.{0,80}(?:consultation|telehealth)|(?:recognis(?:e|es)|recogniz(?:e|es)).{0,120}(?:medical cert|telehealth-issued certificate|certificate)|meets (?:your )?leave requirements|meet(?:s)? (?:this|the )?requirement|(?:medical certificates?|telehealth-issued certificates?|certificates?).{0,100}(?:are|can be)(?: used as)?.{0,60}evidence|(?:certificate|cert).{0,100}(?:all required elements|formatted identically|next working day)|(?:you|we) (?:(?:won&apos;t|won't|will not)(?: be)?|aren&apos;t|aren't|are not) charged|14-day response SLA/i,
       )
     }
+
+    expect(telehealthAustraliaSource).not.toMatch(
+      /doctor review before certificate issue/i,
+    )
 
     expect(locationPageSource).toContain(
       'getApprovedClaim("med_cert_document_scope")',

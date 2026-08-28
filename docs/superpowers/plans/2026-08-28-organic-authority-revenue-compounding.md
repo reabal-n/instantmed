@@ -399,7 +399,9 @@ it("reports redacted branded landing pages without adding an indexing mutation",
 
   expect(auditScript).toContain("getBrandedLandingPages")
   expect(auditScript).toContain('dimensions: ["query", "page"]')
-  expect(auditScript).toContain("normalizeBrandQuery")
+  expect(auditScript).toContain("isBrandedQuery")
+  expect(auditScript).toContain("PUBLIC_SITE_HOSTS")
+  expect(auditScript).toContain('normalizedPath.startsWith("/verify/")')
   expect(auditScript).toContain("brandedLandingPages")
   expect(auditScript).not.toContain("query: row.keys")
   expect(auditScript).not.toContain("indexing.urlNotifications.publish")
@@ -412,19 +414,44 @@ it("reports redacted branded landing pages without adding an indexing mutation",
 corepack pnpm exec vitest run lib/__tests__/seo-indexing-contract.test.ts
 ```
 
-- [ ] Add normalized brand matching and a query/page read:
+- [ ] Add token-aware brand matching, fail-closed public-page canonicalization,
+  and a query/page read. Accept only the apex and `www` HTTP(S) hosts, merge
+  trailing-slash/root aliases, and collapse every `/verify/*` credential path
+  to `/verify` before aggregation:
 
 ```js
-function normalizeBrandQuery(value) {
-  return value.toLowerCase().replace(/[^a-z0-9]/g, "")
+const PUBLIC_SITE_HOSTS = new Set(["instantmed.com.au", "www.instantmed.com.au"])
+
+function isBrandedQuery(value) {
+  const tokens = value.toLowerCase().match(/[a-z0-9]+/g) ?? []
+
+  return tokens.some(
+    (token, index) =>
+      token === "instantmed" ||
+      (token === "instant" && tokens[index + 1] === "med"),
+  )
+}
+
+function publicPage(value) {
+  try {
+    const url = new URL(value)
+    if (
+      !PUBLIC_SITE_HOSTS.has(url.hostname) ||
+      (url.protocol !== "http:" && url.protocol !== "https:")
+    ) return null
+    const normalizedPath = url.pathname.replace(/\/+$/, "") || "/"
+    const path = normalizedPath === "/verify" || normalizedPath.startsWith("/verify/")
+      ? "/verify"
+      : normalizedPath
+
+    return { path, url: `${SITE_ORIGIN}${path}` }
+  } catch {
+    return null
+  }
 }
 
 function publicPagePath(value) {
-  try {
-    return new URL(value, SITE_ORIGIN).pathname
-  } catch {
-    return "/unknown"
-  }
+  return publicPage(value)?.path ?? null
 }
 
 async function getBrandedLandingPages(searchconsole, startDate, endDate) {
@@ -441,8 +468,9 @@ async function getBrandedLandingPages(searchconsole, startDate, endDate) {
 
   const pages = new Map()
   for (const row of response.data.rows ?? []) {
-    if (!normalizeBrandQuery(row.keys?.[0] ?? "").includes("instantmed")) continue
+    if (!isBrandedQuery(row.keys?.[0] ?? "")) continue
     const page = publicPagePath(row.keys?.[1] ?? "")
+    if (!page) continue
     const current = pages.get(page) ?? { page, clicks: 0, impressions: 0 }
     current.clicks += row.clicks ?? 0
     current.impressions += row.impressions ?? 0
@@ -458,7 +486,12 @@ async function getBrandedLandingPages(searchconsole, startDate, endDate) {
 }
 ```
 
-- [ ] Fetch it alongside page performance and write only the aggregate rows to `report.brandedLandingPages`. Do not write exact Search Console query strings, even when they contain the brand token.
+- [ ] Fetch it alongside page performance and write only the aggregate rows to
+  `report.brandedLandingPages`. Contract-test generic `instant medical...`
+  false positives, external/staging/non-HTTP hosts, query/fragment stripping,
+  root/trailing-slash merging, and `/verify/*` credential redaction. Do not
+  write exact Search Console query strings, even when they contain the brand
+  token.
 
 - [ ] Preserve the `webmasters.readonly` scope and absence of `urlNotifications.publish` or any submit script.
 

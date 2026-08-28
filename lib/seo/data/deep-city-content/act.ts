@@ -10,6 +10,7 @@ import type { DeepCityContent } from "../deep-city-content"
 
 const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
 
 export const ACT_CITIES: Record<string, DeepCityContent> = {
   canberra: {
@@ -57,7 +58,7 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "The ACT follows national AHPRA and Medical Board of Australia standards for telehealth. The ACT Government has actively promoted telehealth as part of its strategy to address the territory's GP shortage. ACT Health recognises telehealth as a legitimate healthcare delivery method for appropriate clinical scenarios.",
         "Prescribing in the ACT follows the TGA national framework. Most medications can be prescribed via telehealth and dispensed at any ACT pharmacy via eScript. Schedule 8 controlled substances require ACT Health authority. InstantMed does not prescribe Schedule 8 medications.",
-        "The ACT's health complaints process operates through the ACT Human Rights Commission, which handles complaints about all health services including telehealth. InstantMed maintains a formal complaints process aligned with AHPRA requirements - complaints@instantmed.com.au with a 14-day response SLA.",
+        `The ACT's health complaints process operates through the ACT Human Rights Commission, which handles complaints about health services including telehealth. InstantMed maintains a formal complaints process at complaints@instantmed.com.au. ${COMPLAINTS_TIMING}`,
       ],
     },
     additionalFaqs: [

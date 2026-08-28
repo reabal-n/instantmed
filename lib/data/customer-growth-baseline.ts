@@ -3,6 +3,7 @@ import {
   type AttributionSourceGroup,
   classifyAttributionSource,
 } from "@/lib/analytics/source-classification"
+import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 
 export type CustomerGrowthServiceBaseline = {
   grossRevenueAud: number
@@ -63,6 +64,7 @@ function publicLandingPath(value?: string | null): string {
     if (url.protocol !== "http:" && url.protocol !== "https:") return "/unknown"
     if (!PUBLIC_LANDING_HOSTS.has(url.hostname)) return "/unknown"
     const pathname = url.pathname.replace(/\/+$/, "") || "/"
+    if (isExternalAnalyticsExcludedPathname(pathname)) return "/unknown"
     return pathname === "/verify" || pathname.startsWith("/verify/") ? "/verify" : pathname
   } catch {
     return "/unknown"

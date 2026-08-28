@@ -4,8 +4,11 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 import type { DeepCityContent } from "../deep-city-content"
+
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 
 export const VIC_CITIES: Record<string, DeepCityContent> = {
   melbourne: {
@@ -61,7 +64,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
       { q: "Can I get a medical certificate for a mental health day in Melbourne?", a: "Yes. Mental health is a valid reason for a sick day and a medical certificate. Our doctors assess these requests with clinical rigour. Your employer is not entitled to know the specific nature of your condition - the certificate simply states you were unfit for work." },
       { q: "Is InstantMed cheaper than seeing a GP in Melbourne?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Melbourne's declining bulk-billing rates, a standard GP visit can cost $40–$80 out of pocket (gap fee after Medicare rebate). For a straightforward certificate, InstantMed is often the more affordable option.` },
       { q: "How should Monash or UniMelb students check medical-documentation requirements?", a: "Victorian universities set their own policies for medical certificates, academic support, coursework documentation, and missed assessments. Check the current process at Monash or the University of Melbourne before submitting a request." },
-      { q: "What if the doctor decides I need an in-person visit?", a: "If your symptoms or situation require a physical examination, the doctor will let you know and recommend you see a GP in person. You won't be charged for the consultation. We never issue a certificate if the clinical situation isn't appropriate for telehealth assessment." },
+      { q: "What if the doctor decides I need an in-person visit?", a: `If your symptoms or situation require a physical examination, the doctor will recommend you see a GP in person instead. ${REFUND_PAYMENT_PROCESS}` },
     ],
   },
   geelong: {

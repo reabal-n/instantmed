@@ -10,6 +10,7 @@ import type { DeepCityContent } from "../deep-city-content"
 
 const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 
 export const SA_CITIES: Record<string, DeepCityContent> = {
   adelaide: {
@@ -64,7 +65,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       { q: "Can I use InstantMed in regional SA?", a: "Yes. InstantMed works anywhere in South Australia with internet access - Adelaide, Mount Gambier, Port Augusta, Port Lincoln, the Riverland, or anywhere in between. The service and pricing are identical regardless of location." },
       { q: "Is InstantMed cheaper than a GP in Adelaide?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Adelaide's declining bulk-billing rates, many GPs now charge gap fees of $40–$80. For a straightforward medical certificate, InstantMed is often the more affordable option - with no hidden costs.` },
       { q: "How should Adelaide Uni or Flinders students check medical-documentation requirements?", a: "South Australian universities set their own policies for medical certificates, academic support, coursework documentation, and missed assessments. Check the current process at your institution before submitting a request." },
-      { q: "What if I need to see a doctor in person?", a: "If your symptoms or situation require a physical examination, our doctor will let you know and recommend an in-person GP visit. You won't be charged. We never issue a certificate if the clinical situation isn't appropriate for telehealth." },
+      { q: "What if I need to see a doctor in person?", a: `If your symptoms or situation require a physical examination, the doctor will recommend an in-person GP visit instead. ${REFUND_PAYMENT_PROCESS}` },
     ],
   },
   "mount-gambier": {
