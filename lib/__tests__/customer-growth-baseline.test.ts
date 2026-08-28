@@ -11,7 +11,9 @@ import {
   collectCustomerGrowthAttributionIntakeIds,
   countSentAbandonedCheckoutEmails,
   readCustomerGrowthAttributionRows,
+  readCustomerGrowthCreatedIntakeRows,
   readCustomerGrowthRevenueEvidence,
+  requireExactCustomerGrowthCount,
 } from "@/lib/data/customer-growth-revenue-read"
 import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
 
@@ -37,7 +39,9 @@ function customerGrowthRevenueClient(results: QueryResult[], calls: QueryCall[] 
           if (property === "then") {
             return (resolve: (value: QueryResult) => unknown) => Promise.resolve({
               ...result,
-              count: result.count ?? (Array.isArray(result.data) ? result.data.length : 1),
+              count: Object.hasOwn(result, "count")
+                ? result.count
+                : (Array.isArray(result.data) ? result.data.length : 1),
             }).then(resolve)
           }
           return (...args: unknown[]) => {
@@ -383,9 +387,45 @@ describe("customer growth baseline", () => {
       until,
     )).rejects.toThrow("Customer growth revenue evidence is incomplete")
     await expect(readCustomerGrowthAttributionRows(
-      customerGrowthRevenueClient([{ count: 1, data: [], error: null }]),
+      customerGrowthRevenueClient([{ count: 0, data: [], error: null }]),
       new Set(["paid-intake"]),
     )).rejects.toThrow("Customer growth attribution evidence is incomplete")
+  })
+
+  it("fails closed when the created-intake cohort is truncated", async () => {
+    const calls: QueryCall[] = []
+    await expect(readCustomerGrowthCreatedIntakeRows(
+      customerGrowthRevenueClient([{ count: 1_001, data: [], error: null }], calls),
+      "2026-06-01T00:00:00.000Z",
+      "2026-07-01T00:00:00.000Z",
+    )).rejects.toThrow("Customer growth intake cohort is incomplete")
+    expect(calls).toContainEqual({
+      args: ["category, subtype, status, payment_status, paid_at, amount_cents", { count: "exact" }],
+      method: "select",
+      table: "intakes",
+    })
+    expect(calls).toContainEqual({ args: [1_000], method: "limit", table: "intakes" })
+  })
+
+  it("reads every requested attribution ID across conservative batches", async () => {
+    const calls: QueryCall[] = []
+    const ids = new Set(Array.from({ length: 101 }, (_value, index) => `intake-${index}`))
+    const firstBatch = Array.from({ length: 100 }, (_value, index) => ({ id: `intake-${index}` }))
+    const secondBatch = [{ id: "intake-100" }]
+
+    await expect(readCustomerGrowthAttributionRows(
+      customerGrowthRevenueClient([
+        { count: 100, data: firstBatch, error: null },
+        { count: 1, data: secondBatch, error: null },
+      ], calls),
+      ids,
+    )).resolves.toEqual([...firstBatch, ...secondBatch])
+
+    expect(calls.filter((call) => call.method === "in" && call.table === "intakes"))
+      .toMatchObject([
+        { args: ["id", Array.from({ length: 100 }, (_value, index) => `intake-${index}`)] },
+        { args: ["id", ["intake-100"]] },
+      ])
   })
 
   it("counts abandoned checkout recovery only after an email was sent", async () => {
@@ -400,6 +440,18 @@ describe("customer growth baseline", () => {
       method: "eq",
       table: "email_outbox",
     })
+  })
+
+  it("rejects missing exact counts for aggregate metrics", async () => {
+    expect(() => requireExactCustomerGrowthCount("partial_intakes captured", {
+      count: null,
+    })).toThrow("partial_intakes captured count is incomplete")
+
+    await expect(countSentAbandonedCheckoutEmails(
+      customerGrowthRevenueClient([{ count: null, data: [], error: null }]),
+      "2026-06-01T00:00:00.000Z",
+      "2026-07-01T00:00:00.000Z",
+    )).rejects.toThrow("Abandoned checkout send count is incomplete")
   })
 
   it("rejects sensitive identifiers before baseline artifacts are written", () => {

@@ -16,6 +16,7 @@ import {
 import { REVENUE_PURCHASE_PAYMENT_STATUSES } from "@/lib/monitoring/revenue-safety"
 
 const MAX_DISPUTE_BASELINE_ROWS = 5_000
+const MAX_CREATED_INTAKE_ROWS = 1_000
 const MAX_PAID_ATTRIBUTION_ROWS = 100
 const MAX_PAID_REVENUE_ROWS = 5_000
 const MAX_REFUND_MOVEMENT_ROWS = 5_000
@@ -79,6 +80,29 @@ export type CustomerGrowthAttributionRow = AttributionClassificationInput & {
   id: string
 }
 
+export type CustomerGrowthCreatedIntakeRow = {
+  amount_cents: number | null
+  category: string | null
+  paid_at: string | null
+  payment_status: string | null
+  status: string | null
+  subtype: string | null
+}
+
+type ExactCountResult = {
+  count: number | null
+}
+
+export function requireExactCustomerGrowthCount(
+  label: string,
+  result: ExactCountResult,
+): number {
+  if (typeof result.count !== "number") {
+    throw new Error(`${label} count is incomplete`)
+  }
+  return result.count
+}
+
 export function collectCustomerGrowthAttributionIntakeIds(
   evidence: CustomerGrowthRevenueEvidence,
 ): Set<string> {
@@ -87,6 +111,38 @@ export function collectCustomerGrowthAttributionIntakeIds(
     ...evidence.refundRows.flatMap((row) => row.id ? [row.id] : []),
     ...evidence.disputeRows.flatMap((row) => row.intake_id ? [row.intake_id] : []),
   ])
+}
+
+export async function readCustomerGrowthCreatedIntakeRows(
+  supabase: SupabaseClient,
+  sinceIso: string,
+  untilIso: string,
+): Promise<CustomerGrowthCreatedIntakeRow[]> {
+  let result: QueryResponse<CustomerGrowthCreatedIntakeRow> & { count: number | null }
+  try {
+    result = await (filterReportableIntakes(
+      supabase
+        .from("intakes")
+        .select("category, subtype, status, payment_status, paid_at, amount_cents", { count: "exact" })
+        .gte("created_at", sinceIso)
+        .lte("created_at", untilIso)
+        .limit(MAX_CREATED_INTAKE_ROWS),
+    ) as unknown as PromiseLike<QueryResponse<CustomerGrowthCreatedIntakeRow> & {
+      count: number | null
+    }>)
+  } catch {
+    throw new Error("Customer growth intake cohort is unavailable")
+  }
+
+  const rows = result.data ?? []
+  if (
+    result.error ||
+    typeof result.count !== "number" ||
+    result.count !== rows.length
+  ) {
+    throw new Error("Customer growth intake cohort is incomplete")
+  }
+  return rows
 }
 
 export function buildCustomerGrowthRevenueForIntakeIds(
@@ -277,14 +333,16 @@ export async function readCustomerGrowthAttributionRows(
       throw new Error("Customer growth attribution evidence is unavailable")
     }
 
+    const data = result.data ?? []
     if (
       result.error ||
       typeof result.count !== "number" ||
-      result.count > (result.data?.length ?? 0)
+      result.count !== data.length ||
+      result.count !== chunk.length
     ) {
       throw new Error("Customer growth attribution evidence is incomplete")
     }
-    rows.push(...(result.data ?? []))
+    rows.push(...data)
   }
 
   return rows
@@ -308,7 +366,7 @@ export async function countSentAbandonedCheckoutEmails(
     throw new Error("Abandoned checkout send count is unavailable")
   }
   if (result.error) throw new Error("Abandoned checkout send count is unavailable")
-  return result.count ?? 0
+  return requireExactCustomerGrowthCount("Abandoned checkout send", result)
 }
 
 function normalizeRefundMovementRows(rows: RefundMovementReadRow[]): NetRetainedRefundRow[] {

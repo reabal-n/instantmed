@@ -18,10 +18,11 @@ import {
   collectCustomerGrowthAttributionIntakeIds,
   countSentAbandonedCheckoutEmails,
   readCustomerGrowthAttributionRows,
+  readCustomerGrowthCreatedIntakeRows,
   readCustomerGrowthRevenueEvidence,
+  requireExactCustomerGrowthCount,
 } from "@/lib/data/customer-growth-revenue-read"
 import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
-import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 
 import { hydrateLocalEnv } from "./video-review/local-env"
 
@@ -121,7 +122,7 @@ function serviceFromIntake(row: IntakeAggregateRow): string {
 async function countQuery(label: string, query: PromiseLike<CountResult>): Promise<number> {
   const result = await query
   if (result.error) throw new Error(`${label} count failed: ${result.error.message}`)
-  return result.count ?? 0
+  return requireExactCustomerGrowthCount(label, result)
 }
 
 async function querySupabaseBaseline(
@@ -133,20 +134,14 @@ async function querySupabaseBaseline(
   const sinceIso = since.toISOString()
   const nowIso = now.toISOString()
 
-  const [createdResult, revenueEvidence] = await Promise.all([
-    filterReportableIntakes(
-      supabase
-        .from("intakes")
-        .select("category, subtype, status, payment_status, paid_at, amount_cents")
-        .gte("created_at", sinceIso)
-        .lte("created_at", nowIso),
+  const [intakes, revenueEvidence] = await Promise.all([
+    readCustomerGrowthCreatedIntakeRows(
+      supabase,
+      sinceIso,
+      nowIso,
     ),
     readCustomerGrowthRevenueEvidence(supabase, since, now),
   ])
-  if (createdResult.error) {
-    throw new Error(`Supabase intake baseline query failed: ${createdResult.error.message}`)
-  }
-  const intakes = (createdResult.data ?? []) as IntakeAggregateRow[]
   const { disputeRows, paidRows, refundRows } = revenueEvidence
   const revenue = buildNetRetainedPurchaseValue({
     paidRows,
