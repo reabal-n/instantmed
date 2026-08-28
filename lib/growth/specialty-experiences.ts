@@ -29,9 +29,10 @@ export type SpecialtyExperienceVersion =
   | "spx_e2_20260828"
   | "spx_e3_20260828"
 
-// The dated IDs use the Sydney operating date. This is midnight AEST on the
-// same date, represented in UTC so runtime comparisons remain unambiguous.
-const ACTIVE_AT = "2026-08-27T14:00:00.000Z"
+// Exact Vercel production-ready boundary for merge SHA
+// ad2c450c1fa28b19c953e384d647fec11b42c58f. This prevents pre-deployment
+// traffic on the Sydney operating date from being treated as an active cohort.
+const ACTIVE_AT = "2026-08-28T05:13:53.870Z"
 
 export const SPECIALTY_EXPERIENCES: readonly SpecialtyExperienceDefinition[] = [
   {

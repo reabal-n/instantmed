@@ -86,11 +86,16 @@ describe("specialty experience registry", () => {
         "spx_h1_20260828",
         "hair_loss",
         "landing",
-        "2026-08-27T13:59:59.999Z",
+        "2026-08-28T05:13:53.869Z",
       ),
     ).toBeNull()
     expect(
-      normalizeSpecialtyExperienceVersion("spx_h1_20260828", "hair_loss", "landing", "2026-08-28T00:00:00.000Z"),
+      normalizeSpecialtyExperienceVersion(
+        "spx_h1_20260828",
+        "hair_loss",
+        "landing",
+        "2026-08-28T05:13:53.870Z",
+      ),
     ).toBe("spx_h1_20260828")
   })
 

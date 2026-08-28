@@ -1362,7 +1362,7 @@ describe("checkout operating hours", () => {
         const originalRetirementTimestamp = storedMarker.retirementTimestamp
         if (retireStoredMarker) {
           storedMarker.status = "retired"
-          storedMarker.retirementTimestamp = "2026-08-28T00:00:00.000Z"
+          storedMarker.retirementTimestamp = "2026-08-29T00:00:00.000Z"
         }
 
         try {

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "receiptType": "specialty_experience_opening",
+  "recordedAt": "2026-08-28T08:10:37.537Z",
+  "deployment": {
+    "commitSha": "ad2c450c1fa28b19c953e384d647fec11b42c58f",
+    "url": "instantmed-6t6i28dmh-rey-project.vercel.app",
+    "createdAt": "2026-08-28T05:09:41.398Z",
+    "readyAt": "2026-08-28T05:13:53.870Z",
+    "state": "READY"
+  },
+  "evidence": {
+    "adsSnapshotReportDate": "2026-08-27",
+    "adsSnapshotGeneratedAt": "2026-08-28T08:10:37.537Z",
+    "closedPreWindowStartUtc": "2026-07-28T14:00:00.000Z",
+    "closedPreWindowEndUtcExclusive": "2026-08-27T14:00:00.000Z",
+    "accountStateHash": "99a8b151ae197c8d41745c36fb45ec8924711141310be06fc2716a99e29b2981",
+    "accountLastChangeAt": "2026-08-26 15:50:10.735199"
+  },
+  "tracking": {
+    "state": "GREEN",
+    "scaleAllowed": true,
+    "reasonCodes": [],
+    "evidenceAsOf": "2026-08-27T23:01:00.137Z",
+    "sourceRunId": "1bc1f6be-63ee-481b-82ef-27eb55d28438"
+  },
+  "experiences": [
+    {
+      "versionId": "spx_h1_20260828",
+      "service": "hair_loss",
+      "serviceAvailable": true,
+      "priceCents": 4995,
+      "campaign": {
+        "id": "24040886790",
+        "name": "IM | Search | Hair Loss | Pilot",
+        "status": "ENABLED",
+        "budgetCentsPerDay": 1000,
+        "biddingStrategyType": "MANUAL_CPC"
+      },
+      "closedPreWindow": {
+        "clicks": 44,
+        "retainedOrders": 0,
+        "netRetainedRevenueCents": 0,
+        "stripeFeeCents": 0,
+        "adsSpendCents": 13232,
+        "firstOrderContributionCents": -13232,
+        "contributionMargin": null,
+        "refundCents": 0,
+        "refundedOrders": 0
+      }
+    },
+    {
+      "versionId": "spx_e1_20260828",
+      "service": "ed",
+      "serviceAvailable": true,
+      "priceCents": 4995,
+      "campaign": {
+        "id": "24040886787",
+        "name": "IM | Search | ED | Pilot",
+        "status": "ENABLED",
+        "budgetCentsPerDay": 1200,
+        "biddingStrategyType": "MANUAL_CPC"
+      },
+      "closedPreWindow": {
+        "clicks": 97,
+        "retainedOrders": 8,
+        "netRetainedRevenueCents": 40955,
+        "stripeFeeCents": 930,
+        "adsSpendCents": 34923,
+        "firstOrderContributionCents": 5102,
+        "contributionMargin": 0.1246,
+        "refundCents": 0,
+        "refundedOrders": 0
+      }
+    }
+  ],
+  "constraints": {
+    "adsMutationsApplied": false,
+    "laterApproachesActive": false
+  }
+}
