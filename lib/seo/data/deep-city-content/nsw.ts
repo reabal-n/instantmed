@@ -10,6 +10,7 @@ import type { DeepCityContent } from "../deep-city-content"
 
 const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 
 export const NSW_CITIES: Record<string, DeepCityContent> = {
   sydney: {
@@ -33,7 +34,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Telehealth isn't a replacement for your regular GP - it's a practical alternative for specific situations. Medical certificates for straightforward illnesses (cold, flu, gastro, migraine) are ideal for telehealth because they rarely require a physical examination. The doctor reviews your symptoms, medical history, and assesses whether a certificate is clinically appropriate - the same process as an in-person consult, without the waiting room.",
           "Repeat prescriptions for stable, ongoing medications are another area where telehealth excels. If you've been taking the same blood pressure medication for two years and just need a repeat, there's no clinical reason you need to sit in a waiting room for 45 minutes. Your GP remains your primary care provider for medication reviews and changes.",
-          "That said, some things genuinely need an in-person visit. Workplace injuries requiring WorkCover certificates, conditions that need physical examination (suspicious skin lesions, joint injuries, chest pain), and anything requiring blood tests or imaging. We'll always refer you to in-person care if your situation requires it - and you won't be charged.",
+          `That said, some things genuinely need an in-person visit: workplace injuries requiring WorkCover certificates, conditions that need physical examination (suspicious skin lesions, joint injuries, chest pain), and anything requiring blood tests or imaging. ${REFUND_PAYMENT_PROCESS}`,
         ],
       },
       {

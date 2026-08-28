@@ -31,7 +31,7 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Who Benefits Most in Canberra",
         paragraphs: [
-          "Canberra's workforce is dominated by the Australian Public Service. APS enterprise agreements recognise medical certificates from AHPRA-registered doctors, including those issued via telehealth. Whether you work at Parliament House, the ATO in Symonston, Defence in Russell, or any of the dozens of Commonwealth agencies across Canberra - a telehealth certificate meets your leave requirements.",
+          `Canberra's workforce is dominated by the Australian Public Service. APS leave-evidence requirements can vary by agency, including at Parliament House, the ATO in Symonston, Defence in Russell, and other Commonwealth agencies. Check your agency's current policy for the request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
           "University students at ANU, University of Canberra, ACU, and UNSW Canberra face similar access challenges. The ANU Health Service handles high volumes, particularly during exam periods. UC's Bruce campus has limited on-site medical facilities. For academic support requests and coursework documentation, telehealth certificates are handled according to each institution's policy.",
           "Canberra's diplomatic community - embassy staff, international organisations, and their families - often lack established GP relationships. Telehealth provides immediate access to an Australian doctor without needing a referral or existing patient relationship. This is also relevant for temporary residents working in Canberra on secondment.",
         ],

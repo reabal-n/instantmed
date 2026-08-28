@@ -217,6 +217,7 @@ describe("marketing copy contracts", () => {
     expect(telehealthAustraliaSource).toMatch(
       /focused ED, hair-loss, women&apos;s-health \(UTI or a new or switch\s+contraceptive pill\), and weight-management assessments/,
     )
+    expect(telehealthAustraliaSource).not.toContain("accepted documentation")
 
     for (const city of KEEP_INDEXED_LOCATIONS) {
       expect(locationPageSource, city).toMatch(
@@ -230,7 +231,7 @@ describe("marketing copy contracts", () => {
 
       const renderedDeepCityContent = JSON.stringify(deepCityContent)
       expect(renderedDeepCityContent, city).not.toMatch(
-        /cannot refuse|requires acceptance|accepted under all|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|(?:consultation method|method of consultation).{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity|workplace evidence status)|(?:certificate&apos;s|certificate's|workplace evidence status).{0,120}(?:is|are) not affected by.{0,80}(?:consultation|telehealth)/i,
+        /cannot refuse|requires acceptance|accepted under all|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|(?:consultation method|method of consultation).{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity|workplace evidence status)|(?:certificate&apos;s|certificate's|workplace evidence status).{0,120}(?:is|are) not affected by.{0,80}(?:consultation|telehealth)|(?:recognis(?:e|es)|recogniz(?:e|es)).{0,120}(?:medical cert|telehealth-issued certificate|certificate)|meets (?:your )?leave requirements|(?:medical certificates?|telehealth-issued certificates?|certificates?).{0,100}(?:are|can be).{0,60}evidence for leave|(?:certificate|cert).{0,100}next working day|(?:you|we) (?:won&apos;t|won't|will not|aren&apos;t|aren't|are not) charged/i,
       )
     }
 

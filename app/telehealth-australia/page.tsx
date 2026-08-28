@@ -683,7 +683,7 @@ export default function TelehealthAustraliaPage() {
                 </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Each state page has local context on access pressure, Medicare rules, and
-                  accepted documentation by universities and employers.
+                  employer and institution policy boundaries.
                 </p>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
