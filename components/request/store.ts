@@ -19,6 +19,10 @@ import {
   buildIntakeEngagedProperties,
   INTAKE_ANALYTICS_EVENTS,
 } from '@/lib/analytics/intake-events'
+import {
+  normalizeIncomingGrowthExperienceVersion,
+  normalizePersistedGrowthExperienceVersion,
+} from '@/lib/growth/specialty-experience-attribution'
 import { isDraftFlowRetired } from '@/lib/request/draft-retirement'
 import {
   canonicalizeServiceType,
@@ -45,6 +49,7 @@ export interface RequestState {
   // Service
   serviceType: UnifiedServiceType | null
   flowInstanceId: string | null
+  growthExperienceVersion: string | null
   
   // Navigation
   currentStepId: UnifiedStepId
@@ -121,6 +126,14 @@ export interface RequestProfilePrefill {
 export interface RequestActions {
   // Service
   setServiceType: (type: UnifiedServiceType) => void
+  /** Align a URL-rendered step with hydrated state, then advance exactly once. */
+  advanceRenderedStep: (input: {
+    serviceType: UnifiedServiceType
+    stepId: UnifiedStepId
+    subtype?: string
+  }) => boolean
+  /** Fill the fresh-flow cohort once; restored state remains authoritative. */
+  claimGrowthExperienceVersion: (version: string | null | undefined) => void
   
   // Navigation
   nextStep: () => void
@@ -171,6 +184,7 @@ export interface RequestActions {
 const initialState: RequestState = {
   serviceType: null,
   flowInstanceId: null,
+  growthExperienceVersion: null,
   currentStepId: 'certificate', // First step for med-cert (default)
   direction: 1,
   furthestVisitedStepId: null,
@@ -300,6 +314,7 @@ let draftHydrationCutoffToken = 0
 type ServerDraftFlush = (payload: {
   serviceType: CanonicalServiceType
   flowInstanceId?: string
+  growthExperienceVersion?: string
   currentStepId?: string
   answers?: Record<string, unknown>
   identity?: {
@@ -349,6 +364,7 @@ function writeDraftToStorage(name: string, value: StorageValue<Partial<RequestSt
   if (canonical) {
     saveDraft(canonical, {
       flowInstanceId: normalizeFlowInstanceId(state.flowInstanceId) ?? undefined,
+      growthExperienceVersion: state.growthExperienceVersion ?? undefined,
       currentStepId: state.currentStepId || 'certificate',
       furthestVisitedStepId: state.furthestVisitedStepId,
       stepsNeedingRevalidation: state.stepsNeedingRevalidation,
@@ -404,6 +420,7 @@ function persistedRequestState(state: Partial<RequestState>): Partial<RequestSta
   return {
     serviceType: state.serviceType,
     flowInstanceId: normalizeFlowInstanceId(state.flowInstanceId),
+    growthExperienceVersion: state.growthExperienceVersion ?? null,
     currentStepId: state.currentStepId,
     furthestVisitedStepId: state.furthestVisitedStepId,
     stepsNeedingRevalidation: state.stepsNeedingRevalidation,
@@ -466,6 +483,9 @@ function flushDraftImmediately(): void {
       ...(normalizeFlowInstanceId(state.flowInstanceId)
         ? { flowInstanceId: normalizeFlowInstanceId(state.flowInstanceId) ?? undefined }
         : {}),
+      ...(state.growthExperienceVersion
+        ? { growthExperienceVersion: state.growthExperienceVersion }
+        : {}),
       currentStepId: state.currentStepId || undefined,
       answers: isPlainRecord(state.answers) ? state.answers : {},
       identity: {
@@ -521,6 +541,13 @@ function draftToPersistedState(draft: DraftData): Partial<RequestState> {
   return {
     serviceType: draft.serviceType,
     flowInstanceId: ensureFlowInstanceId(draft.flowInstanceId),
+    growthExperienceVersion: normalizePersistedGrowthExperienceVersion(
+      draft.growthExperienceVersion,
+      {
+        serviceType: draft.serviceType,
+        subtype: draft.answers.consultSubtype,
+      },
+    ),
     currentStepId: draft.currentStepId,
     furthestVisitedStepId: draft.furthestVisitedStepId ?? draft.currentStepId,
     stepsNeedingRevalidation: draft.stepsNeedingRevalidation ?? [],
@@ -584,6 +611,13 @@ function normalizePersistedState(state: Partial<RequestState> | undefined): Part
     flowInstanceId: state.serviceType
       ? ensureFlowInstanceId(state.flowInstanceId)
       : null,
+    growthExperienceVersion: normalizePersistedGrowthExperienceVersion(
+      state.growthExperienceVersion,
+      {
+        serviceType: state.serviceType,
+        subtype: persisted.answers?.consultSubtype,
+      },
+    ),
     ...(resolvedCurrentStepId ? { currentStepId: resolvedCurrentStepId } : {}),
     answers: isPlainRecord(persisted.answers) ? persisted.answers : {},
     firstName: typeof state.firstName === 'string' ? state.firstName : '',
@@ -675,6 +709,13 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           set({
             serviceType: type,
             flowInstanceId: ensureFlowInstanceId(scopedDraft?.flowInstanceId),
+            growthExperienceVersion: normalizePersistedGrowthExperienceVersion(
+              scopedDraft?.growthExperienceVersion,
+              {
+                serviceType: type,
+                subtype: restoredAnswers.consultSubtype,
+              },
+            ),
             answers: restoredAnswers,
             currentStepId: (stepExists
               ? restoredStepId
@@ -718,6 +759,59 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             currentStepId: (steps[0]?.id || 'certificate') as UnifiedStepId,
           })
         }
+      },
+
+      advanceRenderedStep: ({ serviceType, stepId, subtype }) => {
+        let state = get()
+        if (state.serviceType !== serviceType) {
+          state.setServiceType(serviceType)
+          state = get()
+        }
+
+        if (
+          serviceType === "consult" &&
+          subtype &&
+          typeof state.answers.consultSubtype !== "string"
+        ) {
+          state.setAnswer("consultSubtype", subtype, { touch: false })
+          state.setServiceType(serviceType)
+          state = get()
+        }
+
+        const context = {
+          ...state.authContext,
+          serviceType,
+          answers: state.answers,
+        }
+        let activeStepIds: UnifiedStepId[] = []
+        try {
+          activeStepIds = _getStepsForService(serviceType, context).map(({ id }) => id)
+        } catch {
+          // Navigation below keeps the existing fail-open behavior.
+        }
+
+        const currentStepIsAuthoritative = Boolean(
+          state.lastSavedAt && activeStepIds.includes(state.currentStepId),
+        )
+        if (state.currentStepId !== stepId) {
+          // Hydration may reveal real saved work after the URL fallback has
+          // already painted. Never overwrite or advance that unseen step.
+          if (currentStepIsAuthoritative) return false
+          state.goToStep(stepId)
+        }
+
+        get().nextStep()
+        return true
+      },
+
+      claimGrowthExperienceVersion: (version) => {
+        const state = get()
+        if (state.growthExperienceVersion) return
+        const normalized = normalizeIncomingGrowthExperienceVersion(version, {
+          serviceType: state.serviceType,
+          subtype: state.answers.consultSubtype,
+        })
+        if (normalized) set({ growthExperienceVersion: normalized })
       },
 
       nextStep: () => {
@@ -893,6 +987,14 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         set({
           answers: nextAnswers,
+          ...(key === 'consultSubtype'
+            ? {
+                growthExperienceVersion: normalizePersistedGrowthExperienceVersion(
+                  state.growthExperienceVersion,
+                  { serviceType: state.serviceType, subtype: value },
+                ),
+              }
+            : {}),
           ...(options?.touch === false ? {} : { lastSavedAt: new Date().toISOString() }),
           ...(tracksProgress
             ? resetsConsultBranch
@@ -1049,6 +1151,13 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         set({
           serviceType,
           flowInstanceId: ensureFlowInstanceId(record.flowInstanceId),
+          growthExperienceVersion: normalizePersistedGrowthExperienceVersion(
+            record.growthExperienceVersion,
+            {
+              serviceType,
+              subtype: answers.consultSubtype,
+            },
+          ),
           currentStepId,
           direction: 1,
           furthestVisitedStepId: currentStepId,

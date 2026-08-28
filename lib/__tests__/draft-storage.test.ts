@@ -448,6 +448,25 @@ describe('migrateLegacyDraft', () => {
     expect(localStorageMock.getItem('instantmed-draft-prescription')).not.toBeNull()
   })
 
+  it('preserves an allowlisted specialty cohort during legacy migration', () => {
+    const legacyDraft = {
+      state: {
+        serviceType: 'consult',
+        growthExperienceVersion: 'spx_e1_20260828',
+        currentStepId: 'review',
+        answers: { consultSubtype: 'ed' },
+        lastSavedAt: new Date().toISOString(),
+      },
+    }
+    localStorageMock.setItem('instantmed-request-draft', JSON.stringify(legacyDraft))
+
+    const result = migrateLegacyDraft()
+    const scoped = JSON.parse(localStorageMock.getItem('instantmed-draft-consult') ?? 'null')
+
+    expect(result?.growthExperienceVersion).toBe('spx_e1_20260828')
+    expect(scoped?.growthExperienceVersion).toBe('spx_e1_20260828')
+  })
+
   it('ignores and clears expired legacy drafts', () => {
     const expiredDate = new Date()
     expiredDate.setHours(expiredDate.getHours() - 25)

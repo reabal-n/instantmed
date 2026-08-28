@@ -139,14 +139,15 @@ describe("/consult specialty-only services index contract", () => {
     expect(source).not.toMatch(/1[-–]2\s*hours?|within (?:an?|1) hour|same[- ]day\s*(?:review|service|access|turnaround)|7 days a week|AEST hours/i)
   })
 
-  it("keeps the eligibility, fee, Medicare, and outside-scope boundaries concise", () => {
+  it("keeps the eligibility, fee, identity, and outside-scope boundaries concise", () => {
     const source = read("app/consult/page.tsx")
 
     expect(source).not.toContain("bg-amber-100")
     expect(source).toContain("Australia only. 18+. Fees from")
     expect(source).toContain("PRICING_DISPLAY.MED_CERT")
     expect(source).toContain("Medical certificates")
-    expect(source).toContain("do not require Medicare; prescribing pathways require Medicare")
+    expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
+    expect(source).not.toContain("prescribing pathways require Medicare")
     expect(source).toContain('question: "What if my concern does not fit these services?"')
     expect(source).toContain("call 000 or seek urgent in-person care")
   })

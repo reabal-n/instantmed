@@ -12,6 +12,10 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getAppUrl } from "@/lib/config/env"
 import { updateProfile } from "@/lib/data/profiles"
 import { buildSignedCheckoutResumeUrl } from "@/lib/email/recovery-links"
+import {
+  normalizeIncomingGrowthExperienceVersion,
+  selectGrowthExperienceVersion,
+} from "@/lib/growth/specialty-experience-attribution"
 import { findConvertedPartialIntakeForCheckout } from "@/lib/request/server-draft-conversion"
 import {
   resolveCheckoutSubtype,
@@ -58,6 +62,7 @@ interface UnifiedCheckoutInput {
   }
   posthogDistinctId?: string
   flowInstanceId?: string
+  growthExperienceVersion?: string
   serverDraftSessionId?: string
 }
 
@@ -124,6 +129,15 @@ export async function createCheckoutFromUnifiedFlow(
   
   // Update subtype based on answers
   const finalSubtype = resolveCheckoutSubtype(serviceType, answers, subtype)
+  const growthContext = {
+    serviceType,
+    subtype: finalSubtype,
+  }
+  const candidateGrowthExperienceVersion =
+    normalizeIncomingGrowthExperienceVersion(
+      input.growthExperienceVersion,
+      growthContext,
+    )
   
   // Server-side validation before proceeding to checkout
   const validationError = validateAnswersServerSide(serviceType, answers, identity)
@@ -173,6 +187,16 @@ export async function createCheckoutFromUnifiedFlow(
     (convertedDraft.kind === "none" && convertedDraft.reason === "not_converted")
       ? serverDraftSessionId
       : undefined
+  const growthExperienceVersion = selectGrowthExperienceVersion({
+    storedValue:
+      convertedDraft.kind === "reusable"
+        ? convertedDraft.intake.growthExperienceVersion
+        : convertedDraft.kind === "none"
+          ? convertedDraft.growthExperienceVersion
+          : null,
+    candidateValue: candidateGrowthExperienceVersion,
+    context: growthContext,
+  })
   if (convertedDraft.kind === "reusable") {
     const { intake } = convertedDraft
     const isOwnedByAuthenticatedPatient = Boolean(
@@ -238,6 +262,7 @@ export async function createCheckoutFromUnifiedFlow(
       }),
       attribution,
       flowInstanceId,
+      growthExperienceVersion: growthExperienceVersion ?? undefined,
       posthogDistinctId,
       serverDraftSessionId: activeServerDraftSessionId,
     })
@@ -271,6 +296,7 @@ export async function createCheckoutFromUnifiedFlow(
       guestPhone: identity.phone,
       attribution,
       flowInstanceId,
+      growthExperienceVersion: growthExperienceVersion ?? undefined,
       posthogDistinctId,
       checkoutSubmissionKey: buildGuestCheckoutSubmissionKey({
         answers: transformedAnswers,

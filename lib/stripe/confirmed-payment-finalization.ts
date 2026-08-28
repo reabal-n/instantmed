@@ -22,6 +22,7 @@ import {
 import { buildVerifiedCompleteAccountHref } from "@/lib/auth/complete-account-handoff"
 import { env } from "@/lib/config/env"
 import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
+import { normalizePersistedGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
@@ -232,6 +233,7 @@ type PatientProfile = {
 
 type CompletionAttributionRow = GoogleAdsAttributionRow & {
   flow_instance_id?: string | null
+  growth_experience_version?: string | null
 }
 
 async function loadCompletionContext(
@@ -252,7 +254,7 @@ async function loadCompletionContext(
       : Promise.resolve({ data: null }),
     supabase
       .from("intakes")
-      .select(`${GOOGLE_ADS_ATTRIBUTION_SELECT}, flow_instance_id`)
+      .select(`${GOOGLE_ADS_ATTRIBUTION_SELECT}, flow_instance_id, growth_experience_version`)
       .eq("id", intakeId)
       .maybeSingle(),
   ])
@@ -581,6 +583,16 @@ function trackConfirmedPayment({
   const flowInstanceId =
     normalizeFlowInstanceId(attribution?.flow_instance_id) ??
     normalizeFlowInstanceId(session.metadata?.flow_instance_id)
+  const growthContext = { category: serviceType, subtype: serviceSubtype }
+  const growthExperienceVersion = attribution?.growth_experience_version != null
+    ? normalizePersistedGrowthExperienceVersion(
+        attribution.growth_experience_version,
+        growthContext,
+      )
+    : normalizePersistedGrowthExperienceVersion(
+        session.metadata?.growth_experience_version,
+        growthContext,
+      )
 
   trackIntakeFunnelStep({
     step: "payment_completed",
@@ -593,6 +605,7 @@ function trackConfirmedPayment({
     metadata: {
       amount_cents: session.amount_total,
       finalization_source: source,
+      growth_experience_version: growthExperienceVersion,
     },
   })
 
@@ -641,6 +654,7 @@ function trackConfirmedPayment({
         service_subtype: serviceSubtype,
         finalization_source: source,
         flow_instance_id: flowInstanceId,
+        growth_experience_version: growthExperienceVersion,
       },
     })
 
@@ -660,6 +674,7 @@ function trackConfirmedPayment({
         source: "confirmed_payment_finalizer",
         finalization_source: source,
         flow_instance_id: flowInstanceId,
+        growth_experience_version: growthExperienceVersion,
       },
     })
   } catch {

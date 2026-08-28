@@ -193,6 +193,8 @@ type RetryIntake = {
   category: string | null
   checkout_error: string | null
   created_at: string
+  flow_instance_id?: string | null
+  growth_experience_version?: string | null
   is_priority: boolean | null
   patient_id: string | null
   payment_id: string | null
@@ -390,6 +392,89 @@ describe("retryPaymentForIntakeAction", () => {
       }),
       { idempotencyKey: "authenticated-retry-v2_intake-1_cs_previous" },
     )
+  })
+
+  it("copies the stored specialty cohort to retry Session and PaymentIntent metadata", async () => {
+    const { supabase } = createRetrySupabaseMock({
+      category: "consult",
+      growth_experience_version: "spx_h1_20260828",
+      service: {
+        id: "svc-hair",
+        name: "Hair loss",
+        price_cents: 4995,
+        slug: "mens-health-hair",
+        type: "consult",
+      },
+      stripe_price_id: "price_hair",
+      subtype: "hair_loss",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result.success).toBe(true)
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          growth_experience_version: "spx_h1_20260828",
+        }),
+        payment_intent_data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            growth_experience_version: "spx_h1_20260828",
+          }),
+        }),
+      }),
+      { idempotencyKey: "authenticated-retry-v2_intake-1_cs_previous" },
+    )
+  })
+
+  it("does not inspect, reuse, or create Stripe state for a contraindicating persisted Hair retry", async () => {
+    const hairAnswers = {
+      consultSubtype: "hair_loss",
+      emergency_symptoms: [],
+      hairReproductive: "yes",
+    }
+    const { supabase, updateRecords } = createRetrySupabaseMock({
+      category: "consult",
+      service: {
+        id: "svc-hair",
+        name: "Hair loss",
+        price_cents: 4995,
+        slug: "mens-health-hair",
+        type: "consult",
+      },
+      stripe_price_id: "price_hair",
+      subtype: "hair_loss",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue(hairAnswers)
+    mocks.checkSafetyForServer.mockReturnValue({
+      isAllowed: false,
+      outcome: "DECLINE",
+      riskTier: "high",
+      blockReason: "Hair reproductive safety block.",
+      requiresCall: false,
+      triggeredRuleIds: ["hair_reproductive_contraindication"],
+    })
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error: "Hair reproductive safety block.",
+      success: false,
+    })
+    expect(mocks.validateSafetyFieldsPresent).toHaveBeenCalledWith(
+      "mens-health-hair",
+      hairAnswers,
+    )
+    expect(mocks.checkSafetyForServer).toHaveBeenCalledWith(
+      "mens-health-hair",
+      hairAnswers,
+    )
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(updateRecords).toHaveLength(0)
   })
 
   it("does not revive an older duplicate unpaid request", async () => {

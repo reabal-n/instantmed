@@ -35,6 +35,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 const CANONICAL = "https://instantmed.com.au/online-doctor-australia"
 const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
 
 export const metadata: Metadata = {
   title: "Online Doctor Australia | AHPRA-Registered Doctors",
@@ -118,8 +119,7 @@ const FAQS = [
   },
   {
     question: "Can I see an online doctor without a Medicare card?",
-    answer:
-      "Yes for medical certificates - Medicare is not required. Prescriptions and consultations generally require a Medicare number or Individual Healthcare Identifier (IHI) for eScript compliance and to meet PBS and TGA prescribing requirements. If you're an Australian resident without a Medicare card, contact us and we'll walk you through the options.",
+    answer: `Medical certificates do not require Medicare. ${PRESCRIBING_IDENTITY_REQUIRED} If you're an Australian resident without a Medicare card, contact us and we'll walk you through the options.`,
   },
   {
     question: "Is InstantMed covered by Medicare or bulk-billed?",

@@ -1,29 +1,18 @@
 import Link from "next/link"
 
+import { BRANDED_SEARCH_LINKS } from "@/lib/seo/branded-search-links"
+
 /**
- * Server-rendered, raw-HTML navigation to four supporting authority pages.
+ * Server-rendered shortcuts to the most useful branded-search destinations.
  *
- * The catalog-derived homepage card chooser owns the five active service links.
- * This quiet rail keeps only the pillar,
- * comparison, and certificate-verification links that are not represented there.
+ * Google chooses organic sitelinks automatically. A compact, consistent set of
+ * plain-language internal anchors gives both patients and crawlers a clearer
+ * hierarchy than promoting SEO pillar pages or individual locations here.
  *
  * Compliance: neutral, descriptive anchor text only, with no drug names, prices,
  * or outcome claims. See docs/SEO_CONTENT_POLICY.md §5.
  */
-
-type ServiceLink = { label: string; href: string }
-
-// Head-term pillar pages + the employer verification tool. These have the
-// weakest internal crawl demand on the whole site (the pillars were linked only
-// from the never-crawled /resources pages).
-const LEARN_MORE_LINKS: ServiceLink[] = [
-  { label: "Online doctor in Australia", href: "/online-doctor-australia" },
-  { label: "Telehealth in Australia", href: "/telehealth-australia" },
-  { label: "Compare certificate services", href: "/compare/online-medical-certificate-options" },
-  { label: "Verify a certificate", href: "/verify" },
-]
-
-function LinkRow({ links }: { links: ServiceLink[] }) {
+function LinkRow({ links }: { links: typeof BRANDED_SEARCH_LINKS }) {
   return (
     <ul className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-sm text-muted-foreground">
       {links.map((link, i) => (
@@ -53,9 +42,9 @@ export function HomeServiceLinks() {
     >
       <div className="mx-auto max-w-4xl space-y-2 px-4 text-center sm:px-6 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground/70">
-          Learn more
+          Popular pages
         </p>
-        <LinkRow links={LEARN_MORE_LINKS} />
+        <LinkRow links={BRANDED_SEARCH_LINKS} />
       </div>
     </nav>
   )

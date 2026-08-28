@@ -3,6 +3,9 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { ED_LANDING_FAQ } from "@/lib/data/ed-faq"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
 const root = process.cwd()
 
 function read(relativePath: string): string {
@@ -56,7 +59,7 @@ describe("money-page narrative compression", () => {
     const medCert = read("components/marketing/med-cert-landing.tsx")
 
     expect(hair).toContain('text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.HAIR_LOSS}`')
-    expect(hair).toContain('href: isDisabled ? "/contact" : ASSESSMENT_HREF')
+    expect(hair).toContain('href: isDisabled ? "/contact" : requestCtaHref')
     expect(medCert).toContain("For suitable form-only requests: {MED_CERT_WEDGE}")
     expect(medCert).not.toMatch(/^\s*\{MED_CERT_WEDGE\} Tell us/m)
   })
@@ -85,5 +88,22 @@ describe("money-page narrative compression", () => {
 
     expect(ed.match(/Call 000 for chest pain/g)).toHaveLength(1)
     expect(ed).toContain("Safety answers can change the care route")
+  })
+
+  it("keeps ED E1 identity, timing, and outcome copy truthful", () => {
+    const ed = read("components/marketing/erectile-dysfunction-landing.tsx")
+    const timingFaq = ED_LANDING_FAQ.find(({ question }) => question === "How fast will I hear back?")
+    const identityFaq = ED_LANDING_FAQ.find(({ question }) => question === "Do I need Medicare?")
+
+    expect(ed.match(/The practical facts/g)).toHaveLength(1)
+    expect(ed).toContain('getApprovedClaim("prescribing_identity_required")')
+    expect(ed).toContain("ED_SERVICE.effort")
+    expect(timingFaq).toEqual({
+      question: "How fast will I hear back?",
+      answer: "Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. You will receive email updates as the request progresses.",
+    })
+    expect(identityFaq?.answer).toContain(getApprovedClaim("prescribing_identity_required"))
+    expect(ED_LANDING_FAQ.some(({ answer }) => answer.includes("review window"))).toBe(false)
+    expect(ED_LANDING_FAQ.some(({ answer }) => answer.includes("suitable identity details"))).toBe(false)
   })
 })

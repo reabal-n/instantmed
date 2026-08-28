@@ -93,7 +93,7 @@ describe("money-page narrative compression", () => {
     expect(source).toContain('title="Repeat prescription, reviewed from home."')
     expect(source).toContain("Australia only")
     expect(source).toContain("Ages 18+")
-    expect(source).toContain("Medicare details required")
+    expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
     expect(source).toContain("Previously prescribed")
     expect(source).toContain("Stable medication and dose")
     expect(source).toContain("PRICING_DISPLAY.REPEAT_SCRIPT")
@@ -141,23 +141,40 @@ describe("money-page narrative compression", () => {
     ])
   })
 
-  it("compresses ED into one safety-led decision path", () => {
+  it("puts ED E1 private outcome and cost before education and safety", () => {
     const source = read("components/marketing/erectile-dysfunction-landing.tsx")
     const page = read("app/erectile-dysfunction/page.tsx")
 
     expect(source.match(/The doctor reviews the whole picture/g)).toHaveLength(1)
     expect(source).toContain('title: "Doctor review and clarification"')
+    expect(source).toContain("Private ED assessment, from home.")
+    expect(source).toContain('const ED_SERVICE = getService("ed")')
+    expect(source).toContain('getApprovedClaim("prescription_if_approved")')
+    expect(source).toContain('getApprovedClaim("form_first_wedge")')
+    expect(source).toContain('getApprovedClaim("refund_guarantee")')
 
     for (const firstFoldFact of [
       "Australia only",
       "Ages 18+",
-      "Medicare details required",
       "PRICING_DISPLAY.MENS_HEALTH",
-      "About 3 minutes",
-      "Full refund if the doctor declines",
+      "ED_SERVICE.effort",
+      "REFUND_GUARANTEE_CLAIM",
+      "Medicine cost is separate",
+      "Prescription is not guaranteed",
+      "Australian pharmacy",
     ]) {
       expect(source, firstFoldFact).toContain(firstFoldFact)
     }
+    expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
+
+    expect(source).toContain("Start private assessment")
+    expect(source).toContain('href="#how-it-works"')
+    expect(source).toContain("See how it works")
+    expect(source).not.toContain("About 3 minutes")
+    expect(source).not.toContain("exercise tolerance")
+    expect(source).not.toContain("blood pressure context")
+    expect(source).not.toContain("blood pressure value")
+    expect(source).not.toContain("chest symptoms")
 
     for (const retiredMarker of [
       "ED_GEO_FACTS",
@@ -172,7 +189,7 @@ describe("money-page narrative compression", () => {
     }
 
     expect(source).toContain("an erection lasting more than 4 hours")
-    expect(source).toContain("chest-pain medicines")
+    expect(source).toContain("Chest-pain medicines")
     expect(source).toContain("Medicine cost is separate")
     expect(source).toContain("items={ED_LANDING_FAQ}")
     expect(page).toContain("ED_LANDING_FAQ")
@@ -180,10 +197,10 @@ describe("money-page narrative compression", () => {
     expectInOrder(source, [
       "function EdHero",
       "<EdHero",
+      "<EdReviewCostOutcomeSection",
       "<EdEligibilitySection />",
       "<EdSafetyDecisionMap />",
       "<EdScopeBoundarySection />",
-      "<EdReviewCostOutcomeSection",
       "<EdAlternativesSection />",
       "<EdSourcesSection />",
       "items={ED_LANDING_FAQ}",
@@ -191,23 +208,26 @@ describe("money-page narrative compression", () => {
     ])
   })
 
-  it("compresses hair loss around assessment, doctor proof, fee, and limits", () => {
+  it("puts Hair H1 practical outcome and cost before education and safety", () => {
     const source = read("components/marketing/hair-loss-landing.tsx")
     const page = read("app/hair-loss/page.tsx")
 
     expect(source).toContain('mobileSummary: "3-min form"')
     expect(source).not.toContain('mobileSummary: "3-min form · Doctor-reviewed"')
+    expect(source).toContain('title="Private hair loss assessment, from home."')
+    expect(source).toContain('getApprovedClaim("prescription_if_approved")')
+    expect(source).toContain('getApprovedClaim("form_first_wedge")')
+    expect(source).toContain('getApprovedClaim("refund_guarantee")')
 
     for (const firstFoldFact of [
       "Australia only",
       "Ages 18+",
-      "Medicare details required",
       "3-min form",
       "PRICING_DISPLAY.HAIR_LOSS",
-      "Full refund if the doctor declines",
     ]) {
       expect(source, firstFoldFact).toContain(firstFoldFact)
     }
+    expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
 
     for (const retiredMarker of [
       "LiveWaitTime",
@@ -227,6 +247,8 @@ describe("money-page narrative compression", () => {
     expect(pricingEnd).toBeGreaterThan(pricingStart)
     expect(source.slice(pricingStart, pricingEnd)).toContain("<RegulatoryPartners")
     expect(source.slice(pricingStart, pricingEnd)).toContain("Medicine cost is separate")
+    expect(source.slice(pricingStart, pricingEnd)).toContain("Australian pharmacy")
+    expect(source.slice(pricingStart, pricingEnd)).toContain("Prescription is not guaranteed")
     expect(source).toContain("does not diagnose the cause of hair loss")
     expect(source).toContain("items={HAIR_LOSS_LANDING_FAQ}")
     expect(source).toContain('afterFooter={<ContentHubLinks service="hair-loss" />}')
@@ -234,10 +256,10 @@ describe("money-page narrative compression", () => {
 
     expectInOrder(source, [
       "<HairHeroFacts />",
+      "<HairLossPricingSection",
       "<HairAssessmentModel />",
       "<HowItWorksInline",
       "<DoctorProfileSection",
-      "<HairLossPricingSection",
       "<HairLossLimitationsSection />",
       "items={HAIR_LOSS_LANDING_FAQ}",
       "<CTABanner",
@@ -251,12 +273,12 @@ describe("money-page narrative compression", () => {
     for (const commonFact of [
       "Australia only",
       "Ages 18+",
-      "Medicare details required",
       "PRICING_DISPLAY.WOMENS_HEALTH",
       "Full refund if the doctor declines",
     ]) {
       expect(source, commonFact).toContain(commonFact)
     }
+    expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
 
     for (const retiredMarker of [
       "WomensHealthIntent",

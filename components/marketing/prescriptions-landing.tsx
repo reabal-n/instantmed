@@ -54,7 +54,7 @@ const PRESCRIPTION_LIFECYCLE_STEPS = [
   {
     icon: ShieldCheck,
     title: "Identity and safety review",
-    description: "Confirm your Medicare details, current dose, directions, and safety answers.",
+    description: `${getApprovedClaim("prescribing_identity_required")} Confirm your current dose, directions, and safety answers.`,
   },
   {
     icon: Stethoscope,
@@ -308,7 +308,7 @@ export function PrescriptionsLanding() {
               <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-foreground/75 lg:justify-start sm:text-sm">
                 <li>Australia only</li>
                 <li>Ages 18+</li>
-                <li>Medicare details required</li>
+                <li>{getApprovedClaim("prescribing_identity_required")}</li>
               </ul>
             )}
             reassuranceRow={(

@@ -38,6 +38,41 @@ function campaign(
   }
 }
 
+type SpecialtyService = Extract<
+  AdsService,
+  "ed" | "hair_loss" | "womens_health"
+>
+
+function specialtyCampaign(
+  service: SpecialtyService,
+  overrides: Partial<CampaignEconomics> = {},
+): CampaignEconomics {
+  const names: Record<SpecialtyService, string> = {
+    ed: "IM | Search | ED | Pilot",
+    hair_loss: "IM | Search | Hair Loss | Pilot",
+    womens_health: "IM | Search | Women's Health | Pilot",
+  }
+
+  return campaign({
+    campaignId: `${service}-pilot`,
+    campaignName: names[service],
+    campaignResourceName: `customers/123/campaigns/${service}-pilot`,
+    clicks: 0,
+    contributionCents: -1_000,
+    contributionMargin: null,
+    grossRevenueCents: 0,
+    netRetainedRevenueCents: 0,
+    orders: 0,
+    refundCents: 0,
+    refundedOrders: 0,
+    refundRate: null,
+    serviceOrders: {},
+    spendCents: 1_000,
+    stripeFeeCents: 0,
+    ...overrides,
+  })
+}
+
 function portfolio(
   overrides: Partial<CampaignPortfolioEconomics> = {},
 ): CampaignPortfolioEconomics {
@@ -166,10 +201,38 @@ describe("Google Ads Agent policy", () => {
     expect(POLICY.scripts.scale.minimumOrdersAfterChange).toBe(10)
     expect(POLICY.scripts.scale.targetContributionMargin).toBe(0.30)
     expect(POLICY.ed.pilot.maximumLossCents).toBe(15000)
+    expect(POLICY.ed.pilot.investigateClicks).toBe(10)
+    expect(POLICY.ed.pilot.pauseProposalClicks).toBe(30)
+    expect(POLICY.ed.pilot.maximumDaysStatus).toBe(
+      "inactive_requires_campaign_scoped_start",
+    )
     expect(POLICY.hairLoss.pilot.maximumLossCents).toBe(15000)
+    expect(POLICY.hairLoss.pilot.investigateClicks).toBe(10)
+    expect(POLICY.hairLoss.pilot.pauseProposalClicks).toBe(20)
+    expect(POLICY.hairLoss.pilot.maximumDaysStatus).toBe(
+      "inactive_requires_campaign_scoped_start",
+    )
+    expect(POLICY.hairLoss.pilot.futureRelaunch).toEqual({
+      maximumIncrementalLossCents: 6000,
+      maximumIncrementalLossStatus:
+        "inactive_requires_campaign_scoped_baseline",
+      persistedCheckoutProgressionClicks: 10,
+      persistedCheckoutProgressionStatus:
+        "inactive_requires_campaign_scoped_progression",
+      stopPrecedence: [
+        "campaign_scoped_incremental_loss",
+        "zero_retained_order_clicks",
+        "campaign_scoped_duration",
+      ],
+    })
     expect(POLICY.womensHealth.dailyBudgetCents).toBe(2000)
     expect(POLICY.womensHealth.pilot.initialCpcCeilingCents).toBe(300)
+    expect(POLICY.womensHealth.pilot.investigateClicks).toBe(10)
     expect(POLICY.womensHealth.pilot.maximumLossCents).toBe(15000)
+    expect(POLICY.womensHealth.pilot.pauseProposalClicks).toBe(30)
+    expect(POLICY.womensHealth.pilot.maximumDaysStatus).toBe(
+      "inactive_requires_campaign_scoped_start",
+    )
     expect(POLICY.keywords.medicineNamesAllowed).toBe(false)
   })
 
@@ -336,6 +399,285 @@ describe("Google Ads Agent policy", () => {
       kind: "APPROVAL_NEEDED",
       proposedMutationFamily: "campaign_status",
       reasonCodes: ["SPECIALTY_LOSS_CAP"],
+      service: "hair_loss",
+    })
+  })
+
+  it.each([
+    { service: "hair_loss", clicks: 9 },
+    { service: "ed", clicks: 9 },
+    { service: "womens_health", clicks: 9 },
+  ] satisfies Array<{ service: SpecialtyService; clicks: number }>)(
+    "keeps $service quiet below the zero-order investigation boundary",
+    ({ service, clicks }) => {
+      const result = recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+        rolling30: [specialtyCampaign(service, { clicks })],
+      })), service)
+
+      expect(result).toEqual({
+        kind: "HOLD",
+        proposedMutationFamily: null,
+        reasonCodes: ["PILOT_WITHIN_LOSS_CAP"],
+        service,
+      })
+    },
+  )
+
+  it("holds a not-enabled specialty in the investigation band with a truthful reason", () => {
+    const result = recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+      rolling30: [specialtyCampaign("hair_loss", {
+        campaignStatus: null,
+        clicks: 10,
+      })],
+    })), "hair_loss")
+
+    expect(result).toEqual({
+      kind: "HOLD",
+      proposedMutationFamily: null,
+      reasonCodes: ["PILOT_WITHIN_LOSS_CAP", "CAMPAIGN_NOT_ENABLED"],
+      service: "hair_loss",
+    })
+  })
+
+  it.each([
+    { service: "hair_loss", clicks: 10 },
+    { service: "ed", clicks: 10 },
+    { service: "womens_health", clicks: 10 },
+  ] satisfies Array<{ service: SpecialtyService; clicks: number }>)(
+    "investigates $service at 10 clicks with zero retained orders",
+    ({ service, clicks }) => {
+      const result = recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+        rolling30: [specialtyCampaign(service, { clicks })],
+      })), service)
+
+      expect(result).toEqual({
+        kind: "INVESTIGATE",
+        proposedMutationFamily: null,
+        reasonCodes: ["SPECIALTY_ZERO_ORDER_CLICK_INVESTIGATION"],
+        service,
+      })
+    },
+  )
+
+  it.each([
+    { service: "hair_loss", before: 19, threshold: 20 },
+    { service: "ed", before: 29, threshold: 30 },
+    { service: "womens_health", before: 29, threshold: 30 },
+  ] satisfies Array<{
+    service: SpecialtyService
+    before: number
+    threshold: number
+  }>)(
+    "keeps $service under investigation at $before clicks and proposes a pause at $threshold",
+    ({ service, before, threshold }) => {
+      const beforeResult = recommendationFor(
+        evaluatePolicyWithoutHolds(snapshot({
+          rolling30: [specialtyCampaign(service, { clicks: before })],
+        })),
+        service,
+      )
+      const thresholdResult = recommendationFor(
+        evaluatePolicyWithoutHolds(snapshot({
+          rolling30: [specialtyCampaign(service, { clicks: threshold })],
+        })),
+        service,
+      )
+
+      expect(beforeResult).toEqual({
+        kind: "INVESTIGATE",
+        proposedMutationFamily: null,
+        reasonCodes: ["SPECIALTY_ZERO_ORDER_CLICK_INVESTIGATION"],
+        service,
+      })
+      expect(thresholdResult).toEqual({
+        kind: "APPROVAL_NEEDED",
+        proposedMutationFamily: "campaign_status",
+        reasonCodes: ["SPECIALTY_ZERO_ORDER_CLICK_CAP"],
+        service,
+      })
+    },
+  )
+
+  it.each([
+    { service: "hair_loss", clicks: 10 },
+    { service: "hair_loss", clicks: 19 },
+    { service: "ed", clicks: 10 },
+    { service: "ed", clicks: 29 },
+    { service: "womens_health", clicks: 10 },
+    { service: "womens_health", clicks: 29 },
+  ] satisfies Array<{ service: SpecialtyService; clicks: number }>)(
+    "holds paused $service at $clicks clicks instead of opening an investigation",
+    ({ service, clicks }) => {
+      const result = recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+        rolling30: [specialtyCampaign(service, {
+          campaignStatus: "PAUSED",
+          clicks,
+        })],
+      })), service)
+
+      expect(result).toEqual({
+        kind: "HOLD",
+        proposedMutationFamily: null,
+        reasonCodes: [
+          "PILOT_WITHIN_LOSS_CAP",
+          "CAMPAIGN_ALREADY_PAUSED",
+        ],
+        service,
+      })
+    },
+  )
+
+  it("turns the observed Hair 40-click zero-order loss into an exact pause recommendation", () => {
+    const hairLoss = specialtyCampaign("hair_loss", {
+      clicks: 40,
+      contributionCents: -12_075,
+      spendCents: 12_075,
+    })
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
+      rolling30: [hairLoss],
+    }))
+
+    expect(recommendationFor(recommendations, "hair_loss")).toEqual({
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_status",
+      reasonCodes: ["SPECIALTY_ZERO_ORDER_CLICK_CAP"],
+      service: "hair_loss",
+    })
+  })
+
+  it("does not apply zero-order click gates to a specialty with a retained order", () => {
+    const hairLoss = specialtyCampaign("hair_loss", {
+      clicks: 40,
+      contributionCents: -1_000,
+      grossRevenueCents: 4_995,
+      netRetainedRevenueCents: 4_995,
+      orders: 1,
+      refundRate: 0,
+      serviceOrders: { hair_loss: 1 },
+      spendCents: 5_881,
+      stripeFeeCents: 114,
+    })
+
+    expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+      rolling30: [hairLoss],
+    })), "hair_loss")).toEqual({
+      kind: "HOLD",
+      proposedMutationFamily: null,
+      reasonCodes: ["PILOT_WITHIN_LOSS_CAP"],
+      service: "hair_loss",
+    })
+  })
+
+  it("lets the generic lifetime loss cap beat a zero-order click gate", () => {
+    const hairLoss = specialtyCampaign("hair_loss", {
+      clicks: 40,
+      contributionCents: -15_000,
+      spendCents: 15_000,
+    })
+
+    expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+      rolling30: [hairLoss],
+    })), "hair_loss")).toEqual({
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_status",
+      reasonCodes: ["SPECIALTY_LOSS_CAP"],
+      service: "hair_loss",
+    })
+  })
+
+  it.each([
+    { campaignStatus: "PAUSED", statusReason: "CAMPAIGN_ALREADY_PAUSED" },
+    { campaignStatus: null, statusReason: "CAMPAIGN_NOT_ENABLED" },
+  ])(
+    "holds a $campaignStatus specialty instead of proposing the click-cap pause again",
+    ({ campaignStatus, statusReason }) => {
+      const hairLoss = specialtyCampaign("hair_loss", {
+        campaignStatus,
+        clicks: 40,
+        contributionCents: -12_075,
+        spendCents: 12_075,
+      })
+
+      expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+        rolling30: [hairLoss],
+      })), "hair_loss")).toEqual({
+        kind: "HOLD",
+        proposedMutationFamily: null,
+        reasonCodes: [
+          "SPECIALTY_ZERO_ORDER_CLICK_CAP",
+          statusReason,
+        ],
+        service: "hair_loss",
+      })
+    },
+  )
+
+  it("investigates missing zero-order click evidence instead of fabricating zero", () => {
+    const hairLoss = specialtyCampaign("hair_loss", { clicks: null })
+
+    expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+      rolling30: [hairLoss],
+    })), "hair_loss")).toEqual({
+      kind: "INVESTIGATE",
+      proposedMutationFamily: null,
+      reasonCodes: ["SPECIALTY_CLICK_EVIDENCE_UNAVAILABLE"],
+      service: "hair_loss",
+    })
+  })
+
+  it("keeps economics and outer tracking gates ahead of specialty click gates", () => {
+    const unavailable = specialtyCampaign("hair_loss", {
+      clicks: 40,
+      contributionCents: null,
+      spendCents: null,
+      unavailableReasonCodes: ["SPEND_UNAVAILABLE"],
+    })
+    expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({
+      rolling30: [unavailable],
+    })), "hair_loss")).toEqual({
+      kind: "INVESTIGATE",
+      proposedMutationFamily: null,
+      reasonCodes: ["ECONOMICS_UNAVAILABLE"],
+      service: "hair_loss",
+    })
+
+    const trackingBlocked = snapshot({
+      rolling30: [unavailable],
+      tracking: {
+        evidenceAsOf: "2026-07-28T00:00:00.000Z",
+        reasonCodes: ["GOOGLE_DIAGNOSTICS_LAGGING"],
+        scaleAllowed: false,
+        state: "AMBER",
+      },
+    })
+    expect(recommendationFor(evaluatePolicyWithoutHolds(trackingBlocked), "hair_loss")).toEqual({
+      kind: "HOLD",
+      proposedMutationFamily: null,
+      reasonCodes: ["TRACKING_NOT_GREEN"],
+      service: "hair_loss",
+    })
+  })
+
+  it("does not infer a duration or persisted-checkout stop from a rolling window", () => {
+    const hairLoss = specialtyCampaign("hair_loss", { clicks: 9 })
+    const oldRollingWindow = snapshot({
+      generatedAt: "2026-08-28T00:00:00.000Z",
+      rolling30: [hairLoss],
+      windows: {
+        ...snapshot().windows,
+        rolling30: {
+          endDate: "2026-08-27",
+          endUtcExclusive: "2026-08-27T14:00:00.000Z",
+          startDate: "2026-07-01",
+          startUtc: "2026-06-30T14:00:00.000Z",
+        },
+      },
+    })
+
+    expect(recommendationFor(evaluatePolicyWithoutHolds(oldRollingWindow), "hair_loss")).toEqual({
+      kind: "HOLD",
+      proposedMutationFamily: null,
+      reasonCodes: ["PILOT_WITHIN_LOSS_CAP"],
       service: "hair_loss",
     })
   })

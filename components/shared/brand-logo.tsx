@@ -53,7 +53,7 @@ export function BrandLogo({
           alt="InstantMed"
           width={textWidth}
           height={textHeight}
-          className="object-contain dark:brightness-0 dark:invert transition-opacity duration-200 group-hover:opacity-80"
+          className="object-contain dark:brightness-0 dark:invert transition-opacity duration-200 group-hover:opacity-80 max-[240px]:hidden"
           style={{ width: textWidth, height: textHeight, flexShrink: 0, filter: "drop-shadow(0 0 6px rgba(37,99,235,0.2))" }}
           priority={priority}
         />

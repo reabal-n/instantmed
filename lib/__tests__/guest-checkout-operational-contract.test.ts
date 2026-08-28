@@ -164,7 +164,17 @@ describe("guest checkout operational contract", () => {
 
     expect(duplicateSection).toContain("getIntakeAnswersForPaymentSafety(")
     expect(duplicateSection).toContain("existingIntake.id")
+    expect(duplicateSection).toContain("service:services!service_id(slug)")
+    expect(duplicateSection).toContain("consultSubtype: existingIntake.subtype")
+    expect(duplicateSection).toContain("validateSafetyFieldsPresent(")
+    expect(duplicateSection).toContain("checkSafetyForServer(")
     expect(duplicateSection).toContain("hasRepeatRxDoseContractMarker(existingAnswers)")
+    expect(duplicateSection.indexOf("validateSafetyFieldsPresent")).toBeLessThan(
+      duplicateSection.indexOf("checkSafetyForServer"),
+    )
+    expect(duplicateSection.indexOf("checkSafetyForServer")).toBeLessThan(
+      duplicateSection.indexOf("isPaymentSafetyLock"),
+    )
     expect(duplicateSection.indexOf("getRepeatRxDoseMissingFields")).toBeLessThan(
       duplicateSection.indexOf("inspectCheckoutSession"),
     )

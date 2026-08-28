@@ -7,6 +7,8 @@ import {
   type TestInfo,
 } from "@playwright/test"
 
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
 import {
   assertResolvedTheme,
   finishFiniteEntranceAnimations,
@@ -48,6 +50,8 @@ const STICKY_STRESS_STATES = [
   { name: "root-32-at-375", width: 375, height: 844, deviceScaleFactor: 1, rootFontSize: 32 },
 ] as const
 
+const ED_TIMING_FAQ_ANSWER = "Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. You will receive email updates as the request progresses."
+
 function projectBaseURL(testInfo: TestInfo): string {
   return String(testInfo.project.use.baseURL ?? process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3001")
 }
@@ -60,8 +64,10 @@ async function newFoundationPage(
     height: number
     deviceScaleFactor?: number
     reducedMotion?: "reduce" | "no-preference"
+    theme?: "light" | "dark"
   },
 ) {
+  const theme = options.theme ?? "light"
   const context = await browser.newContext({
     baseURL: projectBaseURL(testInfo),
     viewport: { width: options.width, height: options.height },
@@ -69,13 +75,13 @@ async function newFoundationPage(
     deviceScaleFactor: options.deviceScaleFactor ?? 1,
     isMobile: options.width <= 390,
     hasTouch: options.width <= 390,
-    colorScheme: "light",
+    colorScheme: theme,
     reducedMotion: options.reducedMotion ?? "no-preference",
     locale: "en-AU",
     timezoneId: "Australia/Sydney",
   })
   const page = await context.newPage()
-  await seedMoneyPageState(page, "light")
+  await seedMoneyPageState(page, theme)
 
   return { context, page }
 }
@@ -87,6 +93,25 @@ async function waitTwoFrames(page: Page) {
         requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
       ),
   )
+}
+
+async function expectCenterPointNotCovered(locator: Locator) {
+  const evidence = await locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect()
+    const x = Math.min(window.innerWidth - 1, Math.max(0, rect.left + rect.width / 2))
+    const y = Math.min(window.innerHeight - 1, Math.max(0, rect.top + rect.height / 2))
+    const hit = document.elementFromPoint(x, y)
+
+    return {
+      center: { x, y },
+      hit: hit instanceof HTMLElement
+        ? hit.getAttribute("aria-label") || hit.textContent?.trim().slice(0, 80) || hit.tagName
+        : null,
+      uncovered: hit === element || element.contains(hit),
+    }
+  })
+
+  expect(evidence.uncovered, `notice center ${JSON.stringify(evidence)}`).toBe(true)
 }
 
 async function applyRootFontSize(page: Page, size?: number) {
@@ -563,6 +588,406 @@ async function inspectSequentialHeaderControls(page: Page) {
 
 test.beforeEach(({ browserName }) => {
   test.skip(browserName !== "chromium", "Money-page foundations use Chromium layout metrics")
+})
+
+test("ED E1 leads with the private one-off outcome before clinical detail", async ({ browser }, testInfo) => {
+  test.setTimeout(120_000)
+
+  const states = [
+    { name: "desktop-light", width: 1440, height: 900, theme: "light" as const },
+    { name: "mobile-375x800-dark", width: 375, height: 800, theme: "dark" as const },
+  ]
+
+  for (const state of states) {
+    const { context, page } = await newFoundationPage(browser, testInfo, state)
+    const browserErrors: string[] = []
+    page.on("console", (message) => {
+      if (message.type() === "error") browserErrors.push(`console: ${message.text()}`)
+    })
+    page.on("pageerror", (error) => browserErrors.push(`pageerror: ${error.message}`))
+
+    await gotoPublicRoute(page, "/erectile-dysfunction")
+    await assertResolvedTheme(page, state.theme)
+
+    const heading = page.getByRole("heading", { level: 1 })
+    await expect(heading).toHaveText("Private ED assessment, from home.")
+    await expect(heading).toBeVisible()
+    await expect(heading).toHaveCSS("hyphens", "none")
+    expect(
+      await heading.evaluate((element) => {
+        const text = element.firstChild
+        const value = text?.textContent ?? ""
+        const start = value.indexOf("assessment")
+        if (!(text instanceof Text) || start < 0) return 0
+
+        const lines = new Set<number>()
+        for (let index = start; index < start + "assessment".length; index += 1) {
+          const range = document.createRange()
+          range.setStart(text, index)
+          range.setEnd(text, index + 1)
+          for (const rect of range.getClientRects()) lines.add(Math.round(rect.top * 10) / 10)
+        }
+        return lines.size
+      }),
+      `${state.name} should keep assessment on one line at an ordinary viewport`,
+    ).toBe(1)
+
+    const hero = heading.locator("xpath=ancestor::section[1]")
+    const heroCta = hero.getByRole("link", {
+      name: /Start private assessment · \$49\.95/,
+    })
+    const howItWorks = hero.getByRole("link", { name: "See how it works" })
+    await expect(heroCta).toBeVisible()
+    await expect(heroCta).toHaveAttribute(
+      "href",
+      "/request?service=consult&subtype=ed&growth_experience_version=spx_e1_20260828",
+    )
+    await expect(howItWorks).toHaveAttribute("href", "#how-it-works")
+    await expect(howItWorks).toHaveCSS("background-color", "rgba(0, 0, 0, 0)")
+
+    const initialHeroCtaBox = await heroCta.boundingBox()
+    expect(initialHeroCtaBox, `${state.name} Hero CTA should have a layout box`).not.toBeNull()
+    expect(
+      initialHeroCtaBox!.y + initialHeroCtaBox!.height,
+      `${state.name} Hero CTA should be visible before scrolling`,
+    ).toBeLessThanOrEqual(state.height)
+
+    const heroFacts = hero.getByRole("complementary", { name: "ED assessment facts" })
+    const heroFactGroups = heroFacts.locator("dl > div")
+    await expect(heroFacts).toBeVisible()
+    const initialHeroFactsBox = await heroFacts.boundingBox()
+    expect(initialHeroFactsBox, `${state.name} Hero facts should have a layout box`).not.toBeNull()
+    expect(
+      initialHeroFactsBox!.y,
+      `${state.name} Hero facts should begin in the initial viewport`,
+    ).toBeLessThan(state.height)
+    await expect(heroFactGroups).toHaveCount(4)
+    expect(
+      (await heroFactGroups.locator("dt").allTextContents()).map((text) => text.trim()),
+      `${state.name} Hero facts should remain in practical decision order`,
+    ).toEqual(["Eligibility", "Review fee", "Assessment", "If approved"])
+
+    await expect(heroFactGroups.nth(0)).toContainText(
+      getApprovedClaim("prescribing_identity_required"),
+    )
+    await expect(heroFactGroups.nth(1)).toContainText("$49.95")
+    await expect(heroFactGroups.nth(1)).toContainText("Full refund if the doctor declines.")
+    await expect(heroFactGroups.nth(2)).toContainText("~4 min")
+    await expect(heroFactGroups.nth(2)).toContainText(
+      "A doctor reviews it and may call you briefly before prescribing.",
+    )
+    await expect(heroFactGroups.nth(3)).toContainText(
+      "If approved, your eScript goes straight to your phone.",
+    )
+    await expect(heroFactGroups.nth(3)).toContainText("Australian pharmacy")
+    await expect(heroFactGroups.nth(3)).toContainText("Medicine cost is separate.")
+    await expect(heroFactGroups.nth(3)).toContainText("Prescription is not guaranteed.")
+
+    await page.screenshot({
+      path: testInfo.outputPath(`ed-e1-${state.name}-viewport.png`),
+    })
+
+    for (let index = 0; index < 4; index += 1) {
+      const factGroup = heroFactGroups.nth(index)
+      await factGroup.scrollIntoViewIfNeeded()
+      await expect(factGroup).toBeVisible()
+      const box = await factGroup.boundingBox()
+      expect(box, `${state.name} Hero fact group should have a layout box`).not.toBeNull()
+      expect(box!.y, `${state.name} Hero fact group should scroll into view`).toBeGreaterThanOrEqual(0)
+      expect(box!.y + box!.height, `${state.name} Hero fact group should fit in the viewport`).toBeLessThanOrEqual(
+        state.height + 2,
+      )
+    }
+
+    const practicalOffer = page.locator("#how-it-works")
+    await expect(practicalOffer).toContainText("Medicine cost is separate")
+    expect(
+      await hero.evaluate((element) => element.nextElementSibling?.id ?? null),
+      `${state.name} practical offer should directly follow the Hero`,
+    ).toBe("how-it-works")
+    expect(
+      await page.evaluate(() => {
+        const practical = document.querySelector("#how-it-works")
+        const education = document.querySelector("#eligibility")
+        return Boolean(
+          practical &&
+          education &&
+          practical.compareDocumentPosition(education) & Node.DOCUMENT_POSITION_FOLLOWING,
+        )
+      }),
+    ).toBe(true)
+
+    const timingFaq = page.getByRole("button", { name: "How fast will I hear back?" })
+    await timingFaq.scrollIntoViewIfNeeded()
+    await expect(timingFaq).toBeVisible()
+    await timingFaq.click()
+    await expect(page.getByText(ED_TIMING_FAQ_ANSWER, { exact: true })).toBeVisible()
+
+    if (state.width === 375) {
+      await practicalOffer.scrollIntoViewIfNeeded()
+      const stickyCta = page.getByRole("region", { name: "Quick purchase" })
+      await expect(stickyCta).toBeVisible()
+      await expect(stickyCta.getByRole("link")).toHaveAttribute(
+        "href",
+        "/request?service=consult&subtype=ed&growth_experience_version=spx_e1_20260828",
+      )
+    }
+
+    await page.screenshot({
+      path: testInfo.outputPath(`ed-e1-${state.name}.png`),
+      fullPage: true,
+    })
+
+    expect(browserErrors, `${state.name} browser errors`).toEqual([])
+    await context.close()
+  }
+})
+
+test("ED E1 contains the Hero at narrow zoom and enlarged text", async ({ browser }, testInfo) => {
+  test.setTimeout(120_000)
+
+  const states = [
+    { name: "zoom-200-proxy", width: 188, height: 422, deviceScaleFactor: 2 },
+    { name: "root-32-at-375", width: 375, height: 844, deviceScaleFactor: 1, rootFontSize: 32 },
+  ] as const
+
+  for (const state of states) {
+    const { context, page } = await newFoundationPage(browser, testInfo, state)
+    try {
+      await gotoPublicRoute(page, "/erectile-dysfunction")
+      await applyRootFontSize(page, "rootFontSize" in state ? state.rootFontSize : undefined)
+      await finishFiniteEntranceAnimations(page)
+
+      const heading = page.getByRole("heading", { level: 1 })
+      await expect(heading).toHaveText("Private ED assessment, from home.")
+      await expect(heading).toHaveCSS("hyphens", "none")
+      const hero = heading.locator("xpath=ancestor::section[1]")
+      await expect(hero).toContainText("Start private assessment")
+      await expect(hero.getByRole("complementary", { name: "ED assessment facts" })).toContainText(
+        "The practical facts",
+      )
+
+      const containment = await heading.evaluate((element) => {
+        const headingRect = element.getBoundingClientRect()
+        const heroRect = element.closest("section")?.getBoundingClientRect()
+        const range = document.createRange()
+        range.selectNodeContents(element)
+        const textRects = Array.from(range.getClientRects())
+        const tolerance = 2
+
+        return {
+          headingInHero: Boolean(
+            heroRect &&
+            headingRect.left >= heroRect.left - tolerance &&
+            headingRect.right <= heroRect.right + tolerance,
+          ),
+          textInHeading: textRects.every(
+            (rect) =>
+              rect.left >= headingRect.left - tolerance &&
+              rect.right <= headingRect.right + tolerance,
+          ),
+          textInViewport: textRects.every(
+            (rect) =>
+              rect.left >= -tolerance &&
+              rect.right <= document.documentElement.clientWidth + tolerance,
+          ),
+          textRectCount: textRects.length,
+        }
+      })
+      expect(containment.textRectCount, `${state.name} H1 should render semantic text`).toBeGreaterThan(0)
+      expect(containment.headingInHero, `${state.name} H1 box should stay inside the Hero`).toBe(true)
+      expect(containment.textInHeading, `${state.name} H1 text should stay inside its box`).toBe(true)
+      expect(containment.textInViewport, `${state.name} H1 text should stay inside the viewport`).toBe(true)
+
+      const audit = await inspectMeaningfulHorizontalOverflow(page)
+      expect(audit.scrollWidth, `${state.name} ED document width`).toBeLessThanOrEqual(audit.clientWidth + 1)
+      expect(audit.findings, `${state.name} ED semantic overflow`).toEqual([])
+
+      await page.screenshot({
+        path: testInfo.outputPath(`ed-e1-${state.name}-viewport.png`),
+      })
+    } finally {
+      await context.close()
+    }
+  }
+})
+
+test("ED E1 preserves unavailable-service behavior", async ({ page }) => {
+  await page.route("**/api/availability", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        maintenance_mode: false,
+        disable_med_cert: false,
+        disable_repeat_scripts: false,
+        disable_consults: true,
+        disable_weight_loss: false,
+        urgent_notice_enabled: false,
+        urgent_notice_message: "",
+        business_hours_open: 8,
+        business_hours_close: 22,
+        business_hours_timezone: "Australia/Sydney",
+        business_hours_enabled: true,
+      }),
+    })
+  })
+  await seedMoneyPageState(page, "light")
+  await gotoPublicRoute(page, "/erectile-dysfunction")
+
+  const unavailableNotice = page.getByText("This service is currently unavailable.")
+  await expect(unavailableNotice).toBeVisible()
+  await expectCenterPointNotCovered(unavailableNotice)
+  await expect(page.getByText("Contact us if you have questions.")).toBeVisible()
+  const contactLinks = page.locator('a[href="/contact"]')
+  expect(await contactLinks.count()).toBeGreaterThan(1)
+  for (let index = 0; index < await contactLinks.count(); index += 1) {
+    await expect(contactLinks.nth(index)).not.toHaveAttribute("aria-disabled", "true")
+  }
+})
+
+test("Hair H1 leads with the qualified one-off outcome before education", async ({ browser }, testInfo) => {
+  test.setTimeout(120_000)
+
+  const states = [
+    { name: "desktop-light", width: 1440, height: 900, theme: "light" as const },
+    { name: "mobile-375x800-dark", width: 375, height: 800, theme: "dark" as const },
+  ]
+
+  for (const state of states) {
+    const { context, page } = await newFoundationPage(browser, testInfo, state)
+    const browserErrors: string[] = []
+    page.on("console", (message) => {
+      if (message.type() === "error") browserErrors.push(`console: ${message.text()}`)
+    })
+    page.on("pageerror", (error) => browserErrors.push(`pageerror: ${error.message}`))
+
+    await gotoPublicRoute(page, "/hair-loss")
+    await assertResolvedTheme(page, state.theme)
+
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Private hair loss assessment, from home.",
+    )
+    const hero = page
+      .getByRole("heading", { level: 1 })
+      .locator("xpath=ancestor::section[1]")
+    const heroFacts = hero.getByRole("complementary", {
+      name: "Hair loss assessment facts",
+    })
+    await expect(hero).toContainText("A one-off private doctor assessment for $49.95.")
+    await expect(hero).toContainText(
+      "A doctor reviews it and may call you briefly before prescribing.",
+    )
+    await expect(heroFacts).toBeVisible()
+
+    const heroFactGroups = heroFacts.locator("dl > div")
+    await expect(heroFactGroups).toHaveCount(4)
+    expect(
+      (await heroFactGroups.locator("dt").allTextContents()).map((text) => text.trim()),
+      `${state.name} Hero facts should remain in practical decision order`,
+    ).toEqual(["Eligibility", "Review fee", "Assessment", "If approved"])
+
+    await expect(heroFactGroups.nth(0)).toContainText("Australia only · Ages 18+")
+    await expect(heroFactGroups.nth(1)).toContainText("$49.95")
+    await expect(heroFactGroups.nth(1)).toContainText("Full refund if the doctor declines.")
+    await expect(heroFactGroups.nth(2)).toContainText("3-min form")
+    await expect(heroFactGroups.nth(2)).toContainText(
+      "A doctor reviews it and may call you briefly before prescribing.",
+    )
+    await expect(heroFactGroups.nth(3)).toContainText(
+      "If approved, your eScript goes straight to your phone.",
+    )
+    await expect(heroFactGroups.nth(3)).toContainText("Fill it at an Australian pharmacy.")
+    await expect(heroFactGroups.nth(3)).toContainText("Medicine cost is separate.")
+    await expect(heroFactGroups.nth(3)).toContainText("Prescription is not guaranteed.")
+
+    await page.screenshot({
+      path: testInfo.outputPath(`hair-h1-${state.name}-viewport.png`),
+    })
+
+    for (let index = 0; index < 4; index += 1) {
+      const factGroup = heroFactGroups.nth(index)
+      await factGroup.scrollIntoViewIfNeeded()
+      await expect(factGroup).toBeVisible()
+      const box = await factGroup.boundingBox()
+      expect(box, `${state.name} Hero fact group should have a layout box`).not.toBeNull()
+      expect(box!.y, `${state.name} Hero fact group should scroll into view`).toBeGreaterThanOrEqual(0)
+      expect(box!.y + box!.height, `${state.name} Hero fact group should fit in the viewport`).toBeLessThanOrEqual(
+        state.height,
+      )
+    }
+
+    const heroCta = page.getByRole("link", { name: /Start assessment · \$49\.95/ }).first()
+    await expect(heroCta).toHaveAttribute(
+      "href",
+      "/request?service=consult&subtype=hair_loss&growth_experience_version=spx_h1_20260828",
+    )
+
+    const practicalOffer = page.locator("#pricing")
+    await expect(practicalOffer).toContainText("Medicine cost is separate")
+    await expect(practicalOffer).toContainText("Australian pharmacy")
+    await expect(practicalOffer).toContainText("Prescription is not guaranteed")
+    expect(
+      await page.evaluate(() => {
+        const practical = document.querySelector("#pricing")
+        const education = document.querySelector("#assessment-model")
+        return Boolean(
+          practical &&
+          education &&
+          practical.compareDocumentPosition(education) & Node.DOCUMENT_POSITION_FOLLOWING,
+        )
+      }),
+    ).toBe(true)
+
+    if (state.width === 375) {
+      await practicalOffer.scrollIntoViewIfNeeded()
+      const stickyCta = page.getByRole("region", { name: "Quick purchase" })
+      await expect(stickyCta).toBeVisible()
+      await expect(stickyCta.getByRole("link")).toHaveAttribute(
+        "href",
+        "/request?service=consult&subtype=hair_loss&growth_experience_version=spx_h1_20260828",
+      )
+    }
+
+    await page.screenshot({
+      path: testInfo.outputPath(`hair-h1-${state.name}.png`),
+      fullPage: true,
+    })
+    expect(browserErrors, `${state.name} browser errors`).toEqual([])
+    await context.close()
+  }
+})
+
+test("Hair H1 preserves unavailable-service behavior", async ({ page }) => {
+  await page.route("**/api/availability", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        maintenance_mode: false,
+        disable_med_cert: false,
+        disable_repeat_scripts: false,
+        disable_consults: true,
+        disable_weight_loss: false,
+        urgent_notice_enabled: false,
+        urgent_notice_message: "",
+        business_hours_open: 8,
+        business_hours_close: 22,
+        business_hours_timezone: "Australia/Sydney",
+        business_hours_enabled: true,
+      }),
+    })
+  })
+  await seedMoneyPageState(page, "light")
+  await gotoPublicRoute(page, "/hair-loss")
+
+  const unavailableNotice = page.getByText("This service is currently unavailable.")
+  await expect(unavailableNotice).toBeVisible()
+  await expectCenterPointNotCovered(unavailableNotice)
+  await expect(page.getByText("Contact us if you have questions.")).toBeVisible()
+  const contactLinks = page.locator('a[href="/contact"]')
+  expect(await contactLinks.count()).toBeGreaterThan(1)
+  for (let index = 0; index < await contactLinks.count(); index += 1) {
+    await expect(contactLinks.nth(index)).not.toHaveAttribute("aria-disabled", "true")
+  }
 })
 
 test.describe("money-page theme foundations", () => {

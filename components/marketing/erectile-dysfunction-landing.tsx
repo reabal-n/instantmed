@@ -29,8 +29,9 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { ED_LANDING_FAQ } from "@/lib/data/ed-faq"
+import { getActiveSpecialtyExperience } from "@/lib/growth/specialty-experiences"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
-import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
+import { getService } from "@/lib/services/service-catalog"
 
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((module) => module.FAQSection),
@@ -38,16 +39,25 @@ const FAQSection = dynamic(
 )
 
 const ASSESSMENT_HREF = "/request?service=consult&subtype=ed"
+const ED_LANDING_EXPERIENCE = getActiveSpecialtyExperience("ed")
+const ED_SERVICE = getService("ed")
 const DOCTOR_REGISTRATION_CLAIM = getApprovedClaim("doctor_registration")
+const FORM_FIRST_CLAIM = getApprovedClaim("form_first_wedge")
+const PRESCRIPTION_IF_APPROVED_CLAIM = getApprovedClaim("prescription_if_approved")
+const REFUND_GUARANTEE_CLAIM = getApprovedClaim("refund_guarantee")
 
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "ed",
   analyticsId: "ed",
+  growthExperience: {
+    service: "ed",
+    version: ED_LANDING_EXPERIENCE?.id ?? null,
+  },
   sticky: {
-    ctaText: `Start ED assessment - ${PRICING_DISPLAY.MENS_HEALTH}`,
+    ctaText: `Start private assessment · ${PRICING_DISPLAY.MENS_HEALTH}`,
     ctaHref: ASSESSMENT_HREF,
     mobileSummary: "ED assessment",
-    responseTime: "Doctor review 24/7",
+    responseTime: "Doctor-reviewed after submission",
   },
 }
 
@@ -56,31 +66,32 @@ const HERO_FACTS = [
     icon: ShieldCheck,
     label: "Eligibility",
     value: "Australia only · Ages 18+",
-    body: "Medicare details required for consultation records and electronic prescribing.",
+    body: getApprovedClaim("prescribing_identity_required"),
   },
   {
     icon: WalletCards,
     label: "Review fee",
     value: PRICING_DISPLAY.MENS_HEALTH,
-    body: "One-off doctor review. Full refund if the doctor declines. Medicine cost is separate.",
+    body: `One-off private doctor assessment. ${REFUND_GUARANTEE_CLAIM}`,
   },
   {
     icon: Clock3,
-    label: "Secure form",
-    value: "About 3 minutes",
-    body: "Describe the erection pattern, heart context, chest-pain medicines, and relevant history.",
+    label: "Assessment",
+    value: ED_SERVICE.effort,
+    body: FORM_FIRST_CLAIM,
   },
   {
     icon: Stethoscope,
-    label: "Clinical decision",
-    value: "Doctor decides",
-    body: "The doctor may approve, call or message for clarification, decline, or redirect to in-person care.",
+    label: "If approved",
+    value: PRESCRIPTION_IF_APPROVED_CLAIM,
+    body: "Fill it at an Australian pharmacy. Medicine cost is separate. Prescription is not guaranteed.",
   },
 ] as const
 
 const ELIGIBILITY_ITEMS = [
   "You are in Australia and aged 18 or over.",
-  "You can provide Medicare details, current medicines, allergies, heart-health history, and blood pressure context.",
+  getApprovedClaim("prescribing_identity_required"),
+  "You can provide current medicines, allergies, conditions, and heart or stroke history.",
   "Your main concern is ongoing difficulty getting or keeping an erection, and you can describe the pattern clearly.",
   "You understand that a prescription is not guaranteed and doctor contact may be needed before a decision.",
 ] as const
@@ -94,12 +105,12 @@ const ED_DECISION_SIGNALS = [
   {
     icon: HeartPulse,
     title: "Cardiovascular context",
-    body: "Chest symptoms, exercise tolerance, recent heart or stroke events, and blood pressure context.",
+    body: "Recent heart or stroke history, severe heart disease, and very low blood pressure.",
   },
   {
     icon: Pill,
     title: "Medicine safety",
-    body: "Chest-pain medicines, other current medicines, allergies, and relevant conditions.",
+    body: "Current medicines, allergies, and relevant conditions.",
   },
   {
     icon: AlertTriangle,
@@ -148,7 +159,7 @@ const REVIEW_STEPS = [
   {
     number: "01",
     title: "Complete the private form",
-    body: "Answer the erection-pattern, heart-health, medicine, blood pressure, allergy, and medical-history questions.",
+    body: "Answer the erection-pattern, heart and stroke history, very low blood pressure, medicine, allergy, and medical-history questions.",
   },
   {
     number: "02",
@@ -158,7 +169,7 @@ const REVIEW_STEPS = [
   {
     number: "03",
     title: "Receive a clinical outcome",
-    body: "The outcome may be approval if clinically appropriate, a request for more information, or decline with safer next steps and a refund.",
+    body: `${PRESCRIPTION_IF_APPROVED_CLAIM} Otherwise, the doctor may ask for more information or decline with safer next steps and a refund.`,
   },
 ] as const
 
@@ -203,21 +214,26 @@ function EdHero({
   isDisabled,
   heroCTARef,
   onStart,
+  requestCtaHref,
 }: {
   isDisabled: boolean
   heroCTARef: RefObject<HTMLDivElement>
   onStart: () => void
+  requestCtaHref: string
 }) {
   return (
     <section className="relative overflow-hidden bg-[color:var(--morning-ivory)]/60 pb-14 pt-10 dark:bg-background sm:pt-14 lg:pb-20 lg:pt-20">
       <div className="relative mx-auto grid min-w-0 grid-cols-1 max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:px-8">
         <Reveal instant className="min-w-0 max-w-2xl">
           <SectionPill>Men&apos;s health</SectionPill>
-          <Heading level="display" className="mt-5">
-            Erectile dysfunction assessment online Australia
+          <Heading
+            level="display"
+            className="mt-5 hyphens-none max-[240px]:text-[1.75rem] max-[240px]:hyphens-none max-[240px]:[overflow-wrap:normal]"
+          >
+            Private ED assessment, from home.
           </Heading>
           <p data-speakable className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Start with a private safety screen for ED concerns. An Australian doctor reviews your answers and decides whether online care is clinically appropriate.
+            A one-off private doctor assessment for {PRICING_DISPLAY.MENS_HEALTH}. Complete a secure form from home, then an Australian doctor reviews the full picture.
           </p>
 
           <div ref={heroCTARef} className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -225,26 +241,29 @@ function EdHero({
               asChild
               size="lg"
               className="h-auto min-h-12 w-full whitespace-normal py-3 text-center shadow-lg shadow-primary/20 sm:w-auto"
-              disabled={isDisabled}
               onClick={onStart}
             >
-              <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                {isDisabled ? "Contact us" : "Start ED assessment"}
+              <Link href={isDisabled ? "/contact" : requestCtaHref}>
+                {isDisabled ? "Contact us" : `Start private assessment · ${PRICING_DISPLAY.MENS_HEALTH}`}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="h-auto min-h-12 w-full whitespace-normal py-3 text-center sm:w-auto">
-              <Link href="#red-flags">Check the safety boundary</Link>
-            </Button>
+            <Link
+              href="#how-it-works"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:w-auto"
+            >
+              See how it works
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </div>
 
           <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-            {GUARANTEE} Prescription is not guaranteed. The doctor may call or message before deciding.
+            {REFUND_GUARANTEE_CLAIM} Prescription is not guaranteed. The doctor may call or message before deciding.
           </p>
         </Reveal>
 
         <Reveal instant className="min-w-0">
-          <div className="rounded-3xl border border-border/50 bg-white p-5 shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-6">
+          <aside aria-label="ED assessment facts" className="rounded-3xl border border-border/50 bg-white p-5 shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-6">
             <div className="flex items-start gap-3 rounded-2xl bg-muted/40 p-4 dark:bg-white/[0.04]">
               <Lock className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
               <div>
@@ -266,7 +285,7 @@ function EdHero({
                 </div>
               ))}
             </dl>
-          </div>
+          </aside>
         </Reveal>
       </div>
     </section>
@@ -282,7 +301,7 @@ function EdEligibilitySection() {
             <SectionPill>Eligibility</SectionPill>
             <Heading level="h2" className="mt-4">A focused starting point for ED concerns</Heading>
             <p className="mt-3 text-base leading-7 text-muted-foreground">
-              {FORM_FIRST_WEDGE} The form gives the doctor the information needed to decide whether remote assessment is suitable.
+              {FORM_FIRST_CLAIM} The form gives the doctor the information needed to decide whether remote assessment is suitable.
             </p>
           </Reveal>
           <Reveal instant>
@@ -420,7 +439,15 @@ function EdScopeBoundarySection() {
   )
 }
 
-function EdReviewCostOutcomeSection({ isDisabled, onStart }: { isDisabled: boolean; onStart: () => void }) {
+function EdReviewCostOutcomeSection({
+  isDisabled,
+  onStart,
+  requestCtaHref,
+}: {
+  isDisabled: boolean
+  onStart: () => void
+  requestCtaHref: string
+}) {
   return (
     <section id="how-it-works" className="bg-muted/30 py-14 dark:bg-white/[0.02] sm:py-16 lg:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -452,18 +479,18 @@ function EdReviewCostOutcomeSection({ isDisabled, onStart }: { isDisabled: boole
             <div className="p-5">
               <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">If declined</dt>
               <dd className="mt-2 text-base font-semibold text-foreground">Full refund</dd>
-              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{GUARANTEE}</dd>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{REFUND_GUARANTEE_CLAIM}</dd>
             </div>
             <div className="p-5">
               <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">If prescribed</dt>
               <dd className="mt-2 text-base font-semibold text-foreground">Medicine cost is separate</dd>
-              <dd className="mt-1 text-sm leading-6 text-muted-foreground">Pharmacy price may vary with PBS status, brand, and pharmacy pricing.</dd>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{PRESCRIPTION_IF_APPROVED_CLAIM} Fill it at an Australian pharmacy. Pharmacy price may vary.</dd>
             </div>
           </dl>
           <div className="border-t border-border/50 p-5 text-center">
-            <Button asChild size="lg" disabled={isDisabled} onClick={onStart}>
-              <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                {isDisabled ? "Contact us" : "Start the secure form"}
+            <Button asChild size="lg" onClick={onStart}>
+              <Link href={isDisabled ? "/contact" : requestCtaHref}>
+                {isDisabled ? "Contact us" : "Start private assessment"}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -526,7 +553,15 @@ function EdSourcesSection() {
   )
 }
 
-function EdFinalCta({ isDisabled, onStart }: { isDisabled: boolean; onStart: () => void }) {
+function EdFinalCta({
+  isDisabled,
+  onStart,
+  requestCtaHref,
+}: {
+  isDisabled: boolean
+  onStart: () => void
+  requestCtaHref: string
+}) {
   return (
     <section className="py-14 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -537,8 +572,8 @@ function EdFinalCta({ isDisabled, onStart }: { isDisabled: boolean; onStart: () 
             Complete the secure form. An AHPRA-registered doctor reviews your answers and decides whether online care is appropriate.
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg" className="w-full sm:w-auto" disabled={isDisabled} onClick={onStart}>
-              <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
+            <Button asChild size="lg" className="w-full sm:w-auto" onClick={onStart}>
+              <Link href={isDisabled ? "/contact" : requestCtaHref}>
                 {isDisabled ? "Contact us" : `Request assessment - ${PRICING_DISPLAY.MENS_HEALTH}`}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
@@ -556,13 +591,13 @@ function EdFinalCta({ isDisabled, onStart }: { isDisabled: boolean; onStart: () 
 export function ErectileDysfunctionLanding() {
   return (
     <LandingPageShell config={LANDING_CONFIG}>
-      {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
+      {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <div className="bg-background text-foreground">
-          <EdHero isDisabled={isDisabled} heroCTARef={heroCTARef} onStart={handleHeroCTA} />
+          <EdHero isDisabled={isDisabled} heroCTARef={heroCTARef} onStart={handleHeroCTA} requestCtaHref={requestCtaHref} />
+          <EdReviewCostOutcomeSection isDisabled={isDisabled} onStart={handleHowItWorksCTA} requestCtaHref={requestCtaHref} />
           <EdEligibilitySection />
           <EdSafetyDecisionMap />
           <EdScopeBoundarySection />
-          <EdReviewCostOutcomeSection isDisabled={isDisabled} onStart={handleHowItWorksCTA} />
           <EdAlternativesSection />
           <EdSourcesSection />
           <FAQSection
@@ -575,7 +610,7 @@ export function ErectileDysfunctionLanding() {
             viewAllHref="/faq"
             className="bg-background"
           />
-          <EdFinalCta isDisabled={isDisabled} onStart={handleFinalCTA} />
+          <EdFinalCta isDisabled={isDisabled} onStart={handleFinalCTA} requestCtaHref={requestCtaHref} />
         </div>
       )}
     </LandingPageShell>

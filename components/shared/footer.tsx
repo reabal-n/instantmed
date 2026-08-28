@@ -28,7 +28,10 @@ export function Footer({ variant = "marketing" }: FooterProps) {
   return (
     <footer className="mt-6 mb-4 px-4 max-w-5xl mx-auto" role="contentinfo">
       {/* Main card */}
-      <div className="min-w-0 bg-white dark:bg-card rounded-3xl px-5 sm:px-8 py-7 sm:py-9 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+      <div
+        data-nosnippet=""
+        className="min-w-0 bg-white dark:bg-card rounded-3xl px-5 sm:px-8 py-7 sm:py-9 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none"
+      >
         <div className="flex flex-col md:flex-row gap-6 md:gap-10">
           {/* Brand + Contact */}
           <div className="min-w-0 md:w-[200px] shrink-0">
@@ -91,14 +94,13 @@ export function Footer({ variant = "marketing" }: FooterProps) {
               </div>
             </nav>
 
-            {/* Indexed location pages: internal links so these crawl-starved,
-                previously-orphaned pages get crawl demand from every marketing
-                page. Marketing variant only (checkout/auth stay lean). */}
+            {/* Useful branded-search shortcuts. City pages remain linked from
+                /locations instead of competing for sitewide prominence. */}
             {isMarketing && (
-              <nav aria-label="Medical certificates by city">
-                <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Locations</p>
+              <nav aria-label="Helpful links">
+                <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Helpful</p>
                 <div className="flex flex-col gap-1.5">
-                  {footerLinks.locations.map((link) => (
+                  {footerLinks.help.map((link) => (
                     <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
                       {link.label}
                     </Link>
@@ -112,7 +114,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
 
       {/* Certifications + trust badges (marketing only) */}
       {isMarketing && (
-        <div className="py-4 sm:py-5">
+        <div data-nosnippet="" className="py-4 sm:py-5">
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 mb-3">
             <StripeBadge variant="powered-by" />
             <span className="hidden sm:block h-5 w-px bg-border/50" aria-hidden="true" />
@@ -126,7 +128,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
 
       {/* Disclaimer (marketing only) */}
       {isMarketing && (
-        <div className="px-1 mb-3 text-[10px] text-muted-foreground">
+        <div data-nosnippet="" className="px-1 mb-3 text-[10px] text-muted-foreground">
           <p>
             <strong className="text-foreground">Important:</strong> Online assessment is not suitable for medical emergencies.
             If you are experiencing a medical emergency, call <strong className="text-muted-foreground">000</strong> immediately.
@@ -135,7 +137,10 @@ export function Footer({ variant = "marketing" }: FooterProps) {
       )}
 
       {/* Bottom bar */}
-      <div className="min-w-0 px-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 text-[10px] text-muted-foreground">
+      <div
+        data-nosnippet=""
+        className="min-w-0 px-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 text-[10px] text-muted-foreground"
+      >
         <div className="min-w-0 flex flex-wrap gap-x-3 gap-y-1 items-center">
           <p>
             &copy; {currentYear} {COMPANY_NAME}. All rights reserved.

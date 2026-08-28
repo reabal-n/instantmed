@@ -274,6 +274,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     phone,
     dob,
     flowInstanceId,
+    growthExperienceVersion,
     goToStep,
     safetyConfirmed,
     setSafetyConfirmed,
@@ -305,9 +306,10 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     posthog?.capture("checkout_viewed", {
       service_type: serviceType,
       flow_instance_id: flowInstanceId,
+      growth_experience_version: growthExperienceVersion,
       consult_subtype: answers.consultSubtype,
     })
-  }, [posthog, serviceType, answers.consultSubtype, flowInstanceId])
+  }, [posthog, serviceType, answers.consultSubtype, flowInstanceId, growthExperienceVersion])
 
   // Pull a checkout error into view so it isn't missed below the fold / pay CTA.
   useEffect(() => {
@@ -338,6 +340,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     capture("checkout_initiated", {
       service_type: serviceType,
       flow_instance_id: flowInstanceId,
+      growth_experience_version: growthExperienceVersion,
       consult_subtype: answers.consultSubtype,
       price_dollars: totalDue,
       is_priority: isPriority,
@@ -362,6 +365,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         attribution,
         posthogDistinctId: posthog?.get_distinct_id() || undefined,
         flowInstanceId: flowInstanceId ?? undefined,
+        growthExperienceVersion: growthExperienceVersion ?? undefined,
         serverDraftSessionId:
           getActiveServerDraftSessionId(serviceType, flowInstanceId) ?? undefined,
       })
@@ -370,6 +374,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         posthog?.capture("checkout_failed", {
           service_type: serviceType,
           flow_instance_id: flowInstanceId,
+          growth_experience_version: growthExperienceVersion,
           consult_subtype: answers.consultSubtype,
           stage: "session_creation",
           failure_category: classifyCheckoutFailure(result.error),
@@ -383,6 +388,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         posthog?.capture("checkout_failed", {
           service_type: serviceType,
           flow_instance_id: flowInstanceId,
+          growth_experience_version: growthExperienceVersion,
           consult_subtype: answers.consultSubtype,
           stage: "missing_checkout_url",
           reason: "missing_checkout_url",
@@ -394,6 +400,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       posthog?.capture("checkout_redirecting", {
         service_type: serviceType,
         flow_instance_id: flowInstanceId,
+        growth_experience_version: growthExperienceVersion,
         consult_subtype: answers.consultSubtype,
         price_dollars: totalDue,
       })

@@ -2,17 +2,36 @@ import { describe, expect, it, vi } from "vitest"
 
 import { findDuplicatePatientProfile } from "@/lib/clinical/duplicate-patient-detection"
 
-/**
- * Builds a minimal Supabase mock for the
- * from("profiles").select().eq().neq().limit() chain the detector uses.
- * The chain resolves to { data, error } at .limit().
- */
+/** Builds a small in-memory Supabase query that applies filters before limit. */
 function mockSupabase(result: { data?: unknown[]; error?: { message: string } | null }) {
-  const limit = vi.fn().mockResolvedValue({ data: result.data ?? null, error: result.error ?? null })
-  const neq = vi.fn(() => ({ limit }))
-  const eq = vi.fn(() => ({ neq }))
-  const select = vi.fn(() => ({ eq }))
-  const from = vi.fn(() => ({ select }))
+  let rows: Array<Record<string, unknown>> = result.data?.map((row) => ({
+    date_of_birth: "1990-06-26",
+    role: "patient",
+    merged_into_profile_id: null,
+    account_closed_at: null,
+    ...(row as Record<string, unknown>),
+  })) ?? []
+
+  const query = {
+    select: vi.fn(() => query),
+    eq: vi.fn((column: string, value: unknown) => {
+      rows = rows.filter((row) => row[column] === value)
+      return query
+    }),
+    is: vi.fn((column: string, value: unknown) => {
+      rows = rows.filter((row) => row[column] === value)
+      return query
+    }),
+    neq: vi.fn((column: string, value: unknown) => {
+      rows = rows.filter((row) => row[column] !== value)
+      return query
+    }),
+    limit: vi.fn(async (count: number) => ({
+      data: rows.slice(0, count),
+      error: result.error ?? null,
+    })),
+  }
+  const from = vi.fn(() => query)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return { from } as any
 }
@@ -28,6 +47,90 @@ describe("findDuplicatePatientProfile", () => {
       fullName: "Adam West",
       dateOfBirth: "1990-06-26",
     })
+    expect(match).toEqual({ matchedProfileId: OTHER_ID })
+  })
+
+  it("ignores a profile already merged into the current patient", async () => {
+    const supabase = mockSupabase({
+      data: [{
+        id: OTHER_ID,
+        full_name: "Adam West",
+        role: "patient",
+        merged_into_profile_id: PATIENT_ID,
+        account_closed_at: null,
+      }],
+    })
+
+    const match = await findDuplicatePatientProfile(supabase, {
+      patientId: PATIENT_ID,
+      fullName: "Adam West",
+      dateOfBirth: "1990-06-26",
+    })
+
+    expect(match).toBeNull()
+  })
+
+  it("ignores a closed patient profile", async () => {
+    const supabase = mockSupabase({
+      data: [{
+        id: OTHER_ID,
+        full_name: "Adam West",
+        role: "patient",
+        merged_into_profile_id: null,
+        account_closed_at: "2026-08-20T00:00:00.000Z",
+      }],
+    })
+
+    const match = await findDuplicatePatientProfile(supabase, {
+      patientId: PATIENT_ID,
+      fullName: "Adam West",
+      dateOfBirth: "1990-06-26",
+    })
+
+    expect(match).toBeNull()
+  })
+
+  it("ignores a non-patient profile", async () => {
+    const supabase = mockSupabase({
+      data: [{
+        id: OTHER_ID,
+        full_name: "Adam West",
+        role: "doctor",
+        merged_into_profile_id: null,
+        account_closed_at: null,
+      }],
+    })
+
+    const match = await findDuplicatePatientProfile(supabase, {
+      patientId: PATIENT_ID,
+      fullName: "Adam West",
+      dateOfBirth: "1990-06-26",
+    })
+
+    expect(match).toBeNull()
+  })
+
+  it("filters inactive profiles before applying the shared-DOB scan limit", async () => {
+    const inactiveProfiles = Array.from({ length: 50 }, (_, index) => ({
+      id: `closed-${index}`,
+      full_name: "Adam West",
+      role: "patient",
+      merged_into_profile_id: PATIENT_ID,
+      account_closed_at: null,
+    }))
+    const supabase = mockSupabase({
+      data: [
+        ...inactiveProfiles,
+        { id: OTHER_ID, full_name: "Adam West" },
+      ],
+    })
+
+    const match = await findDuplicatePatientProfile(supabase, {
+      patientId: PATIENT_ID,
+      fullName: "Adam West",
+      dateOfBirth: "1990-06-26",
+    })
+
     expect(match).toEqual({ matchedProfileId: OTHER_ID })
   })
 

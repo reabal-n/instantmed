@@ -422,6 +422,44 @@ describe("signed guest checkout resume payment safety", () => {
     expect(updateRecords).toHaveLength(0)
   })
 
+  it("withholds a recovered Hair Session when persisted reproductive answers are contraindicating", async () => {
+    const hairAnswers = {
+      consultSubtype: "hair_loss",
+      emergency_symptoms: [],
+      hairReproductive: "yes",
+    }
+    const { supabase, updateRecords } = createResumeSupabaseMock({
+      category: "consult",
+      service: { slug: "mens-health-hair", type: "consult" },
+      subtype: "hair_loss",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue(hairAnswers)
+    mocks.checkSafetyForServer.mockReturnValue({
+      isAllowed: false,
+      outcome: "DECLINE",
+      riskTier: "high",
+      blockReason: "Hair reproductive safety block.",
+      requiresCall: false,
+      triggeredRuleIds: ["hair_reproductive_contraindication"],
+    })
+
+    const destination = await resolveGuestCheckoutResume("intake-1")
+
+    expect(destination).toBe("/checkout/cancelled?reason=safety_blocked")
+    expect(mocks.validateSafetyFieldsPresent).toHaveBeenCalledWith(
+      "mens-health-hair",
+      hairAnswers,
+    )
+    expect(mocks.checkSafetyForServer).toHaveBeenCalledWith(
+      "mens-health-hair",
+      hairAnswers,
+    )
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(updateRecords).toHaveLength(0)
+  })
+
   it("validates field presence before running the safety rules engine", async () => {
     const { supabase } = createResumeSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)

@@ -44,6 +44,7 @@ function findRouteInventoryFiles(dir: string): string[] {
 const agents = readProjectFile("AGENTS.md")
 const claude = readProjectFile("CLAUDE.md")
 const architecture = readProjectFile("docs/ARCHITECTURE.md")
+const security = readProjectFile("docs/SECURITY.md")
 const wikiArchitecture = readProjectFile("wiki/architecture.md")
 const wikiContextMap = readProjectFile("wiki/context-map.md")
 const aiProvider = readProjectFile("lib/ai/provider.ts")
@@ -58,6 +59,7 @@ const primitives = readProjectFile("docs/PRIMITIVES.md")
 const bookkeepingFileMap = readProjectFile("docs/bookkeeping/file-map.md")
 const roadmap = readProjectFile("docs/ROADMAP.md")
 const clinical = readProjectFile("docs/CLINICAL.md")
+const context = readProjectFile("CONTEXT.md")
 const advertisingCompliance = readProjectFile("docs/ADVERTISING_COMPLIANCE.md")
 const seoContentPolicy = readProjectFile("docs/SEO_CONTENT_POLICY.md")
 const articleTemplate = readProjectFile("docs/ARTICLE_TEMPLATE.md")
@@ -84,6 +86,32 @@ const expectedInstantMedSkills = [
 ]
 
 describe("project docs drift contract", () => {
+  it("keeps prescribing identity canon aligned with the runtime Medicare-or-IHI path", () => {
+    const canonicalDefinition =
+      "date of birth, sex, phone, structured Australian address, and either a valid Medicare number plus IRN or a valid IHI"
+
+    expect(context).toContain("**Prescribing Identity**:")
+    expect(context).toContain(canonicalDefinition)
+
+    for (const source of [agents, claude, clinical]) {
+      expect(source).toContain("valid Medicare number plus IRN or a valid IHI")
+      expect(source).toContain("structured Australian address")
+      expect(source).not.toContain("Medicare optional for med certs, required for Rx/consults")
+    }
+
+    for (const source of [agents, claude]) {
+      const start = source.indexOf('- **Identity-required gate is "anything that is not a med cert"')
+      const end = source.indexOf("\n- **Attribution surfacing", start)
+      const identityGateCanon = source.slice(start, end)
+
+      expect(start).toBeGreaterThan(-1)
+      expect(end).toBeGreaterThan(start)
+      expect(identityGateCanon).toContain(canonicalDefinition)
+      expect(identityGateCanon).not.toContain("address + Medicare + sex on `profiles`, plus phone")
+      expect(identityGateCanon).not.toContain("address + Medicare + phone for everything EXCEPT med certs")
+    }
+  })
+
   it("excludes linked worktrees and ignored task-execution artifacts from the canonical documentation count", () => {
     expect(docAudit).toContain('-not -path "./.worktrees/*"')
     expect(docAudit).toContain('-not -path "./.superpowers/*"')
@@ -119,13 +147,14 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **133 migration files**")
+      expect(source).toContain("Current count on disk: **134 migration files**")
       expect(source).toContain(
         "`20260827210500_twilio_voice_callback_requests.sql`",
       )
       expect(source).toContain(
-        "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`",
+        "`20260828090000_specialty_experience_attribution.sql`",
       )
+      expect(source).toContain("nullable, non-clinical `growth_experience_version`")
       expect(source).toContain("`20260814163645_reconcile_manual_certificate_delivery.sql`")
       expect(source).toContain("`20260814171919_harden_audit_function_search_paths.sql`")
       expect(source).toContain("`20260814190000_fix_support_refund_attempt_role_cast.sql`")
@@ -133,7 +162,20 @@ describe("project docs drift contract", () => {
       expect(source).toContain("`20260817095854_allow_direct_codex_ads_approval.sql`")
       expect(source).toContain("`20260819055501_allow_partially_refunded_fulfilment.sql`")
       expect(source).toContain("`20260823101500_fix_partially_refunded_review_claim.sql`")
-      expect(source).toContain("linked migration history aligned through `20260823101500`")
+      expect(source).toContain(
+        "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql`",
+      )
+      expect(source).toContain("aligned through `20260828090000`")
+      expect(source).toContain("`partial_intakes_growth_experience_version_check`")
+      expect(source).toContain("`intakes_growth_experience_version_check`")
+      expect(source).toContain("`trg_partial_intakes_preserve_growth_experience`")
+      expect(source).toContain("`trg_intakes_growth_experience_immutable`")
+      expect(source).toContain("`preserve_partial_intake_growth_experience()`")
+      expect(source).toContain("`enforce_intake_growth_experience_immutable()`")
+      expect(source).toContain("`SECURITY INVOKER`")
+      expect(source).toContain(
+        "`EXECUTE` denied to `PUBLIC`, `anon`, and `authenticated`",
+      )
       expect(source).toContain("recovery issue count returned zero in both test and live mode")
       expect(source).toContain("17 refunds and 17 cash movements totalling A$549.00 (54,900 cents)")
       expect(source).toContain("17 linked, 0 ambiguous, and 0 unlinked")
@@ -144,23 +186,41 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest on disk: unapplied `20260827210500_twilio_voice_callback_requests.sql`",
-    )
-    expect(architecture).toContain(
-      "latest applied and verified production migration remains `20260823101500_fix_partially_refunded_review_claim.sql`",
+      "Latest timestamp on disk and latest applied production timestamp: `20260828090000_specialty_experience_attribution.sql`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
     expect(architecture).toContain("Production receipt (2026-08-23)")
+    expect(architecture).toContain("Production receipt (2026-08-28)")
+    expect(architecture).toContain("roles exactly `{authenticated}`")
+    expect(architecture).toContain("`partial_intakes_growth_experience_version_check`")
+    expect(architecture).toContain("`trg_partial_intakes_preserve_growth_experience`")
     expect(architecture).toContain("the linked DB lint error gate")
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Latest applied and verified production migration (2026-08-23) remains `20260823101500_fix_partially_refunded_review_claim.sql`",
+      "latest applied production timestamp (2026-08-28), is `20260828090000_specialty_experience_attribution.sql`",
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
-      "Linked migration history is aligned through that version",
+      "Linked migration history is aligned through `20260828090000`",
+    )
+    expect(wikiArchitecture).toContain(
+      "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied",
+    )
+    expect(wikiArchitecture).toContain(
+      "`20260827210500_twilio_voice_callback_requests.sql` is applied and verified in production",
+    )
+    expect(wikiArchitecture).toContain(
+      "the live SECURITY DEFINER ACL checker returned zero violations",
+    )
+    expect(security).toContain(
+      "**Authenticated helper boundary (applied; verified 2026-08-28):**",
+    )
+    expect(security).toContain("roles exactly `{authenticated}`")
+    expect(security).not.toContain("pending production apply")
+    expect(security).not.toContain(
+      "still has the pre-migration `{public}` policy roles",
     )
   })
 

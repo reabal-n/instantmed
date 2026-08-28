@@ -4,6 +4,7 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 import type { DeepCityContent } from "../deep-city-content"
 
@@ -57,7 +58,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Do I need a Medicare card to use InstantMed in Sydney?", a: "No. InstantMed is a private service with flat-fee pricing. Medicare is not required for medical certificates. For prescriptions, having a Medicare card allows PBS pricing at the pharmacy, but it's not required to receive the prescription itself." },
+      { q: "Do I need a Medicare card to use InstantMed in Sydney?", a: `Medical certificates do not require Medicare. ${getApprovedClaim("prescribing_identity_required")} PBS eligibility and final pharmacy pricing are confirmed separately at the pharmacy if a prescription is approved.` },
       { q: "Can I get a medical certificate for a mental health day?", a: "Yes. Mental health is a valid reason for a medical certificate. Our doctors assess mental health-related requests with the same clinical rigour as physical illness. You don't need to disclose the specific nature of your condition to your employer - the certificate simply states you were unfit for work." },
       { q: "Is a telehealth medical certificate legal in NSW?", a: "Yes. There is no legal requirement for medical certificates to be issued in person. The Fair Work Act requires a certificate from a registered health practitioner - our AHPRA-registered doctors meet this requirement. NSW government employers, universities, and private employers all assess telehealth-issued certificates under their own policies." },
       { q: "What suburbs does InstantMed cover in Sydney?", a: "InstantMed is available everywhere in Greater Sydney and NSW - from the Northern Beaches to Campbelltown, Penrith to the Eastern Suburbs. It's an online service, so your location doesn't matter as long as you have internet access." },

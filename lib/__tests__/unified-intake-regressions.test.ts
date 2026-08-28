@@ -274,6 +274,57 @@ describe("unified intake regressions", () => {
     expect(transformAnswersForUnifiedCheckout("consult", edAnswers).ihi_number).toBe("8003600000000000")
   })
 
+  it("keeps the complete prescribing identity bundle mandatory at runtime", () => {
+    const validRepeatAnswers = {
+      medicationName: "Budesonide + formoterol",
+      medicationStrength: "100/3 micrograms",
+      medicationForm: "inhaler",
+      prescriptionHistory: "6 to 12 months",
+      doseChanged: false,
+      currentDose: "2 puffs twice daily",
+      indication: "asthma",
+      hasSideEffects: false,
+      ...sharedMedicalHistory,
+      ...sharedPrescribingIdentity,
+    }
+
+    expect(validateAnswersServerSide("repeat-script", validRepeatAnswers, identity)).toBeNull()
+    expect(validateAnswersServerSide("repeat-script", {
+      ...validRepeatAnswers,
+      medicareNumber: undefined,
+      medicareIrn: undefined,
+      ihiNumber: "8003600000000000",
+    }, identity)).toBeNull()
+
+    expect(validateAnswersServerSide("repeat-script", validRepeatAnswers, {
+      ...identity,
+      dateOfBirth: undefined,
+    })).toMatch(/date of birth is required/i)
+    expect(validateAnswersServerSide("repeat-script", validRepeatAnswers, {
+      ...identity,
+      phone: undefined,
+    })).toMatch(/phone number is required/i)
+
+    for (const [key, expected] of [
+      ["sex", /sex is required/i],
+      ["addressLine1", /street address is required/i],
+      ["suburb", /suburb, state, and postcode are required/i],
+      ["state", /suburb, state, and postcode are required/i],
+      ["postcode", /suburb, state, and postcode are required/i],
+    ] as const) {
+      expect(validateAnswersServerSide("repeat-script", {
+        ...validRepeatAnswers,
+        [key]: undefined,
+      }, identity), key).toMatch(expected)
+    }
+
+    expect(validateAnswersServerSide("repeat-script", {
+      ...validRepeatAnswers,
+      medicareNumber: undefined,
+      medicareIrn: undefined,
+    }, identity)).toMatch(/Medicare number or IHI is required/i)
+  })
+
   it("does not skip prescription details unless prescribing sex is already on profile", () => {
     const baseContext: StepContext = {
       isAuthenticated: true,

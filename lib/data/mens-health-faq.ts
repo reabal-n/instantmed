@@ -1,4 +1,5 @@
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 
 export const MENS_HEALTH_FAQ = [
@@ -34,7 +35,7 @@ export const MENS_HEALTH_FAQ = [
   {
     question: "Does Medicare or PBS cover this?",
     answer:
-      "InstantMed's review fee is a private fee and is not bulk billed. Medicare details are required for prescribing-related requests because they support identity and electronic prescription records. PBS eligibility, brand choice, premiums, and final pharmacy cost are confirmed by the pharmacy if a prescription is approved.",
+      `InstantMed's review fee is a private fee and is not bulk billed. ${getApprovedClaim("prescribing_identity_required")} PBS eligibility, brand choice, premiums, and final pharmacy cost are confirmed by the pharmacy if a prescription is approved.`,
   },
   {
     question: "What red flags mean I should not use online men's health review?",

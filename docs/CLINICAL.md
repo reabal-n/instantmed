@@ -82,8 +82,8 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 |-----------|------|
 | **Geography** | Australia only. Postcode-state validation via `lib/validation/australian-address.ts` |
 | **Age** | Strictly 18+ for every paid service. Minors are not accepted, including with parental/guardian consent. Direct an under-18 patient to a GP with a parent or guardian. Authenticated and guest checkout enforce the same boundary before payment. |
-| **Medicare** | Optional for med certs. Required for prescriptions and consultations |
-| **Identity** | Name + DOB + address. No photo ID verification. Medicare Luhn check when provided |
+| **Medicare** | Optional for medical certificates. Prescribing pathways accept either a valid Medicare number plus IRN or a valid IHI |
+| **Prescribing Identity** | Date of birth, sex, phone, structured Australian address, and either a valid Medicare number plus IRN or a valid IHI. No photo ID verification. This is an existing identity rule, not an added intake requirement |
 | **Hours** | The service operates 24/7. Canonical public copy: "Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume." Active clinical queues run 7 days with variable timing. Public copy never states a review-hours window or a guaranteed response time. Internal target 1-2h review, 24h max. Never hard-block checkout by time of day |
 | **Med cert duration** | Hard cap 3 days. Constant: `MAX_MED_CERT_DURATION_DAYS` in `lib/clinical/intake-validation.ts`. The active protocol evaluator also flags `duration_too_long` for anything above. No override |
 | **Med cert start date** | Start date can be today, past-dated within the backdate cap, or up to 14 days in the future for planned absence/recovery requests. Shared policy lives in `lib/medical-certificates/date-policy.ts` (`CERTIFICATE_MAX_FORWARD_DAYS_DEFAULT`) and is enforced across checkout validation, approval, in-place reissue/date correction, the staff preview action, and the DB constraint from `supabase/migrations/20260524090000_allow_forward_dated_med_certs.sql`. |
@@ -199,7 +199,7 @@ Prescribing is framed as: "a possible outcome of clinician review, occurring sep
 | Service | Current posture |
 |---------|-----------------|
 | Repeat prescriptions | One-off eScript review for existing, stable medication only. Call/message if stability, medication history, monitoring, contraindications, or usual-prescriber context is unclear. |
-| Hair loss | One-off form-first doctor assessment. No subscription or outcome guarantee. Avoid drug names in acquisition copy. |
+| Hair loss | One-off form-first doctor assessment. No subscription or outcome guarantee. Avoid drug names in acquisition copy. The existing reproductive exclusion is enforced by the visible intake terminal block and again by server safety before initial, recovered-guest, or retry payment; a missing or invalid persisted answer enters the recoverable `REQUEST_MORE_INFO` hold instead of being treated as safe or declined. |
 | Erectile dysfunction | One-off form-first doctor assessment with strict contraindication screening. Cardiac history, nitrate/alpha-blocker use, uncertain medication history, or clinical discomfort requires contact or decline. |
 | Women's health | Live for UTI + new/switch contraceptive pill only. Keep it narrow and protocol-led; pregnancy risk, UTI red flags, STI risk, pelvic pain, heavy bleeding, complex symptoms, or safety uncertainty require contact, decline, or in-person redirection. |
 | Weight management | LIVE 2026-08-10. Doctor-reviewed only — never auto-approved. GLP-1-focused (phentermine excluded at launch, D-B). One-off review: continuation requires a new consult (D-E); no ongoing-monitoring promise. Eating-disorder or cardiac history requires a doctor call before any decision. `can_review_weight_loss` capability + Medical Director sign-off required for non-admin doctors. |

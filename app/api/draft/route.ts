@@ -17,6 +17,10 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
 import { isMaintenanceModeStrict } from "@/lib/feature-flags"
+import {
+  normalizeIncomingGrowthExperienceVersion,
+  normalizePersistedGrowthExperienceVersion,
+} from "@/lib/growth/specialty-experience-attribution"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { decryptJSONB, type EncryptedPHI, encryptJSONB } from "@/lib/security/phi-encryption"
@@ -75,6 +79,7 @@ function isUuid(value: unknown): value is string {
 interface DraftPayload {
   sessionId?: string
   flowInstanceId?: string
+  growthExperienceVersion?: string
   serviceType: string
   currentStepId?: string
   answers?: Record<string, unknown>
@@ -196,6 +201,14 @@ export async function POST(req: NextRequest) {
     return draftJson({ error: "flowInstanceId must be a valid UUID v4" }, { status: 400 })
   }
 
+  const growthExperienceVersion = normalizeIncomingGrowthExperienceVersion(
+    body.growthExperienceVersion,
+    {
+      serviceType: body.serviceType,
+      subtype: body.answers?.consultSubtype,
+    },
+  )
+
   // Sanity-cap answer payload size at 256KB to prevent abuse
   const answersJson = JSON.stringify(body.answers ?? {})
   if (answersJson.length > 256 * 1024) {
@@ -217,6 +230,9 @@ export async function POST(req: NextRequest) {
   const row = {
     ...(body.sessionId ? { session_id: body.sessionId } : {}),
     ...(flowInstanceId ? { flow_instance_id: flowInstanceId } : {}),
+    ...(growthExperienceVersion
+      ? { growth_experience_version: growthExperienceVersion }
+      : {}),
     service_type: body.serviceType,
     current_step_id: body.currentStepId ?? null,
     answers: {},
@@ -237,7 +253,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabase
     .from("partial_intakes")
     .upsert(row, { onConflict: "session_id" })
-    .select("session_id, expires_at, updated_at")
+    .select("session_id, growth_experience_version, expires_at, updated_at")
     .maybeSingle()
 
   if (error) {
@@ -267,6 +283,7 @@ export async function POST(req: NextRequest) {
 
   return draftJson({
     sessionId: data.session_id,
+    growthExperienceVersion: data.growth_experience_version ?? null,
     expiresAt: data.expires_at,
     updatedAt: data.updated_at,
   })
@@ -291,7 +308,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabase
     .from("partial_intakes")
     .select(
-      "session_id, flow_instance_id, service_type, current_step_id, answers, answers_encrypted, identity_encrypted, email, first_name, last_name, phone, updated_at, expires_at, converted_to_intake_id",
+      "session_id, flow_instance_id, growth_experience_version, service_type, current_step_id, answers, answers_encrypted, identity_encrypted, email, first_name, last_name, phone, updated_at, expires_at, converted_to_intake_id",
     )
     .eq("session_id", sessionId)
     .gt("expires_at", new Date().toISOString())
@@ -328,6 +345,13 @@ export async function GET(req: NextRequest) {
   return draftJson({
     sessionId: data.session_id,
     flowInstanceId: normalizeFlowInstanceId(data.flow_instance_id),
+    growthExperienceVersion: normalizePersistedGrowthExperienceVersion(
+      data.growth_experience_version,
+      {
+        serviceType: data.service_type,
+        subtype: answers.consultSubtype,
+      },
+    ),
     serviceType: data.service_type,
     currentStepId: data.current_step_id,
     answers,

@@ -4,18 +4,20 @@ import { BreadcrumbSchema } from "@/components/seo"
 
 import { ContactClient } from "./contact-client"
 
+const SEARCH_DESCRIPTION = "Need help with an existing request, certificate, payment or account? Contact InstantMed by email, voice message or secure form. For medical emergencies, call 000."
+
 export const metadata: Metadata = {
-  title: "Contact Us | Telehealth Support",
-  description: "Contact InstantMed by email or leave a phone message for our Medical Director. Requests and reviews operate 24/7.",
+  title: { absolute: "Contact InstantMed Support | Requests, Payments & Accounts" },
+  description: SEARCH_DESCRIPTION,
   openGraph: {
-    title: "Contact InstantMed | Get Support",
-    description: "Contact our support team for help with telehealth services, medical certificates, and prescriptions.",
+    title: "Contact InstantMed Support",
+    description: SEARCH_DESCRIPTION,
     url: "https://instantmed.com.au/contact",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contact InstantMed | Get Support",
-    description: "Contact our support team for help with telehealth services, medical certificates, and prescriptions.",
+    title: "Contact InstantMed Support",
+    description: SEARCH_DESCRIPTION,
   },
   alternates: {
     canonical: "https://instantmed.com.au/contact",

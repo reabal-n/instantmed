@@ -58,7 +58,10 @@ export async function findDuplicatePatientProfile(
   // limit caps a pathological shared-DOB scan without changing the common case.
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name")
+    .select("id, full_name, role, merged_into_profile_id, account_closed_at")
+    .eq("role", "patient")
+    .is("merged_into_profile_id", null)
+    .is("account_closed_at", null)
     .eq("date_of_birth", dateOfBirth)
     .neq("id", patientId)
     .limit(50)
@@ -72,7 +75,13 @@ export async function findDuplicatePatientProfile(
   }
 
   const match = (data ?? []).find(
-    (row) => row.full_name && normalizeName(row.full_name) === normalizedTarget,
+    (row) => (
+      row.role === "patient"
+      && row.merged_into_profile_id == null
+      && row.account_closed_at == null
+      && row.full_name
+      && normalizeName(row.full_name) === normalizedTarget
+    ),
   )
 
   return match ? { matchedProfileId: match.id } : null

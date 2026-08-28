@@ -30,6 +30,7 @@ const ACTIVE_SERVICES = getActiveServiceDecisions()
 const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
 const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
 const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
 
 const overviewFaqs = [
   {
@@ -132,7 +133,7 @@ export default function ConsultOverviewPage() {
             beforeCta={(
               <p className="mx-auto max-w-xl text-sm font-medium leading-6 text-foreground/75 lg:mx-0">
                 Australia only. 18+. Fees from {PRICING_DISPLAY.MED_CERT} AUD. Medical certificates
-                do not require Medicare; prescribing pathways require Medicare.
+                do not require Medicare. {PRESCRIBING_IDENTITY_REQUIRED}
               </p>
             )}
           >

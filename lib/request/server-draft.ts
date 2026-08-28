@@ -61,6 +61,7 @@ interface StoredPendingDiscard extends PendingDiscardMarker {
 interface ServerDraftPayload {
   serviceType: CanonicalServiceType
   flowInstanceId?: string
+  growthExperienceVersion?: string
   currentStepId?: string
   answers?: Record<string, unknown>
   identity?: {
@@ -74,6 +75,7 @@ interface ServerDraftPayload {
 
 interface ServerDraftResponse {
   sessionId: string
+  growthExperienceVersion?: string | null
   expiresAt: string
   updatedAt: string
 }
@@ -82,6 +84,7 @@ export interface ServerDraftRecord {
   sessionId: string
   serviceType: CanonicalServiceType
   flowInstanceId?: string | null
+  growthExperienceVersion?: string | null
   currentStepId: string | null
   answers: Record<string, unknown>
   identity: {

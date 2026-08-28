@@ -27,9 +27,14 @@ import { INTAKE_PRIMARY_ACTION_CHANGE_EVENT, RequestButton } from "@/components/
 import { requestCx } from "@/components/request/request-cx"
 import { TimeRemaining } from "@/components/request/time-remaining"
 import { ensureFlowInstanceId } from "@/lib/analytics/flow-instance"
+import {
+  isSpecialtyExperienceClaimContextReady,
+  resolveSpecialtyExperienceEntryClaim,
+} from "@/lib/growth/specialty-experience-attribution"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
   getStoredDraftRestoreCandidate,
+  hasActivePatientWorkForRequestedService,
   shouldOfferDraftRestore,
 } from "@/lib/request/draft-restore"
 import {
@@ -376,6 +381,8 @@ interface RequestFlowProps {
   initialDuration?: string
   /** Validated explicit server-draft token. null means a malformed token was supplied. */
   initialDraftId?: string | null
+  /** Strictly validated landing token; claimed only by a genuinely fresh flow. */
+  initialGrowthExperienceVersion?: string | null
   isAuthenticated: boolean
   hasProfile: boolean
   /** Profile has complete identity (incl. date_of_birth) - details step can be skipped */
@@ -417,6 +424,7 @@ export function RequestFlow({
   initialCertType,
   initialDuration,
   initialDraftId,
+  initialGrowthExperienceVersion,
   isAuthenticated,
   hasProfile,
   hasCompleteIdentity,
@@ -454,10 +462,12 @@ export function RequestFlow({
   const {
     serviceType,
     flowInstanceId,
+    growthExperienceVersion,
     currentStepId,
     furthestVisitedStepId,
     stepsNeedingRevalidation,
     setServiceType,
+    claimGrowthExperienceVersion,
     prevStep,
     goToStep,
     answers,
@@ -490,6 +500,7 @@ export function RequestFlow({
   if (storedDraftAtEntryRef.current === undefined) {
     storedDraftAtEntryRef.current = getStoredDraftRestoreCandidate(initialService)
   }
+  const growthExperienceClaimAtEntryRef = useRef<string | null>(null)
   
   // Rehydrate persisted store after mount (SSR-safe pattern).
   // The store uses skipHydration:true to avoid a server/client mismatch on first render.
@@ -520,6 +531,35 @@ export function RequestFlow({
 
     const hydrationCutoffToken = beginRequestDraftHydrationCutoff(savedBefore)
 
+    const captureGrowthExperienceClaim = () => {
+      const hydratedState = useRequestStore.getState()
+      const hasAuthoritativePatientWork = hasActivePatientWorkForRequestedService({
+        requestedService: initialService,
+        serviceType: hydratedState.serviceType,
+        lastSavedAt: hydratedState.lastSavedAt,
+        savedBefore,
+      })
+      growthExperienceClaimAtEntryRef.current = resolveSpecialtyExperienceEntryClaim(
+        initialGrowthExperienceVersion,
+        {
+          serviceType: initialService,
+          subtype: initialSubtype,
+        },
+        {
+          hasExplicitRecovery,
+          hasAuthoritativePatientWork,
+        },
+      )
+    }
+
+    const alignHydratedServiceWithRequest = () => {
+      if (hasExplicitRecovery || !initialService) return
+      const hydratedState = useRequestStore.getState()
+      if (hydratedState.serviceType !== initialService) {
+        hydratedState.setServiceType(initialService)
+      }
+    }
+
     // Decide URL-vs-draft AFTER hydration, from the store's real restored
     // values. Runs once per mount.
     const applyUrlDecision = () => {
@@ -548,6 +588,14 @@ export function RequestFlow({
         hydratedState.setAnswer(seed.key, seed.value, { touch: false })
       }
 
+      // A consult URL can render its first subtype step before Zustand has
+      // hydrated. Reconcile the store against the newly seeded subtype before
+      // exposing the hydrated state so Continue advances from the same step
+      // the patient can see.
+      if (initialService && hydratedState.serviceType === initialService) {
+        hydratedState.setServiceType(initialService)
+      }
+
       if (decision.redirectPath) {
         router.replace(decision.redirectPath)
       }
@@ -559,6 +607,7 @@ export function RequestFlow({
       clearRequestDraftHydrationCutoff(hydrationCutoffToken)
 
       if (hasExplicitRecovery) {
+        captureGrowthExperienceClaim()
         if (!initialDraftId) {
           if (!cancelled) setRecoveryUnavailable(true)
           return
@@ -610,6 +659,12 @@ export function RequestFlow({
         return
       }
 
+      // Select the requested service's scoped state before deciding whether
+      // patient work already owns the cohort slot. A newer unrelated draft
+      // must not suppress a fresh specialty claim, while an active target
+      // draft (including Review/Pay) remains authoritative.
+      alignHydratedServiceWithRequest()
+      captureGrowthExperienceClaim()
       const hasSubtypeMismatch = applyUrlDecision()
       setHydrated(true)
       if (!hasSubtypeMismatch) offerExistingDraft()
@@ -629,6 +684,8 @@ export function RequestFlow({
         }
         // Local hydration failed: unblock a fresh flow without pretending a
         // stale or unrelated draft was restored.
+        alignHydratedServiceWithRequest()
+        captureGrowthExperienceClaim()
         applyUrlDecision()
         setHydrated(true)
       })
@@ -763,6 +820,31 @@ export function RequestFlow({
     }
   }, [hydrated, hasExplicitRecovery, initialService, serviceType, setServiceType])
 
+  // The URL token is only an invitation to claim a cohort. Existing local or
+  // server work always wins, and an untagged/direct flow remains null.
+  useEffect(() => {
+    const growthExperienceClaim = growthExperienceClaimAtEntryRef.current
+    if (
+      !hydrated ||
+      !growthExperienceClaim ||
+      !initialService ||
+      serviceType !== initialService ||
+      !isSpecialtyExperienceClaimContextReady(growthExperienceClaim, {
+        serviceType,
+        subtype: answers.consultSubtype,
+      })
+    ) {
+      return
+    }
+    claimGrowthExperienceVersion(growthExperienceClaim)
+  }, [
+    answers.consultSubtype,
+    claimGrowthExperienceVersion,
+    hydrated,
+    initialService,
+    serviceType,
+  ])
+
   // (URL answer seeds + subtype-mismatch detection now run post-hydration in
   // applyUrlDecision inside the rehydrate effect above.)
 
@@ -840,6 +922,13 @@ export function RequestFlow({
 
   // --- Extracted hooks ---
 
+  const growthClaimPending = Boolean(
+    hydrated &&
+    growthExperienceClaimAtEntryRef.current &&
+    initialService &&
+    serviceType === initialService &&
+    !growthExperienceVersion,
+  )
   const { analyticsServiceType, patientEmail, posthog, trackStepCompleted } = useFlowAnalytics({
     serviceType,
     currentStep,
@@ -847,6 +936,8 @@ export function RequestFlow({
     currentStepIndex,
     totalSteps: activeSteps.length,
     answers: resolvedStepAnswers,
+    growthAttributionReady: !growthClaimPending,
+    growthExperienceVersion,
     userEmail,
   })
 
@@ -865,7 +956,7 @@ export function RequestFlow({
     currentStepIndex,
     serviceType,
     analyticsServiceType,
-    currentStepId,
+    currentStepId: visibleStepId,
     flowInstanceId,
     posthog,
   })
@@ -904,7 +995,7 @@ export function RequestFlow({
     analyticsServiceType,
     patientEmail,
     trackStepCompleted,
-    currentStepId,
+    currentStepId: visibleStepId,
     currentStepIndex,
     effectiveService,
     answers,
@@ -941,8 +1032,9 @@ export function RequestFlow({
     posthog.capture('request_draft_restored', {
       service_type: analyticsServiceType,
       flow_instance_id: flowInstanceId,
+      growth_experience_version: growthExperienceVersion,
     })
-  }, [analyticsServiceType, flowInstanceId, posthog, restoredDraftStepId])
+  }, [analyticsServiceType, flowInstanceId, growthExperienceVersion, posthog, restoredDraftStepId])
 
   // Keyboard navigation: Escape to go back
   // Note: Enter to continue is handled by individual step components
