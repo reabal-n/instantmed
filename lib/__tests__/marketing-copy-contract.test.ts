@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { faqItems, footerLinks } from "@/lib/marketing/homepage"
+import { KEEP_INDEXED_LOCATIONS } from "@/lib/seo/index-policy"
 import { getActiveServices, getServiceMarketingHref } from "@/lib/services/service-catalog"
 
 const root = process.cwd()
@@ -208,6 +209,14 @@ describe("marketing copy contracts", () => {
     expect(combined).not.toContain("Conditions we treat")
     expect(combined).not.toContain("Full list of conditions suited to telehealth")
     expect(combined).not.toContain("Refund if it&apos;s not the right fit.")
+
+    for (const city of KEEP_INDEXED_LOCATIONS) {
+      expect(locationPageSource, city).toMatch(
+        new RegExp(
+          `\\b${city}:\\s*"[^"]*\\bsubmit a medical certificate or repeat prescription(?: review)? request\\b[^"]*"`,
+        ),
+      )
+    }
 
     expect(locationPageSource).toContain(
       'getApprovedClaim("med_cert_document_scope")',
