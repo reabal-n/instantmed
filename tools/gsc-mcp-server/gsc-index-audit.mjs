@@ -1,7 +1,9 @@
 import { google } from "googleapis"
+import { fileURLToPath } from "node:url"
 
 const SITE_URL = "sc-domain:instantmed.com.au"
 const SITE_ORIGIN = "https://instantmed.com.au"
+const PUBLIC_SITE_HOSTS = new Set(["instantmed.com.au", "www.instantmed.com.au"])
 const USER_AGENT = "InstantMedGscIndexAudit/1.0"
 const DEFAULT_PRIORITY_INSPECTION_PATHS = [
   "/medical-certificate",
@@ -69,9 +71,10 @@ function normalizeBrandQuery(value) {
 
 function publicPagePath(value) {
   try {
-    return new URL(value, SITE_ORIGIN).pathname
+    const url = new URL(value)
+    return PUBLIC_SITE_HOSTS.has(url.hostname) ? url.pathname : null
   } catch {
-    return "/unknown"
+    return null
   }
 }
 
@@ -138,6 +141,7 @@ async function getBrandedLandingPages(searchconsole, startDate, endDate) {
   for (const row of response.data.rows ?? []) {
     if (!normalizeBrandQuery(row.keys?.[0] ?? "").includes("instantmed")) continue
     const page = publicPagePath(row.keys?.[1] ?? "")
+    if (!page) continue
     const current = pages.get(page) ?? { page, clicks: 0, impressions: 0 }
     current.clicks += row.clicks ?? 0
     current.impressions += row.impressions ?? 0
@@ -265,7 +269,11 @@ async function main() {
   console.log(JSON.stringify(report, null, 2))
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error)
-  process.exitCode = 1
-})
+export { getBrandedLandingPages, publicPagePath }
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : error)
+    process.exitCode = 1
+  })
+}

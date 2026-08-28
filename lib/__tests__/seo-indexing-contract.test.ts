@@ -345,6 +345,11 @@ describe("SEO indexing contracts", () => {
     const auditScript = read(scriptPath)
     expect(auditScript).toContain("searchconsole.urlInspection.index.inspect")
     expect(auditScript).toContain("searchconsole.searchanalytics.query")
+    expect(auditScript).toContain(
+      'scopes: ["https://www.googleapis.com/auth/webmasters.readonly"]',
+    )
+    expect(auditScript).not.toContain('https://www.googleapis.com/auth/webmasters"')
+    expect(auditScript).not.toContain("https://www.googleapis.com/auth/indexing")
     expect(auditScript).not.toContain("indexing.urlNotifications.publish")
     expect(packageJson.scripts?.["seo:submit-indexing"]).toBeUndefined()
     expect(
@@ -361,6 +366,63 @@ describe("SEO indexing contracts", () => {
     expect(auditScript).toContain("brandedLandingPages")
     expect(auditScript).not.toContain("query: row.keys")
     expect(auditScript).not.toContain("indexing.urlNotifications.publish")
+  })
+
+  it("keeps branded landing helpers importable without running the audit", () => {
+    const auditScript = read("tools/gsc-mcp-server/gsc-index-audit.mjs")
+
+    expect(auditScript).toContain("export { getBrandedLandingPages, publicPagePath }")
+    expect(auditScript).toContain("import.meta.url")
+  })
+
+  it("aggregates branded landings only for public InstantMed hosts", async () => {
+    const { getBrandedLandingPages, publicPagePath } = await import(
+      "../../tools/gsc-mcp-server/gsc-index-audit.mjs"
+    )
+    const brandedInput = ["instant", "med"].join(" ")
+    let request: { requestBody?: { dimensions?: string[] } } | undefined
+
+    const brandedLandingPages = await getBrandedLandingPages(
+      {
+        searchanalytics: {
+          query: async (input: { requestBody?: { dimensions?: string[] } }) => {
+            request = input
+            return {
+              data: {
+                rows: [
+                  { keys: [brandedInput, "https://instantmed.com.au/prescriptions?source=test#top"], clicks: 2, impressions: 10 },
+                  { keys: [brandedInput, "https://www.instantmed.com.au/prescriptions?source=www"], clicks: 3, impressions: 15 },
+                  { keys: [brandedInput, "https://staging.instantmed.com.au/prescriptions"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInput, "https://example.com/prescriptions"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInput, "not a URL"], clicks: 100, impressions: 200 },
+                  { keys: ["unbranded", "https://instantmed.com.au/pricing"], clicks: 100, impressions: 200 },
+                ],
+              },
+            }
+          },
+        },
+      },
+      "2026-05-27",
+      "2026-08-25",
+    )
+
+    expect(request?.requestBody?.dimensions).toEqual(["query", "page"])
+    expect(publicPagePath("https://instantmed.com.au/prescriptions?source=test#top")).toBe("/prescriptions")
+    expect(publicPagePath("https://www.instantmed.com.au/prescriptions?source=www")).toBe("/prescriptions")
+    expect(publicPagePath("https://staging.instantmed.com.au/prescriptions")).toBeNull()
+    expect(publicPagePath("https://example.com/prescriptions")).toBeNull()
+    expect(publicPagePath("not a URL")).toBeNull()
+    expect(brandedLandingPages).toEqual([
+      { page: "/prescriptions", clicks: 5, impressions: 25, ctr: 0.2 },
+    ])
+    expect(Object.keys(brandedLandingPages[0])).toEqual([
+      "page",
+      "clicks",
+      "impressions",
+      "ctr",
+    ])
+    expect(JSON.stringify(brandedLandingPages)).not.toContain(brandedInput)
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("keys")
   })
 
   it("inspects current money pages by default in GSC indexing audits", () => {
