@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { stagger } from "@/lib/motion"
 import { autoLinkParagraph } from "@/lib/seo/auto-linker"
 import type { DeepCityContent } from "@/lib/seo/data/deep-city-content"
@@ -41,24 +42,26 @@ interface LocationPageContentProps {
   otherCities: Array<{ name: string; slug: string }>
 }
 
+const PRESCRIPTION_IF_APPROVED = getApprovedClaim("prescription_if_approved")
+
 const SERVICES = [
   {
     name: "Medical Certificates",
-    desc: "Same-day work and study absence notes",
+    desc: "Work and study absence documentation",
     href: "/medical-certificate",
     Icon: FileText,
     price: PRICING_DISPLAY.FROM_MED_CERT,
   },
   {
     name: "Prescriptions",
-    desc: "eScript sent direct to your phone",
+    desc: PRESCRIPTION_IF_APPROVED,
     href: "/prescriptions",
     Icon: Pill,
     price: PRICING_DISPLAY.FROM_SCRIPT,
   },
   {
-    name: "Online doctor services",
-    desc: "Focused services, no waiting room",
+    name: "Specialty assessments",
+    desc: "ED, hair loss, women’s health, and weight management",
     href: "/consult",
     Icon: Stethoscope,
     price: PRICING_DISPLAY.FROM_CONSULT,
@@ -321,7 +324,7 @@ export function LocationPageContent({
               {
                 step: "3",
                 title: "Get your result",
-                desc: "Certificate, script, or referral sent to your phone",
+                desc: "We'll let you know the doctor's outcome and any next steps.",
               },
             ].map((item) => (
               <motion.div
@@ -354,7 +357,7 @@ export function LocationPageContent({
               "No need to leave home or work",
               "Skip the waiting room",
               "Doctor review, digital delivery",
-              "eScripts sent to your phone",
+              PRESCRIPTION_IF_APPROVED,
               "Employer policies may vary",
               "Reviewed by real Australian doctors",
             ].map((benefit) => (

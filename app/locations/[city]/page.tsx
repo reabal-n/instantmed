@@ -18,6 +18,7 @@ const CERTIFICATE_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
 const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const PRESCRIPTION_IF_APPROVED = getApprovedClaim("prescription_if_approved")
 
 // City-specific content paragraphs for unique SEO value
 const CITY_CONTENT: Record<string, string> = {
@@ -25,8 +26,8 @@ const CITY_CONTENT: Record<string, string> = {
   melbourne: "From Brunswick to Brighton, Melbourne's notoriously long doctor wait times are a thing of the past. InstantMed lets you see a doctor without braving the weather or the traffic - perfect for those days when you really can't leave the house.",
   brisbane: "Brisbane's growing population means longer doctor wait times across the city. From the CBD to the suburbs, InstantMed gives you access to Australian-registered doctors without the queue - even during school holidays and peak flu season.",
   perth: "Perth's isolation means fewer doctor options, especially in outer suburbs. InstantMed works on WA time and connects you with doctors who understand the unique needs of Western Australian patients, no matter where you are in the metro area.",
-  adelaide: "Adelaide patients can avoid the scramble for same-day doctor appointments. InstantMed is ideal for when you need a quick med cert or script without driving across the city - from Glenelg to the Adelaide Hills.",
-  "gold-coast": "Whether you're a local or visiting the Gold Coast, getting a doctor appointment at short notice can be tricky. InstantMed lets you sort a med cert or script from Broadbeach, Burleigh or anywhere along the coast.",
+  adelaide: "Adelaide patients can submit a medical certificate or repeat prescription request without driving across the city, from Glenelg to the Adelaide Hills.",
+  "gold-coast": "Whether you're a local or visiting the Gold Coast, getting a doctor appointment at short notice can be tricky. InstantMed lets you submit a medical certificate or repeat prescription request from Broadbeach, Burleigh or anywhere along the coast.",
   canberra: "Canberra's limited bulk-billing options and long wait times make telehealth a practical choice for public servants and students alike. InstantMed is available across the ACT, from Civic to Tuggeranong.",
   newcastle: "Newcastle and the Hunter Valley can face long waits for same-day doctor availability. InstantMed gives you access to Australian doctors from anywhere in the region - from Merewether to Maitland.",
   hobart: "Hobart and Southern Tasmania have limited after-hours doctor options. InstantMed bridges the gap, giving you access to Australian-registered doctors seven days a week without leaving your home.",
@@ -37,7 +38,7 @@ const CITY_CONTENT: Record<string, string> = {
   townsville: "North Queensland's limited specialist availability makes telehealth essential. InstantMed connects Townsville patients with Australian doctors for everyday health needs, rain or shine.",
   cairns: "Far North Queensland can be challenging for doctor access, especially in the wet season. InstantMed keeps you connected to healthcare from anywhere in the Cairns region.",
   toowoomba: "Toowoomba and the Darling Downs can face doctor shortages, especially outside business hours. InstantMed gives you flexible access to Australian doctors when you need them.",
-  ballarat: "Ballarat and regional Victoria have fewer doctor options than Melbourne. InstantMed lets you get medical certificates and scripts without the drive or the wait.",
+  ballarat: "Ballarat and regional Victoria have fewer doctor options than Melbourne. InstantMed lets you submit medical certificate and repeat prescription requests without the drive or the wait.",
   bendigo: "Bendigo's growing population means doctor wait times are increasing. InstantMed provides an alternative that works around your schedule - no appointments needed.",
   launceston: "Northern Tasmania's doctor availability can be limited. InstantMed bridges the gap with online access to Australian-registered doctors, seven days a week.",
   mackay: "The Mackay region, including the mining communities of the Bowen Basin, can face limited doctor access. InstantMed is designed to work around shift patterns and remote schedules.",
@@ -47,7 +48,7 @@ const CITY_CONTENT: Record<string, string> = {
   "albury-wodonga": "Straddling the NSW-Victoria border can complicate healthcare. InstantMed serves the whole Albury-Wodonga region regardless of which side of the Murray you're on.",
   "hervey-bay": "Hervey Bay and the Fraser Coast have a growing retiree population and limited doctor availability. InstantMed offers a simple, affordable alternative for everyday health needs.",
   parramatta: "Parramatta and Western Sydney face some of the longest GP wait times in the country. InstantMed gives you access to Australian doctors without the commute - from your office, home, or anywhere in the region.",
-  "bondi-beach": "Eastern suburbs residents know the drill: packed medical centres and long waits. InstantMed lets you get a med cert or script without the queue - perfect when you're under the weather but need to sort things fast.",
+  "bondi-beach": "Eastern suburbs residents know the drill: packed medical centres and long waits. InstantMed lets you submit a medical certificate or repeat prescription request without the queue.",
   fremantle: "Fremantle and the port city have a distinct character - and distinct healthcare challenges. InstantMed works on WA time and connects you with doctors without the trip into Perth.",
   "central-coast": "The Central Coast stretches from Gosford to The Entrance, and doctor availability varies. InstantMed gives the whole region online access to Australian doctors - no drive to Sydney required.",
   penrith: "Western Sydney's growth has outpaced healthcare infrastructure. InstantMed provides an alternative for Penrith, St Marys, and the greater west - fast, from home.",
@@ -58,7 +59,7 @@ const CITY_CONTENT: Record<string, string> = {
   dubbo: "Dubbo is the hub of the Orana region. Healthcare access can be challenging. InstantMed connects you with Australian doctors from anywhere with internet.",
   mildura: "Sunraysia's isolation makes telehealth valuable. InstantMed gives Mildura and the Mallee access to doctors without the long drive to Melbourne.",
   shepparton: "The Goulburn Valley has a strong agricultural base and growing population. InstantMed provides flexible healthcare access for Shepparton and the region.",
-  gladstone: "Gladstone's industrial workforce often works shifts. InstantMed is designed to work around irregular hours - get a cert or script when you need it.",
+  gladstone: "Gladstone's industrial workforce often works shifts. InstantMed is designed to work around irregular hours, with certificate and repeat prescription requests available online.",
   bundaberg: "The Wide Bay-Burnett region has a mix of agriculture, tourism, and retirees. InstantMed offers a simple option when local clinics are booked out.",
   "mount-gambier": "Mount Gambier and the Limestone Coast are a long way from Adelaide. InstantMed brings telehealth to the region - no travel required.",
   "port-augusta": "Port Augusta is a key regional centre for outback South Australia. Healthcare access is limited. InstantMed helps bridge the distance.",
@@ -70,22 +71,22 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
   sydney: [
     { q: "Can I use InstantMed if I live in Western Sydney?", a: "Yes - InstantMed is available anywhere in Greater Sydney, from Penrith to Bondi. All you need is an internet connection." },
     { q: "Can NSW employers use InstantMed certificates as evidence?", a: `${CERTIFICATE_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
-    { q: "How fast can I get a medical certificate in Sydney?", a: `${AVAILABILITY} If approved, the certificate is emailed as a PDF.` },
+    { q: "When can I submit a medical certificate request in Sydney?", a: `${AVAILABILITY} If approved, the certificate is emailed as a PDF.` },
   ],
   melbourne: [
     { q: "Is InstantMed available across all of Melbourne?", a: "Yes - from the CBD to the outer suburbs. We serve all of Greater Melbourne and regional Victoria." },
-    { q: "Can I get an eScript filled at a Melbourne pharmacy?", a: "Yes. Your eScript can be filled at any pharmacy in Melbourne. Just show the QR code on your phone." },
+    { q: "Can I get an eScript filled at a Melbourne pharmacy?", a: PRESCRIPTION_IF_APPROVED },
     { q: "Do I need a Medicare card to use InstantMed in Victoria?", a: `Medical certificates do not require Medicare. ${PRESCRIBING_IDENTITY_REQUIRED} InstantMed is a private service with transparent flat-fee pricing.` },
   ],
   brisbane: [
     { q: "Does InstantMed work in Greater Brisbane?", a: "Yes - we serve all Brisbane suburbs, from the CBD to Logan, Ipswich and Redcliffe." },
     { q: "Can Queensland employers use these certificates as evidence?", a: `${CERTIFICATE_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
-    { q: "Can I get a repeat script through InstantMed in Brisbane?", a: "Yes. If you have an existing prescription, we can arrange a repeat via eScript sent to your phone." },
+    { q: "Can I get a repeat script through InstantMed in Brisbane?", a: PRESCRIPTION_IF_APPROVED },
   ],
   perth: [
     { q: "Does InstantMed account for WA time zones?", a: "Yes. Our platform is available 7 days a week and clinical reviews are available across all Australian time zones, including AWST." },
     { q: "Can I use InstantMed in regional WA?", a: "Yes - anywhere in Western Australia with internet access. We serve Perth metro and all regional areas." },
-    { q: "How do eScripts work in Western Australia?", a: "eScripts work the same way across Australia. You receive a QR code via SMS that any pharmacy can scan." },
+    { q: "How do eScripts work in Western Australia?", a: PRESCRIPTION_IF_APPROVED },
   ],
   adelaide: [
     { q: "Is InstantMed available in South Australia?", a: "Yes - we serve all of Adelaide and regional SA. All you need is an internet connection." },
@@ -98,7 +99,7 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
 const DEFAULT_FAQS = [
   { q: "Is InstantMed available in my area?", a: "Yes - InstantMed works anywhere in Australia with an internet connection. No matter your location, an AHPRA-registered doctor can help." },
   { q: "Can employers use your medical certificates as evidence?", a: `${CERTIFICATE_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
-  { q: "How fast will I receive my medical certificate?", a: `${AVAILABILITY} If approved, the certificate is emailed as a PDF.` },
+  { q: "When can I submit a medical certificate request?", a: `${AVAILABILITY} If approved, the certificate is emailed as a PDF.` },
 ]
 
 // Local SEO Pages - Top 25 Australian cities & regions
@@ -471,7 +472,7 @@ export default async function CityPage({ params }: PageProps) {
           itemOffered: {
             "@type": "MedicalProcedure",
             name: "Online Prescription",
-            description: "eScript prescription sent to your phone"
+            description: PRESCRIPTION_IF_APPROVED
           },
           price: PRICING.REPEAT_SCRIPT.toFixed(2),
           priceCurrency: "AUD"

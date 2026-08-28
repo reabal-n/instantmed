@@ -184,6 +184,10 @@ describe("marketing copy contracts", () => {
     expect(combined).not.toMatch(/sometimes superior/i)
     expect(combined).not.toMatch(/never shared with.*third party/i)
     expect(combined).not.toMatch(/discuss a symptom or get a treatment plan/i)
+    expect(combined).not.toMatch(/same-day work and study absence notes/i)
+    expect(combined).not.toMatch(/online doctor services/i)
+    expect(combined).not.toMatch(/certificate, script, or referral sent to your phone/i)
+    expect(combined).not.toMatch(/eScripts? sent (?:direct )?to your phone/i)
     expect(combined).not.toContain("No Medicare card is required")
     expect(combined).not.toContain("without booking an appointment or providing a Medicare card")
     expect(combined).not.toContain('medicalSpecialty: "General Practice"')
@@ -206,6 +210,15 @@ describe("marketing copy contracts", () => {
     )
     expect(locationPageSource).toContain(
       'getApprovedClaim("clinical_review_sequence")',
+    )
+    expect(locationPageSource).toContain(
+      'getApprovedClaim("prescription_if_approved")',
+    )
+    expect(locationContentSource).toContain(
+      'getApprovedClaim("prescription_if_approved")',
+    )
+    expect(telehealthAustraliaSource).toContain(
+      'getApprovedClaim("prescription_if_approved")',
     )
   })
 

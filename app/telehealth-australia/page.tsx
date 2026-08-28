@@ -35,6 +35,7 @@ const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
 const AVAILABILITY = getApprovedClaim("availability_24_7")
 const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
+const PRESCRIPTION_IF_APPROVED = getApprovedClaim("prescription_if_approved")
 
 // ============================================================================
 // METADATA - head-term pillar for "telehealth australia" and related
@@ -125,8 +126,7 @@ const FAQS = [
   },
   {
     question: "Can a telehealth doctor send a prescription to my pharmacy?",
-    answer:
-      "Yes. Australian telehealth doctors issue eScripts under the federal Electronic Prescriptions framework. You receive an SMS with a QR code token, which any Australian pharmacy can scan to dispense the medication. eScripts are not a separate or lesser category of prescription - they are the same legal document as a paper script, valid across every PBS-participating pharmacy in the country, including Chemist Warehouse, Priceline, TerryWhite, and independent community pharmacies.",
+    answer: PRESCRIPTION_IF_APPROVED,
   },
   {
     question: "What telehealth regulations have changed recently in Australia?",
@@ -643,7 +643,7 @@ export default function TelehealthAustraliaPage() {
                     Telehealth prescriptions
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    eScripts sent to your phone, valid at any pharmacy
+                    {PRESCRIPTION_IF_APPROVED}
                   </div>
                 </Link>
                 <Link
@@ -755,8 +755,8 @@ export default function TelehealthAustraliaPage() {
                 Use telehealth the way it&apos;s meant to work
               </Heading>
               <p className="text-muted-foreground mb-8">
-                Fill in a form. {CLINICAL_REVIEW_SEQUENCE} A certificate or eScript
-                arrives digitally if approved. Refund if it&apos;s not the right fit.
+                Fill in a form. {CLINICAL_REVIEW_SEQUENCE} {PRESCRIPTION_IF_APPROVED} Refund if
+                it&apos;s not the right fit.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg" className="rounded-full px-8">
