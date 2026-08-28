@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { describe, expect, it } from "vitest"
 
 import {
@@ -5,6 +6,64 @@ import {
   buildCustomerGrowthBaselineSummary,
   buildFreeChannelLandingBreakdown,
 } from "@/lib/data/customer-growth-baseline"
+import { readCustomerGrowthRevenueEvidence } from "@/lib/data/customer-growth-revenue-read"
+import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
+
+type QueryCall = {
+  args: unknown[]
+  method: string
+  table: string
+}
+
+type QueryResult = {
+  count?: number | null
+  data: unknown[] | Record<string, unknown> | null
+  error: { message: string } | null
+}
+
+function customerGrowthRevenueClient(results: QueryResult[], calls: QueryCall[] = []): SupabaseClient {
+  let index = 0
+  return {
+    from: (table: string) => {
+      const result = results[index++] ?? { data: [], error: null }
+      const query = new Proxy({}, {
+        get: (_target, property) => {
+          if (property === "then") {
+            return (resolve: (value: QueryResult) => unknown) => Promise.resolve({
+              ...result,
+              count: result.count ?? (Array.isArray(result.data) ? result.data.length : 1),
+            }).then(resolve)
+          }
+          return (...args: unknown[]) => {
+            calls.push({ args, method: String(property), table })
+            return query
+          }
+        },
+      })
+      return query
+    },
+  } as unknown as SupabaseClient
+}
+
+function healthyRefundLedger(): QueryResult {
+  return {
+    data: {
+      conflicting_refund_count: 0,
+      incomplete_intake_count: 0,
+      unledgered_refund_cents: 0,
+      unlinked_refund_count: 0,
+      unlinked_refund_cents: 0,
+      unsupported_currency_refund_count: 0,
+      unsupported_currency_refund_cents: 0,
+      unlinked_live_dispute_count: 0,
+      unlinked_live_dispute_cents: 0,
+      unknown_mode_dispute_count: 0,
+      unsupported_currency_dispute_count: 0,
+      unknown_priority_classification_count: 0,
+    },
+    error: null,
+  }
+}
 
 describe("customer growth baseline", () => {
   it("builds an operator summary from aggregate-only funnel, recovery, and ads data", () => {
@@ -89,12 +148,12 @@ describe("customer growth baseline", () => {
 
   it("groups free-channel paid orders by InstantMed public pathname only", () => {
     const rows = buildFreeChannelLandingBreakdown([
-      { referrer: "https://chatgpt.com/", landing_page: "/medical-certificate-online?utm_source=chatgpt.com#top" },
+      { referrer: "https://chatgpt.com/", landing_page: "/medical-certificate-online/?utm_source=chatgpt.com#top" },
       { referrer: "https://chatgpt.com/", landing_page: "https://instantmed.com.au/medical-certificate-online?source=chatgpt" },
-      { referrer: "https://chatgpt.com/", landing_page: "https://www.instantmed.com.au/medical-certificate-online?source=chatgpt" },
-      { referrer: "https://www.google.com/", landing_page: "/medical-certificate?query=medical" },
+      { referrer: "https://chatgpt.com/", landing_page: "https://www.instantmed.com.au/medical-certificate-online/?source=chatgpt" },
+      { referrer: "https://www.google.com/", landing_page: "/medical-certificate/?query=medical" },
       { utm_campaign: "brand", utm_medium: "organic", landing_page: "/?campaign=brand" },
-      { utm_medium: "referral", utm_source: "hrm", landing_page: "/employers?campaign=employer_verification" },
+      { utm_medium: "referral", utm_source: "hrm", landing_page: "/employers/?campaign=employer_verification" },
       { utm_medium: "referral", landing_page: "https://partner.example/employers?campaign=partner" },
       { utm_medium: "referral", landing_page: "https://staging.instantmed.com.au/employers?campaign=staging" },
       { utm_medium: "referral", landing_page: "javascript:alert('not-a-path')" },
@@ -113,6 +172,93 @@ describe("customer growth baseline", () => {
     expect(JSON.stringify(rows)).not.toContain("partner.example")
     expect(JSON.stringify(rows)).not.toContain("staging.instantmed.com.au")
     expect(JSON.stringify(rows)).not.toContain("campaign=")
+  })
+
+  it("uses exact AUD refund and dispute cash events for rolling net-retained revenue", async () => {
+    const calls: QueryCall[] = []
+    const evidence = await readCustomerGrowthRevenueEvidence(
+      customerGrowthRevenueClient([
+        {
+          data: [{ amount_cents: 4995, id: "paid-intake", paid_at: "2026-06-15T00:00:00.000Z" }],
+          error: null,
+        },
+        {
+          data: [{
+            amount_cents: 995,
+            category: "medical_certificate",
+            exclude_from_reporting: false,
+            intake_id: "paid-intake",
+            livemode: true,
+            order_amount_cents: 4995,
+            patient_id: null,
+            refund_cash_at: "2026-06-16T00:00:00.000Z",
+            refund_reversed_at: null,
+            stripe_refund_id: "refund-record",
+            subtype: null,
+          }],
+          error: null,
+        },
+        healthyRefundLedger(),
+        {
+          data: [{
+            funds_reinstated_at: null,
+            funds_reinstated_cents: 0,
+            funds_withdrawn_at: "2026-06-17T00:00:00.000Z",
+            funds_withdrawn_cents: 4995,
+            intake: {
+              amount_cents: 4995,
+              exclude_from_reporting: false,
+              patient_id: null,
+              refund_amount_cents: 995,
+            },
+            intake_id: "paid-intake",
+          }],
+          error: null,
+        },
+      ], calls),
+      new Date("2026-06-01T00:00:00.000Z"),
+      new Date("2026-07-01T00:00:00.000Z"),
+    )
+
+    expect(buildNetRetainedPurchaseValue({
+      paidRows: evidence.paidRows,
+      refundRows: evidence.refundRows,
+      disputeRows: evidence.disputeRows,
+      since: new Date("2026-06-01T00:00:00.000Z"),
+      until: new Date("2026-07-01T00:00:00.000Z"),
+    })).toMatchObject({
+      disputeCents: 4000,
+      grossCents: 4995,
+      netCents: 0,
+      refundCents: 995,
+    })
+    expect(calls).toContainEqual(expect.objectContaining({ table: "stripe_refund_cash_movements" }))
+    expect(calls).toContainEqual(expect.objectContaining({ table: "stripe_refund_ledger_health" }))
+    expect(calls).toContainEqual(expect.objectContaining({ table: "stripe_disputes" }))
+  })
+
+  it("fails closed when exact refund evidence is incomplete", async () => {
+    await expect(readCustomerGrowthRevenueEvidence(
+      customerGrowthRevenueClient([
+        { data: [], error: null },
+        {
+          data: [{
+            amount_cents: 995,
+            exclude_from_reporting: false,
+            intake_id: "paid-intake",
+            patient_id: null,
+            refund_cash_at: null,
+            refund_reversed_at: null,
+            stripe_refund_id: "refund-record",
+          }],
+          error: null,
+        },
+        healthyRefundLedger(),
+        { data: [], error: null },
+      ]),
+      new Date("2026-06-01T00:00:00.000Z"),
+      new Date("2026-07-01T00:00:00.000Z"),
+    )).rejects.toThrow("Customer growth revenue evidence is incomplete")
   })
 
   it("rejects sensitive identifiers before baseline artifacts are written", () => {

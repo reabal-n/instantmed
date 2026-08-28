@@ -23,6 +23,30 @@ describe("attribution source classification", () => {
     ).toBe("organic_nonbrand")
   })
 
+  it("keeps brand text separate from ED organic intent", () => {
+    expect(
+      classifyAttributionSource({
+        landing_page: "/",
+        utm_medium: "organic",
+        utm_source: "instantmed",
+      }).group,
+    ).toBe("organic_brand")
+    expect(
+      classifyAttributionSource({
+        landing_page: "/",
+        utm_campaign: "branded",
+        utm_medium: "organic",
+      }).group,
+    ).toBe("organic_brand")
+    expect(
+      classifyAttributionSource({
+        landing_page: "/ed/",
+        utm_medium: "organic",
+        utm_term: "ed",
+      }).group,
+    ).toBe("organic_nonbrand")
+  })
+
   it("keeps AI referrals and recovery email out of generic referral buckets", () => {
     expect(
       classifyAttributionSource({

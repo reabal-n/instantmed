@@ -107,7 +107,6 @@ const NONBRAND_HINTS = [
   "online doctor",
   "telehealth",
   "hair loss",
-  "ed",
   "erectile",
 ]
 
@@ -193,13 +192,14 @@ function classifyOrganic(row: AttributionClassificationInput): AttributionClassi
     lower(row.landing_page),
   ].join(" ")
   const path = landingPath(row.landing_page)
+  const hasEdIntent = /\bed\b/.test(tokens) || /(?:^|\/)ed(?:\/|$)/.test(path)
   const isBrand =
     tokens.includes("instantmed") ||
     /\bbrand(ed)?\b/.test(tokens) ||
     path === "/" ||
     path === ""
   const group: AttributionSourceGroup =
-    isBrand && !containsAny(tokens, NONBRAND_HINTS)
+    isBrand && !hasEdIntent && !containsAny(tokens, NONBRAND_HINTS)
       ? "organic_brand"
       : "organic_nonbrand"
 

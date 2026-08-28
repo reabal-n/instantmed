@@ -16,6 +16,7 @@ import {
   type CustomerGrowthPostHogBaseline,
   type CustomerGrowthSupabaseBaseline,
 } from "@/lib/data/customer-growth-baseline"
+import { readCustomerGrowthRevenueEvidence } from "@/lib/data/customer-growth-revenue-read"
 import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { REVENUE_PURCHASE_PAYMENT_STATUSES } from "@/lib/monitoring/revenue-safety"
@@ -44,12 +45,6 @@ type IntakeAggregateRow = {
   payment_status: string | null
   status: string | null
   subtype: string | null
-}
-
-type RefundAggregateRow = {
-  refund_amount_cents: number | null
-  refund_status: string | null
-  refunded_at: string | null
 }
 
 type RecoveryPaidAttributionRow = {
@@ -164,7 +159,7 @@ async function querySupabaseBaseline(
   const sinceIso = since.toISOString()
   const nowIso = now.toISOString()
 
-  const [createdResult, paidResult, refundResult] = await Promise.all([
+  const [createdResult, revenueEvidence] = await Promise.all([
     filterReportableIntakes(
       supabase
         .from("intakes")
@@ -172,40 +167,17 @@ async function querySupabaseBaseline(
         .gte("created_at", sinceIso)
         .lte("created_at", nowIso),
     ),
-    filterReportableIntakes(
-      supabase
-        .from("intakes")
-        .select("category, subtype, status, payment_status, paid_at, amount_cents")
-        .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
-        .not("paid_at", "is", null)
-        .gte("paid_at", sinceIso)
-        .lte("paid_at", nowIso),
-    ),
-    filterReportableIntakes(
-      supabase
-        .from("intakes")
-        .select("refund_amount_cents, refund_status, refunded_at")
-        .not("refunded_at", "is", null)
-        .gte("refunded_at", sinceIso)
-        .lte("refunded_at", nowIso),
-    ),
+    readCustomerGrowthRevenueEvidence(supabase, since, now),
   ])
   if (createdResult.error) {
     throw new Error(`Supabase intake baseline query failed: ${createdResult.error.message}`)
   }
-  if (paidResult.error) {
-    throw new Error(`Supabase paid revenue query failed: ${paidResult.error.message}`)
-  }
-  if (refundResult.error) {
-    throw new Error(`Supabase refund revenue query failed: ${refundResult.error.message}`)
-  }
-
   const intakes = (createdResult.data ?? []) as IntakeAggregateRow[]
-  const paidRows = (paidResult.data ?? []) as IntakeAggregateRow[]
-  const refundRows = (refundResult.data ?? []) as RefundAggregateRow[]
+  const { disputeRows, paidRows, refundRows } = revenueEvidence
   const revenue = buildNetRetainedPurchaseValue({
     paidRows,
     refundRows,
+    disputeRows,
     since,
     until: now,
   })
