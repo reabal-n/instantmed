@@ -4,10 +4,7 @@ import { join, resolve } from "node:path"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
 import { buildGoogleAdsReturnSnapshot } from "@/lib/analytics/google-ads-return-summary"
-import {
-  type AttributionClassificationInput,
-  classifyAttributionSource,
-} from "@/lib/analytics/source-classification"
+import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import {
   assertNoSensitiveBaselineText,
   buildCustomerGrowthBaselineSummary,
@@ -18,11 +15,13 @@ import {
 } from "@/lib/data/customer-growth-baseline"
 import {
   buildCustomerGrowthRevenueForIntakeIds,
+  collectCustomerGrowthAttributionIntakeIds,
+  countSentAbandonedCheckoutEmails,
+  readCustomerGrowthAttributionRows,
   readCustomerGrowthRevenueEvidence,
 } from "@/lib/data/customer-growth-revenue-read"
 import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
-import { REVENUE_PURCHASE_PAYMENT_STATUSES } from "@/lib/monitoring/revenue-safety"
 
 import { hydrateLocalEnv } from "./video-review/local-env"
 
@@ -49,34 +48,6 @@ type IntakeAggregateRow = {
   status: string | null
   subtype: string | null
 }
-
-type RecoveryPaidAttributionRow = {
-  id: string
-  amount_cents: number | null
-}
-
-type PaidAttributionRow = RecoveryPaidAttributionRow & AttributionClassificationInput
-
-const PAID_ATTRIBUTION_SELECT = [
-  "id",
-  "amount_cents",
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_term",
-  "referrer",
-  "landing_page",
-  "gclid",
-  "gbraid",
-  "wbraid",
-  "campaignid",
-  "adgroupid",
-  "keyword",
-  "creative",
-  "matchtype",
-  "device",
-  "network",
-].join(", ")
 
 type CountResult = {
   count: number | null
@@ -208,7 +179,6 @@ async function querySupabaseBaseline(
     convertedPartials,
     partialRecoveryRowsSent,
     abandonedCheckoutSent,
-    paidAttributionRows,
   ] = await Promise.all([
     countQuery(
       "partial_intakes captured",
@@ -245,25 +215,21 @@ async function querySupabaseBaseline(
         .lte("updated_at", nowIso)
         .not("recovery_email_sent_at", "is", null),
     ),
-    countQuery(
-      "abandoned checkout outbox sent",
-      supabase
-        .from("email_outbox")
-        .select("email_type", { count: "exact", head: true })
-        .in("email_type", ["abandoned_checkout", "abandoned_checkout_followup"])
-        .in("status", ["sent", "skipped_e2e"])
-        .gte("created_at", sinceIso)
-        .lte("created_at", nowIso),
-    ),
-    queryPaidAttributionRows(supabase, sinceIso, nowIso),
+    countSentAbandonedCheckoutEmails(supabase, sinceIso, nowIso),
   ])
 
-  const recoveredPaidRows = paidAttributionRows.filter(
-    (row) => classifyAttributionSource(row).group === "recovery_email",
+  const currentPaidIntakeIds = new Set(paidRows.flatMap((row) => row.id ? [row.id] : []))
+  const revenueEvidenceIntakeIds = collectCustomerGrowthAttributionIntakeIds(revenueEvidence)
+  const attributionRows = await readCustomerGrowthAttributionRows(
+    supabase,
+    revenueEvidenceIntakeIds,
   )
+  const recoveryIntakeIds = new Set(attributionRows.filter(
+    (row) => classifyAttributionSource(row).group === "recovery_email",
+  ).map((row) => row.id))
   const recoveredRevenue = buildCustomerGrowthRevenueForIntakeIds(
     revenueEvidence,
-    new Set(recoveredPaidRows.map((row) => row.id)),
+    recoveryIntakeIds,
     since,
     now,
   )
@@ -273,7 +239,9 @@ async function querySupabaseBaseline(
     dateFrom: sinceIso,
     dateTo: nowIso,
     days,
-    freeChannelLandingPages: buildFreeChannelLandingBreakdown(paidAttributionRows),
+    freeChannelLandingPages: buildFreeChannelLandingBreakdown(
+      attributionRows.filter((row) => currentPaidIntakeIds.has(row.id)),
+    ),
     intakes: {
       averageOrderValueAud:
         revenue.averageOrderCents === null
@@ -307,25 +275,6 @@ async function querySupabaseBaseline(
       recoveryEmailCoverageRate: roundRate(partialRecoverySent, emailCaptured),
     },
   }
-}
-
-async function queryPaidAttributionRows(
-  supabase: SupabaseClient,
-  sinceIso: string,
-  nowIso: string,
-): Promise<PaidAttributionRow[]> {
-  const { data, error } = await filterReportableIntakes(
-    supabase
-      .from("intakes")
-      .select(PAID_ATTRIBUTION_SELECT)
-      .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
-      .not("paid_at", "is", null)
-      .gte("paid_at", sinceIso)
-      .lte("paid_at", nowIso),
-  )
-  if (error) throw new Error(`Paid attribution query failed: ${error.message}`)
-
-  return (data ?? []) as unknown as PaidAttributionRow[]
 }
 
 async function queryPostHogBaseline(now: Date, days: number): Promise<CustomerGrowthPostHogBaseline> {

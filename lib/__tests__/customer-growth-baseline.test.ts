@@ -8,6 +8,9 @@ import {
 } from "@/lib/data/customer-growth-baseline"
 import {
   buildCustomerGrowthRevenueForIntakeIds,
+  collectCustomerGrowthAttributionIntakeIds,
+  countSentAbandonedCheckoutEmails,
+  readCustomerGrowthAttributionRows,
   readCustomerGrowthRevenueEvidence,
 } from "@/lib/data/customer-growth-revenue-read"
 import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
@@ -161,6 +164,9 @@ describe("customer growth baseline", () => {
       { utm_medium: "referral", landing_page: "https://partner.example/employers?campaign=partner" },
       { utm_medium: "referral", landing_page: "https://staging.instantmed.com.au/employers?campaign=staging" },
       { utm_medium: "referral", landing_page: "javascript:alert('not-a-path')" },
+      { utm_medium: "referral", landing_page: "/verify/IM-WORK-20260815-12345678" },
+      { utm_medium: "referral", landing_page: "/verify/IM-STUDY-20260815-12345678" },
+      { utm_medium: "referral", landing_page: "/verify/IM-CARER-20260815-12345678" },
       { gclid: "diagnostic-click-id", landing_page: "/prescriptions" },
       { utm_medium: "referral", landing_page: "http://[" },
       { utm_medium: "referral" },
@@ -169,6 +175,7 @@ describe("customer growth baseline", () => {
     expect(rows).toEqual([
       { group: "referral", landingPage: "/unknown", orders: 5 },
       { group: "ai_referral", landingPage: "/medical-certificate-online", orders: 3 },
+      { group: "referral", landingPage: "/verify", orders: 3 },
       { group: "organic_brand", landingPage: "/", orders: 2 },
       { group: "organic_nonbrand", landingPage: "/medical-certificate", orders: 1 },
       { group: "referral", landingPage: "/employers", orders: 1 },
@@ -176,6 +183,9 @@ describe("customer growth baseline", () => {
     expect(JSON.stringify(rows)).not.toContain("partner.example")
     expect(JSON.stringify(rows)).not.toContain("staging.instantmed.com.au")
     expect(JSON.stringify(rows)).not.toContain("campaign=")
+    expect(JSON.stringify(rows)).not.toContain("IM-WORK-20260815-12345678")
+    expect(JSON.stringify(rows)).not.toContain("IM-STUDY-20260815-12345678")
+    expect(JSON.stringify(rows)).not.toContain("IM-CARER-20260815-12345678")
   })
 
   it("uses exact AUD refund and dispute cash events for rolling net-retained revenue", async () => {
@@ -316,6 +326,82 @@ describe("customer growth baseline", () => {
     })
   })
 
+  it("keeps prior recovery purchases linked to current refund and dispute cash events", () => {
+    const since = new Date("2026-06-01T00:00:00.000Z")
+    const until = new Date("2026-07-01T00:00:00.000Z")
+    const evidence = {
+      paidRows: [],
+      refundRows: [{
+        id: "recovery-order",
+        amount_cents: 4995,
+        refund_amount_cents: 995,
+        refund_status: "succeeded",
+        refunded_at: "2026-06-15T00:00:00.000Z",
+        stripe_refund_id: "refund-record",
+      }],
+      disputeRows: [{
+        funds_reinstated_at: null,
+        funds_reinstated_cents: 0,
+        funds_withdrawn_at: "2026-06-16T00:00:00.000Z",
+        funds_withdrawn_cents: 4995,
+        intake_id: "recovery-order",
+        order_amount_cents: 4995,
+      }],
+    }
+    expect(collectCustomerGrowthAttributionIntakeIds({
+      ...evidence,
+      disputeRows: [{ ...evidence.disputeRows[0], intake_id: "dispute-only-order" }],
+      refundRows: [{ ...evidence.refundRows[0], id: "refund-only-order" }],
+    })).toEqual(new Set(["refund-only-order", "dispute-only-order"]))
+    const recoveredRevenue = buildCustomerGrowthRevenueForIntakeIds(
+      evidence,
+      new Set(["recovery-order"]),
+      since,
+      until,
+    )
+
+    expect(recoveredRevenue).toMatchObject({
+      disputeCents: 4000,
+      grossCents: 0,
+      netCents: -4995,
+      orderCount: 0,
+      refundCents: 995,
+    })
+  })
+
+  it("fails closed when a capped paid or attribution read is incomplete", async () => {
+    const since = new Date("2026-06-01T00:00:00.000Z")
+    const until = new Date("2026-07-01T00:00:00.000Z")
+    await expect(readCustomerGrowthRevenueEvidence(
+      customerGrowthRevenueClient([
+        { count: 1_001, data: [], error: null },
+        { data: [], error: null },
+        healthyRefundLedger(),
+        { data: [], error: null },
+      ]),
+      since,
+      until,
+    )).rejects.toThrow("Customer growth revenue evidence is incomplete")
+    await expect(readCustomerGrowthAttributionRows(
+      customerGrowthRevenueClient([{ count: 1, data: [], error: null }]),
+      new Set(["paid-intake"]),
+    )).rejects.toThrow("Customer growth attribution evidence is incomplete")
+  })
+
+  it("counts abandoned checkout recovery only after an email was sent", async () => {
+    const calls: QueryCall[] = []
+    await expect(countSentAbandonedCheckoutEmails(
+      customerGrowthRevenueClient([{ count: 2, data: [], error: null }], calls),
+      "2026-06-01T00:00:00.000Z",
+      "2026-07-01T00:00:00.000Z",
+    )).resolves.toBe(2)
+    expect(calls).toContainEqual({
+      args: ["status", "sent"],
+      method: "eq",
+      table: "email_outbox",
+    })
+  })
+
   it("rejects sensitive identifiers before baseline artifacts are written", () => {
     expect(() =>
       assertNoSensitiveBaselineText(
@@ -327,6 +413,14 @@ describe("customer growth baseline", () => {
         }),
       ),
     ).toThrow(/sensitive/i)
+
+    for (const certificateRef of [
+      "IM-WORK-20260815-12345678",
+      "IM-STUDY-20260815-12345678",
+      "IM-CARER-20260815-12345678",
+    ]) {
+      expect(() => assertNoSensitiveBaselineText(certificateRef)).toThrow(/sensitive/i)
+    }
 
     expect(() =>
       assertNoSensitiveBaselineText(

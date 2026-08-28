@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import type { AttributionClassificationInput } from "@/lib/analytics/source-classification"
 import {
   buildNetRetainedPurchaseValue,
   getRecordedRefundCents,
@@ -15,6 +16,8 @@ import {
 import { REVENUE_PURCHASE_PAYMENT_STATUSES } from "@/lib/monitoring/revenue-safety"
 
 const MAX_DISPUTE_BASELINE_ROWS = 5_000
+const MAX_PAID_ATTRIBUTION_ROWS = 100
+const MAX_PAID_REVENUE_ROWS = 5_000
 const MAX_REFUND_MOVEMENT_ROWS = 5_000
 
 type RefundMovementReadRow = {
@@ -72,6 +75,20 @@ export type CustomerGrowthPaidRevenueRow = NetRetainedPurchaseRow & {
   subtype: string | null
 }
 
+export type CustomerGrowthAttributionRow = AttributionClassificationInput & {
+  id: string
+}
+
+export function collectCustomerGrowthAttributionIntakeIds(
+  evidence: CustomerGrowthRevenueEvidence,
+): Set<string> {
+  return new Set([
+    ...evidence.paidRows.flatMap((row) => row.id ? [row.id] : []),
+    ...evidence.refundRows.flatMap((row) => row.id ? [row.id] : []),
+    ...evidence.disputeRows.flatMap((row) => row.intake_id ? [row.intake_id] : []),
+  ])
+}
+
 export function buildCustomerGrowthRevenueForIntakeIds(
   evidence: CustomerGrowthRevenueEvidence,
   intakeIds: ReadonlySet<string>,
@@ -111,7 +128,9 @@ export async function readCustomerGrowthRevenueEvidence(
   const sinceIso = since.toISOString()
   const untilIso = until.toISOString()
 
-  let paidResult: QueryResponse<CustomerGrowthPaidRevenueRow>
+  let paidResult: QueryResponse<CustomerGrowthPaidRevenueRow> & {
+    count: number | null
+  }
   let refundResult: QueryResponse<RefundMovementReadRow> & {
     count: number | null
   }
@@ -128,12 +147,15 @@ export async function readCustomerGrowthRevenueEvidence(
       filterReportableIntakes(
         supabase
           .from("intakes")
-          .select("id, amount_cents, category, subtype, paid_at, payment_status, status")
+          .select("id, amount_cents, category, subtype, paid_at, payment_status, status", { count: "exact" })
           .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
           .not("paid_at", "is", null)
           .gte("paid_at", sinceIso)
-          .lte("paid_at", untilIso),
-      ) as unknown as PromiseLike<QueryResponse<CustomerGrowthPaidRevenueRow>>,
+          .lte("paid_at", untilIso)
+          .limit(MAX_PAID_REVENUE_ROWS),
+      ) as unknown as PromiseLike<QueryResponse<CustomerGrowthPaidRevenueRow> & {
+        count: number | null
+      }>,
       supabase
         .from("stripe_refund_cash_movements")
         .select(
@@ -197,7 +219,9 @@ export async function readCustomerGrowthRevenueEvidence(
     ledgerHealth.problemCents === 0
   const disputeEvidenceComplete =
     typeof disputeResult.count === "number" && disputeResult.count <= disputeRows.length
-  if (!refundEvidenceComplete || !disputeEvidenceComplete) {
+  const paidEvidenceComplete =
+    typeof paidResult.count === "number" && paidResult.count <= (paidResult.data?.length ?? 0)
+  if (!paidEvidenceComplete || !refundEvidenceComplete || !disputeEvidenceComplete) {
     throw new Error("Customer growth revenue evidence is incomplete")
   }
 
@@ -207,6 +231,84 @@ export async function readCustomerGrowthRevenueEvidence(
     paidRows: paidResult.data ?? [],
     refundRows: normalizedRefundRows,
   }
+}
+
+const PAID_ATTRIBUTION_SELECT = [
+  "id",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "referrer",
+  "landing_page",
+  "gclid",
+  "gbraid",
+  "wbraid",
+  "campaignid",
+  "adgroupid",
+  "keyword",
+  "creative",
+  "matchtype",
+  "device",
+  "network",
+].join(", ")
+
+export async function readCustomerGrowthAttributionRows(
+  supabase: SupabaseClient,
+  intakeIds: ReadonlySet<string>,
+): Promise<CustomerGrowthAttributionRow[]> {
+  const ids = [...intakeIds]
+  const rows: CustomerGrowthAttributionRow[] = []
+
+  for (let index = 0; index < ids.length; index += MAX_PAID_ATTRIBUTION_ROWS) {
+    const chunk = ids.slice(index, index + MAX_PAID_ATTRIBUTION_ROWS)
+    let result: QueryResponse<CustomerGrowthAttributionRow> & { count: number | null }
+    try {
+      result = await (filterReportableIntakes(
+        supabase
+          .from("intakes")
+          .select(PAID_ATTRIBUTION_SELECT, { count: "exact" })
+          .in("id", chunk)
+          .limit(MAX_PAID_ATTRIBUTION_ROWS),
+      ) as unknown as PromiseLike<QueryResponse<CustomerGrowthAttributionRow> & {
+        count: number | null
+      }>)
+    } catch {
+      throw new Error("Customer growth attribution evidence is unavailable")
+    }
+
+    if (
+      result.error ||
+      typeof result.count !== "number" ||
+      result.count > (result.data?.length ?? 0)
+    ) {
+      throw new Error("Customer growth attribution evidence is incomplete")
+    }
+    rows.push(...(result.data ?? []))
+  }
+
+  return rows
+}
+
+export async function countSentAbandonedCheckoutEmails(
+  supabase: SupabaseClient,
+  sinceIso: string,
+  untilIso: string,
+): Promise<number> {
+  let result: { count: number | null; error: { message: string } | null }
+  try {
+    result = await supabase
+      .from("email_outbox")
+      .select("email_type", { count: "exact", head: true })
+      .in("email_type", ["abandoned_checkout", "abandoned_checkout_followup"])
+      .eq("status", "sent")
+      .gte("created_at", sinceIso)
+      .lte("created_at", untilIso)
+  } catch {
+    throw new Error("Abandoned checkout send count is unavailable")
+  }
+  if (result.error) throw new Error("Abandoned checkout send count is unavailable")
+  return result.count ?? 0
 }
 
 function normalizeRefundMovementRows(rows: RefundMovementReadRow[]): NetRetainedRefundRow[] {
