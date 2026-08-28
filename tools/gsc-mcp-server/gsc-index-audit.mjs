@@ -72,7 +72,7 @@ function publicPage(value) {
       !PUBLIC_SITE_HOSTS.has(url.hostname) ||
       (url.protocol !== "http:" && url.protocol !== "https:")
     ) return null
-    const path = url.pathname === "/" ? "/" : url.pathname.replace(/\/+$/, "")
+    const path = url.pathname.replace(/\/+$/, "") || "/"
 
     return {
       path,

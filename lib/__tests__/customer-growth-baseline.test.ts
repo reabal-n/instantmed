@@ -153,6 +153,7 @@ describe("customer growth baseline", () => {
       { referrer: "https://chatgpt.com/", landing_page: "https://www.instantmed.com.au/medical-certificate-online/?source=chatgpt" },
       { referrer: "https://www.google.com/", landing_page: "/medical-certificate/?query=medical" },
       { utm_campaign: "brand", utm_medium: "organic", landing_page: "/?campaign=brand" },
+      { utm_campaign: "brand", utm_medium: "organic", landing_page: "https://www.instantmed.com.au////?campaign=brand" },
       { utm_medium: "referral", utm_source: "hrm", landing_page: "/employers/?campaign=employer_verification" },
       { utm_medium: "referral", landing_page: "https://partner.example/employers?campaign=partner" },
       { utm_medium: "referral", landing_page: "https://staging.instantmed.com.au/employers?campaign=staging" },
@@ -165,7 +166,7 @@ describe("customer growth baseline", () => {
     expect(rows).toEqual([
       { group: "referral", landingPage: "/unknown", orders: 5 },
       { group: "ai_referral", landingPage: "/medical-certificate-online", orders: 3 },
-      { group: "organic_brand", landingPage: "/", orders: 1 },
+      { group: "organic_brand", landingPage: "/", orders: 2 },
       { group: "organic_nonbrand", landingPage: "/medical-certificate", orders: 1 },
       { group: "referral", landingPage: "/employers", orders: 1 },
     ])

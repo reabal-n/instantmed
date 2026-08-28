@@ -62,8 +62,7 @@ function publicLandingPath(value?: string | null): string {
     const url = new URL(landingPage, "https://instantmed.com.au")
     if (url.protocol !== "http:" && url.protocol !== "https:") return "/unknown"
     if (!PUBLIC_LANDING_HOSTS.has(url.hostname)) return "/unknown"
-    const pathname = url.pathname || "/"
-    return pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname
+    return url.pathname.replace(/\/+$/, "") || "/"
   } catch {
     return "/unknown"
   }

@@ -421,6 +421,7 @@ describe("SEO indexing contracts", () => {
                   { keys: [brandedInputs[2], "https://instantmed.com.au/prescriptions/"], clicks: 5, impressions: 20 },
                   { keys: [brandedInputs[3], "https://www.instantmed.com.au/prescriptions"], clicks: 7, impressions: 25 },
                   { keys: [brandedInputs[4], "https://instantmed.com.au/prescriptions/?source=domain"], clicks: 11, impressions: 30 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au////?source=root"], clicks: 1, impressions: 4 },
                   { keys: [brandedInputs[0], "https://staging.instantmed.com.au/prescriptions"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "https://example.com/prescriptions"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "not a URL"], clicks: 100, impressions: 200 },
@@ -442,12 +443,14 @@ describe("SEO indexing contracts", () => {
     expect(publicPagePath("https://instantmed.com.au/prescriptions?source=test#top")).toBe("/prescriptions")
     expect(publicPagePath("https://www.instantmed.com.au/prescriptions/?source=www")).toBe("/prescriptions")
     expect(publicPagePath("https://instantmed.com.au/?source=root")).toBe("/")
+    expect(publicPagePath("https://instantmed.com.au////?source=root")).toBe("/")
     expect(publicPagePath("https://staging.instantmed.com.au/prescriptions")).toBeNull()
     expect(publicPagePath("https://example.com/prescriptions")).toBeNull()
     expect(publicPagePath("ftp://instantmed.com.au/prescriptions")).toBeNull()
     expect(publicPagePath("not a URL")).toBeNull()
     expect(brandedLandingPages).toEqual([
       { page: "/prescriptions", clicks: 28, impressions: 100, ctr: 0.28 },
+      { page: "/", clicks: 1, impressions: 4, ctr: 0.25 },
     ])
     expect(Object.keys(brandedLandingPages[0])).toEqual([
       "page",
@@ -473,6 +476,8 @@ describe("SEO indexing contracts", () => {
                 { keys: ["https://instantmed.com.au/prescriptions?gclid=first#top"], clicks: 2, impressions: 10, position: 2 },
                 { keys: ["https://www.instantmed.com.au/prescriptions/?utm_source=www"], clicks: 3, impressions: 30, position: 8 },
                 { keys: ["https://instantmed.com.au/prescriptions/"], clicks: 5, impressions: 20, position: 10 },
+                { keys: ["https://instantmed.com.au/?source=root"], clicks: 1, impressions: 4, position: 3 },
+                { keys: ["https://www.instantmed.com.au////?source=root-alias"], clicks: 2, impressions: 6, position: 5 },
                 { keys: ["https://staging.instantmed.com.au/prescriptions?gclid=staging"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://example.com/prescriptions?gclid=external"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["not a URL"], clicks: 100, impressions: 200, position: 1 },
@@ -492,6 +497,13 @@ describe("SEO indexing contracts", () => {
         impressions: 60,
         ctr: 1 / 6,
         position: 23 / 3,
+      },
+      {
+        page: "https://instantmed.com.au/",
+        clicks: 3,
+        impressions: 10,
+        ctr: 0.3,
+        position: 4.2,
       },
     ])
     const serialized = JSON.stringify(performancePages)
