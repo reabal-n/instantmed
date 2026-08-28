@@ -13,7 +13,7 @@ import { intentPages } from "@/lib/seo/intents"
 
 const ROOT = process.cwd()
 
-const EXPECTED_TOP_25_SLUGS = [
+const EXPECTED_COMMERCIAL_INTENT_SLUGS = [
   "same-day-medical-certificate",
   "medical-certificate-for-work",
   "online-sick-certificate",
@@ -24,12 +24,6 @@ const EXPECTED_TOP_25_SLUGS = [
   "carers-leave-certificate-online",
   "student-medical-certificate-online",
   "medical-certificate-for-shift-workers",
-  "medical-certificate-online-sydney",
-  "medical-certificate-online-melbourne",
-  "medical-certificate-online-brisbane",
-  "medical-certificate-online-perth",
-  "medical-certificate-online-adelaide",
-  "medical-certificate-online-gold-coast",
   "repeat-prescription-online",
   "after-hours-repeat-prescription",
   "weekend-repeat-prescription",
@@ -48,6 +42,12 @@ const RETIRED_INTENT_SLUGS = [
   "after-hours-doctor",
   "work-certificate-online",
   "flu-certificate-online",
+  "medical-certificate-online-sydney",
+  "medical-certificate-online-melbourne",
+  "medical-certificate-online-brisbane",
+  "medical-certificate-online-perth",
+  "medical-certificate-online-adelaide",
+  "medical-certificate-online-gold-coast",
 ]
 
 const DRUG_LED_PATTERN =
@@ -61,11 +61,11 @@ function read(relativePath: string): string {
 }
 
 describe("commercial SEO contract", () => {
-  it("publishes the curated top-25 commercial intent pages in priority order", () => {
-    expect(intentPages).toHaveLength(25)
-    expect(intentPages.map((page) => page.slug)).toEqual(EXPECTED_TOP_25_SLUGS)
+  it("publishes the curated commercial intent pages in priority order", () => {
+    expect(intentPages).toHaveLength(19)
+    expect(intentPages.map((page) => page.slug)).toEqual(EXPECTED_COMMERCIAL_INTENT_SLUGS)
     expect(intentPages.map((page) => page.commercial.priority)).toEqual(
-      Array.from({ length: 25 }, (_, index) => index + 1),
+      Array.from({ length: 19 }, (_, index) => index + 1),
     )
 
     for (const slug of RETIRED_INTENT_SLUGS) {
@@ -196,19 +196,36 @@ describe("commercial SEO contract", () => {
     }
   })
 
-  it("keeps major city certificate intent canonical to the new top-25 pages", () => {
-    const nextConfig = read("next.config.mjs")
-    const rootSitemap = read("app/sitemap.ts")
-    const majorCitySlugs = ["sydney", "melbourne", "brisbane", "perth", "adelaide", "gold-coast"]
-
-    expect(nextConfig).toContain(
-      'source: "/medical-certificate/:city(sydney|melbourne|brisbane|perth|adelaide|gold-coast)"',
+  it("resolves retired city certificate URLs to their selected final owners", async () => {
+    const { default: nextConfig } = await import("../../next.config.mjs")
+    const redirects = await nextConfig.redirects?.()
+    const redirectBySource = new Map(
+      (redirects ?? []).map((redirect) => [redirect.source, redirect]),
     )
-    expect(nextConfig).toContain('destination: "/intent/medical-certificate-online-:city"')
+    const rootSitemap = read("app/sitemap.ts")
 
-    for (const slug of majorCitySlugs) {
-      expect(rootSitemap).not.toContain(`"/medical-certificate/${slug}"`)
-      expect(intentPages.some((page) => page.slug === `medical-certificate-online-${slug}`)).toBe(true)
+    for (const city of ["sydney", "melbourne", "brisbane", "perth", "adelaide"]) {
+      expect(redirectBySource.get(`/medical-certificate/${city}`)).toMatchObject({
+        destination: `/locations/${city}`,
+        permanent: true,
+      })
+      expect(
+        redirectBySource.get(`/intent/medical-certificate-online-${city}`),
+      ).toMatchObject({
+        destination: `/locations/${city}`,
+        permanent: true,
+      })
+      expect(rootSitemap).not.toContain(`"/medical-certificate/${city}"`)
+    }
+
+    for (const source of [
+      "/medical-certificate/gold-coast",
+      "/intent/medical-certificate-online-gold-coast",
+    ]) {
+      expect(redirectBySource.get(source)).toMatchObject({
+        destination: "/medical-certificate",
+        permanent: true,
+      })
     }
   })
 })

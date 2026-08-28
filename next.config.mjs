@@ -215,13 +215,22 @@ const nextConfig = {
         destination: "/employers",
         permanent: true,
       },
-      // Top commercial city certificate intent now lives under /intent/* to avoid
-      // splitting sitemap and internal-link signals across duplicate city pages.
-      {
-        source: "/medical-certificate/:city(sydney|melbourne|brisbane|perth|adelaide|gold-coast)",
-        destination: "/intent/medical-certificate-online-:city",
-        permanent: true
-      },
+      // Consolidate city certificate aliases on their indexed location owner.
+      // In Next.js, permanent redirects are HTTP 308 responses.
+      { source: "/medical-certificate/sydney", destination: "/locations/sydney", permanent: true },
+      { source: "/medical-certificate/melbourne", destination: "/locations/melbourne", permanent: true },
+      { source: "/medical-certificate/brisbane", destination: "/locations/brisbane", permanent: true },
+      { source: "/medical-certificate/perth", destination: "/locations/perth", permanent: true },
+      { source: "/medical-certificate/adelaide", destination: "/locations/adelaide", permanent: true },
+      { source: "/medical-certificate/canberra", destination: "/locations/canberra", permanent: true },
+      { source: "/intent/medical-certificate-online-sydney", destination: "/locations/sydney", permanent: true },
+      { source: "/intent/medical-certificate-online-melbourne", destination: "/locations/melbourne", permanent: true },
+      { source: "/intent/medical-certificate-online-brisbane", destination: "/locations/brisbane", permanent: true },
+      { source: "/intent/medical-certificate-online-perth", destination: "/locations/perth", permanent: true },
+      { source: "/intent/medical-certificate-online-adelaide", destination: "/locations/adelaide", permanent: true },
+      // Gold Coast has no selected indexed city owner.
+      { source: "/medical-certificate/gold-coast", destination: "/medical-certificate", permanent: true },
+      { source: "/intent/medical-certificate-online-gold-coast", destination: "/medical-certificate", permanent: true },
       {
         source: "/repeat-prescription",
         destination: "/prescriptions",
@@ -464,9 +473,6 @@ const nextConfig = {
       { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: true },
       { source: "/request/consult", destination: "/consult", permanent: true },
       { source: "/medical-certificate/request", destination: "/request?service=med-cert", permanent: true },
-      // Consolidate the zero-performance legacy Canberra certificate page into
-      // the location URL Google already uses for branded and local searches.
-      { source: "/medical-certificate/canberra", destination: "/locations/canberra", permanent: true },
       { source: "/consult/request", destination: "/consult", permanent: true },
       { source: "/prescriptions/request", destination: "/request?service=repeat-script", permanent: true },
       { source: "/prescriptions/repeat", destination: "/request?service=repeat-script", permanent: true },

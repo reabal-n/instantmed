@@ -39,18 +39,94 @@ describe("SEO indexing contracts", () => {
     expect(contactPage).toContain('getApprovedClaim("complaints_timing")')
   })
 
-  it("consolidates the legacy Canberra certificate URL into the proven location canonical", () => {
-    const nextConfig = read("next.config.mjs")
+  it("gives each indexed city pair one resolved HTTP 308 canonical owner", async () => {
+    const { default: nextConfig } = await import("../../next.config.mjs")
+    const redirects = await nextConfig.redirects?.()
+    const redirectBySource = new Map(
+      (redirects ?? []).map((redirect) => [redirect.source, redirect]),
+    )
     const sitemap = read("app/sitemap.ts")
+    const locationPolicy = read("lib/seo/index-policy.ts")
     const medCertLocationBlock = sitemap.match(
       /const medCertLocationSlugs = \[([\s\S]*?)\]/,
     )?.[1]
 
-    expect(nextConfig).toContain(
-      '{ source: "/medical-certificate/canberra", destination: "/locations/canberra", permanent: true }',
-    )
-    expect(medCertLocationBlock).toBeDefined()
-    expect(medCertLocationBlock).not.toContain('"canberra"')
+    for (const city of [
+      "sydney",
+      "melbourne",
+      "brisbane",
+      "perth",
+      "adelaide",
+      "canberra",
+    ]) {
+      expect(redirectBySource.get(`/medical-certificate/${city}`)).toMatchObject({
+        destination: `/locations/${city}`,
+        permanent: true,
+      })
+      expect(medCertLocationBlock).not.toContain(`"${city}"`)
+      expect(locationPolicy).toContain(`"${city}"`)
+    }
+
+    for (const city of [
+      "sydney",
+      "melbourne",
+      "brisbane",
+      "perth",
+      "adelaide",
+    ]) {
+      expect(
+        redirectBySource.get(`/intent/medical-certificate-online-${city}`),
+      ).toMatchObject({
+        destination: `/locations/${city}`,
+        permanent: true,
+      })
+    }
+
+    for (const city of ["parramatta", "hobart", "darwin"]) {
+      expect(medCertLocationBlock).toContain(`"${city}"`)
+    }
+
+    expect(redirectBySource.get("/medical-certificate/gold-coast")).toMatchObject({
+      destination: "/medical-certificate",
+      permanent: true,
+    })
+    expect(
+      redirectBySource.get("/intent/medical-certificate-online-gold-coast"),
+    ).toMatchObject({
+      destination: "/medical-certificate",
+      permanent: true,
+    })
+    expect(
+      (redirects ?? []).some(
+        (redirect) =>
+          redirect.destination === "/intent/medical-certificate-online-:city",
+      ),
+    ).toBe(false)
+  })
+
+  it("keeps redirected city intent sources out of registry-derived surfaces", () => {
+    const intentRegistry = read("lib/seo/intents.ts")
+    const intentPage = read("app/intent/page.tsx")
+    const intentSlugPage = read("app/intent/[slug]/page.tsx")
+    const intentSitemap = read("app/intent/sitemap.ts")
+    const htmlSitemap = read("app/sitemap-html/page.tsx")
+
+    for (const city of [
+      "sydney",
+      "melbourne",
+      "brisbane",
+      "perth",
+      "adelaide",
+      "gold-coast",
+    ]) {
+      const slug = `medical-certificate-online-${city}`
+      expect(intentRegistry).not.toContain(`slug: "${slug}"`)
+      expect(intentPage).not.toContain(slug)
+      expect(intentSlugPage).toContain("getAllIntentSlugs")
+      expect(htmlSitemap).toContain("getAllIntentSlugs")
+    }
+
+    expect(intentSitemap).toContain("return []")
   })
 
   it("allows ChatGPT Search crawler to discover public source pages", () => {

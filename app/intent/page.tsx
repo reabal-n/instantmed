@@ -42,7 +42,7 @@ const clusterOrder: CommercialIntentCluster[] = [
 
 const intentFaqs = [
   {
-    question: "Why only 25 pages?",
+    question: "Why this curated set?",
     answer: "These pages target high-commercial-intent searches where InstantMed can answer clearly, show price upfront, and route patients into the right service without publishing thin health content.",
   },
   {
@@ -59,7 +59,7 @@ const intentFaqs = [
   },
   {
     question: "Can these pages be expanded later?",
-    answer: "Yes, but only after the top 25 prove traction in Search Console. Expansion should follow query evidence, not a generic content calendar.",
+    answer: "Yes, but only after the current catalogue proves traction in Search Console. Expansion should follow query evidence, not a generic content calendar.",
   },
 ]
 
@@ -87,7 +87,7 @@ export default function IntentPage() {
                   What Can We Help With?
                 </h1>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                  The top 25 pages worth ranking for: clear price, answer in the first screen,
+                  Curated pages worth ranking for: clear price, answer in the first screen,
                   compliant CTA, sources, and service-level prescription language.
                 </p>
               </div>
