@@ -7,7 +7,6 @@ import { PRICING } from "@/lib/constants"
 import { getStepsForService, type StepContext } from "@/lib/request/step-registry"
 import { deriveEdNitrateTerminalBlock } from "@/lib/request/terminal-safety-blocks"
 import {
-  validateCheckoutStep,
   validateDetailsStep,
   validateEdGoalsStep,
   validateEdHealthStep,
@@ -90,11 +89,6 @@ const SPECIALTY_DETAILS_VALID = {
   dob: "1990-01-01",
 } as const
 
-const CHECKOUT_VALID = {
-  agreedToTerms: true,
-  confirmedAccuracy: true,
-} as const
-
 describe("specialty experience clinical and no-friction invariants", () => {
   it("keeps the five-screen ED and six-screen Hair sequences unchanged", () => {
     expect(getStepsForService("consult", consultContext("ed")).map((step) => step.id)).toEqual([
@@ -173,13 +167,11 @@ describe("specialty experience clinical and no-friction invariants", () => {
       ).toBe(false)
     }
 
-    expect(validateCheckoutStep(CHECKOUT_VALID).isValid).toBe(true)
-    for (const key of ["agreedToTerms", "confirmedAccuracy"] as const) {
-      expect(
-        validateCheckoutStep({ ...CHECKOUT_VALID, [key]: false }).isValid,
-        `${key} must remain required on Review/Pay`,
-      ).toBe(false)
-    }
+    const reviewStep = read("components/request/steps/review-step.tsx")
+    expect(reviewStep).toContain('setConsent("agreedToTerms", checked)')
+    expect(reviewStep).toContain('setConsent("confirmedAccuracy", checked)')
+    expect(reviewStep).toContain("agreedToTerms: true")
+    expect(reviewStep).toContain("confirmedAccuracy: true")
 
     // The wider prescribing identity bundle (Medicare-or-IHI + sex + phone +
     // structured address) is owned by prescribing-identity-gate-contract.test.ts

@@ -8,7 +8,7 @@
 
 export type SpecialtyExperienceService = "hair_loss" | "ed"
 export type SpecialtyExperienceSurface = "landing" | "intake_presentation"
-export type SpecialtyExperienceStatus = "baseline" | "active" | "retired"
+type SpecialtyExperienceStatus = "baseline" | "active" | "retired"
 
 export interface SpecialtyExperienceDefinition {
   readonly id: string
@@ -21,16 +21,13 @@ export interface SpecialtyExperienceDefinition {
   readonly publicLandingPathname: "/hair-loss" | "/erectile-dysfunction"
 }
 
-export const SPECIALTY_EXPERIENCE_VERSION_IDS = [
-  "spx_h1_20260828",
-  "spx_h2_20260828",
-  "spx_h3_20260828",
-  "spx_e1_20260828",
-  "spx_e2_20260828",
-  "spx_e3_20260828",
-] as const
-
-export type SpecialtyExperienceVersion = (typeof SPECIALTY_EXPERIENCE_VERSION_IDS)[number]
+export type SpecialtyExperienceVersion =
+  | "spx_h1_20260828"
+  | "spx_h2_20260828"
+  | "spx_h3_20260828"
+  | "spx_e1_20260828"
+  | "spx_e2_20260828"
+  | "spx_e3_20260828"
 
 // The dated IDs use the Sydney operating date. This is midnight AEST on the
 // same date, represented in UTC so runtime comparisons remain unambiguous.
@@ -100,7 +97,7 @@ export const SPECIALTY_EXPERIENCES: readonly SpecialtyExperienceDefinition[] = [
   },
 ] as const
 
-export const ACTIVE_SPECIALTY_EXPERIENCES = SPECIALTY_EXPERIENCES.filter(
+const ACTIVE_SPECIALTY_EXPERIENCES = SPECIALTY_EXPERIENCES.filter(
   (experience) => experience.status === "active",
 )
 
@@ -181,7 +178,7 @@ function isAvailableAt(
   return experience.status === "active"
 }
 
-export function isSpecialtyExperienceAvailableAt(
+function isSpecialtyExperienceAvailableAt(
   experience: SpecialtyExperienceDefinition,
   startedAt: Date | string | number,
 ): boolean {
@@ -214,9 +211,6 @@ export function normalizeSpecialtyExperienceVersion(
 
   return experience.id as SpecialtyExperienceVersion
 }
-
-/** Alias used by persistence/analytics callers that refer to the field name. */
-export const normalizeGrowthExperienceVersion = normalizeSpecialtyExperienceVersion
 
 export function getActiveSpecialtyExperience(
   service: SpecialtyExperienceService,

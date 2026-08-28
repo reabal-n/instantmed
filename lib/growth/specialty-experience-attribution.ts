@@ -22,7 +22,7 @@ export interface SpecialtyExperienceEntryState {
  * move the wizard to its first subtype step and stamp store state; that must
  * not make a genuinely fresh tagged entry ineligible for its cohort.
  */
-export function canClaimSpecialtyExperienceAtEntry({
+function canClaimSpecialtyExperienceAtEntry({
   hasExplicitRecovery,
   hasAuthoritativePatientWork,
 }: SpecialtyExperienceEntryState): boolean {

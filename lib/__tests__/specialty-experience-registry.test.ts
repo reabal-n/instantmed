@@ -1,15 +1,17 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  ACTIVE_SPECIALTY_EXPERIENCES,
   hasSpecialtyExperienceActivationHistory,
-  isSpecialtyExperienceAvailableAt,
   normalizeSpecialtyExperienceVersion,
   SPECIALTY_EXPERIENCES,
   type SpecialtyExperienceDefinition,
 } from "@/lib/growth/specialty-experiences"
 
 describe("specialty experience registry", () => {
+  const activeSpecialtyExperiences = SPECIALTY_EXPERIENCES.filter(
+    (experience) => experience.status === "active",
+  )
+
   it("allowlists the dated, opaque approach versions and their public surfaces", () => {
     expect(SPECIALTY_EXPERIENCES.map((experience) => experience.id)).toEqual([
       "spx_h1_20260828",
@@ -39,8 +41,8 @@ describe("specialty experience registry", () => {
       ]),
     )
 
-    expect(ACTIVE_SPECIALTY_EXPERIENCES).toHaveLength(2)
-    expect(ACTIVE_SPECIALTY_EXPERIENCES.map((experience) => experience.id)).toEqual([
+    expect(activeSpecialtyExperiences).toHaveLength(2)
+    expect(activeSpecialtyExperiences.map((experience) => experience.id)).toEqual([
       "spx_h1_20260828",
       "spx_e1_20260828",
     ])
@@ -51,7 +53,7 @@ describe("specialty experience registry", () => {
   it("does not permit two active material versions for a service", () => {
     for (const service of ["hair_loss", "ed"] as const) {
       expect(
-        ACTIVE_SPECIALTY_EXPERIENCES.filter((experience) => experience.service === service),
+        activeSpecialtyExperiences.filter((experience) => experience.service === service),
       ).toHaveLength(1)
     }
   })
@@ -80,6 +82,14 @@ describe("specialty experience registry", () => {
 
   it("keeps a version valid when the flow started during its active window", () => {
     expect(
+      normalizeSpecialtyExperienceVersion(
+        "spx_h1_20260828",
+        "hair_loss",
+        "landing",
+        "2026-08-27T13:59:59.999Z",
+      ),
+    ).toBeNull()
+    expect(
       normalizeSpecialtyExperienceVersion("spx_h1_20260828", "hair_loss", "landing", "2026-08-28T00:00:00.000Z"),
     ).toBe("spx_h1_20260828")
   })
@@ -96,9 +106,6 @@ describe("specialty experience registry", () => {
       publicLandingPathname: "/hair-loss",
     }
 
-    expect(isSpecialtyExperienceAvailableAt(retiredVersion, "2026-08-10T00:00:00.000Z")).toBe(true)
-    expect(isSpecialtyExperienceAvailableAt(retiredVersion, "2026-08-15T00:00:00.000Z")).toBe(false)
-    expect(isSpecialtyExperienceAvailableAt(retiredVersion, "2026-08-20T00:00:00.000Z")).toBe(false)
     expect(hasSpecialtyExperienceActivationHistory(retiredVersion)).toBe(true)
     expect(
       hasSpecialtyExperienceActivationHistory(

@@ -4,15 +4,15 @@ import { join } from "node:path"
 import { describe, expect, it, vi } from "vitest"
 
 import {
+  createLandingAnalyticsTracker,
+  createLandingExperienceViewLatch,
+} from "@/lib/analytics/landing-analytics"
+import { normalizeIncomingGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
+import {
   buildGrowthExperienceRequestHref,
   resolveAvailableLandingGrowthExperienceVersion,
   resolveLandingGrowthExperienceVersion,
-} from "@/components/marketing/shared/landing-page-shell"
-import { normalizeIncomingGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
-import {
-  createLandingAnalyticsTracker,
-  createLandingExperienceViewLatch,
-} from "@/lib/hooks/use-landing-analytics"
+} from "@/lib/growth/specialty-landing"
 
 describe("specialty landing analytics", () => {
   it("uses the code-owned active landing version for each specialty", () => {

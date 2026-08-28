@@ -4,7 +4,6 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import {
-  canClaimSpecialtyExperienceAtEntry,
   isSpecialtyExperienceClaimContextReady,
   normalizeIncomingGrowthExperienceVersion,
   normalizePersistedGrowthExperienceVersion,
@@ -30,25 +29,27 @@ function filesUnder(path: string): string[] {
 
 describe("specialty experience attribution", () => {
   it("claims a tagged fresh entry without letting existing patient work be relabelled", () => {
+    const context = { serviceType: "consult", subtype: "hair_loss" }
+
     expect(
-      canClaimSpecialtyExperienceAtEntry({
+      resolveSpecialtyExperienceEntryClaim("spx_h1_20260828", context, {
         hasExplicitRecovery: false,
         hasAuthoritativePatientWork: false,
       }),
-    ).toBe(true)
+    ).toBe("spx_h1_20260828")
 
     expect(
-      canClaimSpecialtyExperienceAtEntry({
+      resolveSpecialtyExperienceEntryClaim("spx_h1_20260828", context, {
         hasExplicitRecovery: true,
         hasAuthoritativePatientWork: false,
       }),
-    ).toBe(false)
+    ).toBeNull()
     expect(
-      canClaimSpecialtyExperienceAtEntry({
+      resolveSpecialtyExperienceEntryClaim("spx_h1_20260828", context, {
         hasExplicitRecovery: false,
         hasAuthoritativePatientWork: true,
       }),
-    ).toBe(false)
+    ).toBeNull()
   })
 
   it("resolves only a valid tagged fresh entry after hydrated ownership is known", () => {
