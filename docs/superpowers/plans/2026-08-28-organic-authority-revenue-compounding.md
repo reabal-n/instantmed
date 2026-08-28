@@ -20,11 +20,11 @@
 - Load `instantmed-marketing-compliance-review` before signing off any public-copy diff and `instantmed-ui-browser-verification` before accepting browser proof.
 - Never read, export, or persist patient free text. Measurement artifacts are aggregate-only and must not contain names, emails, phone numbers, intake IDs, prescription details, click IDs, or credentials.
 - The acquisition leading metric is reportable paid orders by canonical source group and public landing pathname. The economic result is canonical rolling net-retained revenue. Do not allocate refund/dispute cash to a landing page unless the exact cash-event model supports that attribution.
-- One on-site material variable may run in a measurement window. Do not churn metadata, internal links, canonicals, or copy while waiting for Google to crawl and reprocess a shipped change.
+- One on-site material variable may run in a measurement window. For 28 days after deployment, do not churn search signals or public surfaces touched by this candidate while waiting for Google to crawl and reprocess it. Safety, compliance, privacy, payment, and fulfilment fixes always proceed; log other overlapping changes as confounders and rebase only an affected page's observation window when they materially change its search signals.
 - Search Console indexing requests, sitemap submissions, external pitches, profile creation, directory edits, customer communication, Ads changes, pull-request merge, and production promotion all require fresh approval for the exact action.
 - Google Ads remains rank 4 and follows its immutable approval packet. This plan makes no campaign, keyword, budget, targeting, or asset mutation.
 - Stop the next acquisition lever for any patient-safety event, work approaching the 24-hour ceiling, a service refund rate at or above 10%, a chargeback cluster, broken fulfilment, or support load above 5 contacts per 100 paid orders. Queue P95 remains visible under the 2026-08-18 owner decision; it is not silently converted into a new staffing project.
-- If Vercel CLI is needed during the deployment task, update the global CLI from 59.5.0 to 59.7.0 or newer outside this repository first. Do not add or upgrade a Vercel package in `package.json` for this plan.
+- If Vercel CLI is needed during the deployment task, update the global CLI to 59.9.1 or newer outside this repository first. Do not add or upgrade a Vercel package in `package.json` for this plan.
 
 ---
 
@@ -113,10 +113,13 @@ it("keeps city and telehealth acquisition copy inside approved public truth", ()
     'getApprovedClaim("clinical_access_scope")',
   )
   expect(locationPageSource).toContain(
-    'getApprovedClaim("medicare_requirements")',
+    'getApprovedClaim("prescribing_identity_required")',
   )
   expect(telehealthAustraliaSource).toContain(
-    'getApprovedClaim("medicare_requirements")',
+    'getApprovedClaim("prescribing_identity_required")',
+  )
+  expect(locationPageSource).toContain(
+    'getApprovedClaim("clinical_review_sequence")',
   )
 })
 ```
@@ -138,7 +141,6 @@ Expected: FAIL with at least the 45-minute, privacy-absolute, outcome-comparison
 - Modify: `app/locations/[city]/page.tsx`
 - Modify: `components/marketing/location-page-content.tsx`
 - Modify: `app/telehealth-australia/page.tsx`
-- Modify: `lib/marketing/approved-claims.ts`
 - Verify: `lib/__tests__/marketing-copy-contract.test.ts`
 - Verify: `lib/__tests__/hours-copy-contract.test.ts`
 - Verify: `lib/__tests__/approved-claims-contract.test.ts`
@@ -149,24 +151,8 @@ Expected: FAIL with at least the 45-minute, privacy-absolute, outcome-comparison
 const AVAILABILITY = getApprovedClaim("availability_24_7")
 const CERTIFICATE_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
-const MEDICARE_REQUIREMENTS = getApprovedClaim("medicare_requirements")
-```
-
-- [ ] Add `medicare_requirements` to `ApprovedClaimId` and `APPROVED_CLAIMS` with `AGENTS.md`, `docs/CLINICAL.md`, and the prescribing identity gate as receipts:
-
-```ts
-medicare_requirements: {
-  id: "medicare_requirements",
-  text: "Medical certificates do not require a Medicare card. Prescriptions and specialty requests require Medicare details for identity, prescribing records, and pharmacy continuity.",
-  contexts: ["medical_certificate", "prescribing", "specialty"],
-  risk: "high",
-  sources: [
-    "AGENTS.md",
-    "docs/CLINICAL.md",
-    "lib/stripe/prescribing-profile-fields.ts",
-  ],
-  notes: "Service-specific identity boundary. Never imply the same Medicare requirement across certificate and prescribing pathways.",
-},
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 ```
 
 - [ ] Replace every employer-acceptance yes/no answer with document scope plus the policy caveat. Keep the answer conditional on issue; do not say an employer must accept it.
@@ -181,7 +167,7 @@ answer: `${CERTIFICATE_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
 answer: `${AVAILABILITY} If approved, the certificate is emailed as a PDF.`,
 ```
 
-- [ ] Replace the Victoria “No Medicare card is required” answer with `MEDICARE_REQUIREMENTS`. It must distinguish the certificate pathway from prescribing and specialty requests.
+- [ ] Replace the Victoria “No Medicare card is required” answer with `PRESCRIBING_IDENTITY_REQUIRED`. Preserve the approved prescribing-identity alternative: a valid Medicare number plus IRN **or** a valid IHI. Do not imply prescribing or specialty requests can proceed without their required identity details.
 
 - [ ] Narrow the city `Service` schema description to active service-level scope:
 
@@ -196,7 +182,7 @@ description: `Online medical-certificate requests and repeat medication reviews 
 ```ts
 const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
 const AVAILABILITY = getApprovedClaim("availability_24_7")
-const MEDICARE_REQUIREMENTS = getApprovedClaim("medicare_requirements")
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
 ```
 
 - [ ] Replace the clinical-outcomes comparison with a suitability boundary:
@@ -208,7 +194,7 @@ answer:
 
 - [ ] Replace the privacy absolute with the code-owned access scope and a `/privacy` link in rendered HTML. Do not claim data is never disclosed to any third party.
 
-- [ ] Replace “without ... providing a Medicare card” with `MEDICARE_REQUIREMENTS`. Do not imply prescribing or specialty requests can proceed without the required identity details.
+- [ ] Replace “without ... providing a Medicare card” with `PRESCRIBING_IDENTITY_REQUIRED`, preserving the Medicare plus IRN **or** valid IHI identity alternative. Do not imply prescribing or specialty requests can proceed without the required identity details.
 
 - [ ] Remove `medicalSpecialty: "General Practice"`, `isAcceptingNewPatients: true`, generic “consultations,” and “Discuss a symptom or get a treatment plan” from the schema and body. Describe only medical certificates, repeat prescription reviews, and the launched specialty assessment pathways. Use `AVAILABILITY` for the opening-hours description.
 
@@ -254,8 +240,13 @@ git commit -m "fix(marketing): align city and telehealth search copy"
 - Modify: `lib/__tests__/seo-indexing-contract.test.ts`
 - Modify: `lib/__tests__/commercial-seo-contract.test.ts`
 - Modify: `next.config.mjs`
+- Modify: `lib/seo/intents.ts`
+- Modify: `app/intent/page.tsx`
+- Modify: `app/intent/[slug]/page.tsx`
+- Modify: `app/sitemap-html/page.tsx`
 - Verify: `app/sitemap.ts`
 - Verify: `app/locations/sitemap.ts`
+- Verify: `lib/seo/sitemap-lastmod.ts`
 - Verify: `lib/seo/index-policy.ts`
 
 Canonical ownership for this task:
@@ -356,9 +347,15 @@ Expected: FAIL.
 
 - [ ] Remove the existing grouped redirect from `/medical-certificate/:city(...)` to `/intent/medical-certificate-online-:city`. Add exact permanent redirects for both legacy source families to the selected `/locations/*` owner. Move Canberra into the same exact map and remove its later duplicate redirect entry. Route both Gold Coast legacy URLs to `/medical-certificate` so the iceboxed city does not become a new indexed winner.
 
+- [ ] Treat each `permanent: true` redirect above as an HTTP 308 permanent redirect, not a 301. Assert the final 308 owner for every paired source.
+
+- [ ] Prune the six redirected city intent entries — Sydney, Melbourne, Brisbane, Perth, Adelaide, and Gold Coast — from `lib/seo/intents.ts`; retain Newcastle. Update the exact intent-count contracts and the intent-hub language to describe the remaining intent catalogue accurately. Verify the intent hub, `generateStaticParams`, the intent sitemap, and the HTML sitemap emit no internal link to any redirected `/intent/medical-certificate-online-*` source.
+
 - [ ] Keep `app/sitemap.ts` ownership unchanged: only `parramatta`, `hobart`, and `darwin` belong to the medical-certificate location block.
 
 - [ ] Keep `app/locations/sitemap.ts` filtered through `shouldIndexLocation()` and keep Newcastle plus the six selected metros in `KEEP_INDEXED_LOCATIONS`.
+
+- [ ] Refresh the baked sitemap dates honestly after each material route change: `lib/seo/sitemap-lastmod.ts` owns per-route dates and `app/locations/sitemap.ts` owns its enriched location date. Derive each refresh from the route's material change, not deployment time; deployment does not refresh baked `lastmod` values.
 
 - [ ] Run the focused SEO and route checks:
 
@@ -368,12 +365,18 @@ corepack pnpm exec vitest run lib/__tests__/commercial-seo-contract.test.ts
 bash scripts/check-route-conflicts.sh
 ```
 
-Expected: PASS; one sitemap owner and one 301 destination per paired city.
+Expected: PASS; one sitemap owner and one HTTP 308 destination per paired city, with no internal links to redirected intent sources and honest baked `lastmod` owners checked.
 
 - [ ] Commit:
 
 ```bash
 git add next.config.mjs \
+  lib/seo/intents.ts \
+  app/intent/page.tsx \
+  'app/intent/[slug]/page.tsx' \
+  app/sitemap-html/page.tsx \
+  lib/seo/sitemap-lastmod.ts \
+  app/locations/sitemap.ts \
   lib/__tests__/seo-indexing-contract.test.ts \
   lib/__tests__/commercial-seo-contract.test.ts
 git commit -m "fix(seo): consolidate indexed city canonicals"
@@ -665,6 +668,8 @@ git diff --check
 
 Expected: every command PASS. A green focused suite without the full unit/build receipt is not release proof.
 
+- [ ] Confirm `lib/seo/sitemap-lastmod.ts` and `app/locations/sitemap.ts` have an explicit, honest `lastmod` refresh for every materially changed route. Record the route/date evidence with the candidate receipt; do not treat deployment as a `lastmod` refresh.
+
 - [ ] Start the approved InstantMed dev server on port 3060 and inspect at 1440x900 and 390x844:
 
 ```bash
@@ -673,7 +678,7 @@ corepack pnpm dev
 
 - [ ] Browser-verify `/`, `/medical-certificate`, `/locations/canberra`, `/locations/brisbane`, `/telehealth-australia`, and `/prescriptions` for rendered copy, canonical, JSON-LD, footer `data-nosnippet`, links, mobile overflow, console errors, and failed network requests.
 
-- [ ] Verify redirect responses for all six paired city routes and Gold Coast against the candidate server.
+- [ ] Verify HTTP 308 redirect responses for all six paired city routes and Gold Coast against the candidate server, and confirm the intent hub, static params, intent sitemap, and HTML sitemap contain no links to the redirect sources.
 
 - [ ] Record the exact candidate SHA and test receipts in this plan’s execution log. Do not claim production proof.
 
@@ -694,6 +699,8 @@ git diff --cached --stat
 - [ ] Push the `codex/` branch and open a draft PR. The PR body must include Problem, Changes, Verification, Risk/Rollback, Compliance/Privacy impact, and Env/Migration changes.
 
 - [ ] Keep the PR draft until hosted checks pass. Do not mark ready based only on local tests.
+
+- [ ] The candidate starts from current `main`; record the candidate bundle/SHA for comparison but do not prescribe historical branch SHAs as ancestors or claim that an individual commit caused a Google result.
 
 - [ ] Present the exact PR, candidate SHA, hosted checks, and rollback (`revert` the merge plus preserve permanent redirects if already crawled) for fresh operator approval.
 
@@ -723,7 +730,7 @@ corepack pnpm seo:gsc-index-audit -- \
   > output/revenue-compounding/pre-deploy-gsc-baseline.json
 ```
 
-- [ ] At each day 7, 14, and 28 checkpoint, run a new read-only audit whose `--start-date` is the exact production deployment date recorded in Task 7 and whose `--end-date` is the latest Search Console final-data date. Save each aggregate result separately. Do not relabel the frozen baseline as post-deploy evidence.
+- [ ] At each day 7, 14, and 28 checkpoint, run a new read-only audit whose `--start-date` is the exact production deployment date recorded in Task 7 and whose `--end-date` is the latest Search Console final-data date. Save each aggregate result separately at candidate bundle/SHA level. Do not relabel the frozen baseline as post-deploy evidence or attribute a Google result to an individual commit.
 
 - [ ] In Search Console, use **Test live URL** and then request indexing once for the homepage and `/medical-certificate`. Resubmit the existing sitemap once only if the live `lastmod` values are correct. Do not use Removals and do not repeatedly request indexing.
 
@@ -733,7 +740,7 @@ corepack pnpm seo:gsc-index-audit -- \
 
 - [ ] Do not judge the branch until URL Inspection shows a successful post-deployment crawl. If no post-deploy crawl exists, hold.
 
-- [ ] At day 28, apply this decision:
+- [ ] At day 28, apply this candidate bundle/SHA-level decision. Consider logged confounders: safety, compliance, privacy, payment, and fulfilment fixes proceed; other overlapping changes rebase only the materially affected page's search observation window.
 
 ```text
 ADVANCE: post-deploy crawl confirmed and the boilerplate snippet/unhelpful sitelink pattern is materially reduced.
@@ -811,7 +818,7 @@ corepack pnpm audit:customer-growth -- \
 - [ ] Use the shipped Item 2 rule without reinterpretation:
 
 ```text
-CONTINUE: >=8 free-channel paid orders in the final closed 30-day window.
+CONTINUE: after two closed 30-day windows, >=8 free-channel paid orders permits one second bounded session only, with fresh GSC corroboration and the operating guardrails clear.
 HOLD: 6-7 free-channel paid orders.
 STOP: <=5 after two closed 30-day windows.
 ```
@@ -830,10 +837,12 @@ STOP: <=5 after two closed 30-day windows.
 - Update: `docs/ROADMAP.md`
 - Create only after selection: one new bounded implementation plan for the chosen existing page
 
+`/prescriptions` is excluded from these generic tiers while the shipped Item 2 rule remains active; Task 10 owns its specialised two-window threshold and possible second bounded session.
+
 - [ ] Rank existing public landing pages using reportable free-channel paid orders from one closed 30-day window:
 
 ```text
-DEEPEN: >=10 paid orders; one answer-density/clarity session may be planned.
+DEEPEN: >=10 paid orders; one answer-density/clarity session on one existing page only may be planned.
 MAINTAIN: 3-9 paid orders; accuracy and freshness only.
 DO NOTHING: <3 paid orders; no dedicated session.
 ```
@@ -846,7 +855,7 @@ DO NOTHING: <3 paid orders; no dedicated session.
 
 - [ ] If no page reaches a gate, stop. Continue rank 3 distribution and existing rank 4 operations; do not create work to fill a calendar.
 
-- [ ] If one page qualifies, write one page-specific plan with one hypothesis, one material change, one closed-window success/stop rule, focused tests, and no new URL.
+- [ ] If one page qualifies, write one page-specific plan with one hypothesis, one material change, one closed-window success/stop rule, focused tests, and no new URL. `DEEPEN` cannot authorise a new URL, content wave, or the locked v4 programme; v4 scaling still requires both Phase 2 Outcome A and the P3.1 cohort beating its holdout.
 
 - [ ] Refresh `docs/ROADMAP.md`, run `corepack pnpm doc:audit`, and commit the dated decision receipt.
 
@@ -872,6 +881,7 @@ The plan is successful only if the receipts support the claim. Fill this from cl
 | Date | Task | SHA / external receipt | Result | Next gate |
 |---|---|---|---|---|
 | 2026-08-28 | Plan adopted | Local documentation commit | Pending implementation | Task 1 |
+| 2026-08-28 | Task 0 reconciliation | Reconciled against current `main`; local documentation correction pending commit | Tasks 1-11 aligned to current claim, redirect, sitemap, observation, and compounding gates; product implementation is not complete | Run Task 1 locally |
 
 ## Self-Review Checklist
 
