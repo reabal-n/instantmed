@@ -16,7 +16,7 @@ export const ROUTE_LAST_MODIFIED: Record<string, string> = {
   "/": "2026-08-28",
   // Head-term pillars
   "/online-doctor-australia": "2026-06-06",
-  "/telehealth-australia": "2026-08-28",
+  "/telehealth-australia": "2026-08-29",
   // Money + service landing pages
   "/medical-certificate": "2026-08-28",
   "/medical-certificate-online": "2026-08-28",

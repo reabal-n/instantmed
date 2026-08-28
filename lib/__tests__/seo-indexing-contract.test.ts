@@ -291,6 +291,14 @@ describe("SEO indexing contracts", () => {
     expect(lastmod).toContain("ROUTE_LAST_MODIFIED")
   })
 
+  it("dates the final telehealth and indexed-city copy correction honestly", () => {
+    const lastmod = read("lib/seo/sitemap-lastmod.ts")
+    const locationSitemap = read("app/locations/sitemap.ts")
+
+    expect(lastmod).toContain('"/telehealth-australia": "2026-08-29"')
+    expect(locationSitemap).toContain('new Date("2026-08-29")')
+  })
+
   it("keeps live money and high-yield SEO pages discoverable in the root sitemap", () => {
     const sitemap = read("app/sitemap.ts")
     const lastmod = read("lib/seo/sitemap-lastmod.ts")
@@ -425,6 +433,11 @@ describe("SEO indexing contracts", () => {
                   { keys: [brandedInputs[0], "https://instantmed.com.au/verify/IM-WORK?source=work"], clicks: 2, impressions: 4 },
                   { keys: [brandedInputs[0], "https://www.instantmed.com.au/verify/STUDY/#top"], clicks: 3, impressions: 6 },
                   { keys: [brandedInputs[0], "https://instantmed.com.au/verify/CARER"], clicks: 5, impressions: 10 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/track/signed-request-token"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/resume/signed-checkout-token"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/auth/complete-account/signed-account-token"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/dashboard/intakes/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/campaign/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "https://staging.instantmed.com.au/prescriptions"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "https://example.com/prescriptions"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "not a URL"], clicks: 100, impressions: 200 },
@@ -450,6 +463,11 @@ describe("SEO indexing contracts", () => {
     expect(publicPagePath("https://instantmed.com.au/verify/IM-WORK?source=work")).toBe("/verify")
     expect(publicPagePath("https://www.instantmed.com.au/verify/STUDY/#top")).toBe("/verify")
     expect(publicPagePath("https://instantmed.com.au/verify/CARER")).toBe("/verify")
+    expect(publicPagePath("https://instantmed.com.au/track/signed-request-token")).toBeNull()
+    expect(publicPagePath("https://instantmed.com.au/resume/signed-checkout-token")).toBeNull()
+    expect(publicPagePath("https://instantmed.com.au/auth/complete-account/signed-account-token")).toBeNull()
+    expect(publicPagePath("https://instantmed.com.au/dashboard/intakes/2c82f788-1769-4cf7-97d7-d40db36ad859")).toBeNull()
+    expect(publicPagePath("https://instantmed.com.au/campaign/2c82f788-1769-4cf7-97d7-d40db36ad859")).toBeNull()
     expect(publicPagePath("https://staging.instantmed.com.au/prescriptions")).toBeNull()
     expect(publicPagePath("https://example.com/prescriptions")).toBeNull()
     expect(publicPagePath("ftp://instantmed.com.au/prescriptions")).toBeNull()
@@ -470,6 +488,10 @@ describe("SEO indexing contracts", () => {
     expect(JSON.stringify(brandedLandingPages)).not.toContain("IM-WORK")
     expect(JSON.stringify(brandedLandingPages)).not.toContain("STUDY")
     expect(JSON.stringify(brandedLandingPages)).not.toContain("CARER")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("signed-request-token")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("signed-checkout-token")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("signed-account-token")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("2c82f788-1769-4cf7-97d7-d40db36ad859")
   })
 
   it("aggregates public performance pages without serializing raw page inputs", async () => {
@@ -491,6 +513,11 @@ describe("SEO indexing contracts", () => {
                 { keys: ["https://instantmed.com.au/verify/IM-WORK?source=work"], clicks: 2, impressions: 4, position: 2 },
                 { keys: ["https://www.instantmed.com.au/verify/STUDY/#top"], clicks: 3, impressions: 6, position: 8 },
                 { keys: ["https://instantmed.com.au/verify/CARER"], clicks: 5, impressions: 10, position: 10 },
+                { keys: ["https://instantmed.com.au/track/signed-request-token"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://instantmed.com.au/resume/signed-checkout-token"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://instantmed.com.au/auth/complete-account/signed-account-token"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://instantmed.com.au/dashboard/intakes/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://instantmed.com.au/campaign/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://staging.instantmed.com.au/prescriptions?gclid=staging"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://example.com/prescriptions?gclid=external"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["not a URL"], clicks: 100, impressions: 200, position: 1 },
@@ -534,6 +561,10 @@ describe("SEO indexing contracts", () => {
     expect(serialized).not.toContain("IM-WORK")
     expect(serialized).not.toContain("STUDY")
     expect(serialized).not.toContain("CARER")
+    expect(serialized).not.toContain("signed-request-token")
+    expect(serialized).not.toContain("signed-checkout-token")
+    expect(serialized).not.toContain("signed-account-token")
+    expect(serialized).not.toContain("2c82f788-1769-4cf7-97d7-d40db36ad859")
   })
 
   it("inspects current money pages by default in GSC indexing audits", () => {

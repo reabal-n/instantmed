@@ -401,6 +401,8 @@ it("reports redacted branded landing pages without adding an indexing mutation",
   expect(auditScript).toContain('dimensions: ["query", "page"]')
   expect(auditScript).toContain("isBrandedQuery")
   expect(auditScript).toContain("PUBLIC_SITE_HOSTS")
+  expect(auditScript).toContain("NON_PUBLIC_PAGE_PREFIXES")
+  expect(auditScript).toContain("UUID_PATH_SEGMENT_RE")
   expect(auditScript).toContain('normalizedPath.startsWith("/verify/")')
   expect(auditScript).toContain("brandedLandingPages")
   expect(auditScript).not.toContain("query: row.keys")
@@ -416,11 +418,17 @@ corepack pnpm exec vitest run lib/__tests__/seo-indexing-contract.test.ts
 
 - [ ] Add token-aware brand matching, fail-closed public-page canonicalization,
   and a query/page read. Accept only the apex and `www` HTTP(S) hosts, merge
-  trailing-slash/root aliases, and collapse every `/verify/*` credential path
-  to `/verify` before aggregation:
+  trailing-slash/root aliases, reject capability/private/UUID-bearing paths,
+  and collapse every `/verify/*` credential path to `/verify` before
+  aggregation:
 
 ```js
 const PUBLIC_SITE_HOSTS = new Set(["instantmed.com.au", "www.instantmed.com.au"])
+const NON_PUBLIC_PAGE_PREFIXES = [
+  "/account", "/admin", "/auth", "/dashboard", "/doctor", "/patient",
+  "/resume", "/sign-in", "/sign-up", "/track",
+]
+const UUID_PATH_SEGMENT_RE = /\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?:\/|$)/i
 
 function isBrandedQuery(value) {
   const tokens = value.toLowerCase().match(/[a-z0-9]+/g) ?? []
@@ -432,6 +440,12 @@ function isBrandedQuery(value) {
   )
 }
 
+function isNonPublicPagePath(pathname) {
+  return NON_PUBLIC_PAGE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  ) || UUID_PATH_SEGMENT_RE.test(pathname)
+}
+
 function publicPage(value) {
   try {
     const url = new URL(value)
@@ -440,6 +454,7 @@ function publicPage(value) {
       (url.protocol !== "http:" && url.protocol !== "https:")
     ) return null
     const normalizedPath = url.pathname.replace(/\/+$/, "") || "/"
+    if (isNonPublicPagePath(normalizedPath)) return null
     const path = normalizedPath === "/verify" || normalizedPath.startsWith("/verify/")
       ? "/verify"
       : normalizedPath
@@ -489,9 +504,9 @@ async function getBrandedLandingPages(searchconsole, startDate, endDate) {
 - [ ] Fetch it alongside page performance and write only the aggregate rows to
   `report.brandedLandingPages`. Contract-test generic `instant medical...`
   false positives, external/staging/non-HTTP hosts, query/fragment stripping,
-  root/trailing-slash merging, and `/verify/*` credential redaction. Do not
-  write exact Search Console query strings, even when they contain the brand
-  token.
+  root/trailing-slash merging, capability/private/UUID rejection, and
+  `/verify/*` credential redaction. Do not write exact Search Console query
+  strings, even when they contain the brand token.
 
 - [ ] Preserve the `webmasters.readonly` scope and absence of `urlNotifications.publish` or any submit script.
 

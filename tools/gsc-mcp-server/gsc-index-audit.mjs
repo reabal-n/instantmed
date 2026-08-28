@@ -4,6 +4,19 @@ import { fileURLToPath } from "node:url"
 const SITE_URL = "sc-domain:instantmed.com.au"
 const SITE_ORIGIN = "https://instantmed.com.au"
 const PUBLIC_SITE_HOSTS = new Set(["instantmed.com.au", "www.instantmed.com.au"])
+const NON_PUBLIC_PAGE_PREFIXES = [
+  "/account",
+  "/admin",
+  "/auth",
+  "/dashboard",
+  "/doctor",
+  "/patient",
+  "/resume",
+  "/sign-in",
+  "/sign-up",
+  "/track",
+]
+const UUID_PATH_SEGMENT_RE = /\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?:\/|$)/i
 const USER_AGENT = "InstantMedGscIndexAudit/1.0"
 const DEFAULT_PRIORITY_INSPECTION_PATHS = [
   "/medical-certificate",
@@ -65,6 +78,12 @@ function isBrandedQuery(value) {
   )
 }
 
+function isNonPublicPagePath(pathname) {
+  return NON_PUBLIC_PAGE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  ) || UUID_PATH_SEGMENT_RE.test(pathname)
+}
+
 function publicPage(value) {
   try {
     const url = new URL(value)
@@ -73,6 +92,7 @@ function publicPage(value) {
       (url.protocol !== "http:" && url.protocol !== "https:")
     ) return null
     const normalizedPath = url.pathname.replace(/\/+$/, "") || "/"
+    if (isNonPublicPagePath(normalizedPath)) return null
     const path = normalizedPath === "/verify" || normalizedPath.startsWith("/verify/")
       ? "/verify"
       : normalizedPath
