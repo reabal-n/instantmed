@@ -75,6 +75,7 @@ describe("commercial SEO contract", () => {
 
   it("renders only intent-hub clusters backed by the registry", () => {
     const intentHub = read("app/intent/page.tsx")
+    const intentRegistry = read("lib/seo/intents.ts")
 
     for (const cluster of ["medical-certificate", "repeat-prescription", "comparison"]) {
       expect(intentPages.some((page) => page.commercial.cluster === cluster)).toBe(true)
@@ -82,6 +83,8 @@ describe("commercial SEO contract", () => {
 
     expect(intentHub).not.toContain('location: "City and state pages"')
     expect(intentHub).not.toContain('"location",')
+    expect(intentHub).not.toContain('Exclude<CommercialIntentCluster, "location">')
+    expect(intentRegistry).not.toContain('| "location"')
   })
 
   it("requires every page to have first-screen answer, price, source links, internal links, FAQs, and a local visual", () => {

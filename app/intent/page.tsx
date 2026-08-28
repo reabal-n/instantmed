@@ -26,15 +26,13 @@ export const metadata: Metadata = {
   },
 }
 
-type IntentHubCluster = Exclude<CommercialIntentCluster, "location">
-
-const clusterLabels: Record<IntentHubCluster, string> = {
+const clusterLabels: Record<CommercialIntentCluster, string> = {
   "medical-certificate": "Medical certificates",
   "repeat-prescription": "Repeat prescriptions",
   comparison: "Service comparisons",
 }
 
-const clusterOrder: IntentHubCluster[] = [
+const clusterOrder: CommercialIntentCluster[] = [
   "medical-certificate",
   "repeat-prescription",
   "comparison",

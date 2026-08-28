@@ -17,7 +17,6 @@ const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 export type CommercialIntentCluster =
   | "medical-certificate"
   | "repeat-prescription"
-  | "location"
   | "comparison"
 
 export interface CommercialIntentSource {
