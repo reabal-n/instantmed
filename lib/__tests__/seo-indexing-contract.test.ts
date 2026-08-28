@@ -379,7 +379,7 @@ describe("SEO indexing contracts", () => {
 
     expect(auditScript).toContain("getBrandedLandingPages")
     expect(auditScript).toContain('dimensions: ["query", "page"]')
-    expect(auditScript).toContain("normalizeBrandQuery")
+    expect(auditScript).toContain("isBrandedQuery")
     expect(auditScript).toContain("brandedLandingPages")
     expect(auditScript).not.toContain("query: row.keys")
     expect(auditScript).not.toContain("indexing.urlNotifications.publish")
@@ -399,7 +399,13 @@ describe("SEO indexing contracts", () => {
     const { getBrandedLandingPages, publicPagePath } = await import(
       "../../tools/gsc-mcp-server/gsc-index-audit.mjs"
     )
-    const brandedInput = ["instant", "med"].join(" ")
+    const brandedInputs = [
+      "InstantMed",
+      ["instant", "med"].join(" "),
+      "instant-med",
+      "instant.med",
+      "instantmed.com.au",
+    ]
     let request: { requestBody?: { dimensions?: string[] } } | undefined
 
     const brandedLandingPages = await getBrandedLandingPages(
@@ -410,11 +416,17 @@ describe("SEO indexing contracts", () => {
             return {
               data: {
                 rows: [
-                  { keys: [brandedInput, "https://instantmed.com.au/prescriptions?source=test#top"], clicks: 2, impressions: 10 },
-                  { keys: [brandedInput, "https://www.instantmed.com.au/prescriptions?source=www"], clicks: 3, impressions: 15 },
-                  { keys: [brandedInput, "https://staging.instantmed.com.au/prescriptions"], clicks: 100, impressions: 200 },
-                  { keys: [brandedInput, "https://example.com/prescriptions"], clicks: 100, impressions: 200 },
-                  { keys: [brandedInput, "not a URL"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/prescriptions?source=test#top"], clicks: 2, impressions: 10 },
+                  { keys: [brandedInputs[1], "https://www.instantmed.com.au/prescriptions/?source=www"], clicks: 3, impressions: 15 },
+                  { keys: [brandedInputs[2], "https://instantmed.com.au/prescriptions/"], clicks: 5, impressions: 20 },
+                  { keys: [brandedInputs[3], "https://www.instantmed.com.au/prescriptions"], clicks: 7, impressions: 25 },
+                  { keys: [brandedInputs[4], "https://instantmed.com.au/prescriptions/?source=domain"], clicks: 11, impressions: 30 },
+                  { keys: [brandedInputs[0], "https://staging.instantmed.com.au/prescriptions"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://example.com/prescriptions"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "not a URL"], clicks: 100, impressions: 200 },
+                  { keys: ["instant medical certificate", "https://instantmed.com.au/pricing"], clicks: 100, impressions: 200 },
+                  { keys: ["instant medicine delivery", "https://instantmed.com.au/pricing"], clicks: 100, impressions: 200 },
+                  { keys: ["myinstantmedapp", "https://instantmed.com.au/pricing"], clicks: 100, impressions: 200 },
                   { keys: ["unbranded", "https://instantmed.com.au/pricing"], clicks: 100, impressions: 200 },
                 ],
               },
@@ -428,12 +440,14 @@ describe("SEO indexing contracts", () => {
 
     expect(request?.requestBody?.dimensions).toEqual(["query", "page"])
     expect(publicPagePath("https://instantmed.com.au/prescriptions?source=test#top")).toBe("/prescriptions")
-    expect(publicPagePath("https://www.instantmed.com.au/prescriptions?source=www")).toBe("/prescriptions")
+    expect(publicPagePath("https://www.instantmed.com.au/prescriptions/?source=www")).toBe("/prescriptions")
+    expect(publicPagePath("https://instantmed.com.au/?source=root")).toBe("/")
     expect(publicPagePath("https://staging.instantmed.com.au/prescriptions")).toBeNull()
     expect(publicPagePath("https://example.com/prescriptions")).toBeNull()
+    expect(publicPagePath("ftp://instantmed.com.au/prescriptions")).toBeNull()
     expect(publicPagePath("not a URL")).toBeNull()
     expect(brandedLandingPages).toEqual([
-      { page: "/prescriptions", clicks: 5, impressions: 25, ctr: 0.2 },
+      { page: "/prescriptions", clicks: 28, impressions: 100, ctr: 0.28 },
     ])
     expect(Object.keys(brandedLandingPages[0])).toEqual([
       "page",
@@ -441,7 +455,7 @@ describe("SEO indexing contracts", () => {
       "impressions",
       "ctr",
     ])
-    expect(JSON.stringify(brandedLandingPages)).not.toContain(brandedInput)
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("instant")
     expect(JSON.stringify(brandedLandingPages)).not.toContain("keys")
   })
 
@@ -457,7 +471,8 @@ describe("SEO indexing contracts", () => {
             data: {
               rows: [
                 { keys: ["https://instantmed.com.au/prescriptions?gclid=first#top"], clicks: 2, impressions: 10, position: 2 },
-                { keys: ["https://www.instantmed.com.au/prescriptions?utm_source=www"], clicks: 3, impressions: 30, position: 8 },
+                { keys: ["https://www.instantmed.com.au/prescriptions/?utm_source=www"], clicks: 3, impressions: 30, position: 8 },
+                { keys: ["https://instantmed.com.au/prescriptions/"], clicks: 5, impressions: 20, position: 10 },
                 { keys: ["https://staging.instantmed.com.au/prescriptions?gclid=staging"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://example.com/prescriptions?gclid=external"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["not a URL"], clicks: 100, impressions: 200, position: 1 },
@@ -473,10 +488,10 @@ describe("SEO indexing contracts", () => {
     expect(performancePages).toEqual([
       {
         page: "https://instantmed.com.au/prescriptions",
-        clicks: 5,
-        impressions: 40,
-        ctr: 0.125,
-        position: 6.5,
+        clicks: 10,
+        impressions: 60,
+        ctr: 1 / 6,
+        position: 23 / 3,
       },
     ])
     const serialized = JSON.stringify(performancePages)

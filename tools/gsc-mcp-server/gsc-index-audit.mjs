@@ -55,18 +55,28 @@ async function fetchText(url) {
   }
 }
 
-function normalizeBrandQuery(value) {
-  return value.toLowerCase().replace(/[^a-z0-9]/g, "")
+function isBrandedQuery(value) {
+  const tokens = value.toLowerCase().match(/[a-z0-9]+/g) ?? []
+
+  return tokens.some(
+    (token, index) =>
+      token === "instantmed" ||
+      (token === "instant" && tokens[index + 1] === "med"),
+  )
 }
 
 function publicPage(value) {
   try {
     const url = new URL(value)
-    if (!PUBLIC_SITE_HOSTS.has(url.hostname)) return null
+    if (
+      !PUBLIC_SITE_HOSTS.has(url.hostname) ||
+      (url.protocol !== "http:" && url.protocol !== "https:")
+    ) return null
+    const path = url.pathname === "/" ? "/" : url.pathname.replace(/\/+$/, "")
 
     return {
-      path: url.pathname,
-      url: `${SITE_ORIGIN}${url.pathname}`,
+      path,
+      url: `${SITE_ORIGIN}${path}`,
     }
   } catch {
     return null
@@ -168,7 +178,7 @@ async function getBrandedLandingPages(searchconsole, startDate, endDate) {
 
   const pages = new Map()
   for (const row of response.data.rows ?? []) {
-    if (!normalizeBrandQuery(row.keys?.[0] ?? "").includes("instantmed")) continue
+    if (!isBrandedQuery(row.keys?.[0] ?? "")) continue
     const page = publicPagePath(row.keys?.[1] ?? "")
     if (!page) continue
     const current = pages.get(page) ?? { page, clicks: 0, impressions: 0 }
