@@ -125,7 +125,7 @@ const FAQS = [
     answer: `That depends entirely on the provider and whether Medicare applies. GP-based telehealth with an established-relationship patient may be bulk-billed or carry a small gap fee. Private telehealth services like InstantMed charge a flat fee per request - medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and specialised ED or hair-loss assessments from ${PRICING_DISPLAY.CONSULT}. Medical certificates do not require Medicare. ${PRESCRIBING_IDENTITY_REQUIRED}`,
   },
   {
-    question: "Can a telehealth doctor send a prescription to my pharmacy?",
+    question: "What happens if a telehealth prescription is approved?",
     answer: PRESCRIPTION_IF_APPROVED,
   },
   {
@@ -755,8 +755,9 @@ export default function TelehealthAustraliaPage() {
                 Use telehealth the way it&apos;s meant to work
               </Heading>
               <p className="text-muted-foreground mb-8">
-                Fill in a form. {CLINICAL_REVIEW_SEQUENCE} {PRESCRIPTION_IF_APPROVED} Refund if
-                it&apos;s not the right fit.
+                Fill in a form. {CLINICAL_REVIEW_SEQUENCE} If approved, your certificate is
+                emailed or your eScript goes straight to your phone. Refund if it&apos;s not the right
+                fit.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg" className="rounded-full px-8">

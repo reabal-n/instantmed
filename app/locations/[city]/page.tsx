@@ -75,7 +75,7 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
   ],
   melbourne: [
     { q: "Is InstantMed available across all of Melbourne?", a: "Yes - from the CBD to the outer suburbs. We serve all of Greater Melbourne and regional Victoria." },
-    { q: "Can I get an eScript filled at a Melbourne pharmacy?", a: PRESCRIPTION_IF_APPROVED },
+    { q: "What happens if a prescription is approved in Melbourne?", a: PRESCRIPTION_IF_APPROVED },
     { q: "Do I need a Medicare card to use InstantMed in Victoria?", a: `Medical certificates do not require Medicare. ${PRESCRIBING_IDENTITY_REQUIRED} InstantMed is a private service with transparent flat-fee pricing.` },
   ],
   brisbane: [
@@ -86,7 +86,7 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
   perth: [
     { q: "Does InstantMed account for WA time zones?", a: "Yes. Our platform is available 7 days a week and clinical reviews are available across all Australian time zones, including AWST." },
     { q: "Can I use InstantMed in regional WA?", a: "Yes - anywhere in Western Australia with internet access. We serve Perth metro and all regional areas." },
-    { q: "How do eScripts work in Western Australia?", a: PRESCRIPTION_IF_APPROVED },
+    { q: "What happens if a prescription is approved in Western Australia?", a: PRESCRIPTION_IF_APPROVED },
   ],
   adelaide: [
     { q: "Is InstantMed available in South Australia?", a: "Yes - we serve all of Adelaide and regional SA. All you need is an internet connection." },
