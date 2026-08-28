@@ -4,10 +4,14 @@ import { join, resolve } from "node:path"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
 import { buildGoogleAdsReturnSnapshot } from "@/lib/analytics/google-ads-return-summary"
-import { classifyAttributionSource } from "@/lib/analytics/source-classification"
+import {
+  type AttributionClassificationInput,
+  classifyAttributionSource,
+} from "@/lib/analytics/source-classification"
 import {
   assertNoSensitiveBaselineText,
   buildCustomerGrowthBaselineSummary,
+  buildFreeChannelLandingBreakdown,
   type CustomerGrowthGoogleAdsBaseline,
   type CustomerGrowthPostHogBaseline,
   type CustomerGrowthSupabaseBaseline,
@@ -50,16 +54,31 @@ type RefundAggregateRow = {
 
 type RecoveryPaidAttributionRow = {
   amount_cents: number | null
-  campaignid?: string | null
-  gbraid?: string | null
-  gclid?: string | null
-  referrer?: string | null
   refund_amount_cents: number | null
-  utm_campaign?: string | null
-  utm_medium?: string | null
-  utm_source?: string | null
-  wbraid?: string | null
 }
+
+type PaidAttributionRow = RecoveryPaidAttributionRow & AttributionClassificationInput
+
+const PAID_ATTRIBUTION_SELECT = [
+  "amount_cents",
+  "refund_amount_cents",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "referrer",
+  "landing_page",
+  "gclid",
+  "gbraid",
+  "wbraid",
+  "campaignid",
+  "adgroupid",
+  "keyword",
+  "creative",
+  "matchtype",
+  "device",
+  "network",
+].join(", ")
 
 type CountResult = {
   count: number | null
@@ -214,7 +233,7 @@ async function querySupabaseBaseline(
     convertedPartials,
     partialRecoveryRowsSent,
     abandonedCheckoutSent,
-    recoveredPaidRows,
+    paidAttributionRows,
   ] = await Promise.all([
     countQuery(
       "partial_intakes captured",
@@ -261,9 +280,12 @@ async function querySupabaseBaseline(
         .gte("created_at", sinceIso)
         .lte("created_at", nowIso),
     ),
-    queryRecoveredPaidRows(supabase, sinceIso, nowIso),
+    queryPaidAttributionRows(supabase, sinceIso, nowIso),
   ])
 
+  const recoveredPaidRows = paidAttributionRows.filter(
+    (row) => classifyAttributionSource(row).group === "recovery_email",
+  )
   const recoveredGrossCents = recoveredPaidRows.reduce((sum, row) => sum + Number(row.amount_cents ?? 0), 0)
   const recoveredRefundedCents = recoveredPaidRows.reduce((sum, row) => sum + Number(row.refund_amount_cents ?? 0), 0)
   const partialRecoverySent = partialRecoveryRowsSent
@@ -272,6 +294,7 @@ async function querySupabaseBaseline(
     dateFrom: sinceIso,
     dateTo: nowIso,
     days,
+    freeChannelLandingPages: buildFreeChannelLandingBreakdown(paidAttributionRows),
     intakes: {
       averageOrderValueAud:
         revenue.averageOrderCents === null
@@ -307,23 +330,23 @@ async function querySupabaseBaseline(
   }
 }
 
-async function queryRecoveredPaidRows(
+async function queryPaidAttributionRows(
   supabase: SupabaseClient,
   sinceIso: string,
   nowIso: string,
-): Promise<RecoveryPaidAttributionRow[]> {
+): Promise<PaidAttributionRow[]> {
   const { data, error } = await filterReportableIntakes(
     supabase
       .from("intakes")
-      .select("amount_cents, refund_amount_cents, utm_source, utm_medium, utm_campaign, referrer, gclid, gbraid, wbraid, campaignid")
+      .select(PAID_ATTRIBUTION_SELECT)
       .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
       .not("paid_at", "is", null)
       .gte("paid_at", sinceIso)
       .lte("paid_at", nowIso),
   )
-  if (error) throw new Error(`Recovered paid query failed: ${error.message}`)
+  if (error) throw new Error(`Paid attribution query failed: ${error.message}`)
 
-  return ((data ?? []) as RecoveryPaidAttributionRow[]).filter((row) => classifyAttributionSource(row).group === "recovery_email")
+  return (data ?? []) as unknown as PaidAttributionRow[]
 }
 
 async function queryPostHogBaseline(now: Date, days: number): Promise<CustomerGrowthPostHogBaseline> {

@@ -1,3 +1,9 @@
+import {
+  type AttributionClassificationInput,
+  type AttributionSourceGroup,
+  classifyAttributionSource,
+} from "@/lib/analytics/source-classification"
+
 export type CustomerGrowthServiceBaseline = {
   grossRevenueAud: number
   intakes: number
@@ -5,10 +11,17 @@ export type CustomerGrowthServiceBaseline = {
   service: string
 }
 
+export type FreeChannelLandingRow = {
+  group: AttributionSourceGroup
+  landingPage: string
+  orders: number
+}
+
 export type CustomerGrowthSupabaseBaseline = {
   dateFrom: string
   dateTo: string
   days: number
+  freeChannelLandingPages: FreeChannelLandingRow[]
   intakes: {
     averageOrderValueAud: number | null
     byService: CustomerGrowthServiceBaseline[]
@@ -31,6 +44,51 @@ export type CustomerGrowthSupabaseBaseline = {
     recoveredPaidCount: number
     recoveryEmailCoverageRate: number | null
   }
+}
+
+const FREE_ACQUISITION_GROUPS = new Set<AttributionSourceGroup>([
+  "organic_nonbrand",
+  "organic_brand",
+  "ai_referral",
+  "referral",
+])
+
+function publicLandingPath(value?: string | null): string {
+  const landingPage = value?.trim()
+  if (!landingPage) return "/unknown"
+
+  try {
+    const url = new URL(landingPage, "https://instantmed.com.au")
+    if (url.protocol !== "http:" && url.protocol !== "https:") return "/unknown"
+    return url.pathname || "/"
+  } catch {
+    return "/unknown"
+  }
+}
+
+export function buildFreeChannelLandingBreakdown(
+  rows: AttributionClassificationInput[],
+): FreeChannelLandingRow[] {
+  const counts = new Map<string, number>()
+
+  for (const row of rows) {
+    const group = classifyAttributionSource(row).group
+    if (!FREE_ACQUISITION_GROUPS.has(group)) continue
+
+    const landingPage = publicLandingPath(row.landing_page)
+    const key = `${group}\t${landingPage}`
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+
+  return Array.from(counts, ([key, orders]) => {
+    const [group, landingPage] = key.split("\t")
+    return { group: group as AttributionSourceGroup, landingPage, orders }
+  }).sort(
+    (a, b) =>
+      b.orders - a.orders ||
+      a.group.localeCompare(b.group) ||
+      a.landingPage.localeCompare(b.landingPage),
+  )
 }
 
 export type CustomerGrowthPostHogBaseline = {
@@ -139,6 +197,16 @@ export function buildCustomerGrowthBaselineSummary(input: CustomerGrowthBaseline
     `- 30-day gross revenue: ${formatMoney(supabase30d.intakes.grossRevenueAud)}`,
     `- 30-day net revenue: ${formatMoney(supabase30d.intakes.netRevenueAud)}`,
     `- 30-day net AOV: ${formatMoney(supabase30d.intakes.averageOrderValueAud)}`,
+    "",
+    "## Free-Channel Paid-Order Landings",
+    "",
+    "These order counts are acquisition evidence; total net-retained revenue is the economic result.",
+    "",
+    "| Source group | Public pathname | Paid orders |",
+    "| --- | --- | ---: |",
+    ...supabase30d.freeChannelLandingPages.map(
+      (row) => `| ${row.group} | ${row.landingPage} | ${row.orders} |`,
+    ),
     "",
     "## Recovery",
     "",

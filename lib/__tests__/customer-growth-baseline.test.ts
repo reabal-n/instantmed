@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   assertNoSensitiveBaselineText,
   buildCustomerGrowthBaselineSummary,
+  buildFreeChannelLandingBreakdown,
 } from "@/lib/data/customer-growth-baseline"
 
 describe("customer growth baseline", () => {
@@ -37,6 +38,11 @@ describe("customer growth baseline", () => {
         dateFrom: "2026-05-07T00:00:00.000Z",
         dateTo: "2026-06-06T00:00:00.000Z",
         days: 30,
+        freeChannelLandingPages: [
+          { group: "ai_referral", landingPage: "/medical-certificate-online", orders: 2 },
+          { group: "organic_nonbrand", landingPage: "/medical-certificate", orders: 1 },
+          { group: "referral", landingPage: "/employers", orders: 1 },
+        ],
         intakes: {
           averageOrderValueAud: 29.34,
           byService: [
@@ -72,8 +78,33 @@ describe("customer growth baseline", () => {
     expect(summary).toContain("30-day paid intakes: 33")
     expect(summary).toContain("30-day net AOV: $29.34")
     expect(summary).toContain("30-day Google Ads local CAC: $72.33")
+    expect(summary).toContain("order counts are acquisition evidence")
+    expect(summary).toContain("total net-retained revenue is the economic result")
+    expect(summary).toContain("| ai_referral | /medical-certificate-online | 2 |")
+    expect(summary).toContain("| organic_nonbrand | /medical-certificate | 1 |")
+    expect(summary).toContain("| referral | /employers | 1 |")
     expect(summary).toContain("Phase 1 gate: blocked")
     expect(summary).toContain("partial-intake converted marker is zero")
+  })
+
+  it("groups free-channel paid orders by canonical source and public pathname", () => {
+    const rows = buildFreeChannelLandingBreakdown([
+      { referrer: "https://chatgpt.com/", landing_page: "/medical-certificate-online?utm_source=chatgpt.com#top" },
+      { referrer: "https://chatgpt.com/", landing_page: "https://instantmed.com.au/medical-certificate-online?source=chatgpt" },
+      { referrer: "https://www.google.com/", landing_page: "/medical-certificate?query=medical" },
+      { utm_campaign: "brand", utm_medium: "organic", landing_page: "/?campaign=brand" },
+      { utm_medium: "referral", utm_source: "hrm", landing_page: "https://partner.example/employers?campaign=employer_verification" },
+      { gclid: "diagnostic-click-id", landing_page: "/prescriptions" },
+      { utm_medium: "referral", landing_page: "http://[" },
+    ])
+
+    expect(rows).toEqual([
+      { group: "ai_referral", landingPage: "/medical-certificate-online", orders: 2 },
+      { group: "organic_brand", landingPage: "/", orders: 1 },
+      { group: "organic_nonbrand", landingPage: "/medical-certificate", orders: 1 },
+      { group: "referral", landingPage: "/employers", orders: 1 },
+      { group: "referral", landingPage: "/unknown", orders: 1 },
+    ])
   })
 
   it("rejects sensitive identifiers before baseline artifacts are written", () => {
