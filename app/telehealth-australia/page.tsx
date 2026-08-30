@@ -32,7 +32,10 @@ import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
+const AVAILABILITY = getApprovedClaim("availability_24_7")
 const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
+const PRESCRIPTION_IF_APPROVED = getApprovedClaim("prescription_if_approved")
 
 // ============================================================================
 // METADATA - head-term pillar for "telehealth australia" and related
@@ -115,16 +118,15 @@ const FAQS = [
   {
     question: "Is telehealth as good as seeing a doctor in person?",
     answer:
-      "For conditions where the clinical decision can be made from history alone - short-term sick leave, repeat scripts, many UTIs, mental health check-ins, contraception - research shows telehealth outcomes are comparable to in-person care when delivered by properly trained clinicians. For anything requiring a physical examination (abdominal palpation, cardiac auscultation, ear, nose and throat exam, rashes that won't photograph well) telehealth is a poor substitute and we'll either decline or refer you to an in-person GP.",
+      "Telehealth suitability depends on what the request needs. Urgent symptoms, a required physical examination, or ongoing complex care need an in-person service. A remote request may fit when the relevant history and safe follow-up can be handled without an examination.",
   },
   {
     question: "What does a telehealth consultation actually cost in Australia?",
     answer: `That depends entirely on the provider and whether Medicare applies. GP-based telehealth with an established-relationship patient may be bulk-billed or carry a small gap fee. Private telehealth services like InstantMed charge a flat fee per request - medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and specialised ED or hair-loss assessments from ${PRICING_DISPLAY.CONSULT}. Medical certificates do not require Medicare. ${PRESCRIBING_IDENTITY_REQUIRED}`,
   },
   {
-    question: "Can a telehealth doctor send a prescription to my pharmacy?",
-    answer:
-      "Yes. Australian telehealth doctors issue eScripts under the federal Electronic Prescriptions framework. You receive an SMS with a QR code token, which any Australian pharmacy can scan to dispense the medication. eScripts are not a separate or lesser category of prescription - they are the same legal document as a paper script, valid across every PBS-participating pharmacy in the country, including Chemist Warehouse, Priceline, TerryWhite, and independent community pharmacies.",
+    question: "What happens if a telehealth prescription is approved?",
+    answer: PRESCRIPTION_IF_APPROVED,
   },
   {
     question: "What telehealth regulations have changed recently in Australia?",
@@ -138,8 +140,8 @@ const FAQS = [
   },
   {
     question: "Is my information safe in a telehealth consultation?",
-    answer:
-      "Australian telehealth services are bound by the Privacy Act 1988, the Australian Privacy Principles, and state-based health records legislation (Health Records and Information Privacy Act 2002 in NSW, Health Records Act 2001 in Victoria, and equivalents elsewhere). InstantMed encrypts all Protected Health Information at rest and in transit, enforces row-level security on every database query, and limits access to the treating doctor. Your health information is not shared with employers, insurers, or any third party without explicit consent.",
+    answer: CLINICAL_ACCESS_SCOPE,
+    privacyHref: "/privacy",
   },
 ]
 
@@ -150,7 +152,7 @@ const medicalBusinessSchema = {
   "@id": `${CANONICAL}#business`,
   name: "InstantMed - Telehealth Australia",
   description:
-    "Private telehealth service operating across Australia, delivering medical certificates, prescriptions, and consultations through AHPRA-registered doctors under documented clinical governance.",
+    `Private telehealth service operating across Australia, providing medical-certificate requests, repeat prescription reviews, and specialty assessment pathways. ${CLINICAL_REVIEW_SEQUENCE}`,
   url: CANONICAL,
   logo: "https://instantmed.com.au/branding/logo.png",
   image: "https://instantmed.com.au/branding/logo.png",
@@ -174,12 +176,9 @@ const medicalBusinessSchema = {
       dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
       opens: "00:00",
       closes: "23:59",
-      description:
-        "Requests accepted and reviewed 24/7, every day of the year.",
+      description: AVAILABILITY,
     },
   ],
-  medicalSpecialty: "General Practice",
-  isAcceptingNewPatients: true,
 }
 
 // ============================================================================
@@ -248,7 +247,7 @@ export default function TelehealthAustraliaPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-primary" />
-                  Doctor review before certificate issue
+                  Clinical assessment before issue
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Shield className="w-4 h-4 text-primary" />
@@ -325,14 +324,10 @@ export default function TelehealthAustraliaPage() {
                   rapport, while async avoids appointment scheduling for straightforward requests.
                 </p>
                 <p>
-                  Telehealth is not, despite a common misconception, a second-rate version of GP
-                  care. For many conditions it&apos;s empirically equivalent, and for some things
-                  (access from regional Australia, out-of-hours needs, mobility-limited patients)
-                  it&apos;s actually superior. What it cannot do is physically examine you. Any
-                  presentation where the diagnosis depends on palpating an abdomen, auscultating a
-                  heart, examining an ear canal, or assessing a gait is a poor fit for telehealth,
-                  and any responsible service will decline those requests rather than pretend the
-                  exam can be skipped.
+                  Telehealth suitability depends on what the request needs. Urgent symptoms, a
+                  required physical examination, or ongoing complex care need an in-person service.
+                  A remote request may fit when the relevant history and safe follow-up can be
+                  handled without an examination.
                 </p>
               </div>
             </div>
@@ -445,14 +440,12 @@ export default function TelehealthAustraliaPage() {
                     <h3 className="font-semibold text-foreground">Suitable for telehealth</h3>
                   </div>
                   <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li>• Acute short-term illnesses needing a medical certificate</li>
-                    <li>• Ongoing medications you&apos;re stable on (BP, thyroid, pill, PPIs)</li>
-                    <li>• Uncomplicated UTIs in non-pregnant women</li>
-                    <li>• Most contraception requests and counselling</li>
-                    <li>• Mental health check-ins and continuing care</li>
-                    <li>• Hair loss, skin concerns with photos, acne management</li>
-                    <li>• Sexual health screening requests and referrals</li>
-                    <li>• Travel-related script needs for returning travellers</li>
+                    <li>• Medical-certificate requests when telehealth is clinically suitable</li>
+                    <li>• Repeat-prescription review for a regular medicine you already take, if clinically appropriate</li>
+                    <li>• ED assessment where a doctor considers telehealth suitable</li>
+                    <li>• Hair-loss assessment where a doctor considers telehealth suitable</li>
+                    <li>• Women&apos;s health assessment for UTI or a new or switch contraceptive pill, where clinically appropriate</li>
+                    <li>• Weight-management assessment where a doctor considers telehealth suitable</li>
                   </ul>
                 </div>
                 <div className="bg-white dark:bg-card border border-destructive/30 rounded-2xl p-6 shadow-md shadow-primary/[0.06] dark:shadow-none">
@@ -509,11 +502,12 @@ export default function TelehealthAustraliaPage() {
                 <p>
                   Telehealth isn&apos;t a replacement for having a regular GP. If you have a complex
                   chronic condition, you should still have a GP who knows your full history and can
-                  coordinate specialist care. But for the high-volume, straightforward needs that
-                  make up the majority of Australian primary care visits - med certs, repeat
-                  scripts, uncomplicated acute issues - a private telehealth service like InstantMed
-                  can offer a structured option without appointment scheduling. It sits alongside
-                  your regular GP relationship, not on top of it.
+                  coordinate specialist care. InstantMed is limited to structured pathways: medical
+                  certificate requests, repeat prescription review for a regular medicine you already
+                  take, and focused ED, hair-loss, women&apos;s-health (UTI or a new or switch
+                  contraceptive pill), and weight-management assessments. Whether telehealth is
+                  suitable depends on the request. {CLINICAL_REVIEW_SEQUENCE} It sits alongside your
+                  regular GP relationship, not on top of it.
                 </p>
               </div>
             </div>
@@ -648,7 +642,7 @@ export default function TelehealthAustraliaPage() {
                     Telehealth prescriptions
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    eScripts sent to your phone, valid at any pharmacy
+                    {PRESCRIPTION_IF_APPROVED}
                   </div>
                 </Link>
                 <Link
@@ -657,10 +651,11 @@ export default function TelehealthAustraliaPage() {
                 >
                   <Stethoscope className="w-5 h-5 text-primary mb-2" />
                   <div className="font-medium text-foreground group-hover:text-primary transition-colors">
-                    Telehealth consultations
+                    Specialty assessments
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Discuss a symptom or get a treatment plan
+                    Doctor-reviewed pathways for ED, hair loss, women&apos;s health, and weight
+                    management
                   </div>
                 </Link>
                 <Link
@@ -669,10 +664,10 @@ export default function TelehealthAustraliaPage() {
                 >
                   <BookOpen className="w-5 h-5 text-primary mb-2" />
                   <div className="font-medium text-foreground group-hover:text-primary transition-colors">
-                    Conditions we treat
+                    Health information
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Full list of conditions suited to telehealth
+                    Condition guides and care boundaries
                   </div>
                 </Link>
               </div>
@@ -688,7 +683,7 @@ export default function TelehealthAustraliaPage() {
                 </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Each state page has local context on access pressure, Medicare rules, and
-                  accepted documentation by universities and employers.
+                  employer and institution policy boundaries.
                 </p>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -732,7 +727,20 @@ export default function TelehealthAustraliaPage() {
                     className="bg-white dark:bg-card border border-border/50 dark:border-white/10 rounded-2xl p-6 shadow-md shadow-primary/[0.06] dark:shadow-none"
                   >
                     <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {faq.answer}
+                      {faq.privacyHref ? (
+                        <>
+                          {" "}
+                          <Link
+                            href={faq.privacyHref}
+                            className="font-medium text-primary underline-offset-4 hover:underline"
+                          >
+                            Read our privacy policy.
+                          </Link>
+                        </>
+                      ) : null}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -746,8 +754,8 @@ export default function TelehealthAustraliaPage() {
                 Use telehealth the way it&apos;s meant to work
               </Heading>
               <p className="text-muted-foreground mb-8">
-                Fill in a form. {CLINICAL_REVIEW_SEQUENCE} A certificate or eScript
-                arrives digitally if approved. Refund if it&apos;s not the right fit.
+                Fill in a form. {CLINICAL_REVIEW_SEQUENCE} If approved, your certificate is
+                emailed or your eScript goes straight to your phone. {GUARANTEE}
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg" className="rounded-full px-8">

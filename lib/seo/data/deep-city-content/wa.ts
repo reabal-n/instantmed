@@ -4,8 +4,13 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 import type { DeepCityContent } from "../deep-city-content"
+
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
+const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
+const AVAILABILITY = getApprovedClaim("availability_24_7")
 
 export const WA_CITIES: Record<string, DeepCityContent> = {
   perth: {
@@ -27,9 +32,9 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Medical Certificates for WA Workers",
         paragraphs: [
-          "Western Australian workers have the same Fair Work Act entitlements as employees in other states. However, WA also retains its own state industrial relations system for some employees (those covered by the WA Industrial Relations Act). Under both systems, medical certificates from AHPRA-registered doctors are evidence for leave purposes.",
+          `Western Australian workers may be covered by the Fair Work Act or the WA Industrial Relations Act, depending on their employer. Leave-evidence requirements can vary, so check the current employer policy for your request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
           "WA's mining and resources sector has its own expectations around medical documentation. Many mining companies require evidence for any absence, even single days. InstantMed certificates are for routine short sick leave and include standard document details employers can review; site medicals, return-to-work clearances, and fitness-for-duty decisions need the employer's own pathway.",
-          "Perth's time zone (AWST, UTC+8) means WA is 2–3 hours behind the eastern states. InstantMed operates 24/7, so the time difference never limits access - submit at any hour of the Perth day or night. If you submit a request during WA business hours, you'll typically have your certificate well before the next working day.",
+          `Perth's time zone (AWST, UTC+8) means WA is 2–3 hours behind the eastern states. ${AVAILABILITY}`,
         ],
       },
       {
@@ -52,7 +57,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Western Australia's telehealth framework follows national AHPRA and Medical Board of Australia guidelines. The WA Department of Health has been a proponent of telehealth expansion, recognising the state's unique geographic challenges. WA Health's digital health strategy includes telehealth as a critical component for both metropolitan and regional healthcare delivery.",
         "Prescribing via telehealth in WA follows national TGA regulations. All PBS-listed medications available via telehealth in other states are equally available in WA. The eScript system is fully operational across Western Australian pharmacies. Schedule 8 medications (controlled substances) require WA Department of Health authority and typically an in-person assessment.",
-        "WA's state-based industrial relations system, which covers some WA workers not under the federal Fair Work system, also recognises medical certificates from AHPRA-registered practitioners. Whether you're covered by the Fair Work Act or the WA Industrial Relations Act, telehealth-issued certificates can be used as evidence.",
+        `WA's state-based industrial relations system covers some workers who are not under the federal Fair Work system. Whether you are covered by the Fair Work Act or the WA Industrial Relations Act, check the current employer policy for leave evidence. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
       ],
     },
     additionalFaqs: [
@@ -60,7 +65,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       { q: "Can FIFO workers use InstantMed from site?", a: "Yes, as long as you have internet access. Many mine sites and remote camps have wifi or mobile coverage. If you need a medical certificate while on site, you can submit your request and receive the certificate via email. Employer policies may vary, including at mining companies." },
       { q: "Are Perth GPs really that expensive?", a: "Perth has some of the lowest bulk-billing rates in Australia. Many GPs charge gap fees of $50–$100 per standard consultation. For a straightforward medical certificate, InstantMed offers a more affordable flat-fee alternative without compromising on clinical quality." },
       { q: "Can I use InstantMed in regional WA?", a: "Yes. InstantMed works anywhere in Western Australia with an internet connection - Perth, Geraldton, Kalgoorlie, Karratha, Broome, or anywhere in between. The service and pricing are the same regardless of your location." },
-      { q: "Do WA mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies operating in Australia set their own policies for medical certificates from AHPRA-registered doctors. The method of consultation (in-person vs telehealth) doesn't affect the certificate's validity. Our certificates include standard document details for workplace absence documentation." },
+      { q: "Do WA mining companies assess telehealth certificates under their own policies?", a: `Mining companies operating in WA set their own policies for medical certificates and leave evidence. Check the current employer policy for your request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
     ],
   },
   bunbury: {

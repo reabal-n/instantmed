@@ -1,7 +1,7 @@
 /**
  * Commercial Intent Pages
  *
- * This is the curated top-25 organic acquisition set. These are not blog posts
+ * This is the curated commercial organic acquisition set. These are not blog posts
  * or average guides: each page has a first-screen answer, price, compliant CTA,
  * local visual, source references, and internal links.
  */
@@ -17,7 +17,6 @@ const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 export type CommercialIntentCluster =
   | "medical-certificate"
   | "repeat-prescription"
-  | "location"
   | "comparison"
 
 export interface CommercialIntentSource {
@@ -230,17 +229,6 @@ function medCertPage(input: Omit<IntentInput, "cluster" | "price" | "sources" | 
   return page({
     ...input,
     cluster: "medical-certificate",
-    price: PRICING_DISPLAY.FROM_MED_CERT,
-    sources: medCertSources,
-    primaryCTA: "Start certificate request",
-    ctaUrl: "/request?service=med-cert",
-  })
-}
-
-function cityMedCertPage(input: Omit<IntentInput, "cluster" | "price" | "sources" | "primaryCTA" | "ctaUrl">): IntentPage {
-  return page({
-    ...input,
-    cluster: "location",
     price: PRICING_DISPLAY.FROM_MED_CERT,
     sources: medCertSources,
     primaryCTA: "Start certificate request",
@@ -750,176 +738,8 @@ export const intentPages: IntentPage[] = [
       { question: "Can this clear me for safety-sensitive work?", answer: "No. Fitness-for-duty clearance is a separate, higher-stakes assessment." },
     ],
   }),
-  cityMedCertPage({
-    priority: 11,
-    slug: "medical-certificate-online-sydney",
-    title: "Medical Certificate Online Sydney | InstantMed",
-    description: `Sydney medical certificate request online from ${PRICING_DISPLAY.MED_CERT}. Bounded clinical pathway, Australia only.`,
-    h1: "Medical certificate online in Sydney",
-    answer: "Sydney patients can request an online medical certificate for short illness or carer leave without travelling to a clinic, if telehealth review is suitable.",
-    intro: "Useful for inner-city, suburban, and shift-work patients who need short evidence and do not need urgent in-person care.",
-    searchQuery: "medical certificate online sydney",
-    alternateQueries: ["sydney online medical certificate", "sick certificate online sydney", "doctor certificate online sydney"],
-    userNeed: "Request a certificate in Sydney without clinic travel",
-    urgency: "same-day",
-    serviceType: "medical-certificate",
-    keywords: ["medical certificate online sydney", "sick certificate online sydney", "doctor certificate sydney"],
-    visual: VISUALS.medCertAlt,
-    internalLinks: medCertLinks,
-    related: medCertRelated,
-    blocks: [
-      { id: "local-fit", title: "Sydney fit", type: "text", content: "Telehealth is useful when a minor illness makes commuting, waiting rooms, or same-day clinic slots unrealistic." },
-      { id: "areas", title: "Who uses it", type: "list", content: ["CBD and inner suburbs.", "Western Sydney and commuter corridors.", "Students, shift workers, and carers."] },
-      { id: "not-emergency", title: "Urgent care", type: "callout", content: "Use urgent local care or 000 for severe symptoms. InstantMed is for non-emergency requests." },
-    ],
-    faqs: [
-      { question: "Can I use this from anywhere in Sydney?", answer: "Yes, if you are physically in Australia and meet the service criteria." },
-      { question: "Do I need Medicare for a certificate?", answer: "Medicare is optional for medical certificates." },
-      { question: "Can I request after work?", answer: "Yes. You can start the request online at any time." },
-    ],
-  }),
-  cityMedCertPage({
-    priority: 12,
-    slug: "medical-certificate-online-melbourne",
-    title: "Medical Certificate Online Melbourne | InstantMed",
-    description: `Melbourne medical certificate request online from ${PRICING_DISPLAY.MED_CERT}. Clinically assessed short-absence evidence.`,
-    h1: "Medical certificate online in Melbourne",
-    answer: "Melbourne patients can request a short online medical certificate when a clinic visit is unnecessary or impractical for a minor illness.",
-    intro: "The pathway is designed for short absences, clear pricing, and doctor review before certificate issue.",
-    searchQuery: "medical certificate online melbourne",
-    alternateQueries: ["melbourne online medical certificate", "sick certificate online melbourne", "doctor certificate online melbourne"],
-    userNeed: "Request a Melbourne certificate without a waiting room",
-    urgency: "same-day",
-    serviceType: "medical-certificate",
-    keywords: ["medical certificate online melbourne", "sick certificate online melbourne", "doctor certificate melbourne"],
-    visual: VISUALS.medCert,
-    internalLinks: medCertLinks,
-    related: medCertRelated,
-    blocks: [
-      { id: "local-fit", title: "Melbourne fit", type: "text", content: "Telehealth can be practical when illness, weather, transport, or roster timing makes a clinic visit harder than it needs to be." },
-      { id: "doctor-review", title: "Review scope", type: "list", content: ["Short illness or carer leave.", "One to three day certificate requests.", "Online review where symptoms are not urgent."] },
-      { id: "policy", title: "Policy check", type: "callout", content: "Your workplace or institution may have its own evidence rules, so check them before relying on any certificate." },
-    ],
-    faqs: [
-      { question: "Is this Melbourne-only?", answer: "No. InstantMed is Australia-wide; this page is for Melbourne search intent." },
-      { question: "Can I use it for a public holiday shift?", answer: "You can request the relevant date. The same clinical pathway applies." },
-      { question: "How is it delivered?", answer: "If approved, the certificate is delivered as a secure PDF." },
-    ],
-  }),
-  cityMedCertPage({
-    priority: 13,
-    slug: "medical-certificate-online-brisbane",
-    title: "Medical Certificate Online Brisbane | InstantMed",
-    description: `Request a Brisbane medical certificate online from ${PRICING_DISPLAY.MED_CERT}. Bounded clinical pathway before issue.`,
-    h1: "Medical certificate online in Brisbane",
-    answer: "Brisbane patients can request an online medical certificate for suitable short absences, with a bounded clinical pathway and clear pricing before payment.",
-    intro: "Use this when your symptoms are non-urgent and you need evidence without arranging a same-day clinic visit.",
-    searchQuery: "medical certificate online brisbane",
-    alternateQueries: ["brisbane online medical certificate", "sick certificate online brisbane", "doctor certificate online brisbane"],
-    userNeed: "Request a Brisbane certificate online",
-    urgency: "same-day",
-    serviceType: "medical-certificate",
-    keywords: ["medical certificate online brisbane", "sick certificate online brisbane", "doctor certificate brisbane"],
-    visual: VISUALS.medCertAlt,
-    internalLinks: medCertLinks,
-    related: medCertRelated,
-    blocks: [
-      { id: "local-fit", title: "Brisbane fit", type: "text", content: "Online certificate review is best suited to clear short absences where you do not need a physical examination." },
-      { id: "steps", title: "Steps", type: "list", content: ["Choose certificate duration.", "Complete symptom and date questions.", "Receive a secure PDF if the doctor approves."] },
-      { id: "boundary", title: "Boundary", type: "callout", content: "Severe heat illness, breathing problems, chest pain, or rapid deterioration needs urgent care." },
-    ],
-    faqs: [
-      { question: "Can I start on a weekend?", answer: "Yes. Certificate requests can be started online 24/7." },
-      { question: "Is the price different in Brisbane?", answer: "No. Pricing is national." },
-      { question: "Can this replace a GP visit?", answer: "Only for suitable non-urgent certificate requests. The doctor may redirect you to in-person care." },
-    ],
-  }),
-  cityMedCertPage({
-    priority: 14,
-    slug: "medical-certificate-online-perth",
-    title: "Medical Certificate Online Perth | InstantMed",
-    description: `Request a Perth medical certificate online from ${PRICING_DISPLAY.MED_CERT}. Clinically assessed, secure PDF if approved.`,
-    h1: "Medical certificate online in Perth",
-    answer: "Perth patients can request a medical certificate online for short illness or carer leave through a doctor-owned bounded clinical pathway.",
-    intro: "A practical option for non-urgent short absences where local appointment timing or travel is the main friction.",
-    searchQuery: "medical certificate online perth",
-    alternateQueries: ["perth online medical certificate", "sick certificate online perth", "doctor certificate online perth"],
-    userNeed: "Request a Perth certificate online",
-    urgency: "same-day",
-    serviceType: "medical-certificate",
-    keywords: ["medical certificate online perth", "sick certificate online perth", "doctor certificate perth"],
-    visual: VISUALS.medCert,
-    internalLinks: medCertLinks,
-    related: medCertRelated,
-    blocks: [
-      { id: "timezone", title: "WA timing", type: "text", content: "Requests can be started any time. Review timing is shown as service information, not as an automatic outcome promise." },
-      { id: "best-fit", title: "Best fit", type: "list", content: ["Short illness.", "Carer leave.", "Minor symptoms where in-person care is not needed."] },
-      { id: "limits", title: "Limits", type: "callout", content: "InstantMed does not issue high-stakes certificates through this short online pathway." },
-    ],
-    faqs: [
-      { question: "Can I use this in Western Australia?", answer: "Yes, if you are in Australia and meet the service requirements." },
-      { question: "Can I request a three day certificate?", answer: `Yes. Three day requests are ${PRICING_DISPLAY.MED_CERT_3DAY} and use the same bounded clinical pathway.` },
-      { question: "Can I add notes about my roster?", answer: "Yes. Add relevant roster or workplace context in the request." },
-    ],
-  }),
-  cityMedCertPage({
-    priority: 15,
-    slug: "medical-certificate-online-adelaide",
-    title: "Medical Certificate Online Adelaide | InstantMed",
-    description: `Request an Adelaide medical certificate online from ${PRICING_DISPLAY.MED_CERT}. Clinically assessed short-absence evidence.`,
-    h1: "Medical certificate online in Adelaide",
-    answer: "Adelaide patients can request a short online medical certificate for suitable illness or carer leave through the bounded clinical pathway.",
-    intro: "The service keeps the request focused: symptoms, dates, price, review, and secure delivery if approved.",
-    searchQuery: "medical certificate online adelaide",
-    alternateQueries: ["adelaide online medical certificate", "sick certificate online adelaide", "doctor certificate online adelaide"],
-    userNeed: "Request an Adelaide certificate online",
-    urgency: "same-day",
-    serviceType: "medical-certificate",
-    keywords: ["medical certificate online adelaide", "sick certificate online adelaide", "doctor certificate adelaide"],
-    visual: VISUALS.medCertAlt,
-    internalLinks: medCertLinks,
-    related: medCertRelated,
-    blocks: [
-      { id: "simple-path", title: "Simple path", type: "text", content: "The online form captures the key details a doctor needs for a short certificate decision." },
-      { id: "common-reasons", title: "Common reasons", type: "list", content: ["Respiratory illness.", "Gastro symptoms.", "Migraine, stress, injury, or carer responsibilities."] },
-      { id: "in-person", title: "In-person care", type: "callout", content: "If the doctor cannot safely assess the request online, they may recommend a GP, urgent care, or emergency pathway." },
-    ],
-    faqs: [
-      { question: "Is this available after hours?", answer: "You can submit after hours. Doctor review follows the service operating model." },
-      { question: "Can it be used for study?", answer: "It can support short study absence evidence, subject to your institution's process." },
-      { question: "Is payment secure?", answer: "Yes. Checkout uses Stripe and shows the amount before payment." },
-    ],
-  }),
-  cityMedCertPage({
-    priority: 16,
-    slug: "medical-certificate-online-gold-coast",
-    title: "Medical Certificate Online Gold Coast | InstantMed",
-    description: `Gold Coast medical certificate requests online from ${PRICING_DISPLAY.MED_CERT}. Bounded clinical pathway before issue.`,
-    h1: "Medical certificate online on the Gold Coast",
-    answer: "Gold Coast patients can request a short medical certificate online when symptoms are non-urgent and telehealth review is clinically suitable.",
-    intro: "A focused pathway for tourism, hospitality, healthcare, retail, and office workers who need evidence without a waiting room.",
-    searchQuery: "medical certificate online gold coast",
-    alternateQueries: ["gold coast online medical certificate", "sick certificate online gold coast", "doctor certificate online gold coast"],
-    userNeed: "Request a Gold Coast certificate online",
-    urgency: "same-day",
-    serviceType: "medical-certificate",
-    keywords: ["medical certificate online gold coast", "sick certificate online gold coast", "doctor certificate gold coast"],
-    visual: VISUALS.medCert,
-    internalLinks: medCertLinks,
-    related: medCertRelated,
-    blocks: [
-      { id: "local-fit", title: "Local fit", type: "text", content: "Telehealth can reduce friction for short, clear absences across shift-heavy local industries." },
-      { id: "certificate-options", title: "Options", type: "list", content: ["One day certificate request.", "Two day certificate request.", "Three day certificate request."] },
-      { id: "urgent", title: "Urgent symptoms", type: "callout", content: "Use urgent local care for severe symptoms, serious injury, or rapid deterioration." },
-    ],
-    faqs: [
-      { question: "Is the Gold Coast covered?", answer: "Yes. InstantMed is available to eligible patients in Australia." },
-      { question: "Can I request for a weekend shift?", answer: "Yes. Provide the affected date and relevant shift context." },
-      { question: "What happens after approval?", answer: "If approved, the certificate is delivered securely as a PDF." },
-    ],
-  }),
   repeatScriptPage({
-    priority: 17,
+    priority: 11,
     slug: "repeat-prescription-online",
     title: "Repeat Prescription Online Australia | InstantMed",
     description: `Request a repeat prescription online from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Doctor reviewed, service-level prescription pathway, no drug-led advertising.`,
@@ -966,7 +786,7 @@ export const intentPages: IntentPage[] = [
     ],
   }),
   repeatScriptPage({
-    priority: 18,
+    priority: 12,
     slug: "after-hours-repeat-prescription",
     title: "After-Hours Repeat Prescription Online | InstantMed",
     description: `Running low after hours? Request a repeat prescription online from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Doctor reviewed before any eScript.`,
@@ -994,7 +814,7 @@ export const intentPages: IntentPage[] = [
     ],
   }),
   repeatScriptPage({
-    priority: 19,
+    priority: 13,
     slug: "weekend-repeat-prescription",
     title: "Weekend Repeat Prescription Online | InstantMed",
     description: `Need a repeat script on the weekend? Submit online from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Doctor reviewed before approval.`,
@@ -1022,7 +842,7 @@ export const intentPages: IntentPage[] = [
     ],
   }),
   repeatScriptPage({
-    priority: 20,
+    priority: 14,
     slug: "urgent-repeat-prescription-online",
     title: "Urgent Repeat Prescription Online | InstantMed",
     description: `Request an urgent repeat prescription review online from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Existing regular medicines only, doctor reviewed.`,
@@ -1050,7 +870,7 @@ export const intentPages: IntentPage[] = [
     ],
   }),
   comparisonPage({
-    priority: 21,
+    priority: 15,
     slug: "online-doctor-certificate-australia",
     title: "Online Doctor Certificate Australia | InstantMed",
     description: `Compare online certificate options in Australia. InstantMed starts at ${PRICING_DISPLAY.MED_CERT} with a bounded clinical pathway before issue.`,
@@ -1081,7 +901,7 @@ export const intentPages: IntentPage[] = [
     ],
   }),
   comparisonPage({
-    priority: 22,
+    priority: 16,
     slug: "telehealth-medical-certificate-vs-gp",
     title: "Telehealth Medical Certificate vs GP Visit | InstantMed",
     description: `Telehealth medical certificate or GP visit? Compare fit, cost, and safety. InstantMed starts at ${PRICING_DISPLAY.MED_CERT}.`,
@@ -1112,7 +932,7 @@ export const intentPages: IntentPage[] = [
     ],
   }),
   comparisonPage({
-    priority: 23,
+    priority: 17,
     slug: "online-medical-certificate-comparison",
     title: "Online Medical Certificate Comparison | InstantMed",
     description: `Compare online medical certificate services by price, doctor review, privacy, and evidence quality. InstantMed starts at ${PRICING_DISPLAY.MED_CERT}.`,
@@ -1143,7 +963,7 @@ export const intentPages: IntentPage[] = [
     ],
   }),
   comparisonPage({
-    priority: 24,
+    priority: 18,
     slug: "instant-scripts-alternative-medical-certificate",
     title: "Instant Scripts Alternative for Medical Certificates | InstantMed",
     description: `Looking for an Instant Scripts alternative for medical certificates? Compare service fit, price, and doctor review. InstantMed starts at ${PRICING_DISPLAY.MED_CERT}.`,
@@ -1178,7 +998,7 @@ export const intentPages: IntentPage[] = [
     ],
   }),
   comparisonPage({
-    priority: 25,
+    priority: 19,
     slug: "bulk-billed-telehealth-vs-instantmed",
     title: "Bulk-Billed Telehealth vs InstantMed | Clear Price Comparison",
     description: `Compare bulk-billed telehealth and InstantMed private online requests. Certificates start at ${PRICING_DISPLAY.MED_CERT}; repeat requests start at ${PRICING_DISPLAY.REPEAT_SCRIPT}.`,

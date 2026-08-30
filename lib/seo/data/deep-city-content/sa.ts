@@ -4,8 +4,13 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 import type { DeepCityContent } from "../deep-city-content"
+
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
+const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
 
 export const SA_CITIES: Record<string, DeepCityContent> = {
   adelaide: {
@@ -29,7 +34,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Adelaide's economy is diverse, with significant defence, manufacturing, healthcare, and wine industry employment. Many of these sectors involve shift work, irregular hours, or physical labour - all situations where getting to a GP clinic during business hours is impractical. A medical certificate from InstantMed means you can get the documentation you need without restructuring your day.",
           "University of Adelaide, UniSA, and Flinders University collectively serve over 80,000 students. Campus health services exist but are often oversubscribed, particularly during exam periods. Telehealth-issued medical certificates can support academic documentation requests, subject to each institution's policy. The process is faster and often more affordable than a campus clinic visit.",
-          "For South Australian public sector employees (SAPS), medical certificates from AHPRA-registered doctors are accepted under all current enterprise agreements. The same applies to local government employees and workers covered by the Fair Work Act. The method of consultation - in-person or telehealth - does not affect the certificate's validity.",
+          `South Australian public-sector and local-government employees should check their current leave-evidence policy. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
         ],
       },
       {
@@ -56,11 +61,11 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Is a telehealth certificate suitable for SA government employer documentation?", a: "Yes. South Australian government departments and agencies set their own policies for medical certificates from AHPRA-registered doctors, including those issued via telehealth. The Fair Work Act and SA public sector enterprise agreements both recognise telehealth-issued certificates." },
+      { q: "How should I check SA government employer documentation requirements?", a: `South Australian government departments and agencies set their own medical-documentation policies. Check the current policy for your request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "Can I use InstantMed in regional SA?", a: "Yes. InstantMed works anywhere in South Australia with internet access - Adelaide, Mount Gambier, Port Augusta, Port Lincoln, the Riverland, or anywhere in between. The service and pricing are identical regardless of location." },
       { q: "Is InstantMed cheaper than a GP in Adelaide?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Adelaide's declining bulk-billing rates, many GPs now charge gap fees of $40–$80. For a straightforward medical certificate, InstantMed is often the more affordable option - with no hidden costs.` },
-      { q: "Can Adelaide Uni or Flinders students use InstantMed?", a: "Yes. South Australian universities set their own policies for medical certificates from AHPRA-registered doctors for academic support, coursework documentation, and missed assessment documentation. The consultation method doesn't affect validity." },
-      { q: "What if I need to see a doctor in person?", a: "If your symptoms or situation require a physical examination, our doctor will let you know and recommend an in-person GP visit. You won't be charged. We never issue a certificate if the clinical situation isn't appropriate for telehealth." },
+      { q: "How should Adelaide Uni or Flinders students check medical-documentation requirements?", a: "South Australian universities set their own policies for medical certificates, academic support, coursework documentation, and missed assessments. Check the current process at your institution before submitting a request." },
+      { q: "What if I need to see a doctor in person?", a: `If your symptoms or situation require a physical examination, the doctor will recommend an in-person GP visit instead. ${REFUND_PAYMENT_PROCESS}` },
     ],
   },
   "mount-gambier": {

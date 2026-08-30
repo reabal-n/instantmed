@@ -4,8 +4,31 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { BRANDED_SEARCH_LINKS } from "@/lib/seo/branded-search-links"
+import { getAllIntentSlugs } from "@/lib/seo/intents"
 
 const root = process.cwd()
+
+const EXPECTED_INTENT_SLUGS = [
+  "same-day-medical-certificate",
+  "medical-certificate-for-work",
+  "online-sick-certificate",
+  "one-day-medical-certificate",
+  "two-day-medical-certificate",
+  "medical-certificate-for-cold-and-flu",
+  "medical-certificate-for-mental-health-day",
+  "carers-leave-certificate-online",
+  "student-medical-certificate-online",
+  "medical-certificate-for-shift-workers",
+  "repeat-prescription-online",
+  "after-hours-repeat-prescription",
+  "weekend-repeat-prescription",
+  "urgent-repeat-prescription-online",
+  "online-doctor-certificate-australia",
+  "telehealth-medical-certificate-vs-gp",
+  "online-medical-certificate-comparison",
+  "instant-scripts-alternative-medical-certificate",
+  "bulk-billed-telehealth-vs-instantmed",
+]
 
 function read(path: string) {
   return readFileSync(join(root, path), "utf8")
@@ -39,18 +62,88 @@ describe("SEO indexing contracts", () => {
     expect(contactPage).toContain('getApprovedClaim("complaints_timing")')
   })
 
-  it("consolidates the legacy Canberra certificate URL into the proven location canonical", () => {
-    const nextConfig = read("next.config.mjs")
+  it("gives each indexed city pair one resolved HTTP 308 canonical owner", async () => {
+    const { default: nextConfig } = await import("../../next.config.mjs")
+    const redirects = await nextConfig.redirects?.()
     const sitemap = read("app/sitemap.ts")
+    const locationPolicy = read("lib/seo/index-policy.ts")
     const medCertLocationBlock = sitemap.match(
       /const medCertLocationSlugs = \[([\s\S]*?)\]/,
     )?.[1]
 
-    expect(nextConfig).toContain(
-      '{ source: "/medical-certificate/canberra", destination: "/locations/canberra", permanent: true }',
+    const redirectOwners = [
+      ...["sydney", "melbourne", "brisbane", "perth", "adelaide", "canberra"].map(
+        (city) => ({ source: `/medical-certificate/${city}`, destination: `/locations/${city}` }),
+      ),
+      ...["sydney", "melbourne", "brisbane", "perth", "adelaide"].map(
+        (city) => ({
+          source: `/intent/medical-certificate-online-${city}`,
+          destination: `/locations/${city}`,
+        }),
+      ),
+      { source: "/medical-certificate/gold-coast", destination: "/medical-certificate" },
+      {
+        source: "/intent/medical-certificate-online-gold-coast",
+        destination: "/medical-certificate",
+      },
+    ]
+
+    expect(redirectOwners).toHaveLength(13)
+    for (const { source, destination } of redirectOwners) {
+      const matches = (redirects ?? []).filter((redirect) => redirect.source === source)
+      expect(matches, source).toHaveLength(1)
+      expect(matches[0]).toMatchObject({ destination, permanent: true })
+    }
+
+    for (const city of ["sydney", "melbourne", "brisbane", "perth", "adelaide", "canberra"]) {
+      expect(medCertLocationBlock).not.toContain(`"${city}"`)
+      expect(locationPolicy).toContain(`"${city}"`)
+    }
+
+    for (const city of ["parramatta", "hobart", "darwin"]) {
+      expect(medCertLocationBlock).toContain(`"${city}"`)
+    }
+
+    expect(
+      (redirects ?? []).some(
+        (redirect) =>
+          redirect.destination === "/intent/medical-certificate-online-:city",
+      ),
+    ).toBe(false)
+  })
+
+  it("keeps redirected city intent sources out of registry-derived surfaces", () => {
+    const intentRegistry = read("lib/seo/intents.ts")
+    const intentPage = read("app/intent/page.tsx")
+    const intentSlugPage = read("app/intent/[slug]/page.tsx")
+    const intentSitemap = read("app/intent/sitemap.ts")
+    const htmlSitemap = read("app/sitemap-html/page.tsx")
+
+    for (const city of [
+      "sydney",
+      "melbourne",
+      "brisbane",
+      "perth",
+      "adelaide",
+      "gold-coast",
+    ]) {
+      const slug = `medical-certificate-online-${city}`
+      expect(intentRegistry).not.toContain(`slug: "${slug}"`)
+      expect(intentPage).not.toContain(slug)
+      expect(intentSlugPage).toContain("getAllIntentSlugs")
+      expect(htmlSitemap).toContain("getAllIntentSlugs")
+    }
+
+    expect(intentSitemap).toContain("return []")
+  })
+
+  it("executes the pruned intent registry for static params", async () => {
+    const { generateStaticParams } = await import("../../app/intent/[slug]/page")
+
+    expect(getAllIntentSlugs()).toEqual(EXPECTED_INTENT_SLUGS)
+    expect(generateStaticParams()).toEqual(
+      EXPECTED_INTENT_SLUGS.map((slug) => ({ slug })),
     )
-    expect(medCertLocationBlock).toBeDefined()
-    expect(medCertLocationBlock).not.toContain('"canberra"')
   })
 
   it("allows ChatGPT Search crawler to discover public source pages", () => {
@@ -198,6 +291,14 @@ describe("SEO indexing contracts", () => {
     expect(lastmod).toContain("ROUTE_LAST_MODIFIED")
   })
 
+  it("dates the final telehealth and indexed-city copy correction honestly", () => {
+    const lastmod = read("lib/seo/sitemap-lastmod.ts")
+    const locationSitemap = read("app/locations/sitemap.ts")
+
+    expect(lastmod).toContain('"/telehealth-australia": "2026-08-29"')
+    expect(locationSitemap).toContain('new Date("2026-08-29")')
+  })
+
   it("keeps live money and high-yield SEO pages discoverable in the root sitemap", () => {
     const sitemap = read("app/sitemap.ts")
     const lastmod = read("lib/seo/sitemap-lastmod.ts")
@@ -269,11 +370,201 @@ describe("SEO indexing contracts", () => {
     const auditScript = read(scriptPath)
     expect(auditScript).toContain("searchconsole.urlInspection.index.inspect")
     expect(auditScript).toContain("searchconsole.searchanalytics.query")
+    expect(auditScript).toContain(
+      'scopes: ["https://www.googleapis.com/auth/webmasters.readonly"]',
+    )
+    expect(auditScript).not.toContain('https://www.googleapis.com/auth/webmasters"')
+    expect(auditScript).not.toContain("https://www.googleapis.com/auth/indexing")
     expect(auditScript).not.toContain("indexing.urlNotifications.publish")
     expect(packageJson.scripts?.["seo:submit-indexing"]).toBeUndefined()
     expect(
       existsSync(join(root, "tools/gsc-mcp-server/gsc-submit-indexing.mjs")),
     ).toBe(false)
+  })
+
+  it("reports redacted branded landing pages without adding an indexing mutation", () => {
+    const auditScript = read("tools/gsc-mcp-server/gsc-index-audit.mjs")
+
+    expect(auditScript).toContain("getBrandedLandingPages")
+    expect(auditScript).toContain('dimensions: ["query", "page"]')
+    expect(auditScript).toContain("isBrandedQuery")
+    expect(auditScript).toContain("brandedLandingPages")
+    expect(auditScript).not.toContain("query: row.keys")
+    expect(auditScript).not.toContain("indexing.urlNotifications.publish")
+  })
+
+  it("keeps branded landing helpers importable without running the audit", async () => {
+    const { getBrandedLandingPages, getPerformancePages, publicPagePath } = await import(
+      "../../tools/gsc-mcp-server/gsc-index-audit.mjs"
+    )
+
+    expect(getBrandedLandingPages).toBeTypeOf("function")
+    expect(getPerformancePages).toBeTypeOf("function")
+    expect(publicPagePath).toBeTypeOf("function")
+  })
+
+  it("aggregates branded landings only for public InstantMed hosts", async () => {
+    const { getBrandedLandingPages, publicPagePath } = await import(
+      "../../tools/gsc-mcp-server/gsc-index-audit.mjs"
+    )
+    const brandedInputs = [
+      "InstantMed",
+      ["instant", "med"].join(" "),
+      "instant-med",
+      "instant.med",
+      "instantmed.com.au",
+    ]
+    let request: { requestBody?: { dimensions?: string[] } } | undefined
+
+    const brandedLandingPages = await getBrandedLandingPages(
+      {
+        searchanalytics: {
+          query: async (input: { requestBody?: { dimensions?: string[] } }) => {
+            request = input
+            return {
+              data: {
+                rows: [
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/prescriptions?source=test#top"], clicks: 2, impressions: 10 },
+                  { keys: [brandedInputs[1], "https://www.instantmed.com.au/prescriptions/?source=www"], clicks: 3, impressions: 15 },
+                  { keys: [brandedInputs[2], "https://instantmed.com.au/prescriptions/"], clicks: 5, impressions: 20 },
+                  { keys: [brandedInputs[3], "https://www.instantmed.com.au/prescriptions"], clicks: 7, impressions: 25 },
+                  { keys: [brandedInputs[4], "https://instantmed.com.au/prescriptions/?source=domain"], clicks: 11, impressions: 30 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au////?source=root"], clicks: 1, impressions: 4 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/verify/IM-WORK?source=work"], clicks: 2, impressions: 4 },
+                  { keys: [brandedInputs[0], "https://www.instantmed.com.au/verify/STUDY/#top"], clicks: 3, impressions: 6 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/verify/CARER"], clicks: 5, impressions: 10 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/track/signed-request-token"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/resume/signed-checkout-token"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/auth/complete-account/signed-account-token"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/dashboard/intakes/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/campaign/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://staging.instantmed.com.au/prescriptions"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://example.com/prescriptions"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "not a URL"], clicks: 100, impressions: 200 },
+                  { keys: ["instant medical certificate", "https://instantmed.com.au/pricing"], clicks: 100, impressions: 200 },
+                  { keys: ["instant medicine delivery", "https://instantmed.com.au/pricing"], clicks: 100, impressions: 200 },
+                  { keys: ["myinstantmedapp", "https://instantmed.com.au/pricing"], clicks: 100, impressions: 200 },
+                  { keys: ["unbranded", "https://instantmed.com.au/pricing"], clicks: 100, impressions: 200 },
+                ],
+              },
+            }
+          },
+        },
+      },
+      "2026-05-27",
+      "2026-08-25",
+    )
+
+    expect(request?.requestBody?.dimensions).toEqual(["query", "page"])
+    expect(publicPagePath("https://instantmed.com.au/prescriptions?source=test#top")).toBe("/prescriptions")
+    expect(publicPagePath("https://www.instantmed.com.au/prescriptions/?source=www")).toBe("/prescriptions")
+    expect(publicPagePath("https://instantmed.com.au/?source=root")).toBe("/")
+    expect(publicPagePath("https://instantmed.com.au////?source=root")).toBe("/")
+    expect(publicPagePath("https://instantmed.com.au/verify/IM-WORK?source=work")).toBe("/verify")
+    expect(publicPagePath("https://www.instantmed.com.au/verify/STUDY/#top")).toBe("/verify")
+    expect(publicPagePath("https://instantmed.com.au/verify/CARER")).toBe("/verify")
+    expect(publicPagePath("https://instantmed.com.au/track/signed-request-token")).toBeNull()
+    expect(publicPagePath("https://instantmed.com.au/resume/signed-checkout-token")).toBeNull()
+    expect(publicPagePath("https://instantmed.com.au/auth/complete-account/signed-account-token")).toBeNull()
+    expect(publicPagePath("https://instantmed.com.au/dashboard/intakes/2c82f788-1769-4cf7-97d7-d40db36ad859")).toBeNull()
+    expect(publicPagePath("https://instantmed.com.au/campaign/2c82f788-1769-4cf7-97d7-d40db36ad859")).toBeNull()
+    expect(publicPagePath("https://staging.instantmed.com.au/prescriptions")).toBeNull()
+    expect(publicPagePath("https://example.com/prescriptions")).toBeNull()
+    expect(publicPagePath("ftp://instantmed.com.au/prescriptions")).toBeNull()
+    expect(publicPagePath("not a URL")).toBeNull()
+    expect(brandedLandingPages).toEqual([
+      { page: "/prescriptions", clicks: 28, impressions: 100, ctr: 0.28 },
+      { page: "/verify", clicks: 10, impressions: 20, ctr: 0.5 },
+      { page: "/", clicks: 1, impressions: 4, ctr: 0.25 },
+    ])
+    expect(Object.keys(brandedLandingPages[0])).toEqual([
+      "page",
+      "clicks",
+      "impressions",
+      "ctr",
+    ])
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("instant")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("keys")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("IM-WORK")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("STUDY")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("CARER")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("signed-request-token")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("signed-checkout-token")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("signed-account-token")
+    expect(JSON.stringify(brandedLandingPages)).not.toContain("2c82f788-1769-4cf7-97d7-d40db36ad859")
+  })
+
+  it("aggregates public performance pages without serializing raw page inputs", async () => {
+    const { getPerformancePages } = await import(
+      "../../tools/gsc-mcp-server/gsc-index-audit.mjs"
+    )
+
+    const performancePages = await getPerformancePages(
+      {
+        searchanalytics: {
+          query: async () => ({
+            data: {
+              rows: [
+                { keys: ["https://instantmed.com.au/prescriptions?gclid=first#top"], clicks: 2, impressions: 10, position: 2 },
+                { keys: ["https://www.instantmed.com.au/prescriptions/?utm_source=www"], clicks: 3, impressions: 30, position: 8 },
+                { keys: ["https://instantmed.com.au/prescriptions/"], clicks: 5, impressions: 20, position: 10 },
+                { keys: ["https://instantmed.com.au/?source=root"], clicks: 1, impressions: 4, position: 3 },
+                { keys: ["https://www.instantmed.com.au////?source=root-alias"], clicks: 2, impressions: 6, position: 5 },
+                { keys: ["https://instantmed.com.au/verify/IM-WORK?source=work"], clicks: 2, impressions: 4, position: 2 },
+                { keys: ["https://www.instantmed.com.au/verify/STUDY/#top"], clicks: 3, impressions: 6, position: 8 },
+                { keys: ["https://instantmed.com.au/verify/CARER"], clicks: 5, impressions: 10, position: 10 },
+                { keys: ["https://instantmed.com.au/track/signed-request-token"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://instantmed.com.au/resume/signed-checkout-token"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://instantmed.com.au/auth/complete-account/signed-account-token"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://instantmed.com.au/dashboard/intakes/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://instantmed.com.au/campaign/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://staging.instantmed.com.au/prescriptions?gclid=staging"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://example.com/prescriptions?gclid=external"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["not a URL"], clicks: 100, impressions: 200, position: 1 },
+              ],
+            },
+          }),
+        },
+      },
+      "2026-05-27",
+      "2026-08-25",
+    )
+
+    expect(performancePages).toEqual([
+      {
+        page: "https://instantmed.com.au/prescriptions",
+        clicks: 10,
+        impressions: 60,
+        ctr: 1 / 6,
+        position: 23 / 3,
+      },
+      {
+        page: "https://instantmed.com.au/verify",
+        clicks: 10,
+        impressions: 20,
+        ctr: 0.5,
+        position: 7.8,
+      },
+      {
+        page: "https://instantmed.com.au/",
+        clicks: 3,
+        impressions: 10,
+        ctr: 0.3,
+        position: 4.2,
+      },
+    ])
+    const serialized = JSON.stringify(performancePages)
+    expect(serialized).not.toContain("gclid")
+    expect(serialized).not.toContain("utm_source")
+    expect(serialized).not.toContain("staging")
+    expect(serialized).not.toContain("example.com")
+    expect(serialized).not.toContain("IM-WORK")
+    expect(serialized).not.toContain("STUDY")
+    expect(serialized).not.toContain("CARER")
+    expect(serialized).not.toContain("signed-request-token")
+    expect(serialized).not.toContain("signed-checkout-token")
+    expect(serialized).not.toContain("signed-account-token")
+    expect(serialized).not.toContain("2c82f788-1769-4cf7-97d7-d40db36ad859")
   })
 
   it("inspects current money pages by default in GSC indexing audits", () => {

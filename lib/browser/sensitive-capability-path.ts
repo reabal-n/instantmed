@@ -28,7 +28,8 @@ function isSensitiveCapabilityPathname(pathname: string): boolean {
 
 export function isExternalAnalyticsExcludedPathname(pathname: string): boolean {
   return isSensitiveCapabilityPathname(pathname) ||
-    PRIVATE_APP_PATH_PREFIXES.some((prefix) => matchesPathPrefix(pathname, prefix))
+    PRIVATE_APP_PATH_PREFIXES.some((prefix) => matchesPathPrefix(pathname, prefix)) ||
+    UUID_PATH_SEGMENT_RE.test(pathname)
 }
 
 function redactSensitiveCapabilityPathname(pathname: string): string {

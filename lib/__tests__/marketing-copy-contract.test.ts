@@ -4,9 +4,27 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { faqItems, footerLinks } from "@/lib/marketing/homepage"
+import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
+import { KEEP_INDEXED_LOCATIONS } from "@/lib/seo/index-policy"
 import { getActiveServices, getServiceMarketingHref } from "@/lib/services/service-catalog"
 
 const root = process.cwd()
+const locationPageSource = readFileSync(
+  join(root, "app/locations/[city]/page.tsx"),
+  "utf8",
+)
+const locationContentSource = readFileSync(
+  join(root, "components/marketing/location-page-content.tsx"),
+  "utf8",
+)
+const telehealthAustraliaSource = readFileSync(
+  join(root, "app/telehealth-australia/page.tsx"),
+  "utf8",
+)
+const websiteSchemaSource = readFileSync(
+  join(root, "components/seo/schemas/website.tsx"),
+  "utf8",
+)
 const voiceSource = readFileSync(join(root, "lib/marketing/voice.ts"), "utf8")
 const homePageSource = readFileSync(join(root, "app/(marketing)/page.tsx"), "utf8")
 const homepageMarketingSource = readFileSync(join(root, "lib/marketing/homepage.ts"), "utf8")
@@ -158,6 +176,99 @@ const prescribingIdentityClaimConsumerPaths = [
 ] as const
 
 describe("marketing copy contracts", () => {
+  it("keeps city and telehealth acquisition copy inside approved public truth", () => {
+    const combined = [
+      locationPageSource,
+      locationContentSource,
+      telehealthAustraliaSource,
+      websiteSchemaSource,
+    ].join("\n")
+
+    expect(combined).not.toMatch(/within 45 minutes during business hours/i)
+    expect(combined).not.toMatch(/join thousands/i)
+    expect(combined).not.toMatch(/google star rating/i)
+    expect(combined).not.toMatch(/outcomes are comparable to in-person care/i)
+    expect(combined).not.toMatch(/sometimes superior/i)
+    expect(combined).not.toMatch(/never shared with.*third party/i)
+    expect(combined).not.toMatch(/discuss a symptom or get a treatment plan/i)
+    expect(combined).not.toMatch(/same-day work and study absence notes/i)
+    expect(combined).not.toMatch(/online doctor services/i)
+    expect(combined).not.toMatch(/certificate, script, or referral sent to your phone/i)
+    expect(combined).not.toMatch(/eScripts? sent (?:direct )?to your phone/i)
+    expect(combined).not.toContain("No Medicare card is required")
+    expect(combined).not.toContain("without booking an appointment or providing a Medicare card")
+    expect(combined).not.toContain('medicalSpecialty: "General Practice"')
+    expect(combined).not.toContain("doctor consultations")
+    expect(combined).not.toContain("InstantMed connects you with a doctor from anywhere with phone signal.")
+    expect(combined).not.toContain("InstantMed lets you see a doctor without braving the weather or the traffic")
+    expect(combined).not.toContain("InstantMed gives you access to Australian-registered doctors without the queue")
+    expect(combined).not.toContain("InstantMed works on WA time and connects you with doctors who understand the unique needs of Western Australian patients, no matter where you are in the metro area.")
+    expect(combined).not.toContain("Mental health check-ins and continuing care")
+    expect(combined).not.toContain("Hair loss, skin concerns with photos, acne management")
+    expect(combined).not.toContain("Sexual health screening requests and referrals")
+    expect(combined).not.toContain("Travel-related script needs for returning travellers")
+    expect(combined).not.toContain("Conditions we treat")
+    expect(combined).not.toContain("Full list of conditions suited to telehealth")
+    expect(combined).not.toContain("Refund if it&apos;s not the right fit.")
+    expect(telehealthAustraliaSource).not.toContain("uncomplicated acute issues")
+    expect(telehealthAustraliaSource).toMatch(
+      /medical\s+certificate requests, repeat prescription review for a regular medicine you already\s+take/,
+    )
+    expect(telehealthAustraliaSource).toMatch(
+      /focused ED, hair-loss, women&apos;s-health \(UTI or a new or switch\s+contraceptive pill\), and weight-management assessments/,
+    )
+    expect(telehealthAustraliaSource).not.toContain("accepted documentation")
+
+    for (const city of KEEP_INDEXED_LOCATIONS) {
+      expect(locationPageSource, city).toMatch(
+        new RegExp(
+          `\\b${city}:\\s*"[^"]*\\bsubmit a medical certificate or repeat prescription(?: review)? request\\b[^"]*"`,
+        ),
+      )
+
+      const deepCityContent = DEEP_CITY_CONTENT[city]
+      expect(deepCityContent, city).toBeDefined()
+
+      const renderedDeepCityContent = JSON.stringify(deepCityContent)
+      expect(renderedDeepCityContent, city).not.toMatch(
+        /cannot refuse|requires acceptance|accepted under all|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|ideal for telehealth|no clinical reason.{0,80}(?:in-person|waiting room)|same process as an in-person|(?:consultation method|method of consultation).{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity|workplace evidence status)|(?:certificate&apos;s|certificate's|workplace evidence status).{0,120}(?:is|are) not affected by.{0,80}(?:consultation|telehealth)|(?:recognis(?:e|es)|recogniz(?:e|es)).{0,120}(?:medical cert|telehealth-issued certificate|certificate)|meets (?:your )?leave requirements|meet(?:s)? (?:this|the )?requirement|(?:medical certificates?|telehealth-issued certificates?|certificates?).{0,100}(?:are|can be)(?: used as)?.{0,60}evidence|(?:certificate|cert).{0,100}(?:all required elements|formatted identically|next working day)|(?:you|we) (?:(?:won&apos;t|won't|will not)(?: be)?|aren&apos;t|aren't|are not) charged|14-day response SLA/i,
+      )
+    }
+
+    expect(telehealthAustraliaSource).not.toMatch(
+      /doctor review before certificate issue/i,
+    )
+
+    expect(locationPageSource).toContain(
+      'getApprovedClaim("med_cert_document_scope")',
+    )
+    expect(locationPageSource).toContain(
+      'getApprovedClaim("trust_doctor_issued_tooltip")',
+    )
+    expect(telehealthAustraliaSource).toContain(
+      'getApprovedClaim("clinical_access_scope")',
+    )
+    expect(locationPageSource).toContain(
+      'getApprovedClaim("prescribing_identity_required")',
+    )
+    expect(telehealthAustraliaSource).toContain(
+      'getApprovedClaim("prescribing_identity_required")',
+    )
+    expect(locationPageSource).toContain(
+      'getApprovedClaim("clinical_review_sequence")',
+    )
+    expect(locationPageSource).toContain(
+      'getApprovedClaim("prescription_if_approved")',
+    )
+    expect(locationContentSource).toContain(
+      'getApprovedClaim("prescription_if_approved")',
+    )
+    expect(telehealthAustraliaSource).toContain(
+      'getApprovedClaim("prescription_if_approved")',
+    )
+    expect(telehealthAustraliaSource).toContain("{GUARANTEE}")
+  })
+
   it("keeps active prescribing mirrors on the approved Medicare-or-IHI identity claim", () => {
     const approvedClaimsSource = readFileSync(
       join(root, "lib/marketing/approved-claims.ts"),

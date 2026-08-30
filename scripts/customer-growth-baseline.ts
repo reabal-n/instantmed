@@ -8,13 +8,21 @@ import { classifyAttributionSource } from "@/lib/analytics/source-classification
 import {
   assertNoSensitiveBaselineText,
   buildCustomerGrowthBaselineSummary,
+  buildFreeChannelLandingBreakdown,
   type CustomerGrowthGoogleAdsBaseline,
   type CustomerGrowthPostHogBaseline,
   type CustomerGrowthSupabaseBaseline,
 } from "@/lib/data/customer-growth-baseline"
+import {
+  buildCustomerGrowthRevenueForIntakeIds,
+  collectCustomerGrowthAttributionIntakeIds,
+  countSentAbandonedCheckoutEmails,
+  readCustomerGrowthAttributionRows,
+  readCustomerGrowthCreatedIntakeRows,
+  readCustomerGrowthRevenueEvidence,
+  requireExactCustomerGrowthCount,
+} from "@/lib/data/customer-growth-revenue-read"
 import { buildNetRetainedPurchaseValue } from "@/lib/data/net-retained-purchase-value"
-import { filterReportableIntakes } from "@/lib/data/reporting-filters"
-import { REVENUE_PURCHASE_PAYMENT_STATUSES } from "@/lib/monitoring/revenue-safety"
 
 import { hydrateLocalEnv } from "./video-review/local-env"
 
@@ -40,25 +48,6 @@ type IntakeAggregateRow = {
   payment_status: string | null
   status: string | null
   subtype: string | null
-}
-
-type RefundAggregateRow = {
-  refund_amount_cents: number | null
-  refund_status: string | null
-  refunded_at: string | null
-}
-
-type RecoveryPaidAttributionRow = {
-  amount_cents: number | null
-  campaignid?: string | null
-  gbraid?: string | null
-  gclid?: string | null
-  referrer?: string | null
-  refund_amount_cents: number | null
-  utm_campaign?: string | null
-  utm_medium?: string | null
-  utm_source?: string | null
-  wbraid?: string | null
 }
 
 type CountResult = {
@@ -133,7 +122,7 @@ function serviceFromIntake(row: IntakeAggregateRow): string {
 async function countQuery(label: string, query: PromiseLike<CountResult>): Promise<number> {
   const result = await query
   if (result.error) throw new Error(`${label} count failed: ${result.error.message}`)
-  return result.count ?? 0
+  return requireExactCustomerGrowthCount(label, result)
 }
 
 async function querySupabaseBaseline(
@@ -145,48 +134,19 @@ async function querySupabaseBaseline(
   const sinceIso = since.toISOString()
   const nowIso = now.toISOString()
 
-  const [createdResult, paidResult, refundResult] = await Promise.all([
-    filterReportableIntakes(
-      supabase
-        .from("intakes")
-        .select("category, subtype, status, payment_status, paid_at, amount_cents")
-        .gte("created_at", sinceIso)
-        .lte("created_at", nowIso),
+  const [intakes, revenueEvidence] = await Promise.all([
+    readCustomerGrowthCreatedIntakeRows(
+      supabase,
+      sinceIso,
+      nowIso,
     ),
-    filterReportableIntakes(
-      supabase
-        .from("intakes")
-        .select("category, subtype, status, payment_status, paid_at, amount_cents")
-        .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
-        .not("paid_at", "is", null)
-        .gte("paid_at", sinceIso)
-        .lte("paid_at", nowIso),
-    ),
-    filterReportableIntakes(
-      supabase
-        .from("intakes")
-        .select("refund_amount_cents, refund_status, refunded_at")
-        .not("refunded_at", "is", null)
-        .gte("refunded_at", sinceIso)
-        .lte("refunded_at", nowIso),
-    ),
+    readCustomerGrowthRevenueEvidence(supabase, since, now),
   ])
-  if (createdResult.error) {
-    throw new Error(`Supabase intake baseline query failed: ${createdResult.error.message}`)
-  }
-  if (paidResult.error) {
-    throw new Error(`Supabase paid revenue query failed: ${paidResult.error.message}`)
-  }
-  if (refundResult.error) {
-    throw new Error(`Supabase refund revenue query failed: ${refundResult.error.message}`)
-  }
-
-  const intakes = (createdResult.data ?? []) as IntakeAggregateRow[]
-  const paidRows = (paidResult.data ?? []) as IntakeAggregateRow[]
-  const refundRows = (refundResult.data ?? []) as RefundAggregateRow[]
+  const { disputeRows, paidRows, refundRows } = revenueEvidence
   const revenue = buildNetRetainedPurchaseValue({
     paidRows,
     refundRows,
+    disputeRows,
     since,
     until: now,
   })
@@ -214,7 +174,6 @@ async function querySupabaseBaseline(
     convertedPartials,
     partialRecoveryRowsSent,
     abandonedCheckoutSent,
-    recoveredPaidRows,
   ] = await Promise.all([
     countQuery(
       "partial_intakes captured",
@@ -251,27 +210,33 @@ async function querySupabaseBaseline(
         .lte("updated_at", nowIso)
         .not("recovery_email_sent_at", "is", null),
     ),
-    countQuery(
-      "abandoned checkout outbox sent",
-      supabase
-        .from("email_outbox")
-        .select("email_type", { count: "exact", head: true })
-        .in("email_type", ["abandoned_checkout", "abandoned_checkout_followup"])
-        .in("status", ["sent", "skipped_e2e"])
-        .gte("created_at", sinceIso)
-        .lte("created_at", nowIso),
-    ),
-    queryRecoveredPaidRows(supabase, sinceIso, nowIso),
+    countSentAbandonedCheckoutEmails(supabase, sinceIso, nowIso),
   ])
 
-  const recoveredGrossCents = recoveredPaidRows.reduce((sum, row) => sum + Number(row.amount_cents ?? 0), 0)
-  const recoveredRefundedCents = recoveredPaidRows.reduce((sum, row) => sum + Number(row.refund_amount_cents ?? 0), 0)
+  const currentPaidIntakeIds = new Set(paidRows.flatMap((row) => row.id ? [row.id] : []))
+  const revenueEvidenceIntakeIds = collectCustomerGrowthAttributionIntakeIds(revenueEvidence)
+  const attributionRows = await readCustomerGrowthAttributionRows(
+    supabase,
+    revenueEvidenceIntakeIds,
+  )
+  const recoveryIntakeIds = new Set(attributionRows.filter(
+    (row) => classifyAttributionSource(row).group === "recovery_email",
+  ).map((row) => row.id))
+  const recoveredRevenue = buildCustomerGrowthRevenueForIntakeIds(
+    revenueEvidence,
+    recoveryIntakeIds,
+    since,
+    now,
+  )
   const partialRecoverySent = partialRecoveryRowsSent
 
   return {
     dateFrom: sinceIso,
     dateTo: nowIso,
     days,
+    freeChannelLandingPages: buildFreeChannelLandingBreakdown(
+      attributionRows.filter((row) => currentPaidIntakeIds.has(row.id)),
+    ),
     intakes: {
       averageOrderValueAud:
         revenue.averageOrderCents === null
@@ -299,31 +264,12 @@ async function querySupabaseBaseline(
       emailCaptureRate: roundRate(emailCaptured, partialsCaptured),
       partialRecoverySent,
       partialsCaptured,
-      recoveredGrossRevenueAud: roundMoney(recoveredGrossCents / 100),
-      recoveredNetRevenueAud: roundMoney((recoveredGrossCents - recoveredRefundedCents) / 100),
-      recoveredPaidCount: recoveredPaidRows.length,
+      recoveredGrossRevenueAud: roundMoney(recoveredRevenue.grossCents / 100),
+      recoveredNetRevenueAud: roundMoney(recoveredRevenue.netCents / 100),
+      recoveredPaidCount: recoveredRevenue.orderCount,
       recoveryEmailCoverageRate: roundRate(partialRecoverySent, emailCaptured),
     },
   }
-}
-
-async function queryRecoveredPaidRows(
-  supabase: SupabaseClient,
-  sinceIso: string,
-  nowIso: string,
-): Promise<RecoveryPaidAttributionRow[]> {
-  const { data, error } = await filterReportableIntakes(
-    supabase
-      .from("intakes")
-      .select("amount_cents, refund_amount_cents, utm_source, utm_medium, utm_campaign, referrer, gclid, gbraid, wbraid, campaignid")
-      .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
-      .not("paid_at", "is", null)
-      .gte("paid_at", sinceIso)
-      .lte("paid_at", nowIso),
-  )
-  if (error) throw new Error(`Recovered paid query failed: ${error.message}`)
-
-  return ((data ?? []) as RecoveryPaidAttributionRow[]).filter((row) => classifyAttributionSource(row).group === "recovery_email")
 }
 
 async function queryPostHogBaseline(now: Date, days: number): Promise<CustomerGrowthPostHogBaseline> {

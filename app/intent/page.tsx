@@ -16,10 +16,10 @@ import {
 export const metadata: Metadata = {
   robots: ICEBOX_ROBOTS,
   title: "Commercial Telehealth Pages | InstantMed",
-  description: "Find InstantMed's highest-intent service pages: medical certificates, repeat prescription review, city pages, and service comparisons.",
+  description: "Find InstantMed's highest-intent service pages: medical certificates, repeat prescription review, and service comparisons.",
   openGraph: {
     title: "Commercial Telehealth Pages | InstantMed",
-    description: "Medical certificate, repeat prescription, city, and comparison pages reviewed for compliant commercial intent.",
+    description: "Medical certificate, repeat prescription, and comparison pages reviewed for compliant commercial intent.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/intent",
@@ -29,20 +29,18 @@ export const metadata: Metadata = {
 const clusterLabels: Record<CommercialIntentCluster, string> = {
   "medical-certificate": "Medical certificates",
   "repeat-prescription": "Repeat prescriptions",
-  location: "City and state pages",
   comparison: "Service comparisons",
 }
 
 const clusterOrder: CommercialIntentCluster[] = [
   "medical-certificate",
-  "location",
   "repeat-prescription",
   "comparison",
 ]
 
 const intentFaqs = [
   {
-    question: "Why only 25 pages?",
+    question: "Why this curated set?",
     answer: "These pages target high-commercial-intent searches where InstantMed can answer clearly, show price upfront, and route patients into the right service without publishing thin health content.",
   },
   {
@@ -59,7 +57,7 @@ const intentFaqs = [
   },
   {
     question: "Can these pages be expanded later?",
-    answer: "Yes, but only after the top 25 prove traction in Search Console. Expansion should follow query evidence, not a generic content calendar.",
+    answer: "Yes, but only after the current catalogue proves traction in Search Console. Expansion should follow query evidence, not a generic content calendar.",
   },
 ]
 
@@ -87,7 +85,7 @@ export default function IntentPage() {
                   What Can We Help With?
                 </h1>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                  The top 25 pages worth ranking for: clear price, answer in the first screen,
+                  Curated pages worth ranking for: clear price, answer in the first screen,
                   compliant CTA, sources, and service-level prescription language.
                 </p>
               </div>

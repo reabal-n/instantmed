@@ -1,7 +1,22 @@
 import { google } from "googleapis"
+import { fileURLToPath } from "node:url"
 
 const SITE_URL = "sc-domain:instantmed.com.au"
 const SITE_ORIGIN = "https://instantmed.com.au"
+const PUBLIC_SITE_HOSTS = new Set(["instantmed.com.au", "www.instantmed.com.au"])
+const NON_PUBLIC_PAGE_PREFIXES = [
+  "/account",
+  "/admin",
+  "/auth",
+  "/dashboard",
+  "/doctor",
+  "/patient",
+  "/resume",
+  "/sign-in",
+  "/sign-up",
+  "/track",
+]
+const UUID_PATH_SEGMENT_RE = /\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?:\/|$)/i
 const USER_AGENT = "InstantMedGscIndexAudit/1.0"
 const DEFAULT_PRIORITY_INSPECTION_PATHS = [
   "/medical-certificate",
@@ -53,14 +68,50 @@ async function fetchText(url) {
   }
 }
 
-function metricRow(row) {
-  return {
-    page: row.keys?.[0] ?? "",
-    clicks: row.clicks ?? 0,
-    impressions: row.impressions ?? 0,
-    ctr: row.ctr ?? 0,
-    position: row.position ?? 0,
+function isBrandedQuery(value) {
+  const tokens = value.toLowerCase().match(/[a-z0-9]+/g) ?? []
+
+  return tokens.some(
+    (token, index) =>
+      token === "instantmed" ||
+      (token === "instant" && tokens[index + 1] === "med"),
+  )
+}
+
+function isNonPublicPagePath(pathname) {
+  return NON_PUBLIC_PAGE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  ) || UUID_PATH_SEGMENT_RE.test(pathname)
+}
+
+function publicPage(value) {
+  try {
+    const url = new URL(value)
+    if (
+      !PUBLIC_SITE_HOSTS.has(url.hostname) ||
+      (url.protocol !== "http:" && url.protocol !== "https:")
+    ) return null
+    const normalizedPath = url.pathname.replace(/\/+$/, "") || "/"
+    if (isNonPublicPagePath(normalizedPath)) return null
+    const path = normalizedPath === "/verify" || normalizedPath.startsWith("/verify/")
+      ? "/verify"
+      : normalizedPath
+
+    return {
+      path,
+      url: `${SITE_ORIGIN}${path}`,
+    }
+  } catch {
+    return null
   }
+}
+
+function publicPagePath(value) {
+  return publicPage(value)?.path ?? null
+}
+
+function publicPageUrl(value) {
+  return publicPage(value)?.url ?? null
 }
 
 function sitemapGroup(url) {
@@ -105,9 +156,68 @@ async function getPerformancePages(searchconsole, startDate, endDate) {
     },
   })
 
-  return (response.data.rows ?? [])
-    .map(metricRow)
+  const pages = new Map()
+  for (const row of response.data.rows ?? []) {
+    const page = publicPageUrl(row.keys?.[0] ?? "")
+    if (!page) continue
+
+    const clicks = row.clicks ?? 0
+    const impressions = row.impressions ?? 0
+    const position = row.position ?? 0
+    const current = pages.get(page) ?? {
+      page,
+      clicks: 0,
+      impressions: 0,
+      positionImpressions: 0,
+    }
+    current.clicks += clicks
+    current.impressions += impressions
+    current.positionImpressions += position * impressions
+    pages.set(page, current)
+  }
+
+  return [...pages.values()]
+    .map((row) => ({
+      page: row.page,
+      clicks: row.clicks,
+      impressions: row.impressions,
+      ctr: row.impressions > 0 ? row.clicks / row.impressions : 0,
+      position: row.impressions > 0 ? row.positionImpressions / row.impressions : 0,
+    }))
     .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
+}
+
+async function getBrandedLandingPages(searchconsole, startDate, endDate) {
+  const response = await searchconsole.searchanalytics.query({
+    siteUrl: SITE_URL,
+    requestBody: {
+      startDate,
+      endDate,
+      dimensions: ["query", "page"],
+      rowLimit: 25000,
+      dataState: "final",
+    },
+  })
+
+  const pages = new Map()
+  for (const row of response.data.rows ?? []) {
+    if (!isBrandedQuery(row.keys?.[0] ?? "")) continue
+    const page = publicPagePath(row.keys?.[1] ?? "")
+    if (!page) continue
+    const current = pages.get(page) ?? { page, clicks: 0, impressions: 0 }
+    current.clicks += row.clicks ?? 0
+    current.impressions += row.impressions ?? 0
+    pages.set(page, current)
+  }
+
+  return [...pages.values()]
+    .map((row) => ({
+      page: row.page,
+      clicks: row.clicks,
+      impressions: row.impressions,
+      ctr: row.impressions > 0 ? row.clicks / row.impressions : 0,
+    }))
+    .sort((left, right) => right.clicks - left.clicks || right.impressions - left.impressions)
 }
 
 async function inspectUrl(searchconsole, url) {
@@ -145,10 +255,11 @@ async function main() {
   })
   const searchconsole = google.searchconsole({ version: "v1", auth })
 
-  const [submittedSitemaps, live, performancePages] = await Promise.all([
+  const [submittedSitemaps, live, performancePages, brandedLandingPages] = await Promise.all([
     searchconsole.sitemaps.list({ siteUrl: SITE_URL }),
     getLiveSitemaps(),
     getPerformancePages(searchconsole, startDate, endDate),
+    getBrandedLandingPages(searchconsole, startDate, endDate),
   ])
 
   const performanceSet = new Set(performancePages.map((row) => row.page))
@@ -206,6 +317,7 @@ async function main() {
       zeroPerformanceSitemapUrls: zeroPerformanceUrls.length,
     },
     topPages: performancePages.slice(0, 25),
+    brandedLandingPages,
     weakSitemapGroups: live.sitemaps
       .map((sitemap) => ({
         group: sitemapGroup(sitemap.sitemap),
@@ -219,7 +331,11 @@ async function main() {
   console.log(JSON.stringify(report, null, 2))
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error)
-  process.exitCode = 1
-})
+export { getBrandedLandingPages, getPerformancePages, publicPagePath }
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : error)
+    process.exitCode = 1
+  })
+}

@@ -20,11 +20,11 @@
 - Load `instantmed-marketing-compliance-review` before signing off any public-copy diff and `instantmed-ui-browser-verification` before accepting browser proof.
 - Never read, export, or persist patient free text. Measurement artifacts are aggregate-only and must not contain names, emails, phone numbers, intake IDs, prescription details, click IDs, or credentials.
 - The acquisition leading metric is reportable paid orders by canonical source group and public landing pathname. The economic result is canonical rolling net-retained revenue. Do not allocate refund/dispute cash to a landing page unless the exact cash-event model supports that attribution.
-- One on-site material variable may run in a measurement window. Do not churn metadata, internal links, canonicals, or copy while waiting for Google to crawl and reprocess a shipped change.
+- One on-site material variable may run in a measurement window. For 28 days after deployment, do not churn search signals or public surfaces touched by this candidate while waiting for Google to crawl and reprocess it. Safety, compliance, privacy, payment, and fulfilment fixes always proceed; log other overlapping changes as confounders and rebase only an affected page's observation window when they materially change its search signals.
 - Search Console indexing requests, sitemap submissions, external pitches, profile creation, directory edits, customer communication, Ads changes, pull-request merge, and production promotion all require fresh approval for the exact action.
 - Google Ads remains rank 4 and follows its immutable approval packet. This plan makes no campaign, keyword, budget, targeting, or asset mutation.
 - Stop the next acquisition lever for any patient-safety event, work approaching the 24-hour ceiling, a service refund rate at or above 10%, a chargeback cluster, broken fulfilment, or support load above 5 contacts per 100 paid orders. Queue P95 remains visible under the 2026-08-18 owner decision; it is not silently converted into a new staffing project.
-- If Vercel CLI is needed during the deployment task, update the global CLI from 59.5.0 to 59.7.0 or newer outside this repository first. Do not add or upgrade a Vercel package in `package.json` for this plan.
+- If Vercel CLI is needed during the deployment task, update the global CLI to 59.9.1 or newer outside this repository first. Do not add or upgrade a Vercel package in `package.json` for this plan.
 
 ---
 
@@ -113,10 +113,13 @@ it("keeps city and telehealth acquisition copy inside approved public truth", ()
     'getApprovedClaim("clinical_access_scope")',
   )
   expect(locationPageSource).toContain(
-    'getApprovedClaim("medicare_requirements")',
+    'getApprovedClaim("prescribing_identity_required")',
   )
   expect(telehealthAustraliaSource).toContain(
-    'getApprovedClaim("medicare_requirements")',
+    'getApprovedClaim("prescribing_identity_required")',
+  )
+  expect(locationPageSource).toContain(
+    'getApprovedClaim("clinical_review_sequence")',
   )
 })
 ```
@@ -138,7 +141,6 @@ Expected: FAIL with at least the 45-minute, privacy-absolute, outcome-comparison
 - Modify: `app/locations/[city]/page.tsx`
 - Modify: `components/marketing/location-page-content.tsx`
 - Modify: `app/telehealth-australia/page.tsx`
-- Modify: `lib/marketing/approved-claims.ts`
 - Verify: `lib/__tests__/marketing-copy-contract.test.ts`
 - Verify: `lib/__tests__/hours-copy-contract.test.ts`
 - Verify: `lib/__tests__/approved-claims-contract.test.ts`
@@ -149,24 +151,8 @@ Expected: FAIL with at least the 45-minute, privacy-absolute, outcome-comparison
 const AVAILABILITY = getApprovedClaim("availability_24_7")
 const CERTIFICATE_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
-const MEDICARE_REQUIREMENTS = getApprovedClaim("medicare_requirements")
-```
-
-- [ ] Add `medicare_requirements` to `ApprovedClaimId` and `APPROVED_CLAIMS` with `AGENTS.md`, `docs/CLINICAL.md`, and the prescribing identity gate as receipts:
-
-```ts
-medicare_requirements: {
-  id: "medicare_requirements",
-  text: "Medical certificates do not require a Medicare card. Prescriptions and specialty requests require Medicare details for identity, prescribing records, and pharmacy continuity.",
-  contexts: ["medical_certificate", "prescribing", "specialty"],
-  risk: "high",
-  sources: [
-    "AGENTS.md",
-    "docs/CLINICAL.md",
-    "lib/stripe/prescribing-profile-fields.ts",
-  ],
-  notes: "Service-specific identity boundary. Never imply the same Medicare requirement across certificate and prescribing pathways.",
-},
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 ```
 
 - [ ] Replace every employer-acceptance yes/no answer with document scope plus the policy caveat. Keep the answer conditional on issue; do not say an employer must accept it.
@@ -181,7 +167,7 @@ answer: `${CERTIFICATE_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
 answer: `${AVAILABILITY} If approved, the certificate is emailed as a PDF.`,
 ```
 
-- [ ] Replace the Victoria “No Medicare card is required” answer with `MEDICARE_REQUIREMENTS`. It must distinguish the certificate pathway from prescribing and specialty requests.
+- [ ] Replace the Victoria “No Medicare card is required” answer with `PRESCRIBING_IDENTITY_REQUIRED`. Preserve the approved prescribing-identity alternative: a valid Medicare number plus IRN **or** a valid IHI. Do not imply prescribing or specialty requests can proceed without their required identity details.
 
 - [ ] Narrow the city `Service` schema description to active service-level scope:
 
@@ -196,7 +182,7 @@ description: `Online medical-certificate requests and repeat medication reviews 
 ```ts
 const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
 const AVAILABILITY = getApprovedClaim("availability_24_7")
-const MEDICARE_REQUIREMENTS = getApprovedClaim("medicare_requirements")
+const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
 ```
 
 - [ ] Replace the clinical-outcomes comparison with a suitability boundary:
@@ -208,7 +194,7 @@ answer:
 
 - [ ] Replace the privacy absolute with the code-owned access scope and a `/privacy` link in rendered HTML. Do not claim data is never disclosed to any third party.
 
-- [ ] Replace “without ... providing a Medicare card” with `MEDICARE_REQUIREMENTS`. Do not imply prescribing or specialty requests can proceed without the required identity details.
+- [ ] Replace “without ... providing a Medicare card” with `PRESCRIBING_IDENTITY_REQUIRED`, preserving the Medicare plus IRN **or** valid IHI identity alternative. Do not imply prescribing or specialty requests can proceed without the required identity details.
 
 - [ ] Remove `medicalSpecialty: "General Practice"`, `isAcceptingNewPatients: true`, generic “consultations,” and “Discuss a symptom or get a treatment plan” from the schema and body. Describe only medical certificates, repeat prescription reviews, and the launched specialty assessment pathways. Use `AVAILABILITY` for the opening-hours description.
 
@@ -254,8 +240,13 @@ git commit -m "fix(marketing): align city and telehealth search copy"
 - Modify: `lib/__tests__/seo-indexing-contract.test.ts`
 - Modify: `lib/__tests__/commercial-seo-contract.test.ts`
 - Modify: `next.config.mjs`
+- Modify: `lib/seo/intents.ts`
+- Modify: `app/intent/page.tsx`
+- Modify: `app/intent/[slug]/page.tsx`
+- Modify: `app/sitemap-html/page.tsx`
 - Verify: `app/sitemap.ts`
 - Verify: `app/locations/sitemap.ts`
+- Verify: `lib/seo/sitemap-lastmod.ts`
 - Verify: `lib/seo/index-policy.ts`
 
 Canonical ownership for this task:
@@ -356,9 +347,15 @@ Expected: FAIL.
 
 - [ ] Remove the existing grouped redirect from `/medical-certificate/:city(...)` to `/intent/medical-certificate-online-:city`. Add exact permanent redirects for both legacy source families to the selected `/locations/*` owner. Move Canberra into the same exact map and remove its later duplicate redirect entry. Route both Gold Coast legacy URLs to `/medical-certificate` so the iceboxed city does not become a new indexed winner.
 
+- [ ] Treat each `permanent: true` redirect above as an HTTP 308 permanent redirect, not a 301. Assert the final 308 owner for every paired source.
+
+- [ ] Prune the six redirected city intent entries — Sydney, Melbourne, Brisbane, Perth, Adelaide, and Gold Coast — from `lib/seo/intents.ts`; retain Newcastle. Update the exact intent-count contracts and the intent-hub language to describe the remaining intent catalogue accurately. Verify the intent hub, `generateStaticParams`, the intent sitemap, and the HTML sitemap emit no internal link to any redirected `/intent/medical-certificate-online-*` source.
+
 - [ ] Keep `app/sitemap.ts` ownership unchanged: only `parramatta`, `hobart`, and `darwin` belong to the medical-certificate location block.
 
 - [ ] Keep `app/locations/sitemap.ts` filtered through `shouldIndexLocation()` and keep Newcastle plus the six selected metros in `KEEP_INDEXED_LOCATIONS`.
+
+- [ ] Refresh the baked sitemap dates honestly after each material route change: `lib/seo/sitemap-lastmod.ts` owns per-route dates and `app/locations/sitemap.ts` owns its enriched location date. Derive each refresh from the route's material change, not deployment time; deployment does not refresh baked `lastmod` values.
 
 - [ ] Run the focused SEO and route checks:
 
@@ -368,12 +365,18 @@ corepack pnpm exec vitest run lib/__tests__/commercial-seo-contract.test.ts
 bash scripts/check-route-conflicts.sh
 ```
 
-Expected: PASS; one sitemap owner and one 301 destination per paired city.
+Expected: PASS; one sitemap owner and one HTTP 308 destination per paired city, with no internal links to redirected intent sources and honest baked `lastmod` owners checked.
 
 - [ ] Commit:
 
 ```bash
 git add next.config.mjs \
+  lib/seo/intents.ts \
+  app/intent/page.tsx \
+  'app/intent/[slug]/page.tsx' \
+  app/sitemap-html/page.tsx \
+  lib/seo/sitemap-lastmod.ts \
+  app/locations/sitemap.ts \
   lib/__tests__/seo-indexing-contract.test.ts \
   lib/__tests__/commercial-seo-contract.test.ts
 git commit -m "fix(seo): consolidate indexed city canonicals"
@@ -396,7 +399,11 @@ it("reports redacted branded landing pages without adding an indexing mutation",
 
   expect(auditScript).toContain("getBrandedLandingPages")
   expect(auditScript).toContain('dimensions: ["query", "page"]')
-  expect(auditScript).toContain("normalizeBrandQuery")
+  expect(auditScript).toContain("isBrandedQuery")
+  expect(auditScript).toContain("PUBLIC_SITE_HOSTS")
+  expect(auditScript).toContain("NON_PUBLIC_PAGE_PREFIXES")
+  expect(auditScript).toContain("UUID_PATH_SEGMENT_RE")
+  expect(auditScript).toContain('normalizedPath.startsWith("/verify/")')
   expect(auditScript).toContain("brandedLandingPages")
   expect(auditScript).not.toContain("query: row.keys")
   expect(auditScript).not.toContain("indexing.urlNotifications.publish")
@@ -409,19 +416,57 @@ it("reports redacted branded landing pages without adding an indexing mutation",
 corepack pnpm exec vitest run lib/__tests__/seo-indexing-contract.test.ts
 ```
 
-- [ ] Add normalized brand matching and a query/page read:
+- [ ] Add token-aware brand matching, fail-closed public-page canonicalization,
+  and a query/page read. Accept only the apex and `www` HTTP(S) hosts, merge
+  trailing-slash/root aliases, reject capability/private/UUID-bearing paths,
+  and collapse every `/verify/*` credential path to `/verify` before
+  aggregation:
 
 ```js
-function normalizeBrandQuery(value) {
-  return value.toLowerCase().replace(/[^a-z0-9]/g, "")
+const PUBLIC_SITE_HOSTS = new Set(["instantmed.com.au", "www.instantmed.com.au"])
+const NON_PUBLIC_PAGE_PREFIXES = [
+  "/account", "/admin", "/auth", "/dashboard", "/doctor", "/patient",
+  "/resume", "/sign-in", "/sign-up", "/track",
+]
+const UUID_PATH_SEGMENT_RE = /\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?:\/|$)/i
+
+function isBrandedQuery(value) {
+  const tokens = value.toLowerCase().match(/[a-z0-9]+/g) ?? []
+
+  return tokens.some(
+    (token, index) =>
+      token === "instantmed" ||
+      (token === "instant" && tokens[index + 1] === "med"),
+  )
+}
+
+function isNonPublicPagePath(pathname) {
+  return NON_PUBLIC_PAGE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  ) || UUID_PATH_SEGMENT_RE.test(pathname)
+}
+
+function publicPage(value) {
+  try {
+    const url = new URL(value)
+    if (
+      !PUBLIC_SITE_HOSTS.has(url.hostname) ||
+      (url.protocol !== "http:" && url.protocol !== "https:")
+    ) return null
+    const normalizedPath = url.pathname.replace(/\/+$/, "") || "/"
+    if (isNonPublicPagePath(normalizedPath)) return null
+    const path = normalizedPath === "/verify" || normalizedPath.startsWith("/verify/")
+      ? "/verify"
+      : normalizedPath
+
+    return { path, url: `${SITE_ORIGIN}${path}` }
+  } catch {
+    return null
+  }
 }
 
 function publicPagePath(value) {
-  try {
-    return new URL(value, SITE_ORIGIN).pathname
-  } catch {
-    return "/unknown"
-  }
+  return publicPage(value)?.path ?? null
 }
 
 async function getBrandedLandingPages(searchconsole, startDate, endDate) {
@@ -438,8 +483,9 @@ async function getBrandedLandingPages(searchconsole, startDate, endDate) {
 
   const pages = new Map()
   for (const row of response.data.rows ?? []) {
-    if (!normalizeBrandQuery(row.keys?.[0] ?? "").includes("instantmed")) continue
+    if (!isBrandedQuery(row.keys?.[0] ?? "")) continue
     const page = publicPagePath(row.keys?.[1] ?? "")
+    if (!page) continue
     const current = pages.get(page) ?? { page, clicks: 0, impressions: 0 }
     current.clicks += row.clicks ?? 0
     current.impressions += row.impressions ?? 0
@@ -455,7 +501,12 @@ async function getBrandedLandingPages(searchconsole, startDate, endDate) {
 }
 ```
 
-- [ ] Fetch it alongside page performance and write only the aggregate rows to `report.brandedLandingPages`. Do not write exact Search Console query strings, even when they contain the brand token.
+- [ ] Fetch it alongside page performance and write only the aggregate rows to
+  `report.brandedLandingPages`. Contract-test generic `instant medical...`
+  false positives, external/staging/non-HTTP hosts, query/fragment stripping,
+  root/trailing-slash merging, capability/private/UUID rejection, and
+  `/verify/*` credential redaction. Do not write exact Search Console query
+  strings, even when they contain the brand token.
 
 - [ ] Preserve the `webmasters.readonly` scope and absence of `urlNotifications.publish` or any submit script.
 
@@ -480,138 +531,40 @@ git commit -m "feat(seo): report branded Search Console landings"
 **Files:**
 
 - Modify: `lib/data/customer-growth-baseline.ts`
+- Create: `lib/data/customer-growth-revenue-read.ts`
 - Modify: `scripts/customer-growth-baseline.ts`
 - Modify: `lib/__tests__/customer-growth-baseline.test.ts`
 
 Do not invent landing-page revenue. This task reports paid-order counts by source group and public pathname; total net-retained revenue remains the canonical economic read.
 
-- [ ] Add a failing unit test with aggregate-only fixtures:
+- [ ] Add `lib/data/customer-growth-revenue-read.ts` as the single audit reader for canonical revenue evidence. Read reportable paid orders by `paid_at`, exact live-AUD refund debit/reversal movements from `stripe_refund_cash_movements`, refund-ledger health, and live-AUD dispute withdrawals/reinstatements from `stripe_disputes`. Do not use cumulative `intakes.refund_amount_cents` or `refunded_at` snapshots as window cash events.
 
-```ts
-it("groups free-channel paid orders by canonical source and public pathname", () => {
-  const rows = buildFreeChannelLandingBreakdown([
-    { referrer: "https://chatgpt.com/", landing_page: "/medical-certificate-online?utm_source=chatgpt.com" },
-    { referrer: "https://www.google.com/", landing_page: "/medical-certificate" },
-    { utm_medium: "referral", utm_source: "hrm", landing_page: "/employers?campaign=employer_verification" },
-    { gclid: "diagnostic-click-id", landing_page: "/prescriptions" },
-  ])
+- [ ] Fail closed when a revenue query fails, exact row counts are missing, a count exceeds the fetched rows/5,000-row bound, a refund movement is incomplete, or refund-ledger health reports conflicting, unlinked, unsupported-currency, unknown-mode, or otherwise incomplete evidence. Never silently calculate from truncated rows.
 
-  expect(rows).toEqual([
-    { group: "ai_referral", landingPage: "/medical-certificate-online", orders: 1 },
-    { group: "organic_nonbrand", landingPage: "/medical-certificate", orders: 1 },
-    { group: "referral", landingPage: "/employers", orders: 1 },
-  ])
-})
-```
+- [ ] Reduce that evidence through `buildNetRetainedPurchaseValue()`: purchases enter at `paid_at`; refund debits and reversals use their exact balance-transaction times; dispute withdrawals and reinstatements use their durable cash-event times. Cap the combined outstanding refund and dispute loss at the captured order amount so one payment cannot be removed twice.
 
-- [ ] Confirm the test fails because the builder does not exist:
+- [ ] Apply the canonical reportable-intake and seeded-E2E exclusions to paid orders and every linked refund/dispute row before aggregation. Test-mode or excluded evidence must not satisfy production revenue health.
 
-```bash
-corepack pnpm exec vitest run lib/__tests__/customer-growth-baseline.test.ts
-```
+- [ ] Build the free-channel paid-order breakdown from the canonical attribution classifier for `organic_nonbrand`, `organic_brand`, `ai_referral`, and `referral`. Accept only HTTP(S) landings on `instantmed.com.au` or `www.instantmed.com.au`; emit the canonical pathname with query, fragment, credentials, and non-root trailing slashes removed, and collapse external, malformed, or unsafe values to `/unknown`.
 
-- [ ] Implement a pure aggregate builder in `lib/data/customer-growth-baseline.ts`:
+- [ ] Add only `freeChannelLandingPages: FreeChannelLandingRow[]` to `CustomerGrowthSupabaseBaseline`; never persist raw attribution rows, referrers, query strings, click IDs, payment IDs, patient IDs, or credentials. Keep `assertNoSensitiveBaselineText()` on every generated artifact.
 
-```ts
-import {
-  classifyAttributionSource,
-  type AttributionClassificationInput,
-  type AttributionSourceGroup,
-} from "@/lib/analytics/source-classification"
+- [ ] Derive recovery orders with the same canonical `recovery_email` classifier and calculate recovery gross/net revenue from the same exact cash-event evidence. Include later in-window refund or dispute losses/reinstatements linked to older recovery orders even when their original payment predates the window; attribution time must not hide a current cash loss.
 
-const FREE_ACQUISITION_GROUPS = new Set<AttributionSourceGroup>([
-  "organic_nonbrand",
-  "organic_brand",
-  "ai_referral",
-  "referral",
-])
+- [ ] Count abandoned-checkout delivery only from `email_outbox` rows whose status is exactly `sent`. Do not count queued, failed, or `skipped_e2e` rows as delivered recovery emails.
 
-function publicLandingPath(value?: string | null): string {
-  if (!value) return "/unknown"
-  try {
-    return new URL(value, "https://instantmed.com.au").pathname
-  } catch {
-    return "/unknown"
-  }
-}
+- [ ] State beside the free-channel table that paid-order counts are acquisition evidence and total rolling net-retained revenue is the economic result. Keep revenue unallocated to individual landing pages.
 
-export function buildFreeChannelLandingBreakdown(
-  rows: AttributionClassificationInput[],
-): FreeChannelLandingRow[] {
-  const counts = new Map<string, number>()
-  for (const row of rows) {
-    const group = classifyAttributionSource(row).group
-    if (!FREE_ACQUISITION_GROUPS.has(group)) continue
-    const landingPage = publicLandingPath(row.landing_page)
-    const key = `${group}\t${landingPage}`
-    counts.set(key, (counts.get(key) ?? 0) + 1)
-  }
-
-  return [...counts.entries()]
-    .map(([key, orders]) => {
-      const [group, landingPage] = key.split("\t")
-      return { group: group as AttributionSourceGroup, landingPage, orders }
-    })
-    .sort((a, b) => b.orders - a.orders || a.group.localeCompare(b.group))
-}
-```
-
-- [ ] Add the aggregate to the existing output type; do not add raw rows:
-
-```ts
-export interface FreeChannelLandingRow {
-  group: AttributionSourceGroup
-  landingPage: string
-  orders: number
-}
-```
-
-Add `freeChannelLandingPages: FreeChannelLandingRow[]` as a top-level property on the existing `CustomerGrowthSupabaseBaseline` type. Keep its current `intakes` and `recovery` shapes unchanged.
-
-- [ ] Query all reportable paid attribution rows once in `scripts/customer-growth-baseline.ts`, derive both recovery and free-channel aggregates from the same canonical classifier, and write only the aggregate breakdown into `supabase-funnel-30d.json` and `summary.md`.
-
-```ts
-import {
-  classifyAttributionSource,
-  type AttributionClassificationInput,
-} from "@/lib/analytics/source-classification"
-
-type PaidAttributionRow = RecoveryPaidAttributionRow & AttributionClassificationInput
-
-const PAID_ATTRIBUTION_SELECT = [
-  "amount_cents",
-  "refund_amount_cents",
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_term",
-  "referrer",
-  "landing_page",
-  "gclid",
-  "gbraid",
-  "wbraid",
-  "campaignid",
-  "adgroupid",
-  "keyword",
-  "creative",
-  "matchtype",
-  "device",
-  "network",
-].join(", ")
-```
-
-- [ ] Replace `queryRecoveredPaidRows()` with one `queryPaidAttributionRows()` read using `PAID_ATTRIBUTION_SELECT`. Derive `recoveredPaidRows` by filtering that array through `classifyAttributionSource(row).group === "recovery_email"`, and derive `freeChannelLandingPages` through the new pure builder. Return the latter on `CustomerGrowthSupabaseBaseline`.
-
-- [ ] Keep `assertNoSensitiveBaselineText()` on every artifact. Strip query strings before aggregation and never write raw referrers or rows.
-
-- [ ] Add summary assertions for AI, organic, and referral landing rows. State beside the table that order counts are acquisition evidence and total net-retained revenue is the economic result.
+- [ ] Cover canonical public-path grouping/redaction, exact AUD refund/dispute math, double-loss capping, refund reversals, dispute reinstatements, incomplete/truncated evidence fail-closed behavior, reportable/seed exclusions, older recovery-order cash events, sent-only abandoned-checkout delivery, and sensitive-output rejection in the focused tests.
 
 - [ ] Run:
 
 ```bash
 corepack pnpm exec vitest run \
   lib/__tests__/customer-growth-baseline.test.ts \
-  lib/__tests__/attribution-source-classification.test.ts
+  lib/__tests__/attribution-source-classification.test.ts \
+  lib/__tests__/net-retained-purchase-value.test.ts \
+  lib/__tests__/revenue-dashboard.test.ts
 corepack pnpm audit:customer-growth -- --days 30 --out-dir output/revenue-compounding/pre-deploy
 ```
 
@@ -621,6 +574,7 @@ Expected: PASS; aggregate output only; no patient, payment, click, or credential
 
 ```bash
 git add lib/data/customer-growth-baseline.ts \
+  lib/data/customer-growth-revenue-read.ts \
   scripts/customer-growth-baseline.ts \
   lib/__tests__/customer-growth-baseline.test.ts
 git commit -m "feat(growth): report free-channel paid landings"
@@ -643,7 +597,9 @@ corepack pnpm exec vitest run \
   lib/__tests__/seo-indexing-contract.test.ts \
   lib/__tests__/commercial-seo-contract.test.ts \
   lib/__tests__/customer-growth-baseline.test.ts \
-  lib/__tests__/attribution-source-classification.test.ts
+  lib/__tests__/attribution-source-classification.test.ts \
+  lib/__tests__/net-retained-purchase-value.test.ts \
+  lib/__tests__/revenue-dashboard.test.ts
 ```
 
 - [ ] Run documentation and route checks:
@@ -659,11 +615,15 @@ bash scripts/check-route-conflicts.sh
 corepack pnpm lint
 corepack pnpm typecheck
 corepack pnpm test run
-corepack pnpm build
+SENTRY_AUTH_TOKEN= corepack pnpm build
 git diff --check
 ```
 
 Expected: every command PASS. A green focused suite without the full unit/build receipt is not release proof.
+
+Authenticated Sentry release/source-map uploads are authorised only in deployment or CI. Local candidate builds must clear `SENTRY_AUTH_TOKEN` as above so verification cannot create external release artifacts.
+
+- [ ] Confirm `lib/seo/sitemap-lastmod.ts` and `app/locations/sitemap.ts` have an explicit, honest `lastmod` refresh for every materially changed route. Record the route/date evidence with the candidate receipt; do not treat deployment as a `lastmod` refresh.
 
 - [ ] Start the approved InstantMed dev server on port 3060 and inspect at 1440x900 and 390x844:
 
@@ -673,7 +633,7 @@ corepack pnpm dev
 
 - [ ] Browser-verify `/`, `/medical-certificate`, `/locations/canberra`, `/locations/brisbane`, `/telehealth-australia`, and `/prescriptions` for rendered copy, canonical, JSON-LD, footer `data-nosnippet`, links, mobile overflow, console errors, and failed network requests.
 
-- [ ] Verify redirect responses for all six paired city routes and Gold Coast against the candidate server.
+- [ ] Verify HTTP 308 redirect responses for all six paired city routes and Gold Coast against the candidate server, and confirm the intent hub, static params, intent sitemap, and HTML sitemap contain no links to the redirect sources.
 
 - [ ] Record the exact candidate SHA and test receipts in this plan’s execution log. Do not claim production proof.
 
@@ -694,6 +654,8 @@ git diff --cached --stat
 - [ ] Push the `codex/` branch and open a draft PR. The PR body must include Problem, Changes, Verification, Risk/Rollback, Compliance/Privacy impact, and Env/Migration changes.
 
 - [ ] Keep the PR draft until hosted checks pass. Do not mark ready based only on local tests.
+
+- [ ] The candidate starts from current `main`; record the candidate bundle/SHA for comparison but do not prescribe historical branch SHAs as ancestors or claim that an individual commit caused a Google result.
 
 - [ ] Present the exact PR, candidate SHA, hosted checks, and rollback (`revert` the merge plus preserve permanent redirects if already crawled) for fresh operator approval.
 
@@ -723,7 +685,7 @@ corepack pnpm seo:gsc-index-audit -- \
   > output/revenue-compounding/pre-deploy-gsc-baseline.json
 ```
 
-- [ ] At each day 7, 14, and 28 checkpoint, run a new read-only audit whose `--start-date` is the exact production deployment date recorded in Task 7 and whose `--end-date` is the latest Search Console final-data date. Save each aggregate result separately. Do not relabel the frozen baseline as post-deploy evidence.
+- [ ] At each day 7, 14, and 28 checkpoint, run a new read-only audit whose `--start-date` is the exact production deployment date recorded in Task 7 and whose `--end-date` is the latest Search Console final-data date. Save each aggregate result separately at candidate bundle/SHA level. Do not relabel the frozen baseline as post-deploy evidence or attribute a Google result to an individual commit.
 
 - [ ] In Search Console, use **Test live URL** and then request indexing once for the homepage and `/medical-certificate`. Resubmit the existing sitemap once only if the live `lastmod` values are correct. Do not use Removals and do not repeatedly request indexing.
 
@@ -733,7 +695,7 @@ corepack pnpm seo:gsc-index-audit -- \
 
 - [ ] Do not judge the branch until URL Inspection shows a successful post-deployment crawl. If no post-deploy crawl exists, hold.
 
-- [ ] At day 28, apply this decision:
+- [ ] At day 28, apply this candidate bundle/SHA-level decision. Consider logged confounders: safety, compliance, privacy, payment, and fulfilment fixes proceed; other overlapping changes rebase only the materially affected page's search observation window.
 
 ```text
 ADVANCE: post-deploy crawl confirmed and the boilerplate snippet/unhelpful sitelink pattern is materially reduced.
@@ -811,7 +773,7 @@ corepack pnpm audit:customer-growth -- \
 - [ ] Use the shipped Item 2 rule without reinterpretation:
 
 ```text
-CONTINUE: >=8 free-channel paid orders in the final closed 30-day window.
+CONTINUE: after two closed 30-day windows, >=8 free-channel paid orders permits one second bounded session only, with fresh GSC corroboration and the operating guardrails clear.
 HOLD: 6-7 free-channel paid orders.
 STOP: <=5 after two closed 30-day windows.
 ```
@@ -830,10 +792,12 @@ STOP: <=5 after two closed 30-day windows.
 - Update: `docs/ROADMAP.md`
 - Create only after selection: one new bounded implementation plan for the chosen existing page
 
+`/prescriptions` is excluded from these generic tiers while the shipped Item 2 rule remains active; Task 10 owns its specialised two-window threshold and possible second bounded session.
+
 - [ ] Rank existing public landing pages using reportable free-channel paid orders from one closed 30-day window:
 
 ```text
-DEEPEN: >=10 paid orders; one answer-density/clarity session may be planned.
+DEEPEN: >=10 paid orders; one answer-density/clarity session on one existing page only may be planned.
 MAINTAIN: 3-9 paid orders; accuracy and freshness only.
 DO NOTHING: <3 paid orders; no dedicated session.
 ```
@@ -846,7 +810,7 @@ DO NOTHING: <3 paid orders; no dedicated session.
 
 - [ ] If no page reaches a gate, stop. Continue rank 3 distribution and existing rank 4 operations; do not create work to fill a calendar.
 
-- [ ] If one page qualifies, write one page-specific plan with one hypothesis, one material change, one closed-window success/stop rule, focused tests, and no new URL.
+- [ ] If one page qualifies, write one page-specific plan with one hypothesis, one material change, one closed-window success/stop rule, focused tests, and no new URL. `DEEPEN` cannot authorise a new URL, content wave, or the locked v4 programme; v4 scaling still requires both Phase 2 Outcome A and the P3.1 cohort beating its holdout.
 
 - [ ] Refresh `docs/ROADMAP.md`, run `corepack pnpm doc:audit`, and commit the dated decision receipt.
 
@@ -872,6 +836,12 @@ The plan is successful only if the receipts support the claim. Fill this from cl
 | Date | Task | SHA / external receipt | Result | Next gate |
 |---|---|---|---|---|
 | 2026-08-28 | Plan adopted | Local documentation commit | Pending implementation | Task 1 |
+| 2026-08-28 | Task 0 reconciliation | Reconciled against current `main`; `b587df12aec7eb70b7d9ff716e0ccc3beed98255` | Tasks 1-11 aligned to current claim, redirect, sitemap, observation, and compounding gates; product implementation is not complete | Run Task 1 locally |
+| 2026-08-28 | Task 6 local candidate verification | Tested pre-receipt implementation `f2e9df0b5587af342ed02d4f32716f284a927777` | PASS: focused and full tests, production build, 16-view browser matrix, and all 13 exact HTTP 308 redirects; local candidate evidence only | Independent whole-branch review before any PR or production action |
+| 2026-08-29 | Final Task 6 local candidate verification | Tested pre-receipt implementation `7cd1b1e37022982aee5fab6d737d15b6734c83f5` | PASS: focused 67-test and full 6,483-test suites, 482/482-route production build, read-only aggregate GSC and growth audits, six bounded city renders, 16-view browser matrix, and all 13 exact HTTP 308 redirects; supersedes the prior local receipt, while deployment, hosted checks, Search Console crawl/indexing, SERP, and revenue impact remain unverified | Independent whole-branch review before any PR or production action |
+| 2026-08-29 | Corrected final Task 6 local candidate verification | Tested pre-receipt implementation `b437e8dfe7abc5386862472d5752998b2715038e`; supersedes receipt `5ddccc62b` | PASS: 9 focused files / 106 tests, 10 documentation specs / 121 tests / 123 Markdown docs, full 702 files / 6,487 tests, upload-disabled 482/482-route production build, read-only aggregate GSC audit (151 sitemap URLs, 79 performance pages, 34 pages with clicks, 1 indexed URL inspected), exact-AUD aggregate growth audit (276 reportable, 258 paid, $8,175.65 net retained), all seven indexed deep-city renders, 18-view light/dark desktop/mobile browser matrix, and all 13 exact HTTP 308 redirects. The first local build may have created or finalised a Sentry release/source-map artifact before the authoritative upload-disabled rerun; no deployment occurred. Hosted behaviour, fresh Search Console crawl/indexing changes, SERP movement, and revenue impact remain unverified. | Independent whole-branch review before any PR or production action |
+| 2026-08-29 | Definitive corrected Task 6 local candidate verification | Tested pre-receipt implementation `57785489e38f59deb6fd584ca7d58139691b07ac`; supersedes receipts `5ddccc62b` and `408328bd2` | PASS: 11 focused files / 133 tests, 10 documentation specs / 121 tests / 123 Markdown docs, full 702 files / 6,493 tests, upload-disabled 482/482-route production build, read-only aggregate GSC audit (151 unique sitemap URLs, 79 performance pages, 34 pages with clicks, 1 indexed URL inspected), and exact-AUD aggregate growth audit (276 created intakes, 258 paid, $8,484.90 gross, $309.25 refunds, $8,175.65 net retained; 20 sent abandoned-checkout emails; $114.80 recovered net). Aggregate artifacts contained zero raw queries, query-row keys, UUIDs, click IDs, certificate credentials, or emails and were removed. All seven indexed deep-city DOM/schema surfaces, 18 fresh light/dark desktop/mobile captures, all 13 exact HTTP 308 redirects, and all pruned-surface checks passed. A historical pre-candidate `b437e8dfe` run may have uploaded a Sentry release/source-map artifact; this gate used only `SENTRY_AUTH_TOKEN= corepack pnpm build` and performed no Sentry upload or deployment. Hosted behaviour, fresh Search Console crawl/indexing changes, SERP movement, and revenue impact remain unverified. | Independent whole-branch review before any PR or production action |
+| 2026-08-30 | Main-synced production candidate verification | Tested pre-receipt implementation `b2758c519417ebdb76226be64d5a8a5720122aed`; supersedes every earlier Task 6 receipt | PASS on the current `origin/main`-integrated tree: 14 focused files / 173 tests, 10 documentation specs / 121 tests / 124 Markdown docs, full 710 files / 6,533 tests, dead-code ratchet 2,297 / 2,297, and exact upload-disabled `release:check` with a 486/486-route production build. Read-only GSC evidence recorded both the frozen Task 8 window (151 unique sitemap URLs, 79 performance pages, 33 pages with clicks) and the current window (151 unique sitemap URLs, 80 performance pages, 35 pages with clicks, 1 inspected URL passing). The current exact-AUD aggregate growth audit recorded 281 reportable intakes, 261 paid, $8,599.75 gross, $309.25 refunds, $8,290.50 net retained, 23 sent abandoned-checkout emails, and $114.80 recovered net. Privacy scans found zero raw queries, query-row keys, UUIDs, click IDs, certificate credentials, emails, or capability/private paths. All seven indexed deep-city DOM/schema surfaces, 18 visually inspected light/dark desktop/mobile captures, all 13 exact HTTP 308 redirects, 2026-08-29 sitemap dates, and pruned-surface checks passed. A historical pre-candidate `b437e8dfe` local build may have uploaded a Sentry release/source-map artifact; every authoritative build in this gate explicitly cleared `SENTRY_AUTH_TOKEN`. Hosted behaviour, Search Console mutation/fresh crawl, SERP movement, and revenue impact remain unverified. | Commit this receipt with `[preview]`, then run protected PR, preview, production, and post-deploy Search Console gates |
 
 ## Self-Review Checklist
 
