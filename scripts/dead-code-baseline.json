@@ -1305,7 +1305,6 @@
     "production|exports|lib/audit/compliance-audit.ts|logTriageNeedsCall",
     "production|exports|lib/audit/compliance-audit.ts|logTriageOutcomeChanged",
     "production|exports|lib/auth/auth-confirmation.ts|AUTH_CONFIRMATION_ACTION_TYPES",
-    "production|exports|lib/auth/auth-confirmation.ts|resolveAuthConfirmationDestination",
     "production|exports|lib/auth/helpers.ts|checkOnboardingRequired",
     "production|exports|lib/auth/helpers.ts|requireApiAuth",
     "production|exports|lib/auth/helpers.ts|requirePatientAuth",
