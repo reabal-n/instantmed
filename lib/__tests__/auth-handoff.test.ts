@@ -36,6 +36,17 @@ describe("auth post-sign-in handoff", () => {
     expect(buildPostSignInHref("?redirect=%2Fpatient")).toBe("/auth/post-signin?redirect=%2Fpatient")
   })
 
+  it("preserves the complete post-signin handoff when the waiter retries sign-in", () => {
+    const waiterSource = readFileSync(
+      join(process.cwd(), "app/auth/post-signin/auth-waiter.tsx"),
+      "utf8",
+    )
+
+    expect(waiterSource).toContain("buildPostSignInHref(paramsString)")
+    expect(waiterSource).toContain("buildSignInRedirectHref")
+    expect(waiterSource).not.toContain('href="/sign-in"')
+  })
+
   it("normalizes redirect destinations into the post-sign-in handoff", () => {
     expect(buildPostSignInRedirectHref(null)).toBe(AUTH_POST_SIGNIN_HREF)
     expect(buildPostSignInRedirectHref("/auth/post-signin?intake_id=abc123"))

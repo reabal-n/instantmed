@@ -30,6 +30,7 @@ describe("auth email hardening contract", () => {
     expect(client).toContain("window.history.replaceState")
     expect(client).toContain("window.location.replace")
     expect(client).toContain("setRetainedConfirmation")
+    expect(client).toContain("const visibleCopy = hasValidLink ? copy : null")
     expect(client).toContain('id="main-content"')
     expect(client).not.toContain("useEffect(")
     expect(client).not.toContain("useReducedMotion")
