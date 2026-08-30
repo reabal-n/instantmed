@@ -57,11 +57,11 @@ export type GoogleAdsReturnSnapshotInput = {
   }
 }
 
-export type GoogleAdsReturnStatus = "revenue_above_spend" | "revenue_below_spend" | "no_local_orders" | "no_spend" | "unknown"
-export type GoogleAdsCampaignState = "enabled" | "paused" | "mixed" | "unknown"
-export type GoogleAdsReturnMetricsAvailability = "available" | "unavailable"
+type GoogleAdsReturnStatus = "revenue_above_spend" | "revenue_below_spend" | "no_local_orders" | "no_spend" | "unknown"
+type GoogleAdsCampaignState = "enabled" | "paused" | "mixed" | "unknown"
+type GoogleAdsReturnMetricsAvailability = "available" | "unavailable"
 
-export type GoogleAdsReturnCampaign = {
+type GoogleAdsReturnCampaign = {
   campaignId: string
   campaignName: string
   channel: string | null
@@ -104,35 +104,6 @@ export type GoogleAdsReturnSnapshot = {
     spendAud: number | null
     totalClicks: number
   }
-}
-
-export const EMPTY_GOOGLE_ADS_RETURN_SNAPSHOT: GoogleAdsReturnSnapshot = {
-  campaigns: [],
-  campaignState: "unknown",
-  generatedAt: "",
-  queryErrorCount: 0,
-  queryErrorNames: [],
-  range: {
-    days: 30,
-    endDate: "",
-    startDate: "",
-  },
-  returnMetricsAvailability: "unavailable",
-  status: "unknown",
-  summary: {
-    avgCpcAud: null,
-    costPerLocalOrderAud: null,
-    localGrossRevenueAud: 0,
-    localNetRevenueAud: 0,
-    localOrders: 0,
-    localRoas: null,
-    revenueAfterAdSpendAud: null,
-    purchaseCpaAud: null,
-    purchaseRoas: null,
-    refundedAud: 0,
-    spendAud: null,
-    totalClicks: 0,
-  },
 }
 
 function roundMoney(value: number): number {

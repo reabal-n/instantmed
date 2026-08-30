@@ -69,7 +69,7 @@ export type CustomerGrowthRevenueEvidence = {
   refundRows: NetRetainedRefundRow[]
 }
 
-export type CustomerGrowthPaidRevenueRow = NetRetainedPurchaseRow & {
+type CustomerGrowthPaidRevenueRow = NetRetainedPurchaseRow & {
   category: string | null
   payment_status: string | null
   status: string | null

@@ -5,7 +5,7 @@ import {
 } from "@/lib/analytics/source-classification"
 import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 
-export type CustomerGrowthServiceBaseline = {
+type CustomerGrowthServiceBaseline = {
   grossRevenueAud: number
   intakes: number
   paid: number
