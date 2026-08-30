@@ -6,17 +6,17 @@ This is a compact current map. `docs/ARCHITECTURE.md` remains the canonical deep
 
 | Area | Current count |
 |------|---------------|
-| `app/` | 559 files |
-| Route-like files under `app/` | 239 |
-| API route files under `app/api/` | 88 |
+| `app/` | 568 files |
+| Route-like files under `app/` | 246 |
+| API route files under `app/api/` | 93 |
 | Cron route files under `app/api/cron/` | 29 |
 | `components/` | 405 files |
-| `lib/` | 1,304 files |
+| `lib/` | 1,321 files |
 | E2E TypeScript files under `e2e/` | 78 (68 specs) |
 | Health guide MDX files under `content/blog/` | 107 |
-| SQL migrations under `supabase/migrations/` | 133 |
+| SQL migrations under `supabase/migrations/` | 134 |
 
-Newest on disk, and latest applied and verified production migration (2026-08-28), is `20260828090000_specialty_experience_attribution.sql`, which adds bounded, nullable, non-clinical `growth_experience_version` columns with set-once draft and immutable intake semantics. Linked migration history is aligned through `20260828090000`. Live metadata confirmed both nullable `text` columns, both validated constraints, both enabled triggers, and both `SECURITY INVOKER` trigger functions with `EXECUTE` denied to `PUBLIC`, `anon`, and `authenticated`. The immediately preceding `20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied; all three `is_doctor()` policies have roles exactly `{authenticated}`. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, also passed its linked DB lint and ACL gates; detailed database receipts live in `docs/ARCHITECTURE.md`.
+Latest timestamp on disk, and latest applied production timestamp (2026-08-28), is `20260828090000_specialty_experience_attribution.sql`, which adds bounded, nullable, non-clinical `growth_experience_version` columns with set-once draft and immutable intake semantics. Linked migration history is aligned through `20260828090000`. Live metadata confirmed both nullable `text` columns, both validated constraints, both enabled triggers, and both `SECURITY INVOKER` trigger functions with `EXECUTE` denied to `PUBLIC`, `anon`, and `authenticated`. The immediately preceding `20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied; all three `is_doctor()` policies have roles exactly `{authenticated}`. The additive `20260827210500_twilio_voice_callback_requests.sql` is applied and verified in production: the encrypted queue was empty at release, service-role access succeeded, `anon` table/RPC access was denied, and the live SECURITY DEFINER ACL checker returned zero violations. The earlier refund-recovery migration, `20260816101752_harden_stripe_refund_recovery.sql`, also passed its linked DB lint and ACL gates; detailed database receipts live in `docs/ARCHITECTURE.md`.
 
 ## Runtime Shape
 

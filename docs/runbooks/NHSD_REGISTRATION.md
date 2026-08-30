@@ -66,7 +66,7 @@ Already registered + ABR-validated. For reference / re-entry:
 | Legal name | `INSTANTMED PTY. LTD.` |
 | ABN | `64 694 559 334` |
 | Postal address | `Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010` |
-| Org phone / email | `0450 722 549` / `hello@instantmed.com.au` |
+| Org phone / email | `0495 049 555` / `hello@instantmed.com.au` |
 | Website | `https://instantmed.com.au` |
 | HPI-O for CSP | None provided (left blank — fine; not required) |
 
@@ -80,7 +80,7 @@ Already registered + ABR-validated. For reference / re-entry:
 | Location type | **Virtual – delivers healthcare services virtually** ← the key field (no walk-in clinic) |
 | Currently providing services | ✅ on |
 | Amenities (wheelchair/toilet…) | leave blank (physical-premises only) |
-| Phone / email | `0450 722 549` / `hello@instantmed.com.au` |
+| Phone / email | `0495 049 555` / `hello@instantmed.com.au` |
 | Website | `https://instantmed.com.au` (⚠ not an email — easy to fat-finger) |
 | Postal address | `Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010` |
 

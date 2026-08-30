@@ -4,7 +4,7 @@ import { BreadcrumbSchema } from "@/components/seo"
 
 import { ContactClient } from "./contact-client"
 
-const SEARCH_DESCRIPTION = "Need help with an existing request, certificate, payment or account? Contact InstantMed by email, phone or secure form. For medical emergencies, call 000."
+const SEARCH_DESCRIPTION = "Need help with an existing request, certificate, payment or account? Contact InstantMed by email, voice message or secure form. For medical emergencies, call 000."
 
 export const metadata: Metadata = {
   title: { absolute: "Contact InstantMed Support | Requests, Payments & Accounts" },

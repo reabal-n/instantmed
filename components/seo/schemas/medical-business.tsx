@@ -1,4 +1,8 @@
-import { CONTACT_EMAIL_HELLO, CONTACT_PHONE,PRICING_DISPLAY } from "@/lib/constants"
+import {
+  CONTACT_EMAIL_HELLO,
+  CONTACT_PHONE_TEL,
+  PRICING_DISPLAY,
+} from "@/lib/constants"
 
 import { JsonLdScript } from "./json-ld-script"
 import { SAME_AS_PROFILES } from "./same-as"
@@ -25,7 +29,7 @@ export function MedicalBusinessSchema({ baseUrl = "https://instantmed.com.au" }:
     description: "Australian telehealth platform for medical certificates, repeat prescriptions, and specialty doctor-reviewed pathways",
     url: baseUrl,
     logo: `${baseUrl}/branding/logo.png`,
-    telephone: CONTACT_PHONE,
+    telephone: CONTACT_PHONE_TEL,
     email: CONTACT_EMAIL_HELLO,
     address: {
       "@type": "PostalAddress",

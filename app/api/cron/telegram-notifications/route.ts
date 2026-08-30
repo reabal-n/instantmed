@@ -6,6 +6,10 @@ import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import {
+  deliverMedicalDirectorVoiceMessageAlert,
+  deliverMedicalDirectorVoiceUnresolvedReminder,
+} from "@/lib/twilio/medical-director-voice-message"
 
 const logger = createLogger("cron-telegram-notifications")
 
@@ -25,6 +29,11 @@ type PendingPaidTelegramIntake = {
   subtype: string | null
   payment_status: string | null
   paid_request_telegram_attempts: number | null
+}
+
+type PendingVoiceMessage = {
+  id: string
+  telegram_notification_attempts: number
 }
 
 async function processPendingPaidTelegramNotifications(signal?: AbortSignal) {
@@ -88,8 +97,67 @@ async function processPendingPaidTelegramNotifications(signal?: AbortSignal) {
     }
   }
 
+  signal?.throwIfAborted()
+  const { data: pendingVoiceRows, error: pendingVoiceError } = await supabase
+    .from("medical_director_voice_messages")
+    .select("id, telegram_notification_attempts")
+    .neq("status", "resolved")
+    .is("telegram_notification_sent_at", null)
+    .lt("telegram_notification_attempts", MAX_ATTEMPTS)
+    .order("created_at", { ascending: true })
+    .limit(BATCH_SIZE)
+
+  if (
+    pendingVoiceError &&
+    !["42P01", "PGRST205"].includes(pendingVoiceError.code)
+  ) {
+    throw pendingVoiceError
+  }
+
+  // Keep the existing paid-request retry job healthy during the safe rollout
+  // window before the voice-message migration is applied.
+  const voiceQueueAvailable = !pendingVoiceError
+  const pendingVoice = voiceQueueAvailable
+    ? (pendingVoiceRows ?? []) as PendingVoiceMessage[]
+    : []
+  for (const voiceMessage of pendingVoice) {
+    signal?.throwIfAborted()
+    try {
+      const delivered = await deliverMedicalDirectorVoiceMessageAlert(voiceMessage.id)
+      if (delivered) sent++
+      else skipped++
+    } catch (err) {
+      if (signal?.aborted) throw err
+      failed++
+      logger.error("Medical Director voice-message Telegram retry failed", {
+        attempts: voiceMessage.telegram_notification_attempts,
+      })
+      Sentry.captureException(err, {
+        tags: { source: "telegram-notification-cron", notificationType: "medical-director-voice-message" },
+        extra: { attempts: voiceMessage.telegram_notification_attempts },
+      })
+    }
+  }
+
+  if (voiceQueueAvailable) {
+    try {
+      const reminded = await deliverMedicalDirectorVoiceUnresolvedReminder()
+      if (reminded) sent++
+    } catch (err) {
+      if (signal?.aborted) throw err
+      failed++
+      logger.error("Medical Director voice-message reminder failed", {})
+      Sentry.captureException(err, {
+        tags: {
+          source: "telegram-notification-cron",
+          notificationType: "medical-director-voice-reminder",
+        },
+      })
+    }
+  }
+
   return {
-    processed: pending.length,
+    processed: pending.length + pendingVoice.length,
     sent,
     failed,
     skipped,

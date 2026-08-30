@@ -11,7 +11,7 @@ import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
-import { DEFAULT_APP_URL, PRICING_DISPLAY } from "@/lib/constants"
+import { CONTACT_PHONE_TEL, DEFAULT_APP_URL, PRICING_DISPLAY } from "@/lib/constants"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { getAllStateSlugs, getStateBySlug } from "@/lib/seo/data/states"
 
@@ -134,7 +134,7 @@ export default async function StatePage({ params }: PageProps) {
     url: canonical,
     logo: `${DEFAULT_APP_URL}/branding/logo.png`,
     image: `${DEFAULT_APP_URL}/branding/logo.png`,
-    telephone: "+61-450-722-549",
+    telephone: CONTACT_PHONE_TEL,
     areaServed: {
       "@type": "State",
       name: data.fullName,

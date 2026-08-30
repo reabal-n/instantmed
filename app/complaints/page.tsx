@@ -7,7 +7,12 @@ import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { CTABanner } from "@/components/sections/cta-banner"
 import { LegalSection } from "@/components/shared/legal-section"
 import { Navbar } from "@/components/shared/navbar"
-import { CONTACT_EMAIL_COMPLAINTS, CONTACT_EMAIL_PRIVACY } from "@/lib/constants"
+import {
+  CONTACT_EMAIL_COMPLAINTS,
+  CONTACT_EMAIL_PRIVACY,
+  CONTACT_PHONE,
+  CONTACT_PHONE_TEL,
+} from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 
 const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
@@ -91,6 +96,11 @@ export default function ComplaintsPage() {
                   <p>
                     The fastest way to lodge a complaint is by email:{" "}
                     <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`}>{CONTACT_EMAIL_COMPLAINTS}</a>
+                  </p>
+                  <p>
+                    You can also call{" "}
+                    <a href={`tel:${CONTACT_PHONE_TEL}`}>{CONTACT_PHONE}</a>. Lena will take a short
+                    message for our Medical Director.
                   </p>
                   <p>When you email us, please include:</p>
                   <ul>

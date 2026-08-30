@@ -5,6 +5,7 @@ import Stripe from "stripe"
 import { AI_MODEL_CONFIG } from "@/lib/ai/provider"
 import { assertParchmentSmokeConfig } from "@/lib/parchment/smoke"
 import { STRIPE_PRICE_ENV_KEYS } from "@/lib/stripe/price-config-health"
+import { getTwilioVoiceReadiness } from "@/lib/twilio/voice-config"
 
 import { hydrateLocalEnv } from "./video-review/local-env"
 
@@ -65,6 +66,15 @@ hydrateLocalEnv([
   "NEXT_PUBLIC_SITE_URL",
   "OPENAI_API_KEY",
   "OPENAI_REVIEW_MODEL",
+  "TWILIO_AI_VOICE_ENABLED",
+  "TWILIO_AUTH_TOKEN",
+  "TWILIO_VOICE_PUBLIC_BASE_URL",
+  "TWILIO_VOICE_SESSION_SECRET",
+  "TWILIO_VOICE_BLOCKED_CALLER_HASHES",
+  "PHI_ENCRYPTION_ENABLED",
+  "PHI_ENCRYPTION_WRITE_ENABLED",
+  "PHI_ENCRYPTION_READ_ENABLED",
+  "PHI_MASTER_KEY",
   "ANTHROPIC_MODEL",
   "ANTHROPIC_CLAUDE_MODEL",
   "GOOGLE_ADS_API_VERSION",
@@ -630,6 +640,22 @@ async function checkOpenAIReviewModel(): Promise<CheckResult[]> {
   return [result("pass", "OpenAI review model", `${model} is available.`)]
 }
 
+function checkTwilioVoiceReadiness(): CheckResult[] {
+  const readiness = getTwilioVoiceReadiness(process.env)
+  if (!readiness.enabled) {
+    return [result("pass", "Twilio AI voice", "Disabled by the production kill switch.")]
+  }
+  if (!readiness.ready) {
+    return [result("fail", "Twilio AI voice", `Enabled but missing: ${formatEnvList(readiness.missing)}.`)]
+  }
+
+  const baseUrl = process.env.TWILIO_VOICE_PUBLIC_BASE_URL?.trim() ?? ""
+  if (!baseUrl.startsWith("https://")) {
+    return [result("fail", "Twilio AI voice", "TWILIO_VOICE_PUBLIC_BASE_URL must use HTTPS.")]
+  }
+  return [result("pass", "Twilio AI voice", "Enabled with signed webhooks, encrypted Medical Director messages, and an explicit kill switch.")]
+}
+
 async function checkParchmentReadiness(): Promise<CheckResult[]> {
   const hasAnyParchmentConfig = [
     "PARCHMENT_API_URL",
@@ -664,6 +690,7 @@ async function main() {
     ...(await checkResendDomainOwnership()),
     ...(await checkAnthropicModels()),
     ...(await checkOpenAIReviewModel()),
+    ...checkTwilioVoiceReadiness(),
     ...(await checkParchmentReadiness()),
   ]
 

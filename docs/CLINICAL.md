@@ -230,13 +230,14 @@ Default: **original script + 2 repeats** (≈ 3 months for a daily medicine, fro
 
 ## AI Boundary Rules
 
-**Core principle: AI assists with documentation only. All triage and decline decisions are rule-based.**
+**Core principle: AI assists with documentation and narrowly bounded administrative support only. All triage and decline decisions are rule-based.**
 
 ### What AI CAN Do
 
 | Category | Permitted Actions |
 |----------|------------------|
 | **Documentation** | Generate clinical note drafts from intake answers; suggest certificate wording; pre-populate forms with structured data; summarize patient history for doctor review |
+| **Administrative support** | Take one caller-confirmed patient message for Medical Director review; request a callback number only when the patient asks for a return call |
 | **Formatting** | Structure free-text into clinical format; format medication names/dosages; generate PDF-ready content |
 | **Quality** | Flag spelling/grammar issues; suggest completeness improvements; highlight missing fields |
 
@@ -247,6 +248,22 @@ Default: **original script + 2 repeats** (≈ 3 months for a daily medicine, fro
 | **Safety decisions** | Override safety knockout rules; approve requests failing eligibility; bypass emergency detection; modify triage outcomes |
 | **Prescribing** | Recommend medications; suggest dosages; indicate PBS eligibility; imply prescribing authority |
 | **Diagnosis** | Provide diagnostic conclusions; suggest conditions from symptoms; recommend treatment paths |
+| **Patient record actions** | Change or promise to change a prescription, certificate, consultation outcome, document, charge, account, or clinical record |
+| **Unauthenticated disclosure** | Disclose patient-specific status or information to an unauthenticated phone caller |
+
+### AI Voice Administrative Support Boundary
+
+The staged Lena service is an **administrative message-taking channel**, not a consultation, clinical intake, triage service, or substitute for a doctor call.
+
+- Lena opens with the code-owned greeting `Hi, this is Lena from InstantMed support. How can I help?` and does not use a separate keypad or spoken disclosure preamble. The published privacy and collection notice must explain the automated processing before production activation.
+- Lena only takes a message from the patient about themselves. She does not answer service questions, authenticate a patient, disclose patient-specific status, diagnose, assess clinical urgency, recommend treatment, approve an adjustment, change a record, or promise a refund, prescription, certificate, correction, outcome, callback time, or resolution.
+- Emergency handling is one fixed instruction to hang up and call triple zero. Lena does not triage or decide whether the caller is safe.
+- Lena listens to the issue, collects the patient's full name and date of birth when possible, asks at most two short clarifying questions, reads back one concise summary, and saves it only after caller confirmation.
+- A callback number is requested and retained only when the patient explicitly wants a return call; caller ID is never silently used as the callback number.
+- The application says `Thanks, I've sent your message securely to our Medical Director.` only after the encrypted database write succeeds. If persistence cannot be confirmed, Lena directs the caller to `instantmed.com.au/contact` and must not imply that a message was saved.
+- InstantMed stores no raw audio or full call transcript. The confirmed name, date of birth, concise summary, and optional requested callback number are field-level encrypted. Operational alerts contain only category, received time, and an authenticated admin link.
+- The Medical Director reviews the message and owns every clinical, prescribing, certificate, correction, complaint, payment, and return-call decision. Lena never converts a phone message into an outcome.
+- Production activation remains blocked until the public collection/privacy notice, APP 5 and APP 8 assessment, Twilio/OpenAI processor agreements and retention settings are approved; the migration and admin-only inbox are live; and the adversarial, failure, preview, and controlled end-to-end call checks pass.
 
 ### Human Clinical Decisions and the Protocol Boundary
 
@@ -277,8 +294,8 @@ The engine's remaining **soft flags** — co-symptom mental-health / injury / ch
 |----------|------|
 | **File separation** | `lib/clinical/` = deterministic safety logic (no AI); `lib/ai/` = documentation assistance only |
 | **Output status** | AI-generated content remains a draft and is never copied into the final clinical record without doctor review. The certificate protocol may read an AI `requiresReview` signal only to narrow the lane and route to a doctor; it cannot use draft prose to authorise issuance |
-| **Audit logging** | Two tables: `ai_audit_log` (auto-approval pipeline, with `input_hash`/`output_hash` for content integrity) and `ai_chat_audit_log` (chat interactions, with `user_input_preview`/`ai_output_preview` truncated previews). Full chat transcripts stored in `ai_chat_transcripts` (JSONB). |
-| **System prompts** | Must include: "You are a documentation assistant only. You DO NOT make clinical decisions. You DO NOT approve or deny requests. You DO NOT recommend treatments or medications. All output requires doctor review before use." |
+| **Audit logging** | `ai_audit_log` owns the auto-approval pipeline, while `ai_chat_audit_log` and `ai_chat_transcripts` own the separate chat-intake feature. Lena stores no raw audio or full transcript; `medical_director_voice_messages` stores only one encrypted, caller-confirmed message plus delivery and operator-workflow metadata. |
+| **System prompts** | Documentation prompts must include the documentation-only/doctor-review boundary. The voice prompt must include the narrower administrative boundary, no unauthenticated patient disclosure, no record changes or promises, fixed triple-zero direction, caller confirmation before the write, and durable-write evidence before the success acknowledgement. |
 
 ### AI Input/Output Rules
 
@@ -430,6 +447,7 @@ Patients must be informed at intake of:
 | PHI in logs | Production logs sanitized; no PHI in error/debug logs |
 | Telegram | Operational alerts only. Never include patient identity, medicine names, presenting complaints, symptoms, consultation subtype, intake answers, or clinical notes. |
 | AI data sharing | Clinical notes sent to Anthropic (Claude) with no patient identifiers; DPA in place |
+| Staged AI voice processing | Live call audio is streamed through Twilio and OpenAI Realtime only while the call is active. InstantMed stores no raw audio or full transcript. The published notice discloses the automated service and processors; production remains disabled until processor, retention, APP 5, APP 8, and public-disclosure gates are approved. |
 
 ### Australian Privacy Principles (APP 1-13) Summary
 
@@ -439,10 +457,10 @@ Patients must be informed at intake of:
 | 2 | Anonymity/pseudonymity | N/A -- healthcare requires identification (documented justification) |
 | 3 | Collection of solicited info | Only necessary data collected; consent obtained; lawful collection direct from patient |
 | 4 | Unsolicited information | Support team procedures in place |
-| 5 | Notification of collection | Purpose stated at intake; third parties identified in privacy policy; access rights explained |
+| 5 | Notification of collection | Purpose stated at intake; third parties identified in privacy policy; access rights explained. Lena cannot activate until the public collection notice and processor disclosure are current and approved; there is no separate DTMF consent gate. |
 | 6 | Use or disclosure | Clinical care only; marketing opt-in separate; subpoena process documented |
 | 7 | Direct marketing | Unsubscribe mechanism; health data not used for marketing |
-| 8 | Cross-border disclosure | Overseas recipients (US, EU) identified; DPAs with all processors |
+| 8 | Cross-border disclosure | Overseas recipients (US, EU) identified; DPAs with active processors. The staged Twilio/OpenAI voice path remains disabled until its overseas-processing assessment and agreements are approved. |
 | 9 | Government identifiers | Medicare number use limited to eligibility; not used as internal ID |
 | 10 | Quality of personal info | Patient can update profile; Medicare validation |
 | 11 | Security | TLS + AES-256-GCM + RLS + retention policy |
@@ -460,6 +478,8 @@ Patients must be informed at intake of:
 | Sentry | Error context (sanitized) | US | Signed |
 | PostHog | Pseudonymous product events only; no direct identity, clinical answers, raw search terms, click identifiers, or production request IDs | US | Signed |
 | Anthropic | Clinical notes (no identifiers) | US | DPA (data processing agreement) |
+| Twilio | Live phone audio and call-routing metadata for the staged voice-message service | AU1 regional voice service; subprocessors may be overseas | **Activation blocked pending approval** |
+| OpenAI Realtime | Live phone audio and transient model context for the staged voice-message service | Overseas processing | **Activation blocked pending approval and retention configuration** |
 
 ---
 
@@ -471,6 +491,7 @@ Patients must be informed at intake of:
 | Clinical intakes | 7 years from creation | Medical records obligation |
 | Compliance audit logs | 7 years (immutable, append-only) | Compliance requirement |
 | AI interaction logs | 7 years (truncated content, metadata only) | Clinical safety audit |
+| Medical Director voice messages | Resolved queue payload deleted after 30 days unless the resulting clinical action must be recorded in the canonical patient record; no raw audio or full transcript | Administrative message handling and clinical continuity |
 | Payment records | 7 years | Tax Act (ATO requirement) |
 | Profile data | Indefinite while active; deleted 1 year after account closure | Service delivery |
 | Session/auth tokens | 30 days (auto-purged by Supabase Auth) | Security best practice |

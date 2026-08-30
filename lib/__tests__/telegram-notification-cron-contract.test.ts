@@ -76,7 +76,7 @@ describe("paid request Telegram retry contract", () => {
     expect(migrationSource).toContain("AND COALESCE(i.amount_cents, 0) > 0")
   })
 
-  it("keeps automatic Telegram limited to new paid request notifications", () => {
+  it("keeps automatic Telegram limited to paid requests and PHI-free Medical Director voice alerts", () => {
     expect(staleQueueSource).not.toContain("sendTelegramAlert(")
     expect(dateCorrectionSource).not.toContain("sendTelegramAlert(")
     expect(autoApprovalPipelineSource).not.toContain("sendTelegramAlert(")
@@ -86,5 +86,11 @@ describe("paid request Telegram retry contract", () => {
     expect(telegramSource).not.toContain("TELEGRAM_ALL_LEVELS")
     expect(telegramSource).not.toContain("TELEGRAM_SYSTEM_ALERTS_ENABLED")
     expect(telegramSource).not.toContain("export async function sendTelegramAlert")
+    expect(cronSource).toContain("deliverMedicalDirectorVoiceMessageAlert")
+    expect(cronSource).toContain("deliverMedicalDirectorVoiceUnresolvedReminder")
+    expect(telegramSource).toContain("New voice message")
+    expect(telegramSource).not.toContain("callbackNumber")
+    expect(telegramSource).not.toContain("patientFullName")
+    expect(telegramSource).not.toContain("confirmedSummary")
   })
 })

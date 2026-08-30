@@ -301,5 +301,5 @@ export default async function OpsDashboardPage() {
     sourceQueryFailures,
   })
 
-  return <OpsDashboardClient model={model} />
+  return <OpsDashboardClient isAdmin={isAdmin} model={model} />
 }
