@@ -6,6 +6,11 @@ import {
   INTENTIONAL_EMAIL_SUPPRESSION_PREFIX,
 } from "@/lib/email/quiet-failures"
 import { createLogger } from "@/lib/observability/logger"
+import {
+  filterRecoveredStandaloneParchmentFailures,
+  type ParchmentStandaloneFailureCandidate,
+} from "@/lib/parchment/failure-reconciliation"
+import { readStandaloneParchmentPrescriptionEvidence } from "@/lib/parchment/failure-reconciliation-data"
 import { countStripePriceConfigIssues } from "@/lib/stripe/price-config-health"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -60,11 +65,49 @@ function asError(reason: unknown, fallbackMessage: string): Error {
   return new Error(`${fallbackMessage}: ${String(reason)}`)
 }
 
+function metadataString(metadata: Record<string, unknown> | null, key: string): string | null {
+  const value = metadata?.[key]
+  return typeof value === "string" && value.trim() ? value.trim() : null
+}
+
+async function readParchmentFailureCount(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  dayAgo: string,
+): Promise<{ count: number | null; error: { message?: string } | null }> {
+  const result = await supabase
+    .from("audit_logs")
+    .select("id, intake_id, metadata")
+    .eq("action", "webhook_failed")
+    .gte("created_at", dayAgo)
+    .eq("metadata->>error_type", "parchment")
+
+  if (result.error) return { count: null, error: result.error }
+
+  const failures: ParchmentStandaloneFailureCandidate[] = (result.data || []).map((row) => ({
+    id: row.id,
+    intakeId: row.intake_id,
+    reason: metadataString(row.metadata, "error") || "unknown_error",
+    scid: metadataString(row.metadata, "scid"),
+    patientProfileId: metadataString(row.metadata, "patient_profile_id")
+      || metadataString(row.metadata, "patient_id"),
+    partnerPatientId: metadataString(row.metadata, "partner_patient_id"),
+  }))
+  const evidenceRead = await readStandaloneParchmentPrescriptionEvidence(supabase, failures)
+  if (evidenceRead.error) return { count: null, error: evidenceRead.error }
+
+  return {
+    count: filterRecoveredStandaloneParchmentFailures(failures, evidenceRead.data).length,
+    error: null,
+  }
+}
+
 /**
  * One-shot read of the recovery surfaces the SystemHealthPill renders.
  *
- * Phase 2 of dashboard remaster (2026-05-12). Each surface is queried via a
- * lightweight HEAD count. A sub-query that fails yields `null` (unknown) for
+ * Phase 2 of dashboard remaster (2026-05-12). Most surfaces use a lightweight
+ * HEAD count; Parchment reads the bounded 24-hour audit rows so a legacy
+ * invalid-correlation event can be reconciled against exact standalone SCID
+ * evidence. A sub-query that fails yields `null` (unknown) for
  * that surface and marks the result degraded — never a silent 0, which would
  * make the pill assert all-clear exactly when the platform is unobservable.
  * Failures are reported at error level so they reach Sentry in production
@@ -100,13 +143,9 @@ export async function getSystemHealth(): Promise<SystemHealth> {
       .eq("action", "webhook_failed")
       .gte("created_at", dayAgo)
       .not("metadata->>error_type", "eq", "parchment"),
-    // Parchment-specific webhook failures.
-    supabase
-      .from("audit_logs")
-      .select("id", { count: "exact", head: true })
-      .eq("action", "webhook_failed")
-      .gte("created_at", dayAgo)
-      .eq("metadata->>error_type", "parchment"),
+    // Parchment-specific webhook failures, excluding only exact recovered
+    // standalone evidence. An evidence-query failure remains unknown/degraded.
+    readParchmentFailureCount(supabase, dayAgo),
     // Email outbox failures (last 24h, status=failed).
     supabase
       .from("email_outbox")

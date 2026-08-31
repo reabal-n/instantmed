@@ -313,6 +313,36 @@ describe("Parchment webhook route", () => {
     )
   })
 
+  it("syncs an explicitly standalone patient-profile prescription without claiming an intake", async () => {
+    const response = await POST(makeWebhookRequest({ reserved_1: "IM-PATIENT-PROFILE" }))
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toEqual({ received: true, syncedPrescription: true })
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+    expect(mocks.logWebhookFailure).not.toHaveBeenCalled()
+    expect(mocks.state.prescriptionUpserts).toHaveLength(1)
+    expect(mocks.state.prescriptionUpserts[0]).toMatchObject({
+      patient_id: PATIENT_PROFILE_ID,
+      prescriber_id: PRESCRIBER_PROFILE_ID,
+      intake_id: null,
+      parchment_reference: SCID,
+    })
+    expect(mocks.logAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "admin_action",
+        actorId: PRESCRIBER_PROFILE_ID,
+        actorType: "system",
+        metadata: expect.objectContaining({
+          action_type: "parchment_webhook_prescription_synced",
+          patient_id: PATIENT_PROFILE_ID,
+          scid: SCID,
+          script_sent: false,
+        }),
+      }),
+    )
+  })
+
   it("does not use the legacy fallback when reserved metadata fields are null", async () => {
     const response = await POST(makeWebhookRequest({
       reserved_1: null,

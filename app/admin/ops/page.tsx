@@ -10,7 +10,12 @@ import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-c
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { buildPrescribingIdentityBlockerReport } from "@/lib/doctor/prescribing-identity-blockers"
 import { filterNonActionableEmailFailures } from "@/lib/email/quiet-failures"
-import { filterUnresolvedParchmentFailures } from "@/lib/parchment/failure-reconciliation"
+import {
+  filterRecoveredStandaloneParchmentFailures,
+  filterUnresolvedParchmentFailures,
+  type ParchmentStandaloneFailureCandidate,
+} from "@/lib/parchment/failure-reconciliation"
+import { readStandaloneParchmentPrescriptionEvidence } from "@/lib/parchment/failure-reconciliation-data"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { OpsDashboardClient } from "./ops-client"
@@ -21,6 +26,7 @@ type AuditRow = {
   action: string
   created_at: string
   id: string
+  intake_id: string | null
   metadata: Record<string, unknown> | null
 }
 
@@ -100,6 +106,18 @@ function isNonActionableParchmentSandboxError(row: AuditRow): boolean {
   return error === "no_awaiting_script_intake" || error === "patient_not_found"
 }
 
+function toStandaloneFailureCandidate(row: AuditRow): ParchmentStandaloneFailureCandidate {
+  return {
+    id: row.id,
+    intakeId: row.intake_id,
+    reason: metadataString(row.metadata, "error") || "unknown_error",
+    scid: metadataString(row.metadata, "scid"),
+    patientProfileId: metadataString(row.metadata, "patient_profile_id")
+      || metadataString(row.metadata, "patient_id"),
+    partnerPatientId: metadataString(row.metadata, "partner_patient_id"),
+  }
+}
+
 export default async function OpsDashboardPage() {
   const auth = await requireRole(["admin", "support"])
   const isAdmin = hasAdminAccess(auth.profile)
@@ -145,7 +163,7 @@ export default async function OpsDashboardPage() {
       .limit(20)),
     readRows<AuditRow>("Parchment webhooks", supabase
       .from("audit_logs")
-      .select("id, action, created_at, metadata", { count: "exact" })
+      .select("id, action, intake_id, created_at, metadata", { count: "exact" })
       .eq("action", "webhook_failed")
       .gte("created_at", weekAgo.toISOString())
       .contains("metadata", { eventType: "parchment:prescription.created" })
@@ -156,7 +174,7 @@ export default async function OpsDashboardPage() {
       .limit(50)),
     readRows<AuditRow>("Parchment retry receipts", supabase
       .from("audit_logs")
-      .select("id, action, created_at, metadata", { count: "exact" })
+      .select("id, action, intake_id, created_at, metadata", { count: "exact" })
       .eq("action", "admin_action")
       .gte("created_at", weekAgo.toISOString())
       .contains("metadata", { action_type: "parchment_webhook_retry", result: "success" })
@@ -238,12 +256,26 @@ export default async function OpsDashboardPage() {
     prescriptionWebhookFailures.data,
     successfulParchmentRetries.data,
   )
-  const actionableParchmentFailures = unresolvedParchmentFailures
+  const standaloneFailureCandidates = unresolvedParchmentFailures
+    .map(toStandaloneFailureCandidate)
+  const standaloneEvidenceRead = await readStandaloneParchmentPrescriptionEvidence(
+    supabase,
+    standaloneFailureCandidates,
+  )
+  const unrecoveredFailureIds = new Set(
+    filterRecoveredStandaloneParchmentFailures(
+      standaloneFailureCandidates,
+      standaloneEvidenceRead.error ? [] : standaloneEvidenceRead.data,
+    ).map((failure) => failure.id),
+  )
+  const unrecoveredParchmentFailures = unresolvedParchmentFailures
+    .filter((row) => unrecoveredFailureIds.has(row.id))
+  const actionableParchmentFailures = unrecoveredParchmentFailures
     .filter((row) => !isNonActionableParchmentSandboxError(row))
     .filter((row) => metadataString(row.metadata, "eventType") === "parchment:prescription.created")
   const resolvedVisibleParchmentFailures = Math.max(
     0,
-    prescriptionWebhookFailures.data.length - unresolvedParchmentFailures.length,
+    prescriptionWebhookFailures.data.length - unrecoveredParchmentFailures.length,
   )
   const nonCertificateEmailFailures = filterNonActionableEmailFailures(emailFailures.data)
     .filter((row) => row.email_type !== "med_cert_patient")
@@ -288,6 +320,9 @@ export default async function OpsDashboardPage() {
   ].flatMap(({ queryFailure }) => queryFailure ? [queryFailure] : [])
   if (boundedEmailDetailWasCapped) {
     sourceQueryFailures.push("email delivery monitor detail cap")
+  }
+  if (standaloneEvidenceRead.error) {
+    sourceQueryFailures.push("Parchment standalone prescription evidence")
   }
   const model = buildOpsActionModel({
     certificateDelivery,

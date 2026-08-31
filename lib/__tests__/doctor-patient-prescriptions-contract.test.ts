@@ -112,6 +112,7 @@ describe("doctor patient medication history contract", () => {
     expect(detailPageSource).toContain("parchment_webhook_script_sent")
     expect(detailPageSource).toContain("metadata->>patient_id")
     expect(detailPageSource).toContain("metadata->>partner_patient_id")
+    expect(detailPageSource).toContain("getRecoveredStandaloneParchmentFailurePresentation")
     expect(detailSource).toContain("parchmentActivity")
     expect(detailSource).toContain('value="operations"')
     expect(timelineSource.toLowerCase()).toContain("webhook")
