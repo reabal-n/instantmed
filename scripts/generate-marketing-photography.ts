@@ -8,7 +8,7 @@ import { promisify } from "node:util"
 
 import { gateway, generateImage } from "ai"
 import dotenv from "dotenv"
-import sharp from "sharp"
+import sharp, { type OverlayOptions } from "sharp"
 
 dotenv.config({ path: path.join(process.cwd(), ".env.local"), override: false, quiet: true })
 dotenv.config({ path: path.join(process.cwd(), ".env"), override: false, quiet: true })
@@ -467,7 +467,7 @@ async function writeContactSheet(manifest: ShotManifest[]) {
   const width = columns * tileWidth + (columns + 1) * gap
   const height = rows * (tileHeight + labelHeight) + (rows + 1) * gap
 
-  const composites: sharp.OverlayOptions[] = []
+  const composites: OverlayOptions[] = []
   for (const [index, shot] of manifest.entries()) {
     const column = index % columns
     const row = Math.floor(index / columns)

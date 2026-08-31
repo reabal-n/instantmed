@@ -8,17 +8,17 @@
 # accidental `pnpm add next@latest` (or an LLM-suggested upgrade) cannot land.
 #
 # To intentionally upgrade: edit EXPECTED_* below in the same PR that bumps
-# package.json, document the reason in CLAUDE.md gotchas, and have a human
-# explicitly approve. NEVER bypass this script.
+# package.json and pnpm-workspace.yaml, document the reason in CLAUDE.md
+# gotchas, and have a human explicitly approve. NEVER bypass this script.
 #
 # Exit 1 if any pin is wrong.
 
 set -euo pipefail
 
 # ─── EXPECTED PINNED VERSIONS ──────────────────────────────────────────────
-# Update these in lockstep with package.json + pnpm.overrides.
-EXPECTED_NEXT="15.5.21"
-EXPECTED_NEXT_TOOLING="15.5.21"
+# Update these in lockstep with package.json + pnpm-workspace.yaml overrides.
+EXPECTED_NEXT="15.5.24"
+EXPECTED_NEXT_TOOLING="15.5.24"
 EXPECTED_REACT="18.3.1"
 EXPECTED_REACT_DOM="18.3.1"
 EXPECTED_TYPES_REACT="18.3.12"
@@ -30,6 +30,7 @@ EXPECTED_NODE_ENGINE="24.x"
 EXPECTED_NVMRC="24"
 EXPECTED_NODE_VERSION_FILE="24"
 EXPECTED_PACKAGE_MANAGER="pnpm@10.23.0"
+EXPECTED_SECURITY_AUDIT="pnpm dlx pnpm@11.4.0 --pm-on-fail=ignore audit --audit-level=low"
 EXPECTED_CHECKOUT_ACTION="actions/checkout@v6.0.2"
 EXPECTED_SETUP_NODE_ACTION="actions/setup-node@v6.4.0"
 EXPECTED_PNPM_ACTION="pnpm/action-setup@v6.0.5"
@@ -37,11 +38,22 @@ EXPECTED_UPLOAD_ARTIFACT_ACTION="actions/upload-artifact@v7.0.1"
 # ───────────────────────────────────────────────────────────────────────────
 
 PKG="package.json"
+WORKSPACE_CONFIG="pnpm-workspace.yaml"
 errors=0
 
 if [[ ! -f "$PKG" ]]; then
   echo "ERROR: $PKG not found. Run from repo root."
   exit 1
+fi
+
+if [[ ! -f "$WORKSPACE_CONFIG" ]]; then
+  echo "ERROR: $WORKSPACE_CONFIG not found. Run from repo root."
+  exit 1
+fi
+
+OVERRIDES_JSON=$(pnpm config get overrides --json)
+if [[ -z "$OVERRIDES_JSON" || "$OVERRIDES_JSON" == "undefined" ]]; then
+  OVERRIDES_JSON="{}"
 fi
 
 # Pull a "name": "version" from dependencies / devDependencies (exact match,
@@ -59,11 +71,21 @@ get_exact_version() {
 
 get_override_version() {
   local name="$1"
-  node -e "
-    const pkg = require('./$PKG');
-    const v = (pkg.pnpm && pkg.pnpm.overrides && pkg.pnpm.overrides['$name']) || '';
+  OVERRIDES_JSON="$OVERRIDES_JSON" OVERRIDE_NAME="$name" node -e "
+    const overrides = JSON.parse(process.env.OVERRIDES_JSON || '{}');
+    const v = overrides[process.env.OVERRIDE_NAME] || '';
     process.stdout.write(v);
   "
+}
+
+check_no_audit_waivers() {
+  if grep -Eq '^[[:space:]]*ignoreGhsas:' "$WORKSPACE_CONFIG"; then
+    echo "FAIL: $WORKSPACE_CONFIG contains audit ignoreGhsas entries"
+    errors=$((errors + 1))
+    return
+  fi
+
+  echo "ok:   dependency audit has no ignored advisories"
 }
 
 check_pin() {
@@ -298,7 +320,7 @@ check_pin "framer-motion"         "$EXPECTED_FRAMER_MOTION"    "deps"
 check_pin "tailwindcss"           "$EXPECTED_TAILWIND"         "deps"
 check_pin "@tailwindcss/postcss"  "$EXPECTED_TAILWIND_POSTCSS" "deps"
 
-echo "── pnpm.overrides check ──"
+echo "── pnpm-workspace.yaml overrides check ──"
 check_pin "next"                  "$EXPECTED_NEXT"             "override"
 check_pin "@next/bundle-analyzer" "$EXPECTED_NEXT_TOOLING"     "override"
 check_pin "@next/eslint-plugin-next" "$EXPECTED_NEXT_TOOLING"  "override"
@@ -315,6 +337,8 @@ check_package_field "engines.node" "$EXPECTED_NODE_ENGINE"
 check_file_content ".nvmrc" "$EXPECTED_NVMRC"
 check_file_content ".node-version" "$EXPECTED_NODE_VERSION_FILE"
 check_package_field "packageManager" "$EXPECTED_PACKAGE_MANAGER"
+check_package_field "scripts.security:audit" "$EXPECTED_SECURITY_AUDIT"
+check_no_audit_waivers
 check_no_duplicate_dependencies
 check_no_turbopack_flags
 check_workflow_node_runtime_source

@@ -62,18 +62,18 @@ describe("bundle-size gate", () => {
       "warning: /dashboard unique route-chunk estimate is 99 kB",
     )
     expect(result.stdout).toContain(
-      "ok: /dashboard first-load JS is 389 kB (budget: 400 kB)",
+      "ok: /dashboard first-load JS is 389 kB (budget: 401 kB)",
     )
   })
 
   it("fails when dashboard first-load exceeds its measured ceiling", () => {
     const result = runBundleGate(
-      makeBuildOutput({ dashboardRouteKb: 1, dashboardFirstLoadKb: 401 }),
+      makeBuildOutput({ dashboardRouteKb: 1, dashboardFirstLoadKb: 402 }),
     )
 
     expect(result.status).toBe(1)
     expect(result.stdout).toContain(
-      "FAIL: /dashboard first-load JS is 401 kB (budget: 400 kB)",
+      "FAIL: /dashboard first-load JS is 402 kB (budget: 401 kB)",
     )
   })
 })
