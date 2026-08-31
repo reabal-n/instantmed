@@ -81,7 +81,7 @@ describe("release check contract", () => {
     expect(bundleGate).toContain("The intake shell is carrying code that should be lazy-loaded")
     expect(bundleGate).toContain("The patient dashboard should stay tight")
     expect(bundleGate).toContain("returning-patient shortcut shipped on the hero")
-    expect(bundleGate).toContain('"/dashboard|37|400|')
+    expect(bundleGate).toContain('"/dashboard|37|401|')
     expect(bundleGate).toContain("unique route-chunk estimate")
     expect(bundleGate).toContain("Actual initial dashboard JS fell from 390 to 389 kB")
     expect(bundleGate).toContain('"/admin/intakes|23|260|')
