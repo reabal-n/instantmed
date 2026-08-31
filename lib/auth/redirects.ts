@@ -32,6 +32,16 @@ function hasUnsafePathPrefix(pathname: string): boolean {
   )
 }
 
+function normalizeParsedRedirect(url: URL, fallback: string): string {
+  const normalized = `${url.pathname}${url.search}${url.hash}`
+  const decodedPathname = decodeRedirectCandidate(url.pathname)
+  const decodedSuffix = decodeRedirectCandidate(`${url.search}${url.hash}`)
+
+  return hasUnsafePathPrefix(decodedPathname) || containsControlCharacter(decodedSuffix)
+    ? fallback
+    : normalized
+}
+
 export function normalizePostAuthRedirect(
   value: string | null | undefined,
   fallback = DEFAULT_POST_AUTH_DESTINATION,
@@ -39,8 +49,12 @@ export function normalizePostAuthRedirect(
 ): string {
   if (!value) return fallback
 
-  const candidate = decodeRedirectCandidate(value.trim())
+  const trimmed = value.trim()
+  const candidate = trimmed.startsWith("/") || /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : decodeRedirectCandidate(trimmed)
   if (!candidate) return fallback
+  if (containsControlCharacter(candidate)) return fallback
 
   if (/^https?:\/\//i.test(candidate)) {
     try {
@@ -48,8 +62,7 @@ export function normalizePostAuthRedirect(
       const trustedOrigins = new Set(TRUSTED_ABSOLUTE_REDIRECT_ORIGINS)
       if (currentOrigin) trustedOrigins.add(currentOrigin)
       if (!trustedOrigins.has(url.origin)) return fallback
-      const normalized = `${url.pathname}${url.search}${url.hash}`
-      return hasUnsafePathPrefix(normalized) ? fallback : normalized
+      return normalizeParsedRedirect(url, fallback)
     } catch {
       return fallback
     }
@@ -59,10 +72,20 @@ export function normalizePostAuthRedirect(
 
   try {
     const url = new URL(candidate, "https://instantmed.local")
-    return `${url.pathname}${url.search}${url.hash}`
+    return normalizeParsedRedirect(url, fallback)
   } catch {
     return fallback
   }
+}
+
+export function buildSignInRedirectHref(
+  value: string | null | undefined,
+  currentOrigin?: string,
+): string {
+  const safeRedirect = normalizePostAuthRedirect(value, "", currentOrigin)
+  return safeRedirect
+    ? `/sign-in?redirect=${encodeURIComponent(safeRedirect)}`
+    : "/sign-in"
 }
 
 export function getPostAuthRedirectParam(

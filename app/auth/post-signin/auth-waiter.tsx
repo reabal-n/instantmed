@@ -5,6 +5,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
+import { buildSignInRedirectHref } from "@/lib/auth/redirects"
+import { buildPostSignInHref } from "@/lib/navigation/auth-handoff"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
 /**
@@ -16,11 +18,12 @@ import { useAuth } from "@/lib/supabase/auth-provider"
  * we soft-refresh so the server component can read the session and
  * redirect. If auth never resolves, show retry UI.
  */
-export function PostSignInAuthWaiter(_props: { paramsString?: string }) {
+export function PostSignInAuthWaiter({ paramsString }: { paramsString?: string }) {
   const { isSignedIn, isLoaded } = useAuth()
   const hasNavigated = useRef(false)
   const [timedOut, setTimedOut] = useState(false)
   const router = useRouter()
+  const retryHref = buildSignInRedirectHref(buildPostSignInHref(paramsString))
 
   // Master timeout: 15s for Supabase session to establish
   useEffect(() => {
@@ -64,7 +67,7 @@ export function PostSignInAuthWaiter(_props: { paramsString?: string }) {
             Having trouble signing in. Please try again.
           </p>
           <Link
-            href="/sign-in"
+            href={retryHref}
             className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground"
           >
             Sign in

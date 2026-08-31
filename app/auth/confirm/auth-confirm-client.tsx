@@ -12,8 +12,10 @@ import {
   consumeAuthEmailConfirmation,
   isAuthConfirmationActionType,
   readAuthConfirmationParams,
+  resolveAuthConfirmationDestination,
   selectAuthConfirmationParams,
 } from "@/lib/auth/auth-confirmation"
+import { buildSignInRedirectHref } from "@/lib/auth/redirects"
 import { createClient } from "@/lib/supabase/client"
 
 const confirmationCopy: Record<AuthConfirmationActionType, {
@@ -62,12 +64,14 @@ function subscribeToLocationHash(onStoreChange: () => void) {
   return () => window.removeEventListener("hashchange", onStoreChange)
 }
 
-function getLocationHash() {
+type LocationHashSnapshot = string | null
+
+function getLocationHash(): LocationHashSnapshot {
   return window.location.hash
 }
 
-function getServerHash() {
-  return ""
+function getServerHash(): LocationHashSnapshot {
+  return null
 }
 
 export function AuthConfirmClient() {
@@ -77,12 +81,13 @@ export function AuthConfirmClient() {
     getLocationHash,
     getServerHash,
   )
+  const isReadingLink = locationHash === null
   const [isConfirming, setIsConfirming] = useState(false)
   const [error, setError] = useState<ConfirmationError>(null)
   const [errorTokenHash, setErrorTokenHash] = useState<string | null>(null)
   const [retainedConfirmation, setRetainedConfirmation] = useState<ConfirmationParams | null>(null)
 
-  const liveConfirmation = readAuthConfirmationParams(searchParams, locationHash)
+  const liveConfirmation = readAuthConfirmationParams(searchParams, locationHash ?? "")
   const {
     tokenHash,
     actionType: actionTypeValue,
@@ -91,8 +96,9 @@ export function AuthConfirmClient() {
   const actionType = isAuthConfirmationActionType(actionTypeValue)
     ? actionTypeValue
     : null
-  const hasValidLink = Boolean(tokenHash && actionType)
+  const hasValidLink = !isReadingLink && Boolean(tokenHash && actionType)
   const copy = actionType ? confirmationCopy[actionType] : null
+  const visibleCopy = hasValidLink ? copy : null
 
   const handleConfirm = async () => {
     if (!hasValidLink || !actionType) {
@@ -131,7 +137,11 @@ export function AuthConfirmClient() {
     }
   }
 
-  const recoveryHref = actionType === "recovery" ? "/auth/forgot-password" : "/sign-in"
+  const recoveryHref = actionType === "recovery"
+    ? "/auth/forgot-password"
+    : actionType
+      ? buildSignInRedirectHref(resolveAuthConfirmationDestination(actionType, next))
+      : "/sign-in"
   const recoveryLabel = actionType === "recovery" ? "Request a new reset link" : "Request a new sign-in link"
   const visibleError = error && errorTokenHash === tokenHash ? error : null
   const errorMessage = visibleError === "temporarily_unavailable"
@@ -142,12 +152,13 @@ export function AuthConfirmClient() {
     <main id="main-content" className="flex min-h-screen items-center justify-center bg-background px-4 py-16">
       <section
         aria-labelledby="auth-confirm-title"
+        aria-busy={isReadingLink || isConfirming}
         className="w-full max-w-md rounded-2xl border border-border/50 bg-white p-8 text-center shadow-md shadow-primary/[0.06] dark:bg-card"
       >
         <BrandLogo size="md" className="mb-7 justify-center" />
 
-        <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${hasValidLink ? "bg-primary/10 text-primary" : "bg-warning-light text-warning"}`}>
-          {hasValidLink ? (
+        <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${isReadingLink || hasValidLink ? "bg-primary/10 text-primary" : "bg-warning-light text-warning"}`}>
+          {isReadingLink || hasValidLink ? (
             <ShieldCheck className="h-7 w-7" aria-hidden="true" />
           ) : (
             <AlertTriangle className="h-7 w-7" aria-hidden="true" />
@@ -155,13 +166,13 @@ export function AuthConfirmClient() {
         </div>
 
         <p className="mt-5 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-          {copy?.eyebrow ?? "Secure confirmation"}
+          {isReadingLink ? "Secure confirmation" : visibleCopy?.eyebrow ?? "Secure confirmation"}
         </p>
         <h1 id="auth-confirm-title" className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-          {copy?.title ?? "This link can't be confirmed"}
+          {isReadingLink ? "Checking your secure link" : visibleCopy?.title ?? "This link can't be confirmed"}
         </h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          {copy?.body ?? "The confirmation details are missing or incomplete."}
+          {isReadingLink ? "This should only take a moment." : visibleCopy?.body ?? "The confirmation details are missing or incomplete."}
         </p>
 
         {visibleError && (
@@ -174,7 +185,16 @@ export function AuthConfirmClient() {
           </div>
         )}
 
-        {hasValidLink ? (
+        {isReadingLink ? (
+          <Button
+            type="button"
+            disabled
+            className="mt-6 h-12 w-full rounded-xl"
+          >
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+            Checking your secure link...
+          </Button>
+        ) : hasValidLink ? (
           <Button
             type="button"
             onClick={handleConfirm}
@@ -188,7 +208,7 @@ export function AuthConfirmClient() {
               </>
             ) : (
               <>
-                {copy?.button}
+                {visibleCopy?.button}
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </>
             )}

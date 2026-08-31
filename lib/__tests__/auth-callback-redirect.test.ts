@@ -4,7 +4,11 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { resolvePostAuthDestination } from "@/lib/auth/post-auth-destination"
-import { getPostAuthRedirectParam, normalizePostAuthRedirect } from "@/lib/auth/redirects"
+import {
+  buildSignInRedirectHref,
+  getPostAuthRedirectParam,
+  normalizePostAuthRedirect,
+} from "@/lib/auth/redirects"
 
 const authCallbackSource = readFileSync(join(process.cwd(), "app/auth/callback/route.ts"), "utf8")
 const postSignInLoadingSource = readFileSync(join(process.cwd(), "app/auth/post-signin/loading.tsx"), "utf8")
@@ -100,6 +104,38 @@ describe("resolvePostAuthDestination", () => {
   it("rejects protocol-relative redirects", () => {
     expect(normalizePostAuthRedirect("//evil.example/phish", "/patient")).toBe("/patient")
     expect(normalizePostAuthRedirect("%2F%2Fevil.example%2Fphish", "/patient")).toBe("/patient")
+  })
+
+  it("builds sign-in recovery links only for safe destinations", () => {
+    expect(buildSignInRedirectHref("/patient/settings")).toBe(
+      "/sign-in?redirect=%2Fpatient%2Fsettings",
+    )
+    expect(buildSignInRedirectHref("https://evil.example/phish")).toBe("/sign-in")
+    expect(buildSignInRedirectHref("//evil.example/phish")).toBe("/sign-in")
+  })
+
+  it("preserves an existing post-signin handoff for legacy intake linking", () => {
+    expect(buildSignInRedirectHref(
+      "/auth/post-signin?intake_id=11111111-1111-4111-8111-111111111111",
+    )).toBe(
+      "/sign-in?redirect=%2Fauth%2Fpost-signin%3Fintake_id%3D11111111-1111-4111-8111-111111111111",
+    )
+  })
+
+  it("preserves nested query and fragment delimiters through a sign-in retry", () => {
+    const finalDestination = "/patient/intakes/success?intake_id=intake-123&session_id=cs_test#receipt"
+    const postSignInHref = resolvePostAuthDestination(finalDestination)
+    const signInHref = buildSignInRedirectHref(postSignInHref)
+    const signInParams = new URL(signInHref, "https://instantmed.com.au").searchParams
+    const recoveredPostSignInHref = getPostAuthRedirectParam(signInParams)
+    const recoveredPostSignInParams = new URL(
+      recoveredPostSignInHref,
+      "https://instantmed.com.au",
+    ).searchParams
+
+    expect(recoveredPostSignInHref).toBe(postSignInHref)
+    expect(normalizePostAuthRedirect(recoveredPostSignInParams.get("redirect"), ""))
+      .toBe(finalDestination)
   })
 
   it("reads redirect, redirect_url, and next parameters consistently", () => {
