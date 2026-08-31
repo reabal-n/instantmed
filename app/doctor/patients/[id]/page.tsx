@@ -15,6 +15,10 @@ import {
 } from "@/lib/doctor/patient-snapshot"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { logger } from "@/lib/observability/logger"
+import {
+  getRecoveredStandaloneParchmentFailurePresentation,
+  type ParchmentStandalonePrescriptionEvidence,
+} from "@/lib/parchment/failure-reconciliation"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
 import { asProfile } from "@/types/db"
@@ -167,7 +171,10 @@ function metadataNumber(metadata: Record<string, unknown> | null, key: string): 
   return null
 }
 
-function mapParchmentAuditActivity(row: AuditLogRow): ParchmentActivityItem | null {
+function mapParchmentAuditActivity(
+  row: AuditLogRow,
+  standalonePrescriptions: ParchmentStandalonePrescriptionEvidence[],
+): ParchmentActivityItem | null {
   const metadata = row.metadata
   const actionType = metadataString(metadata, ["action_type"])
   const eventType = metadataString(metadata, ["eventType", "event_type"])
@@ -176,11 +183,21 @@ function mapParchmentAuditActivity(row: AuditLogRow): ParchmentActivityItem | nu
 
   if (row.action === "webhook_failed") {
     const error = metadataString(metadata, ["error", "reason"]) || "processing failed"
+    const recovered = getRecoveredStandaloneParchmentFailurePresentation({
+      id: row.id,
+      intakeId: row.intake_id,
+      reason: error,
+      scid,
+      patientProfileId: metadataString(metadata, ["patient_profile_id", "patient_id"]),
+      partnerPatientId: metadataString(metadata, ["partner_patient_id"]),
+    }, standalonePrescriptions)
+
     return {
       id: `audit-${row.id}`,
-      status: "destructive",
-      label: "Webhook failed",
-      detail: `Parchment sent prescription.created, but InstantMed could not complete processing: ${error}.`,
+      status: recovered?.status ?? "destructive",
+      label: recovered?.label ?? "Webhook failed",
+      detail: recovered?.detail
+        ?? `Parchment sent prescription.created, but InstantMed could not complete processing: ${error}.`,
       occurred_at: row.created_at,
       event_id: eventId,
       scid,
@@ -313,8 +330,16 @@ function buildParchmentActivityFromRows(
       request_id: typeof prescription.intake_id === "string" ? prescription.intake_id : null,
     }))
 
+  const standalonePrescriptionEvidence = prescriptions.map((prescription) => ({
+    intakeId: typeof prescription.intake_id === "string" ? prescription.intake_id : null,
+    parchmentReference: typeof prescription.parchment_reference === "string"
+      ? prescription.parchment_reference
+      : null,
+    patientId: typeof prescription.patient_id === "string" ? prescription.patient_id : null,
+  }))
+
   const auditActivity = auditRows
-    .map(mapParchmentAuditActivity)
+    .map((row) => mapParchmentAuditActivity(row, standalonePrescriptionEvidence))
     .filter((item): item is ParchmentActivityItem => item !== null)
 
   const deduped = new Map<string, ParchmentActivityItem>()
@@ -566,6 +591,7 @@ async function getPatientWithHistory(
       .from("prescriptions")
       .select(`
         id,
+        patient_id,
         medication_name,
         medication_strength,
         dosage_instructions,

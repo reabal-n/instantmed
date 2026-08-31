@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  filterRecoveredStandaloneParchmentFailures,
   filterUnresolvedParchmentFailures,
+  getRecoveredStandaloneParchmentFailurePresentation,
   isNonActionableParchmentFailure,
 } from "@/lib/parchment/failure-reconciliation"
 
@@ -81,5 +83,76 @@ describe("Parchment failure reconciliation", () => {
       intakeId: null,
       reason: "intake_correlation_mismatch",
     })).toBe(false)
+  })
+
+  it("reclassifies an invalid standalone correlation when the same SCID is synced to the same patient", () => {
+    const failure = {
+      id: "failure-recovered",
+      intakeId: null,
+      reason: "intake_correlation_invalid",
+      scid: "SCID-standalone",
+      patientProfileId: "patient-1",
+      partnerPatientId: "patient-1",
+    }
+    const prescriptions = [{
+      intakeId: null,
+      parchmentReference: "SCID-standalone",
+      patientId: "patient-1",
+    }]
+
+    expect(getRecoveredStandaloneParchmentFailurePresentation(failure, prescriptions)).toEqual({
+      status: "success",
+      label: "Direct prescription synced",
+      detail: "No InstantMed request was attached to this Parchment event, and the same prescription is synced to this patient profile.",
+    })
+    expect(filterRecoveredStandaloneParchmentFailures([
+      failure,
+      { ...failure, id: "failure-open", scid: "SCID-open" },
+    ], prescriptions)).toEqual([
+      { ...failure, id: "failure-open", scid: "SCID-open" },
+    ])
+  })
+
+  it.each([
+    {
+      label: "a linked intake",
+      failure: { intakeId: "intake-1" },
+      prescription: {},
+    },
+    {
+      label: "a different failure reason",
+      failure: { reason: "intake_correlation_mismatch" },
+      prescription: {},
+    },
+    {
+      label: "a different SCID",
+      failure: {},
+      prescription: { parchmentReference: "SCID-other" },
+    },
+    {
+      label: "a different patient",
+      failure: {},
+      prescription: { patientId: "patient-2" },
+    },
+    {
+      label: "an intake-linked prescription",
+      failure: {},
+      prescription: { intakeId: "intake-1" },
+    },
+  ])("keeps the failure actionable when recovery evidence has $label", ({ failure, prescription }) => {
+    expect(getRecoveredStandaloneParchmentFailurePresentation({
+      id: "failure-open",
+      intakeId: null,
+      reason: "intake_correlation_invalid",
+      scid: "SCID-standalone",
+      patientProfileId: "patient-1",
+      partnerPatientId: "patient-1",
+      ...failure,
+    }, [{
+      intakeId: null,
+      parchmentReference: "SCID-standalone",
+      patientId: "patient-1",
+      ...prescription,
+    }])).toBeNull()
   })
 })

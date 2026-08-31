@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildParchmentIntakeRedirectPath,
+  buildParchmentPatientProfileRedirectPath,
   parseParchmentIntakeCorrelation,
 } from "@/lib/parchment/intake-correlation"
 
@@ -44,5 +45,11 @@ describe("Parchment intake correlation", () => {
       "/embed/patients/parchment%2Fpatient/prescriptions?reserved_1=IM-20260730-A1B2C3",
     )
     expect(path).not.toContain("33333333-3333-4333-8333-333333333333")
+  })
+
+  it("marks patient-profile prescribing as explicitly standalone", () => {
+    expect(buildParchmentPatientProfileRedirectPath("parchment/patient")).toBe(
+      "/embed/patients/parchment%2Fpatient/prescriptions?reserved_1=IM-PATIENT-PROFILE",
+    )
   })
 })

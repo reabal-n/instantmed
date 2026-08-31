@@ -161,6 +161,8 @@ describe("ops dashboard data contract", () => {
     expect(opsPageSource).toContain('.eq("action", "webhook_failed")')
     expect(opsPageSource).toContain("isNonActionableParchmentSandboxError")
     expect(opsPageSource).toContain("no_awaiting_script_intake")
+    expect(opsPageSource).toContain("filterRecoveredStandaloneParchmentFailures")
+    expect(opsPageSource).toContain("readStandaloneParchmentPrescriptionEvidence")
   })
 
   it("excludes ALL external patient_not_found webhooks from the prescription-delivery count + feed", () => {

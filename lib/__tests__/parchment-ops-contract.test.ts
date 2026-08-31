@@ -94,6 +94,8 @@ describe("Parchment ops dashboard and retry contract", () => {
     expect(opsSource).toContain("prescriber_not_linked")
     expect(opsSource).toContain("intake_correlation_mismatch")
     expect(opsSource).toContain("filterUnresolvedParchmentFailures")
+    expect(opsSource).toContain("filterRecoveredStandaloneParchmentFailures")
+    expect(opsSource).toContain("readStandaloneParchmentPrescriptionEvidence")
   })
 
   it("filters non-actionable Parchment noise before capping the recovery read", () => {

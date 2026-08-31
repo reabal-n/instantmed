@@ -6,7 +6,10 @@ import { logExternalPrescribingIndicated } from "@/lib/audit/compliance-audit"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import { getParchmentEnvironment, verifyWebhookSignature } from "@/lib/parchment/client"
-import { parseParchmentIntakeCorrelation } from "@/lib/parchment/intake-correlation"
+import {
+  isParchmentPatientProfileCorrelation,
+  parseParchmentIntakeCorrelation,
+} from "@/lib/parchment/intake-correlation"
 import { syncParchmentPrescriptionToPms } from "@/lib/parchment/sync-prescription"
 import { webhookPayloadSchema } from "@/lib/parchment/types"
 import { selectParchmentWebhookIntake, selectParchmentWebhookPrescriberId } from "@/lib/parchment/webhook-matching"
@@ -149,6 +152,8 @@ export async function POST(request: Request) {
   const intakeCorrelation = hasIntakeCorrelationMetadata
     ? parseParchmentIntakeCorrelation(payload.metadata?.reserved_1)
     : undefined
+  const isStandalonePatientProfilePrescription = hasIntakeCorrelationMetadata
+    && isParchmentPatientProfileCorrelation(payload.metadata?.reserved_1)
 
   // Defense-in-depth: Parchment sandbox fires test webhooks with a sentinel
   // patient_id even when org/partner IDs match production. Silently ack.
@@ -252,7 +257,11 @@ export async function POST(request: Request) {
       })
     }
 
-    if (hasIntakeCorrelationMetadata && !intakeCorrelation) {
+    if (
+      hasIntakeCorrelationMetadata
+      && !intakeCorrelation
+      && !isStandalonePatientProfilePrescription
+    ) {
       log.warn("Parchment webhook contained invalid intake correlation metadata", {
         eventId: payload.event_id,
       })
@@ -283,9 +292,11 @@ export async function POST(request: Request) {
       .eq("script_sent", false)
       .is("parchment_reference", null)
 
-    const { data: candidates, error: selectError } = intakeCorrelation === undefined
-      ? await candidateQuery.order("created_at", { ascending: false }).limit(10)
-      : await candidateQuery.eq("reference_number", intakeCorrelation).limit(2)
+    const { data: candidates, error: selectError } = isStandalonePatientProfilePrescription
+      ? { data: [], error: null }
+      : intakeCorrelation === undefined
+        ? await candidateQuery.order("created_at", { ascending: false }).limit(10)
+        : await candidateQuery.eq("reference_number", intakeCorrelation).limit(2)
 
     if (selectError) {
       const msg = selectError.message ?? JSON.stringify(selectError)
@@ -571,7 +582,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ received: true, resumed: true })
       }
 
-      if (intakeCorrelation !== undefined) {
+      if (intakeCorrelation !== undefined && !isStandalonePatientProfilePrescription) {
         log.warn("Parchment webhook intake correlation did not match an eligible request", {
           eventId: payload.event_id,
         })

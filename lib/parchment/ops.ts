@@ -5,9 +5,13 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
 import {
+  filterRecoveredStandaloneParchmentFailures,
   filterUnresolvedParchmentFailures,
+  getRecoveredStandaloneParchmentFailurePresentation,
   isNonActionableParchmentFailure,
+  type ParchmentStandalonePrescriptionEvidence,
 } from "@/lib/parchment/failure-reconciliation"
+import { readStandaloneParchmentPrescriptionEvidence } from "@/lib/parchment/failure-reconciliation-data"
 import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
 
 const PARCHMENT_PRESCRIPTION_EVENT = "parchment:prescription.created"
@@ -262,7 +266,10 @@ export function mapParchmentFailedWebhook(row: AuditFailureRow): ParchmentFailed
   }
 }
 
-function mapParchmentOpsEvent(row: AuditFailureRow): ParchmentOpsEvent | null {
+function mapParchmentOpsEvent(
+  row: AuditFailureRow,
+  standalonePrescriptions: ParchmentStandalonePrescriptionEvidence[],
+): ParchmentOpsEvent | null {
   const actionType = getString(row.metadata, "action_type")
   const eventId = getString(row.metadata, "event_id") || getString(row.metadata, "eventId")
   const scid = getString(row.metadata, "scid") || getString(row.metadata, "parchmentReference")
@@ -271,11 +278,16 @@ function mapParchmentOpsEvent(row: AuditFailureRow): ParchmentOpsEvent | null {
 
   if (row.action === "webhook_failed" && isParchmentPrescriptionFailure(row.metadata)) {
     const reason = getString(row.metadata, "error") || "unknown_error"
+    const failure = mapParchmentFailedWebhook(row)
+    const recovered = failure
+      ? getRecoveredStandaloneParchmentFailurePresentation(failure, standalonePrescriptions)
+      : null
+
     return {
       id: row.id,
-      status: "destructive",
-      label: "Webhook failed",
-      detail: buildFailureDescription(row, reason, eventId),
+      status: recovered?.status ?? "destructive",
+      label: recovered?.label ?? "Webhook failed",
+      detail: recovered?.detail ?? buildFailureDescription(row, reason, eventId),
       createdAt: row.created_at,
       eventId,
       scid,
@@ -554,17 +566,25 @@ export async function getParchmentOpsDashboard(
     action: string
     metadata: Record<string, unknown> | null
   }>
-  const actionableFailures = filterUnresolvedParchmentFailures(
-    ((actionableFailedWebhooksResult.data || []) as AuditFailureRow[])
-      .map(mapParchmentFailedWebhook)
-      .filter((failure): failure is ParchmentFailedWebhook => failure !== null),
-    successfulRetries,
+  const actionableFailureCandidates = ((actionableFailedWebhooksResult.data || []) as AuditFailureRow[])
+    .map(mapParchmentFailedWebhook)
+    .filter((failure): failure is ParchmentFailedWebhook => failure !== null)
+  const historicalFailureCandidates = ((historicalWebhookFailuresResult.data || []) as AuditFailureRow[])
+    .map(mapParchmentFailedWebhook)
+    .filter((failure): failure is ParchmentFailedWebhook => failure !== null)
+  const standaloneEvidenceRead = await readStandaloneParchmentPrescriptionEvidence(
+    supabase,
+    historicalFailureCandidates,
+  )
+  const standalonePrescriptions = standaloneEvidenceRead.error ? [] : standaloneEvidenceRead.data
+
+  const actionableFailures = filterRecoveredStandaloneParchmentFailures(
+    filterUnresolvedParchmentFailures(actionableFailureCandidates, successfulRetries),
+    standalonePrescriptions,
   ).filter((failure) => !isNonActionableWebhookFailure(failure))
-  const historicalWebhookFailures = filterUnresolvedParchmentFailures(
-    ((historicalWebhookFailuresResult.data || []) as AuditFailureRow[])
-      .map(mapParchmentFailedWebhook)
-      .filter((failure): failure is ParchmentFailedWebhook => failure !== null),
-    successfulRetries,
+  const historicalWebhookFailures = filterRecoveredStandaloneParchmentFailures(
+    filterUnresolvedParchmentFailures(historicalFailureCandidates, successfulRetries),
+    standalonePrescriptions,
   ).filter(isNonActionableWebhookFailure)
   const staleScriptHandoffRows = [
     ...(staleAwaitingScriptHandoffsResult.data || []),
@@ -578,7 +598,7 @@ export async function getParchmentOpsDashboard(
     ...staleScriptHandoffs,
   ].slice(0, 20)
   const recentEvents = ((recentEventsResult.data || []) as AuditFailureRow[])
-    .map(mapParchmentOpsEvent)
+    .map((row) => mapParchmentOpsEvent(row, standalonePrescriptions))
     .filter((event): event is ParchmentOpsEvent => event !== null && event.status !== "destructive")
     .slice(0, 12)
 

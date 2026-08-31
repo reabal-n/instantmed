@@ -15,6 +15,7 @@ import { checkParchmentPrescribingCapability } from "@/lib/doctor/parchment-pres
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getSsoUrl, validateIntegration } from "@/lib/parchment/client"
+import { buildParchmentPatientProfileRedirectPath } from "@/lib/parchment/intake-correlation"
 import {
   formatParchmentPatientSyncError,
   getParchmentPatientIdentityIssues,
@@ -388,7 +389,7 @@ export async function getPatientParchmentPrescribeUrlAction(
     )
     const ssoData = await getSsoUrl(
       callerParchmentUserId,
-      `/embed/patients/${parchmentPatientId}/prescriptions`,
+      buildParchmentPatientProfileRedirectPath(parchmentPatientId),
     )
 
     await logAuditEvent({

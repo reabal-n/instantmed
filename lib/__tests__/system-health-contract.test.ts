@@ -54,6 +54,8 @@ describe("system-health endpoint contract", () => {
     // The other three surfaces.
     expect(source).toContain('eq("action", "webhook_failed")')
     expect(source).toContain('eq("metadata->>error_type", "parchment")')
+    expect(source).toContain("readStandaloneParchmentPrescriptionEvidence")
+    expect(source).toContain("filterRecoveredStandaloneParchmentFailures")
     expect(source).toContain('from("email_outbox")')
     expect(source).toContain("CRON_OWNED_NON_RECONSTRUCTABLE_EMAIL_TYPES")
     expect(source).toContain("INTENTIONAL_EMAIL_SUPPRESSION_PREFIX")
