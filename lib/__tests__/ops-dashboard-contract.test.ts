@@ -99,6 +99,10 @@ const opsActionModelSource = readFileSync(
   join(process.cwd(), "lib/admin/ops-action-model.ts"),
   "utf8",
 )
+const fraudFlagActionSource = readFileSync(
+  join(process.cwd(), "app/actions/fraud-flag-review.ts"),
+  "utf8",
+)
 const refundsPageSource = readFileSync(
   join(process.cwd(), "app/admin/refunds/page.tsx"),
   "utf8",
@@ -177,7 +181,7 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).toContain("No exceptions in monitored scope")
     expect(opsClientSource).toContain("Current-state payment and script checks cover all matching records")
     expect(opsClientSource).toContain("Identity checks cover the oldest 100 active prescribing requests")
-    expect(opsClientSource).toContain("email, Parchment, and Ads monitors cover 7 days; certificate delivery covers 14 days")
+    expect(opsClientSource).toContain("email, Parchment, and Ads monitors cover 7 days; certificate resolved history covers 14 days, while unresolved paid terminal obligations scan up to 5,000 historical candidates and alert if capped")
     expect(opsClientSource).not.toContain("No unresolved operational work")
     expect(opsClientSource).toContain("owner")
     expect(opsClientSource).toContain("formatAge")
@@ -190,6 +194,16 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).toContain('issue.severity === "critical" ? "Critical" : "Warning"')
     expect(opsClientSource).toContain('aria-label={`Open ${issue.title} recovery`}')
     expect(opsClientSource).not.toContain("aria-hidden className={cn(\"h-2 w-2")
+  })
+
+  it("keeps fraud review in the existing admin Operations action surface", () => {
+    expect(opsPageSource).toContain("getOpenFraudFlagReviewQueue")
+    expect(opsActionModelSource).toContain('action: "resolve_fraud_flag"')
+    expect(opsClientSource).toContain("resolveFraudFlagReviewAction")
+    expect(opsClientSource).toContain("Mark reviewed")
+    expect(opsClientSource).toContain("Dismiss")
+    expect(fraudFlagActionSource).toContain('roles: ["admin"]')
+    expect(fraudFlagActionSource).toContain("revalidateStaff({ ops: true })")
   })
 
   it("uses exact totals for durable unresolved states instead of detail-window lengths", () => {

@@ -799,7 +799,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 568 files, 246 route files
+### `app/` — 569 files, 246 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -887,7 +887,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `lib/hooks/` | Shared client hooks | Debounce, keyboard navigation, landing analytics, responsive media, section visibility, validation summaries, and staff refresh helpers |
 | `e2e/` | 78 TypeScript files, including 68 specs and `helpers/` (seed/teardown, auth bypass, production-synthetic side-effect isolation). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 134 SQL migration files (1 squashed baseline + 133 incremental). Latest timestamp on disk and latest applied production timestamp: `20260828090000_specialty_experience_attribution.sql`; it adds bounded, nullable, non-clinical `growth_experience_version` columns with set-once draft and immutable intake semantics. Also applied and verified in production on 2026-08-28: `20260827210500_twilio_voice_callback_requests.sql`, which creates the encrypted, service-role-only Medical Director voice-message queue, bounded notification claims, and resolved-message cleanup RPC. On-disk presence is not deployment proof; linked migration history and post-apply receipts own production status. |
+| `supabase/migrations/` | 135 SQL migration files (1 squashed baseline + 134 incremental). Latest timestamp on disk: `20260902090000_converge_fraud_flag_review_state.sql`; it converges legacy boolean fraud-review state to the app-owned `open|reviewed|dismissed` model and is pending production apply and verification. Latest applied/verified production timestamp remains `20260828090000_specialty_experience_attribution.sql`; it adds bounded, nullable, non-clinical `growth_experience_version` columns with set-once draft and immutable intake semantics. Also applied and verified in production on 2026-08-28: `20260827210500_twilio_voice_callback_requests.sql`, which creates the encrypted, service-role-only Medical Director voice-message queue, bounded notification claims, and resolved-message cleanup RPC. On-disk presence is not deployment proof; linked migration history and post-apply receipts own production status. |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |

@@ -23,7 +23,7 @@ import {
   buildAnswersInsertColumns,
   getIntakeAnswersForPaymentSafety,
 } from "@/lib/data/intake-answers"
-import { decryptProfilePhi, updateProfile } from "@/lib/data/profiles"
+import { decryptProfilePhi, encryptProfilePhi, updateProfile } from "@/lib/data/profiles"
 import { isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import {
   normalizeIncomingGrowthExperienceVersion,
@@ -67,6 +67,7 @@ import { buildPaymentIntentMetadata, canRetryPaymentForIntake, resolveGuestDupli
 import { isPaymentSafetyLock } from "./payment-safety-lock"
 import {
   buildPrescribingProfileUpdates,
+  type CheckoutIdentityProfileUpdates,
   validateRequiredPrescribingProfileAnswers,
 } from "./prescribing-profile-fields"
 
@@ -203,8 +204,8 @@ async function resolveGuestPaymentCompletionAfterStateChange({
 function buildGuestProfileIdentityUpdate(
   existingProfile: ExistingGuestProfile,
   input: GuestCheckoutInput,
-): Record<string, unknown> {
-  const updates: Record<string, unknown> = {}
+): CheckoutIdentityProfileUpdates {
+  const updates: CheckoutIdentityProfileUpdates = {}
 
   if (input.guestPhone && !existingProfile.phone) {
     updates.phone = input.guestPhone
@@ -418,6 +419,16 @@ async function markGuestCheckoutFailed(
  */
 export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
   try {
+    if (!process.env.ENCRYPTION_KEY?.trim()) {
+      logger.error("Guest checkout blocked: profile encryption key is not configured", {
+        category: input.category,
+      })
+      return {
+        success: false,
+        error: `Server configuration error. Please contact support at ${CONTACT_EMAIL}`,
+      }
+    }
+
     const resolvedAttribution = await resolveCheckoutAttribution(input.attribution)
     const candidateGrowthExperienceVersion = normalizeIncomingGrowthExperienceVersion(
       input.growthExperienceVersion,
@@ -621,10 +632,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       guestProfileId = reusableGuestProfile.id
       const profileUpdates = buildGuestProfileIdentityUpdate(reusableGuestProfile, input)
       if (Object.keys(profileUpdates).length > 0) {
-        await supabase
-          .from("profiles")
-          .update(profileUpdates)
-          .eq("id", guestProfileId)
+        const updatedProfile = await updateProfile(guestProfileId, profileUpdates)
+        if (!updatedProfile) {
+          return { success: false, error: "Failed to save patient details. Please try again." }
+        }
       }
     } else if ((existingGuestProfiles || []).length > 0) {
       logger.info("Skipping guest profile reuse because identity evidence did not match", {
@@ -636,14 +647,14 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       // Create a new guest profile
       const { data: newProfile, error: profileError } = await supabase
         .from("profiles")
-        .insert({
+        .insert(encryptProfilePhi({
           email: normalizedEmail,
           full_name: input.guestName || normalizedEmail.split("@")[0],
           date_of_birth: input.guestDateOfBirth || null,
           phone: input.guestPhone || null, // P1 FIX: Store phone for eScript SMS
           auth_user_id: null,
           role: "patient",
-        })
+        }))
         .select("id")
         .single()
 

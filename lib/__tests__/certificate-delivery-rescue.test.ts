@@ -20,7 +20,7 @@ function createRescueSupabaseStub(
   results: Record<string, unknown[]>,
   errors: Partial<Record<string, { message: string }>> = {},
 ) {
-  const filterCalls: Array<{ table: string; method: "or" | "not"; args: unknown[] }> = []
+  const filterCalls: Array<{ table: string; method: "or" | "not" | "gte" | "in"; args: unknown[] }> = []
   const orderCalls: Array<{
     table: string
     field: string
@@ -31,12 +31,22 @@ function createRescueSupabaseStub(
     filterCalls,
     orderCalls,
     from(table: string) {
-      const result = { data: results[table] ?? [], error: errors[table] ?? null }
+      const result = {
+        count: (results[table] ?? []).length,
+        data: results[table] ?? [],
+        error: errors[table] ?? null,
+      }
       const query = {
         select: () => query,
         eq: () => query,
-        gte: () => query,
-        in: () => query,
+        gte: (...args: unknown[]) => {
+          filterCalls.push({ table, method: "gte", args })
+          return query
+        },
+        in: (...args: unknown[]) => {
+          filterCalls.push({ table, method: "in", args })
+          return query
+        },
         or: (...args: unknown[]) => {
           filterCalls.push({ table, method: "or", args })
           return query
@@ -536,7 +546,7 @@ describe("certificate delivery rescue", () => {
     expect(overview.cases[0]?.certificateEmail.kind).toBe("missing")
   })
 
-  it("keeps the full 14-day action total when the rendered case detail is capped", async () => {
+  it("keeps the full action total when the rendered case detail is capped", async () => {
     const secondIntakeId = "12345678-1234-4000-8000-000000000002"
     const supabase = createRescueSupabaseStub({
       intakes: [
@@ -570,6 +580,133 @@ describe("certificate delivery rescue", () => {
     expect(overview.cases).toHaveLength(1)
     expect(overview.actionCount).toBe(2)
     expect(overview.escalationCount).toBe(2)
+  })
+
+  it("keeps old unresolved terminal obligations visible without showing resolved history", async () => {
+    const unresolvedIntakeId = "12345678-1234-4000-8000-000000000010"
+    const resolvedIntakeId = "12345678-1234-4000-8000-000000000011"
+    const resolvedStoragePath = "certificates/resolved/current.pdf"
+    const resolvedStorageVersion = createHash("sha256")
+      .update(resolvedStoragePath)
+      .digest("hex")
+      .slice(0, 32)
+    const oldCreatedAt = "2025-01-01T00:00:00Z"
+    const supabase = createRescueSupabaseStub({
+      intakes: [
+        {
+          id: unresolvedIntakeId,
+          reference_number: "IM-OLD-UNRESOLVED",
+          status: "approved",
+          payment_status: "paid",
+          document_sent_at: null,
+          created_at: oldCreatedAt,
+          updated_at: oldCreatedAt,
+          approved_at: oldCreatedAt,
+          completed_at: null,
+        },
+        {
+          id: resolvedIntakeId,
+          reference_number: "IM-OLD-RESOLVED",
+          status: "completed",
+          payment_status: "paid",
+          document_sent_at: oldCreatedAt,
+          created_at: oldCreatedAt,
+          updated_at: oldCreatedAt,
+          approved_at: oldCreatedAt,
+          completed_at: oldCreatedAt,
+        },
+      ],
+      issued_certificates: [
+        {
+          id: "cert-old-superseded",
+          intake_id: unresolvedIntakeId,
+          status: "superseded",
+          storage_path: "certificates/unresolved/superseded.pdf",
+          created_at: oldCreatedAt,
+          email_sent_at: oldCreatedAt,
+          email_failed_at: null,
+          email_failure_reason: null,
+          resend_count: 0,
+        },
+        {
+          id: "cert-old-resolved",
+          intake_id: resolvedIntakeId,
+          status: "valid",
+          storage_path: resolvedStoragePath,
+          created_at: oldCreatedAt,
+          email_sent_at: oldCreatedAt,
+          email_failed_at: null,
+          email_failure_reason: null,
+          resend_count: 0,
+          delivery_reconciliation: [{
+            certificate_storage_version: resolvedStorageVersion,
+            recorded_at: oldCreatedAt,
+          }],
+        },
+      ],
+      email_outbox: [],
+      certificate_audit_log: [],
+    })
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never)
+
+    expect(overview.cases).toHaveLength(1)
+    expect(overview.cases[0]).toMatchObject({
+      intakeId: unresolvedIntakeId,
+      certificateStatus: "superseded",
+      recommendation: { action: "escalate" },
+    })
+    expect(overview.actionCount).toBe(1)
+
+    const intakeFilters = supabase.filterCalls.filter((call) => call.table === "intakes")
+    expect(intakeFilters.some((call) => call.method === "gte" && call.args[0] === "created_at")).toBe(false)
+    expect(intakeFilters.some(
+      (call) => call.method === "or"
+        && String(call.args[0]).includes("status.in.(approved,completed)")
+        && String(call.args[0]).includes("payment_status.in.(paid,partially_refunded)"),
+    )).toBe(true)
+  })
+
+  it("batches certificate, email, and audit evidence IDs below URL-safe limits", async () => {
+    const intakeRows = Array.from({ length: 205 }, (_, index) => ({
+      id: `intake-${index}`,
+      reference_number: `IM-BATCH-${index}`,
+      status: "approved",
+      payment_status: "paid",
+      document_sent_at: null,
+      created_at: "2099-01-01T00:00:00Z",
+      updated_at: "2099-01-01T00:00:00Z",
+      approved_at: "2099-01-01T00:00:00Z",
+      completed_at: null,
+    }))
+    const certificateRows = intakeRows.map((intake, index) => ({
+      id: `cert-${index}`,
+      intake_id: intake.id,
+      status: "valid",
+      storage_path: `certificates/batch/${index}.pdf`,
+      created_at: "2099-01-01T00:00:00Z",
+      email_sent_at: null,
+      email_failed_at: null,
+      email_failure_reason: null,
+      resend_count: 0,
+    }))
+    const supabase = createRescueSupabaseStub({
+      intakes: intakeRows,
+      issued_certificates: certificateRows,
+      email_outbox: [],
+      certificate_audit_log: [],
+    })
+
+    const overview = await getCertificateDeliveryRescueCases(supabase as never)
+
+    expect(overview.queryFailed).toBe(false)
+    for (const table of ["issued_certificates", "email_outbox", "certificate_audit_log"]) {
+      const idFilters = supabase.filterCalls
+        .filter((call) => call.table === table && call.method === "in")
+        .map((call) => call.args[1] as unknown[])
+      expect(idFilters.length).toBeGreaterThan(1)
+      expect(Math.max(...idFilters.map((ids) => ids.length))).toBeLessThanOrEqual(100)
+    }
   })
 
   it("recommends resending the secure link when a generated certificate email failed", () => {

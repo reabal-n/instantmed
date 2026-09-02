@@ -27,6 +27,12 @@ function input(overrides: Partial<Parameters<typeof buildOpsActionModel>[0]> = {
       warningCount: 0,
     },
     failureOverview: failureOverview(),
+    fraudFlags: {
+      coverageCapped: false,
+      items: [],
+      openCount: 0,
+      queryFailed: false,
+    },
     googleAdsConversionHealth: { notReaching: 0, queryFailed: false },
     identity: {
       blockedCount: 0,
@@ -94,6 +100,34 @@ describe("operations action model", () => {
       expect.arrayContaining(["Checkout", "Scripts waiting", "Prescribing identity blocked"]),
     )
     expect(model.groups.every(({ issues }) => issues.every(({ count }) => count > 0))).toBe(true)
+  })
+
+  it("gives each open fraud signal an admin-owned reviewed or dismissed action", () => {
+    const model = buildOpsActionModel(input({
+      fraudFlags: {
+        coverageCapped: false,
+        items: [{
+          createdAt: "2026-07-27T00:00:00.000Z",
+          flagId: "11111111-1111-4111-8111-111111111111",
+          flagType: "suspicious_medicare",
+          intakeId: "22222222-2222-4222-8222-222222222222",
+          severity: "high",
+        }],
+        openCount: 1,
+        queryFailed: false,
+      },
+    }))
+
+    const issue = model.groups.flatMap(({ issues }) => issues)
+      .find(({ id }) => id.startsWith("fraud:"))
+    expect(issue).toMatchObject({
+      action: "resolve_fraud_flag",
+      count: 1,
+      fraudFlagId: "11111111-1111-4111-8111-111111111111",
+      group: "identity_access",
+      owner: "Admin",
+    })
+    expect(JSON.stringify(issue)).not.toMatch(/medicare number|"patient_id"|"details":/i)
   })
 
   it("does not show successful certificate history and keeps only real rescue actions", () => {

@@ -156,6 +156,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const medicationNameRef = useRef<HTMLInputElement>(null)
   const steerAlertRef = useRef<HTMLDivElement>(null)
   const declineAlertRef = useRef<HTMLDivElement>(null)
+  const directionsSectionRef = useRef<HTMLElement>(null)
 
   // Old drafts may carry a PBS `selectedMedication` object or multiple
   // medication rows. Collapse everything to the first requested medicine: a
@@ -227,6 +228,30 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const controlledBlockKind = controlledBlock?.kind
   const suggestedDoseUnit = inferRepeatRxDoseUnit(medications[0]?.form)
   const effectiveDoseUnit = doseUnit || suggestedDoseUnit
+
+  const getBlockedFocusTarget = useCallback(() => {
+    if (Object.keys(errors)[0] !== "currentDose") return null
+
+    const directionsSection = directionsSectionRef.current
+    if (!directionsSection) return null
+    if (customDirectionsMode) {
+      return directionsSection.querySelector<HTMLElement>("#current-dose")
+    }
+    if (!doseAmount) {
+      return directionsSection.querySelector<HTMLElement>(
+        '[role="radiogroup"][aria-label="How much do you take?"] [role="radio"]',
+      )
+    }
+    if (!effectiveDoseUnit) {
+      return directionsSection.querySelector<HTMLElement>("#current-dose-unit")
+    }
+    if (!doseFrequency) {
+      return directionsSection.querySelector<HTMLElement>(
+        '[role="radiogroup"][aria-label="How often do you take it?"] [role="radio"]',
+      )
+    }
+    return null
+  }, [customDirectionsMode, doseAmount, doseFrequency, effectiveDoseUnit, errors])
 
   const captureMedicationBlock = useCallback(({
     blockType,
@@ -725,7 +750,10 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         description="One medicine per request. Use the name and strength on the label."
       />
 
-      <StepBlockedSummary reasons={blockedReasons} />
+      <StepBlockedSummary
+        reasons={blockedReasons}
+        getFocusTarget={getBlockedFocusTarget}
+      />
 
       {/* Controlled substance block */}
       {controlledBlock && (
@@ -976,7 +1004,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       {/* The repeat questions stay on one surface per region. Related answers
           stay together, while free typing is progressively disclosed only for
           uncommon dosing directions or a reported side effect. */}
-      <section aria-labelledby="medication-region-directions" className="space-y-2.5">
+      <section
+        ref={directionsSectionRef}
+        aria-labelledby="medication-region-directions"
+        className="space-y-2.5"
+      >
       <h3
         id="medication-region-directions"
         className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"

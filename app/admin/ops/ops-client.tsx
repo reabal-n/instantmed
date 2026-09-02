@@ -18,6 +18,7 @@ import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { repairCertificateDocumentSentAtAction } from "@/app/actions/certificate-document-sent-repair"
+import { resolveFraudFlagReviewAction } from "@/app/actions/fraud-flag-review"
 import { resendCertificateAsStaff } from "@/app/actions/resend-certificate"
 import { DashboardCard, StatusBadge } from "@/components/dashboard"
 import {
@@ -65,20 +66,31 @@ function IssueRow({
   resendingIntakeId,
   onRepair,
   onResend,
+  onResolveFraudFlag,
+  fraudResolutionArmed,
+  resolvingFraudFlagId,
 }: {
   generatedAt: string
   isPending: boolean
   issue: OpsActionIssue
   onRepair: () => void
   onResend: (intakeId: string) => void
+  onResolveFraudFlag: (flagId: string, outcome: "reviewed" | "dismissed") => void
   repairingArmed: boolean
   resendingIntakeId: string | null
+  fraudResolutionArmed: { flagId: string; outcome: "reviewed" | "dismissed" } | null
+  resolvingFraudFlagId: string | null
 }) {
   const isResending = issue.certificateIntakeId === resendingIntakeId && isPending
   const severityLabel = issue.severity === "critical" ? "Critical" : "Warning"
   const severityClass = issue.severity === "critical"
     ? "text-destructive"
     : "text-amber-700 dark:text-amber-300"
+  const isResolvingFraud = issue.fraudFlagId === resolvingFraudFlagId && isPending
+  const isFraudReviewArmed = issue.fraudFlagId === fraudResolutionArmed?.flagId
+    && fraudResolutionArmed?.outcome === "reviewed"
+  const isFraudDismissArmed = issue.fraudFlagId === fraudResolutionArmed?.flagId
+    && fraudResolutionArmed?.outcome === "dismissed"
 
   return (
     <li
@@ -108,7 +120,33 @@ function IssueRow({
       </div>
 
       <div className="flex min-w-32 justify-start lg:justify-end">
-        {issue.action === "resend_certificate" && issue.certificateIntakeId ? (
+        {issue.action === "resolve_fraud_flag" && issue.fraudFlagId ? (
+          <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
+            <Button size="sm" variant="outline" className="min-h-11 lg:min-h-9" asChild>
+              <Link href={issue.href} aria-label={`Open linked request for ${issue.title}`}>
+                Open
+              </Link>
+            </Button>
+            <Button
+              size="sm"
+              variant={isFraudReviewArmed ? "default" : "outline"}
+              className="min-h-11 lg:min-h-9"
+              disabled={isResolvingFraud}
+              onClick={() => onResolveFraudFlag(issue.fraudFlagId!, "reviewed")}
+            >
+              {isFraudReviewArmed ? "Confirm reviewed" : "Mark reviewed"}
+            </Button>
+            <Button
+              size="sm"
+              variant={isFraudDismissArmed ? "default" : "outline"}
+              className="min-h-11 lg:min-h-9"
+              disabled={isResolvingFraud}
+              onClick={() => onResolveFraudFlag(issue.fraudFlagId!, "dismissed")}
+            >
+              {isFraudDismissArmed ? "Confirm dismiss" : "Dismiss"}
+            </Button>
+          </div>
+        ) : issue.action === "resend_certificate" && issue.certificateIntakeId ? (
           <Button
             size="sm"
             variant="outline"
@@ -152,14 +190,20 @@ function IssueGroup({
   resendingIntakeId,
   onRepair,
   onResend,
+  onResolveFraudFlag,
+  fraudResolutionArmed,
+  resolvingFraudFlagId,
 }: {
   generatedAt: string
   group: OpsActionGroup
   isPending: boolean
   onRepair: () => void
   onResend: (intakeId: string) => void
+  onResolveFraudFlag: (flagId: string, outcome: "reviewed" | "dismissed") => void
   repairingArmed: boolean
   resendingIntakeId: string | null
+  fraudResolutionArmed: { flagId: string; outcome: "reviewed" | "dismissed" } | null
+  resolvingFraudFlagId: string | null
 }) {
   const Icon = GROUP_ICONS[group.key]
 
@@ -188,6 +232,9 @@ function IssueGroup({
             resendingIntakeId={resendingIntakeId}
             onRepair={onRepair}
             onResend={onResend}
+            onResolveFraudFlag={onResolveFraudFlag}
+            fraudResolutionArmed={fraudResolutionArmed}
+            resolvingFraudFlagId={resolvingFraudFlagId}
           />
         ))}
       </ul>
@@ -204,6 +251,11 @@ export function OpsDashboardClient({
 }) {
   const router = useRouter()
   const [resendingIntakeId, setResendingIntakeId] = useState<string | null>(null)
+  const [resolvingFraudFlagId, setResolvingFraudFlagId] = useState<string | null>(null)
+  const [fraudResolutionArmed, setFraudResolutionArmed] = useState<{
+    flagId: string
+    outcome: "reviewed" | "dismissed"
+  } | null>(null)
   const [repairingArmed, setRepairingArmed] = useState(false)
   const [isPending, startTransition] = useTransition()
 
@@ -248,6 +300,32 @@ export function OpsDashboardClient({
         router.refresh()
       } catch {
         toast.error("Could not repair certificate timestamps")
+      }
+    })
+  }
+
+  function handleResolveFraudFlag(flagId: string, outcome: "reviewed" | "dismissed") {
+    if (fraudResolutionArmed?.flagId !== flagId || fraudResolutionArmed.outcome !== outcome) {
+      setFraudResolutionArmed({ flagId, outcome })
+      toast.info(`Review the linked request, then click Confirm ${outcome === "reviewed" ? "reviewed" : "dismiss"}.`)
+      return
+    }
+
+    setFraudResolutionArmed(null)
+    setResolvingFraudFlagId(flagId)
+    startTransition(async () => {
+      try {
+        const result = await resolveFraudFlagReviewAction({ flagId, outcome })
+        if (!result.success) {
+          toast.error(result.error || "Could not save the fraud review outcome")
+          return
+        }
+        toast.success(outcome === "reviewed" ? "Fraud flag marked reviewed" : "Fraud flag dismissed")
+        router.refresh()
+      } catch {
+        toast.error("Could not save the fraud review outcome")
+      } finally {
+        setResolvingFraudFlagId(null)
       }
     })
   }
@@ -302,7 +380,7 @@ export function OpsDashboardClient({
               </span>
               <h2 className="mt-3 text-base font-semibold text-foreground">No exceptions in monitored scope</h2>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                Current-state payment and script checks cover all matching records. Identity checks cover the oldest 100 active prescribing requests; email, Parchment, and Ads monitors cover 7 days; certificate delivery covers 14 days.
+                Current-state payment and script checks cover all matching records. Identity checks cover the oldest 100 active prescribing requests; email, Parchment, and Ads monitors cover 7 days; certificate resolved history covers 14 days, while unresolved paid terminal obligations scan up to 5,000 historical candidates and alert if capped.
               </p>
             </div>
           </DashboardCard>
@@ -316,6 +394,9 @@ export function OpsDashboardClient({
             resendingIntakeId={resendingIntakeId}
             onRepair={handleRepairTimestamps}
             onResend={handleResendCertificate}
+            onResolveFraudFlag={handleResolveFraudFlag}
+            fraudResolutionArmed={fraudResolutionArmed}
+            resolvingFraudFlagId={resolvingFraudFlagId}
           />
         ))}
       </OperatorScrollArea>

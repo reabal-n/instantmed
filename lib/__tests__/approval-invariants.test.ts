@@ -1,6 +1,6 @@
 import { beforeEach,describe, expect, it, vi } from 'vitest'
 
-import { resetAllMocks } from './setup'
+import { mockSupabaseFrom, resetAllMocks } from './setup'
 
 // Mock server-only before any imports
 vi.mock('server-only', () => ({}))
@@ -95,6 +95,59 @@ describe('Fraud Detection', () => {
       const result = checkRapidCompletion(startTime, endTime)
 
       expect(result).toBeNull()
+    })
+  })
+
+  describe('saveFraudFlags', () => {
+    it('persists only PHI-free reason and count primitives in flag details', async () => {
+      const insert = vi.fn().mockResolvedValue({ error: null })
+      mockSupabaseFrom.mockReturnValue({ insert })
+      const { saveFraudFlags } = await import('@/lib/security/fraud-detector')
+
+      await saveFraudFlags('intake-owner-id', 'patient-owner-id', [
+        {
+          type: 'suspicious_medicare',
+          severity: 'high',
+          details: {
+            value: '1234567890',
+            pattern: '/^1234567890$/',
+          },
+        },
+        {
+          type: 'duplicate_medication',
+          severity: 'critical',
+          details: {
+            medicationCode: 'RAW-MEDICATION-CODE',
+            matchingRequestCount: 2,
+            matchingPatientIds: ['raw-patient-id'],
+            existingRequestIds: ['raw-request-id'],
+            reason: 'Same Medicare number used across accounts for the same medication',
+          },
+        },
+        {
+          type: 'rolling_window_abuse',
+          severity: 'medium',
+          details: {
+            certificateCount: 3,
+            totalDays: 5,
+            period: '14_days',
+            requestIds: ['raw-intake-id'],
+          },
+        },
+      ])
+
+      const inserts = insert.mock.calls[0]?.[0] as Array<{ details: Record<string, unknown> }>
+      expect(inserts.map((row) => row.details)).toEqual([
+        { reason: 'known_invalid_pattern' },
+        {
+          reason: 'same_medicare_across_accounts_for_same_medication',
+          matchingRequestCount: 2,
+        },
+        { certificateCount: 3, totalDays: 5, period: '14_days' },
+      ])
+      expect(JSON.stringify(inserts.map((row) => row.details))).not.toMatch(
+        /1234567890|RAW-MEDICATION-CODE|raw-patient-id|raw-request-id|raw-intake-id/,
+      )
     })
   })
 })

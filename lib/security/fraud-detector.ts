@@ -31,6 +31,65 @@ export type FraudCheckResult = {
   riskScore: number // 0-100
 }
 
+function finiteNumber(details: Record<string, unknown>, key: string): number | undefined {
+  const value = details[key]
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined
+}
+
+/**
+ * Fraud flags remain linked to their owning intake/patient via dedicated
+ * columns. The free-form details payload must contain only the minimum
+ * non-identifying primitives an operator needs to understand the signal.
+ */
+function sanitizeFraudFlagDetails(flag: FraudFlag): Record<string, string | number> {
+  const count = finiteNumber(flag.details, "count")
+  const durationSeconds = finiteNumber(flag.details, "durationSeconds")
+  const matchingRequestCount = finiteNumber(flag.details, "matchingRequestCount")
+  const certificateCount = finiteNumber(flag.details, "certificateCount")
+  const totalDays = finiteNumber(flag.details, "totalDays")
+  const currentCount = finiteNumber(flag.details, "currentCount")
+  const threshold = finiteNumber(flag.details, "threshold")
+  const attemptCount = finiteNumber(flag.details, "attemptCount")
+
+  switch (flag.type) {
+    case "multiple_daily":
+      return count === undefined ? {} : { count }
+    case "suspicious_medicare":
+      return { reason: "known_invalid_pattern" }
+    case "rapid_completion":
+      return durationSeconds === undefined ? {} : { durationSeconds }
+    case "duplicate_request":
+      return { reason: "same_service_within_one_hour" }
+    case "duplicate_medication":
+      return {
+        reason: "same_medicare_across_accounts_for_same_medication",
+        ...(matchingRequestCount === undefined ? {} : { matchingRequestCount }),
+      }
+    case "rolling_window_abuse":
+      return {
+        ...(certificateCount === undefined ? {} : { certificateCount }),
+        ...(totalDays === undefined ? {} : { totalDays }),
+        period: "14_days",
+      }
+    case "chat_restart_abuse":
+      return {
+        reason: "repeated_chat_restarts",
+        ...(count === undefined ? {} : { count }),
+      }
+    case "injection_attempt":
+      return {
+        reason: "repeated_injection_attempts",
+        ...(attemptCount === undefined ? {} : { attemptCount }),
+      }
+    case "soft_flag":
+      return {
+        reason: "approaching_daily_limit",
+        ...(currentCount === undefined ? {} : { currentCount }),
+        ...(threshold === undefined ? {} : { threshold }),
+      }
+  }
+}
+
 /**
  * Check for multiple intakes in same day
  */
@@ -49,7 +108,7 @@ async function checkMultipleDaily(patientId: string): Promise<FraudFlag | null> 
     return {
       type: "multiple_daily",
       severity: count >= 5 ? "high" : "medium",
-      details: { count, date: today.toISOString() },
+      details: { count },
     }
   }
 
@@ -74,7 +133,7 @@ export function checkSuspiciousMedicare(medicareNumber: string): FraudFlag | nul
       return {
         type: "suspicious_medicare",
         severity: "high",
-        details: { pattern: pattern.toString(), value: medicareNumber },
+        details: { reason: "known_invalid_pattern" },
       }
     }
   }
@@ -95,7 +154,7 @@ export function checkRapidCompletion(startTime: Date, endTime: Date): FraudFlag 
     return {
       type: "rapid_completion",
       severity: durationSeconds < 10 ? "high" : "medium",
-      details: { durationSeconds, startTime: startTime.toISOString(), endTime: endTime.toISOString() },
+      details: { durationSeconds },
     }
   }
 
@@ -123,7 +182,7 @@ async function checkDuplicateRequest(patientId: string, category: string, subtyp
     return {
       type: "duplicate_request",
       severity: "medium",
-      details: { existingIntakeId: data.id, category, subtype },
+      details: { reason: "same_service_within_one_hour" },
     }
   }
 
@@ -192,18 +251,12 @@ export async function checkMedicareDuplication(
   })
 
   if (duplicateRows.length > 0) {
-    const duplicateIntakeIds = new Set(duplicateRows.map((row) => row.intake_id as string))
-    const duplicateIntakes = matchingIntakes.filter((intake) => duplicateIntakeIds.has(intake.id as string))
-
     return {
       type: "duplicate_medication",
       severity: "critical",
       details: {
-        medicationCode,
         matchingRequestCount: duplicateRows.length,
-        matchingPatientIds: duplicateIntakes.map((intake) => intake.patient_id),
-        existingRequestIds: duplicateRows.map((row) => row.intake_id),
-        reason: "Same Medicare number used across accounts for the same medication",
+        reason: "same_medicare_across_accounts_for_same_medication",
       },
     }
   }
@@ -247,7 +300,6 @@ export async function checkRollingWindowCertificates(
         certificateCount: data.length,
         totalDays,
         period: "14_days",
-        requestIds: data.map(r => r.id),
       },
     }
   }
@@ -261,7 +313,6 @@ export async function checkRollingWindowCertificates(
  */
 export async function checkSoftFlags(
   patientId: string,
-  category: string
 ): Promise<FraudFlag | null> {
   const supabase = getServiceClient()
   const today = new Date()
@@ -282,7 +333,6 @@ export async function checkSoftFlags(
         reason: "approaching_daily_limit",
         currentCount: count,
         threshold: 3,
-        category,
       },
     }
   }
@@ -384,7 +434,7 @@ export async function runFraudChecks(params: {
   }
 
   // MEDIUM: Soft flags for cumulative risk
-  const softFlag = await checkSoftFlags(params.patientId, params.category)
+  const softFlag = await checkSoftFlags(params.patientId)
   if (softFlag) flags.push(softFlag)
 
   // Calculate risk score with updated weights
@@ -417,7 +467,7 @@ export async function saveFraudFlags(intakeId: string, patientId: string, flags:
     patient_id: patientId,
     flag_type: flag.type,
     severity: flag.severity,
-    details: flag.details,
+    details: sanitizeFraudFlagDetails(flag),
   }))
 
   await supabase.from("fraud_flags").insert(inserts)

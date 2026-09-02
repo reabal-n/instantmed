@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   stripeSessionExpire: vi.fn(),
   stripeSessionRetrieve: vi.fn(),
   trackOperationalBlock: vi.fn(),
+  updateProfile: vi.fn(),
   validateMedCertPayload: vi.fn(),
   validateSafetyFieldsPresent: vi.fn(),
 }))
@@ -51,9 +52,10 @@ vi.mock("@/lib/operational-controls/config", () => ({
   isAtCapacity: mocks.isAtCapacity,
 }))
 
-vi.mock("@/lib/data/profiles", () => ({
+vi.mock("@/lib/data/profiles", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/lib/data/profiles")>(),
   decryptProfilePhi: vi.fn((profile) => profile),
-  updateProfile: vi.fn(async () => ({})),
+  updateProfile: mocks.updateProfile,
 }))
 
 vi.mock("@/lib/data/intake-answers", async (importOriginal) => ({
@@ -124,6 +126,7 @@ vi.mock("@/lib/validation/repeat-script-schema", () => ({
 }))
 
 import { SPECIALTY_EXPERIENCES } from "@/lib/growth/specialty-experiences"
+import { decryptField } from "@/lib/security/encryption"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 
@@ -259,6 +262,7 @@ function createGuestCheckoutSupabaseMock({
   duplicateAnswerPayload,
   duplicateAnswers = true,
   duplicateIntake,
+  existingGuestProfiles = [],
   forceDuplicate = false,
 }: {
   boundDraftGrowthRead?: {
@@ -268,6 +272,7 @@ function createGuestCheckoutSupabaseMock({
   duplicateAnswerPayload?: Record<string, unknown> | null
   duplicateAnswers?: boolean
   duplicateIntake?: DuplicateGuestIntake
+  existingGuestProfiles?: Array<Record<string, unknown>>
   forceDuplicate?: boolean
 } = {}) {
   if (duplicateIntake) {
@@ -291,7 +296,10 @@ function createGuestCheckoutSupabaseMock({
       not: vi.fn(() => builder),
       or: vi.fn(() => builder),
       order: vi.fn(() => builder),
-      limit: vi.fn(async () => ({ data: [], error: null })),
+      limit: vi.fn(async () => ({
+        data: table === "profiles" ? existingGuestProfiles : [],
+        error: null,
+      })),
       select: vi.fn(() => {
         selectCount += 1
         if (!operation) operation = "select"
@@ -403,6 +411,7 @@ describe("checkout operating hours", () => {
       status: "open",
       url: `https://checkout.stripe.test/pay/${sessionId}`,
     }))
+    mocks.updateProfile.mockResolvedValue({})
     mocks.validateMedCertPayload.mockReturnValue({ valid: true })
     mocks.validateSafetyFieldsPresent.mockReturnValue({ valid: true, missingFields: [] })
   })
@@ -504,6 +513,42 @@ describe("checkout operating hours", () => {
     })
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it("fails closed before guest persistence when the profile encryption key is missing", async () => {
+    const { supabase } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const previousEncryptionKey = process.env.ENCRYPTION_KEY
+    delete process.env.ENCRYPTION_KEY
+
+    try {
+      const result = await createGuestCheckoutAction({
+        answers: {
+          accuracy_confirmed: true,
+          terms_agreed: true,
+        },
+        category: "medical_certificate",
+        guestDateOfBirth: "1985-04-01",
+        guestEmail: "patient@example.test",
+        guestName: "Test Patient",
+        subtype: "work",
+        type: "med-cert",
+      })
+
+      expect(result).toEqual({
+        success: false,
+        error: "Server configuration error. Please contact support at support@instantmed.com.au",
+      })
+      expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+      expect(mocks.updateProfile).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    } finally {
+      if (previousEncryptionKey === undefined) {
+        delete process.env.ENCRYPTION_KEY
+      } else {
+        process.env.ENCRYPTION_KEY = previousEncryptionKey
+      }
+    }
   })
 
   it("keeps guest checkout strictly 18+ after removing duplicate intake attestations", async () => {
@@ -974,6 +1019,74 @@ describe("checkout operating hours", () => {
       error: "Enter a valid Medicare number or provide a valid IHI.",
     })
     expect(inserts).toEqual([])
+  })
+
+  it("dual-writes encrypted DOB and phone twins when creating a guest profile", async () => {
+    const { inserts, supabase } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const result = await createGuestCheckoutAction({
+      answers: {
+        accuracy_confirmed: true,
+        terms_agreed: true,
+      },
+      category: "medical_certificate",
+      guestDateOfBirth: "1985-04-01",
+      guestEmail: "patient@example.test",
+      guestName: "Test Patient",
+      guestPhone: "0400000000",
+      subtype: "work",
+      type: "med-cert",
+    })
+
+    expect(result.success).toBe(true)
+    const profileInsert = inserts.find(({ table }) => table === "profiles")?.payload
+    expect(profileInsert).toMatchObject({
+      date_of_birth: "1985-04-01",
+      phone: "0400000000",
+      phi_encrypted_at: expect.any(String),
+    })
+    expect(decryptField<string>(profileInsert?.date_of_birth_encrypted as string)).toBe("1985-04-01")
+    expect(decryptField<string>(profileInsert?.phone_encrypted as string)).toBe("0400000000")
+  })
+
+  it("routes reused guest identity writes through the encrypted profile helper", async () => {
+    const { supabase } = createGuestCheckoutSupabaseMock({
+      existingGuestProfiles: [{
+        auth_user_id: null,
+        date_of_birth: null,
+        date_of_birth_encrypted: null,
+        email: "patient@example.test",
+        email_verified: true,
+        full_name: "patient@example.test",
+        id: "guest-profile-existing",
+        phone: null,
+        phone_encrypted: null,
+        updated_at: "2026-09-01T00:00:00.000Z",
+      }],
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const result = await createGuestCheckoutAction({
+      answers: {
+        accuracy_confirmed: true,
+        terms_agreed: true,
+      },
+      category: "medical_certificate",
+      guestDateOfBirth: "1985-04-01",
+      guestEmail: "patient@example.test",
+      guestName: "Test Patient",
+      guestPhone: "0400000000",
+      subtype: "work",
+      type: "med-cert",
+    })
+
+    expect(result.success).toBe(true)
+    expect(mocks.updateProfile).toHaveBeenCalledWith("guest-profile-existing", {
+      date_of_birth: "1985-04-01",
+      full_name: "Test Patient",
+      phone: "0400000000",
+    })
   })
 
   it("blocks authenticated consult checkout when blocked medication terms appear in consult details", async () => {

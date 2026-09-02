@@ -23,24 +23,32 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
  * reasons transition empty -> non-empty we scroll/focus it into view (review
  * 2026-06-11; the earlier scroll fix only shipped to patient-details-step).
  */
-export function StepBlockedSummary({ reasons }: { reasons: string[] }) {
+interface StepBlockedSummaryProps {
+  reasons: string[]
+  getFocusTarget?: () => HTMLElement | null
+}
+
+export function StepBlockedSummary({ reasons, getFocusTarget }: StepBlockedSummaryProps) {
   const ref = useRef<HTMLDivElement>(null)
   const hadReasons = useRef(false)
 
   useEffect(() => {
     const hasReasons = reasons.length > 0
-    if (hasReasons && !hadReasons.current && ref.current) {
+    if (hasReasons && !hadReasons.current) {
       const prefersReduced =
         typeof window !== "undefined" &&
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-      ref.current.scrollIntoView({
-        block: "center",
-        behavior: prefersReduced ? "auto" : "smooth",
-      })
-      ref.current.focus({ preventScroll: true })
+      const focusTarget = getFocusTarget?.() ?? ref.current
+      if (focusTarget) {
+        focusTarget.scrollIntoView({
+          block: "center",
+          behavior: prefersReduced ? "auto" : "smooth",
+        })
+        focusTarget.focus({ preventScroll: true })
+      }
     }
     hadReasons.current = hasReasons
-  }, [reasons])
+  }, [getFocusTarget, reasons])
 
   if (reasons.length === 0) return null
 
