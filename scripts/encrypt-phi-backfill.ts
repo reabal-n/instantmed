@@ -41,6 +41,8 @@
  */
 
 import { createClient } from "@supabase/supabase-js"
+
+import { SEEDED_E2E_PATIENT_PROFILE_IDS } from "../lib/data/seeded-e2e-data"
 import {
   encrypt,
   verifyEncryptionSetup,
@@ -52,6 +54,20 @@ import {
 
 const DEFAULT_BATCH_SIZE = 50
 const TABLE_NAME = "profiles"
+const MISSING_ENCRYPTED_PROFILE_FIELDS_FILTER = [
+  "and(medicare_number.not.is.null,medicare_number_encrypted.is.null)",
+  "and(date_of_birth.not.is.null,date_of_birth_encrypted.is.null)",
+  "and(phone.not.is.null,phone_encrypted.is.null)",
+].join(",")
+const SEEDED_E2E_STAFF_PROFILE_IDS = [
+  "e2e00000-0000-0000-0000-000000000001",
+  "e2e00000-0000-0000-0000-000000000003",
+  "e2e00000-0000-0000-0000-000000000004",
+] as const
+const SEEDED_E2E_PROFILE_FILTER = `(${[
+  ...SEEDED_E2E_STAFF_PROFILE_IDS,
+  ...SEEDED_E2E_PATIENT_PROFILE_IDS,
+].join(",")})`
 
 interface Profile {
   id: string
@@ -170,10 +186,8 @@ async function main() {
   const { count: totalCount, error: countError } = await supabase
     .from(TABLE_NAME)
     .select("id", { count: "exact", head: true })
-    .is("phi_encrypted_at", null)
-    .or(
-      "medicare_number.not.is.null,date_of_birth.not.is.null,phone.not.is.null"
-    )
+    .or(MISSING_ENCRYPTED_PROFILE_FIELDS_FILTER)
+    .not("id", "in", SEEDED_E2E_PROFILE_FILTER)
 
   if (countError) {
     log(`Failed to count profiles: ${countError.message}`, "error")
@@ -216,20 +230,24 @@ async function main() {
   let encrypted = 0
   let errors = 0
   let lastError: string | null = null
-  const offset = 0
+  let lastProfileId: string | null = null
 
   while (processed < total) {
-    // Fetch batch of profiles
-    const { data: profiles, error: fetchError } = await supabase
+    // Use a stable keyset cursor so a failed row that remains eligible cannot
+    // recur at offset zero and starve later candidates in this run.
+    const baseQuery = supabase
       .from(TABLE_NAME)
       .select(
         "id, medicare_number, medicare_number_encrypted, date_of_birth, date_of_birth_encrypted, phone, phone_encrypted, phi_encrypted_at"
       )
-      .is("phi_encrypted_at", null)
-      .or(
-        "medicare_number.not.is.null,date_of_birth.not.is.null,phone.not.is.null"
-      )
-      .range(offset, offset + batchSize - 1)
+      .or(MISSING_ENCRYPTED_PROFILE_FIELDS_FILTER)
+      .not("id", "in", SEEDED_E2E_PROFILE_FILTER)
+      .order("id", { ascending: true })
+      .limit(batchSize)
+    const pageQuery: typeof baseQuery = lastProfileId
+      ? baseQuery.gt("id", lastProfileId)
+      : baseQuery
+    const { data: profiles, error: fetchError } = await pageQuery
 
     if (fetchError) {
       log(`Failed to fetch profiles: ${fetchError.message}`, "error")
@@ -241,6 +259,7 @@ async function main() {
     if (!profiles || profiles.length === 0) {
       break
     }
+    lastProfileId = (profiles[profiles.length - 1] as Profile).id
 
     // Process each profile in the batch
     for (const profile of profiles as Profile[]) {
@@ -315,10 +334,6 @@ async function main() {
         })
         .eq("id", migrationStatusId)
     }
-
-    // Move to next batch
-    // Note: We don't increment offset because we're filtering by phi_encrypted_at IS NULL
-    // Records that get encrypted will no longer match the filter
   }
 
   // Mark migration as complete

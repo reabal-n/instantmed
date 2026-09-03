@@ -28,8 +28,16 @@ const REFUNDED_PAYMENT_STATUSES = ["refunded", "partially_refunded"] as const
 
 // Review SLA hard ceiling per docs/REVENUE_MODEL.md.
 const SLA_REVIEW_HOURS = 24
-export const CERTIFICATE_MISSING_RECORD_DAYS = 14
 export const CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS = 14
+const OPS_INVARIANT_ID_BATCH_SIZE = 100
+
+function batchOperationalInvariantIds(ids: string[]): string[][] {
+  const batches: string[][] = []
+  for (let index = 0; index < ids.length; index += OPS_INVARIANT_ID_BATCH_SIZE) {
+    batches.push(ids.slice(index, index + OPS_INVARIANT_ID_BATCH_SIZE))
+  }
+  return batches
+}
 
 // Backlog at or above this many overdue cases flips the SLA card from warning
 // to critical. Tuned for a solo / small-roster clinic: one breach is a warning,
@@ -49,9 +57,11 @@ export type OperationalInvariants = {
   // intake mirror still lacks document_sent_at. Optional for backwards-compatible
   // test literals; getOperationalInvariants always sets it.
   certificateSentMissingTimestamp?: number
-  // Recent paid med-cert intakes in a terminal delivery state without a
-  // generated certificate row. These are clinical delivery failures, not email
-  // retry cases, so they need escalation instead of a resend.
+  // Paid or partially refunded med-cert intakes in a terminal delivery state
+  // without a current valid certificate. These are clinical delivery failures,
+  // not email retry cases, so they need escalation instead of a resend. The
+  // exact anti-join is not bounded by age: time does not make an unresolved
+  // fulfilment obligation safe.
   approvedCertificateMissingRecord?: number
   queryFailures?: OperationalInvariantQueryFailure[]
 }
@@ -98,52 +108,27 @@ function countOf(
 
 async function countApprovedCertificateMissingRecord(
   supabase: SupabaseClient,
-  sinceIso: string,
 ): Promise<CountResult> {
-  const { data: intakeRows, error: intakeError } = await filterSeededE2EIntakes(
+  // PostgREST's null embedded-resource filter is an anti-join. Filtering the
+  // embedded relation to status=valid first means superseded/revoked-only
+  // histories remain in this exact missing-current-certificate count without
+  // materialising an unsafe client-side UUID list.
+  const { count, error } = await filterSeededE2EIntakes(
     supabase
       .from("intakes")
-      .select("id")
+      .select(
+        "id, current_valid_certificate:issued_certificates(status)",
+        { count: "exact", head: true },
+      )
       .eq("category", "medical_certificate")
-      .eq("payment_status", "paid")
+      .in("payment_status", ["paid", "partially_refunded"])
       .in("status", ["approved", "completed"])
-      .gte("approved_at", sinceIso)
+      .eq("current_valid_certificate.status", "valid")
+      .is("current_valid_certificate", null)
       .or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false"),
   )
-    .limit(5000)
 
-  if (intakeError) {
-    return { count: null, error: intakeError }
-  }
-
-  const intakeIds = ((intakeRows ?? []) as Array<{ id: string | null }>)
-    .map((row) => row.id)
-    .filter((id): id is string => typeof id === "string" && id.length > 0)
-
-  if (intakeIds.length === 0) {
-    return { count: 0, error: null }
-  }
-
-  const { data: certificateRows, error: certificateError } = await supabase
-    .from("issued_certificates")
-    .select("intake_id")
-    .in("intake_id", intakeIds)
-    .limit(5000)
-
-  if (certificateError) {
-    return { count: null, error: certificateError }
-  }
-
-  const generatedIntakeIds = new Set(
-    ((certificateRows ?? []) as Array<{ intake_id: string | null }>)
-      .map((row) => row.intake_id)
-      .filter((id): id is string => typeof id === "string" && id.length > 0),
-  )
-
-  return {
-    count: intakeIds.filter((id) => !generatedIntakeIds.has(id)).length,
-    error: null,
-  }
+  return { count, error }
 }
 
 async function countCertificateSentMissingTimestamp(
@@ -180,29 +165,32 @@ async function countCertificateSentMissingTimestamp(
     return { count: 0, error: null }
   }
 
-  const { data: certificates, error: certificateError } = await supabase
-    .from("issued_certificates")
-    .select("id, intake_id, status, storage_path, created_at")
-    .in("intake_id", intakeIds)
-    .eq("status", "valid")
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
+  type ValidCertificateRow = {
+    id: string
+    intake_id: string
+    status: string
+    storage_path: string
+    created_at: string | null
+  }
+  const certificates: ValidCertificateRow[] = []
+  for (const batch of batchOperationalInvariantIds(intakeIds)) {
+    const { data, error } = await supabase
+      .from("issued_certificates")
+      .select("id, intake_id, status, storage_path, created_at")
+      .in("intake_id", batch)
+      .eq("status", "valid")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
 
-  if (certificateError) {
-    return { count: null, error: certificateError }
+    if (error) return { count: null, error }
+    certificates.push(...(data ?? []) as ValidCertificateRow[])
   }
 
   const latestValidByIntake = new Map<string, {
     id: string
     storage_path: string
   }>()
-  for (const certificate of (certificates ?? []) as Array<{
-    id: string
-    intake_id: string
-    status: string
-    storage_path: string
-    created_at: string | null
-  }>) {
+  for (const certificate of certificates) {
     if (!latestValidByIntake.has(certificate.intake_id)) {
       latestValidByIntake.set(certificate.intake_id, certificate)
     }
@@ -227,17 +215,24 @@ async function countCertificateSentMissingTimestamp(
     return { count: 0, error: null }
   }
 
-  const { count, error } = await filterSeededE2EIntakes(
-    supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .in("id", currentVersionSentIntakeIds)
-      .eq("category", "medical_certificate")
-      .is("document_sent_at", null)
-      .or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false"),
-  )
+  let missingTimestampCount = 0
+  for (const batch of batchOperationalInvariantIds(currentVersionSentIntakeIds)) {
+    const { count, error } = await filterSeededE2EIntakes(
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .in("id", batch)
+        .eq("category", "medical_certificate")
+        .is("document_sent_at", null)
+        .or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false"),
+    )
+    if (error || count === null) {
+      return { count: null, error: error ?? new Error("Certificate timestamp count unavailable") }
+    }
+    missingTimestampCount += count
+  }
 
-  return { count, error }
+  return { count: missingTimestampCount, error: null }
 }
 
 /**
@@ -248,9 +243,6 @@ export async function getOperationalInvariants(
   supabase: SupabaseClient,
 ): Promise<OperationalInvariants> {
   const slaCutoff = new Date(Date.now() - SLA_REVIEW_HOURS * 60 * 60 * 1000).toISOString()
-  const certificateMissingRecordCutoff = new Date(
-    Date.now() - CERTIFICATE_MISSING_RECORD_DAYS * 24 * 60 * 60 * 1000,
-  ).toISOString()
   const certificateTimestampCutoff = new Date(
     Date.now() - CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS * 24 * 60 * 60 * 1000,
   ).toISOString()
@@ -298,7 +290,7 @@ export async function getOperationalInvariants(
         .eq("status", "cancelled")
         .or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false"),
     ),
-    countApprovedCertificateMissingRecord(supabase, certificateMissingRecordCutoff),
+    countApprovedCertificateMissingRecord(supabase),
     countCertificateSentMissingTimestamp(supabase, certificateTimestampCutoff),
   ])
 
@@ -380,7 +372,7 @@ export function buildOperationalInvariantAlerts(
     alerts.push({
       metric: "ops_approved_certificate_missing_record",
       severity: "critical",
-      detail: `${count} approved medical certificate ${count === 1 ? "intake is" : "intakes are"} missing a certificate record`,
+      detail: `${count} approved medical certificate ${count === 1 ? "intake is" : "intakes are"} missing a current valid certificate`,
       count,
     })
   }

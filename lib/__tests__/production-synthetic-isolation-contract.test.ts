@@ -9,6 +9,10 @@ const isolationHelperPath = join(
   "e2e/helpers/production-synthetic-isolation.ts",
 )
 const syntheticSpecPath = join(root, "e2e/prod-request-flow-synthetic.spec.ts")
+const syntheticWorkflowPath = join(
+  root,
+  ".github/workflows/prod-request-flow-synthetic.yml",
+)
 const recoverySourcePath = join(root, "lib/email/partial-intake-recovery.ts")
 const recoveryPolicySourcePath = join(
   root,
@@ -41,5 +45,12 @@ describe("production request-flow synthetic isolation", () => {
     expect(recoveryPolicySource).toContain('return suppressed("test_identity")')
     expect(recoverySource).toContain("Skipping recovery email - test identity")
     expect(recoverySource).toContain("testSkipped")
+  })
+
+  it("fails the scheduled probe when a runtime error only passes on retry", () => {
+    const workflowSource = readFileSync(syntheticWorkflowPath, "utf8")
+
+    expect(workflowSource).toContain("--fail-on-flaky-tests")
+    expect(workflowSource).toContain("if: failure()")
   })
 })

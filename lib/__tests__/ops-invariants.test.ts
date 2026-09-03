@@ -5,13 +5,16 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildOperationalInvariantAlerts,
-  CERTIFICATE_MISSING_RECORD_DAYS,
   CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS,
   getInvariantQueryFailures,
 } from "@/lib/admin/ops-invariants"
 
 const opsInvariantsSource = readFileSync(
   join(process.cwd(), "lib/admin/ops-invariants.ts"),
+  "utf8",
+)
+const operationsDoc = readFileSync(
+  join(process.cwd(), "docs/OPERATIONS.md"),
   "utf8",
 )
 
@@ -140,7 +143,7 @@ describe("buildOperationalInvariantAlerts", () => {
       {
         metric: "ops_approved_certificate_missing_record",
         severity: "critical",
-        detail: "2 approved medical certificate intakes are missing a certificate record",
+        detail: "2 approved medical certificate intakes are missing a current valid certificate",
         count: 2,
       },
     ])
@@ -160,19 +163,41 @@ describe("buildOperationalInvariantAlerts", () => {
 })
 
 describe("approved certificate missing record monitor contract", () => {
-  it("counts recent terminal paid med-cert intakes without an issued certificate row", () => {
-    expect(CERTIFICATE_MISSING_RECORD_DAYS).toBe(14)
+  it("counts terminal paid or partially refunded med-cert obligations across all history", () => {
     expect(opsInvariantsSource).toContain("countApprovedCertificateMissingRecord")
     expect(opsInvariantsSource).toContain('.from("intakes")')
     expect(opsInvariantsSource).toContain('.eq("category", "medical_certificate")')
-    expect(opsInvariantsSource).toContain('.eq("payment_status", "paid")')
+    expect(opsInvariantsSource).toContain(
+      '.in("payment_status", ["paid", "partially_refunded"])',
+    )
     expect(opsInvariantsSource).toContain('.in("status", ["approved", "completed"])')
-    expect(opsInvariantsSource).toContain('.gte("approved_at", sinceIso)')
+    expect(opsInvariantsSource).not.toContain('.gte("approved_at", sinceIso)')
     expect(opsInvariantsSource).toContain('.or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false")')
-    expect(opsInvariantsSource).toContain('.from("issued_certificates")')
-    expect(opsInvariantsSource).toContain('.select("intake_id")')
-    expect(opsInvariantsSource).toContain("!generatedIntakeIds.has(id)")
+    expect(opsInvariantsSource).toContain('current_valid_certificate:issued_certificates(status)')
+    expect(opsInvariantsSource).toContain('.eq("current_valid_certificate.status", "valid")')
+    expect(opsInvariantsSource).toContain('.is("current_valid_certificate", null)')
     expect(opsInvariantsSource).toContain("ops_approved_certificate_missing_record")
+  })
+
+  it("uses an exact database anti-join rather than a truncated ID scan", () => {
+    const block = opsInvariantsSource.slice(
+      opsInvariantsSource.indexOf("async function countApprovedCertificateMissingRecord"),
+      opsInvariantsSource.indexOf("async function countCertificateSentMissingTimestamp"),
+    )
+    expect(block).toContain('{ count: "exact", head: true }')
+    expect(block).not.toContain('.in("intake_id"')
+    expect(block).not.toContain(".limit(")
+  })
+
+  it("keeps the runbook aligned with the all-history current-valid certificate contract", () => {
+    expect(operationsDoc).toContain(
+      "paid or partially refunded medical-certificate intakes across all history",
+    )
+    expect(operationsDoc).toContain("no current `issued_certificates.status = 'valid'` row")
+    expect(operationsDoc).toContain("Superseded- or revoked-only certificate histories remain missing")
+    expect(operationsDoc).not.toContain(
+      "Recent paid med-cert approval (14d) with no `issued_certificates` row",
+    )
   })
 })
 
@@ -201,5 +226,19 @@ describe("certificate sent timestamp drift monitor contract", () => {
     expect(opsInvariantsSource).toContain('.eq("category", "medical_certificate")')
     expect(opsInvariantsSource).toContain('.is("document_sent_at", null)')
     expect(opsInvariantsSource).toContain('.or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false")')
+  })
+
+  it("keeps downstream certificate and intake filters below URL-safe ID sizes", () => {
+    const block = opsInvariantsSource.slice(
+      opsInvariantsSource.indexOf("async function countCertificateSentMissingTimestamp"),
+      opsInvariantsSource.indexOf("export async function getOperationalInvariants"),
+    )
+    expect(opsInvariantsSource).toContain("const OPS_INVARIANT_ID_BATCH_SIZE = 100")
+    expect(opsInvariantsSource).toContain("function batchOperationalInvariantIds(ids: string[])")
+    expect(block).toContain("for (const batch of batchOperationalInvariantIds(")
+    expect(block).toContain('.in("intake_id", batch)')
+    expect(block).toContain('.in("id", batch)')
+    expect(block).not.toContain('.in("intake_id", intakeIds)')
+    expect(block).not.toContain('.in("id", currentVersionSentIntakeIds)')
   })
 })

@@ -1183,7 +1183,6 @@
     "production|exports|lib/admin/historical-auto-issued-review.ts|parseHistoricalAutoIssuedReviewLane",
     "production|exports|lib/admin/historical-auto-issued-review.ts|parseHistoricalAutoIssuedReviewOpenOutcome",
     "production|exports|lib/admin/historical-auto-issued-review.ts|parseHistoricalAutoIssuedReviewReceiptOutcome",
-    "production|exports|lib/admin/ops-invariants.ts|CERTIFICATE_MISSING_RECORD_DAYS",
     "production|exports|lib/admin/ops-invariants.ts|getInvariantQueryFailures",
     "production|exports|lib/admin/recorded-attribution-breakdown.ts|buildRecordedAttributionBreakdown",
     "production|exports|lib/ads-agent/account-state.ts|buildGoogleAdsAccountStateQueries",

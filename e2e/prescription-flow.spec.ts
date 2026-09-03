@@ -555,6 +555,41 @@ test.describe("Prescription: step validation", () => {
     await waitForStep(page, /Anything the doctor should know/i)
   })
 
+  test("blocked mobile Continue focuses the first missing concrete-dose control", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Your medication/i)
+    await page.locator("#medication-name-0").fill("E2E missing dose medication")
+    await page.locator("#medication-strength-0").fill("20 mg")
+    await clickChip(page, /Under 3 months/i)
+    await page
+      .getByRole("radiogroup", { name: "How often do you take it?" })
+      .getByRole("radio", { name: "Once daily", exact: true })
+      .click()
+    await confirmUnchangedRegimen(page)
+    await page.getByPlaceholder(/e\.g\. asthma/i).fill("anxiety")
+    await confirmNoSideEffects(page)
+
+    const firstMissingDoseControl = page
+      .getByRole("radiogroup", { name: "How much do you take?" })
+      .getByRole("radio", { name: "1", exact: true })
+    const mobileContinue = page
+      .locator('[data-intake-mobile-action-bar="true"]')
+      .getByRole("button", { name: "Continue", exact: true })
+
+    await expect(mobileContinue).toBeVisible()
+    await mobileContinue.click()
+
+    await expect(page.getByText(
+      "Enter how much you take and how often (for example, one tablet each morning)",
+      { exact: true },
+    ).last()).toBeVisible()
+    await expect(firstMissingDoseControl).toBeFocused()
+  })
+
   test("medication step requires an unchanged dose-and-directions confirmation", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)

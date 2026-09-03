@@ -1,4 +1,5 @@
 import { getCertificateDeliveryRescueCases } from "@/lib/admin/certificate-delivery-rescue"
+import { getOpenFraudFlagReviewQueue } from "@/lib/admin/fraud-flag-review"
 import { getHistoricalAutoIssuedReviewLane } from "@/lib/admin/historical-auto-issued-review"
 import { buildOpsActionModel } from "@/lib/admin/ops-action-model"
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
@@ -141,6 +142,7 @@ export default async function OpsDashboardPage() {
     googleAdsConversionHealth,
     certificateDelivery,
     historicalReview,
+    fraudFlags,
   ] = await Promise.all([
     readRows<StripeDlqRow>("Stripe webhook DLQ", supabase
       .from("stripe_webhook_dead_letter")
@@ -250,6 +252,14 @@ export default async function OpsDashboardPage() {
         unresolvedCount: 0,
       }))
       : Promise.resolve(null),
+    isAdmin
+      ? getOpenFraudFlagReviewQueue(supabase).catch(() => ({
+        coverageCapped: false,
+        items: [],
+        openCount: 0,
+        queryFailed: true,
+      }))
+      : Promise.resolve(null),
   ])
 
   const unresolvedParchmentFailures = filterUnresolvedParchmentFailures(
@@ -327,6 +337,7 @@ export default async function OpsDashboardPage() {
   const model = buildOpsActionModel({
     certificateDelivery,
     failureOverview,
+    fraudFlags,
     googleAdsConversionHealth,
     identity,
     historicalReview,

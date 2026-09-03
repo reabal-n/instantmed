@@ -1,4 +1,5 @@
 import type { CertificateDeliveryRescueOverview } from "@/lib/admin/certificate-delivery-rescue"
+import type { FraudFlagReviewQueue, FraudFlagReviewType } from "@/lib/admin/fraud-flag-review"
 import type { HistoricalAutoIssuedReviewLane } from "@/lib/admin/historical-auto-issued-review"
 import type {
   OperationalFailureCategory,
@@ -31,18 +32,92 @@ export type OpsActionGroupKey = (typeof OPS_GROUP_ORDER)[number]
 type OpsActionSeverity = "critical" | "warning"
 
 export interface OpsActionIssue {
-  action: "link" | "repair_certificate_timestamps" | "resend_certificate"
+  action: "link" | "repair_certificate_timestamps" | "resend_certificate" | "resolve_fraud_flag"
   certificateIntakeId: string | null
   count: number
   detail: string
   group: OpsActionGroupKey
   href: string
   id: string
+  fraudFlagId?: string | null
   nextAction: string
   occurredAt: string | null
   owner: "Admin" | "Doctor" | "Medical Director" | "Support"
   severity: OpsActionSeverity
   title: string
+}
+
+const FRAUD_FLAG_TITLES: Record<FraudFlagReviewType, string> = {
+  multiple_daily: "Multiple requests today",
+  suspicious_medicare: "Medicare pattern signal",
+  rapid_completion: "Rapid form completion",
+  duplicate_request: "Duplicate request signal",
+  duplicate_medication: "Duplicate medication signal",
+  rolling_window_abuse: "Certificate frequency signal",
+  chat_restart_abuse: "Chat restart signal",
+  injection_attempt: "Input security signal",
+  soft_flag: "Request frequency signal",
+  unknown_signal: "Unclassified fraud signal",
+}
+
+function fraudFlagIssues(
+  queue: FraudFlagReviewQueue | null | undefined,
+  isAdmin: boolean,
+  generatedAt: string,
+): OpsActionIssue[] {
+  if (!isAdmin || !queue) return []
+  if (queue.queryFailed) {
+    return [{
+      action: "link",
+      certificateIntakeId: null,
+      count: 1,
+      detail: "Open fraud flags could not be read; a zero count cannot be trusted.",
+      group: "identity_access",
+      href: STAFF_OPS_HREF,
+      id: "fraud:query_failed",
+      nextAction: "Restore the fraud review read before treating this lane as clear.",
+      occurredAt: generatedAt,
+      owner: "Admin",
+      severity: "critical",
+      title: "Fraud review unavailable",
+    }]
+  }
+
+  const issues = queue.items.map((item): OpsActionIssue => ({
+    action: "resolve_fraud_flag",
+    certificateIntakeId: null,
+    count: 1,
+    detail: `${item.severity === "unknown" ? "Unclassified" : item.severity} signal awaiting an admin disposition. Free-form flag details are excluded from this surface.`,
+    fraudFlagId: item.flagId,
+    group: "identity_access",
+    href: item.intakeId ? buildAdminIntakeHref(item.intakeId) : STAFF_OPS_HREF,
+    id: `fraud:${item.flagId}`,
+    nextAction: "Review the linked request, then mark reviewed or dismiss.",
+    occurredAt: item.createdAt,
+    owner: "Admin",
+    severity: item.severity === "critical" || item.severity === "high" ? "critical" : "warning",
+    title: FRAUD_FLAG_TITLES[item.flagType],
+  }))
+
+  const hiddenCount = Math.max(0, queue.openCount - queue.items.length)
+  if (hiddenCount > 0) {
+    issues.push({
+      action: "link",
+      certificateIntakeId: null,
+      count: hiddenCount,
+      detail: `${hiddenCount} additional open fraud ${hiddenCount === 1 ? "flag is" : "flags are"} outside the bounded detail list.`,
+      group: "identity_access",
+      href: STAFF_OPS_HREF,
+      id: "fraud:detail_overflow",
+      nextAction: "Resolve the oldest visible flags first; the next batch appears after refresh.",
+      occurredAt: null,
+      owner: "Admin",
+      severity: "warning",
+      title: "Additional fraud review work",
+    })
+  }
+
+  return issues
 }
 
 export interface OpsActionGroup {
@@ -233,7 +308,7 @@ function invariantIssues(
   if (missingCertificateCount > 0) {
     add({
       count: missingCertificateCount,
-      detail: `${missingCertificateCount} approved ${missingCertificateCount === 1 ? "request has" : "requests have"} no visible certificate record.`,
+      detail: `${missingCertificateCount} approved ${missingCertificateCount === 1 ? "request has" : "requests have"} no current valid certificate.`,
       group: "delivery",
       href: buildStaffLedgerHref({ status: "approved" }),
       id: "invariant:approved_certificate_missing_record",
@@ -340,6 +415,7 @@ function sortIssues(issues: OpsActionIssue[]): OpsActionIssue[] {
 export function buildOpsActionModel(args: {
   certificateDelivery: CertificateDeliveryRescueOverview
   failureOverview: OperationalFailureOverview
+  fraudFlags?: FraudFlagReviewQueue | null
   googleAdsConversionHealth: { notReaching: number; queryFailed: boolean }
   historicalReview?: HistoricalAutoIssuedReviewLane | null
   identity: PrescribingIdentityBlockerReport
@@ -359,6 +435,7 @@ export function buildOpsActionModel(args: {
     ...failureIssues(args.failureOverview, args.isAdmin),
     ...certificateActions,
     ...invariantIssues(args.invariants, args.isAdmin, generatedAt, certificateEscalations),
+    ...fraudFlagIssues(args.fraudFlags, args.isAdmin, generatedAt),
   ]
 
   if (args.isAdmin && args.historicalReview?.queryFailed) {
@@ -473,7 +550,7 @@ export function buildOpsActionModel(args: {
       action: "link",
       certificateIntakeId: null,
       count: 1,
-      detail: "The 14-day certificate delivery monitor reached its candidate cap; a clear state cannot be inferred.",
+      detail: "The certificate delivery monitor reached its 5,000-candidate cap, including its historical paid terminal scope; a clear state cannot be inferred.",
       group: "delivery",
       href: buildStaffLedgerHref({ status: "approved" }),
       id: "delivery:certificate_coverage_capped",

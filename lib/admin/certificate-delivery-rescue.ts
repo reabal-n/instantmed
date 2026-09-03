@@ -381,13 +381,28 @@ function summarizeCertificateDeliveryRescueCases(cases: CertificateDeliveryRescu
   }
 }
 
+const CERTIFICATE_DELIVERY_ID_BATCH_SIZE = 100
+const CERTIFICATE_DELIVERY_CANDIDATE_LIMIT = 5000
+
+function idBatches(ids: string[]): string[][] {
+  const batches: string[][] = []
+  for (let index = 0; index < ids.length; index += CERTIFICATE_DELIVERY_ID_BATCH_SIZE) {
+    batches.push(ids.slice(index, index + CERTIFICATE_DELIVERY_ID_BATCH_SIZE))
+  }
+  return batches
+}
+
 export async function getCertificateDeliveryRescueCases(
   supabase: SupabaseClient,
   options: { days?: number; limit?: number } = {},
 ): Promise<CertificateDeliveryRescueOverview> {
   const days = options.days ?? 14
-  const limit = options.limit ?? 12
-  const candidateLimit = Math.max(limit * 4, 24)
+  const limit = Math.max(1, Math.min(options.limit ?? 12, CERTIFICATE_DELIVERY_CANDIDATE_LIMIT))
+  // Recent rows include watch-only evidence. Historical rows are limited to
+  // paid terminal obligations by the query and then reduced to unresolved
+  // actions below. The generous cap prevents a small render limit from hiding
+  // an old obligation while still making incomplete coverage explicit.
+  const candidateLimit = CERTIFICATE_DELIVERY_CANDIDATE_LIMIT
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
 
   try {
@@ -396,28 +411,33 @@ export async function getCertificateDeliveryRescueCases(
     // the ops invariants (ops_certificate_sent_missing_timestamp counts
     // filtered intakes), otherwise the operator chases phantom test cases the
     // alert never counted — and can't clear the ones it did.
-    const { data: intakes, error: intakeError } = await filterReportableIntakes(
+    const { data: intakes, count: intakeCount, error: intakeError } = await filterReportableIntakes(
       supabase
         .from("intakes")
         .select(`
           id,
           reference_number,
           status,
+          payment_status,
           document_sent_at,
           created_at,
           updated_at,
           approved_at,
           completed_at,
           service:services!inner(type)
-        `)
+        `, { count: "exact" })
         .eq("service.type", "med_certs")
-        .gte("created_at", since),
+        .or(
+          `created_at.gte.${since},and(status.in.(approved,completed),payment_status.in.(paid,partially_refunded))`,
+        ),
     )
       .order("updated_at", { ascending: false })
       .limit(candidateLimit)
 
-    if (intakeError) {
-      log.warn("Failed to load certificate delivery rescue intakes", { error: intakeError.message })
+    if (intakeError || intakeCount === null) {
+      log.warn("Failed to load certificate delivery rescue intakes", {
+        error: intakeError?.message ?? "exact count unavailable",
+      })
       return { cases: [], actionCount: 0, warningCount: 0, queryFailed: true }
     }
 
@@ -425,6 +445,7 @@ export async function getCertificateDeliveryRescueCases(
       id: string
       reference_number: string | null
       status: string | null
+      payment_status: string | null
       document_sent_at: string | null
       created_at: string | null
       updated_at: string | null
@@ -434,34 +455,16 @@ export async function getCertificateDeliveryRescueCases(
     const intakeIds = intakeRows.map((row) => row.id)
 
     if (intakeIds.length === 0) {
-      return { cases: [], actionCount: 0, warningCount: 0, queryFailed: false }
+      return {
+        cases: [],
+        actionCount: 0,
+        warningCount: 0,
+        queryFailed: false,
+        coverageCapped: intakeCount > 0,
+      }
     }
 
-    const [certResult, emailResult] = await Promise.all([
-      supabase
-        .from("issued_certificates")
-        .select("id, intake_id, status, storage_path, created_at, email_sent_at, email_failed_at, email_failure_reason, resend_count, delivery_reconciliation:certificate_delivery_reconciliations(certificate_storage_version, recorded_at)")
-        .in("intake_id", intakeIds)
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: false }),
-      supabase
-        .from("email_outbox")
-        .select("id, intake_id, certificate_id, email_type, status, delivery_status, sent_at, created_at, metadata")
-        .in("intake_id", intakeIds)
-        .in("email_type", [...CERTIFICATE_EMAIL_TYPES, ...RECEIPT_EMAIL_TYPES])
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: false }),
-    ])
-
-    if (certResult.error || emailResult.error) {
-      log.warn("Failed to load certificate delivery rescue details", {
-        certError: certResult.error?.message,
-        emailError: emailResult.error?.message,
-      })
-      return { cases: [], actionCount: 0, warningCount: 0, queryFailed: true }
-    }
-
-    const certRows = (certResult.data ?? []) as Array<{
+    type CertificateRow = {
       id: string
       intake_id: string
       status: string | null
@@ -475,7 +478,46 @@ export async function getCertificateDeliveryRescueCases(
         | { certificate_storage_version: string; recorded_at: string | null }
         | Array<{ certificate_storage_version: string; recorded_at: string | null }>
         | null
-    }>
+    }
+    type EmailRow = {
+      intake_id: string | null
+      certificate_id: string | null
+      email_type: string | null
+      status: string | null
+      delivery_status: string | null
+      sent_at: string | null
+      created_at: string | null
+      metadata: Record<string, unknown> | null
+    }
+    const certRows: CertificateRow[] = []
+    const emailRows: EmailRow[] = []
+    for (const batch of idBatches(intakeIds)) {
+      const [certResult, emailResult] = await Promise.all([
+        supabase
+          .from("issued_certificates")
+          .select("id, intake_id, status, storage_path, created_at, email_sent_at, email_failed_at, email_failure_reason, resend_count, delivery_reconciliation:certificate_delivery_reconciliations(certificate_storage_version, recorded_at)")
+          .in("intake_id", batch)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false }),
+        supabase
+          .from("email_outbox")
+          .select("id, intake_id, certificate_id, email_type, status, delivery_status, sent_at, created_at, metadata")
+          .in("intake_id", batch)
+          .in("email_type", [...CERTIFICATE_EMAIL_TYPES, ...RECEIPT_EMAIL_TYPES])
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false }),
+      ])
+
+      if (certResult.error || emailResult.error) {
+        log.warn("Failed to load certificate delivery rescue details", {
+          certError: certResult.error?.message,
+          emailError: emailResult.error?.message,
+        })
+        return { cases: [], actionCount: 0, warningCount: 0, queryFailed: true }
+      }
+      certRows.push(...(certResult.data ?? []) as CertificateRow[])
+      emailRows.push(...(emailResult.data ?? []) as EmailRow[])
+    }
     const latestCertByIntake = latestBy(certRows, (row) => row.intake_id, (row) => row.created_at)
     const certIds = [...latestCertByIntake.values()].map((row) => row.id)
 
@@ -487,47 +529,39 @@ export async function getCertificateDeliveryRescueCases(
       created_at: string | null
     }>()
     if (certIds.length > 0) {
-      const { data: downloads, error: downloadsError } = await supabase
-        .from("certificate_audit_log")
-        .select("id, certificate_id, actor_role, event_data, created_at")
-        .in("certificate_id", certIds)
-        .eq("event_type", "downloaded")
-        .eq("actor_role", "patient")
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: false })
-
-      if (downloadsError) {
-        log.warn("Failed to load certificate download evidence", { error: downloadsError.message })
-        return { cases: [], actionCount: 0, warningCount: 0, queryFailed: true }
-      } else {
-        const patientDownloads = (downloads ?? []) as Array<{
+      const patientDownloads: Array<{
           id: string
           certificate_id: string
           actor_role: string | null
           event_data: Record<string, unknown> | null
           created_at: string | null
-        }>
-        latestPatientDownloadByCertificateVersion = latestBy(
-          patientDownloads.filter((row) => row.actor_role === "patient"),
-          (row) => certificateVersionKey(
-            row.certificate_id,
-            metadataCertificateStorageVersion(row.event_data),
-          ),
-          (row) => row.created_at,
-        )
+      }> = []
+      for (const batch of idBatches(certIds)) {
+        const { data: downloads, error: downloadsError } = await supabase
+          .from("certificate_audit_log")
+          .select("id, certificate_id, actor_role, event_data, created_at")
+          .in("certificate_id", batch)
+          .eq("event_type", "downloaded")
+          .eq("actor_role", "patient")
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+
+        if (downloadsError) {
+          log.warn("Failed to load certificate download evidence", { error: downloadsError.message })
+          return { cases: [], actionCount: 0, warningCount: 0, queryFailed: true }
+        }
+        patientDownloads.push(...(downloads ?? []) as typeof patientDownloads)
       }
+      latestPatientDownloadByCertificateVersion = latestBy(
+        patientDownloads.filter((row) => row.actor_role === "patient"),
+        (row) => certificateVersionKey(
+          row.certificate_id,
+          metadataCertificateStorageVersion(row.event_data),
+        ),
+        (row) => row.created_at,
+      )
     }
 
-    const emailRows = (emailResult.data ?? []) as Array<{
-      intake_id: string | null
-      certificate_id: string | null
-      email_type: string | null
-      status: string | null
-      delivery_status: string | null
-      sent_at: string | null
-      created_at: string | null
-      metadata: Record<string, unknown> | null
-    }>
     const certEmailByCertificateVersion = latestBy(
       emailRows.filter((row) => row.email_type === "med_cert_patient"),
       (row) => certificateVersionKey(
@@ -564,7 +598,7 @@ export async function getCertificateDeliveryRescueCases(
           (row) => row.certificate_storage_version === currentStorageVersion,
         )
 
-        return buildCertificateDeliveryRescueCase({
+        const rescueCase = buildCertificateDeliveryRescueCase({
           intakeId: intake.id,
           referenceNumber: intake.reference_number,
           intakeStatus: intake.status,
@@ -595,7 +629,22 @@ export async function getCertificateDeliveryRescueCases(
             : null,
           downloadedAt: download?.created_at ?? null,
         })
+
+        const isHistoricalTerminalObligation = Boolean(
+          intake.created_at
+          && intake.created_at < since
+          && (intake.status === "approved" || intake.status === "completed")
+          && (intake.payment_status === "paid" || intake.payment_status === "partially_refunded"),
+        )
+
+        return { rescueCase, isHistoricalTerminalObligation }
       })
+      .filter(({ rescueCase, isHistoricalTerminalObligation }) => (
+        !isHistoricalTerminalObligation
+        || rescueCase.recommendation.action !== "none"
+        || rescueCase.recommendation.severity === "warning"
+      ))
+      .map(({ rescueCase }) => rescueCase)
       .sort((a, b) => {
         if (a.sortPriority !== b.sortPriority) return a.sortPriority - b.sortPriority
         return new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()
@@ -608,7 +657,7 @@ export async function getCertificateDeliveryRescueCases(
       escalationCount: summary.escalationCount,
       warningCount: summary.warningCount,
       queryFailed: false,
-      coverageCapped: intakeRows.length >= candidateLimit,
+      coverageCapped: intakeCount > intakeRows.length,
     }
   } catch (error) {
     log.error(
