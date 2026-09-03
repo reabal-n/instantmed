@@ -10,10 +10,15 @@ const authenticatedCheckoutSource = readFileSync(
   join(process.cwd(), "lib/stripe/checkout.ts"),
   "utf8",
 )
-const checkoutResumeSource = readFileSync(
-  join(process.cwd(), "app/resume/[token]/route.ts"),
+const checkoutResumePageSource = readFileSync(
+  join(process.cwd(), "app/resume/[token]/page.tsx"),
   "utf8",
 )
+const checkoutResumeActionSource = readFileSync(
+  join(process.cwd(), "app/resume/[token]/actions.ts"),
+  "utf8",
+)
+const nextConfigSource = readFileSync(join(process.cwd(), "next.config.mjs"), "utf8")
 const guestResumeSource = readFileSync(
   join(process.cwd(), "lib/stripe/checkout/guest-resume.ts"),
   "utf8",
@@ -43,9 +48,12 @@ describe("guest checkout operational contract", () => {
   it("keeps cancelled guest checkout recoverable without requiring a patient login first", () => {
     expect(guestCheckoutSource).toContain("buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id })")
     expect(guestResumeSource).toContain("buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id })")
-    expect(checkoutResumeSource).toContain("resolveGuestCheckoutResume")
-    expect(checkoutResumeSource).toContain('export const dynamic = "force-dynamic"')
-    expect(checkoutResumeSource).toContain('"X-Robots-Tag": "noindex, nofollow"')
+    expect(checkoutResumePageSource).toContain('export const dynamic = "force-dynamic"')
+    expect(checkoutResumePageSource).toContain("continueGuestCheckoutResume.bind")
+    expect(checkoutResumePageSource).not.toContain("resolveGuestCheckoutResume")
+    expect(checkoutResumeActionSource).toContain("resolveGuestCheckoutResume")
+    expect(nextConfigSource).toContain('source: "/resume/:path*"')
+    expect(nextConfigSource).toContain('{ key: "X-Robots-Tag", value: "noindex, nofollow" }')
     expect(checkoutRecoveryLinkSource).toContain('new URL("/checkout/cancelled", baseUrl)')
     expect(publicCancelledPageSource).toContain("PaymentCancelledContent")
     expect(publicCancelledPageSource).toContain("CHECKOUT_RESUME_TOKEN_PARAM")

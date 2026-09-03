@@ -175,8 +175,10 @@ describe("POST /api/patient/retry-payment", () => {
     expect(retryPaymentRouteSource).not.toContain("/checkout?invoiceId=")
     expect(retryPaymentRouteSource).toContain("/patient/intakes/${intakeRecovery.intakeId}?retry=true")
     expect(retryPaymentRouteSource).toContain("isPaymentSafetyLock")
-    expect(intakeDetailClientSource).toContain("retryPayment = false")
-    expect(intakeDetailClientSource).toContain("hasAutoRetriedPayment")
+    expect(intakeDetailClientSource).not.toContain("retryPayment = false")
+    expect(intakeDetailClientSource).not.toContain("hasAutoRetriedPayment")
+    expect(intakeDetailClientSource).not.toMatch(/\n\s*handleRetryPayment\(\)/)
+    expect(intakeDetailClientSource).toContain("onClick={handleRetryPayment}")
     expect(intakeDetailClientSource).toContain(
       "retryPaymentForIntakeAction(intake.id, recoveryProof)",
     )

@@ -859,14 +859,19 @@ describe("retryPaymentForIntakeAction", () => {
       updateResults: [{ data: null, error: { message: "database unavailable" } }],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.verifyRecoveryEmailEngagementToken.mockReturnValue({ intakeId: "intake-1" })
 
-    const result = await retryPaymentForIntakeAction("intake-1")
+    const result = await retryPaymentForIntakeAction(
+      "intake-1",
+      "signed-recovery-proof",
+    )
 
     expect(result).toEqual({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
     expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_retry")
+    expect(mocks.recordRecoveryEmailEngagement).not.toHaveBeenCalled()
   })
 
   it("reuses the retry session when an attach error committed before the response failed", async () => {

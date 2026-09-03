@@ -28,7 +28,6 @@ export default async function PatientIntakeDetailPage({
   params: Promise<{ id: string }>
   searchParams: Promise<{
     recovery_proof?: string
-    retry?: string
   }>
 }) {
   const { id } = await params
@@ -77,7 +76,6 @@ export default async function PatientIntakeDetailPage({
       intake={intake}
       document={document}
       intakeDocument={intakeDocument}
-      retryPayment={query.retry === "true"}
       recoveryProof={query.recovery_proof}
       isEmailVerified={isEmailVerified}
       userEmail={userEmail}
