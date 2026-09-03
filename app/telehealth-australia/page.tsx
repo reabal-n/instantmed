@@ -90,7 +90,7 @@ const MODALITIES = [
   {
     icon: FileText,
     title: "Asynchronous (store-and-forward)",
-    body: "You submit a structured form; a doctor reviews it in the clinical queue. It avoids appointment scheduling and suits med certs and repeat scripts for stable medication.",
+    body: `You submit a structured form for later clinical assessment. ${CLINICAL_REVIEW_SEQUENCE} It avoids appointment scheduling and suits medical-certificate and repeat-prescription requests.`,
   },
   {
     icon: Video,
@@ -318,10 +318,10 @@ export default function TelehealthAustraliaPage() {
                   during 2020. Phone-based consultations are also extremely common, especially under
                   Medicare-subsidised items in rural and regional areas. The third modality, and
                   the one InstantMed predominantly uses, is asynchronous or &apos;store-and-forward&apos;
-                  telehealth: a patient completes a structured intake, the doctor reviews it later,
-                  and they either approve, decline, or come back with a follow-up question. Each
-                  modality has specific strengths: sync video is better for visual assessment and
-                  rapport, while async avoids appointment scheduling for straightforward requests.
+                  telehealth: a patient completes a structured intake for later assessment. {CLINICAL_REVIEW_SEQUENCE}{" "}
+                  Depending on the request, the next step may be an outcome or a follow-up question.
+                  Each modality has specific strengths: sync video is better for visual assessment
+                  and rapport, while async avoids appointment scheduling for straightforward requests.
                 </p>
                 <p>
                   Telehealth suitability depends on what the request needs. Urgent symptoms, a
@@ -630,7 +630,7 @@ export default function TelehealthAustraliaPage() {
                     Telehealth med certs
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Work, study, carer&apos;s leave - submit 24/7 for doctor review
+                    Work, study, carer&apos;s leave - submit 24/7 for clinical assessment
                   </div>
                 </Link>
                 <Link

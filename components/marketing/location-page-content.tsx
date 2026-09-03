@@ -42,6 +42,7 @@ interface LocationPageContentProps {
   otherCities: Array<{ name: string; slug: string }>
 }
 
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 const PRESCRIPTION_IF_APPROVED = getApprovedClaim("prescription_if_approved")
 
 const SERVICES = [
@@ -171,7 +172,7 @@ export function LocationPageContent({
             </div>
             <div className="flex items-center gap-1.5">
               <Clock className="h-4 w-4 text-primary" />
-              <span>Doctor review</span>
+              <span>Clinical assessment</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Shield className="h-4 w-4 text-primary" />
@@ -272,7 +273,7 @@ export function LocationPageContent({
             {...fu(0.06)}
             className="text-center text-sm text-muted-foreground mb-8"
           >
-            No appointment needed. Reviewed by AHPRA-registered Australian doctors.
+            {CLINICAL_REVIEW_SEQUENCE}
           </motion.p>
 
           <motion.div
@@ -318,13 +319,13 @@ export function LocationPageContent({
               },
               {
                 step: "2",
-                title: "Doctor reviews",
-                desc: "An Australian doctor reviews your request when available",
+                title: "Clinical assessment",
+                desc: "Your request follows the pathway required for that service",
               },
               {
                 step: "3",
                 title: "Get your result",
-                desc: "We'll let you know the doctor's outcome and any next steps.",
+                desc: "We'll let you know the outcome and any next steps.",
               },
             ].map((item) => (
               <motion.div
@@ -356,10 +357,10 @@ export function LocationPageContent({
             {[
               "No need to leave home or work",
               "Skip the waiting room",
-              "Doctor review, digital delivery",
+              "Clinical assessment, digital delivery",
               PRESCRIPTION_IF_APPROVED,
               "Employer policies may vary",
-              "Reviewed by real Australian doctors",
+              "AHPRA-registered doctor review where required",
             ].map((benefit) => (
               <motion.div
                 key={benefit}

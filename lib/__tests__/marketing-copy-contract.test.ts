@@ -238,6 +238,15 @@ describe("marketing copy contracts", () => {
     expect(telehealthAustraliaSource).not.toMatch(
       /doctor review before certificate issue/i,
     )
+    expect(locationContentSource).toContain(
+      'getApprovedClaim("clinical_review_sequence")',
+    )
+    expect(locationContentSource).not.toMatch(
+      /Reviewed by AHPRA-registered Australian doctors|title:\s*"Doctor reviews"|An Australian doctor reviews your request|the doctor's outcome|Doctor review, digital delivery|Reviewed by real Australian doctors/i,
+    )
+    expect(telehealthAustraliaSource).not.toMatch(
+      /You submit a structured form; a doctor reviews it|the doctor reviews it later|submit 24\/7 for doctor review/i,
+    )
 
     expect(locationPageSource).toContain(
       'getApprovedClaim("med_cert_document_scope")',
