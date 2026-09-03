@@ -6,9 +6,9 @@ import {
 import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 
 export type CustomerGrowthServiceBaseline = {
+  createdIntakes: number
   grossRevenueAud: number
-  intakes: number
-  paid: number
+  paidAtOrders: number
   service: string
 }
 
@@ -26,11 +26,10 @@ export type CustomerGrowthSupabaseBaseline = {
   intakes: {
     averageOrderValueAud: number | null
     byService: CustomerGrowthServiceBaseline[]
+    createdIntakes: number
     grossRevenueAud: number
-    intakes: number
     netRevenueAud: number
-    paid: number
-    paidRate: number | null
+    paidAtOrders: number
     refundedAud: number
   }
   recovery: {
@@ -197,9 +196,8 @@ export function buildCustomerGrowthBaselineSummary(input: CustomerGrowthBaseline
     "",
     "## Supabase Payment Truth",
     "",
-    `- 30-day reportable intakes: ${supabase30d.intakes.intakes}`,
-    `- 30-day paid intakes: ${supabase30d.intakes.paid}`,
-    `- 30-day paid rate from saved intakes: ${formatRate(supabase30d.intakes.paidRate)}`,
+    `- 30-day reportable intakes created: ${supabase30d.intakes.createdIntakes}`,
+    `- 30-day orders paid in window: ${supabase30d.intakes.paidAtOrders}`,
     `- 30-day gross revenue: ${formatMoney(supabase30d.intakes.grossRevenueAud)}`,
     `- 30-day net revenue: ${formatMoney(supabase30d.intakes.netRevenueAud)}`,
     `- 30-day net AOV: ${formatMoney(supabase30d.intakes.averageOrderValueAud)}`,

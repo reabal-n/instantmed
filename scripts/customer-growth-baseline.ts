@@ -152,18 +152,30 @@ async function querySupabaseBaseline(
   })
   // Saved-intake demand is a created-at cohort. Revenue and paid-order volume
   // are event-window metrics, so they come from the canonical paid-at read.
-  const byService = new Map<string, { grossRevenueCents: number; intakes: number; paid: number }>()
+  const byService = new Map<string, {
+    createdIntakes: number
+    grossRevenueCents: number
+    paidAtOrders: number
+  }>()
 
   for (const row of intakes) {
     const service = serviceFromIntake(row)
-    const bucket = byService.get(service) ?? { grossRevenueCents: 0, intakes: 0, paid: 0 }
-    bucket.intakes += 1
+    const bucket = byService.get(service) ?? {
+      createdIntakes: 0,
+      grossRevenueCents: 0,
+      paidAtOrders: 0,
+    }
+    bucket.createdIntakes += 1
     byService.set(service, bucket)
   }
   for (const row of paidRows) {
     const service = serviceFromIntake(row)
-    const bucket = byService.get(service) ?? { grossRevenueCents: 0, intakes: 0, paid: 0 }
-    bucket.paid += 1
+    const bucket = byService.get(service) ?? {
+      createdIntakes: 0,
+      grossRevenueCents: 0,
+      paidAtOrders: 0,
+    }
+    bucket.paidAtOrders += 1
     bucket.grossRevenueCents += Number(row.amount_cents ?? 0)
     byService.set(service, bucket)
   }
@@ -244,17 +256,16 @@ async function querySupabaseBaseline(
           : roundMoney(revenue.averageOrderCents / 100),
       byService: Array.from(byService.entries())
         .map(([service, bucket]) => ({
+          createdIntakes: bucket.createdIntakes,
           grossRevenueAud: roundMoney(bucket.grossRevenueCents / 100),
-          intakes: bucket.intakes,
-          paid: bucket.paid,
+          paidAtOrders: bucket.paidAtOrders,
           service,
         }))
         .sort((a, b) => b.grossRevenueAud - a.grossRevenueAud),
+      createdIntakes: intakes.length,
       grossRevenueAud: roundMoney(revenue.grossCents / 100),
-      intakes: intakes.length,
       netRevenueAud: roundMoney(revenue.netCents / 100),
-      paid: revenue.orderCount,
-      paidRate: roundRate(revenue.orderCount, intakes.length),
+      paidAtOrders: revenue.orderCount,
       refundedAud: roundMoney(revenue.refundCents / 100),
     },
     recovery: {

@@ -10,6 +10,7 @@ import type { DeepCityContent } from "../deep-city-content"
 
 const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
+const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 
 export const QLD_CITIES: Record<string, DeepCityContent> = {
   brisbane: {
@@ -24,7 +25,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "South-East Queensland's Healthcare Growing Pains",
         paragraphs: [
           "South-East Queensland is the fastest-growing region in Australia, with Brisbane, the Gold Coast, the Sunshine Coast, and the surrounding growth corridors absorbing tens of thousands of new residents each year. This growth is outpacing healthcare infrastructure at every level - from GP clinics to hospital emergency departments.",
-          "New suburbs in the growth corridors - Springfield, North Lakes, Ripley Valley, Yarrabilba, Ormeau - often lack established medical centres entirely. Residents may need to drive 20–30 minutes to the nearest clinic, only to find same-day appointments unavailable. For a medical certificate that takes a doctor 5 minutes to assess, the total time investment can be 3–4 hours including travel and waiting.",
+          "New suburbs in the growth corridors - Springfield, North Lakes, Ripley Valley, Yarrabilba, Ormeau - often lack established medical centres entirely. Residents may need to drive 20–30 minutes to the nearest clinic, only to find same-day appointments unavailable. For a straightforward medical certificate assessment, the total time investment can be 3–4 hours including travel and waiting.",
           "Brisbane's subtropical climate also creates seasonal healthcare surges. The annual flu season hits hard, gastro outbreaks are common in the warmer months, and Queenslanders are particularly susceptible to heat-related illness. During these peaks, GP clinics are overwhelmed and wait times blow out. Telehealth provides a pressure valve for straightforward, non-urgent needs.",
         ],
       },
@@ -33,7 +34,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Queensland's economy has a significant proportion of shift workers, FIFO (fly-in, fly-out) workers, and casual employees. Mining, construction, hospitality, and healthcare are all major employers - and all involve work schedules that don't align with standard GP clinic hours. Getting a medical certificate shouldn't require taking an additional day off.",
           `Under the Fair Work Act, Queensland employees have the same leave entitlements as workers in other states. Employers set their own policies for medical certificates and leave evidence. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
-          "For FIFO workers based in Brisbane but working in remote Queensland, telehealth is particularly valuable. If you're on R&R in Brisbane and fall ill, you may need documentation for an employer based in Perth or elsewhere. InstantMed certificates are issued by AHPRA-registered doctors and employer policies may vary across Australia.",
+          `For FIFO workers based in Brisbane but working in remote Queensland, telehealth can provide a focused online request when a clinic visit is impractical. ${CLINICAL_REVIEW_SEQUENCE} Employer policies may vary across Australia.`,
         ],
       },
       {
@@ -55,16 +56,16 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Queensland",
       paragraphs: [
         "Queensland Health has been a strong advocate for telehealth, driven partly by the state's vast geography and dispersed population. The Queensland Government's digital health strategy explicitly includes telehealth as a primary care modality, recognising its ability to improve access for both metropolitan and regional residents.",
-        "All telehealth providers in Queensland must comply with the same AHPRA registration requirements as in-person practitioners. The Medical Board of Australia's guidelines on telehealth apply nationally and require that doctors maintain the same standard of care regardless of consultation modality. This means your telehealth doctor assesses you with the same rigour as your local GP.",
+        "All telehealth providers in Queensland must comply with the same AHPRA registration requirements as in-person practitioners. The Medical Board of Australia's guidelines on telehealth apply nationally and require that doctors maintain the same standard of care regardless of consultation modality.",
         "Prescribing via telehealth in Queensland follows national TGA regulations. PBS-listed medications can be prescribed electronically, with the eScript system fully operational across all Queensland pharmacies. Certain controlled substances (Schedule 8) require Queensland Health authority and typically an in-person assessment - these are not available via InstantMed.",
       ],
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the Gold Coast and Sunshine Coast?", a: "Yes. InstantMed covers all of South-East Queensland, including Brisbane, Gold Coast, Sunshine Coast, Ipswich, Logan, Redlands, and Moreton Bay. It's an online service - your location doesn't matter as long as you have internet access." },
       { q: "How should I check Queensland government employer documentation requirements?", a: `Queensland government departments, local councils, and statutory bodies set their own medical-documentation policies. Check the current policy for your request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
-      { q: "Can I get a medical certificate for heat-related illness in Brisbane?", a: "Yes. Heat exhaustion, heat-related fatigue, and dehydration are valid reasons for a medical certificate. Our doctors assess whether your symptoms are appropriate for telehealth management. If you're experiencing severe symptoms (confusion, loss of consciousness), call 000 - that's an emergency." },
+      { q: "Can I get a medical certificate for heat-related illness in Brisbane?", a: "You can request one, but the clinical pathway assesses whether your symptoms are appropriate for telehealth management. If you're experiencing severe symptoms (confusion, loss of consciousness), call 000 - that's an emergency." },
       { q: "Is InstantMed available during Queensland school holidays?", a: "Yes. The service operates 24/7, including all public holidays and school holiday periods. Demand for GP appointments typically increases during school holidays - telehealth avoids the queue." },
-      { q: "Can FIFO workers use InstantMed?", a: "Yes. FIFO workers are some of our most common users. Whether you're on site in the Bowen Basin or on R&R in Brisbane, our doctors can provide medical certificates and prescriptions. Certificates are issued by AHPRA-registered doctors and employer policies may vary." },
+      { q: "Can FIFO workers use InstantMed?", a: `Yes. FIFO workers can submit medical-certificate and repeat-prescription requests anywhere in Australia with internet access. ${CLINICAL_REVIEW_SEQUENCE} Employer policies may vary.` },
     ],
   },
   "gold-coast": {

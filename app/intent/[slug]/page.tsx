@@ -142,7 +142,7 @@ export default async function IntentPage({ params }: PageProps) {
             <div className="mx-auto grid max-w-6xl items-center gap-8 lg:grid-cols-[1.08fr_0.92fr]">
               <div>
                 <div className="mb-6 flex flex-wrap items-center gap-3">
-                  <SectionPill>AHPRA-registered doctor review</SectionPill>
+                  <SectionPill>Clinical assessment</SectionPill>
                   <span className="rounded-full border border-border/70 bg-white px-3 py-1.5 text-sm font-medium text-foreground shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
                     {page.commercial.price}
                   </span>
@@ -196,7 +196,7 @@ export default async function IntentPage({ params }: PageProps) {
                 <div className="mt-6 grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-primary" />
-                    Doctor reviewed
+                    Clinical pathway
                   </div>
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-primary" />
@@ -386,7 +386,7 @@ export default async function IntentPage({ params }: PageProps) {
               <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-primary" />
-                  <span>AHPRA-registered review</span>
+                  <span>Clinical assessment</span>
                 </div>
               </div>
             </div>

@@ -116,17 +116,16 @@ describe("customer growth baseline", () => {
           averageOrderValueAud: 29.34,
           byService: [
             {
+              createdIntakes: 36,
               grossRevenueAud: 798.7,
-              intakes: 36,
-              paid: 26,
+              paidAtOrders: 26,
               service: "medical_certificate",
             },
           ],
+          createdIntakes: 43,
           grossRevenueAud: 968.35,
-          intakes: 43,
           netRevenueAud: 888.45,
-          paid: 33,
-          paidRate: 76.7,
+          paidAtOrders: 33,
           refundedAud: 79.9,
         },
         recovery: {
@@ -144,7 +143,10 @@ describe("customer growth baseline", () => {
       },
     })
 
-    expect(summary).toContain("30-day paid intakes: 33")
+    expect(summary).toContain("30-day reportable intakes created: 43")
+    expect(summary).toContain("30-day orders paid in window: 33")
+    expect(summary).not.toContain("paid rate")
+    expect(summary).not.toContain("76.7%")
     expect(summary).toContain("30-day net AOV: $29.34")
     expect(summary).toContain("30-day Google Ads local CAC: $72.33")
     expect(summary).toContain("order counts are acquisition evidence")
@@ -449,6 +451,30 @@ describe("customer growth baseline", () => {
       method: "eq",
       table: "email_outbox",
     })
+    expect(calls).toContainEqual({
+      args: ["sent_at", { count: "exact", head: true }],
+      method: "select",
+      table: "email_outbox",
+    })
+    expect(calls).toContainEqual({
+      args: ["sent_at", "is", null],
+      method: "not",
+      table: "email_outbox",
+    })
+    expect(calls).toContainEqual({
+      args: ["sent_at", "2026-06-01T00:00:00.000Z"],
+      method: "gte",
+      table: "email_outbox",
+    })
+    expect(calls).toContainEqual({
+      args: ["sent_at", "2026-07-01T00:00:00.000Z"],
+      method: "lte",
+      table: "email_outbox",
+    })
+    expect(calls).not.toContainEqual(expect.objectContaining({
+      args: expect.arrayContaining(["created_at"]),
+      table: "email_outbox",
+    }))
   })
 
   it("rejects missing exact counts for aggregate metrics", async () => {

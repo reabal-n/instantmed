@@ -43,6 +43,7 @@ interface LocationPageContentProps {
 }
 
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const DOCTOR_REGISTRATION = getApprovedClaim("doctor_registration")
 const PRESCRIPTION_IF_APPROVED = getApprovedClaim("prescription_if_approved")
 
 const SERVICES = [
@@ -360,7 +361,7 @@ export function LocationPageContent({
               "Clinical assessment, digital delivery",
               PRESCRIPTION_IF_APPROVED,
               "Employer policies may vary",
-              "AHPRA-registered doctor review where required",
+              DOCTOR_REGISTRATION,
             ].map((benefit) => (
               <motion.div
                 key={benefit}

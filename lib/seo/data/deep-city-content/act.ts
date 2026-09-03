@@ -34,7 +34,7 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           `Canberra's workforce is dominated by the Australian Public Service. APS leave-evidence requirements can vary by agency, including at Parliament House, the ATO in Symonston, Defence in Russell, and other Commonwealth agencies. Check your agency's current policy for the request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
           "University students at ANU, University of Canberra, ACU, and UNSW Canberra face similar access challenges. The ANU Health Service handles high volumes, particularly during exam periods. UC's Bruce campus has limited on-site medical facilities. For academic support requests and coursework documentation, telehealth certificates are handled according to each institution's policy.",
-          "Canberra's diplomatic community - embassy staff, international organisations, and their families - often lack established GP relationships. Telehealth provides immediate access to an Australian doctor without needing a referral or existing patient relationship. This is also relevant for temporary residents working in Canberra on secondment.",
+          "Canberra's diplomatic community - embassy staff, international organisations, and their families - often lack established GP relationships. Telehealth provides a focused medical-certificate or repeat-prescription request without needing an established local GP. This is also relevant for temporary residents working in Canberra on secondment.",
         ],
       },
       {

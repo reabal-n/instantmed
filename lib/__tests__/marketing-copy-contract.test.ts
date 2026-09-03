@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import { faqItems, footerLinks } from "@/lib/marketing/homepage"
 import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
 import { KEEP_INDEXED_LOCATIONS } from "@/lib/seo/index-policy"
+import { intentPages } from "@/lib/seo/intents"
 import { getActiveServices, getServiceMarketingHref } from "@/lib/services/service-catalog"
 
 const root = process.cwd()
@@ -233,7 +234,23 @@ describe("marketing copy contracts", () => {
       expect(renderedDeepCityContent, city).not.toMatch(
         /cannot refuse|requires acceptance|accepted under all|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|ideal for telehealth|no clinical reason.{0,80}(?:in-person|waiting room)|same process as an in-person|(?:consultation method|method of consultation).{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity|workplace evidence status)|(?:certificate&apos;s|certificate's|workplace evidence status).{0,120}(?:is|are) not affected by.{0,80}(?:consultation|telehealth)|(?:recognis(?:e|es)|recogniz(?:e|es)).{0,120}(?:medical cert|telehealth-issued certificate|certificate)|meets (?:your )?leave requirements|meet(?:s)? (?:this|the )?requirement|(?:medical certificates?|telehealth-issued certificates?|certificates?).{0,100}(?:are|can be)(?: used as)?.{0,60}evidence|(?:certificate|cert).{0,100}(?:all required elements|formatted identically|next working day)|(?:you|we) (?:(?:won&apos;t|won't|will not)(?: be)?|aren&apos;t|aren't|are not) charged|14-day response SLA/i,
       )
+      expect(renderedDeepCityContent, city).not.toMatch(
+        /immediate access to an Australian doctor|medical certificate that takes a doctor.{0,40}assess|your telehealth doctor assesses|our doctors assess whether your symptoms are appropriate|our doctors can provide medical certificates and prescriptions/i,
+      )
     }
+
+    const medCertIntentContent = JSON.stringify(
+      intentPages.filter((page) => page.commercial.cluster === "medical-certificate"),
+    )
+    expect(medCertIntentContent).not.toMatch(
+      /doctor reviewed|doctor (?:assesses|decides) whether|where a doctor can assess|doctor considers online review suitable|scope check, doctor review/i,
+    )
+    const comparisonIntentContent = JSON.stringify(
+      intentPages.filter((page) => page.commercial.cluster === "comparison"),
+    )
+    expect(comparisonIntentContent).not.toMatch(
+      /by price, doctor review|price, doctor review|between doctor review and self-declaration|focus on doctor review|clear pricing and doctor review/i,
+    )
 
     expect(telehealthAustraliaSource).not.toMatch(
       /doctor review before certificate issue/i,
@@ -241,11 +258,28 @@ describe("marketing copy contracts", () => {
     expect(locationContentSource).toContain(
       'getApprovedClaim("clinical_review_sequence")',
     )
+    expect(locationContentSource).toContain(
+      'getApprovedClaim("doctor_registration")',
+    )
+    expect(locationContentSource).not.toContain(
+      "AHPRA-registered doctor review where required",
+    )
     expect(locationContentSource).not.toMatch(
       /Reviewed by AHPRA-registered Australian doctors|title:\s*"Doctor reviews"|An Australian doctor reviews your request|the doctor's outcome|Doctor review, digital delivery|Reviewed by real Australian doctors/i,
     )
     expect(telehealthAustraliaSource).not.toMatch(
       /You submit a structured form; a doctor reviews it|the doctor reviews it later|submit 24\/7 for doctor review/i,
+    )
+    expect(locationPageSource).not.toContain(
+      "an AHPRA-registered doctor can help",
+    )
+
+    const intentPageSource = readFileSync(
+      join(root, "app/intent/[slug]/page.tsx"),
+      "utf8",
+    )
+    expect(intentPageSource).not.toMatch(
+      /AHPRA-registered doctor review|Doctor reviewed|AHPRA-registered review/i,
     )
 
     expect(locationPageSource).toContain(

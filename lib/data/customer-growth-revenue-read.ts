@@ -357,11 +357,12 @@ export async function countSentAbandonedCheckoutEmails(
   try {
     result = await supabase
       .from("email_outbox")
-      .select("email_type", { count: "exact", head: true })
+      .select("sent_at", { count: "exact", head: true })
       .in("email_type", ["abandoned_checkout", "abandoned_checkout_followup"])
       .eq("status", "sent")
-      .gte("created_at", sinceIso)
-      .lte("created_at", untilIso)
+      .not("sent_at", "is", null)
+      .gte("sent_at", sinceIso)
+      .lte("sent_at", untilIso)
   } catch {
     throw new Error("Abandoned checkout send count is unavailable")
   }

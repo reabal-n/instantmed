@@ -97,7 +97,7 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
 
 // Fallback FAQs for cities without specific ones
 const DEFAULT_FAQS = [
-  { q: "Is InstantMed available in my area?", a: "Yes - InstantMed works anywhere in Australia with an internet connection. No matter your location, an AHPRA-registered doctor can help." },
+  { q: "Is InstantMed available in my area?", a: `Yes. InstantMed works anywhere in Australia with an internet connection. ${CLINICAL_REVIEW_SEQUENCE}` },
   { q: "Can employers use your medical certificates as evidence?", a: `${CERTIFICATE_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
   { q: "When can I submit a medical certificate request?", a: `${AVAILABILITY} If approved, the certificate is emailed as a PDF.` },
 ]
