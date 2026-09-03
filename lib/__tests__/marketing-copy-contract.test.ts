@@ -273,6 +273,9 @@ describe("marketing copy contracts", () => {
     expect(locationPageSource).not.toContain(
       "an AHPRA-registered doctor can help",
     )
+    expect(locationPageSource).not.toMatch(
+      /(?:access to|connects?[^.]{0,50}with) (?:Australian(?:-registered)? )?doctors/i,
+    )
 
     const intentPageSource = readFileSync(
       join(root, "app/intent/[slug]/page.tsx"),
