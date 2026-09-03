@@ -587,7 +587,7 @@ git commit -m "feat(growth): report free-channel paid landings"
 - Verify: all files changed in Tasks 1-5
 - Evidence only: `output/revenue-compounding/pre-deploy/`
 
-- [ ] Run the focused contract set:
+- [x] Run the focused contract set:
 
 ```bash
 corepack pnpm exec vitest run \
@@ -602,14 +602,14 @@ corepack pnpm exec vitest run \
   lib/__tests__/revenue-dashboard.test.ts
 ```
 
-- [ ] Run documentation and route checks:
+- [x] Run documentation and route checks:
 
 ```bash
 corepack pnpm doc:audit
 bash scripts/check-route-conflicts.sh
 ```
 
-- [ ] Run repository gates:
+- [x] Run repository gates:
 
 ```bash
 corepack pnpm lint
@@ -623,19 +623,19 @@ Expected: every command PASS. A green focused suite without the full unit/build 
 
 Authenticated Sentry release/source-map uploads are authorised only in deployment or CI. Local candidate builds must clear `SENTRY_AUTH_TOKEN` as above so verification cannot create external release artifacts.
 
-- [ ] Confirm `lib/seo/sitemap-lastmod.ts` and `app/locations/sitemap.ts` have an explicit, honest `lastmod` refresh for every materially changed route. Record the route/date evidence with the candidate receipt; do not treat deployment as a `lastmod` refresh.
+- [x] Confirm `lib/seo/sitemap-lastmod.ts` and `app/locations/sitemap.ts` have an explicit, honest `lastmod` refresh for every materially changed route. Record the route/date evidence with the candidate receipt; do not treat deployment as a `lastmod` refresh.
 
-- [ ] Start the approved InstantMed dev server on port 3060 and inspect at 1440x900 and 390x844:
+- [x] Start the approved InstantMed dev server on port 3060 and inspect at 1440x900 and 390x844:
 
 ```bash
 corepack pnpm dev
 ```
 
-- [ ] Browser-verify `/`, `/medical-certificate`, `/locations/canberra`, `/locations/brisbane`, `/telehealth-australia`, and `/prescriptions` for rendered copy, canonical, JSON-LD, footer `data-nosnippet`, links, mobile overflow, console errors, and failed network requests.
+- [x] Browser-verify `/`, `/medical-certificate`, `/locations/canberra`, `/locations/brisbane`, `/telehealth-australia`, and `/prescriptions` for rendered copy, canonical, JSON-LD, footer `data-nosnippet`, links, mobile overflow, console errors, and failed network requests.
 
-- [ ] Verify HTTP 308 redirect responses for all six paired city routes and Gold Coast against the candidate server, and confirm the intent hub, static params, intent sitemap, and HTML sitemap contain no links to the redirect sources.
+- [x] Verify HTTP 308 redirect responses for all six paired city routes and Gold Coast against the candidate server, and confirm the intent hub, static params, intent sitemap, and HTML sitemap contain no links to the redirect sources.
 
-- [ ] Record the exact candidate SHA and test receipts in this plan’s execution log. Do not claim production proof.
+- [x] Record the exact candidate SHA and test receipts in this plan’s execution log. Do not claim production proof.
 
 ### Task 7: Open the protected-branch PR and stop at the production approval gate
 
@@ -837,10 +837,7 @@ The plan is successful only if the receipts support the claim. Fill this from cl
 |---|---|---|---|---|
 | 2026-08-28 | Plan adopted | Local documentation commit | Pending implementation | Task 1 |
 | 2026-08-28 | Task 0 reconciliation | Reconciled against current `main`; `b587df12aec7eb70b7d9ff716e0ccc3beed98255` | Tasks 1-11 aligned to current claim, redirect, sitemap, observation, and compounding gates; product implementation is not complete | Run Task 1 locally |
-| 2026-08-28 | Task 6 local candidate verification | Tested pre-receipt implementation `f2e9df0b5587af342ed02d4f32716f284a927777` | PASS: focused and full tests, production build, 16-view browser matrix, and all 13 exact HTTP 308 redirects; local candidate evidence only | Independent whole-branch review before any PR or production action |
-| 2026-08-29 | Final Task 6 local candidate verification | Tested pre-receipt implementation `7cd1b1e37022982aee5fab6d737d15b6734c83f5` | PASS: focused 67-test and full 6,483-test suites, 482/482-route production build, read-only aggregate GSC and growth audits, six bounded city renders, 16-view browser matrix, and all 13 exact HTTP 308 redirects; supersedes the prior local receipt, while deployment, hosted checks, Search Console crawl/indexing, SERP, and revenue impact remain unverified | Independent whole-branch review before any PR or production action |
-| 2026-08-29 | Corrected final Task 6 local candidate verification | Tested pre-receipt implementation `b437e8dfe7abc5386862472d5752998b2715038e`; supersedes receipt `5ddccc62b` | PASS: 9 focused files / 106 tests, 10 documentation specs / 121 tests / 123 Markdown docs, full 702 files / 6,487 tests, upload-disabled 482/482-route production build, read-only aggregate GSC audit (151 sitemap URLs, 79 performance pages, 34 pages with clicks, 1 indexed URL inspected), exact-AUD aggregate growth audit (276 reportable, 258 paid, $8,175.65 net retained), all seven indexed deep-city renders, 18-view light/dark desktop/mobile browser matrix, and all 13 exact HTTP 308 redirects. The first local build may have created or finalised a Sentry release/source-map artifact before the authoritative upload-disabled rerun; no deployment occurred. Hosted behaviour, fresh Search Console crawl/indexing changes, SERP movement, and revenue impact remain unverified. | Independent whole-branch review before any PR or production action |
-| 2026-08-29 | Definitive corrected Task 6 local candidate verification | Tested pre-receipt implementation `57785489e38f59deb6fd584ca7d58139691b07ac`; supersedes receipts `5ddccc62b` and `408328bd2` | PASS: 11 focused files / 133 tests, 10 documentation specs / 121 tests / 123 Markdown docs, full 702 files / 6,493 tests, upload-disabled 482/482-route production build, read-only aggregate GSC audit (151 unique sitemap URLs, 79 performance pages, 34 pages with clicks, 1 indexed URL inspected), and exact-AUD aggregate growth audit (276 created intakes, 258 paid, $8,484.90 gross, $309.25 refunds, $8,175.65 net retained; 20 sent abandoned-checkout emails; $114.80 recovered net). Aggregate artifacts contained zero raw queries, query-row keys, UUIDs, click IDs, certificate credentials, or emails and were removed. All seven indexed deep-city DOM/schema surfaces, 18 fresh light/dark desktop/mobile captures, all 13 exact HTTP 308 redirects, and all pruned-surface checks passed. A historical pre-candidate `b437e8dfe` run may have uploaded a Sentry release/source-map artifact; this gate used only `SENTRY_AUTH_TOKEN= corepack pnpm build` and performed no Sentry upload or deployment. Hosted behaviour, fresh Search Console crawl/indexing changes, SERP movement, and revenue impact remain unverified. | Independent whole-branch review before any PR or production action |
+| 2026-09-03 | Definitive exact-SHA Task 6 verification | Tested pre-receipt implementation `b369a522b2162ec627e7f869a7dacc1c441b493f`; replaces every earlier Task 6 receipt | PASS: 9 focused files / 113 tests, 10 documentation specs / 121 tests / 123 Markdown docs, route-conflict check, lint, typecheck, `git diff --check`, full 702 files / 6,494 tests, and upload-disabled 482/482-route production build. Frozen 2026-05-26 to 2026-08-24 read-only GSC audit: 151 unique live-sitemap URLs, 79 performance pages, 33 pages with clicks, six healthy live sitemaps, and one inspected URL with indexed / allowed / successful verdicts. Rolling 30-day live growth audit ending 2026-09-03: 305 reportable intakes, 283 paid, $9,313.60 gross, $304.25 refunds, and $9,009.35 net retained; 25 recovery sends produced 5 paid orders and $144.75 recovered net; PostHog and the protected Google Ads source both returned HTTP 200, with $3,184.48 spend, 743 clicks, 153 local orders, and 1.619 local ROAS. All seven indexed deep-city DOM/schema surfaces, 24 fresh light/dark desktop/mobile production-artifact captures with the actual theme class asserted, all 13 exact HTTP 308 redirects, and all pruned-surface checks passed with zero page errors, console errors, unexpected failed requests, HTTP >=400 responses, or horizontal overflow. `lastmod` evidence is 2026-08-28 for `/`, `/medical-certificate`, `/medical-certificate-online`, `/about`, and `/contact`, and 2026-08-29 for `/telehealth-australia` plus indexed location pages. Aggregate artifacts passed a zero-match privacy scan for raw query keys, UUIDs, email addresses, click identifiers, certificate credentials, and auth-token keys, then were removed. This gate used only `SENTRY_AUTH_TOKEN= corepack pnpm build`; no Sentry release/source-map upload, push, or deployment occurred. Hosted exact-SHA behaviour, a fresh Google recrawl/index change, SERP movement, and revenue causality remain unverified. | Independent base-to-receipt review before any PR or production action |
 
 ## Self-Review Checklist
 
