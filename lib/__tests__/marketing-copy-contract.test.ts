@@ -235,7 +235,7 @@ describe("marketing copy contracts", () => {
         /cannot refuse|requires acceptance|accepted under all|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|ideal for telehealth|no clinical reason.{0,80}(?:in-person|waiting room)|same process as an in-person|(?:consultation method|method of consultation).{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity|workplace evidence status)|(?:certificate&apos;s|certificate's|workplace evidence status).{0,120}(?:is|are) not affected by.{0,80}(?:consultation|telehealth)|(?:recognis(?:e|es)|recogniz(?:e|es)).{0,120}(?:medical cert|telehealth-issued certificate|certificate)|meets (?:your )?leave requirements|meet(?:s)? (?:this|the )?requirement|(?:medical certificates?|telehealth-issued certificates?|certificates?).{0,100}(?:are|can be)(?: used as)?.{0,60}evidence|(?:certificate|cert).{0,100}(?:all required elements|formatted identically|next working day)|(?:you|we) (?:(?:won&apos;t|won't|will not)(?: be)?|aren&apos;t|aren't|are not) charged|14-day response SLA/i,
       )
       expect(renderedDeepCityContent, city).not.toMatch(
-        /immediate access to an Australian doctor|medical certificate that takes a doctor.{0,40}assess|your telehealth doctor assesses|our doctors assess whether your symptoms are appropriate|our doctors can provide medical certificates and prescriptions/i,
+        /immediate access to an Australian doctor|medical certificate that takes a doctor.{0,40}assess|your telehealth doctor assesses|our doctors assess whether your symptoms are appropriate|our doctors can help|our doctors can provide medical certificates and prescriptions/i,
       )
     }
 

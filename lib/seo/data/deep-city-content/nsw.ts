@@ -67,7 +67,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       { q: "Can I get a medical certificate for a mental health day?", a: "Yes. Mental health is a valid reason for a medical certificate. Our doctors assess mental health-related requests with the same clinical rigour as physical illness. You don't need to disclose the specific nature of your condition to your employer - the certificate simply states you were unfit for work." },
       { q: "How should I check NSW workplace documentation requirements?", a: `NSW employers set their own policies for medical certificates and leave evidence. Check the current policy for your request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "What suburbs does InstantMed cover in Sydney?", a: "InstantMed is available everywhere in Greater Sydney and NSW - from the Northern Beaches to Campbelltown, Penrith to the Eastern Suburbs. It's an online service, so your location doesn't matter as long as you have internet access." },
-      { q: "Can I use InstantMed if I'm visiting Sydney?", a: "Yes. You don't need to be a Sydney resident. If you're visiting for work or travel and need a medical certificate, our doctors can help. You don't need a local address or a GP in the area." },
+      { q: "Can I use InstantMed if I'm visiting Sydney?", a: "Yes. You don't need to be a Sydney resident. If you're visiting for work or travel, you can submit a medical-certificate request online without an established local GP." },
     ],
   },
   newcastle: {
