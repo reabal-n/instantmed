@@ -219,6 +219,36 @@ describe("marketing copy contracts", () => {
       /focused ED, hair-loss, women&apos;s-health \(UTI or a new or switch\s+contraceptive pill\), and weight-management assessments/,
     )
     expect(telehealthAustraliaSource).not.toContain("accepted documentation")
+    expect(locationContentSource).not.toContain("Tell us what you need")
+    expect(locationContentSource).not.toContain("Tell us about your health concern")
+    expect(locationContentSource).toContain("Choose a listed service")
+    expect(locationContentSource).toContain("Answer the service-specific questions")
+    expect(locationPageSource).not.toContain('name: "Online Prescription"')
+    expect(locationPageSource).toContain('name: "Repeat Prescription Review"')
+
+    const cityContentBlock = locationPageSource.match(
+      /const CITY_CONTENT:[\s\S]*?= \{([\s\S]*?)\n\}\n\n\/\/ City-specific FAQ items/,
+    )?.[1]
+    expect(cityContentBlock).toBeDefined()
+    const cityContentEntries = [...(cityContentBlock ?? "").matchAll(
+      /^\s*(?:"[^"]+"|[a-z]+):\s*"([^"]+)",?$/gm,
+    )].map((match) => match[1])
+    expect(cityContentEntries).toHaveLength(42)
+    for (const content of cityContentEntries) {
+      expect(content).toMatch(/medical[- ]certificate/i)
+      expect(content).toMatch(/repeat[- ]prescription/i)
+    }
+
+    const allDeepCityContent = JSON.stringify(DEEP_CITY_CONTENT)
+    expect(allDeepCityContent).not.toMatch(
+      /most (?:PBS-listed )?medications can be prescribed|everything else most people need/i,
+    )
+    expect(allDeepCityContent).not.toMatch(
+      /InstantMed.{0,160}(?:everyday|routine|straightforward) healthcare needs|our doctors can treat patients in both NSW and Victoria|use InstantMed for medical certificates and prescriptions/i,
+    )
+    expect(allDeepCityContent).not.toMatch(
+      /(?:routine|straightforward|everyday|personal and family) healthcare needs|(?:simple|straightforward|non-urgent) prescriptions|medical certificates and prescriptions|straightforward certificates and scripts|straightforward consultations|handle everything else/i,
+    )
 
     for (const city of KEEP_INDEXED_LOCATIONS) {
       expect(locationPageSource, city).toMatch(

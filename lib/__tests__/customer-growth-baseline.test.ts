@@ -10,6 +10,7 @@ import {
   buildCustomerGrowthRevenueForIntakeIds,
   collectCustomerGrowthAttributionIntakeIds,
   countSentAbandonedCheckoutEmails,
+  countSentPartialRecoveryEmails,
   readCustomerGrowthAttributionRows,
   readCustomerGrowthCreatedIntakeRows,
   readCustomerGrowthRevenueEvidence,
@@ -200,6 +201,24 @@ describe("customer growth baseline", () => {
     expect(JSON.stringify(rows)).not.toContain("signed-request-access-token")
     expect(JSON.stringify(rows)).not.toContain("signed-checkout-resume-token")
     expect(JSON.stringify(rows)).not.toContain("signed-account-token")
+    expect(JSON.stringify(rows)).not.toContain("2c82f788-1769-4cf7-97d7-d40db36ad859")
+  })
+
+  it("fails closed when sensitive landing paths use percent-encoded separators", () => {
+    const rows = buildFreeChannelLandingBreakdown([
+      { utm_medium: "referral", landing_page: "/resume%2Fsigned-checkout-secret" },
+      { utm_medium: "referral", landing_page: "/track%252Fsigned-request-secret" },
+      {
+        utm_medium: "referral",
+        landing_page: "/campaign%2F2c82f788-1769-4cf7-97d7-d40db36ad859",
+      },
+    ])
+
+    expect(rows).toEqual([
+      { group: "referral", landingPage: "/unknown", orders: 3 },
+    ])
+    expect(JSON.stringify(rows)).not.toContain("signed-checkout-secret")
+    expect(JSON.stringify(rows)).not.toContain("signed-request-secret")
     expect(JSON.stringify(rows)).not.toContain("2c82f788-1769-4cf7-97d7-d40db36ad859")
   })
 
@@ -477,6 +496,34 @@ describe("customer growth baseline", () => {
     }))
   })
 
+  it("counts partial-intake recovery by the send event window", async () => {
+    const calls: QueryCall[] = []
+    await expect(countSentPartialRecoveryEmails(
+      customerGrowthRevenueClient([{ count: 4, data: [], error: null }], calls),
+      "2026-06-01T00:00:00.000Z",
+      "2026-07-01T00:00:00.000Z",
+    )).resolves.toBe(4)
+    expect(calls).toContainEqual({
+      args: ["recovery_email_sent_at", { count: "exact", head: true }],
+      method: "select",
+      table: "partial_intakes",
+    })
+    expect(calls).toContainEqual({
+      args: ["recovery_email_sent_at", "2026-06-01T00:00:00.000Z"],
+      method: "gte",
+      table: "partial_intakes",
+    })
+    expect(calls).toContainEqual({
+      args: ["recovery_email_sent_at", "2026-07-01T00:00:00.000Z"],
+      method: "lte",
+      table: "partial_intakes",
+    })
+    expect(calls).not.toContainEqual(expect.objectContaining({
+      args: expect.arrayContaining(["updated_at"]),
+      table: "partial_intakes",
+    }))
+  })
+
   it("rejects missing exact counts for aggregate metrics", async () => {
     expect(() => requireExactCustomerGrowthCount("partial_intakes captured", {
       count: null,
@@ -508,6 +555,11 @@ describe("customer growth baseline", () => {
     ]) {
       expect(() => assertNoSensitiveBaselineText(certificateRef)).toThrow(/sensitive/i)
     }
+
+    expect(() => assertNoSensitiveBaselineText("patient%40example.com")).toThrow(/sensitive/i)
+    expect(() =>
+      assertNoSensitiveBaselineText("/resume%252Fsigned-checkout-secret"),
+    ).toThrow(/sensitive/i)
 
     expect(() =>
       assertNoSensitiveBaselineText(

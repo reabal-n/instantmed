@@ -26,7 +26,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Perth is the most geographically isolated capital city in the world, and its urban footprint reflects this - the metropolitan area stretches roughly 150 kilometres from Two Rocks in the north to Mandurah in the south. This sprawl creates unique healthcare access challenges. A resident in Joondalup might face a 45-minute drive to a clinic with availability, while someone in Rockingham faces similar distances heading north.",
           "Perth's GP shortage is well-documented and worsening. Western Australia has one of the lowest GP-to-population ratios of any Australian state, and many suburban practices have closed or reduced hours in recent years. Bulk-billing is increasingly rare - many Perth GPs now charge gap fees of $50–$100, making a standard consultation one of the most expensive in the country.",
-          "For Perth's large FIFO (fly-in, fly-out) workforce - miners, oil and gas workers, construction crews - healthcare access is doubly complicated. When you're home for your R&R period, the last thing you want is to spend a day in a waiting room. And when you're on site in the Pilbara or Goldfields, getting to a doctor might mean a flight. Telehealth solves both problems.",
+          "For Perth's large FIFO (fly-in, fly-out) workforce - miners, oil and gas workers, construction crews - healthcare access is doubly complicated. When you're home for your R&R period, the last thing you want is to spend a day in a waiting room. And when you're on site in the Pilbara or Goldfields, getting to a doctor might mean a flight. InstantMed lets eligible workers submit a medical-certificate request or repeat-prescription review online.",
         ],
       },
       {
@@ -40,8 +40,8 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Regional WA and Telehealth",
         paragraphs: [
-          "Western Australia covers a third of the continent, and outside the Perth metropolitan area, healthcare access drops off dramatically. Towns like Geraldton, Kalgoorlie, Karratha, and Broome have limited GP availability. For residents and workers in these areas, telehealth isn't just convenient - it's often the only practical option for routine health needs.",
-          "Even within the Perth metro area, the northern and southern growth corridors (Yanchep, Baldivis, Byford) are underserviced by GPs. New housing developments have outpaced medical infrastructure, leaving thousands of families without a nearby clinic. Telehealth fills this gap until local healthcare catches up with population growth.",
+          "Western Australia covers a third of the continent, and outside the Perth metropolitan area, healthcare access drops off dramatically. Towns like Geraldton, Kalgoorlie, Karratha, and Broome have limited GP availability. For residents and workers in these areas, an online medical-certificate request or eligible repeat-prescription review can avoid a long trip for that focused need.",
+          "Even within the Perth metro area, the northern and southern growth corridors (Yanchep, Baldivis, Byford) are underserviced by GPs. New housing developments have outpaced medical infrastructure, leaving thousands of families without a nearby clinic. InstantMed provides focused online medical-certificate and repeat-prescription review pathways; it does not replace comprehensive local primary care.",
         ],
       },
     ],
@@ -56,7 +56,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Western Australia",
       paragraphs: [
         "Western Australia's telehealth framework follows national AHPRA and Medical Board of Australia guidelines. The WA Department of Health has been a proponent of telehealth expansion, recognising the state's unique geographic challenges. WA Health's digital health strategy includes telehealth as a critical component for both metropolitan and regional healthcare delivery.",
-        "Prescribing via telehealth in WA follows national TGA regulations. All PBS-listed medications available via telehealth in other states are equally available in WA. The eScript system is fully operational across Western Australian pharmacies. Schedule 8 medications (controlled substances) require WA Department of Health authority and typically an in-person assessment.",
+        "Prescribing via telehealth in WA follows national TGA regulations. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its erectile dysfunction, hair loss, women's health, and weight-management assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Schedule 8 controlled substances require WA Department of Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
         `WA's state-based industrial relations system covers some workers who are not under the federal Fair Work system. Whether you are covered by the Fair Work Act or the WA Industrial Relations Act, check the current employer policy for leave evidence. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
       ],
     },
@@ -103,17 +103,17 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
-          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, screening, immunisations, hands-on physical examinations, dressings, and injections all still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a flu that any doctor could clinically assess in five minutes, the repeat script for a blood pressure tablet you have taken for years, the simple prescription for a recurrent issue you already recognise.",
-          "For residents of Margaret River, Augusta, and the smaller Capes communities, the practical difference is enormous. A round trip to a Bunbury GP for a routine certificate can absorb most of a working day, plus fuel and the inevitable waiting room time. Telehealth collapses that into a 20–30 minute process from home, with the same clinical standard and no compromise on the documentation. The two models work together - face-to-face for what genuinely needs it, telehealth for the routine middle.",
-          "If your symptoms or situation are inappropriate for a telehealth assessment, the doctor will tell you and refer you to in-person care. You will not be charged. The clinical filter is identical regardless of whether you live in Bunbury, Margaret River, or anywhere else we serve.",
+          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, screening, immunisations, hands-on physical examinations, dressings, and injections all still require face-to-face care. InstantMed provides focused online pathways for medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken.",
+          "For residents of Margaret River, Augusta, and the smaller Capes communities, the practical difference can be substantial. A round trip to a Bunbury GP for a medical-certificate request or eligible repeat-prescription review can absorb most of a working day, plus fuel and waiting-room time. InstantMed lets patients submit those focused requests from home while leaving other care with their regular GP or an appropriate in-person service.",
+          "If a listed request is not appropriate for telehealth, the doctor will refer you to in-person care and you will not be charged. This clinical filter is identical regardless of whether you live in Bunbury, Margaret River, or anywhere else we serve.",
         ],
       },
       {
         title: "Practical Cost and Time Comparison for the South-West",
         paragraphs: [
-          "GP economics in WA's South-West have moved in line with the broader trend. Bulk-billing has declined to one of the lowest rates in the country, gap fees of $40–$80 are common, and waiting times for non-urgent appointments stretch to a week. For households across Bunbury, the Capes, and the broader South-West, the combined cost of a routine GP visit - fuel into Bunbury from outlying towns, the gap fee, lost work time, the wait - frequently exceeds what telehealth charges flat.",
-          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons at the end of the consultation. For families budgeting through the cost-of-living pressures that have hit regional WA particularly hard, that predictability matters as much as the time saved.",
-          "Doctor review follows when available - the service operates 24/7. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The process stays online from intake to delivery. For Bunbury and South-West residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
+          "GP economics in WA's South-West have moved in line with the broader trend. Bulk-billing has declined to one of the lowest rates in the country, gap fees of $40–$80 are common, and waiting times for non-urgent appointments stretch to a week. For households across Bunbury, the Capes, and the broader South-West, the combined cost of attending a GP for a medical-certificate request or eligible repeat-prescription review - fuel into Bunbury, the gap fee, lost work time, and the wait - can exceed InstantMed's listed fee for the corresponding service.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what a medical-certificate request or repeat-prescription review costs before you start the intake. There are no gap fees and no surprise add-ons at the end of the consultation. For families budgeting through the cost-of-living pressures that have hit regional WA particularly hard, that predictability matters as much as the time saved.",
+          "Requests can be submitted and reviewed 24/7. After review, an approved medical certificate is sent as a PDF; an eScript is sent only if a prescribing request is approved. The process stays online from intake to delivery. For Bunbury and South-West residents, that avoids competing for a same-day clinic appointment for these focused requests.",
         ],
       },
     ],
@@ -128,7 +128,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Western Australia",
       paragraphs: [
         "Western Australia follows the national AHPRA and Medical Board of Australia framework for telehealth. The WA Department of Health has explicitly supported telehealth as part of its digital health strategy, recognising that the state's scale and sparse population make traditional face-to-face primary care genuinely impossible for a significant share of residents.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth in WA, with eScripts accepted at every WA pharmacy. Schedule 8 medications - strong opioids, stimulants - require WA Department of Health authority and typically in-person assessment, and are not prescribed through InstantMed.",
+        "Prescribing follows national TGA rules. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its named specialty assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Schedule 8 medications - strong opioids and stimulants - require WA Department of Health authority and typically in-person assessment, and are not prescribed through InstantMed.",
         "The WA-specific Industrial Relations Act applies to some employees in the state, but it uses the same 'registered medical practitioner' language as the federal Fair Work Act when it comes to medical certificates. A telehealth certificate from an AHPRA-registered doctor is valid under both systems.",
       ],
     },
@@ -136,7 +136,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       { q: "Does InstantMed cover Busselton, Margaret River, and the Capes?", a: "Yes. Busselton, Dunsborough, Yallingup, Margaret River, Augusta, and all the smaller Capes-region communities. Any location in the South-West with internet access is covered." },
       { q: "Does InstantMed operate on WA time?", a: "Yes - the service operates 24/7, so the WA time difference never matters. Submissions made early in the WA morning are typically reviewed almost immediately." },
       { q: "Can Alcoa Wagerup and South32 workers use InstantMed?", a: "Yes. Our certificates include AHPRA registration details for workplace documentation and include the AHPRA registration details needed for workplace absence documentation." },
-      { q: "Is InstantMed cheaper than seeing a GP in Bunbury?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Bunbury's bulk-billing rate around 62% and typical gap fees of $40–$80, InstantMed is often more affordable for straightforward certificates and scripts.` },
+      { q: "Is InstantMed cheaper than seeing a GP in Bunbury?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Bunbury's bulk-billing rate around 62% and typical gap fees of $40–$80, InstantMed is often more affordable for a straightforward medical-certificate request or eligible repeat-prescription review.` },
     ],
   },
   fremantle: {
@@ -152,7 +152,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Fremantle and the surrounding suburbs - Cockburn, Melville, East Fremantle, Hamilton Hill, South Fremantle - sit in Perth's southern corridor, an area where GP access has been tightening for years. Bulk-billing rates in Fremantle are well below the Perth metro average, with many practices charging gap fees of $50–$90. Several clinics have closed or reduced hours in recent years, and those that remain often book a week out for non-urgent appointments.",
           "Fremantle's economy is built around the port, maritime services, hospitality, and the arts. Fremantle Port is one of Australia's busiest, and the logistics, stevedoring, and transport workforce operates around the clock. Shift workers who finish at 2am or start at 5am can't easily visit a GP during business hours. Telehealth removes the scheduling barrier entirely - submit your request when it suits you, and the certificate arrives via email.",
-          "The suburb has also become a magnet for young professionals, creatives, and students from Murdoch University and Notre Dame University (Fremantle campus). Many are casual workers or self-employed. A doctor visit that costs $80 out of pocket and requires half a day off work is a genuine financial burden. Telehealth offers a faster, more affordable alternative for routine certificate and prescription needs.",
+          "The suburb has also become a magnet for young professionals, creatives, and students from Murdoch University and Notre Dame University (Fremantle campus). Many are casual workers or self-employed. A doctor visit that costs $80 out of pocket and requires half a day off work is a genuine financial burden. InstantMed offers an online pathway for medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken.",
         ],
       },
       {
@@ -183,7 +183,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Western Australia",
       paragraphs: [
         "Western Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. The WA Department of Health has supported telehealth expansion as part of its digital health strategy, recognising the state's unique geographic challenges. All telehealth consultations must be provided by AHPRA-registered practitioners.",
-        "Prescribing via telehealth in WA follows national TGA regulations. PBS-listed medications can be prescribed electronically, with the eScript system fully operational across all Western Australian pharmacies. Schedule 8 controlled substances require WA Department of Health authority and in-person assessment.",
+        "Prescribing via telehealth in WA follows national TGA regulations. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its named specialty assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Schedule 8 controlled substances require WA Department of Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
         "Medical certificates issued via telehealth in Western Australia are reviewed under the same national practitioner framework as other doctor-issued certificates. WA employers set their own policies under the Fair Work Act or WA Industrial Relations Act, and high-risk clearance or compensation matters need their own assessment pathway.",
       ],
     },

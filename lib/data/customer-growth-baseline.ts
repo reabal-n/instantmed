@@ -62,6 +62,9 @@ function publicLandingPath(value?: string | null): string {
     const url = new URL(landingPage, "https://instantmed.com.au")
     if (url.protocol !== "http:" && url.protocol !== "https:") return "/unknown"
     if (!PUBLIC_LANDING_HOSTS.has(url.hostname)) return "/unknown"
+    // Canonical public routes are ASCII-only. Reject encoded pathnames rather
+    // than risk treating an encoded private-route separator as public data.
+    if (url.pathname.includes("%")) return "/unknown"
     const pathname = url.pathname.replace(/\/+$/, "") || "/"
     if (isExternalAnalyticsExcludedPathname(pathname)) return "/unknown"
     return pathname === "/verify" || pathname.startsWith("/verify/") ? "/verify" : pathname
@@ -139,7 +142,26 @@ const SENSITIVE_PATTERNS = [
   /\b(?:pi|cs|cus|ch|pm|in|sub|price|prod)_[A-Za-z0-9]{8,}\b/,
   /\b(?:gclid|gbraid|wbraid)\b\s*[:="' ]+\s*[A-Za-z0-9_-]{8,}/i,
   /\bIM-(?:WORK|STUDY|CARER)-\d{8}-\d{8}\b/i,
+  /\/(?:auth\/complete-account|track|resume)\/[^\s"'?#]+/i,
 ] as const
+
+function decodePercentEscapes(value: string): string {
+  let decoded = value
+
+  for (let pass = 0; pass < 4; pass += 1) {
+    const next = decoded.replace(/(?:%[0-9a-f]{2})+/gi, (encoded) => {
+      try {
+        return decodeURIComponent(encoded)
+      } catch {
+        return encoded
+      }
+    })
+    if (next === decoded) return decoded
+    decoded = next
+  }
+
+  return decoded
+}
 
 function formatMoney(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "n/a"
@@ -249,7 +271,10 @@ export function buildCustomerGrowthBaselineSummary(input: CustomerGrowthBaseline
 }
 
 export function assertNoSensitiveBaselineText(text: string): void {
-  if (SENSITIVE_PATTERNS.some((pattern) => pattern.test(text))) {
+  const decodedText = decodePercentEscapes(text)
+  if (SENSITIVE_PATTERNS.some(
+    (pattern) => pattern.test(text) || pattern.test(decodedText),
+  )) {
     throw new Error("Customer growth baseline contains sensitive identifiers")
   }
 }

@@ -17,6 +17,7 @@ import {
   buildCustomerGrowthRevenueForIntakeIds,
   collectCustomerGrowthAttributionIntakeIds,
   countSentAbandonedCheckoutEmails,
+  countSentPartialRecoveryEmails,
   readCustomerGrowthAttributionRows,
   readCustomerGrowthCreatedIntakeRows,
   readCustomerGrowthRevenueEvidence,
@@ -213,15 +214,7 @@ async function querySupabaseBaseline(
         .lte("updated_at", nowIso)
         .not("converted_to_intake_id", "is", null),
     ),
-    countQuery(
-      "partial_intakes recovery marked sent",
-      supabase
-        .from("partial_intakes")
-        .select("session_id", { count: "exact", head: true })
-        .gte("updated_at", sinceIso)
-        .lte("updated_at", nowIso)
-        .not("recovery_email_sent_at", "is", null),
-    ),
+    countSentPartialRecoveryEmails(supabase, sinceIso, nowIso),
     countSentAbandonedCheckoutEmails(supabase, sinceIso, nowIso),
   ])
 

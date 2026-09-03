@@ -26,7 +26,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "South-East Queensland is the fastest-growing region in Australia, with Brisbane, the Gold Coast, the Sunshine Coast, and the surrounding growth corridors absorbing tens of thousands of new residents each year. This growth is outpacing healthcare infrastructure at every level - from GP clinics to hospital emergency departments.",
           "New suburbs in the growth corridors - Springfield, North Lakes, Ripley Valley, Yarrabilba, Ormeau - often lack established medical centres entirely. Residents may need to drive 20–30 minutes to the nearest clinic, only to find same-day appointments unavailable. For a straightforward medical certificate assessment, the total time investment can be 3–4 hours including travel and waiting.",
-          "Brisbane's subtropical climate also creates seasonal healthcare surges. The annual flu season hits hard, gastro outbreaks are common in the warmer months, and Queenslanders are particularly susceptible to heat-related illness. During these peaks, GP clinics are overwhelmed and wait times blow out. Telehealth provides a pressure valve for straightforward, non-urgent needs.",
+          "Brisbane's subtropical climate also creates seasonal healthcare surges. The annual flu season hits hard, gastro outbreaks are common in the warmer months, and Queenslanders are particularly susceptible to heat-related illness. During these peaks, GP clinics are overwhelmed and wait times blow out. InstantMed provides focused online access for medical-certificate requests and repeat-prescription reviews for a regular medicine you already take.",
         ],
       },
       {
@@ -49,7 +49,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       title: "Pharmacies and eScripts in Brisbane",
       paragraphs: [
         "Brisbane and South-East Queensland have an extensive pharmacy network, with major chains and independents throughout the metropolitan area and suburbs. All major pharmacy chains - Chemist Warehouse, Priceline, TerryWhite Chemmart, Amcal - accept eScripts across their Queensland locations.",
-        "Many Brisbane pharmacies offer extended hours, particularly those in shopping centres like Westfield Chermside, Garden City, and Indooroopilly. Several pharmacies in the CBD and Fortitude Valley are open late. eScripts from InstantMed can be filled at any pharmacy in Queensland - you receive a QR code via SMS that the pharmacist scans, and the medication is dispensed as normal.",
+        "Many Brisbane pharmacies offer extended hours, particularly those in shopping centres like Westfield Chermside, Garden City, and Indooroopilly. Several pharmacies in the CBD and Fortitude Valley are open late. If a doctor approves a prescribing request, the eScript is sent by SMS as a QR code that a Queensland pharmacy can scan.",
       ],
     },
     telehealthRegulations: {
@@ -57,7 +57,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Queensland Health has been a strong advocate for telehealth, driven partly by the state's vast geography and dispersed population. The Queensland Government's digital health strategy explicitly includes telehealth as a primary care modality, recognising its ability to improve access for both metropolitan and regional residents.",
         "All telehealth providers in Queensland must comply with the same AHPRA registration requirements as in-person practitioners. The Medical Board of Australia's guidelines on telehealth apply nationally and require that doctors maintain the same standard of care regardless of consultation modality.",
-        "Prescribing via telehealth in Queensland follows national TGA regulations. PBS-listed medications can be prescribed electronically, with the eScript system fully operational across all Queensland pharmacies. Certain controlled substances (Schedule 8) require Queensland Health authority and typically an in-person assessment - these are not available via InstantMed.",
+        "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
       ],
     },
     additionalFaqs: [
@@ -89,7 +89,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "The Gold Coast's economy runs on tourism, hospitality, construction, and healthcare - industries with irregular hours and physical demands. Hospitality staff at Surfers Paradise or Broadbeach who call in sick at 6am can't easily get to a GP at 9am when they're supposed to be sleeping between shifts. Telehealth removes the scheduling barrier.",
           "Gold Coast students - at Bond University, Griffith University Gold Coast campus, and Southern Cross University - regularly need medical certificates for academic support. During exam periods, same-day GP appointments can be near-impossible. Telehealth certificates are handled according to each institution's policy.",
-          "Visitors and temporary residents present a unique challenge. If you're from Sydney and fall ill while visiting the Gold Coast, you may not have a local GP. Telehealth provides access to an Australian doctor regardless of where your regular GP is based. Certificates issued are valid for your employer back home.",
+          "Visitors and temporary residents present a unique challenge. If you're from Sydney and fall ill while visiting the Gold Coast, you may not have a local GP. InstantMed lets eligible adults submit a medical-certificate request regardless of where their regular GP is based. If a certificate is issued, the employer still applies its own evidence policy.",
         ],
       },
       {
@@ -104,20 +104,20 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     pharmacyInfo: {
       title: "Pharmacies and eScripts on the Gold Coast",
       paragraphs: [
-        "The Gold Coast has over 200 community pharmacies from Coolangatta to Coomera, with strong coverage in shopping centres and along the highway corridor. All major chains - Chemist Warehouse, Priceline, TerryWhite Chemmart - accept eScripts. When an InstantMed doctor issues a prescription, you receive an SMS with a QR code that any pharmacy can scan immediately.",
-        "Extended-hours pharmacies operate at Pacific Fair, Robina Town Centre, Australia Fair Southport, and several standalone locations in Surfers Paradise. Some Chemist Warehouse locations are open until 9pm or later. An eScript issued by InstantMed in the evening can often be filled the same night - particularly useful for visitors staying in hotel accommodation.",
+        "The Gold Coast has over 200 community pharmacies from Coolangatta to Coomera, with strong coverage in shopping centres and along the highway corridor. All major chains - Chemist Warehouse, Priceline, and TerryWhite Chemmart - accept eScripts. If a doctor approves a prescribing request, you receive the eScript by SMS as a QR code that a pharmacy can scan.",
+        "Extended-hours pharmacies operate at Pacific Fair, Robina Town Centre, Australia Fair Southport, and several standalone locations in Surfers Paradise. Some Chemist Warehouse locations are open until 9pm or later. A doctor-approved eScript received in the evening may be fillable the same night, subject to pharmacy opening hours and stock.",
       ],
     },
     telehealthRegulations: {
       title: "Telehealth Regulations in Queensland",
       paragraphs: [
         "Queensland follows national AHPRA and Medical Board of Australia guidelines for telehealth. Queensland Health has been a strong advocate for telehealth expansion, recognising its importance for the state's vast geography - from the Gold Coast to Cape York. The QLD Government's digital health strategy explicitly supports telehealth as a mainstream healthcare delivery method.",
-        "Prescribing via telehealth in Queensland follows the TGA national framework. Most medications can be prescribed remotely, with eScripts accepted at all Queensland pharmacies. Schedule 8 controlled substances require Queensland Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
         "Medical certificates issued via telehealth in Queensland are reviewed under the same national practitioner framework as other doctor-issued certificates. Employers and institutions still assess routine absence evidence under their own policies.",
       ],
     },
     additionalFaqs: [
-      { q: "Can tourists use InstantMed on the Gold Coast?", a: "Yes. If you're 18+, in Australia, and can provide your details, you can use InstantMed. Certificates are valid for any Australian employer. International visitors should check their home country's requirements for medical documentation." },
+      { q: "Can tourists use InstantMed on the Gold Coast?", a: "If you're 18+, in Australia, and can provide the required details, you can submit a medical-certificate request. If a certificate is issued, the employer or institution applies its own evidence policy. International visitors should also check their home country's documentation requirements." },
       { q: "Are certificates suitable for Gold Coast theme park employer documentation?", a: "Yes. All Australian employers - including theme parks, hospitality venues, and entertainment companies - must set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act." },
       { q: "Can Bond University students use InstantMed?", a: "Yes. Bond University sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
       { q: "Is InstantMed available in the Gold Coast hinterland?", a: "Yes. Telehealth works anywhere with internet access - Tamborine Mountain, Springbrook, Currumbin Valley, or anywhere in the hinterland. The service and pricing are identical." },
@@ -137,14 +137,14 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "The Sunshine Coast is one of Australia's fastest-growing regions, with population growth that has consistently outpaced healthcare infrastructure. From Caloundra to Noosa, new residents attracted by the lifestyle are discovering that finding a GP - let alone a bulk-billing one - can take days or weeks.",
           "The opening of Sunshine Coast University Hospital in Birtinya was a major step forward, but the region's primary care gap remains significant. Many suburbs developed in the 2010s and 2020s still lack local GP clinics. For residents in Aura, Palmview, or Peregian Springs, a straightforward sick note can mean a 30-minute drive to a clinic with availability.",
-          "Tourism adds seasonal pressure. During school holidays and winter months, the population swells by tens of thousands, further stretching GP availability. Telehealth provides consistent access regardless of seasonal demand fluctuations.",
+          "Tourism adds seasonal pressure. During school holidays and winter months, the population swells by tens of thousands, further stretching GP availability. InstantMed's medical-certificate requests and repeat-prescription reviews for a regular medicine you already take remain available online during those seasonal peaks.",
         ],
       },
       {
         title: "Retirees, Remote Workers, and Hospitality",
         paragraphs: [
           "The Sunshine Coast's demographic mix creates distinct healthcare access challenges. A large retiree population competes for GP appointments with a growing cohort of young families and remote workers who relocated during the pandemic. Hospitality workers in Noosa, Mooloolaba, and Maroochydore work irregular hours that rarely align with clinic availability.",
-          "Remote workers - many of whom moved from Brisbane or Sydney - are accustomed to convenient healthcare access. When they discover the Sunshine Coast's GP shortage, telehealth becomes the obvious solution for non-urgent needs.",
+          "Remote workers - many of whom moved from Brisbane or Sydney - are accustomed to convenient healthcare access. When local appointments are scarce, InstantMed offers focused medical-certificate requests and repeat-prescription reviews for a regular medicine they already take.",
         ],
       },
     ],
@@ -158,7 +158,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Queensland",
       paragraphs: [
         "Queensland follows national AHPRA standards for telehealth. The Queensland Government has been proactive in supporting telehealth, particularly for regional and growing areas where GP availability is limited. The Office of the Health Ombudsman handles complaints about telehealth services.",
-        "Queensland prescribing follows the TGA national framework. eScripts are the national standard and are accepted at all Queensland pharmacies. Schedule 8 medications require Queensland Health authority and cannot be prescribed via telehealth.",
+        "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
       ],
     },
     additionalFaqs: [
@@ -179,15 +179,15 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Healthcare Hub for North Queensland",
         paragraphs: [
           "Townsville is the healthcare hub for a region stretching from Mackay to the Torres Strait. Townsville University Hospital serves a catchment of over 700,000 people, but primary care access - particularly same-day GP appointments - remains challenging for the city's residents.",
-          "The city's economy is built on defence (Lavarack Barracks, RAAF Base Townsville), mining services, James Cook University, and the port. Each of these sectors employs shift workers and mobile professionals who struggle with standard clinic hours. Telehealth provides healthcare access that works around irregular schedules.",
+          "The city's economy is built on defence (Lavarack Barracks, RAAF Base Townsville), mining services, James Cook University, and the port. Each of these sectors employs shift workers and mobile professionals who struggle with standard clinic hours. InstantMed's medical-certificate requests and repeat-prescription reviews for a regular medicine already taken can be submitted around irregular schedules.",
           "Cyclone season (November–April) adds a North Queensland-specific challenge. When severe weather hits, getting to a clinic may be impossible. Telehealth ensures continuity of care when road access is disrupted, pharmacies are operating on reduced hours, or you're simply stuck at home waiting for the weather to pass.",
         ],
       },
       {
         title: "Defence, Mining, and University Communities",
         paragraphs: [
-          "Townsville hosts Australia's largest army base (Lavarack Barracks) and RAAF Base Townsville. Defence families make up a significant portion of the population, many relocated from interstate and without established GP relationships. Telehealth provides consistent access regardless of posting frequency.",
-          "James Cook University students - particularly those from regional and remote areas - often face long waits at the campus medical centre. For a straightforward sick note or prescription renewal, telehealth is faster and more accessible than competing for limited campus clinic slots.",
+          "Townsville hosts Australia's largest army base (Lavarack Barracks) and RAAF Base Townsville. Defence families make up a significant portion of the population, many relocated from interstate and without established GP relationships. InstantMed provides a consistent online pathway for medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
+          "James Cook University students - particularly those from regional and remote areas - often face long waits at the campus medical centre. They can submit a medical-certificate request or request a repeat-prescription review for a regular medicine they already take without competing for a campus clinic slot.",
         ],
       },
     ],
@@ -201,13 +201,13 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Queensland",
       paragraphs: [
         "Queensland follows national AHPRA standards for telehealth. The Queensland Government has recognised telehealth as particularly important for North Queensland, where distance and weather can impede access to healthcare services.",
-        "All prescribing via telehealth follows the TGA national framework. eScripts are accepted at every Queensland pharmacy. Schedule 8 medications require Queensland Health authority approval and cannot be prescribed via telehealth.",
+        "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
       ],
     },
     additionalFaqs: [
       { q: "Can JCU students use InstantMed?", a: "Yes. James Cook University sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation." },
       { q: "Does InstantMed work during cyclone season?", a: "Yes - as long as you have internet access (including mobile data), InstantMed works regardless of weather conditions. It's especially useful when travel to a clinic is unsafe." },
-      { q: "Can defence families use InstantMed?", a: "Yes. Defence families can use InstantMed for civilian healthcare needs. Certificates are issued by AHPRA-registered doctors and employer policies may vary." },
+      { q: "Can defence families use InstantMed?", a: "Yes. Defence families can submit civilian medical-certificate requests and request repeat-prescription reviews for a regular medicine already taken. Every prescribing request requires doctor review, and an eScript is sent only if approved. Employer policies for certificates may vary." },
       { q: "Does InstantMed serve Magnetic Island?", a: `Yes. InstantMed serves anywhere with internet access, including Magnetic Island. No need to catch the ferry for a medical certificate. From ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
@@ -223,7 +223,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Tourism Meets Healthcare Shortage",
         paragraphs: [
           "Cairns sits at the intersection of tropical paradise and healthcare access challenges. As the gateway to the Great Barrier Reef and the Daintree Rainforest, the city welcomes over 2 million tourists annually - many of whom need medical care during their visit. This tourist demand competes directly with local residents for limited GP appointments.",
-          "The city's permanent population of 160,000+ is served by Cairns Hospital and a network of GP clinics, but same-day availability is inconsistent. During peak tourist season (June–September), wait times for non-urgent GP appointments can stretch to a week. For locals needing a straightforward medical certificate or prescription renewal, waiting that long is unnecessary.",
+          "The city's permanent population of 160,000+ is served by Cairns Hospital and a network of GP clinics, but same-day availability is inconsistent. During peak tourist season (June–September), wait times for non-urgent GP appointments can stretch to a week. InstantMed provides an online pathway for medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
           "Beyond tourism, Cairns serves as the service hub for Far North Queensland communities from Port Douglas to Cooktown to the Atherton Tablelands. This catchment stretches healthcare resources across a vast geographic area.",
         ],
       },
@@ -231,7 +231,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Tourism Workers and Seasonal Employment",
         paragraphs: [
           "Cairns' economy runs on tourism, with hotels, dive operators, tour companies, and hospitality venues employing a large casual and seasonal workforce. These workers often lack regular GP relationships, work irregular hours, and need quick turnaround on medical certificates to avoid losing shifts.",
-          "Backpackers and working holiday visa holders add further demand. For this transient population, establishing a regular GP is impractical. Telehealth provides the flexibility that matches Cairns' unique employment landscape.",
+          "Backpackers and working holiday visa holders add further demand. For this transient population, establishing a regular GP is impractical. Eligible adults can submit an online medical-certificate request without first establishing a local GP relationship.",
         ],
       },
     ],
@@ -245,11 +245,11 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Queensland",
       paragraphs: [
         "Queensland follows national AHPRA telehealth standards. Far North Queensland has been identified by the Queensland Government as a priority area for telehealth expansion, recognising the region's unique combination of geographic isolation and healthcare workforce shortages.",
-        "Prescribing follows the TGA national framework. eScripts work at all Queensland pharmacies. Schedule 8 medications require Queensland Health authority and cannot be prescribed via telehealth.",
+        "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
       ],
     },
     additionalFaqs: [
-      { q: "Can tourists visiting Cairns use InstantMed?", a: "Yes. Any Australian resident (18+) can use InstantMed. International tourists are not currently eligible as our doctors prescribe under Australian regulations." },
+      { q: "Can tourists visiting Cairns use InstantMed?", a: "Eligible Australian residents aged 18+ can submit medical-certificate requests. Prescribing pathways also require the specified Australian identity details, and every prescribing request requires doctor review. International tourists are not currently eligible." },
       { q: "Does InstantMed serve Port Douglas?", a: "Yes. We serve all of Far North Queensland - Port Douglas, Palm Cove, the Atherton Tablelands, and Cairns Northern Beaches." },
       { q: "Can hospitality workers get same-day certificates?", a: `Yes. Doctor review follows when available - the service operates 24/7, which suits hospitality schedules. From ${PRICING_DISPLAY.MED_CERT}.` },
     ],
@@ -267,14 +267,14 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Toowoomba sits atop the Great Dividing Range and serves as the healthcare hub for the entire Darling Downs region - from Dalby and Chinchilla to the west, Warwick to the south, and Gatton to the east. While the city itself has reasonable GP coverage, demand from the broader region stretches local capacity. Same-day appointments are possible but increasingly difficult to secure, particularly during winter flu season.",
           "The region's agricultural workforce - grain, cotton, and cattle - often works remotely on properties where driving to town for a GP appointment means a round trip of several hours. For workers on farms and feedlots across the Downs, telehealth isn't a convenience; it's the only practical way to get a medical certificate without losing a full day of work.",
-          "Toowoomba's growth as a regional hub has attracted new residents from Brisbane and interstate, but GP supply hasn't grown proportionally. Several practices have waiting lists for new patients. For straightforward healthcare needs, telehealth provides immediate access without the wait.",
+          "Toowoomba's growth as a regional hub has attracted new residents from Brisbane and interstate, but GP supply hasn't grown proportionally. Several practices have waiting lists for new patients. InstantMed offers focused medical-certificate requests and repeat-prescription reviews for a regular medicine already taken without requiring a local clinic booking.",
         ],
       },
       {
         title: "Students and Workers in Toowoomba",
         paragraphs: [
           "The University of Southern Queensland's Toowoomba campus is a major regional university, and TAFE Queensland's Toowoomba campus serves vocational students from across the Downs. Both assess telehealth-issued medical certificates under their own policies for academic support applications.",
-          "Toowoomba's economy relies on agriculture, education, healthcare (with Toowoomba Hospital a major employer), and a growing logistics sector. Many workers in these industries have irregular hours or work in locations distant from clinics. InstantMed provides flexible access to medical certificates and prescriptions on their schedule.",
+          "Toowoomba's economy relies on agriculture, education, healthcare (with Toowoomba Hospital a major employer), and a growing logistics sector. Many workers in these industries have irregular hours or work in locations distant from clinics. InstantMed lets them submit medical-certificate requests and repeat-prescription review requests for a regular medicine already taken around those schedules.",
         ],
       },
     ],
@@ -310,7 +310,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Ipswich is one of Australia's fastest growing local government areas. The city and its surrounding suburbs - Springfield, Ripley Valley, Redbank Plains, Goodna - have seen explosive population growth driven by affordable housing compared to Brisbane. New developments are appearing faster than medical centres, leaving large populations underserviced.",
           "Springfield in particular has grown from farmland to a planned city of 45,000+ in barely a decade, with a target population of 86,000. Healthcare infrastructure is still catching up. While Springfield has some medical centres, demand far outstrips supply. Many residents drive 20–30 minutes to find a GP with same-day availability.",
-          "Ipswich Hospital and the new Springfield Central hospital development will improve acute care access, but for routine GP needs - medical certificates, repeat prescriptions, straightforward consultations - the bottleneck remains. Telehealth fills this gap immediately.",
+          "Ipswich Hospital and the new Springfield Central hospital development will improve acute care access, but the bottleneck remains for focused medical-certificate requests and repeat-prescription reviews for a regular medicine already taken. InstantMed provides those request pathways online.",
         ],
       },
       {
@@ -336,7 +336,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover Springfield and Ripley Valley?", a: "Yes. We cover all of the Ipswich region - Springfield, Ripley Valley, Redbank Plains, Goodna, and everywhere else. It's an online service, so your location doesn't matter." },
-      { q: "Can RAAF Amberley personnel use InstantMed?", a: "Yes, for personal medical needs (not Defence medical assessments). Our certificates are valid for civilian employment purposes and personal record-keeping." },
+      { q: "Can RAAF Amberley personnel use InstantMed?", a: "Yes, for personal medical-certificate requests and repeat-prescription reviews for a regular medicine already taken, but not Defence medical assessments. Employers apply their own evidence policies to certificates." },
       { q: "How fast can I get a certificate in Ipswich?", a: `Doctor review follows when available. From ${PRICING_DISPLAY.MED_CERT} - typically faster and more affordable than competing for a GP appointment in a growth corridor.` },
     ],
   },
@@ -352,8 +352,8 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Healthcare for the Bowen Basin Gateway",
         paragraphs: [
           "Mackay is the largest city between Rockhampton and Townsville and the main service hub for the Bowen Basin coalfields - the engine room of Australia's metallurgical coal industry. This gives the city a healthcare demand profile unlike almost anywhere else in the country: a stable local population of roughly 85,000 plus a constantly rotating cohort of FIFO workers, their families, and visiting contractors. GP availability struggles to keep up with both groups, and same-day non-urgent appointments are genuinely hard to secure in the Mackay region.",
-          "Mackay Base Hospital provides the region's acute services, with a catchment that stretches from the Whitsundays down to Sarina and inland to the mining towns of Moranbah, Dysart, and Middlemount. For straightforward primary care needs, though - a two-day sick note, a repeat of a stable chronic medication, a UTI prescription - the hospital is not the right place. The Modified Monash Model (MMM) classifies central and north Queensland regional centres as workforce priority areas under the RACGP's rural generalist framework, reflecting how persistently under-resourced primary care is outside the capital cities.",
-          "Bulk-billing has declined across the city in line with the national trend. Many Mackay GPs now charge gap fees of $30–$60 per consultation, and some have closed their books to new patients entirely. For FIFO workers who rotate through Mackay only during their days off, establishing a regular GP relationship is often impractical - telehealth fills the gap with a consistent care model that travels with the patient.",
+          "Mackay Base Hospital provides the region's acute services, with a catchment that stretches from the Whitsundays down to Sarina and inland to the mining towns of Moranbah, Dysart, and Middlemount. For non-urgent medical-certificate requests, repeat-prescription reviews for a regular medicine already taken, and the named women's-health UTI assessment pathway where clinically suitable, InstantMed offers focused online requests. The Modified Monash Model (MMM) classifies central and north Queensland regional centres as workforce priority areas under the RACGP's rural generalist framework, reflecting how persistently under-resourced primary care is outside the capital cities.",
+          "Bulk-billing has declined across the city in line with the national trend. Many Mackay GPs now charge gap fees of $30–$60 per consultation, and some have closed their books to new patients entirely. For FIFO workers who rotate through Mackay only during their days off, InstantMed's focused online request pathways remain available wherever they are in Australia.",
         ],
       },
       {
@@ -375,17 +375,17 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
-          "Telehealth is not a substitute for your regular GP for complex care. Chronic disease management, immunisations, screening, hands-on physical examinations, injections, and dressings all still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a flu that any doctor could clinically assess in five minutes, the renewal of a stable blood pressure tablet you have taken for years, the simple script for a recognised, recurrent issue.",
-          "For Mackay's FIFO workforce in particular, the telehealth model is often more clinically consistent than what they would otherwise piece together. A worker who rotates between Mackay, the mine site, and possibly a different town for rest periods can struggle to maintain a single GP relationship. Telehealth gives them a consistent care pathway for routine needs that does not depend on being in any particular town on any particular day.",
+          "Telehealth is not a substitute for your regular GP for complex care. Chronic disease management, immunisations, screening, hands-on physical examinations, injections, and dressings all still require face-to-face care. InstantMed's relevant pathways here are medical-certificate requests, repeat-prescription reviews for a regular medicine already taken, and the named women's-health UTI assessment pathway where clinically suitable.",
+          "For Mackay's FIFO workforce in particular, an online medical-certificate request or repeat-prescription review does not depend on being in a particular town. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
           "We will always refer you to in-person care when the clinical situation needs it. If your symptoms suggest a physical examination is required - suspected chest infection, possible fracture, suspicious skin lesion - the doctor will tell you and you will not be charged for the telehealth consultation. The same filter applies in Mackay as everywhere else.",
-          "InstantMed's flat-fee model also removes the unpredictability of regional GP economics. You know what the certificate or script costs before you start the intake - there are no gap fees and no surprise add-ons at the end of the consultation. For Mackay families budgeting carefully and FIFO workers who need predictable healthcare costs, that matters as much as the time saved. Requests can be submitted and reviewed 24/7, and the documentation arrives via email or SMS for forwarding directly to your supervisor or HR contact.",
+          "InstantMed's flat-fee model also removes the unpredictability of regional GP economics. You see the cost of a medical-certificate request or repeat-prescription review before starting the intake. For Mackay families budgeting carefully and FIFO workers who need predictable costs, that matters as much as the time saved. Requests can be submitted 24/7; a certificate is delivered if issued, and an eScript is sent only if a doctor approves the prescribing request.",
         ],
       },
     ],
     pharmacyInfo: {
       title: "Pharmacies and eScripts in Mackay",
       paragraphs: [
-        "Mackay has solid pharmacy coverage across the CBD, Caneland Central, Mt Pleasant, and the Northern Beaches. Chemist Warehouse, Priceline, TerryWhite Chemmart, and several independents all accept eScripts. Pharmacies in surrounding towns - Sarina, Proserpine, Airlie Beach, and inland communities like Moranbah and Dysart - also accept the QR code from your InstantMed prescription.",
+        "Mackay has solid pharmacy coverage across the CBD, Caneland Central, Mt Pleasant, and the Northern Beaches. Chemist Warehouse, Priceline, TerryWhite Chemmart, and several independents all accept eScripts. Pharmacies in surrounding towns - Sarina, Proserpine, Airlie Beach, and inland communities like Moranbah and Dysart - can also scan a doctor-approved eScript QR code.",
         "Extended-hours pharmacy availability in Mackay is more limited than in capital cities, but Caneland Central and a handful of CBD locations stay open into the early evening. Prescriptions issued via telehealth attract the same PBS co-payment as any other script - there is no pricing difference at the counter.",
       ],
     },
@@ -393,13 +393,13 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Queensland",
       paragraphs: [
         "Queensland follows national AHPRA and Medical Board of Australia standards for telehealth practice. Queensland Health has been one of the strongest state-level advocates for telehealth expansion, specifically because the state's geography makes traditional face-to-face primary care impractical for a large share of its population. Central and North Queensland are explicitly identified in Queensland Health's rural and remote strategy as priority regions for digital healthcare delivery.",
-        "Prescribing follows the national TGA framework. Most PBS-listed medications can be prescribed via telehealth and dispensed at any Queensland pharmacy using the eScript system. Schedule 8 controlled substances (strong opioids, stimulants) require Queensland Health authority and typically in-person assessment - these are not prescribed by InstantMed under any circumstances.",
+        "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
         "Medical certificates issued via telehealth in Queensland are reviewed under the same national practitioner framework as other doctor-issued certificates. Employer policies still apply, and high-risk site medicals, return-to-work clearances, and compensation matters need the relevant in-person or employer-directed pathway.",
       ],
     },
     additionalFaqs: [
       { q: "Do Bowen Basin mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies set their own documentation rules. Our certificates include the AHPRA number, consultation date, and recommended absence period for routine sick-leave review; site medicals and return-to-work clearances need the employer's own pathway." },
-      { q: "Can I use InstantMed from a mine camp in Moranbah or Dysart?", a: "Yes, as long as you have internet or mobile data. Many camps have WiFi, and those that don't usually have mobile coverage. You can start and finish the intake from site, and receive your certificate or eScript while still on your swing." },
+      { q: "Can I use InstantMed from a mine camp in Moranbah or Dysart?", a: "Yes, as long as you have internet or mobile data. Many camps have WiFi, and those that don't usually have mobile coverage. You can submit a medical-certificate request or a repeat-prescription review request from site. A certificate is delivered if issued, and an eScript is sent only if a doctor approves the prescribing request." },
       { q: "Does InstantMed work during cyclone season in Mackay?", a: "Yes. Telehealth is actually more useful during severe weather - when clinics close, roads flood, or you simply cannot safely drive into town. As long as the mobile network is operational, InstantMed works." },
       { q: "Is InstantMed available in the Whitsundays?", a: `Yes. Airlie Beach, Proserpine, Cannonvale, Bowen - anywhere in the Whitsundays with internet access. Pricing is identical regardless of location. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
@@ -416,8 +416,8 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Healthcare for the Capricorn Coast and Central Queensland",
         paragraphs: [
           "Rockhampton is the main service city for Central Queensland - a catchment that runs from Yeppoon and Emu Park on the Capricorn Coast inland through Gracemere, Mount Morgan, Biloela, and out to Emerald and the Central Highlands. With roughly 80,000 residents of its own and a broader catchment exceeding 200,000, the city's healthcare infrastructure - and particularly its primary care workforce - is chronically stretched. Finding a same-day GP appointment in Rockhampton is difficult for locals, and often impossible for visitors from surrounding communities who drive in for the day.",
-          "Rockhampton Hospital anchors the region's acute services, but its emergency department regularly handles presentations that a GP could manage in minutes - including people who need a simple medical certificate because their regular clinic could not see them for a week. This is a well-documented national pattern: when primary care access is constrained, ED becomes the fallback. Telehealth offers the alternative pathway for the straightforward, low-acuity needs that should never have landed in ED in the first place.",
-          "The Modified Monash Model (MMM) classifies inland Central Queensland as an area with genuine workforce shortage under the RACGP's rural generalist framework. Practically, that means fewer GPs per capita than metro areas, longer waits, and less choice. Telehealth does not replace the need for ongoing GP relationships for complex care - but for routine certificates, repeat scripts, and simple prescriptions, it is often the faster and more accessible option.",
+          "Rockhampton Hospital anchors the region's acute services, but its emergency department regularly handles presentations that a GP could manage in minutes - including people who need a simple medical certificate because their regular clinic could not see them for a week. This is a well-documented national pattern: when primary care access is constrained, ED becomes the fallback. InstantMed offers a focused online pathway for medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
+          "The Modified Monash Model (MMM) classifies inland Central Queensland as an area with genuine workforce shortage under the RACGP's rural generalist framework. Practically, that means fewer GPs per capita than metro areas, longer waits, and less choice. InstantMed does not replace ongoing GP relationships for complex care; its relevant pathways here are medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
         ],
       },
       {
@@ -431,16 +431,16 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Distance, Flooding, and Central Queensland Realities",
         paragraphs: [
-          "The Fitzroy River floods. It's a regular feature of Central Queensland life, and when it does, travel in and out of Rockhampton can be disrupted for days. The Bruce Highway closures during the wet season affect everyone from Yeppoon to Mount Morgan. During these disruptions, getting to a GP is often impossible - but people still get sick, still need medical certificates, still need repeat scripts. Telehealth continues to work as long as the mobile network holds up, which it usually does.",
+          "The Fitzroy River floods. It's a regular feature of Central Queensland life, and when it does, travel in and out of Rockhampton can be disrupted for days. The Bruce Highway closures during the wet season affect everyone from Yeppoon to Mount Morgan. During these disruptions, people can still submit medical-certificate requests and request a repeat-prescription review for a regular medicine already taken while the mobile network is available.",
           "For residents of the Capricorn Coast (Yeppoon, Emu Park, Keppel Sands), the Central Highlands (Emerald, Blackwater, Clermont), and smaller CQ communities, a GP appointment often involves a round trip of 60–120 minutes. For a 5-minute clinical assessment and a certificate, the travel alone is a disproportionate cost. Telehealth removes the travel entirely - the same clinical assessment, no drive, no waiting room.",
-          "The Capricorn Coast in particular has a substantial older population and a growing remote-work cohort who left larger cities for lifestyle reasons. Both groups are heavy telehealth users - older residents for repeat scripts on stable chronic medications, and remote workers who are accustomed to convenient metropolitan healthcare and were surprised by the regional reality. Telehealth bridges the gap for both demographics.",
+          "The Capricorn Coast in particular has a substantial older population and a growing remote-work cohort who left larger cities for lifestyle reasons. For eligible adults, InstantMed provides medical-certificate requests and repeat-prescription reviews for a regular medicine already taken without requiring travel into Rockhampton.",
         ],
       },
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
-          "Telehealth is not a replacement for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and any condition that needs in-person assessment still require a face-to-face consultation. What telehealth replaces is the unnecessary trip - the sick note for a standard flu, the repeat script for a stable medication, the routine prescription for a recurrent issue you already understand.",
-          "Central Queensland's distances make this distinction particularly valuable. A round trip of two or three hours for a five-minute clinical assessment is wasted time and fuel. Telehealth lets you reserve the in-person visits for the things that genuinely need them, and handle everything else in 20–30 minutes from home. For working families in the Rockhampton region, that often means the difference between getting healthcare done and putting it off another week.",
+          "Telehealth is not a replacement for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and any condition that needs in-person assessment still require face-to-face care. InstantMed's relevant pathways here are medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
+          "Central Queensland's distances make this distinction particularly valuable. InstantMed lets eligible adults submit those focused requests from home while reserving in-person visits for care that requires them. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
           "If your situation is not appropriate for telehealth, the doctor will refer you to in-person care and you will not be charged for the consultation. We never issue a certificate when a physical examination is genuinely required.",
         ],
       },
@@ -448,23 +448,23 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Practical Cost and Time Comparison for Central Queensland",
         paragraphs: [
           "GP economics in Rockhampton and Central Queensland have moved in line with the national trend. Bulk-billing has declined, gap fees of $30–$60 are common, and waiting times for non-urgent appointments stretch to a week. For households budgeting carefully - particularly those on agricultural or shift-based incomes - the combined cost of a routine GP visit (gap fee, fuel from outlying communities, lost work time) frequently exceeds what telehealth charges flat.",
-          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families managing tight budgets in a region where wages have not kept pace with cost of living, that predictability matters as much as the time saved.",
-          "Requests can be submitted and reviewed 24/7. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The process stays online from intake to delivery. For Rockhampton and broader Central Queensland residents, that is significantly faster than securing a same-day clinic appointment.",
+          "InstantMed's flat-fee model removes the unpredictability. You see the cost of a medical-certificate request or repeat-prescription review before starting the intake. For families managing tight budgets in a region where wages have not kept pace with cost of living, that predictability matters as much as the time saved.",
+          "Requests can be submitted 24/7. A certificate is delivered if issued; after doctor review, an eScript is sent only if approved. For Rockhampton and broader Central Queensland residents, the online process avoids travel to submit those focused requests.",
         ],
       },
     ],
     pharmacyInfo: {
       title: "Pharmacies and eScripts in Rockhampton",
       paragraphs: [
-        "Rockhampton has pharmacy coverage across the CBD, Stockland Rockhampton, Allenstown, and North Rockhampton. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. In surrounding towns - Yeppoon, Emu Park, Mount Morgan, Biloela, Emerald - local pharmacies accept the QR code from an InstantMed prescription the same way they would any other eScript.",
-        "Extended-hours pharmacies are more limited outside the capital cities, but Stockland Rockhampton and several CBD locations stay open into the evening. After-hours prescription needs should still be prioritised over next-day care, and InstantMed's evening availability helps bridge that gap for non-urgent medications.",
+        "Rockhampton has pharmacy coverage across the CBD, Stockland Rockhampton, Allenstown, and North Rockhampton. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. In surrounding towns - Yeppoon, Emu Park, Mount Morgan, Biloela, and Emerald - local pharmacies can scan a doctor-approved eScript QR code.",
+        "Extended-hours pharmacies are more limited outside the capital cities, but Stockland Rockhampton and several CBD locations stay open into the evening. If a prescribing request is approved, pharmacy opening hours and stock determine when the eScript can be filled.",
       ],
     },
     telehealthRegulations: {
       title: "Telehealth Regulation in Queensland",
       paragraphs: [
         "Queensland's telehealth framework follows the same national AHPRA and Medical Board of Australia standards that apply everywhere in Australia. Queensland Health has been particularly active in promoting telehealth in Central Queensland, where distance and workforce shortages make traditional face-to-face primary care impractical for a substantial share of the population.",
-        "Prescribing via telehealth in Queensland follows TGA national rules. PBS-listed medications can be prescribed and dispensed via eScript at any Queensland pharmacy. Schedule 8 controlled substances - strong opioids, stimulants - require Queensland Health authority and typically in-person assessment, and are not prescribed through InstantMed.",
+        "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
         "Certificates issued via telehealth in Queensland are reviewed under the same national practitioner framework as other doctor-issued certificates. Employers and institutions set their own policies, and routine sick-leave certificates are different from site medicals, return-to-work clearances, or compensation documents.",
       ],
     },
@@ -472,7 +472,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       { q: "Does InstantMed cover the Capricorn Coast and Central Highlands?", a: "Yes. Yeppoon, Emu Park, Keppel Sands, Gracemere, Mount Morgan, Biloela, Emerald, Blackwater - anywhere in Central Queensland with internet access. Same service, same pricing." },
       { q: "Can CQU students use InstantMed for academic support?", a: "Yes. Central Queensland University, like all Australian universities, sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation." },
       { q: "Can I use InstantMed during Rockhampton flooding?", a: "Yes. Telehealth works as long as you have mobile or internet access. It's one of the few healthcare pathways that keeps functioning when roads are cut and clinics are inaccessible." },
-      { q: "Is InstantMed cheaper than a Rockhampton GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no gap fees. With many Rockhampton GPs now charging $30–$60 out of pocket, InstantMed is often more affordable for straightforward certificates and scripts.` },
+      { q: "Is InstantMed cheaper than a Rockhampton GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no gap fees. With many Rockhampton GPs now charging $30–$60 out of pocket, InstantMed is often more affordable for medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.` },
     ],
   },
   bundaberg: {
@@ -488,7 +488,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Bundaberg is the main service city for the Wide Bay–Burnett region of Queensland - a catchment that includes Childers, Gin Gin, Gayndah, Mundubbera, and the southern Burnett communities, plus the coastal strip out to Bargara, Moore Park, and the turtle-nesting beaches of Mon Repos. With a population of roughly 72,000 in the city and more than 160,000 across the broader Wide Bay region, demand on local GP services is persistent and growing. Same-day appointments are hard to come by, and several practices have restricted new patient intakes.",
           "Bundaberg Hospital, currently being replaced by the new Bundaberg Hospital build on the Kensington site, provides acute care for the region. For primary care, though, the bottleneck is GP workforce. The Modified Monash Model (MMM) classifies Bundaberg and most of the Wide Bay–Burnett as a regional workforce priority area under the RACGP's rural generalist framework - meaning it is persistently short of GPs relative to its population.",
-          "For residents of the smaller Burnett communities - Gin Gin, Gayndah, Mundubbera, Monto - Bundaberg is often the nearest substantial GP hub. A round trip is measured in hours and fuel costs. For straightforward medical certificates, repeat scripts, and simple prescriptions, telehealth removes that journey entirely without sacrificing any of the clinical assessment.",
+          "For residents of the smaller Burnett communities - Gin Gin, Gayndah, Mundubbera, Monto - Bundaberg is often the nearest substantial GP hub. A round trip is measured in hours and fuel costs. InstantMed lets eligible adults submit medical-certificate requests and repeat-prescription reviews for a regular medicine already taken without making that journey.",
         ],
       },
       {
@@ -503,40 +503,40 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Tourism, the Southern Great Barrier Reef, and Seasonal Pressure",
         paragraphs: [
           "The Bundaberg region is a gateway to the southern Great Barrier Reef - Lady Elliot Island, Lady Musgrave Island, and the reefs accessible from the Town of 1770 and Agnes Water, just north of the Bundaberg LGA boundary. Marine tourism operators, dive businesses, and accommodation providers employ a seasonal workforce that peaks with turtle-nesting season (November to March) and school holiday periods. Like any seasonal tourism economy, the peaks strain local primary care.",
-          "For Bundaberg residents and visitors alike, telehealth provides a way around the clinic queue during peak times. The service is identical whether you are a permanent resident in East Bundaberg or a seasonal worker staying in Bargara - same doctors, same turnaround, same flat pricing.",
+          "For Bundaberg residents and eligible visitors alike, an online medical-certificate request avoids the clinic queue during peak times. The medical-certificate request pathway and pricing are the same whether you are a permanent resident in East Bundaberg or a seasonal worker staying in Bargara.",
           "The Mon Repos turtle rookery and the broader Bargara coastal strip attract international and interstate visitors throughout the warmer months. For visiting Australian residents who fall ill while staying in Bundaberg, telehealth provides a straightforward pathway to a medical certificate that is valid for their employer back home, regardless of which state they normally live in. There is no requirement to be a local resident to use the service.",
         ],
       },
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
-          "Telehealth is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and any condition that needs in-person assessment still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already understand.",
-          "For Bundaberg's agricultural and seasonal workforce, the value is straightforward: a same-day certificate without a half-day trip into town and a multi-day wait for a clinic appointment. For the region's older residents, the value is repeat scripts on stable chronic medications without leaving the house - the eScript arrives via SMS for collection at the nearest pharmacy. For visitors, the value is access to an AHPRA-registered Australian doctor without needing a local patient relationship.",
+          "Telehealth is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and any condition that needs in-person assessment still require face-to-face care. InstantMed's relevant pathways here are medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
+          "For Bundaberg's agricultural and seasonal workforce, a medical-certificate request can be submitted without a half-day trip into town. The region's older residents can request a repeat-prescription review for a regular medicine they already take; every prescribing request requires doctor review, and an eScript is sent only if approved.",
           "We never issue a certificate when a physical examination is genuinely required. If your situation needs in-person care, the doctor refers you to it and you are not charged for the telehealth consultation. The clinical filter is identical regardless of whether you are in Bundaberg, Childers, or anywhere else.",
         ],
       },
       {
         title: "Practical Cost and Time Comparison for the Wide Bay",
         paragraphs: [
-          "GP economics in Bundaberg and the broader Wide Bay have shifted in recent years. Bulk-billing has declined, gap fees have grown, and waiting times have lengthened. For households across the region - particularly those on agricultural incomes that fluctuate seasonally - the combined cost of a routine GP visit (gap fee, fuel from outlying towns, lost work time, the wait) frequently exceeds what telehealth charges flat. For straightforward needs, the arithmetic favours telehealth.",
-          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families budgeting carefully, that predictability matters as much as the time saved.",
-          "Requests can be submitted and reviewed 24/7. The eScript or PDF arrives via email or SMS, and you can forward it to your employer or labour hire provider directly. The process stays online from intake to delivery. For Bundaberg and Wide Bay residents, that is significantly faster than securing a same-day clinic appointment.",
+          "GP economics in Bundaberg and the broader Wide Bay have shifted in recent years. Bulk-billing has declined, gap fees have grown, and waiting times have lengthened. For households across the region - particularly those on agricultural incomes that fluctuate seasonally - the combined cost of a routine GP visit can include a gap fee, fuel from outlying towns, lost work time, and the wait. InstantMed offers flat pricing for its focused medical-certificate and repeat-prescription review pathways.",
+          "You see the cost of a medical-certificate request or repeat-prescription review before starting the intake. For families budgeting carefully, that predictability matters as much as the time saved.",
+          "Requests can be submitted 24/7. A certificate is delivered if issued; after doctor review, an eScript is sent only if approved. For Bundaberg and Wide Bay residents, the online process avoids travel to submit those focused requests.",
         ],
       },
     ],
     pharmacyInfo: {
       title: "Pharmacies and eScripts in Bundaberg",
       paragraphs: [
-        "Bundaberg has pharmacy coverage across the CBD, Hinkler Central, Stockland Bundaberg, Sugarland Shoppingtown, and the Bargara coastal strip. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Surrounding towns - Childers, Gin Gin, Gayndah, Mundubbera, Monto - have local pharmacies that accept the QR code from an InstantMed prescription.",
+        "Bundaberg has pharmacy coverage across the CBD, Hinkler Central, Stockland Bundaberg, Sugarland Shoppingtown, and the Bargara coastal strip. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Surrounding towns - Childers, Gin Gin, Gayndah, Mundubbera, and Monto - have local pharmacies that can scan a doctor-approved eScript QR code.",
         "Extended-hours options exist at Hinkler Central and Stockland Bundaberg. PBS co-payments on telehealth-issued scripts are identical to face-to-face prescriptions - there is no pricing difference at the counter.",
-        "eScript adoption across the Wide Bay has reached near-universal coverage. Every community pharmacy in Bundaberg and the surrounding region now handles the QR-code workflow as a matter of routine, and there is no need to phone ahead or make any special arrangement. For visitors to the region staying in holiday accommodation in Bargara, Moore Park, or further afield, this means a prescription issued by an InstantMed doctor can be filled at the nearest pharmacy in minutes.",
+        "eScript adoption across the Wide Bay has reached near-universal coverage. Community pharmacies in Bundaberg and the surrounding region handle the QR-code workflow as a matter of routine. If a doctor approves a prescribing request, visitors staying in Bargara, Moore Park, or further afield can present the eScript at a participating pharmacy, subject to opening hours and stock.",
       ],
     },
     telehealthRegulations: {
       title: "Telehealth Regulation in Queensland",
       paragraphs: [
         "Queensland follows the national AHPRA and Medical Board of Australia framework for telehealth. Queensland Health has been a strong advocate for telehealth expansion, specifically because the state's vast geography makes face-to-face primary care impractical for a substantial share of its population. The Wide Bay–Burnett region is explicitly recognised in Queensland Health's regional strategy as an area benefiting from digital healthcare delivery.",
-        "Prescribing via telehealth in Queensland follows the national TGA framework. Most PBS-listed medications can be prescribed and dispensed via eScript at any Queensland pharmacy. Schedule 8 controlled substances (strong opioids, stimulants) require Queensland Health authority and typically in-person assessment - InstantMed does not prescribe these.",
+        "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
         "Medical certificates issued via telehealth in Queensland are reviewed under the same national practitioner framework as other doctor-issued certificates. Employer policies still apply, and compensation, insurance, fitness, and clearance matters need their own assessment pathway.",
       ],
     },
@@ -560,13 +560,13 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Hervey Bay is the largest town on Queensland's Fraser Coast and the main service hub for a region that includes Maryborough, Burrum Heads, Poona, Tin Can Bay, and - for visitors - K'gari (formerly Fraser Island). The population is heavily skewed older than the national average: Hervey Bay is one of Australia's most popular retirement destinations, and the city's demographics reflect that. Older populations use GP services significantly more frequently than younger cohorts, which puts persistent pressure on local primary care.",
           "The Modified Monash Model (MMM) classifies Hervey Bay and the broader Fraser Coast as a regional workforce priority area under the RACGP's rural generalist framework. Several practices have closed their books to new patients, and same-day appointments for non-urgent needs are rarely available. Wait times of a week or more are common, and in peak tourist and school-holiday seasons the pressure intensifies as the region's population swells with whale-watching visitors and K'gari tourists.",
-          "Hervey Bay Hospital provides acute services, but the primary care bottleneck is entirely a workforce issue. For straightforward certificates, repeat scripts, and non-urgent prescriptions, telehealth offers an immediate alternative that does not depend on securing a local clinic appointment. The service is identical whether you are a long-term resident or a visitor in town for a week of whale watching.",
+          "Hervey Bay Hospital provides acute services, but the primary care bottleneck is entirely a workforce issue. InstantMed offers medical-certificate requests and repeat-prescription reviews for a regular medicine already taken without requiring a local clinic appointment. Those focused pathways are available to eligible long-term residents and visitors.",
         ],
       },
       {
         title: "Retirees, Working-Age Residents, and Seasonal Tourism",
         paragraphs: [
-          "Hervey Bay's retiree population, combined with the established working-age community in Maryborough and the Fraser Coast's service industries, creates a mixed healthcare demand profile. For retirees who are generally comfortable with technology (a growing share), telehealth is a practical alternative to sitting in a waiting room - particularly for repeat scripts of stable medications like blood pressure or cholesterol tablets, where there is no clinical reason to attend in person.",
+          "Hervey Bay's retiree population, combined with the established working-age community in Maryborough and the Fraser Coast's service industries, creates a mixed healthcare demand profile. Retirees can request a repeat-prescription review for a regular medicine they already take, although the doctor may still recommend in-person care.",
           "For working-age residents in hospitality, retail, and the marine tourism sector, the same logic applies as anywhere else in regional Australia - irregular hours, limited sick leave, and a real need for same-day certificates. The whale watching season (July to November) and K'gari tourism draw significant seasonal employment, and these workers benefit most from telehealth's flexible availability.",
           "We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If your symptoms suggest you need an in-person assessment - suspected chest infection, suspicious skin lesion, joint injury - the doctor will refer you to in-person care and you will not be charged for the telehealth consultation.",
         ],
@@ -576,31 +576,31 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Hervey Bay and Fraser Coast employers operate under the Fair Work Act 2009 or, for state government workers, the relevant Queensland industrial instruments. Both frameworks accept medical certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations. Queensland government departments, Fraser Coast Regional Council, Hervey Bay Hospital, tourism operators, and local businesses all assess telehealth certificates under their own policies.",
           "University of the Sunshine Coast's Fraser Coast campus in Hervey Bay serves regional students. USC sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation - the same rule that applies at every Australian university.",
-          "Repeat prescription needs are particularly common in the Hervey Bay demographic. Rather than wait a week for a GP appointment simply to renew a stable medication, telehealth can handle the renewal in 20–30 minutes with an eScript sent directly to your phone for collection at any local pharmacy.",
+          "Repeat-prescription needs are particularly common in the Hervey Bay demographic. InstantMed accepts review requests for a regular medicine already taken. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
         ],
       },
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
-          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
-          "For Hervey Bay's older residents in particular, the convenience of telehealth for routine repeat scripts is substantial. There is no clinical reason to attend a clinic in person to renew a long-standing blood pressure or cholesterol medication. The doctor reviews your history, confirms the renewal is appropriate, and the eScript arrives via SMS for collection at the nearest pharmacy. The whole process takes 20–30 minutes from your living room.",
+          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. InstantMed's relevant pathways here are medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
+          "Hervey Bay's older residents can submit a repeat-prescription review request online. The doctor reviews the request and may approve it, decline it, ask questions, or recommend in-person care; an eScript is sent only if approved.",
           "If your symptoms or situation are not appropriate for telehealth, the doctor refers you to in-person care and you are not charged. We never issue a certificate when a physical examination is genuinely required. The clinical filter applies identically regardless of the patient's age or location.",
         ],
       },
       {
         title: "Practical Cost and Time Comparison for the Fraser Coast",
         paragraphs: [
-          "GP economics on the Fraser Coast have shifted in recent years. Bulk-billing has declined, gap fees have grown, and waiting times have lengthened. For Hervey Bay residents - particularly those on fixed retiree incomes - predictability matters. The combined cost of a routine GP visit (gap fee, time, occasional travel) frequently exceeds what telehealth charges flat. For straightforward certificate and script needs, the arithmetic increasingly favours telehealth.",
-          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees, no surprise add-ons, and no bill shock at the end. For retirees and families budgeting on fixed or modest incomes, that predictability often matters as much as the time saved.",
-          "Requests can be submitted and reviewed 24/7. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The process stays online from intake to delivery. For Hervey Bay and Fraser Coast residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
+          "GP economics on the Fraser Coast have shifted in recent years. Bulk-billing has declined, gap fees have grown, and waiting times have lengthened. For Hervey Bay residents - particularly those on fixed retiree incomes - predictability matters. InstantMed publishes flat pricing for medical-certificate requests and repeat-prescription reviews.",
+          "You see the cost of a medical-certificate request or repeat-prescription review before starting the intake. For retirees and families budgeting on fixed or modest incomes, that predictability often matters as much as the time saved.",
+          "Requests can be submitted 24/7. A certificate is delivered if issued; after doctor review, an eScript is sent only if approved. For Hervey Bay and Fraser Coast residents, the online process avoids travel to submit those focused requests.",
         ],
       },
     ],
     pharmacyInfo: {
       title: "Pharmacies and eScripts in Hervey Bay",
       paragraphs: [
-        "Hervey Bay has good pharmacy coverage across Stockland Hervey Bay, Pialba, Urangan, and the Esplanade. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Maryborough, Burrum Heads, and Tin Can Bay pharmacies also accept the QR code from an InstantMed prescription.",
-        "For repeat scripts on common medications - blood pressure tablets, cholesterol medication, reflux management - the process is particularly straightforward: consultation via telehealth, eScript issued in minutes, collection at any participating pharmacy with the QR code shown on your phone.",
+        "Hervey Bay has good pharmacy coverage across Stockland Hervey Bay, Pialba, Urangan, and the Esplanade. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Maryborough, Burrum Heads, and Tin Can Bay pharmacies can also scan a doctor-approved eScript QR code.",
+        "For a regular medicine already taken, you can request a repeat-prescription review online. Every prescribing request requires doctor review, and an eScript is sent only if approved for presentation at a participating pharmacy.",
         "eScript adoption across the Fraser Coast is now universal. Every community pharmacy in Hervey Bay and the surrounding region handles the QR-code workflow as a matter of routine, with no need to phone ahead or make any special arrangement. For older residents who travel between Hervey Bay and family elsewhere in the country, the eScript also works seamlessly at any Australian pharmacy outside the region - the QR code is portable and not tied to a specific location.",
       ],
     },
@@ -608,12 +608,12 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Queensland",
       paragraphs: [
         "Queensland follows the national AHPRA and Medical Board of Australia framework for telehealth. Queensland Health has been a strong advocate for telehealth expansion, and the Wide Bay region - including the Fraser Coast - is identified in Queensland Health's regional strategy as benefiting significantly from digital healthcare delivery.",
-        "Prescribing via telehealth in Queensland follows the national TGA framework. Most PBS-listed medications can be prescribed and dispensed via eScript at any Queensland pharmacy. Schedule 8 controlled substances (strong opioids, stimulants) require Queensland Health authority and in-person assessment - InstantMed does not prescribe these.",
+        "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
         "The Queensland Office of the Health Ombudsman handles complaints about health services in Queensland, including telehealth. InstantMed maintains a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
       ],
     },
     additionalFaqs: [
-      { q: "Can retirees in Hervey Bay use InstantMed?", a: "Yes. InstantMed is available to any Australian resident 18+. The intake is designed to be straightforward, and telehealth is particularly useful for repeat scripts of stable chronic medications - no need to attend a clinic in person just to renew a prescription you have been on for years." },
+      { q: "Can retirees in Hervey Bay use InstantMed?", a: "Eligible Australian residents aged 18+ can submit medical-certificate requests and request a repeat-prescription review for a regular medicine already taken. Every prescribing request requires doctor review, and an eScript is sent only if approved." },
       { q: "Does InstantMed cover Maryborough and K'gari?", a: "Yes. Hervey Bay, Maryborough, Burrum Heads, Tin Can Bay, and K'gari (Fraser Island) - anywhere on the Fraser Coast with internet access is covered." },
       { q: "Can whale watching season workers get certificates quickly?", a: `Yes. Requests can be submitted and reviewed 24/7. From ${PRICING_DISPLAY.MED_CERT}, regardless of whether it is peak season or off-season.` },
       { q: "Are certificates suitable for Fraser Coast Regional Council and Hervey Bay Hospital documentation?", a: "Yes. All Australian employers, including local councils and public hospitals, must set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act. The consultation method does not affect validity." },
@@ -640,7 +640,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Gladstone's industrial employers - Santos, Origin Energy, ConocoPhillips, Rio Tinto (QAL and Boyne Smelters), GPC - typically require evidence for routine absences. These are large, safety-critical operations where unplanned absences affect shift coverage and production. Site medicals, return-to-work clearances, and fitness-for-duty decisions need the employer's own pathway.",
           "Many Gladstone workers are employed through labour hire companies (Programmed, Chandler Macleod, Hays) or on contractor arrangements. These workers often face stricter documentation requirements than permanent employees - a missing certificate can mean losing future shifts. Telehealth request submission is particularly valuable for this workforce.",
-          "FIFO and DIDO (drive-in, drive-out) workers who commute to Gladstone from Rockhampton, Bundaberg, or further afield face additional challenges. If they fall ill during their swing, they may not have a local GP. Telehealth provides access to a doctor regardless of where the worker's home base is located. Routine certificates can be reviewed by employers under their own policies.",
+          "FIFO and DIDO (drive-in, drive-out) workers who commute to Gladstone from Rockhampton, Bundaberg, or further afield face additional challenges. If they fall ill during their swing, they may not have a local GP. They can submit an InstantMed medical-certificate request regardless of where their home base is located. Employers review certificates under their own policies.",
         ],
       },
       {
@@ -655,7 +655,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     pharmacyInfo: {
       title: "Pharmacies and eScripts in Gladstone",
       paragraphs: [
-        "Gladstone has pharmacy coverage across the CBD, Gladstone Valley, Kin Kora, and the Stockland Gladstone shopping centre. Chemist Warehouse, Priceline, and independent pharmacies all accept eScripts. Pharmacies in Tannum Sands, Boyne Island, Calliope, and Agnes Water also accept the QR code from an InstantMed prescription.",
+        "Gladstone has pharmacy coverage across the CBD, Gladstone Valley, Kin Kora, and the Stockland Gladstone shopping centre. Chemist Warehouse, Priceline, and independent pharmacies all accept eScripts. Pharmacies in Tannum Sands, Boyne Island, Calliope, and Agnes Water can also scan a doctor-approved eScript QR code.",
         "For shift workers finishing late, Stockland Gladstone pharmacies typically trade into the evening. Standard PBS co-payments apply to telehealth-issued eScripts - there is no pricing difference at the counter compared to a face-to-face prescription. The eScript QR code works at any Australian pharmacy if workers happen to be interstate during their R&R period.",
       ],
     },
@@ -663,7 +663,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Queensland",
       paragraphs: [
         "Queensland follows national AHPRA and Medical Board of Australia guidelines for telehealth. Queensland Health has been a strong advocate for telehealth expansion, driven by the state's geographic spread and the healthcare access challenges faced by regional and industrial communities like Gladstone.",
-        "Prescribing via telehealth in Queensland follows national TGA regulations. PBS-listed medications can be prescribed electronically, with eScripts accepted at all Queensland pharmacies. Schedule 8 controlled substances require Queensland Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
         "Medical certificates from telehealth consultations are reviewed under the same national practitioner framework as other doctor-issued certificates. Resources sector enterprise agreements, state government employment conditions, and Fair Work evidence rules still leave room for employer policy and document review.",
       ],
     },

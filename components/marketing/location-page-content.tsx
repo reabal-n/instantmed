@@ -315,8 +315,8 @@ export function LocationPageContent({
             {[
               {
                 step: "1",
-                title: "Tell us what you need",
-                desc: "Answer a few quick questions about your health concern",
+                title: "Choose a listed service",
+                desc: "Answer the service-specific questions",
               },
               {
                 step: "2",

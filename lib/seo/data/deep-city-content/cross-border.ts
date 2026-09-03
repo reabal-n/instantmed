@@ -26,7 +26,7 @@ export const crossBorderCities: Record<string, DeepCityContent> = {
         title: "Workers and Students in the Region",
         paragraphs: [
           "Charles Sturt University's Albury-Wodonga campus and TAFE NSW/GOTAFE serve the region's student population. Both assess telehealth medical certificates under their own policies for academic support applications.",
-          "The region's economy spans agriculture, manufacturing, defence (Bandiana and Bonegilla), and a significant healthcare sector (Albury Wodonga Health). Workers across these industries face the usual regional challenges with GP access. Telehealth provides a practical supplement, particularly for shift workers and those in time-sensitive situations.",
+          "The region's economy spans agriculture, manufacturing, defence (Bandiana and Bonegilla), and a significant healthcare sector (Albury Wodonga Health). Workers across these industries face the usual regional challenges with GP access. An online medical-certificate request or eligible repeat-prescription review can be practical for shift workers and those in time-sensitive situations.",
         ],
       },
     ],
@@ -44,7 +44,7 @@ export const crossBorderCities: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Does it matter which side of the border I live on?", a: "No. AHPRA registration is national, so our doctors can treat patients in both NSW and Victoria. Employer policies can vary in either state." },
+      { q: "Does it matter which side of the border I live on?", a: "No. InstantMed's listed services are available to eligible patients in both NSW and Victoria. Employer policies can vary in either state." },
       { q: "Can I fill my eScript on either side of the border?", a: "Yes. eScripts work at any Australian pharmacy - Albury, Wodonga, or anywhere else." },
       { q: "Can certificates support Albury Wodonga Health documentation?", a: "Yes. As an AHPRA-issued certificate, it includes standard workplace evidence details. Employer policies may vary in the region, including at Albury Wodonga Health and other healthcare providers." },
     ],

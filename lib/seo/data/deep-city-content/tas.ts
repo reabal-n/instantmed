@@ -52,7 +52,7 @@ export const TAS_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Tasmania",
       paragraphs: [
         "Tasmania follows national AHPRA standards for telehealth. The Tasmanian Government has been a strong advocate for telehealth, recognising its critical role in addressing the state's GP shortage and geographic challenges. Tasmania's Digital Health Strategy includes telehealth as a priority area for healthcare access improvement.",
-        "Prescribing in Tasmania follows the TGA national framework. The Tasmanian Poisons Act aligns with national scheduling for controlled substances. Most medications can be prescribed via telehealth, with eScripts accepted at all Tasmanian pharmacies. Schedule 8 medications require Tasmanian Department of Health authority.",
+        "Prescribing in Tasmania follows the TGA national framework. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its erectile dysfunction, hair loss, women's health, and weight-management assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. The Tasmanian Poisons Act aligns with national scheduling for controlled substances, and Schedule 8 medications require Tasmanian Department of Health authority. InstantMed does not prescribe Schedule 8 medications.",
         "The Health Complaints Commissioner Tasmania oversees complaints about health services including telehealth. InstantMed maintains a formal complaints process - complaints@instantmed.com.au - with a 14-day response commitment.",
       ],
     },
@@ -61,7 +61,7 @@ export const TAS_CITIES: Record<string, DeepCityContent> = {
       { q: "Is telehealth available across all of Tasmania?", a: "Yes. InstantMed works anywhere in Tasmania with internet access - Hobart, Launceston, Devonport, Burnie, the East Coast, or the West Coast. Pricing is identical statewide." },
       { q: "Do Tasmanian state government employers assess telehealth certificates under their own policies?", a: "Yes. The Tasmanian State Service Award requires certificates from registered medical practitioners. Telehealth doctors with AHPRA registration meet this requirement." },
       { q: "Can I use InstantMed in Launceston or the North-West?", a: "Yes. While this page focuses on Hobart, InstantMed serves all of Tasmania. Launceston, Devonport, Burnie, and everywhere in between." },
-      { q: "Is InstantMed cheaper than a GP in Hobart?", a: `With Hobart's bulk-billing rate around 55% and gap fees of $40–$80 common, InstantMed is often more affordable for straightforward needs. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "Is InstantMed cheaper than a GP in Hobart?", a: `With Hobart's bulk-billing rate around 55% and gap fees of $40–$80 common, InstantMed is often more affordable for a straightforward medical-certificate request. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
   launceston: {
@@ -77,7 +77,7 @@ export const TAS_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Tasmania has the worst GP-to-population ratio of any Australian state, and Launceston sits at the sharp end of this crisis. Northern Tasmania has experienced multiple clinic closures in recent years, leaving thousands of residents unable to find a regular GP. Walk-in appointments are often unavailable, and new patient registrations have waiting lists that stretch for months.",
           "The problem is structural: Tasmania's ageing population requires more GP services, but the state struggles to attract and retain doctors. Junior doctors trained in Tasmania often leave for better-paying positions on the mainland. The result is a shrinking GP workforce serving a population with growing healthcare needs.",
-          "For residents of Northern Tasmania - from Launceston to Devonport, Burnie, and the North-East - getting a straightforward medical certificate can mean a multi-day wait or a drive to the nearest clinic with availability. Telehealth doesn't replace the ongoing GP relationship, but it handles routine needs immediately.",
+          "For residents of Northern Tasmania - from Launceston to Devonport, Burnie, and the North-East - getting a straightforward medical certificate can mean a multi-day wait or a drive to the nearest clinic with availability. Telehealth doesn't replace the ongoing GP relationship, but it provides an online pathway for that medical-certificate request.",
         ],
       },
       {
@@ -102,7 +102,7 @@ export const TAS_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Can I use InstantMed if I can't find a GP in Launceston?", a: "Yes. InstantMed is ideal for routine healthcare needs when GP availability is limited. For ongoing conditions, we still recommend establishing a GP relationship - but for medical certificates and straightforward prescriptions, we can help right now." },
+      { q: "Can I use InstantMed if I can't find a GP in Launceston?", a: "Yes. InstantMed accepts medical-certificate requests and eligible repeat-prescription reviews for a regular medicine you already take. It does not offer general consultations, so new or ongoing concerns outside its listed specialty pathways need a regular GP or other appropriate care. Every prescribing request requires doctor review, and an eScript is sent only if approved." },
       { q: "Does InstantMed serve Devonport and Burnie?", a: "Yes. We serve all of Tasmania - Launceston, Devonport, Burnie, the North-East, and the North-West Coast." },
       { q: "Are certificates suitable for Tasmanian workplace evidence?", a: "Yes. All Australian employers, including Tasmanian government agencies, set their own policies for certificates from AHPRA-registered doctors regardless of consultation method." },
     ],

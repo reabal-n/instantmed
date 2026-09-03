@@ -21,7 +21,7 @@ export const NT_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Darwin presents unique healthcare challenges found nowhere else in Australia. The extreme tropical climate - with a distinct wet season from November to April - can make travel difficult and disrupt routine healthcare access. Cyclone season adds another layer of unpredictability for residents trying to maintain regular doctor appointments.",
           "The Northern Territory has the youngest population of any Australian state or territory, with a median age of 33. This means a large working-age population needing workplace medical certificates and routine prescriptions. Many Darwin residents work in mining, defence, construction, and tourism - industries with shift patterns that rarely align with standard clinic hours.",
-          "Royal Darwin Hospital is the Territory's major tertiary hospital, but for non-emergency needs like medical certificates and repeat prescriptions, the emergency department is not the appropriate pathway. Telehealth fills the gap between emergency care and routine GP access - providing timely doctor assessment for straightforward health needs without occupying hospital resources.",
+          "Royal Darwin Hospital is the Territory's major tertiary hospital, but a medical-certificate request or repeat-prescription review for a regular medicine already taken does not belong in an emergency department. Telehealth provides an online pathway for those focused requests without occupying hospital resources.",
         ],
       },
       {
@@ -41,12 +41,12 @@ export const NT_CITIES: Record<string, DeepCityContent> = {
     telehealthRegulations: {
       title: "Telehealth Regulation in the NT",
       paragraphs: [
-        "The Northern Territory follows national AHPRA standards for telehealth practice. The NT Government has been a strong supporter of telehealth, recognising its essential role in serving the Territory's dispersed population. NT Health actively promotes telehealth for routine healthcare needs where physical examination is not required.",
+        "The Northern Territory follows national AHPRA standards for telehealth practice. The NT Government has been a strong supporter of telehealth, recognising its essential role in serving the Territory's dispersed population. NT Health promotes telehealth where remote assessment is clinically appropriate and a physical examination is not required.",
         "Prescribing in the NT follows the TGA national framework. The NT Medicines, Poisons and Therapeutic Goods Act aligns with national scheduling. Schedule 8 medications require NT Department of Health authority. eScripts are the national standard and work at any pharmacy in the Territory.",
       ],
     },
     additionalFaqs: [
-      { q: "Does InstantMed work during the wet season?", a: "Yes. As long as you have internet access, InstantMed works regardless of weather. It's especially useful when flooding or storms make travel to a clinic difficult." },
+      { q: "Does InstantMed work during the wet season?", a: "Yes. As long as you have internet access, you can submit an InstantMed medical-certificate request or eligible repeat-prescription review regardless of weather. This can be useful when flooding or storms make travel to a clinic difficult." },
       { q: "Can defence personnel use InstantMed?", a: "Yes. AHPRA-registered doctor certificates can support sick leave documentation, but defence personnel should check their unit's specific medical chain of command requirements." },
       { q: "Is InstantMed available in Palmerston?", a: "Yes. We serve all of Greater Darwin including Palmerston, Howard Springs, Humpty Doo, and the rural area." },
       { q: "Does InstantMed operate on NT time?", a: `Yes. The service operates 24/7, so the half-hour difference between ACST and AEST never matters. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
@@ -73,7 +73,7 @@ export const NT_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Tourism is a major employer in Central Australia. Alice Springs is the gateway to Uluru-Kata Tjuta National Park, Kings Canyon, the West MacDonnell Ranges, and the broader Red Centre. Tour operators, hospitality workers, resort staff at Yulara, and park rangers work irregular hours in remote locations where GP access is essentially nonexistent. A tour guide who falls ill at Kings Canyon is 300 kilometres from the nearest clinic.",
           "Mining and pastoral operations across Central Australia employ workers on remote stations and sites scattered across vast distances. Many of these operations are FIFO from Alice Springs or further afield. When a worker on R&R in Alice Springs needs a medical certificate, telehealth provides it without competing for one of the limited GP appointments.",
-          "Defence personnel at Pine Gap and RAAF personnel based in or rotating through Alice Springs also need healthcare access. While defence has its own medical facilities, civilian support staff and contractors rely on the local system. Transport workers on the Stuart Highway - trucking between Adelaide and Darwin - pass through Alice Springs as their primary service point. Telehealth works for all of these groups regardless of their employer or reason for being in Central Australia.",
+          "Defence personnel at Pine Gap and RAAF personnel based in or rotating through Alice Springs also need healthcare access. While defence has its own medical facilities, civilian support staff and contractors rely on the local system. Transport workers on the Stuart Highway - trucking between Adelaide and Darwin - pass through Alice Springs as their primary service point. Eligible members of these groups can submit InstantMed's listed medical-certificate or repeat-prescription review requests online.",
         ],
       },
       {
@@ -81,7 +81,7 @@ export const NT_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Central Australia's climate adds a layer of healthcare challenge that doesn't exist in coastal cities. Summer temperatures regularly exceed 40 degrees, making any unnecessary travel genuinely unpleasant and potentially dangerous. Walking to a GP clinic in 42-degree heat when you're already unwell is not a reasonable expectation. Telehealth eliminates the need to leave air conditioning.",
           "The region also experiences periodic flooding that can cut roads for days. The Stuart Highway, Todd River crossings, and unsealed roads to outlying communities are all vulnerable to weather disruption. During these events, getting to a GP may be physically impossible. Telehealth continues to work as long as mobile or internet coverage is available.",
-          "Charles Darwin University's Alice Springs campus and Batchelor Institute (specialising in Indigenous education) serve local and regional students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests. For students who may have travelled hundreds of kilometres from remote communities to study in Alice Springs, telehealth provides healthcare access without the overhead of finding and enrolling with a local GP.",
+          "Charles Darwin University's Alice Springs campus and Batchelor Institute (specialising in Indigenous education) serve local and regional students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests. Students who may have travelled hundreds of kilometres from remote communities can submit a focused medical-certificate request online without first enrolling with a local GP.",
         ],
       },
     ],
@@ -96,15 +96,15 @@ export const NT_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in the Northern Territory",
       paragraphs: [
         "The Northern Territory follows national AHPRA and Medical Board of Australia guidelines for telehealth. The NT Government has been one of the strongest advocates for telehealth in Australia, recognising the Territory's vast distances and dispersed population make it essential for equitable healthcare access. NT Health's digital health strategy explicitly includes telehealth as a primary care modality for both urban and remote communities.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NT pharmacy. Schedule 8 controlled substances require NT Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "Prescribing follows national TGA rules. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its erectile dysfunction, hair loss, women's health, and weight-management assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Schedule 8 controlled substances require NT Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
         "Medical certificates from telehealth consultations in the Northern Territory are reviewed under the same national practitioner framework as other doctor-issued certificates. NT Government employers, tourism operators, mining companies, pastoral employers, and Fair Work-covered businesses set their own policies for certificates from AHPRA-registered doctors.",
       ],
     },
     additionalFaqs: [
       { q: "Does InstantMed work in remote Central Australia?", a: "Yes, as long as you have internet or mobile coverage. Alice Springs town has good coverage. Remote communities and stations increasingly have Starlink, NBN Sky Muster, or mobile coverage. The intake works on any device with a browser." },
-      { q: "Can Yulara resort workers use InstantMed?", a: "Yes. Resort staff, tour operators, and workers at Uluru-Kata Tjuta can use InstantMed for medical certificates and prescriptions. The certificate is issued by an AHPRA-registered doctor and employer policies may vary." },
+      { q: "Can Yulara resort workers use InstantMed?", a: "Yes. Resort staff, tour operators, and workers at Uluru-Kata Tjuta can submit medical-certificate requests or eligible repeat-prescription reviews for a regular medicine they already take. Every prescribing request requires doctor review, and an eScript is sent only if approved. Certificates are issued by AHPRA-registered doctors, and employer policies may vary." },
       { q: "Can tourists use InstantMed in Alice Springs?", a: "Yes. You don't need to be an Alice Springs resident. If you're visiting for tourism or work and need a medical certificate, our doctors can help. International visitors can use the service - no Medicare card is required for medical certificates." },
-      { q: "Is InstantMed cheaper than an Alice Springs GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Alice Springs' limited GP availability and typical gap fees when bulk-billing isn't available, InstantMed offers a predictable, affordable option for routine certificates and scripts.` },
+      { q: "Is InstantMed cheaper than an Alice Springs GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Alice Springs' limited GP availability and typical gap fees when bulk-billing isn't available, InstantMed offers a predictable, affordable option for medical-certificate requests and eligible repeat-prescription reviews.` },
     ],
   },
 }

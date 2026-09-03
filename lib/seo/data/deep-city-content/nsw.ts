@@ -58,7 +58,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulations in NSW",
       paragraphs: [
         "Telehealth in Australia is regulated at the federal level through AHPRA (the Australian Health Practitioner Regulation Agency) and the Medical Board of Australia. All doctors providing telehealth services must hold current AHPRA registration - the same registration required for in-person practice. There is no separate \"telehealth licence\" in Australia; any registered doctor can provide telehealth consultations.",
-        "The Therapeutic Goods Administration (TGA) governs prescribing via telehealth. Doctors can prescribe most PBS-listed medications via telehealth, with exceptions for certain controlled substances (Schedule 8 medications like opioids) which require additional authorisation and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "The Therapeutic Goods Administration (TGA) governs prescribing via telehealth. InstantMed limits prescribing to eligible repeat-prescription reviews for a regular medicine already taken and named specialty pathways. Every prescribing request requires individual doctor review, and an eScript is sent only if approved.",
         "NSW Health has actively supported telehealth expansion since 2020, recognising its role in reducing pressure on emergency departments and GP clinics. The NSW Government's healthcare strategy explicitly includes telehealth as a component of the primary care system, particularly for regional and metropolitan areas with GP shortages.",
       ],
     },
@@ -114,7 +114,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in NSW",
       paragraphs: [
         "New South Wales follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has supported telehealth expansion, particularly for the Hunter-New England region where distance and workforce shortages make access challenging. The NSW Government includes telehealth as a core component of its primary care strategy.",
-        "Prescribing via telehealth in NSW follows TGA guidelines. Most PBS-listed medications can be prescribed remotely and dispensed at any pharmacy via eScript. Schedule 8 controlled substances require NSW Health authority. InstantMed does not prescribe Schedule 8 medications.",
+        "Prescribing through InstantMed follows TGA guidelines and is limited to eligible repeat-prescription reviews for a regular medicine already taken and named specialty pathways. Every prescribing request requires individual doctor review. If approved, the eScript can be dispensed at any NSW pharmacy.",
         "NSW Fair Trading and the NSW Health Care Complaints Commission (HCCC) oversee telehealth services operating in the state. InstantMed complies with all NSW and national regulatory requirements.",
       ],
     },
@@ -122,7 +122,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       { q: "Do mining companies assess telehealth certificates under their own policies?", a: `Mining companies in the Hunter assess leave evidence under their own policies and enterprise agreements. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "How should UoN students check medical-documentation requirements?", a: "The University of Newcastle sets its own academic-support and medical-documentation requirements for Callaghan and city campus students. Check the current policy for your request." },
       { q: "Does InstantMed work in the Upper Hunter?", a: "Yes. Telehealth works anywhere with internet access - Muswellbrook, Singleton, Scone, Denman, or anywhere in the Upper Hunter. Same service, same pricing." },
-      { q: "Is InstantMed available for RAAF Williamtown personnel?", a: "InstantMed is available to all Australians aged 18+. Defence dependants and civilian contractors can use the service for medical certificates and prescriptions." },
+      { q: "Is InstantMed available for RAAF Williamtown personnel?", a: "Eligible Defence dependants and civilian contractors can submit medical-certificate requests and repeat-prescription review requests. Every prescribing request requires individual doctor review, and an eScript is sent only if approved." },
       { q: "Can I request a certificate for a mining roster?", a: `If a certificate is clinically appropriate, it records the approved absence dates. Mining employers set their own leave-evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
     ],
   },
@@ -185,7 +185,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "The Central Coast stretches from the Hawkesbury River to Lake Macquarie, encompassing major centres like Gosford, Wyong, Tuggerah, Erina, and The Entrance. With 340,000+ residents, it's NSW's third largest urban area - but healthcare infrastructure hasn't kept pace with population growth, particularly in the northern corridor around Warnervale and Hamlyn Terrace.",
           "GP availability varies dramatically across the region. Gosford and Erina have reasonable clinic density, but wait times for non-urgent appointments are still 3–5 days. The Wyong, Toukley, and The Entrance areas have fewer practices serving larger catchments. Many residents end up at emergency departments for issues that a GP could easily handle - including medical certificates.",
-          "An estimated 30,000+ Central Coast residents commute to Sydney daily. For these workers, taking time off to see a local GP often means losing a full day - the commute home, the wait at the clinic, and the commute back. Telehealth lets them handle routine healthcare needs during a lunch break or after hours.",
+          "An estimated 30,000+ Central Coast residents commute to Sydney daily. For these workers, taking time off to see a local GP often means losing a full day - the commute home, the wait at the clinic, and the commute back. InstantMed lets them submit medical-certificate requests and repeat-prescription review requests during a lunch break or after hours.",
         ],
       },
       {
@@ -296,8 +296,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
           "Telehealth is not a replacement for your regular GP relationship. For complex chronic disease management, screening, immunisations, dressings, injections, and any condition that requires hands-on physical examination, you still need a face-to-face GP. The Royal Australian College of General Practitioners (RACGP) is consistent on this point, and so are we. What telehealth replaces is the unnecessary clinic visit - the trip to the doctor for a sick note that takes a 5-minute clinical assessment, the repeat script for a stable medication you've been on for years, the routine UTI prescription for a recurrent condition you already know how to recognise.",
-          "For most people in Penrith, the telehealth-vs-in-person decision is not actually a tradeoff. You use telehealth for the things telehealth handles well, and you keep your local GP for everything else. The two models complement each other rather than competing. For people who don't currently have a regular GP - and there are many in Western Sydney, given how many practices have closed their books - telehealth is often the only practical pathway for routine needs while they wait for a clinic to take new patients.",
-          "If you do not have a regular GP and would like one, our doctors can also help guide you toward suitable practices in your area. We will not pressure you into anything, and there is no obligation. The point of InstantMed is to remove the friction from straightforward healthcare needs - not to create a parallel system that competes with traditional general practice.",
+          "InstantMed complements rather than replaces a regular GP. It accepts medical-certificate requests, eligible repeat-prescription reviews for a regular medicine already taken, and its named specialty assessments. People without a regular GP still need local primary care for needs outside those listed services.",
+          "InstantMed removes friction from its listed one-off services without creating a parallel system that competes with traditional general practice. Every prescribing request requires individual doctor review, and an eScript is sent only if approved.",
         ],
       },
     ],
@@ -313,14 +313,14 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Telehealth in Penrith is governed by the same national framework that applies everywhere else in Australia - AHPRA registration, Medical Board of Australia guidelines, and TGA prescribing rules. There is no separate 'telehealth licence'. Any doctor providing telehealth consultations must hold current AHPRA registration, the same credential required to practise face-to-face in a clinic.",
         "NSW Health has explicitly supported telehealth expansion as part of its Future Health strategy and has identified Western Sydney as a priority region for alternative primary care models. The Nepean Blue Mountains Local Health District has actively integrated telehealth into its care pathways to reduce unnecessary ED presentations and ease pressure on stretched primary care.",
-        "Controlled substances (Schedule 8 medications - strong opioids, stimulants, and similar) are outside the scope of what InstantMed will prescribe. These require in-person assessment and additional NSW Health authorities under the Poisons and Therapeutic Goods Act. Everything else most people need - antibiotics for confirmed infections, contraceptives, stable chronic medications, common symptom management - is within scope.",
+        "InstantMed does not prescribe Schedule 8 controlled substances. Prescribing is limited to eligible repeat-prescription reviews for a regular medicine already taken and named specialty pathways. Every prescribing request requires individual doctor review, and an eScript is sent only if approved.",
       ],
     },
     additionalFaqs: [
       { q: "Does InstantMed cover all of the Penrith LGA?", a: "Yes. Penrith, St Marys, Kingswood, Glenmore Park, Cranebrook, Jordan Springs, Werrington, Caddens, Orchard Hills - and everywhere else in the Nepean. Telehealth is an online service, so your exact suburb does not matter as long as you have internet access." },
       { q: "Can I use InstantMed on my commute into Parramatta or the CBD?", a: "Yes - many of our Western Sydney users submit their intake on the T1 Western Line. By the time you arrive at your destination, the certificate is typically already in your inbox as a PDF you can forward to your employer." },
       { q: "Are InstantMed certificates accepted at Nepean Hospital and Western Sydney University?", a: "Yes. Nepean Hospital and all Western Sydney University campuses set their own policies for medical certificates from AHPRA-registered doctors for sick leave and academic consideration. The consultation method is not a factor in documentation review." },
-      { q: "Is InstantMed cheaper than seeing a Penrith GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}, with no gap fees or hidden charges. With many Penrith GPs now charging $30–$60 out of pocket after Medicare rebate, InstantMed is often the more affordable option for straightforward certificates and scripts.` },
+      { q: "Is InstantMed cheaper than seeing a Penrith GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}, with no gap fees or hidden charges. With many Penrith GPs now charging $30–$60 out of pocket after Medicare rebate, InstantMed is often the more affordable option for a straightforward medical-certificate request or eligible repeat-prescription review.` },
     ],
   },
   "coffs-harbour": {
@@ -366,7 +366,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Practical Cost and Time Comparison for the Mid North Coast",
         paragraphs: [
-          "GP economics on the Mid North Coast have moved in line with the national trend - bulk-billing has declined, gap fees have grown, and waiting lists have lengthened. For a family in Sawtell or Woolgoolga, the combined cost of a routine GP visit - fuel into Coffs, the gap fee, lost work time, and the wait - frequently exceeds what telehealth charges flat. For straightforward needs, the arithmetic favours telehealth.",
+          "GP economics on the Mid North Coast have moved in line with the national trend - bulk-billing has declined, gap fees have grown, and waiting lists have lengthened. For a family in Sawtell or Woolgoolga, the combined cost of a routine GP visit - fuel into Coffs, the gap fee, lost work time, and the wait - frequently exceeds InstantMed's flat fee for a medical-certificate request or repeat-prescription review.",
           "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families budgeting carefully in a region where housing costs have grown faster than incomes, that predictability matters as much as the time savings.",
           "Requests can be submitted and reviewed 24/7. The eScript or PDF arrives via email or SMS, and you can forward it to your supervisor, employer, or labour hire provider directly. The process stays online from intake to delivery. For Coffs and Mid North Coast residents, that is significantly faster than securing a same-day clinic appointment.",
         ],
@@ -384,7 +384,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in NSW",
       paragraphs: [
         "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has explicitly supported telehealth expansion under its Future Health strategy, and the Mid North Coast Local Health District has integrated telehealth into its care pathways to reduce ED presentations for low-acuity primary care needs.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "Prescribing through InstantMed follows national TGA rules and is limited to eligible repeat-prescription reviews for a regular medicine already taken and named specialty pathways. Every prescribing request requires individual doctor review. If approved, the eScript can be dispensed at any NSW pharmacy.",
         "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services operating in NSW, including telehealth. InstantMed maintains a formal complaints process at complaints@instantmed.com.au with a 14-day response SLA aligned with AHPRA requirements.",
       ],
     },
@@ -414,7 +414,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Defence, Agriculture, and the Riverina Workforce",
         paragraphs: [
-          "Wagga hosts two of the ADF's major training bases - RAAF Base Wagga (Forest Hill) and the Army Recruit Training Centre at Kapooka. Defence families, civilian contractors, and Defence-adjacent workers make up a substantial portion of the local population. Many are relocated from interstate and do not have an established GP relationship, which makes telehealth particularly practical for routine needs that don't require accessing the base medical system.",
+          "Wagga hosts two of the ADF's major training bases - RAAF Base Wagga (Forest Hill) and the Army Recruit Training Centre at Kapooka. Defence families, civilian contractors, and Defence-adjacent workers make up a substantial portion of the local population. Many are relocated from interstate and do not have an established GP relationship, making online medical-certificate requests and repeat-prescription reviews practical when they do not require the base medical system.",
           "Beyond Defence, the Riverina economy runs on agriculture - wheat, canola, rice, cotton, beef, lamb, and increasingly wine in the foothills around Tumbarumba. Seasonal labour demands intersect with permanent shift work at regional processors like Teys Australia, JBS, and SunRice. Medical certificates for unplanned absences are a routine requirement, and telehealth delivers them faster than a regional GP clinic can book you in.",
           "Charles Sturt University's main campus is in Wagga Wagga, making it one of the largest regional universities in Australia. CSU, along with TAFE NSW Riverina, serves thousands of students across the region. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation.",
         ],
@@ -430,8 +430,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
-          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
-          "Wagga's value proposition for telehealth is twofold. First, the city itself has GP wait times that make same-day routine needs genuinely difficult - telehealth fills that gap. Second, Wagga is the regional service centre for hundreds of thousands of people across the broader Riverina, many of whom would otherwise need to drive 60–120 minutes for a routine certificate. For both groups, the time and cost savings are significant.",
+          "InstantMed is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. Its online pathway covers medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken.",
+          "Wagga's GP wait times make even a medical-certificate request difficult to arrange quickly. The city is also the service centre for Riverina residents who would otherwise drive 60–120 minutes for a certificate or eligible repeat-prescription review.",
           "If your symptoms or situation are not appropriate for telehealth, the doctor refers you to in-person care and you are not charged. The clinical filter is identical regardless of whether you are in Wagga itself, Junee, Tumut, or anywhere in the broader Riverina.",
         ],
       },
@@ -456,15 +456,15 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in NSW",
       paragraphs: [
         "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has explicitly supported telehealth expansion, and the Murrumbidgee Local Health District - which covers Wagga Wagga and the broader Riverina - has integrated telehealth into its care pathways to ease pressure on stretched regional primary care.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "Prescribing through InstantMed follows national TGA rules and is limited to eligible repeat-prescription reviews for a regular medicine already taken and named specialty pathways. Every prescribing request requires individual doctor review. If approved, the eScript can be dispensed at any NSW pharmacy.",
         "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services in NSW, including telehealth. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
       ],
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the broader Riverina?", a: "Yes. Junee, Lockhart, Narrandera, Leeton, Gundagai, Tumut, Cootamundra, Tumbarumba - anywhere in the Riverina with internet access is covered. Same service, same pricing." },
-      { q: "Can Defence families at Kapooka or RAAF Wagga use InstantMed?", a: "Yes, for civilian healthcare needs and family members. Defence members should continue using the base medical system for duty-related healthcare, but civilian telehealth is appropriate for personal and family medical certificates and scripts." },
+      { q: "Can Defence families at Kapooka or RAAF Wagga use InstantMed?", a: "Eligible family members can submit medical-certificate requests and repeat-prescription review requests. Defence members should continue using the base medical system for duty-related healthcare. Every prescribing request requires individual doctor review, and an eScript is sent only if approved." },
       { q: "Can Charles Sturt University students use InstantMed?", a: "Yes. CSU sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation - the same as all Australian universities." },
-      { q: "Is InstantMed cheaper than a Wagga GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Wagga bulk-billing declining and gap fees of $30–$60 increasingly common, InstantMed is often more affordable for straightforward certificates and scripts.` },
+      { q: "Is InstantMed cheaper than a Wagga GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Wagga bulk-billing declining and gap fees of $30–$60 increasingly common, InstantMed is often more affordable for a straightforward medical-certificate request or eligible repeat-prescription review.` },
     ],
   },
   "port-macquarie": {
@@ -480,7 +480,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Port Macquarie sits at the mouth of the Hastings River and is the largest population centre of the Port Macquarie-Hastings LGA. It is one of the fastest-growing regional centres in NSW, driven largely by sea-changers from Sydney and a significant retiree population. With roughly 50,000 residents in the town itself and a broader LGA approaching 90,000, healthcare demand consistently outstrips supply. The Mid North Coast has been identified as a priority workforce region under the Modified Monash Model (MMM), reflecting persistent difficulty attracting and retaining GPs to the region.",
           "Bulk-billing has declined in line with the national trend. Several Port Macquarie practices have closed their books to new patients, and same-day appointments for non-urgent needs are hard to come by - wait times of a week are routine. For a demographic that includes a large share of older residents on multiple chronic medications, the delays compound. When a retiree needs a repeat script of a stable blood pressure tablet, sitting on a waiting list for a week is not a sensible healthcare model.",
-          "Port Macquarie Base Hospital provides acute and specialist care, but the bottleneck is squarely in primary care. Telehealth offers a same-day alternative for exactly the routine needs - repeat scripts, straightforward certificates, simple prescription renewals - that the traditional GP model handles slowly and expensively. It does not replace ongoing GP relationships for complex care, but it clears the queue for everyone.",
+          "Port Macquarie Base Hospital provides acute and specialist care, but the bottleneck is squarely in primary care. InstantMed lets residents submit medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken. It does not replace ongoing GP relationships for complex care.",
         ],
       },
       {
@@ -502,9 +502,9 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
-          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
+          "InstantMed is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. Its online pathway covers medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken.",
           "For Port Macquarie's older residents, the convenience of telehealth for routine repeat scripts is substantial. There is no clinical reason to attend a clinic in person to renew a long-standing blood pressure or cholesterol medication. The doctor reviews your history, confirms the renewal is appropriate, and the eScript arrives via SMS for collection at the nearest pharmacy. The whole process takes 20–30 minutes from your living room.",
-          "For working-age residents and remote workers, the value is the time saved - the avoided commute to a clinic, the avoided wait, the avoided gap fee. Combined, these savings make telehealth a genuinely better option for the routine needs it handles well, and they leave in-person care available for everything that genuinely requires it.",
+          "For working-age residents and remote workers, submitting a medical-certificate request or eligible repeat-prescription review online can avoid a clinic commute, wait, and gap fee. Needs outside InstantMed's listed services still require a regular GP or in-person care.",
         ],
       },
       {
@@ -528,7 +528,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in NSW",
       paragraphs: [
         "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has explicitly supported telehealth expansion under its Future Health strategy, and the Mid North Coast Local Health District has integrated telehealth into its care pathways to reduce pressure on stretched regional primary care and ease ED demand.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "Prescribing through InstantMed follows national TGA rules and is limited to eligible repeat-prescription reviews for a regular medicine already taken and named specialty pathways. Every prescribing request requires individual doctor review. If approved, the eScript can be dispensed at any NSW pharmacy.",
         "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services in NSW, including telehealth. InstantMed maintains a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
       ],
     },
@@ -536,7 +536,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       { q: "Does InstantMed cover Wauchope, Laurieton, and Camden Haven?", a: "Yes. Wauchope, Laurieton, Camden Haven, Kempsey, and all the surrounding Hastings communities. Anywhere on the Mid North Coast with internet access is covered." },
       { q: "Is InstantMed suitable for retirees?", a: "Yes. The intake is designed to be straightforward, and telehealth is particularly useful for repeat scripts of stable chronic medications - no need to attend a clinic in person just to renew a long-standing prescription." },
       { q: "Can Charles Sturt University Port Macquarie students use InstantMed?", a: "Yes. CSU, like all Australian universities, sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
-      { q: "Is InstantMed cheaper than a Port Macquarie GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Port Macquarie bulk-billing around 65% and increasing gap fees, InstantMed is often more affordable for straightforward certificates and scripts.` },
+      { q: "Is InstantMed cheaper than a Port Macquarie GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Port Macquarie bulk-billing around 65% and increasing gap fees, InstantMed is often more affordable for a straightforward medical-certificate request or eligible repeat-prescription review.` },
     ],
   },
   dubbo: {
@@ -552,14 +552,14 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Dubbo is the service hub for the Orana and Western Plains region of NSW - a vast catchment that extends from Mudgee in the east to Cobar and Bourke in the west, and from Coonamble and Walgett in the north down to Parkes and Forbes. With a city population of roughly 43,000 and a broader regional catchment of 120,000+, Dubbo's primary care workforce is under constant pressure. Same-day appointments for non-urgent needs are rarely available, and wait times of a week are routine. The Modified Monash Model (MMM) classifies Dubbo and the surrounding Orana region as a workforce priority area with genuine, persistent GP shortages.",
           "Bulk-billing in Dubbo has dropped below 60% - among the lowest in regional NSW - and gap fees of $40–$70 are common. Several practices have restricted new patient intakes, and for the smaller Orana communities the nearest GP is often Dubbo itself. A round trip from Cobar, Nyngan, Coonamble, or Warren for a routine sick note is measured in hours of driving and fuel cost.",
-          "Dubbo Base Hospital provides tertiary referral services for the Western NSW Local Health District, covering an area larger than most European countries. But the primary care pinch point is not hospital capacity - it is GP supply. Telehealth offers the alternative pathway for straightforward certificates, repeat scripts, and simple prescription needs, collapsing a half-day round trip into a 20–30 minute process from home.",
+          "Dubbo Base Hospital provides tertiary referral services for the Western NSW Local Health District, covering an area larger than most European countries. But the primary care pinch point is not hospital capacity - it is GP supply. InstantMed lets residents submit medical-certificate requests and eligible repeat-prescription reviews from home instead of making a half-day round trip.",
         ],
       },
       {
         title: "Agriculture, Indigenous Health, and Western NSW Workers",
         paragraphs: [
-          "The Orana economy runs on agriculture - wheat, cotton, sheep, and cattle across the Western Plains - together with mining services (Cobar copper and zinc, and the gold mines at Peak Hill and surrounds), transport, and regional healthcare. These industries are heavily shift-based, remote-work heavy, and often operate in locations where the nearest GP is hours away. Telehealth is not a convenience for this workforce - it is often the only practical way to get a medical certificate or repeat script without losing a full day of work.",
-          "The Orana region has significant Aboriginal and Torres Strait Islander populations, particularly in Dubbo, Wellington, and the northern communities. The Western NSW Primary Health Network works with Aboriginal Community Controlled Health Services across the region, and telehealth is recognised as a complementary pathway for routine healthcare needs. InstantMed is not a substitute for ACCHS care - those services provide culturally safe, comprehensive primary care - but for the specific use cases of medical certificates and straightforward scripts, telehealth can complement existing healthcare relationships.",
+          "The Orana economy runs on agriculture - wheat, cotton, sheep, and cattle across the Western Plains - together with mining services (Cobar copper and zinc, and the gold mines at Peak Hill and surrounds), transport, and regional healthcare. These industries are heavily shift-based, remote-work heavy, and often operate in locations where the nearest GP is hours away. Online medical-certificate requests and repeat-prescription reviews can avoid losing a full day of work to travel.",
+          "The Orana region has significant Aboriginal and Torres Strait Islander populations, particularly in Dubbo, Wellington, and the northern communities. The Western NSW Primary Health Network works with Aboriginal Community Controlled Health Services across the region. InstantMed is not a substitute for ACCHS care, which provides culturally safe, comprehensive primary care, but its medical-certificate request and repeat-prescription review pathways can complement existing healthcare relationships.",
           "Charles Sturt University's Dubbo campus and TAFE NSW's Dubbo campus serve thousands of regional students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation. The consultation method is not a factor in documentation review.",
         ],
       },
@@ -568,14 +568,14 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "The Orana's geography is defining. Distances between towns are measured in hours, not kilometres. Wet-weather events can cut roads for days at a time, and drought years strain every service including healthcare delivery. Telehealth continues to work as long as the mobile network is up, which it usually is even during significant weather disruptions. For a farmer on a property north of Dubbo dealing with a standard winter flu while the roads are cut, a telehealth certificate is often the only realistic option.",
           "Dubbo employers - from the Dubbo Regional Council and NSW Health facilities, through to agricultural businesses, mining services companies, and local retailers - all operate under the Fair Work Act 2009 or NSW-specific industrial instruments. Both set their own policies for certificates from AHPRA-registered doctors regardless of consultation method. There is no legislation that creates a telehealth versus face-to-face distinction.",
-          "Dubbo's role as a regional service hub also means it has a substantial commuter and visitor population on any given weekday. Workers who travel in from smaller Orana towns for shift work, contractors, agribusiness representatives, and visitors handling family or property business all benefit from the same telehealth pathway as residents. Certificates and scripts work the same way regardless of where you sleep at night.",
+          "Dubbo's role as a regional service hub also means it has a substantial commuter and visitor population on any given weekday. Workers who travel in from smaller Orana towns for shift work, contractors, agribusiness representatives, and visitors handling family or property business can submit the same medical-certificate requests and repeat-prescription review requests as residents.",
         ],
       },
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
-          "Telehealth is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
-          "Western NSW's distances make this distinction matter more than in metropolitan settings. A round trip from Cobar, Bourke, or Walgett to Dubbo for a routine certificate is a full day. Telehealth lets people in these communities reserve in-person appointments for things that actually need them, and handle the routine middle of healthcare in 20–30 minutes from home.",
+          "InstantMed is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. Its online pathway covers medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken.",
+          "Western NSW's distances make this distinction matter more than in metropolitan settings. A round trip from Cobar, Bourke, or Walgett to Dubbo for a medical-certificate request or eligible repeat-prescription review can take a full day.",
           "If your situation is not appropriate for telehealth, the doctor will tell you and refer you to in-person care. You will not be charged for the consultation. The clinical filter is identical regardless of where in the Orana you live.",
         ],
       },
@@ -599,7 +599,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in NSW",
       paragraphs: [
         "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has explicitly supported telehealth expansion, and the Western NSW Local Health District has integrated telehealth into its service planning - specifically because the region's distances and workforce shortages make face-to-face primary care genuinely impractical for a substantial share of residents.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "Prescribing through InstantMed follows national TGA rules and is limited to eligible repeat-prescription reviews for a regular medicine already taken and named specialty pathways. Every prescribing request requires individual doctor review. If approved, the eScript can be dispensed at any NSW pharmacy.",
         "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services in NSW. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
       ],
     },
@@ -607,7 +607,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       { q: "Does InstantMed cover the broader Orana region?", a: "Yes. Wellington, Narromine, Nyngan, Coonamble, Cobar, Warren, Walgett, Parkes, Forbes, Mudgee - anywhere in the Orana and Western Plains with internet access is covered." },
       { q: "Can farmers on remote properties use InstantMed?", a: "Yes, as long as you have mobile or internet access. Many Orana properties have Starlink, NBN fixed wireless, or mobile coverage - all of which work with InstantMed. You can complete the intake from the homestead without driving into town." },
       { q: "Can Charles Sturt University Dubbo students use InstantMed?", a: "Yes. CSU and Australian universities set their own policies for medical certificates issued by AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
-      { q: "Is InstantMed cheaper than a Dubbo GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Dubbo bulk-billing around 60% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
+      { q: "Is InstantMed cheaper than a Dubbo GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Dubbo bulk-billing around 60% and typical gap fees of $40–$70, InstantMed is often more affordable for a straightforward medical-certificate request or eligible repeat-prescription review.` },
     ],
   },
   "albury-wodonga": {
@@ -678,8 +678,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "Healthcare in Sydney's Eastern Suburbs",
         paragraphs: [
           "Bondi Beach and the surrounding Eastern Suburbs - Bondi Junction, Bronte, Coogee, Randwick, Waverley - have some of the lowest bulk-billing rates in Greater Sydney. Inner-city and coastal GPs in the Eastern Suburbs frequently charge gap fees of $60–$100 per standard consultation, making even a straightforward sick certificate an expensive exercise. The combination of high rent, affluent demographics, and limited Medicare incentives means few practices offer bulk-billing at all.",
-          "The Eastern Suburbs' population is heavily weighted toward young professionals, backpackers, international students, and shift workers in hospitality and retail. These groups are the most likely to need a quick medical certificate and the least able to afford a $90 gap fee for a five-minute consultation. Telehealth removes the cost barrier for routine needs that don't require a physical examination.",
-          "Bondi's transient population adds another dimension. Backpackers on working holiday visas, international students at UNSW or the nearby English language schools, and short-term renters often don't have an established GP. Finding a new-patient appointment in Bondi can take a week or more. Telehealth provides immediate access to an AHPRA-registered doctor without the overhead of finding and enrolling with a local practice.",
+          "The Eastern Suburbs' population is heavily weighted toward young professionals, backpackers, international students, and shift workers in hospitality and retail. These groups may need a medical-certificate request or eligible repeat-prescription review but face a $90 gap fee for a standard local consultation.",
+          "Bondi's transient population adds another dimension. Backpackers on working holiday visas, international students at UNSW or the nearby English language schools, and short-term renters often don't have an established GP. InstantMed lets eligible adults submit medical-certificate requests and repeat-prescription review requests online; other needs require local primary care.",
         ],
       },
       {
@@ -710,7 +710,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in NSW",
       paragraphs: [
         "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. All telehealth consultations must be provided by AHPRA-registered practitioners - the same registration standard required for in-person care. NSW Health supports telehealth as a legitimate component of the primary care system.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "Prescribing through InstantMed follows national TGA rules and is limited to eligible repeat-prescription reviews for a regular medicine already taken and named specialty pathways. Every prescribing request requires individual doctor review. If approved, the eScript can be dispensed at any NSW pharmacy.",
         "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services in NSW, including telehealth. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
       ],
     },
@@ -734,7 +734,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Orange is the healthcare and service hub for NSW's Central West - a region stretching from Bathurst in the east to Parkes and Forbes in the west, and from Mudgee in the north to Cowra in the south. Orange Health Service is the major referral hospital for the region, but the real pressure point is primary care. Same-day GP appointments for non-urgent needs are rarely available, with wait times of a week or more being the norm rather than the exception.",
           "Bulk-billing in Orange has been declining steadily. Many practices now charge gap fees of $40–$70, and several have closed their books to new patients. For the Central West's smaller towns - Molong, Canowindra, Blayney, Millthorpe - the nearest GP is often Orange itself, adding a 30–60 minute drive each way on top of the appointment wait. For a medical certificate that takes a doctor five minutes to assess, the total time and cost investment is disproportionate.",
-          "The Central West has been identified as a Distribution Priority Area (DPA) under the Modified Monash Model, reflecting genuine, persistent GP workforce shortages. This is not a temporary dip - the region has been underserviced for years, and population growth in Orange itself is making it worse. Telehealth provides an immediate alternative for the routine needs that consume GP time without requiring physical examination.",
+          "The Central West has been identified as a Distribution Priority Area (DPA) under the Modified Monash Model, reflecting genuine, persistent GP workforce shortages. This is not a temporary dip - the region has been underserviced for years, and population growth in Orange itself is making it worse. InstantMed lets residents submit medical-certificate requests and eligible repeat-prescription reviews online.",
         ],
       },
       {
@@ -765,7 +765,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in NSW",
       paragraphs: [
         "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has explicitly supported telehealth expansion, and the Western NSW Local Health District has integrated telehealth into its service planning to address the region's persistent GP workforce shortages.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "Prescribing through InstantMed follows national TGA rules and is limited to eligible repeat-prescription reviews for a regular medicine already taken and named specialty pathways. Every prescribing request requires individual doctor review. If approved, the eScript can be dispensed at any NSW pharmacy.",
         "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services in NSW. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
       ],
     },
@@ -773,7 +773,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       { q: "Does InstantMed cover Bathurst, Mudgee, and the wider Central West?", a: "Yes. Orange, Bathurst, Mudgee, Parkes, Forbes, Cowra, Blayney, Millthorpe, Molong, Canowindra - anywhere in the Central West with internet access is covered." },
       { q: "Can Cadia mine workers use InstantMed?", a: "Yes. Mining workers can get medical certificates via telehealth. Certificates from AHPRA-registered doctors are subject to mining employer and labour-hire firm policies operating in the Central West." },
       { q: "Can Charles Sturt University Orange students use InstantMed?", a: "Yes. CSU sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation at all campuses including Orange." },
-      { q: "Is InstantMed cheaper than a GP in Orange?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Orange bulk-billing around 55% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
+      { q: "Is InstantMed cheaper than a GP in Orange?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Orange bulk-billing around 55% and typical gap fees of $40–$70, InstantMed is often more affordable for a straightforward medical-certificate request or eligible repeat-prescription review.` },
     ],
   },
 }

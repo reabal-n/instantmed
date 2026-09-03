@@ -370,6 +370,25 @@ export async function countSentAbandonedCheckoutEmails(
   return requireExactCustomerGrowthCount("Abandoned checkout send", result)
 }
 
+export async function countSentPartialRecoveryEmails(
+  supabase: SupabaseClient,
+  sinceIso: string,
+  untilIso: string,
+): Promise<number> {
+  let result: { count: number | null; error: { message: string } | null }
+  try {
+    result = await supabase
+      .from("partial_intakes")
+      .select("recovery_email_sent_at", { count: "exact", head: true })
+      .gte("recovery_email_sent_at", sinceIso)
+      .lte("recovery_email_sent_at", untilIso)
+  } catch {
+    throw new Error("Partial-intake recovery send count is unavailable")
+  }
+  if (result.error) throw new Error("Partial-intake recovery send count is unavailable")
+  return requireExactCustomerGrowthCount("Partial-intake recovery send", result)
+}
+
 function normalizeRefundMovementRows(rows: RefundMovementReadRow[]): NetRetainedRefundRow[] {
   const includeSeeded = shouldIncludeSeededE2EData()
   const seededPatientIds = new Set<string>(SEEDED_E2E_PATIENT_PROFILE_IDS)

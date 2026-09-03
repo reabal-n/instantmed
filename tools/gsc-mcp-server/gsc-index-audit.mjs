@@ -18,6 +18,8 @@ const NON_PUBLIC_PAGE_PREFIXES = [
 ]
 const UUID_PATH_SEGMENT_RE = /\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?:\/|$)/i
 const USER_AGENT = "InstantMedGscIndexAudit/1.0"
+const SEARCH_ANALYTICS_PAGE_SIZE = 25_000
+const MAX_SEARCH_ANALYTICS_ROWS = 250_000
 const DEFAULT_PRIORITY_INSPECTION_PATHS = [
   "/medical-certificate",
   "/medical-certificate-online",
@@ -91,6 +93,9 @@ function publicPage(value) {
       !PUBLIC_SITE_HOSTS.has(url.hostname) ||
       (url.protocol !== "http:" && url.protocol !== "https:")
     ) return null
+    // Canonical public routes are ASCII-only. Encoded separators can disguise
+    // private capability paths, so exclude any encoded pathname fail-closed.
+    if (url.pathname.includes("%")) return null
     const normalizedPath = url.pathname.replace(/\/+$/, "") || "/"
     if (isNonPublicPagePath(normalizedPath)) return null
     const path = normalizedPath === "/verify" || normalizedPath.startsWith("/verify/")
@@ -144,20 +149,43 @@ async function getLiveSitemaps() {
   }
 }
 
+async function getSearchAnalyticsRows(searchconsole, requestBody) {
+  const rows = []
+
+  for (
+    let startRow = 0;
+    startRow < MAX_SEARCH_ANALYTICS_ROWS;
+    startRow += SEARCH_ANALYTICS_PAGE_SIZE
+  ) {
+    const response = await searchconsole.searchanalytics.query({
+      siteUrl: SITE_URL,
+      requestBody: {
+        ...requestBody,
+        rowLimit: SEARCH_ANALYTICS_PAGE_SIZE,
+        startRow,
+      },
+    })
+    const page = response.data.rows ?? []
+    if (page.length > SEARCH_ANALYTICS_PAGE_SIZE) {
+      throw new Error("Search Console analytics page exceeded the requested row limit")
+    }
+    rows.push(...page)
+    if (page.length < SEARCH_ANALYTICS_PAGE_SIZE) return rows
+  }
+
+  throw new Error("Search Console analytics response exceeded the complete-read limit")
+}
+
 async function getPerformancePages(searchconsole, startDate, endDate) {
-  const response = await searchconsole.searchanalytics.query({
-    siteUrl: SITE_URL,
-    requestBody: {
-      startDate,
-      endDate,
-      dimensions: ["page"],
-      rowLimit: 25000,
-      dataState: "final",
-    },
+  const rows = await getSearchAnalyticsRows(searchconsole, {
+    startDate,
+    endDate,
+    dimensions: ["page"],
+    dataState: "final",
   })
 
   const pages = new Map()
-  for (const row of response.data.rows ?? []) {
+  for (const row of rows) {
     const page = publicPageUrl(row.keys?.[0] ?? "")
     if (!page) continue
 
@@ -188,19 +216,15 @@ async function getPerformancePages(searchconsole, startDate, endDate) {
 }
 
 async function getBrandedLandingPages(searchconsole, startDate, endDate) {
-  const response = await searchconsole.searchanalytics.query({
-    siteUrl: SITE_URL,
-    requestBody: {
-      startDate,
-      endDate,
-      dimensions: ["query", "page"],
-      rowLimit: 25000,
-      dataState: "final",
-    },
+  const rows = await getSearchAnalyticsRows(searchconsole, {
+    startDate,
+    endDate,
+    dimensions: ["query", "page"],
+    dataState: "final",
   })
 
   const pages = new Map()
-  for (const row of response.data.rows ?? []) {
+  for (const row of rows) {
     if (!isBrandedQuery(row.keys?.[0] ?? "")) continue
     const page = publicPagePath(row.keys?.[1] ?? "")
     if (!page) continue

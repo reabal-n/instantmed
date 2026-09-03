@@ -26,7 +26,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Adelaide has traditionally had better GP access than Sydney or Melbourne, thanks to its smaller size and more manageable population density. However, this advantage is eroding. South Australia's bulk-billing rate has been declining faster than the national average, with many Adelaide GPs now charging gap fees of $40–$80 per consultation. For many residents, what was once a free doctor visit now costs more than an InstantMed certificate.",
           "The decline is particularly noticeable in the inner suburbs and the Adelaide Hills, where bulk-billing practices are becoming rare. In northern Adelaide (Salisbury, Elizabeth, Playford), bulk-billing is more available but demand is high and wait times can stretch to 3–5 days. Southern suburbs like Morphett Vale and Noarlunga face similar access challenges.",
-          "South Australia's ageing population adds another dimension. Older residents use GP services more frequently, increasing demand on an already-stretched system. Younger workers and students often find themselves competing for appointments with the retired population, leading to longer waits for routine needs. Telehealth helps rebalance this by diverting straightforward, quick-resolution needs away from the clinic queue.",
+          "South Australia's ageing population adds another dimension. Older residents use GP services more frequently, increasing demand on an already-stretched system. Younger workers and students often find themselves competing for appointments with the retired population, leading to longer waits for routine needs. Online medical-certificate requests and eligible repeat-prescription reviews can keep those focused requests out of the clinic queue.",
         ],
       },
       {
@@ -40,8 +40,8 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Regional South Australia",
         paragraphs: [
-          "Outside Adelaide, healthcare access in South Australia drops off significantly. Regional centres like Mount Gambier, Port Augusta, Port Lincoln, and the Riverland have limited GP availability. Some smaller towns have lost their only doctor entirely. For residents in these areas, telehealth isn't a convenience - it's essential for timely access to routine medical services.",
-          "The Barossa Valley, McLaren Vale, and the Adelaide Hills - while close to Adelaide - have growing populations and limited local healthcare. Weekend GP availability is particularly scarce. For wine industry and tourism workers who fall ill on a Saturday, telehealth lets patients submit requests when local clinics are closed.",
+          "Outside Adelaide, healthcare access in South Australia drops off significantly. Regional centres like Mount Gambier, Port Augusta, Port Lincoln, and the Riverland have limited GP availability. Some smaller towns have lost their only doctor entirely. For residents in these areas, telehealth offers a focused pathway for medical-certificate requests and eligible repeat-prescription reviews.",
+          "The Barossa Valley, McLaren Vale, and the Adelaide Hills - while close to Adelaide - have growing populations and limited local healthcare. Weekend GP availability is particularly scarce. Wine industry and tourism workers can submit a listed InstantMed request when local clinics are closed.",
         ],
       },
     ],
@@ -56,7 +56,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in South Australia",
       paragraphs: [
         "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth services. SA Health has supported telehealth expansion as part of its strategy to improve healthcare access, particularly for the state's regional and remote populations. The SA Government recognises telehealth as a legitimate and important healthcare delivery method.",
-        "Prescribing regulations in SA follow the national TGA framework. Most medications can be prescribed via telehealth, with eScripts accepted at all South Australian pharmacies. Controlled substances (Schedule 8) require SA Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "Prescribing regulations in SA follow the national TGA framework. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its erectile dysfunction, hair loss, women's health, and weight-management assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Controlled substances (Schedule 8) require SA Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
         "Medical certificates issued via telehealth in South Australia can support workplace evidence requirements. SA employers, including government, private, and not-for-profit workplaces, set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act.",
       ],
     },
@@ -65,7 +65,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       { q: "Can I use InstantMed in regional SA?", a: "Yes. InstantMed works anywhere in South Australia with internet access - Adelaide, Mount Gambier, Port Augusta, Port Lincoln, the Riverland, or anywhere in between. The service and pricing are identical regardless of location." },
       { q: "Is InstantMed cheaper than a GP in Adelaide?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Adelaide's declining bulk-billing rates, many GPs now charge gap fees of $40–$80. For a straightforward medical certificate, InstantMed is often the more affordable option - with no hidden costs.` },
       { q: "How should Adelaide Uni or Flinders students check medical-documentation requirements?", a: "South Australian universities set their own policies for medical certificates, academic support, coursework documentation, and missed assessments. Check the current process at your institution before submitting a request." },
-      { q: "What if I need to see a doctor in person?", a: `If your symptoms or situation require a physical examination, the doctor will recommend an in-person GP visit instead. ${REFUND_PAYMENT_PROCESS}` },
+      { q: "What if I need to see a doctor in person?", a: `If a listed request cannot be safely assessed without a physical examination, the doctor will recommend an in-person GP visit instead. ${REFUND_PAYMENT_PROCESS}` },
     ],
   },
   "mount-gambier": {
@@ -80,8 +80,8 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
         title: "Healthcare on the Limestone Coast",
         paragraphs: [
           "Mount Gambier is the service centre for SA's Limestone Coast region - an area stretching from the Victorian border to Kingston SE, and inland to Naracoorte and Bordertown. With a population of roughly 28,000 in the city and a broader regional catchment of 65,000+, the region's GP capacity is under significant strain. Same-day appointments are rarely available, wait times of one to two weeks are common, and several practices have restricted new patient intakes entirely.",
-          "The Limestone Coast has been classified as a Distribution Priority Area (DPA) with genuine, long-standing GP workforce shortages. Recruiting and retaining doctors in a regional city 450 kilometres from Adelaide has been a persistent challenge. The Mount Gambier and Districts Health Service provides hospital care, but the primary care gap is the real problem for everyday healthcare needs.",
-          "For residents of smaller Limestone Coast towns - Millicent, Penola, Naracoorte, Robe, Kingston SE, Bordertown - the nearest GP is often Mount Gambier, adding a round trip of 1-2 hours. For a medical certificate or repeat prescription, this journey is disproportionate. Telehealth eliminates the travel entirely, letting patients submit requests to an AHPRA-registered doctor from home.",
+          "The Limestone Coast has been classified as a Distribution Priority Area (DPA) with genuine, long-standing GP workforce shortages. Recruiting and retaining doctors in a regional city 450 kilometres from Adelaide has been a persistent challenge. The Mount Gambier and Districts Health Service provides hospital care, but gaps in local primary-care access remain a problem for residents across the region.",
+          "For residents of smaller Limestone Coast towns - Millicent, Penola, Naracoorte, Robe, Kingston SE, Bordertown - the nearest GP is often Mount Gambier, adding a round trip of 1-2 hours. For a medical-certificate request or eligible repeat-prescription review for a regular medicine already taken, this journey is disproportionate. Telehealth lets patients submit those focused requests to an AHPRA-registered doctor from home.",
         ],
       },
       {
@@ -112,7 +112,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in South Australia",
       paragraphs: [
         "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. SA Health has supported telehealth expansion as part of its strategy to improve healthcare access for regional communities like the Limestone Coast, where GP shortages are persistent and severe.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any SA or VIC pharmacy. Schedule 8 controlled substances require SA Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "Prescribing follows national TGA rules. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its named specialty assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved; an approved eScript can be dispensed at an Australian pharmacy. Schedule 8 controlled substances require SA Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
         "Medical certificates issued via telehealth can support workplace evidence requirements in South Australia. SA government, private sector, and not-for-profit employers each set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act.",
       ],
     },
@@ -120,7 +120,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       { q: "Does InstantMed cover the whole Limestone Coast?", a: "Yes. Mount Gambier, Millicent, Penola, Naracoorte, Bordertown, Robe, Kingston SE, and all surrounding communities. Anywhere on the Limestone Coast with internet access." },
       { q: "Can forestry and mill workers use InstantMed?", a: "Yes. Green Triangle forestry and timber processing workers can get certificates via telehealth. Certificates are subject to employer policies, including those under forestry enterprise agreements." },
       { q: "Does the certificate work in both SA and VIC?", a: "AHPRA registration is national, and certificates from InstantMed include standard evidence details. Employer and institution policies may vary across state borders." },
-      { q: "Is InstantMed cheaper than a Mount Gambier GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Mount Gambier bulk-billing around 50% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
+      { q: "Is InstantMed cheaper than a Mount Gambier GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Mount Gambier bulk-billing around 50% and typical gap fees of $40–$70, InstantMed is often more affordable for a straightforward medical-certificate request or eligible repeat-prescription review.` },
     ],
   },
   "port-augusta": {
@@ -136,7 +136,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Port Augusta sits at the head of Spencer Gulf, at the junction of the Stuart, Barrier, and Augusta highways - literally the crossroads of outback Australia. It is the last major service centre before the long drive north to Alice Springs, west to Perth, or into the Flinders Ranges. With a population of roughly 14,000 and a broader catchment extending to Whyalla, Quorn, Hawker, and the remote pastoral stations beyond, the region's healthcare capacity is severely limited.",
           "GP availability in Port Augusta has been in crisis for years. The region is classified as a Distribution Priority Area with one of the most acute GP shortages in South Australia. Wait times of one to two weeks for non-urgent appointments are standard, and the town has struggled to recruit and retain doctors. When a GP leaves, their patient list often has nowhere to go - other practices are already at capacity.",
-          "Port Augusta Hospital provides acute care for the upper Spencer Gulf region, but the primary care bottleneck is the fundamental problem. For routine needs - medical certificates, repeat prescriptions, simple prescription renewals - telehealth offers an immediate alternative that doesn't depend on local GP capacity. It works as long as the internet connection works, which it does across Port Augusta's built-up area and most of the broader region.",
+          "Port Augusta Hospital provides acute care for the upper Spencer Gulf region, but the primary care bottleneck is the fundamental problem. For a medical-certificate request or eligible repeat-prescription review for a regular medicine already taken, telehealth offers an online pathway that doesn't depend on local GP capacity. It works as long as the internet connection works, which it does across Port Augusta's built-up area and most of the broader region.",
         ],
       },
       {
@@ -150,7 +150,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Aboriginal Health and Community Services",
         paragraphs: [
-          "Port Augusta has a significant Aboriginal population, and the region is served by the Pika Wiya Health Service Aboriginal Corporation alongside mainstream primary care. Telehealth is recognised as a complementary pathway for routine healthcare needs in the region - it does not replace Aboriginal Community Controlled Health Services, which provide culturally safe, comprehensive primary care, but for the specific use cases of medical certificates and straightforward prescriptions, it can complement existing care relationships.",
+          "Port Augusta has a significant Aboriginal population, and the region is served by the Pika Wiya Health Service Aboriginal Corporation alongside mainstream primary care. InstantMed does not replace Aboriginal Community Controlled Health Services, which provide culturally safe, comprehensive primary care. Its medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken can complement existing care relationships.",
           "TAFE SA's Port Augusta campus and the University of South Australia's regional outreach programs serve local students and trainees. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support and academic support requests. For students juggling study with work and family commitments in a region with limited GP access, telehealth removes one more barrier.",
           "Under the Fair Work Act 2009, all Port Augusta employers - including the Port Augusta City Council, SA Water, energy companies, pastoral employers, and retail businesses - must set their own policies for certificates from AHPRA-registered doctors. South Australian industrial instruments do not distinguish between telehealth and face-to-face certificates.",
         ],
@@ -167,7 +167,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in South Australia",
       paragraphs: [
         "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. SA Health has been particularly supportive of telehealth in regional and remote areas like the upper Spencer Gulf, where GP workforce shortages are among the most severe in the state.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any SA pharmacy. Schedule 8 controlled substances require SA Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "Prescribing follows national TGA rules. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its named specialty assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Schedule 8 controlled substances require SA Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
         "The SA Health and Community Services Complaints Commissioner handles complaints about health services in South Australia. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
       ],
     },

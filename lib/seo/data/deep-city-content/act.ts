@@ -57,14 +57,14 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in the ACT",
       paragraphs: [
         "The ACT follows national AHPRA and Medical Board of Australia standards for telehealth. The ACT Government has actively promoted telehealth as part of its strategy to address the territory's GP shortage. ACT Health recognises telehealth as a legitimate healthcare delivery method for appropriate clinical scenarios.",
-        "Prescribing in the ACT follows the TGA national framework. Most medications can be prescribed via telehealth and dispensed at any ACT pharmacy via eScript. Schedule 8 controlled substances require ACT Health authority. InstantMed does not prescribe Schedule 8 medications.",
+        "Prescribing in the ACT follows the TGA national framework. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its erectile dysfunction, hair loss, women's health, and weight-management assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Schedule 8 controlled substances require ACT Health authority. InstantMed does not prescribe Schedule 8 medications.",
         `The ACT's health complaints process operates through the ACT Human Rights Commission, which handles complaints about health services including telehealth. InstantMed maintains a formal complaints process at complaints@instantmed.com.au. ${COMPLAINTS_TIMING}`,
       ],
     },
     additionalFaqs: [
       { q: "Do APS agencies assess telehealth certificates under their own policies?", a: `APS agencies set their own policies for medical certificates and leave evidence. Check your agency's current policy for the request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "How should ANU students check medical-documentation requirements?", a: "ANU, UC, ACU, and UNSW Canberra set their own academic-support and medical-documentation policies. Check the relevant institution's current process before submitting a request." },
-      { q: "Is InstantMed cheaper than a GP in Canberra?", a: `With Canberra's bulk-billing rate around 47% and typical gap fees of $50–$100, InstantMed is often more affordable for straightforward needs. Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no hidden costs.` },
+      { q: "Is InstantMed cheaper than a GP in Canberra?", a: `With Canberra's bulk-billing rate around 47% and typical gap fees of $50–$100, InstantMed is often more affordable for a straightforward medical-certificate request. Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no hidden costs.` },
       { q: "Can I use InstantMed in Queanbeyan?", a: "Yes. While Queanbeyan is technically in NSW, InstantMed works anywhere in Australia. Same service, same pricing, same certificates." },
       { q: "What about ACT public servants specifically?", a: `ACT Government employees should check the current ACT Public Sector leave-evidence process. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
     ],
