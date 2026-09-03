@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { verifyCheckoutResumeToken } from "@/lib/crypto/checkout-resume-token"
+import { verifyRecoveryEmailEngagementToken } from "@/lib/crypto/recovery-email-engagement-token"
 import { resolveGuestCheckoutResume } from "@/lib/stripe/checkout/guest-resume"
 
 export const dynamic = "force-dynamic"
@@ -28,6 +29,13 @@ export async function GET(
     return recoveryRedirect(request, "/request?error=expired_link")
   }
 
-  const destination = await resolveGuestCheckoutResume(tokenResult.intakeId)
+  const recoveryProof = request.nextUrl.searchParams.get("recovery_proof")
+  const recoveryResult = recoveryProof
+    ? verifyRecoveryEmailEngagementToken(recoveryProof)
+    : null
+  const destination = await resolveGuestCheckoutResume(
+    tokenResult.intakeId,
+    recoveryResult?.intakeId === tokenResult.intakeId,
+  )
   return recoveryRedirect(request, destination)
 }

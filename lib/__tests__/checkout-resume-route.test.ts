@@ -7,10 +7,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({
   resolveGuestCheckoutResume: vi.fn(),
   verifyCheckoutResumeToken: vi.fn(),
+  verifyRecoveryEmailEngagementToken: vi.fn(),
 }))
 
 vi.mock("@/lib/crypto/checkout-resume-token", () => ({
   verifyCheckoutResumeToken: mocks.verifyCheckoutResumeToken,
+}))
+
+vi.mock("@/lib/crypto/recovery-email-engagement-token", () => ({
+  verifyRecoveryEmailEngagementToken: mocks.verifyRecoveryEmailEngagementToken,
 }))
 
 vi.mock("@/lib/stripe/checkout/guest-resume", () => ({
@@ -19,13 +24,14 @@ vi.mock("@/lib/stripe/checkout/guest-resume", () => ({
 
 import { dynamic, GET, revalidate } from "@/app/resume/[token]/route"
 
-function request(token: string) {
-  return new NextRequest(`https://instantmed.test/resume/${token}`)
+function request(token: string, query = "") {
+  return new NextRequest(`https://instantmed.test/resume/${token}${query}`)
 }
 
 describe("signed checkout resume route", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.verifyRecoveryEmailEngagementToken.mockReturnValue(null)
     mocks.resolveGuestCheckoutResume.mockResolvedValue(
       "/checkout/cancelled?reason=payment_state_unresolved",
     )
@@ -40,7 +46,7 @@ describe("signed checkout resume route", () => {
 
     expect(dynamic).toBe("force-dynamic")
     expect(revalidate).toBe(0)
-    expect(mocks.resolveGuestCheckoutResume).toHaveBeenCalledWith("intake-1")
+    expect(mocks.resolveGuestCheckoutResume).toHaveBeenCalledWith("intake-1", false)
     expect(response.headers.get("location")).toBe(
       "https://instantmed.test/checkout/cancelled?reason=payment_state_unresolved",
     )
@@ -61,6 +67,34 @@ describe("signed checkout resume route", () => {
     )
     expect(response.headers.get("x-robots-tag")).toBe("noindex, nofollow")
     expect(mocks.resolveGuestCheckoutResume).not.toHaveBeenCalled()
+  })
+
+  it("passes only server-verified recovery-email proof after resume-token verification", async () => {
+    mocks.verifyCheckoutResumeToken.mockReturnValue({ intakeId: "intake-1" })
+    mocks.verifyRecoveryEmailEngagementToken.mockReturnValue({ intakeId: "intake-1" })
+
+    await GET(request(
+      "valid-token",
+      "?recovery_proof=signed-recovery-proof",
+    ), {
+      params: Promise.resolve({ token: "valid-token" }),
+    })
+
+    expect(mocks.resolveGuestCheckoutResume).toHaveBeenCalledWith(
+      "intake-1",
+      true,
+    )
+  })
+
+  it("rejects a recovery proof for a different intake", async () => {
+    mocks.verifyCheckoutResumeToken.mockReturnValue({ intakeId: "intake-1" })
+    mocks.verifyRecoveryEmailEngagementToken.mockReturnValue({ intakeId: "intake-2" })
+
+    await GET(request("valid-token", "?recovery_proof=wrong-intake-proof"), {
+      params: Promise.resolve({ token: "valid-token" }),
+    })
+
+    expect(mocks.resolveGuestCheckoutResume).toHaveBeenCalledWith("intake-1", false)
   })
 
   it("preserves an external Stripe destination from the verified resolver", async () => {

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest"
 
 import { verifyCheckoutResumeToken } from "@/lib/crypto/checkout-resume-token"
+import { verifyRecoveryEmailEngagementToken } from "@/lib/crypto/recovery-email-engagement-token"
 import {
   buildAbandonedCheckoutResumeUrl,
   buildCheckoutPaymentRecoveryUrl,
@@ -22,6 +23,7 @@ describe("abandoned checkout retry URL", () => {
   })
 
   it("links to the owned intake retry route with recovery attribution", () => {
+    process.env.INTERNAL_API_SECRET = "test-internal-secret"
     const url = buildAbandonedCheckoutResumeUrl({
       appUrl: APP_URL,
       campaign: "abandoned_checkout",
@@ -34,9 +36,13 @@ describe("abandoned checkout retry URL", () => {
     expect(parsed.searchParams.get("utm_source")).toBe("recovery_email")
     expect(parsed.searchParams.get("utm_medium")).toBe("email")
     expect(parsed.searchParams.get("utm_campaign")).toBe("abandoned_checkout")
+    expect(verifyRecoveryEmailEngagementToken(
+      parsed.searchParams.get("recovery_proof") ?? "",
+    )).toEqual({ intakeId: INTAKE_ID })
   })
 
   it("uses a distinct campaign for the follow-up email", () => {
+    process.env.INTERNAL_API_SECRET = "test-internal-secret"
     const url = buildAbandonedCheckoutResumeUrl({
       appUrl: `${APP_URL}/`,
       campaign: "abandoned_checkout_followup",
@@ -47,6 +53,7 @@ describe("abandoned checkout retry URL", () => {
   })
 
   it("builds authenticated payment-failure retry links through the owned intake route", () => {
+    process.env.INTERNAL_API_SECRET = "test-internal-secret"
     const url = buildCheckoutPaymentRecoveryUrl({
       appUrl: APP_URL,
       campaign: "payment_failed",
@@ -57,6 +64,9 @@ describe("abandoned checkout retry URL", () => {
     expect(parsed.pathname).toBe(`/patient/intakes/${INTAKE_ID}`)
     expect(parsed.searchParams.get("retry")).toBe("true")
     expect(parsed.searchParams.get("utm_campaign")).toBe("payment_failed")
+    expect(verifyRecoveryEmailEngagementToken(
+      parsed.searchParams.get("recovery_proof") ?? "",
+    )).toEqual({ intakeId: INTAKE_ID })
   })
 
   it("builds guest payment-failure retry links through a signed resume token", () => {
@@ -74,6 +84,9 @@ describe("abandoned checkout retry URL", () => {
     expect(parsed.pathname).toMatch(/^\/resume\//)
     expect(parsed.searchParams.get("utm_campaign")).toBe("async_payment_failed")
     expect(verifyCheckoutResumeToken(token)).toEqual({ intakeId: INTAKE_ID })
+    expect(verifyRecoveryEmailEngagementToken(
+      parsed.searchParams.get("recovery_proof") ?? "",
+    )).toEqual({ intakeId: INTAKE_ID })
   })
 
   it("builds a signed in-app resume URL without pretending it came from email", () => {

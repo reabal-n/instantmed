@@ -4,7 +4,6 @@ import { join, resolve } from "node:path"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
 import { buildGoogleAdsReturnSnapshot } from "@/lib/analytics/google-ads-return-summary"
-import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import {
   assertNoSensitiveBaselineText,
   buildCustomerGrowthBaselineSummary,
@@ -16,6 +15,7 @@ import {
 import {
   buildCustomerGrowthRevenueForIntakeIds,
   collectCustomerGrowthAttributionIntakeIds,
+  collectRecoveryEmailIntakeIds,
   countSentAbandonedCheckoutEmails,
   countSentPartialRecoveryEmails,
   readCustomerGrowthAttributionRows,
@@ -36,6 +36,7 @@ const POSTHOG_EVENTS = [
   "google_ads_server_conversion",
 ] as const
 const DAY_MS = 24 * 60 * 60 * 1000
+const PARTIAL_INTAKE_RETENTION_DAYS = 7
 
 type CliOptions = {
   days: number
@@ -220,13 +221,12 @@ async function querySupabaseBaseline(
 
   const currentPaidIntakeIds = new Set(paidRows.flatMap((row) => row.id ? [row.id] : []))
   const revenueEvidenceIntakeIds = collectCustomerGrowthAttributionIntakeIds(revenueEvidence)
-  const attributionRows = await readCustomerGrowthAttributionRows(
+  const attributionEvidence = await readCustomerGrowthAttributionRows(
     supabase,
     revenueEvidenceIntakeIds,
   )
-  const recoveryIntakeIds = new Set(attributionRows.filter(
-    (row) => classifyAttributionSource(row).group === "recovery_email",
-  ).map((row) => row.id))
+  const attributionRows = attributionEvidence.rows
+  const recoveryIntakeIds = collectRecoveryEmailIntakeIds(attributionRows)
   const recoveredRevenue = buildCustomerGrowthRevenueForIntakeIds(
     revenueEvidence,
     recoveryIntakeIds,
@@ -263,15 +263,18 @@ async function querySupabaseBaseline(
     },
     recovery: {
       abandonedCheckoutSent,
-      convertedPartials,
-      emailCaptured,
-      emailCaptureRate: roundRate(emailCaptured, partialsCaptured),
+      attributionCoverage: attributionEvidence.recoveryMarkerAvailability,
       partialRecoverySent,
-      partialsCaptured,
+      partialSnapshot: {
+        emailCaptureRate: roundRate(emailCaptured, partialsCaptured),
+        retentionDays: PARTIAL_INTAKE_RETENTION_DAYS,
+        rowsUpdatedInWindow: partialsCaptured,
+        rowsWithConvertedMarker: convertedPartials,
+        rowsWithEmail: emailCaptured,
+      },
       recoveredGrossRevenueAud: roundMoney(recoveredRevenue.grossCents / 100),
       recoveredNetRevenueAud: roundMoney(recoveredRevenue.netCents / 100),
       recoveredPaidCount: recoveredRevenue.orderCount,
-      recoveryEmailCoverageRate: roundRate(partialRecoverySent, emailCaptured),
     },
   }
 }

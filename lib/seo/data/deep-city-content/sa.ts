@@ -11,6 +11,8 @@ import type { DeepCityContent } from "../deep-city-content"
 const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
 const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
+const PRESCRIPTION_IF_APPROVED = getApprovedClaim("prescription_if_approved")
 
 export const SA_CITIES: Record<string, DeepCityContent> = {
   adelaide: {
@@ -32,8 +34,8 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Medical Certificates for Adelaide Workers and Students",
         paragraphs: [
-          "Adelaide's economy is diverse, with significant defence, manufacturing, healthcare, and wine industry employment. Many of these sectors involve shift work, irregular hours, or physical labour - all situations where getting to a GP clinic during business hours is impractical. A medical certificate from InstantMed means you can get the documentation you need without restructuring your day.",
-          "University of Adelaide, UniSA, and Flinders University collectively serve over 80,000 students. Campus health services exist but are often oversubscribed, particularly during exam periods. Telehealth-issued medical certificates can support academic documentation requests, subject to each institution's policy. The process is faster and often more affordable than a campus clinic visit.",
+          "Adelaide's economy is diverse, with significant defence, manufacturing, healthcare, and wine industry employment. Many of these sectors involve shift work, irregular hours, or physical labour. Adults aged 18+ can submit a medical-certificate request online around those schedules; digital delivery occurs only if approved.",
+          "University of Adelaide, UniSA, and Flinders University collectively serve over 80,000 students. Campus health services exist but are often oversubscribed, particularly during exam periods. Adults aged 18+ can submit a medical-certificate request online, and each institution applies its own documentation policy.",
           `South Australian public-sector and local-government employees should check their current leave-evidence policy. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
         ],
       },
@@ -41,7 +43,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
         title: "Regional South Australia",
         paragraphs: [
           "Outside Adelaide, healthcare access in South Australia drops off significantly. Regional centres like Mount Gambier, Port Augusta, Port Lincoln, and the Riverland have limited GP availability. Some smaller towns have lost their only doctor entirely. For residents in these areas, telehealth offers a focused pathway for medical-certificate requests and eligible repeat-prescription reviews.",
-          "The Barossa Valley, McLaren Vale, and the Adelaide Hills - while close to Adelaide - have growing populations and limited local healthcare. Weekend GP availability is particularly scarce. Wine industry and tourism workers can submit a listed InstantMed request when local clinics are closed.",
+          "The Barossa Valley, McLaren Vale, and the Adelaide Hills - while close to Adelaide - have growing populations and limited local healthcare. Weekend GP availability is particularly scarce. Wine-industry and tourism workers aged 18+ can submit a listed InstantMed request when local clinics are closed.",
         ],
       },
     ],
@@ -49,7 +51,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       title: "Pharmacies and eScripts in Adelaide",
       paragraphs: [
         "Adelaide has approximately 450 community pharmacies across the metropolitan area, with good coverage across most suburbs. All major pharmacy chains accept eScripts - Chemist Warehouse, Priceline, TerryWhite Chemmart, and local independents. The eScript system is well-established in South Australia, with near-universal pharmacy adoption.",
-        "Extended-hours pharmacies are available in Adelaide's major shopping centres (Westfield Marion, Tea Tree Plaza, Rundle Mall area), with some locations open until 9pm or later. When InstantMed issues an eScript, you receive a QR code via SMS that any SA pharmacy can scan - no paper prescription required. Prescriptions issued in the evening can often be filled the same night at an extended-hours pharmacy.",
+        `Extended-hours pharmacies are available in Adelaide's major shopping centres (Westfield Marion, Tea Tree Plaza, Rundle Mall area), with some locations open until 9pm or later. ${PRESCRIPTION_IF_APPROVED} Dispensing timing depends on pharmacy hours, stock, and pharmacy checks.`,
       ],
     },
     telehealthRegulations: {
@@ -57,12 +59,12 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth services. SA Health has supported telehealth expansion as part of its strategy to improve healthcare access, particularly for the state's regional and remote populations. The SA Government recognises telehealth as a legitimate and important healthcare delivery method.",
         "Prescribing regulations in SA follow the national TGA framework. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its erectile dysfunction, hair loss, women's health, and weight-management assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Controlled substances (Schedule 8) require SA Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
-        "Medical certificates issued via telehealth in South Australia can support workplace evidence requirements. SA employers, including government, private, and not-for-profit workplaces, set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act.",
+        `SA government, private, and not-for-profit workplaces apply their own evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
       ],
     },
     additionalFaqs: [
       { q: "How should I check SA government employer documentation requirements?", a: `South Australian government departments and agencies set their own medical-documentation policies. Check the current policy for your request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
-      { q: "Can I use InstantMed in regional SA?", a: "Yes. InstantMed works anywhere in South Australia with internet access - Adelaide, Mount Gambier, Port Augusta, Port Lincoln, the Riverland, or anywhere in between. The service and pricing are identical regardless of location." },
+      { q: "Can I use InstantMed in regional SA?", a: "Adults aged 18+ can submit a listed request with internet access from Adelaide, Mount Gambier, Port Augusta, Port Lincoln, the Riverland, or elsewhere in South Australia. Published service pricing does not change by Australian location." },
       { q: "Is InstantMed cheaper than a GP in Adelaide?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Adelaide's declining bulk-billing rates, many GPs now charge gap fees of $40–$80. For a straightforward medical certificate, InstantMed is often the more affordable option - with no hidden costs.` },
       { q: "How should Adelaide Uni or Flinders students check medical-documentation requirements?", a: "South Australian universities set their own policies for medical certificates, academic support, coursework documentation, and missed assessments. Check the current process at your institution before submitting a request." },
       { q: "What if I need to see a doctor in person?", a: `If a listed request cannot be safely assessed without a physical examination, the doctor will recommend an in-person GP visit instead. ${REFUND_PAYMENT_PROCESS}` },
@@ -81,22 +83,22 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Mount Gambier is the service centre for SA's Limestone Coast region - an area stretching from the Victorian border to Kingston SE, and inland to Naracoorte and Bordertown. With a population of roughly 28,000 in the city and a broader regional catchment of 65,000+, the region's GP capacity is under significant strain. Same-day appointments are rarely available, wait times of one to two weeks are common, and several practices have restricted new patient intakes entirely.",
           "The Limestone Coast has been classified as a Distribution Priority Area (DPA) with genuine, long-standing GP workforce shortages. Recruiting and retaining doctors in a regional city 450 kilometres from Adelaide has been a persistent challenge. The Mount Gambier and Districts Health Service provides hospital care, but gaps in local primary-care access remain a problem for residents across the region.",
-          "For residents of smaller Limestone Coast towns - Millicent, Penola, Naracoorte, Robe, Kingston SE, Bordertown - the nearest GP is often Mount Gambier, adding a round trip of 1-2 hours. For a medical-certificate request or eligible repeat-prescription review for a regular medicine already taken, this journey is disproportionate. Telehealth lets patients submit those focused requests to an AHPRA-registered doctor from home.",
+          "For residents of smaller Limestone Coast towns - Millicent, Penola, Naracoorte, Robe, Kingston SE, Bordertown - the nearest GP is often Mount Gambier, adding a round trip of 1-2 hours. For a medical-certificate request or eligible repeat-prescription review for a regular medicine already taken, this journey is disproportionate. Adults aged 18+ can submit those focused requests online from home.",
         ],
       },
       {
         title: "Forestry, Agriculture, and Regional Workers",
         paragraphs: [
           "The Limestone Coast economy is built on forestry and timber processing (the region contains one of the largest softwood plantation estates in Australia), agriculture (dairy, beef, sheep, viticulture in Coonawarra), fishing (rock lobster industry out of Kingston and Robe), and tourism. These industries involve physical labour, irregular hours, and often remote work locations.",
-          "Forestry and mill workers in the Green Triangle region operate on shift rosters that don't align with standard clinic hours. Agricultural workers during lambing, shearing, and vintage seasons face the same problem - taking half a day to get a medical certificate disrupts operations that can't easily pause. Telehealth provides the documentation without the disruption.",
-          "The Limestone Coast also has a significant seasonal workforce - grape pickers in Coonawarra, shearers moving through the district, truck drivers on the Melbourne-Adelaide route. These workers are often far from their home GP and may need documentation for their employer. InstantMed certificates are issued by AHPRA-registered doctors and are suitable for Fair Work sick-leave evidence, with employer policies varying.",
+          "Forestry and mill workers in the Green Triangle region operate on shift rosters that don't align with standard clinic hours. Agricultural workers during lambing, shearing, and vintage seasons face the same problem. Adults aged 18+ can submit a medical-certificate request online, with issue depending on the clinical assessment.",
+          `The Limestone Coast also has a significant seasonal workforce - grape pickers in Coonawarra, shearers moving through the district, truck drivers on the Melbourne-Adelaide route. These workers are often far from their home GP and may need documentation for their employer. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
         ],
       },
       {
         title: "Cross-Border Healthcare",
         paragraphs: [
           "Mount Gambier sits just 17 kilometres from the Victorian border, and many Limestone Coast residents regularly cross between SA and VIC for work, shopping, and healthcare. Some Mount Gambier residents see GPs in Hamilton or Portland (VIC) when local appointments aren't available, adding cross-border complexity to routine healthcare.",
-          "Telehealth simplifies this entirely. AHPRA registration is national - there is no state-based restriction on where a registered doctor can consult. A certificate from an InstantMed doctor is valid in South Australia, Victoria, and every other Australian state and territory. For a cross-border community like the Limestone Coast, this national validity removes administrative friction.",
+          `AHPRA registration is national - there is no state-based restriction on where a registered doctor can provide InstantMed's listed services to eligible adults aged 18+. ${EMPLOYER_POLICY_CAVEAT}`,
           "University of South Australia's Mount Gambier campus and TAFE SA's Mount Gambier campus serve regional students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests. For students who commute from surrounding towns, telehealth avoids adding another trip to Mount Gambier on top of their regular travel.",
         ],
       },
@@ -113,13 +115,13 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. SA Health has supported telehealth expansion as part of its strategy to improve healthcare access for regional communities like the Limestone Coast, where GP shortages are persistent and severe.",
         "Prescribing follows national TGA rules. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its named specialty assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved; an approved eScript can be dispensed at an Australian pharmacy. Schedule 8 controlled substances require SA Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
-        "Medical certificates issued via telehealth can support workplace evidence requirements in South Australia. SA government, private sector, and not-for-profit employers each set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act.",
+        `SA government, private-sector, and not-for-profit employers each apply their own workplace evidence policy. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
       ],
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the whole Limestone Coast?", a: "Yes. Mount Gambier, Millicent, Penola, Naracoorte, Bordertown, Robe, Kingston SE, and all surrounding communities. Anywhere on the Limestone Coast with internet access." },
-      { q: "Can forestry and mill workers use InstantMed?", a: "Yes. Green Triangle forestry and timber processing workers can get certificates via telehealth. Certificates are subject to employer policies, including those under forestry enterprise agreements." },
-      { q: "Does the certificate work in both SA and VIC?", a: "AHPRA registration is national, and certificates from InstantMed include standard evidence details. Employer and institution policies may vary across state borders." },
+      { q: "Can forestry and mill workers use InstantMed?", a: `Adults aged 18+ can submit a medical-certificate request online. Forestry and timber-processing employers apply their own evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
+      { q: "How are certificates assessed across SA and Victoria?", a: `Employers and institutions on either side of the border apply their own evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "Is InstantMed cheaper than a Mount Gambier GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Mount Gambier bulk-billing around 50% and typical gap fees of $40–$70, InstantMed is often more affordable for a straightforward medical-certificate request or eligible repeat-prescription review.` },
     ],
   },
@@ -151,8 +153,8 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
         title: "Aboriginal Health and Community Services",
         paragraphs: [
           "Port Augusta has a significant Aboriginal population, and the region is served by the Pika Wiya Health Service Aboriginal Corporation alongside mainstream primary care. InstantMed does not replace Aboriginal Community Controlled Health Services, which provide culturally safe, comprehensive primary care. Its medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken can complement existing care relationships.",
-          "TAFE SA's Port Augusta campus and the University of South Australia's regional outreach programs serve local students and trainees. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support and academic support requests. For students juggling study with work and family commitments in a region with limited GP access, telehealth removes one more barrier.",
-          "Under the Fair Work Act 2009, all Port Augusta employers - including the Port Augusta City Council, SA Water, energy companies, pastoral employers, and retail businesses - must set their own policies for certificates from AHPRA-registered doctors. South Australian industrial instruments do not distinguish between telehealth and face-to-face certificates.",
+          "TAFE SA's Port Augusta campus and the University of South Australia's regional outreach programs serve local students and trainees. Each sets its own policy for academic support, coursework documentation, and missed assessments. Adults aged 18+ should check current requirements before submitting a medical-certificate request.",
+          `Port Augusta City Council, SA Water, energy companies, pastoral employers, and retail businesses apply their own workplace evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
         ],
       },
     ],
@@ -168,13 +170,13 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. SA Health has been particularly supportive of telehealth in regional and remote areas like the upper Spencer Gulf, where GP workforce shortages are among the most severe in the state.",
         "Prescribing follows national TGA rules. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its named specialty assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Schedule 8 controlled substances require SA Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
-        "The SA Health and Community Services Complaints Commissioner handles complaints about health services in South Australia. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+        `The SA Health and Community Services Complaints Commissioner handles complaints about health services in South Australia. InstantMed operates a formal complaints process at complaints@instantmed.com.au. ${COMPLAINTS_TIMING}`,
       ],
     },
     additionalFaqs: [
       { q: "Does InstantMed cover Whyalla and the Flinders Ranges?", a: "Yes. Port Augusta, Whyalla, Quorn, Hawker, and all surrounding communities. Anywhere in the upper Spencer Gulf and outback SA with internet access - including Starlink and NBN fixed wireless." },
-      { q: "Can renewable energy workers use InstantMed?", a: "Yes. Solar farm, wind farm, and energy project workers in the Port Augusta region can get medical certificates via telehealth. Certificates are employer policies may vary and labour hire companies." },
-      { q: "Can pastoral station workers use InstantMed?", a: "Yes, as long as you have internet or mobile coverage. Many remote properties now have Starlink or NBN Sky Muster. The intake can be completed from the homestead without driving into town." },
+      { q: "Can renewable energy workers use InstantMed?", a: `Adults aged 18+ can submit a medical-certificate request online. Energy-project employers and labour-hire companies apply their own evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
+      { q: "Can pastoral station workers use InstantMed?", a: "Adults aged 18+ can submit a listed request with internet or mobile coverage. Many remote properties now have Starlink or NBN Sky Muster, so the intake can be completed from the homestead without driving into town." },
       { q: "Is InstantMed cheaper than a Port Augusta GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Port Augusta's limited GP availability and typical gap fees when bulk-billing isn't available, InstantMed offers a predictable, affordable alternative.` },
     ],
   },

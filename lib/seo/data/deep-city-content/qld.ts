@@ -11,6 +11,9 @@ import type { DeepCityContent } from "../deep-city-content"
 const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
+const AVAILABILITY = getApprovedClaim("availability_24_7")
 
 export const QLD_CITIES: Record<string, DeepCityContent> = {
   brisbane: {
@@ -40,7 +43,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Students and Young Workers in Brisbane",
         paragraphs: [
-          "Brisbane's universities - UQ, QUT, Griffith, JCU (Townsville campus with Brisbane presence) - collectively serve over 200,000 students. University health services exist but are often oversubscribed, with wait times of several days during semester. For academic support requests, students need timely medical certificates - something telehealth delivers reliably.",
+          "Brisbane's universities - UQ, QUT, Griffith, JCU (Townsville campus with Brisbane presence) - collectively serve over 200,000 students. University health services exist but are often oversubscribed, with wait times of several days during semester. Adults aged 18+ can submit a medical-certificate request online, while each institution applies its own academic-support policy.",
           "Brisbane also has a large casual and gig economy workforce. Uber drivers, Menulog riders, hospitality staff, and retail workers often lack traditional sick leave entitlements. While they may not need a certificate for an employer, routine absence evidence can still help them keep a clean personal record. Centrelink, Services Australia, and insurance matters usually require their own forms or treating-practitioner reports.",
         ],
       },
@@ -65,7 +68,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       { q: "How should I check Queensland government employer documentation requirements?", a: `Queensland government departments, local councils, and statutory bodies set their own medical-documentation policies. Check the current policy for your request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "Can I get a medical certificate for heat-related illness in Brisbane?", a: "You can request one, but the clinical pathway assesses whether your symptoms are appropriate for telehealth management. If you're experiencing severe symptoms (confusion, loss of consciousness), call 000 - that's an emergency." },
       { q: "Is InstantMed available during Queensland school holidays?", a: "Yes. The service operates 24/7, including all public holidays and school holiday periods. Demand for GP appointments typically increases during school holidays - telehealth avoids the queue." },
-      { q: "Can FIFO workers use InstantMed?", a: `Yes. FIFO workers can submit medical-certificate and repeat-prescription requests anywhere in Australia with internet access. ${CLINICAL_REVIEW_SEQUENCE} Employer policies may vary.` },
+      { q: "Can FIFO workers use InstantMed?", a: `Adults aged 18+ can submit medical-certificate requests and eligible repeat-prescription reviews for a regular medicine they already take anywhere in Australia with internet access. ${CLINICAL_REVIEW_SEQUENCE} Employer policies may vary.` },
     ],
   },
   "gold-coast": {
@@ -95,9 +98,9 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Medical Certificates in Queensland",
         paragraphs: [
-          "Under the Fair Work Act 2009, Gold Coast employers must set their own policies for medical certificates from AHPRA-registered doctors, regardless of the consultation method. Queensland-specific industrial instruments - including the QLD Public Service enterprise agreement - do not require certificates to come from face-to-face consultations.",
-          "For Gold Coast students, Bond University sets its own policy for telehealth-issued certificates for all academic considerations. Griffith University Gold Coast campus follows the same documentation policy as their Brisbane campuses. Southern Cross University's Coolangatta campus accepts certificates from any registered practitioner.",
-          "Theme park employees (Dreamworld, Sea World, Movie World, Wet'n'Wild), surf lifesavers, and hospitality workers often need certificates at short notice. Telehealth accommodates this - submit your request when you wake up feeling unwell, then receive the certificate digitally if approved.",
+          `Gold Coast employers, including those operating under Queensland-specific industrial instruments, apply their own workplace evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
+          "For Gold Coast students aged 18+, Bond University, Griffith University, and Southern Cross University each set their own policy for medical certificates used for academic considerations. Students should check current institution requirements before submitting a request.",
+          "Theme park employees (Dreamworld, Sea World, Movie World, Wet'n'Wild), surf lifesavers, and hospitality workers often need to request documentation around irregular rosters. Adults aged 18+ can submit a medical-certificate request online; digital delivery occurs only if approved.",
         ],
       },
     ],
@@ -118,10 +121,10 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Can tourists use InstantMed on the Gold Coast?", a: "If you're 18+, in Australia, and can provide the required details, you can submit a medical-certificate request. If a certificate is issued, the employer or institution applies its own evidence policy. International visitors should also check their home country's documentation requirements." },
-      { q: "Are certificates suitable for Gold Coast theme park employer documentation?", a: "Yes. All Australian employers - including theme parks, hospitality venues, and entertainment companies - must set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act." },
-      { q: "Can Bond University students use InstantMed?", a: "Yes. Bond University sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
+      { q: "How do Gold Coast theme park employers assess certificates?", a: `Theme parks, hospitality venues, and entertainment companies apply their own workplace evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
+      { q: "Can Bond University students use InstantMed?", a: "Adults aged 18+ can submit a medical-certificate request. Bond University sets its own policy for academic support, missed assessment documentation, and coursework documentation, so check current requirements before submitting." },
       { q: "Is InstantMed available in the Gold Coast hinterland?", a: "Yes. Telehealth works anywhere with internet access - Tamborine Mountain, Springbrook, Currumbin Valley, or anywhere in the hinterland. The service and pricing are identical." },
-      { q: "What if I'm visiting from interstate and need a certificate?", a: `You can use InstantMed from anywhere in Australia. The certificate is valid for your employer regardless of which state you're normally based in. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "What if I'm visiting from interstate and need a certificate?", a: `Adults aged 18+ can submit a request from anywhere in Australia. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. ${EMPLOYER_POLICY_CAVEAT}` },
     ],
   },
   "sunshine-coast": {
@@ -163,7 +166,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed serve the Sunshine Coast hinterland?", a: "Yes. We serve all Sunshine Coast areas including Maleny, Montville, Nambour, Eumundi, and the Glass House Mountains." },
-      { q: "Can USC students use InstantMed?", a: "Yes. The University of the Sunshine Coast sets its own policy for medical certificates from AHPRA-registered doctors for academic consideration and deferrals." },
+      { q: "Can USC students use InstantMed?", a: "Adults aged 18+ can submit a medical-certificate request. The University of the Sunshine Coast sets its own policy for academic consideration and deferrals, so check current requirements before submitting." },
       { q: "Is InstantMed available during school holidays?", a: `Yes - the service operates 24/7, including school holidays when local clinics are at their busiest. Certificates from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
@@ -187,7 +190,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Defence, Mining, and University Communities",
         paragraphs: [
           "Townsville hosts Australia's largest army base (Lavarack Barracks) and RAAF Base Townsville. Defence families make up a significant portion of the population, many relocated from interstate and without established GP relationships. InstantMed provides a consistent online pathway for medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
-          "James Cook University students - particularly those from regional and remote areas - often face long waits at the campus medical centre. They can submit a medical-certificate request or request a repeat-prescription review for a regular medicine they already take without competing for a campus clinic slot.",
+          "James Cook University students - particularly those from regional and remote areas - often face long waits at the campus medical centre. Students aged 18+ can submit a medical-certificate request or eligible repeat-prescription review for a regular medicine they already take without competing for a campus clinic slot.",
         ],
       },
     ],
@@ -205,9 +208,9 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Can JCU students use InstantMed?", a: "Yes. James Cook University sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation." },
+      { q: "Can JCU students use InstantMed?", a: "Adults aged 18+ can submit a medical-certificate request. James Cook University sets its own policy for academic support, missed assessment documentation, and coursework documentation, so check current requirements before submitting." },
       { q: "Does InstantMed work during cyclone season?", a: "Yes - as long as you have internet access (including mobile data), InstantMed works regardless of weather conditions. It's especially useful when travel to a clinic is unsafe." },
-      { q: "Can defence families use InstantMed?", a: "Yes. Defence families can submit civilian medical-certificate requests and request repeat-prescription reviews for a regular medicine already taken. Every prescribing request requires doctor review, and an eScript is sent only if approved. Employer policies for certificates may vary." },
+      { q: "Can adults in defence families use InstantMed?", a: "Adults aged 18+ can submit civilian medical-certificate requests and eligible repeat-prescription reviews for a regular medicine they already take. Every prescribing request requires doctor review, and an eScript is sent only if approved. Employer policies for certificates may vary." },
       { q: "Does InstantMed serve Magnetic Island?", a: `Yes. InstantMed serves anywhere with internet access, including Magnetic Island. No need to catch the ferry for a medical certificate. From ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
@@ -251,7 +254,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Can tourists visiting Cairns use InstantMed?", a: "Eligible Australian residents aged 18+ can submit medical-certificate requests. Prescribing pathways also require the specified Australian identity details, and every prescribing request requires doctor review. International tourists are not currently eligible." },
       { q: "Does InstantMed serve Port Douglas?", a: "Yes. We serve all of Far North Queensland - Port Douglas, Palm Cove, the Atherton Tablelands, and Cairns Northern Beaches." },
-      { q: "Can hospitality workers get same-day certificates?", a: `Yes. Doctor review follows when available - the service operates 24/7, which suits hospitality schedules. From ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "When can hospitality workers submit certificate requests?", a: `${AVAILABILITY} Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. Issuance depends on doctor review and approval.` },
     ],
   },
   toowoomba: {
@@ -292,9 +295,9 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Can I use InstantMed from a farm on the Downs?", a: "Yes - anywhere with internet access. Many farming properties have mobile coverage or satellite internet, both of which work with InstantMed." },
+      { q: "Can I use InstantMed from a farm on the Downs?", a: "Adults aged 18+ can submit a listed request with internet access. Many farming properties have mobile coverage or satellite internet." },
       { q: "Does InstantMed serve Dalby, Warwick, and Gatton?", a: "Yes. We serve all of the Darling Downs and Southern Downs - your location doesn't matter as long as you have internet." },
-      { q: "Are certificates suitable for agricultural employer documentation?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and employer policies may vary, including farming operations, feedlots, and agribusiness companies." },
+      { q: "How do agricultural employers assess certificates?", a: `Farming operations, feedlots, and agribusiness companies apply their own workplace evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
     ],
   },
   ipswich: {
@@ -336,8 +339,8 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover Springfield and Ripley Valley?", a: "Yes. We cover all of the Ipswich region - Springfield, Ripley Valley, Redbank Plains, Goodna, and everywhere else. It's an online service, so your location doesn't matter." },
-      { q: "Can RAAF Amberley personnel use InstantMed?", a: "Yes, for personal medical-certificate requests and repeat-prescription reviews for a regular medicine already taken, but not Defence medical assessments. Employers apply their own evidence policies to certificates." },
-      { q: "How fast can I get a certificate in Ipswich?", a: `Doctor review follows when available. From ${PRICING_DISPLAY.MED_CERT} - typically faster and more affordable than competing for a GP appointment in a growth corridor.` },
+      { q: "Can RAAF Amberley personnel use InstantMed?", a: "Adults aged 18+ can submit personal medical-certificate requests and eligible repeat-prescription reviews for a regular medicine they already take, but not Defence medical assessments. Employers apply their own evidence policies to certificates." },
+      { q: "When can I submit a certificate request in Ipswich?", a: `${AVAILABILITY} Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
   mackay: {
@@ -360,16 +363,16 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Shift Workers, FIFO Rosters, and Mining Industry Documentation",
         paragraphs: [
           "Mining companies operating in the Bowen Basin - BHP, Glencore, Peabody, Anglo American, and smaller contractors - have strict absence-documentation policies. Some site medical, return-to-work, or fitness-for-duty matters need the employer's own pathway or an in-person assessment. For routine short sick leave, our certificates include the doctor's name, AHPRA registration number, consultation date, and the recommended absence period for HR to review.",
-          "For workers on 7/7 or 14/7 rosters, getting to a Mackay GP during their one week off - when they are also trying to see family and rest - is a logistical headache. Telehealth lets you handle the documentation in 20–30 minutes from home, on a Saturday morning, without burning a full day of downtime. If you fall ill mid-swing at camp and have internet, you can start the intake from site and have a certificate ready for your supervisor before your next shift.",
-          "Beyond mining, Mackay's sugarcane industry, the Port of Mackay, and marine tourism businesses in the Whitsundays all contribute to a heavily shift-based local workforce. The Fair Work Act uses an evidence standard rather than a video-call requirement, and employer policies may vary. A telehealth certificate from an AHPRA-registered doctor can be used as routine sick-leave evidence when online assessment is clinically suitable.",
+          "For workers on 7/7 or 14/7 rosters, getting to a Mackay GP during their week off can be difficult. Adults aged 18+ can submit a medical-certificate request online from home or a work site with internet access. Issue depends on the clinical assessment, and employers apply their own evidence policies.",
+          `Beyond mining, Mackay's sugarcane industry, the Port of Mackay, and marine tourism businesses in the Whitsundays all contribute to a heavily shift-based local workforce. Each employer applies its own workplace evidence policy. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
         ],
       },
       {
         title: "Cyclone Season, Distance, and Why Telehealth Matters in Central Queensland",
         paragraphs: [
-          "North and Central Queensland's cyclone season (November to April) brings genuine healthcare continuity issues. When roads flood, power goes down, and local clinics close, getting to a doctor becomes difficult or impossible. Telehealth keeps working as long as the mobile network is up - which it usually is even during and after significant weather events. For a resident in Proserpine, Airlie Beach, or Sarina dealing with a standard winter flu while the Bruce Highway is closed, a telehealth certificate is the only realistic option.",
+          "North and Central Queensland's cyclone season (November to April) brings genuine healthcare continuity issues. When roads flood, power goes down, and local clinics close, getting to a doctor becomes difficult or impossible. Adults aged 18+ can submit a medical-certificate request online while the local connection is available; issue depends on doctor review and approval.",
           "Distance is the other Central Queensland reality. The Bowen Basin mining towns are hours from Mackay by road. Residents of Moranbah and Dysart may see a GP only a few times a year and often coordinate visits around shopping trips into the city. InstantMed operates anywhere with internet - no town is too small and no mine site camp too remote, as long as there's coverage.",
-          "The James Cook University Mackay clinical school and CQUniversity's local presence mean Mackay also has a meaningful student population alongside its FIFO and resident workforce. JCU students rotate through Mackay Base Hospital and surrounding rural placements, often without an established local GP. For academic support requests, missed assessment documentation, and coursework documentation, JCU and all other Australian universities set their own policies for medical certificates from AHPRA-registered doctors regardless of consultation method.",
+          "The James Cook University Mackay clinical school and CQUniversity's local presence mean Mackay also has a meaningful student population alongside its FIFO and resident workforce. JCU students rotate through Mackay Base Hospital and surrounding rural placements, often without an established local GP. Each institution sets its own policy for academic support, missed assessment documentation, and coursework documentation, so adults aged 18+ should check current requirements before submitting a request.",
         ],
       },
       {
@@ -377,7 +380,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Telehealth is not a substitute for your regular GP for complex care. Chronic disease management, immunisations, screening, hands-on physical examinations, injections, and dressings all still require face-to-face care. InstantMed's relevant pathways here are medical-certificate requests, repeat-prescription reviews for a regular medicine already taken, and the named women's-health UTI assessment pathway where clinically suitable.",
           "For Mackay's FIFO workforce in particular, an online medical-certificate request or repeat-prescription review does not depend on being in a particular town. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
-          "We will always refer you to in-person care when the clinical situation needs it. If your symptoms suggest a physical examination is required - suspected chest infection, possible fracture, suspicious skin lesion - the doctor will tell you and you will not be charged for the telehealth consultation. The same filter applies in Mackay as everywhere else.",
+          `We will refer you to in-person care when the clinical situation needs it. If your symptoms suggest a physical examination is required - suspected chest infection, possible fracture, suspicious skin lesion - the doctor will tell you. ${REFUND_PAYMENT_PROCESS}`,
           "InstantMed's flat-fee model also removes the unpredictability of regional GP economics. You see the cost of a medical-certificate request or repeat-prescription review before starting the intake. For Mackay families budgeting carefully and FIFO workers who need predictable costs, that matters as much as the time saved. Requests can be submitted 24/7; a certificate is delivered if issued, and an eScript is sent only if a doctor approves the prescribing request.",
         ],
       },
@@ -399,7 +402,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Do Bowen Basin mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies set their own documentation rules. Our certificates include the AHPRA number, consultation date, and recommended absence period for routine sick-leave review; site medicals and return-to-work clearances need the employer's own pathway." },
-      { q: "Can I use InstantMed from a mine camp in Moranbah or Dysart?", a: "Yes, as long as you have internet or mobile data. Many camps have WiFi, and those that don't usually have mobile coverage. You can submit a medical-certificate request or a repeat-prescription review request from site. A certificate is delivered if issued, and an eScript is sent only if a doctor approves the prescribing request." },
+      { q: "Can I use InstantMed from a mine camp in Moranbah or Dysart?", a: "Adults aged 18+ can submit a medical-certificate request or eligible repeat-prescription review for a regular medicine they already take from a site with internet or mobile data. A certificate is delivered only if issued, and an eScript is sent only if a doctor approves the prescribing request." },
       { q: "Does InstantMed work during cyclone season in Mackay?", a: "Yes. Telehealth is actually more useful during severe weather - when clinics close, roads flood, or you simply cannot safely drive into town. As long as the mobile network is operational, InstantMed works." },
       { q: "Is InstantMed available in the Whitsundays?", a: `Yes. Airlie Beach, Proserpine, Cannonvale, Bowen - anywhere in the Whitsundays with internet access. Pricing is identical regardless of location. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
@@ -425,14 +428,14 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Central Queensland's economy is built on beef (Rockhampton bills itself as the 'beef capital of Australia'), mining - particularly the coalfields around Blackwater, Moranbah, and Moura - and the transport and port infrastructure connecting them to global markets. Each of these industries is heavily shift-based. Feedlot operations, abattoirs, meatworks, port logistics, and coal haulage all run around the clock, and their workers need medical documentation that fits around rotating rosters, not 9-to-5 clinic hours.",
           "For workers at JBS Rockhampton, Teys Australia, or any of the regional abattoirs, a medical certificate is often a requirement for any unplanned absence. Same-day clinic visits are difficult in a city where GP wait times stretch to a week. Telehealth can support certificate requests online, and the result is emailed to you as a PDF you can forward directly to your shift supervisor if approved.",
-          "Central Queensland University's main campus is in Rockhampton, and both CQU and TAFE Queensland Central Queensland serve thousands of local and regional students. Australian universities, including CQU, set their own policies for medical certificates used as academic support documentation. The delivery method - telehealth or face-to-face - does not affect acceptance.",
+          "Central Queensland University's main campus is in Rockhampton, and both CQU and TAFE Queensland Central Queensland serve thousands of local and regional students. Each institution sets its own policy for medical certificates used as academic support documentation. Adults aged 18+ should check current requirements before submitting a request.",
         ],
       },
       {
         title: "Distance, Flooding, and Central Queensland Realities",
         paragraphs: [
           "The Fitzroy River floods. It's a regular feature of Central Queensland life, and when it does, travel in and out of Rockhampton can be disrupted for days. The Bruce Highway closures during the wet season affect everyone from Yeppoon to Mount Morgan. During these disruptions, people can still submit medical-certificate requests and request a repeat-prescription review for a regular medicine already taken while the mobile network is available.",
-          "For residents of the Capricorn Coast (Yeppoon, Emu Park, Keppel Sands), the Central Highlands (Emerald, Blackwater, Clermont), and smaller CQ communities, a GP appointment often involves a round trip of 60–120 minutes. For a 5-minute clinical assessment and a certificate, the travel alone is a disproportionate cost. Telehealth removes the travel entirely - the same clinical assessment, no drive, no waiting room.",
+          "For residents of the Capricorn Coast (Yeppoon, Emu Park, Keppel Sands), the Central Highlands (Emerald, Blackwater, Clermont), and smaller CQ communities, a GP appointment often involves a round trip of 60–120 minutes. Adults aged 18+ can submit InstantMed's listed medical-certificate and repeat-prescription review requests online without that travel.",
           "The Capricorn Coast in particular has a substantial older population and a growing remote-work cohort who left larger cities for lifestyle reasons. For eligible adults, InstantMed provides medical-certificate requests and repeat-prescription reviews for a regular medicine already taken without requiring travel into Rockhampton.",
         ],
       },
@@ -441,7 +444,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Telehealth is not a replacement for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and any condition that needs in-person assessment still require face-to-face care. InstantMed's relevant pathways here are medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
           "Central Queensland's distances make this distinction particularly valuable. InstantMed lets eligible adults submit those focused requests from home while reserving in-person visits for care that requires them. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
-          "If your situation is not appropriate for telehealth, the doctor will refer you to in-person care and you will not be charged for the consultation. We never issue a certificate when a physical examination is genuinely required.",
+          `If your situation is not appropriate for telehealth, the doctor will refer you to in-person care. We never issue a certificate when a physical examination is genuinely required. ${REFUND_PAYMENT_PROCESS}`,
         ],
       },
       {
@@ -470,8 +473,8 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the Capricorn Coast and Central Highlands?", a: "Yes. Yeppoon, Emu Park, Keppel Sands, Gracemere, Mount Morgan, Biloela, Emerald, Blackwater - anywhere in Central Queensland with internet access. Same service, same pricing." },
-      { q: "Can CQU students use InstantMed for academic support?", a: "Yes. Central Queensland University, like all Australian universities, sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation." },
-      { q: "Can I use InstantMed during Rockhampton flooding?", a: "Yes. Telehealth works as long as you have mobile or internet access. It's one of the few healthcare pathways that keeps functioning when roads are cut and clinics are inaccessible." },
+      { q: "Can CQU students use InstantMed for academic support?", a: "Adults aged 18+ can submit a medical-certificate request. Central Queensland University sets its own policy for academic support, missed assessment documentation, and coursework documentation, so check current requirements before submitting." },
+      { q: "Can I use InstantMed during Rockhampton flooding?", a: "Adults aged 18+ can submit a listed request with mobile or internet access. Availability of the local connection may vary during severe weather." },
       { q: "Is InstantMed cheaper than a Rockhampton GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no gap fees. With many Rockhampton GPs now charging $30–$60 out of pocket, InstantMed is often more affordable for medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.` },
     ],
   },
@@ -495,16 +498,16 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Sugar, Horticulture, and Wide Bay Workers",
         paragraphs: [
           "Bundaberg's economy runs on agriculture - sugarcane, macadamias, avocados, tomatoes, and the region's famous small crops. Harvest season brings a large influx of working-holiday visa holders and seasonal workers, and it intersects with the permanent workforce at the sugar mills, packing sheds, and processing facilities (Bundaberg Rum is only the most visible example). All of these are heavily shift-based industries where a 9-to-5 GP clinic visit doesn't fit the roster.",
-          "Medical certificates are a routine requirement for any unplanned absence from harvest, packing, or mill work. Telehealth can support certificate requests online, available as a PDF that workers can forward to their supervisor or labour hire provider. For working-holiday visa holders who don't have an established GP in the region, telehealth provides a consistent pathway that doesn't depend on finding a local clinic that can fit them in.",
-          "Central Queensland University has a Bundaberg campus, and TAFE Queensland's Wide Bay institutes serve thousands of vocational students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support and academic support. The consultation method is not a factor in documentation review.",
+          "Harvest, packing, and mill employers may require documentation for unplanned absences. Adults aged 18+ can submit a medical-certificate request online, and a PDF is sent only if approved. Working-holiday visa holders should check the current employer or labour-hire evidence policy.",
+          "Central Queensland University has a Bundaberg campus, and TAFE Queensland's Wide Bay institutes serve thousands of vocational students. Each institution sets its own policy for medical certificates used for academic support. Adults aged 18+ should check current requirements before submitting a request.",
         ],
       },
       {
         title: "Tourism, the Southern Great Barrier Reef, and Seasonal Pressure",
         paragraphs: [
           "The Bundaberg region is a gateway to the southern Great Barrier Reef - Lady Elliot Island, Lady Musgrave Island, and the reefs accessible from the Town of 1770 and Agnes Water, just north of the Bundaberg LGA boundary. Marine tourism operators, dive businesses, and accommodation providers employ a seasonal workforce that peaks with turtle-nesting season (November to March) and school holiday periods. Like any seasonal tourism economy, the peaks strain local primary care.",
-          "For Bundaberg residents and eligible visitors alike, an online medical-certificate request avoids the clinic queue during peak times. The medical-certificate request pathway and pricing are the same whether you are a permanent resident in East Bundaberg or a seasonal worker staying in Bargara.",
-          "The Mon Repos turtle rookery and the broader Bargara coastal strip attract international and interstate visitors throughout the warmer months. For visiting Australian residents who fall ill while staying in Bundaberg, telehealth provides a straightforward pathway to a medical certificate that is valid for their employer back home, regardless of which state they normally live in. There is no requirement to be a local resident to use the service.",
+          "Adults aged 18+ in Bundaberg, including eligible visitors, can submit an online medical-certificate request during peak periods. The request pathway and pricing are the same whether you are a permanent resident in East Bundaberg or a seasonal worker staying in Bargara.",
+          `The Mon Repos turtle rookery and the broader Bargara coastal strip attract international and interstate visitors throughout the warmer months. Visiting adults aged 18+ can submit a medical-certificate request while in Bundaberg. ${EMPLOYER_POLICY_CAVEAT}`,
         ],
       },
       {
@@ -512,7 +515,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Telehealth is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and any condition that needs in-person assessment still require face-to-face care. InstantMed's relevant pathways here are medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
           "For Bundaberg's agricultural and seasonal workforce, a medical-certificate request can be submitted without a half-day trip into town. The region's older residents can request a repeat-prescription review for a regular medicine they already take; every prescribing request requires doctor review, and an eScript is sent only if approved.",
-          "We never issue a certificate when a physical examination is genuinely required. If your situation needs in-person care, the doctor refers you to it and you are not charged for the telehealth consultation. The clinical filter is identical regardless of whether you are in Bundaberg, Childers, or anywhere else.",
+          `We never issue a certificate when a physical examination is genuinely required. If your situation needs in-person care, the doctor refers you to it. The same suitability boundary applies across the Bundaberg region. ${REFUND_PAYMENT_PROCESS}`,
         ],
       },
       {
@@ -544,7 +547,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       { q: "Does InstantMed cover the Burnett and Wide Bay regions?", a: "Yes. Childers, Gin Gin, Gayndah, Mundubbera, Monto, Bargara, Moore Park - anywhere in the Bundaberg LGA and broader Wide Bay–Burnett region with internet access is covered." },
       { q: "Can working-holiday visa holders use InstantMed during harvest?", a: "Yes. As long as you are 18+ and in Australia, you can use InstantMed regardless of visa status. Certificates are subject to employer and labour-hire provider policies." },
       { q: "Is InstantMed cheaper than a Bundaberg GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no gap fees. With Queensland's bulk-billing rate declining, many GPs in the region now charge out-of-pocket fees - InstantMed's flat pricing is often more predictable.` },
-      { q: "Can I use InstantMed from Agnes Water or the Town of 1770?", a: "Yes. Agnes Water and the Town of 1770 are just outside the Bundaberg LGA, but telehealth works anywhere in Australia with internet access - including these coastal towns. Same service, same pricing." },
+      { q: "Can I use InstantMed from Agnes Water or the Town of 1770?", a: "Adults aged 18+ can submit a listed request with internet access from Agnes Water or the Town of 1770. The published service pricing does not change by Australian location." },
     ],
   },
   "hervey-bay": {
@@ -567,15 +570,15 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Retirees, Working-Age Residents, and Seasonal Tourism",
         paragraphs: [
           "Hervey Bay's retiree population, combined with the established working-age community in Maryborough and the Fraser Coast's service industries, creates a mixed healthcare demand profile. Retirees can request a repeat-prescription review for a regular medicine they already take, although the doctor may still recommend in-person care.",
-          "For working-age residents in hospitality, retail, and the marine tourism sector, the same logic applies as anywhere else in regional Australia - irregular hours, limited sick leave, and a real need for same-day certificates. The whale watching season (July to November) and K'gari tourism draw significant seasonal employment, and these workers benefit most from telehealth's flexible availability.",
-          "We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If your symptoms suggest you need an in-person assessment - suspected chest infection, suspicious skin lesion, joint injury - the doctor will refer you to in-person care and you will not be charged for the telehealth consultation.",
+          "For working-age residents in hospitality, retail, and the marine tourism sector, the same logic applies as anywhere else in regional Australia - irregular hours, limited sick leave, and a need to request absence documentation around changing rosters. The whale watching season (July to November) and K'gari tourism draw significant seasonal employment, and online submission can fit around those schedules.",
+          `We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If your symptoms suggest you need an in-person assessment - suspected chest infection, suspicious skin lesion, joint injury - the doctor will refer you to in-person care. ${REFUND_PAYMENT_PROCESS}`,
         ],
       },
       {
         title: "Medical Certificates and Queensland Law",
         paragraphs: [
-          "Hervey Bay and Fraser Coast employers operate under the Fair Work Act 2009 or, for state government workers, the relevant Queensland industrial instruments. Both frameworks accept medical certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations. Queensland government departments, Fraser Coast Regional Council, Hervey Bay Hospital, tourism operators, and local businesses all assess telehealth certificates under their own policies.",
-          "University of the Sunshine Coast's Fraser Coast campus in Hervey Bay serves regional students. USC sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation - the same rule that applies at every Australian university.",
+          `Hervey Bay and Fraser Coast employers operate under the Fair Work Act 2009 or, for state government workers, relevant Queensland industrial instruments. Queensland government departments, Fraser Coast Regional Council, Hervey Bay Hospital, tourism operators, and local businesses each apply their own evidence policies. ${EMPLOYER_POLICY_CAVEAT}`,
+          "University of the Sunshine Coast's Fraser Coast campus in Hervey Bay serves regional students. USC sets its own policy for academic support requests, missed assessment documentation, and coursework documentation, so adults aged 18+ should check current requirements before submitting a request.",
           "Repeat-prescription needs are particularly common in the Hervey Bay demographic. InstantMed accepts review requests for a regular medicine already taken. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
         ],
       },
@@ -583,8 +586,8 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
           "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. InstantMed's relevant pathways here are medical-certificate requests and repeat-prescription reviews for a regular medicine already taken.",
-          "Hervey Bay's older residents can submit a repeat-prescription review request online. The doctor reviews the request and may approve it, decline it, ask questions, or recommend in-person care; an eScript is sent only if approved.",
-          "If your symptoms or situation are not appropriate for telehealth, the doctor refers you to in-person care and you are not charged. We never issue a certificate when a physical examination is genuinely required. The clinical filter applies identically regardless of the patient's age or location.",
+          "Hervey Bay residents aged 18+ can submit an eligible repeat-prescription review for a regular medicine they already take online. The doctor may approve it, decline it, ask questions, or recommend in-person care; an eScript is sent only if approved.",
+          `If your symptoms or situation are not appropriate for telehealth, the doctor refers you to in-person care. We never issue a certificate when a physical examination is genuinely required. InstantMed is for adults aged 18+ only. ${REFUND_PAYMENT_PROCESS}`,
         ],
       },
       {
@@ -609,14 +612,14 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Queensland follows the national AHPRA and Medical Board of Australia framework for telehealth. Queensland Health has been a strong advocate for telehealth expansion, and the Wide Bay region - including the Fraser Coast - is identified in Queensland Health's regional strategy as benefiting significantly from digital healthcare delivery.",
         "Prescribing via telehealth in Queensland follows national and state rules. InstantMed accepts repeat-prescription review requests for a regular medicine you already take. Every prescribing request requires doctor review, and an eScript is sent only if approved.",
-        "The Queensland Office of the Health Ombudsman handles complaints about health services in Queensland, including telehealth. InstantMed maintains a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+        `The Queensland Office of the Health Ombudsman handles complaints about health services in Queensland, including telehealth. InstantMed maintains a formal complaints process at complaints@instantmed.com.au. ${COMPLAINTS_TIMING}`,
       ],
     },
     additionalFaqs: [
       { q: "Can retirees in Hervey Bay use InstantMed?", a: "Eligible Australian residents aged 18+ can submit medical-certificate requests and request a repeat-prescription review for a regular medicine already taken. Every prescribing request requires doctor review, and an eScript is sent only if approved." },
       { q: "Does InstantMed cover Maryborough and K'gari?", a: "Yes. Hervey Bay, Maryborough, Burrum Heads, Tin Can Bay, and K'gari (Fraser Island) - anywhere on the Fraser Coast with internet access is covered." },
-      { q: "Can whale watching season workers get certificates quickly?", a: `Yes. Requests can be submitted and reviewed 24/7. From ${PRICING_DISPLAY.MED_CERT}, regardless of whether it is peak season or off-season.` },
-      { q: "Are certificates suitable for Fraser Coast Regional Council and Hervey Bay Hospital documentation?", a: "Yes. All Australian employers, including local councils and public hospitals, must set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act. The consultation method does not affect validity." },
+      { q: "When can whale watching season workers submit certificate requests?", a: `${AVAILABILITY} Medical certificates start from ${PRICING_DISPLAY.MED_CERT}, regardless of whether it is peak season or off-season. Issuance depends on doctor review and approval.` },
+      { q: "How do Fraser Coast Regional Council and Hervey Bay Hospital assess certificates?", a: `Each employer sets its own workplace evidence policy. ${EMPLOYER_POLICY_CAVEAT}` },
     ],
   },
   gladstone: {
@@ -640,15 +643,15 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Gladstone's industrial employers - Santos, Origin Energy, ConocoPhillips, Rio Tinto (QAL and Boyne Smelters), GPC - typically require evidence for routine absences. These are large, safety-critical operations where unplanned absences affect shift coverage and production. Site medicals, return-to-work clearances, and fitness-for-duty decisions need the employer's own pathway.",
           "Many Gladstone workers are employed through labour hire companies (Programmed, Chandler Macleod, Hays) or on contractor arrangements. These workers often face stricter documentation requirements than permanent employees - a missing certificate can mean losing future shifts. Telehealth request submission is particularly valuable for this workforce.",
-          "FIFO and DIDO (drive-in, drive-out) workers who commute to Gladstone from Rockhampton, Bundaberg, or further afield face additional challenges. If they fall ill during their swing, they may not have a local GP. They can submit an InstantMed medical-certificate request regardless of where their home base is located. Employers review certificates under their own policies.",
+          "FIFO and DIDO (drive-in, drive-out) workers who commute to Gladstone from Rockhampton, Bundaberg, or further afield face additional challenges. If they fall ill during their swing, they may not have a local GP. Adults aged 18+ can submit an InstantMed medical-certificate request regardless of where their home base is located. Employers review certificates under their own policies.",
         ],
       },
       {
         title: "Beyond Industry: Gladstone's Broader Community",
         paragraphs: [
           "Gladstone is more than its industrial base. The city serves as a service hub for the surrounding Gladstone Regional Council area, including Calliope, Tannum Sands, Boyne Island, Agnes Water, and the Town of 1770. These coastal and semi-rural communities have limited local healthcare, and residents often travel to Gladstone for GP appointments.",
-          "CQUniversity's Gladstone campus and TAFE Queensland's Gladstone campus serve local and regional students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests. The consultation method is not a factor in documentation review.",
-          "Under the Fair Work Act 2009, Gladstone employers assess absence evidence under their own policies. Queensland-specific industrial instruments, including resources sector enterprise agreements, may add internal process requirements. InstantMed certificates include the doctor's AHPRA registration, consultation date, and recommended absence period for routine sick-leave review.",
+          "CQUniversity's Gladstone campus and TAFE Queensland's Gladstone campus serve local and regional students. Each institution sets its own policy for medical certificates used for academic support. Adults aged 18+ should check current requirements before submitting a request.",
+          `Gladstone employers assess absence evidence under their own policies, and resources-sector enterprise agreements may add internal process requirements. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
         ],
       },
     ],
@@ -668,9 +671,9 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Can LNG and alumina workers use InstantMed?", a: "Yes. Industrial workers across Gladstone's LNG plants, QAL, Boyne Smelters, and the port can get medical certificates via telehealth. Certificates are subject to employer policies, including those under resources sector enterprise agreements." },
+      { q: "Can LNG and alumina workers use InstantMed?", a: `Adults aged 18+ can submit a medical-certificate request online. Resources-sector employers apply their own evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "Does InstantMed cover Tannum Sands and Agnes Water?", a: "Yes. Tannum Sands, Boyne Island, Calliope, Agnes Water, Town of 1770, and all surrounding communities are covered. Anywhere with internet access in the Gladstone region." },
-      { q: "Can labour hire workers use InstantMed?", a: "Yes. Medical certificates from AHPRA-registered doctors are subject to labour-hire company policies. The certificate includes standard absence details those agencies can review under their own rules." },
+      { q: "Can labour hire workers use InstantMed?", a: `Adults aged 18+ can submit a medical-certificate request online. Labour-hire companies apply their own evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "Is InstantMed cheaper than a Gladstone GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Gladstone bulk-billing around 60% and typical gap fees of $40–$60, InstantMed is often more affordable for straightforward certificates.` },
     ],
   },

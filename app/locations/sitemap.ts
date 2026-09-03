@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next"
 
 import { shouldIndexLocation } from "@/lib/seo/index-policy"
 
-const CONTENT_ENRICHED = new Date("2026-08-29")
+const CONTENT_ENRICHED = new Date("2026-09-03")
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

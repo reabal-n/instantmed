@@ -4,6 +4,7 @@ import {
   classifyAttributionSource,
 } from "@/lib/analytics/source-classification"
 import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
+import type { RecoveryMarkerAvailability } from "@/lib/data/customer-growth-revenue-read"
 
 export type CustomerGrowthServiceBaseline = {
   createdIntakes: number
@@ -34,15 +35,18 @@ export type CustomerGrowthSupabaseBaseline = {
   }
   recovery: {
     abandonedCheckoutSent: number
-    convertedPartials: number
-    emailCaptured: number
-    emailCaptureRate: number | null
+    attributionCoverage: RecoveryMarkerAvailability
     partialRecoverySent: number
-    partialsCaptured: number
+    partialSnapshot: {
+      emailCaptureRate: number | null
+      retentionDays: number
+      rowsUpdatedInWindow: number
+      rowsWithConvertedMarker: number
+      rowsWithEmail: number
+    }
     recoveredGrossRevenueAud: number
     recoveredNetRevenueAud: number
     recoveredPaidCount: number
-    recoveryEmailCoverageRate: number | null
   }
 }
 
@@ -184,13 +188,26 @@ function eventCount(posthog: CustomerGrowthPostHogBaseline, event: string): numb
 
 function phaseOneGate(input: CustomerGrowthBaselineSummaryInput): string {
   const recovery = input.supabase30d.recovery
-  if (recovery.convertedPartials === 0 && recovery.partialRecoverySent > 0) {
-    return "blocked - partial-intake converted marker is zero despite recovery sends"
+  if (recovery.attributionCoverage === "migration-not-applied") {
+    return "blocked - private-route recovery marker migration is not applied"
   }
-  if (recovery.emailCaptured > 0 && recovery.partialRecoverySent === 0) {
-    return "blocked - recovery email coverage is zero"
+  if (
+    recovery.partialSnapshot.rowsWithEmail > 0 &&
+    recovery.partialRecoverySent === 0
+  ) {
+    return "blocked - retained draft rows include email but the report window has no confirmed recovery sends"
   }
-  return "watch - recovery marker is measurable"
+  return "watch - recovery contribution is forward-only; wait for a fully covered closed window"
+}
+
+function recoveryCoverageCopy(availability: RecoveryMarkerAvailability): string {
+  if (availability === "migration-not-applied") {
+    return "public recovery UTMs only; the private-route marker migration is not applied"
+  }
+  if (availability === "not-checked-no-revenue-rows") {
+    return "not checked because the revenue cohort contained no rows"
+  }
+  return "public recovery UTMs plus the forward-only private-route marker; pre-marker history is not reconstructable"
 }
 
 function phaseFourGate(input: CustomerGrowthBaselineSummaryInput): string {
@@ -236,13 +253,16 @@ export function buildCustomerGrowthBaselineSummary(input: CustomerGrowthBaseline
     "",
     "## Recovery",
     "",
-    `- 30-day partial intakes: ${supabase30d.recovery.partialsCaptured}`,
-    `- 30-day partial-intake email capture: ${supabase30d.recovery.emailCaptured}`,
-    `- 30-day partial-intake email capture rate: ${formatRate(supabase30d.recovery.emailCaptureRate)}`,
-    `- 30-day partial-intake recovery sends: ${supabase30d.recovery.partialRecoverySent}`,
-    `- 30-day partial-intake converted marker: ${supabase30d.recovery.convertedPartials}`,
-    `- 30-day recovered paid count: ${supabase30d.recovery.recoveredPaidCount}`,
-    `- 30-day recovered net revenue: ${formatMoney(supabase30d.recovery.recoveredNetRevenueAud)}`,
+    `Retained partial-intake snapshot (${supabase30d.recovery.partialSnapshot.retentionDays}-day draft retention); these are surviving rows, not complete ${supabase30d.days}-day event totals.`,
+    "",
+    `- Rows updated inside the ${supabase30d.days}-day report window: ${supabase30d.recovery.partialSnapshot.rowsUpdatedInWindow}`,
+    `- Retained rows with email: ${supabase30d.recovery.partialSnapshot.rowsWithEmail}`,
+    `- Retained-row email capture rate: ${formatRate(supabase30d.recovery.partialSnapshot.emailCaptureRate)}`,
+    `- Retained rows with converted marker: ${supabase30d.recovery.partialSnapshot.rowsWithConvertedMarker}`,
+    `- ${supabase30d.days}-day confirmed partial-intake recovery sends (durable outbox): ${supabase30d.recovery.partialRecoverySent}`,
+    `- Recovery contribution coverage: ${recoveryCoverageCopy(supabase30d.recovery.attributionCoverage)}`,
+    `- Observed recovered paid count (non-exhaustive): ${supabase30d.recovery.recoveredPaidCount}`,
+    `- Observed recovered net revenue (non-exhaustive): ${formatMoney(supabase30d.recovery.recoveredNetRevenueAud)}`,
     "",
     "## Google Ads",
     "",

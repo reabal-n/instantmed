@@ -24,9 +24,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function PatientIntakeDetailPage({
   params,
   searchParams,
-}: { params: Promise<{ id: string }>; searchParams: Promise<{ retry?: string }> }) {
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{
+    recovery_proof?: string
+    retry?: string
+  }>
+}) {
   const { id } = await params
-  const { retry } = await searchParams
+  const query = await searchParams
   
   // Layout enforces patient role - use cached profile
   const authUser = (await getAuthenticatedUserWithProfile())!
@@ -71,7 +77,8 @@ export default async function PatientIntakeDetailPage({
       intake={intake}
       document={document}
       intakeDocument={intakeDocument}
-      retryPayment={retry === "true"}
+      retryPayment={query.retry === "true"}
+      recoveryProof={query.recovery_proof}
       isEmailVerified={isEmailVerified}
       userEmail={userEmail}
       dateCorrectionState={dateCorrectionState}

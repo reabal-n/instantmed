@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { isRecoveryEmailAttributed } from "@/lib/analytics/recovery-email-attribution"
 import type { AttributionClassificationInput } from "@/lib/analytics/source-classification"
 import {
   buildNetRetainedPurchaseValue,
@@ -78,6 +79,17 @@ export type CustomerGrowthPaidRevenueRow = NetRetainedPurchaseRow & {
 
 export type CustomerGrowthAttributionRow = AttributionClassificationInput & {
   id: string
+  recovery_email_engaged_at?: string | null
+}
+
+export type RecoveryMarkerAvailability =
+  | "available-forward-only"
+  | "migration-not-applied"
+  | "not-checked-no-revenue-rows"
+
+export type CustomerGrowthAttributionEvidence = {
+  recoveryMarkerAvailability: RecoveryMarkerAvailability
+  rows: CustomerGrowthAttributionRow[]
 }
 
 export type CustomerGrowthCreatedIntakeRow = {
@@ -111,6 +123,12 @@ export function collectCustomerGrowthAttributionIntakeIds(
     ...evidence.refundRows.flatMap((row) => row.id ? [row.id] : []),
     ...evidence.disputeRows.flatMap((row) => row.intake_id ? [row.intake_id] : []),
   ])
+}
+
+export function collectRecoveryEmailIntakeIds(
+  rows: CustomerGrowthAttributionRow[],
+): Set<string> {
+  return new Set(rows.filter(isRecoveryEmailAttributed).map((row) => row.id))
 }
 
 export async function readCustomerGrowthCreatedIntakeRows(
@@ -168,7 +186,7 @@ export function buildCustomerGrowthRevenueForIntakeIds(
 
 type QueryResponse<T> = {
   data: T[] | null
-  error: { message: string } | null
+  error: { code?: string; message: string } | null
 }
 
 /**
@@ -289,7 +307,7 @@ export async function readCustomerGrowthRevenueEvidence(
   }
 }
 
-const PAID_ATTRIBUTION_SELECT = [
+const BASE_PAID_ATTRIBUTION_SELECT = [
   "id",
   "utm_source",
   "utm_medium",
@@ -308,27 +326,61 @@ const PAID_ATTRIBUTION_SELECT = [
   "device",
   "network",
 ].join(", ")
+const PAID_ATTRIBUTION_SELECT = `${BASE_PAID_ATTRIBUTION_SELECT}, recovery_email_engaged_at`
+
+function isMissingRecoveryMarkerColumn(error: QueryResponse<unknown>["error"]): boolean {
+  return Boolean(
+    error &&
+    (error.code === "42703" || error.code === "PGRST204") &&
+    error.message.includes("recovery_email_engaged_at"),
+  )
+}
+
+async function readAttributionChunk(
+  supabase: SupabaseClient,
+  chunk: string[],
+  select: string,
+): Promise<QueryResponse<CustomerGrowthAttributionRow> & { count: number | null }> {
+  return filterReportableIntakes(
+    supabase
+      .from("intakes")
+      .select(select, { count: "exact" })
+      .in("id", chunk)
+      .limit(MAX_PAID_ATTRIBUTION_ROWS),
+  ) as unknown as Promise<QueryResponse<CustomerGrowthAttributionRow> & {
+    count: number | null
+  }>
+}
 
 export async function readCustomerGrowthAttributionRows(
   supabase: SupabaseClient,
   intakeIds: ReadonlySet<string>,
-): Promise<CustomerGrowthAttributionRow[]> {
+): Promise<CustomerGrowthAttributionEvidence> {
   const ids = [...intakeIds]
   const rows: CustomerGrowthAttributionRow[] = []
+  let recoveryMarkerAvailability: RecoveryMarkerAvailability = ids.length === 0
+    ? "not-checked-no-revenue-rows"
+    : "available-forward-only"
 
   for (let index = 0; index < ids.length; index += MAX_PAID_ATTRIBUTION_ROWS) {
     const chunk = ids.slice(index, index + MAX_PAID_ATTRIBUTION_ROWS)
     let result: QueryResponse<CustomerGrowthAttributionRow> & { count: number | null }
     try {
-      result = await (filterReportableIntakes(
-        supabase
-          .from("intakes")
-          .select(PAID_ATTRIBUTION_SELECT, { count: "exact" })
-          .in("id", chunk)
-          .limit(MAX_PAID_ATTRIBUTION_ROWS),
-      ) as unknown as PromiseLike<QueryResponse<CustomerGrowthAttributionRow> & {
-        count: number | null
-      }>)
+      result = await readAttributionChunk(
+        supabase,
+        chunk,
+        recoveryMarkerAvailability === "migration-not-applied"
+          ? BASE_PAID_ATTRIBUTION_SELECT
+          : PAID_ATTRIBUTION_SELECT,
+      )
+      if (isMissingRecoveryMarkerColumn(result.error)) {
+        recoveryMarkerAvailability = "migration-not-applied"
+        result = await readAttributionChunk(
+          supabase,
+          chunk,
+          BASE_PAID_ATTRIBUTION_SELECT,
+        )
+      }
     } catch {
       throw new Error("Customer growth attribution evidence is unavailable")
     }
@@ -345,7 +397,7 @@ export async function readCustomerGrowthAttributionRows(
     rows.push(...data)
   }
 
-  return rows
+  return { recoveryMarkerAvailability, rows }
 }
 
 export async function countSentAbandonedCheckoutEmails(
@@ -378,10 +430,13 @@ export async function countSentPartialRecoveryEmails(
   let result: { count: number | null; error: { message: string } | null }
   try {
     result = await supabase
-      .from("partial_intakes")
-      .select("recovery_email_sent_at", { count: "exact", head: true })
-      .gte("recovery_email_sent_at", sinceIso)
-      .lte("recovery_email_sent_at", untilIso)
+      .from("email_outbox")
+      .select("sent_at", { count: "exact", head: true })
+      .eq("email_type", "partial_intake_recovery")
+      .eq("status", "sent")
+      .not("sent_at", "is", null)
+      .gte("sent_at", sinceIso)
+      .lte("sent_at", untilIso)
   } catch {
     throw new Error("Partial-intake recovery send count is unavailable")
   }

@@ -77,6 +77,7 @@ interface IntakeDetailClientProps {
   document?: GeneratedDocument | null
   intakeDocument?: IntakeDocument | null
   retryPayment?: boolean
+  recoveryProof?: string | null
   isEmailVerified?: boolean
   userEmail?: string
   dateCorrectionState?: PatientDateCorrectionState
@@ -360,6 +361,7 @@ export function IntakeDetailClient({
   document,
   intakeDocument,
   retryPayment = false,
+  recoveryProof = null,
   isEmailVerified = true,
   userEmail,
   dateCorrectionState = "none",
@@ -423,7 +425,7 @@ export function IntakeDetailClient({
   const handleRetryPayment = useCallback(() => {
     setActionError(null)
     startTransition(async () => {
-      const result = await retryPaymentForIntakeAction(intake.id)
+      const result = await retryPaymentForIntakeAction(intake.id, recoveryProof)
       if (result.paymentRecoveryReason === "more_information_required") {
         setIntake((previous) => ({
           ...previous,
@@ -440,7 +442,7 @@ export function IntakeDetailClient({
         window.location.href = result.checkoutUrl
       }
     })
-  }, [intake.id, router])
+  }, [intake.id, recoveryProof, router])
 
   useEffect(() => {
     if (

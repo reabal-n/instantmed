@@ -9,6 +9,7 @@ import {
 import {
   buildCustomerGrowthRevenueForIntakeIds,
   collectCustomerGrowthAttributionIntakeIds,
+  collectRecoveryEmailIntakeIds,
   countSentAbandonedCheckoutEmails,
   countSentPartialRecoveryEmails,
   readCustomerGrowthAttributionRows,
@@ -27,7 +28,7 @@ type QueryCall = {
 type QueryResult = {
   count?: number | null
   data: unknown[] | Record<string, unknown> | null
-  error: { message: string } | null
+  error: { code?: string; message: string } | null
 }
 
 function customerGrowthRevenueClient(results: QueryResult[], calls: QueryCall[] = []): SupabaseClient {
@@ -131,15 +132,18 @@ describe("customer growth baseline", () => {
         },
         recovery: {
           abandonedCheckoutSent: 3,
-          convertedPartials: 0,
-          emailCaptured: 18,
-          emailCaptureRate: 14.8,
+          attributionCoverage: "migration-not-applied",
           partialRecoverySent: 14,
-          partialsCaptured: 122,
+          partialSnapshot: {
+            emailCaptureRate: 14.8,
+            retentionDays: 7,
+            rowsUpdatedInWindow: 122,
+            rowsWithConvertedMarker: 0,
+            rowsWithEmail: 18,
+          },
           recoveredGrossRevenueAud: 0,
           recoveredNetRevenueAud: 0,
           recoveredPaidCount: 0,
-          recoveryEmailCoverageRate: 77.8,
         },
       },
     })
@@ -155,8 +159,16 @@ describe("customer growth baseline", () => {
     expect(summary).toContain("| ai_referral | /medical-certificate-online | 2 |")
     expect(summary).toContain("| organic_nonbrand | /medical-certificate | 1 |")
     expect(summary).toContain("| referral | /employers | 1 |")
+    expect(summary).toContain("Retained partial-intake snapshot (7-day draft retention)")
+    expect(summary).toContain("Rows updated inside the 30-day report window: 122")
+    expect(summary).toContain("30-day confirmed partial-intake recovery sends (durable outbox): 14")
+    expect(summary).toContain("private-route marker migration is not applied")
+    expect(summary).toContain("Observed recovered paid count (non-exhaustive): 0")
+    expect(summary).not.toContain("30-day recovered paid count")
+    expect(summary).not.toContain("30-day partial intakes")
+    expect(summary).not.toContain("recovery email coverage rate")
     expect(summary).toContain("Phase 1 gate: blocked")
-    expect(summary).toContain("partial-intake converted marker is zero")
+    expect(summary).toContain("recovery marker migration is not applied")
   })
 
   it("groups free-channel paid orders by InstantMed public pathname only", () => {
@@ -360,6 +372,30 @@ describe("customer growth baseline", () => {
     })
   })
 
+  it("keeps recovery-assisted orders measurable without replacing acquisition attribution", () => {
+    expect(collectRecoveryEmailIntakeIds([
+      {
+        gclid: "retained-google-click",
+        id: "recovered-from-public-request",
+        utm_campaign: "partial_intake_recovery",
+        utm_medium: "email",
+        utm_source: "recovery_email",
+      },
+      {
+        gclid: "retained-google-click",
+        id: "recovered-from-private-resume",
+        recovery_email_engaged_at: "2026-09-03T10:00:00.000Z",
+        utm_campaign: "paid-brand",
+        utm_medium: "cpc",
+        utm_source: "google",
+      },
+      { gclid: "acquisition-only", id: "google-order" },
+    ])).toEqual(new Set([
+      "recovered-from-public-request",
+      "recovered-from-private-resume",
+    ]))
+  })
+
   it("keeps prior recovery purchases linked to current refund and dispute cash events", () => {
     const since = new Date("2026-06-01T00:00:00.000Z")
     const until = new Date("2026-07-01T00:00:00.000Z")
@@ -449,13 +485,43 @@ describe("customer growth baseline", () => {
         { count: 1, data: secondBatch, error: null },
       ], calls),
       ids,
-    )).resolves.toEqual([...firstBatch, ...secondBatch])
+    )).resolves.toEqual({
+      recoveryMarkerAvailability: "available-forward-only",
+      rows: [...firstBatch, ...secondBatch],
+    })
 
     expect(calls.filter((call) => call.method === "in" && call.table === "intakes"))
       .toMatchObject([
         { args: ["id", Array.from({ length: 100 }, (_value, index) => `intake-${index}`)] },
         { args: ["id", ["intake-100"]] },
       ])
+  })
+
+  it("falls back safely when the recovery marker migration is not applied", async () => {
+    const rows = [{
+      id: "paid-intake",
+      utm_campaign: "abandoned_checkout",
+      utm_medium: "email",
+      utm_source: "recovery_email",
+    }]
+
+    await expect(readCustomerGrowthAttributionRows(
+      customerGrowthRevenueClient([
+        {
+          count: null,
+          data: null,
+          error: {
+            code: "42703",
+            message: "column intakes.recovery_email_engaged_at does not exist",
+          },
+        },
+        { count: 1, data: rows, error: null },
+      ]),
+      new Set(["paid-intake"]),
+    )).resolves.toEqual({
+      recoveryMarkerAvailability: "migration-not-applied",
+      rows,
+    })
   })
 
   it("counts abandoned checkout recovery only after an email was sent", async () => {
@@ -504,22 +570,36 @@ describe("customer growth baseline", () => {
       "2026-07-01T00:00:00.000Z",
     )).resolves.toBe(4)
     expect(calls).toContainEqual({
-      args: ["recovery_email_sent_at", { count: "exact", head: true }],
+      args: ["sent_at", { count: "exact", head: true }],
       method: "select",
-      table: "partial_intakes",
+      table: "email_outbox",
     })
     expect(calls).toContainEqual({
-      args: ["recovery_email_sent_at", "2026-06-01T00:00:00.000Z"],
+      args: ["email_type", "partial_intake_recovery"],
+      method: "eq",
+      table: "email_outbox",
+    })
+    expect(calls).toContainEqual({
+      args: ["status", "sent"],
+      method: "eq",
+      table: "email_outbox",
+    })
+    expect(calls).toContainEqual({
+      args: ["sent_at", "is", null],
+      method: "not",
+      table: "email_outbox",
+    })
+    expect(calls).toContainEqual({
+      args: ["sent_at", "2026-06-01T00:00:00.000Z"],
       method: "gte",
-      table: "partial_intakes",
+      table: "email_outbox",
     })
     expect(calls).toContainEqual({
-      args: ["recovery_email_sent_at", "2026-07-01T00:00:00.000Z"],
+      args: ["sent_at", "2026-07-01T00:00:00.000Z"],
       method: "lte",
-      table: "partial_intakes",
+      table: "email_outbox",
     })
     expect(calls).not.toContainEqual(expect.objectContaining({
-      args: expect.arrayContaining(["updated_at"]),
       table: "partial_intakes",
     }))
   })

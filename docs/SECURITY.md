@@ -470,6 +470,8 @@ remain a separate hashed server-side boundary.
 
 Capability-bearing routes such as `/track/*`, `/resume/*`, and `/auth/complete-account`, auth handoffs, and authenticated `/account`, `/admin`, `/dashboard`, `/doctor`, and `/patient` surfaces are excluded from external URL analytics. Vercel Analytics, referral attribution, and external web-vitals collection remain off there. The guest account-completion route also sends `no-referrer`; confirmed-payment finalization owns its personless PostHog purchase event and Google Ads conversion server-side. Browser conversion measurement remains only on the fixed authenticated patient-success route, with automatic Google pageviews and PostHog pageleave capture disabled. Application Sentry remains available on non-capability authenticated surfaces behind PHI/identifier scrubbing. Any capability or private dynamic path that reaches sanitization is reduced to a fixed redacted route family before logging.
 
+Payment recovery does not weaken that route exclusion. A domain-separated, seven-day HMAC proof bound to the intake must verify server-side before a guest resume or authenticated patient retry may write `intakes.recovery_email_engaged_at`. The database rejects initial marker writes from non-service roles and preserves the first server value. The timestamp contains no URL, capability, patient/contact identifier, clinical data, campaign text, or acquisition click identifier. Aggregate reporting combines this forward-only server marker with already-persisted public `/request` recovery UTMs; it never emits row-level recovery evidence and labels pre-migration fallback totals non-exhaustive.
+
 ---
 
 ## Secret Management

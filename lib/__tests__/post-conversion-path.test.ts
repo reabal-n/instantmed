@@ -3,7 +3,10 @@ import { join } from "node:path"
 
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { isPostConversionPath } from "@/lib/browser/post-conversion-path"
+import {
+  isPostConversionPath,
+  isPostConversionPathname,
+} from "@/lib/browser/post-conversion-path"
 
 function setPath(pathname: string) {
   vi.stubGlobal("window", { location: { pathname } })
@@ -32,6 +35,15 @@ describe("isPostConversionPath", () => {
   it("is false on a normal patient intake detail page", () => {
     setPath("/patient/intakes/3f2b9c10-0000-0000-0000-000000000000")
     expect(isPostConversionPath()).toBe(false)
+  })
+
+  it.each([
+    "/patient/intakes/success%2Fsigned-secret",
+    "/patient/intakes/success%252Fsigned-secret",
+    "/patient/intakes/success%ZZ",
+    "/patient/intakes/success/unexpected-child",
+  ])("does not let %s use the exact success-page telemetry bypass", (pathname) => {
+    expect(isPostConversionPathname(pathname)).toBe(false)
   })
 
   it("is false during SSR (no window)", () => {

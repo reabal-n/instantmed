@@ -4,7 +4,10 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { faqItems, footerLinks } from "@/lib/marketing/homepage"
-import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
+import {
+  DEEP_CITY_CONTENT,
+  type DeepCityContent,
+} from "@/lib/seo/data/deep-city-content"
 import { KEEP_INDEXED_LOCATIONS } from "@/lib/seo/index-policy"
 import { intentPages } from "@/lib/seo/intents"
 import { getActiveServices, getServiceMarketingHref } from "@/lib/services/service-catalog"
@@ -176,7 +179,96 @@ const prescribingIdentityClaimConsumerPaths = [
   "lib/seo/data/deep-city-content/nsw.ts",
 ] as const
 
+function renderedDeepCityFields(content: DeepCityContent) {
+  return [
+    ...content.healthStats.flatMap((stat, index) => [
+      [`healthStats[${index}].label`, stat.label] as const,
+      [`healthStats[${index}].value`, stat.value] as const,
+      [`healthStats[${index}].context`, stat.context] as const,
+    ]),
+    ...content.sections.flatMap((section, sectionIndex) => [
+      [`sections[${sectionIndex}].title`, section.title] as const,
+      ...section.paragraphs.map(
+        (paragraph, paragraphIndex) =>
+          [
+            `sections[${sectionIndex}].paragraphs[${paragraphIndex}]`,
+            paragraph,
+          ] as const,
+      ),
+    ]),
+    ["pharmacyInfo.title", content.pharmacyInfo.title] as const,
+    ...content.pharmacyInfo.paragraphs.map(
+      (paragraph, index) =>
+        [`pharmacyInfo.paragraphs[${index}]`, paragraph] as const,
+    ),
+    ["telehealthRegulations.title", content.telehealthRegulations.title] as const,
+    ...content.telehealthRegulations.paragraphs.map(
+      (paragraph, index) =>
+        [`telehealthRegulations.paragraphs[${index}]`, paragraph] as const,
+    ),
+    ...content.additionalFaqs.flatMap((faq, index) => [
+      [`additionalFaqs[${index}].q`, faq.q] as const,
+      [`additionalFaqs[${index}].a`, faq.a] as const,
+      [`additionalFaqs[${index}]`, `${faq.q} ${faq.a}`] as const,
+    ]),
+  ]
+}
+
+const prohibitedDeepCityClaims = [
+  {
+    label: "locked certificate-body assertion",
+    pattern: /\b(?:medically unfit|unfit for (?:work|study)|not fit for (?:work|study)|unable to (?:work|study)|shows? (?:that )?(?:you|the patient) (?:were|was) genuinely unwell|documentation for legitimate illness|includes? standard (?:document |absence )?details|recommended period of absence)\b/i,
+  },
+  {
+    label: "employer or institution acceptance guarantee",
+    pattern: /cannot refuse|requires acceptance|accepted under all|fully valid|equally valid|(?:consultation method|method of consultation).{0,120}(?:doesn['’]?t|does not|is not a factor).{0,120}(?:acceptance|validity|documentation review)|telehealth certificates? meet(?:s)? (?:this|the|your) requirement|(?:certificate|certificates).{0,120}(?:valid for employers|valid for Fair Work|valid in (?:both|all|every)|valid across|valid under both|includes standard workplace evidence details|suitable for Fair Work sick-leave evidence|same workplace evidence status)|(?:systems|frameworks|awards?|universit(?:y|ies)|institutions?).{0,120}accept(?:s|ed)? (?:telehealth )?certificates|do not distinguish between telehealth and face-to-face certificates|no (?:legislative|legal) distinction between telehealth and face-to-face certificates|regardless of (?:the )?consultation method|same rule that applies at every Australian university|applies equally to .{0,160} employer|are certificates suitable .{0,80}\byes\b|do .{0,80}employers accept .{0,80}\byes\b/i,
+  },
+  {
+    label: "minor, guardian, or age-independent eligibility",
+    pattern: /\bpartners? and children\b|\bparents?\b.{0,120}\b(?:InstantMed|telehealth|certificate|request)\b|\b(?:InstantMed|telehealth|certificate|request)\b.{0,120}\b(?:parents?|children|child)\b|^(?:yes[. -]*)?(?:eligible )?(?:defence )?famil(?:y|ies|y members) can submit\b|regardless of (?:the patient['’]?s )?age|across all age groups|personal and family healthcare needs/i,
+  },
+  {
+    label: "timing or service-outcome guarantee",
+    pattern: /submissions?.{0,80}(?:reviewed|approved).{0,40}(?:almost )?immediately|requests? submitted.{0,80}reviewed the following morning|(?:eScript|certificate|PDF).{0,100}(?:issued|sent|arrives?|dispatch(?:ed)?).{0,60}(?:in minutes|same[- ]day|same night|immediately|next working day)|(?:InstantMed|telehealth).{0,160}(?:gets you a certificate before|delivers them faster|provides documentation without the wait|fastest path to documentation|significantly faster|20[–-]30 minute process|20[–-]30 minutes from home|30-minute telehealth turnaround|practical immediate solution|certificate arrives via email|provides the documentation without|timely documentation|delivers (?:the )?certificate|delivers reliably)|the whole process takes 20[–-]30 minutes|receive your certificate before the next shift|submit.{0,100}receive (?:the|your) certificate(?: via email)?|your certificate is emailed|can get (?:a |medical )?certificates? via telehealth|with a 14-day (?:response )?(?:SLA|commitment)/i,
+  },
+  {
+    label: "no-charge-before-review claim",
+    pattern: /(?:you|patients?|people|residents|visitors) (?:are|aren['’]?t|won['’]?t|will not|do not|don['’]?t) (?:be )?charged|you will not be charged|no charge|pay(?:ment)? (?:only )?after|charged (?:only )?after|before (?:being )?charged/i,
+  },
+  {
+    label: "blanket prescribing or general-care scope",
+    pattern: /most (?:PBS-listed )?medications can be prescribed|PBS-listed medications can be prescribed via telehealth|(?:our )?doctors? can (?:help|treat patients|provide medical certificates and prescriptions)|routine UTI prescription|personal and family healthcare needs|routine healthcare needs|routine prescriptions|routine certificate and script needs|repeat scripts? (?:on|of) stable (?:chronic )?medications|for straightforward certificates and scripts|alternative pathway for low-acuity needs|when (?:an )?InstantMed(?: doctor)? issues (?:a prescription|an eScript)|telehealth (?:provides it|gets? (?:you|them) (?:the|a) certificate)|the certificate is emailed directly/i,
+  },
+  {
+    label: "equivalent clinical outcome",
+    pattern: /same clinical (?:outcome|assessment)|without (?:sacrificing|reducing).{0,80}(?:clinical assessment|quality of the clinical assessment)/i,
+  },
+] as const
+
 describe("marketing copy contracts", () => {
+  it("certifies every rendered field across all 42 deep-city entries", () => {
+    const cities = Object.entries(DEEP_CITY_CONTENT)
+
+    expect(cities).toHaveLength(42)
+
+    for (const [city, content] of cities) {
+      for (const [field, copy] of renderedDeepCityFields(content)) {
+        expect(copy, `${city}.${field}`).toBeTypeOf("string")
+        expect(copy.trim(), `${city}.${field}`).not.toBe("")
+
+        for (const { label, pattern } of prohibitedDeepCityClaims) {
+          expect.soft(copy, `${city}.${field}: ${label}`).not.toMatch(pattern)
+        }
+
+        if (/^additionalFaqs\[\d+\]$/.test(field) && /^Can .+ use InstantMed\b/i.test(copy)) {
+          expect.soft(copy, `${city}.${field}: explicit 18+ eligibility`).toMatch(
+            /\b(?:adults? aged )?18\+/i,
+          )
+        }
+      }
+    }
+  })
+
   it("keeps city and telehealth acquisition copy inside approved public truth", () => {
     const combined = [
       locationPageSource,

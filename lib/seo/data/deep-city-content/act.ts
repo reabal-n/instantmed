@@ -11,6 +11,7 @@ import type { DeepCityContent } from "../deep-city-content"
 const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
 const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
+const PRESCRIPTION_IF_APPROVED = getApprovedClaim("prescription_if_approved")
 
 export const ACT_CITIES: Record<string, DeepCityContent> = {
   canberra: {
@@ -34,7 +35,7 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           `Canberra's workforce is dominated by the Australian Public Service. APS leave-evidence requirements can vary by agency, including at Parliament House, the ATO in Symonston, Defence in Russell, and other Commonwealth agencies. Check your agency's current policy for the request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
           "University students at ANU, University of Canberra, ACU, and UNSW Canberra face similar access challenges. The ANU Health Service handles high volumes, particularly during exam periods. UC's Bruce campus has limited on-site medical facilities. For academic support requests and coursework documentation, telehealth certificates are handled according to each institution's policy.",
-          "Canberra's diplomatic community - embassy staff, international organisations, and their families - often lack established GP relationships. Telehealth provides a focused medical-certificate or repeat-prescription request without needing an established local GP. This is also relevant for temporary residents working in Canberra on secondment.",
+          "Canberra's diplomatic community - embassy staff, international organisations, and accompanying households - often lack established GP relationships. Adults aged 18+ can submit a focused medical-certificate request or eligible repeat-prescription review for a regular medicine they already take without needing an established local GP. This is also relevant for temporary residents working in Canberra on secondment.",
         ],
       },
       {
@@ -49,8 +50,8 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
     pharmacyInfo: {
       title: "Pharmacies and eScripts in Canberra",
       paragraphs: [
-        "Canberra has approximately 120 community pharmacies across the territory, well-distributed across town centres. Every major suburb centre - Civic, Belconnen, Woden, Tuggeranong, Gungahlin - has multiple pharmacy options, all accepting eScripts. When InstantMed issues a prescription, you receive an SMS with a QR code that any ACT pharmacy can scan.",
-        "Several Canberra pharmacies offer extended hours, including Chemist Warehouse locations at Belconnen and Tuggeranong, and pharmacies within the Canberra Centre. An eScript issued in the evening can often be filled the same night. For medications dispensed under the PBS, you'll pay the standard PBS co-payment regardless of whether the script came from telehealth or in-person.",
+        `Canberra has approximately 120 community pharmacies across the territory, well-distributed across town centres. Every major suburb centre - Civic, Belconnen, Woden, Tuggeranong, Gungahlin - has multiple pharmacy options that accept eScripts. ${PRESCRIPTION_IF_APPROVED}`,
+        "Several Canberra pharmacies offer extended hours, including Chemist Warehouse locations at Belconnen and Tuggeranong, and pharmacies within the Canberra Centre. Dispensing timing depends on the approved prescription, pharmacy hours, stock, and pharmacy checks. For medications dispensed under the PBS, the standard PBS co-payment applies.",
       ],
     },
     telehealthRegulations: {
@@ -65,7 +66,7 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
       { q: "Do APS agencies assess telehealth certificates under their own policies?", a: `APS agencies set their own policies for medical certificates and leave evidence. Check your agency's current policy for the request. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "How should ANU students check medical-documentation requirements?", a: "ANU, UC, ACU, and UNSW Canberra set their own academic-support and medical-documentation policies. Check the relevant institution's current process before submitting a request." },
       { q: "Is InstantMed cheaper than a GP in Canberra?", a: `With Canberra's bulk-billing rate around 47% and typical gap fees of $50–$100, InstantMed is often more affordable for a straightforward medical-certificate request. Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no hidden costs.` },
-      { q: "Can I use InstantMed in Queanbeyan?", a: "Yes. While Queanbeyan is technically in NSW, InstantMed works anywhere in Australia. Same service, same pricing, same certificates." },
+      { q: "Can I use InstantMed in Queanbeyan?", a: `Adults aged 18+ can submit a listed request with internet access from Queanbeyan. Published service pricing does not change by Australian location. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "What about ACT public servants specifically?", a: `ACT Government employees should check the current ACT Public Sector leave-evidence process. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
     ],
   },

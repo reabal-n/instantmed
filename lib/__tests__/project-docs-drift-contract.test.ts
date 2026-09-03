@@ -183,7 +183,10 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest on disk and latest applied and verified production migration: `20260828090000_specialty_experience_attribution.sql`",
+      "Latest on disk: `20260903120000_recovery_email_engagement.sql`",
+    )
+    expect(architecture).toContain(
+      "Latest applied and verified production migration: `20260828090000_specialty_experience_attribution.sql`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
@@ -196,7 +199,7 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "latest applied and verified production migration (2026-08-28), is `20260828090000_specialty_experience_attribution.sql`",
+      "latest applied and verified production migration (2026-08-28) is `20260828090000_specialty_experience_attribution.sql`",
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(

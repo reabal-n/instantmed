@@ -1,3 +1,4 @@
+import { recordRecoveryEmailEngagement } from "@/lib/analytics/recovery-email-engagement"
 import {
   getRepeatRxDoseMissingFields,
   hasRepeatRxDoseContractMarker,
@@ -185,6 +186,7 @@ async function rebuildGuestCheckoutSession(
   supabase: ReturnType<typeof createServiceRoleClient>,
   intake: ResumeIntake,
   baseUrl: string,
+  recoveryEmailVerified = false,
 ): Promise<string | null> {
   const priceId =
     intake.stripe_price_id ||
@@ -277,7 +279,16 @@ async function rebuildGuestCheckoutSession(
         source: "guest_resume",
         supabase,
       })
-      if (confirmation.outcome === "current") return session.url
+      if (confirmation.outcome === "current") {
+        if (recoveryEmailVerified) {
+          await recordRecoveryEmailEngagement({
+            intakeId: intake.id,
+            patientId: intake.patient_id || undefined,
+            supabase,
+          }).catch(() => false)
+        }
+        return session.url
+      }
       if (confirmation.outcome === "state_changed") {
         return resolveCurrentPaymentCompletion(supabase, intake.id)
       }
@@ -294,7 +305,10 @@ async function rebuildGuestCheckoutSession(
   }
 }
 
-export async function resolveGuestCheckoutResume(intakeId: string): Promise<string> {
+export async function resolveGuestCheckoutResume(
+  intakeId: string,
+  recoveryEmailVerified = false,
+): Promise<string> {
   const supabase = createServiceRoleClient()
   const initial = await readResumeIntake(supabase, intakeId)
 
@@ -459,7 +473,16 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
           source: "guest_resume",
           supabase,
         })
-        if (confirmation.outcome === "current") return inspection.session.url
+        if (confirmation.outcome === "current") {
+          if (recoveryEmailVerified) {
+            await recordRecoveryEmailEngagement({
+              intakeId: intake.id,
+              patientId: intake.patient_id || undefined,
+              supabase,
+            }).catch(() => false)
+          }
+          return inspection.session.url
+        }
         if (confirmation.outcome === "state_changed") {
           return resolveCurrentPaymentCompletion(supabase, intake.id)
         }
@@ -475,7 +498,12 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
     }
 
     if (canRebuild) {
-      const checkoutUrl = await rebuildGuestCheckoutSession(supabase, intake, getAppUrl())
+      const checkoutUrl = await rebuildGuestCheckoutSession(
+        supabase,
+        intake,
+        getAppUrl(),
+        recoveryEmailVerified,
+      )
       if (checkoutUrl) return checkoutUrl
       return PAYMENT_STATE_UNRESOLVED_DESTINATION
     }

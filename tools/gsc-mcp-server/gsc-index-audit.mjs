@@ -154,7 +154,7 @@ async function getSearchAnalyticsRows(searchconsole, requestBody) {
 
   for (
     let startRow = 0;
-    startRow < MAX_SEARCH_ANALYTICS_ROWS;
+    startRow <= MAX_SEARCH_ANALYTICS_ROWS;
     startRow += SEARCH_ANALYTICS_PAGE_SIZE
   ) {
     const response = await searchconsole.searchanalytics.query({
@@ -169,11 +169,18 @@ async function getSearchAnalyticsRows(searchconsole, requestBody) {
     if (page.length > SEARCH_ANALYTICS_PAGE_SIZE) {
       throw new Error("Search Console analytics page exceeded the requested row limit")
     }
+    if (page.length === 0) return rows
+    if (rows.length + page.length > MAX_SEARCH_ANALYTICS_ROWS) {
+      throw new Error(
+        "Search Console analytics response exceeded the paged-row safety limit; refusing a partial report",
+      )
+    }
     rows.push(...page)
-    if (page.length < SEARCH_ANALYTICS_PAGE_SIZE) return rows
   }
 
-  throw new Error("Search Console analytics response exceeded the complete-read limit")
+  throw new Error(
+    "Search Console analytics pagination ended without an empty-page confirmation",
+  )
 }
 
 async function getPerformancePages(searchconsole, startDate, endDate) {
@@ -314,6 +321,13 @@ async function main() {
     property: SITE_URL,
     siteOrigin: SITE_ORIGIN,
     dateRange: { startDate, endDate },
+    searchAnalyticsEvidence: {
+      completeness: "top-rows-only",
+      limitation: "Google Search Console does not guarantee every data row",
+      pagination: "offset pages read until an empty page",
+      rowLimit: SEARCH_ANALYTICS_PAGE_SIZE,
+      safetyLimit: MAX_SEARCH_ANALYTICS_ROWS,
+    },
     submittedSitemaps: (submittedSitemaps.data.sitemap ?? []).map((sitemap) => ({
       path: sitemap.path,
       lastSubmitted: sitemap.lastSubmitted,
