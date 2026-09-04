@@ -27,6 +27,9 @@ e2e/.e2e-run-id*
 # production
 /build
 
+# Local generated deliverables (may contain patient or operator information)
+/output/
+
 # misc
 .DS_Store
 *.pem
