@@ -1066,12 +1066,6 @@ async function main(): Promise<void> {
     ) as unknown
     validateHostedStripeBrowserEvidence(rawBrowserEvidence)
     browserEvidence = rawBrowserEvidence
-
-    await readStableHostedStripeSourceState({
-      env: commandEnv,
-      expectedSha: gitSha,
-      root,
-    })
   } catch (error) {
     primaryError = error
   } finally {
@@ -1096,6 +1090,14 @@ async function main(): Promise<void> {
   if (!browserEvidence || survivorCount === undefined) {
     throw new Error("Hosted Stripe E2E did not produce complete browser and cleanup evidence")
   }
+
+  // Cleanup imports its run-scoped helper from the source checkout, so bind
+  // the receipt only after every executed source path is finished.
+  await readStableHostedStripeSourceState({
+    env: commandEnv,
+    expectedSha: gitSha,
+    root,
+  })
 
   const finishedAt = new Date().toISOString()
   if (Date.parse(finishedAt) < Date.parse(startedAt)) {

@@ -626,8 +626,16 @@ describe("hosted browser journey source contracts", () => {
     expect(runner).toContain("HOSTED_STRIPE_E2E_BROWSER_EVIDENCE_PATH")
     expect(runner).not.toContain("HOSTED_STRIPE_E2E_RECEIPT_PATH")
     expect(main.match(/readStableHostedStripeSourceState\(/g)).toHaveLength(2)
-    expect(main.indexOf("readStableHostedStripeSourceState({")).toBeLessThan(
+    const firstSourceCheck = main.indexOf("readStableHostedStripeSourceState({")
+    const finalSourceCheck = main.lastIndexOf("readStableHostedStripeSourceState({")
+    expect(firstSourceCheck).toBeLessThan(
       main.indexOf('await runCommand("rsync"'),
+    )
+    expect(finalSourceCheck).toBeGreaterThan(
+      main.indexOf("survivorCount = await cleanup()"),
+    )
+    expect(finalSourceCheck).toBeLessThan(
+      main.lastIndexOf("await writeHostedStripeReceiptAtomic"),
     )
     expect(main.indexOf("resolveVerifiedLocalDockerEndpoint(")).toBeLessThan(
       main.indexOf('await runCommand("supabase", ["start"'),
@@ -640,6 +648,16 @@ describe("hosted browser journey source contracts", () => {
     expect(workflow).toMatch(/on:\s*\n\s*workflow_dispatch:/)
     expect(workflow).not.toMatch(/schedule:/)
     expect(workflow).not.toMatch(/push:/)
+    const stepsIndex = workflow.indexOf("    steps:")
+    const hostedRunIndex = workflow.indexOf(
+      "      - name: Run the isolated hosted Stripe journey",
+    )
+    const hostedRunEnvIndex = workflow.indexOf("        env:", hostedRunIndex)
+    expect(workflow.slice(0, stepsIndex)).not.toContain("    env:")
+    expect(hostedRunEnvIndex).toBeGreaterThan(hostedRunIndex)
+    expect(workflow.slice(hostedRunEnvIndex)).toContain(
+      "HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY: ${{ secrets.HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY }}",
+    )
 
     const gitignore = readFileSync(gitignorePath, "utf8")
     expect(gitignore).toContain("/.artifacts/hosted-stripe-e2e/")

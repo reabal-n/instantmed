@@ -38,8 +38,9 @@ service, Vercel deployment, or Moirai-owned local service was touched.
   setup or `webServer`.
 - Source is accepted only from a clean Git worktree. The runner captures the
   40-character revision before copying, then requires the same clean revision
-  after both browser journeys before placing it in the receipt; a dirty tree or
-  concurrent commit cannot be mislabelled as commit-bound proof.
+  after both browser journeys and runner-owned cleanup before placing it in the
+  receipt; a dirty tree or concurrent commit cannot be mislabelled as
+  commit-bound proof, including source loaded dynamically during cleanup.
 - The dedicated test key is supplied to the Stripe listener through its scoped
   `STRIPE_API_KEY` environment rather than process arguments. Successful
   receipts live in the exactly ignored `.artifacts/hosted-stripe-e2e/`
@@ -75,8 +76,9 @@ service, Vercel deployment, or Moirai-owned local service was touched.
   aggregate counts; identifiers, email addresses, tokens, session IDs, and
   clinical data are rejected by construction.
 - Added `corepack pnpm e2e:stripe-hosted` and a `workflow_dispatch`-only GitHub
-  workflow. The workflow documents dedicated environment-secret names but does
-  not configure values or schedule execution.
+  workflow. The workflow documents dedicated environment-secret names, exposes
+  them only to the hosted-run step (not checkout, installs, or setup actions),
+  and does not configure values or schedule execution.
 
 ## Genuine TDD evidence
 
@@ -104,6 +106,8 @@ green:
 10. The final repeatability/hardening contract failed until the exact receipt
     directory was ignored and the Stripe listener stopped placing the test key
     in its process arguments.
+11. Workflow scoping failed until every dedicated Stripe secret moved from the
+    job environment to the single hosted-run step.
 
 After the corresponding implementation changes, the focused Task 2 suite is
 green at 36/36. The payment-policy/linkage regression set is re-run after each
