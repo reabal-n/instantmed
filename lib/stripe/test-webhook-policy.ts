@@ -1,0 +1,126 @@
+const PRODUCTION_SUPABASE_PROJECT_REF = "witzcrovsoumktyndqgz"
+
+export type StripeKeyMode = "live" | "test" | "unknown"
+export type SupabaseTestTarget = "local" | "non_production" | "production" | "unknown"
+export type StripeTestNodeEnvironment = "development" | "test" | "production" | "unknown"
+
+export interface StripeTestEventPolicyInput {
+  allowTestWebhooks: boolean
+  eventLivemode: boolean
+  nodeEnv: StripeTestNodeEnvironment
+  playwrightEnabled: boolean
+  requestHost: string
+  stripeKeyMode: StripeKeyMode
+  supabaseTarget: SupabaseTestTarget
+  supabaseUrlsMatch: boolean
+  vercel?: string
+  vercelEnv?: string
+}
+
+export interface SupabaseTestTargetInput {
+  publicUrl?: string
+  serverUrl?: string
+}
+
+interface ParsedSupabaseTarget {
+  identity: string
+  target: Exclude<SupabaseTestTarget, "unknown">
+}
+
+function requestHostname(requestHost: string): string | null {
+  const value = requestHost.trim()
+  if (!value) return null
+
+  try {
+    const url = new URL(value.includes("://") ? value : `http://${value}`)
+    if (url.username || url.password) return null
+    return url.hostname.replace(/^\[|\]$/g, "").toLowerCase()
+  } catch {
+    return null
+  }
+}
+
+function isLoopbackHost(requestHost: string): boolean {
+  const hostname = requestHostname(requestHost)
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1"
+}
+
+function parseSupabaseTarget(rawUrl: string | undefined): ParsedSupabaseTarget | null {
+  if (!rawUrl) return null
+
+  try {
+    const url = new URL(rawUrl)
+    if (
+      !["http:", "https:"].includes(url.protocol) ||
+      url.username ||
+      url.password ||
+      url.pathname !== "/" ||
+      url.search ||
+      url.hash
+    ) {
+      return null
+    }
+
+    const hostname = url.hostname.replace(/^\[|\]$/g, "").toLowerCase()
+    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
+      return {
+        identity: url.origin.toLowerCase(),
+        target: "local",
+      }
+    }
+
+    if (url.protocol !== "https:" || url.port) return null
+    const match = hostname.match(/^([a-z0-9]{20})\.supabase\.co$/)
+    if (!match) return null
+
+    const projectRef = match[1]
+    return {
+      identity: `supabase:${projectRef}`,
+      target: projectRef === PRODUCTION_SUPABASE_PROJECT_REF ? "production" : "non_production",
+    }
+  } catch {
+    return null
+  }
+}
+
+export function classifyStripeKeyMode(key: string | undefined): StripeKeyMode {
+  if (key?.match(/^(?:sk|rk)_test_/)) return "test"
+  if (key?.match(/^(?:sk|rk)_live_/)) return "live"
+  return "unknown"
+}
+
+export function classifySupabaseTestTarget(
+  input: SupabaseTestTargetInput,
+): { supabaseTarget: SupabaseTestTarget; supabaseUrlsMatch: boolean } {
+  const effectiveServerUrl = input.serverUrl ?? input.publicUrl
+  const serverTarget = parseSupabaseTarget(effectiveServerUrl)
+  const publicTarget = parseSupabaseTarget(input.publicUrl)
+
+  if (!serverTarget || !publicTarget || serverTarget.identity !== publicTarget.identity) {
+    return { supabaseTarget: "unknown", supabaseUrlsMatch: false }
+  }
+
+  return {
+    supabaseTarget: serverTarget.target,
+    supabaseUrlsMatch: true,
+  }
+}
+
+export function mayProcessStripeTestEvent(input: StripeTestEventPolicyInput): boolean {
+  if (input.eventLivemode) return true
+
+  const hasVercelMarker = input.vercel !== undefined || input.vercelEnv !== undefined
+  if (hasVercelMarker || !input.playwrightEnabled || !isLoopbackHost(input.requestHost)) {
+    return false
+  }
+
+  if (input.nodeEnv === "development" || input.nodeEnv === "test") {
+    return true
+  }
+
+  return input.nodeEnv === "production" &&
+    input.allowTestWebhooks &&
+    input.stripeKeyMode === "test" &&
+    input.supabaseUrlsMatch &&
+    (input.supabaseTarget === "local" || input.supabaseTarget === "non_production")
+}

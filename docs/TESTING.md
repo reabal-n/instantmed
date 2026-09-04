@@ -159,6 +159,17 @@ When `PLAYWRIGHT=1` is set:
 - **Intake status reset:** use `e2e_reset_intake_status()` RPC (see below) — direct status updates are blocked by the state machine trigger
 - **Seeded queue data:** the fixed `E2E Test Patient` seed is hidden from live operational queue reads unless an E2E/test env flag is set
 
+Signed Stripe test events have two explicit local lanes. Development/test
+servers require exact `NODE_ENV=development|test`, `PLAYWRIGHT=1`, a loopback
+request host, and no `VERCEL` or `VERCEL_ENV`. A production-built local server
+additionally requires exact `ALLOW_STRIPE_TEST_WEBHOOKS=true`, a test-mode
+Stripe secret key, and matching local or non-production `SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_URL` identities. The known production project, custom or
+malformed URLs, URL mismatches, non-loopback requests, unknown/live keys, and
+every Vercel runtime are acknowledged and discarded before a service-role
+client or event handler is created. `E2E_ISOLATED_SUPABASE` is never authority.
+Live signed events and authenticated admin replays retain their normal paths.
+
 #### Production-bundle certificate resend seam
 
 `corepack pnpm e2e:production -- --spec=e2e/certificate-resend-render.spec.ts` is the narrow production-Webpack certificate-render check. Its runner fails closed unless port `3060` and the isolated Supabase ports `55320`–`55329` are free, creates a uniquely named run-scoped local Supabase project, and copies the application into a temporary build root that excludes every Next-loadable `.env*` file. Both `next build` and `next start` run from that sanitized copy, with repository dependencies linked from the checkout; neither command can auto-load credentials from the working checkout. Sentry/runtime credentials are explicitly blank, source-map upload is disabled, external mutating fetches are blocked, and Resend is always intercepted locally. The synthetic intake is excluded from reporting. Signal-aware cleanup terminates only tracked child process groups, verifies the resend-attempt/outbox/intake teardown, and stops only the run-owned Supabase project. Cleanup also checks the exact per-run Docker ownership label: if any owned container, volume, or network remains, the command fails and retains the temporary workdir for recovery; a nonzero stop after partial startup is accepted only when that exact-label check proves nothing remains.

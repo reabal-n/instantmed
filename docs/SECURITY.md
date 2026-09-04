@@ -412,6 +412,15 @@ None of these routes expose real PHI — all use hardcoded mock data. The middle
 
 Only local/CI execution with `NODE_ENV=test` or `PLAYWRIGHT=1` may use the E2E auth bypass. Middleware always blocks `/api/test/*` and `/(dev)/*` in Vercel production and preview deployments, even if `PLAYWRIGHT=1` is accidentally configured there. Every active local/CI `/api/test/*` route must also pass the shared `X-E2E-SECRET` check from `lib/dev-only-route-auth.ts` plus the allowed-host check from `lib/dev-only-routes.ts`. The active test API surface is limited to auth bypass and the med-cert auto-approval trigger used by focused E2E flows.
 
+Stripe's signed-event test seam is separate from the auth bypass. A
+production-built local server processes a `livemode=false` event only with the
+exact `ALLOW_STRIPE_TEST_WEBHOOKS=true` opt-in plus Playwright, loopback,
+test-key, non-Vercel, and matching non-production Supabase evidence. The known
+production project is always rejected, and self-declared
+`E2E_ISOLATED_SUPABASE` never substitutes for URL-derived ownership. Rejected
+events are acknowledged without constructing the service-role client or
+calling a handler. Signature verification still happens first.
+
 ---
 
 ## Audit Logging
@@ -489,6 +498,12 @@ Payment recovery does not weaken that route exclusion. A domain-separated, seven
 | **Public** | `NEXT_PUBLIC_*` (Supabase URL, anon key, Stripe publishable key) | Safe for client |
 
 **Production validation** (`lib/config/env.ts`, Zod): requires `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `INTERNAL_API_SECRET`, `ENCRYPTION_KEY` (min 32 bytes), all `STRIPE_PRICE_*` IDs.
+
+`SUPABASE_URL` is an optional server-side endpoint override and is not a
+credential; when used by the Stripe production-bundle test seam it must resolve
+to the same target as `NEXT_PUBLIC_SUPABASE_URL`. `ALLOW_STRIPE_TEST_WEBHOOKS`
+is a local test opt-in, not a production feature flag, and must not be
+configured in Vercel.
 
 **Access:** Service role client (`lib/supabase/service-role.ts`) is marked `"server-only"`, uses singleton pattern, never leaks secrets in error messages.
 

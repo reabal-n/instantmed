@@ -6,6 +6,12 @@ import type Stripe from "stripe"
 import { env } from "@/lib/config/env"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
+import {
+  classifyStripeKeyMode,
+  classifySupabaseTestTarget,
+  mayProcessStripeTestEvent,
+  type StripeTestNodeEnvironment,
+} from "@/lib/stripe/test-webhook-policy"
 
 import { handlers } from "./handlers"
 import { tryClaimEvent } from "./handlers/utils"
@@ -89,12 +95,40 @@ export async function POST(request: Request) {
     }
   }
 
-  // Reject test-mode events in production. E2E tests post fake smoke events signed
-  // with the real webhook secret — they pass signature verification but must not be
-  // processed or DLQ'd. Admin replays are always synthetic and bypass this check.
-  if (!isAdminReplay && !event.livemode && process.env.NODE_ENV === "production") {
-    log.info("Discarding test-mode event in production", { eventId: event.id, eventType: event.type })
-    return NextResponse.json({ received: true })
+  // Test events are considered only after signature verification. The normal
+  // development readiness lane stays available, while a production bundle must
+  // prove it is an explicitly opted-in loopback test with test Stripe and an
+  // isolated Supabase target. Admin replays and live events never enter this policy.
+  if (!isAdminReplay && !event.livemode) {
+    const nodeEnv: StripeTestNodeEnvironment =
+      process.env.NODE_ENV === "development" ||
+      process.env.NODE_ENV === "test" ||
+      process.env.NODE_ENV === "production"
+        ? process.env.NODE_ENV
+        : "unknown"
+    const supabasePolicy = classifySupabaseTestTarget({
+      publicUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      serverUrl: process.env.SUPABASE_URL,
+    })
+    const mayProcess = mayProcessStripeTestEvent({
+      allowTestWebhooks: process.env.ALLOW_STRIPE_TEST_WEBHOOKS === "true",
+      eventLivemode: false,
+      nodeEnv,
+      playwrightEnabled: process.env.PLAYWRIGHT === "1",
+      requestHost: new URL(request.url).host,
+      stripeKeyMode: classifyStripeKeyMode(process.env.STRIPE_SECRET_KEY),
+      ...supabasePolicy,
+      vercel: process.env.VERCEL,
+      vercelEnv: process.env.VERCEL_ENV,
+    })
+
+    if (!mayProcess) {
+      log.info("Discarding test-mode event outside an isolated test runtime", {
+        eventId: event.id,
+        eventType: event.type,
+      })
+      return NextResponse.json({ received: true })
+    }
   }
 
   const supabase = getServiceClient()
