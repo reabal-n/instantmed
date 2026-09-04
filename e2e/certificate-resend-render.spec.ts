@@ -301,6 +301,47 @@ test.describe("certificate resend rendering in the production bundle", () => {
     expect(runtimeErrors.join("\n")).not.toMatch(/React is not defined|Template render failed/i)
     expect(reconstructedOutbox.error_message).not.toMatch(/React is not defined|Template render failed/i)
 
+    // A confirmed terminal provider attempt cannot replay its cached send key.
+    const { error: terminalError } = await supabase.from("email_outbox")
+      .update({ delivery_status: "failed", retry_count: 10 }).eq("id", RETRY_OUTBOX_ID)
+    expect(terminalError).toBeNull()
+    await page.reload({ waitUntil: "networkidle" })
+    await page.getByRole("tab", { name: "Queue", exact: true }).click()
+    const terminalRow = page.locator("div.grid").filter({ hasText: RETRY_SUBJECT }).first()
+    await expect(terminalRow.getByText("New attempt required", { exact: true })).toBeVisible()
+    await expect(terminalRow.getByRole("button", { name: "Retry", exact: true })).toHaveCount(0)
+
+    await logoutTestUser(page)
+  })
+
+  test("staff evidence remains usable across viewport and theme", async ({ page }, testInfo) => {
+    test.setTimeout(180_000)
+    const login = await loginAsOperator(page)
+    expect(login.success, login.error).toBe(true)
+    const errors: string[] = []
+    page.on("pageerror", (error) => errors.push(error.message))
+    for (const width of [1440, 375]) {
+      for (const theme of ["light", "dark"] as const) {
+        await page.setViewportSize({ width, height: 900 })
+        await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" })
+        await page.addInitScript((value) => localStorage.setItem("theme", value), theme)
+        await page.goto("/admin/analytics", { waitUntil: "networkidle" })
+        await expect(page.getByRole("heading", { name: "Business", exact: true })).toBeVisible()
+        await expect(page.getByRole("heading", { name: /something went wrong/i })).toHaveCount(0)
+        await page.locator("summary").filter({ hasText: "Measurement checkpoints" }).click()
+        await expect(page.getByRole("heading", { name: "Refill reminder cohorts", exact: true })).toBeVisible()
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
+        await page.screenshot({ path: testInfo.outputPath(`analytics-${width}-${theme}.png`) })
+
+        await page.goto(`/admin/emails/hub?intake_id=${INTAKE_ID}`, { waitUntil: "networkidle" })
+        await page.getByRole("tab", { name: "Queue", exact: true }).click()
+        await expect(page.getByText(RETRY_SUBJECT, { exact: true })).toBeVisible()
+        await expect(page.getByRole("heading", { name: /something went wrong/i })).toHaveCount(0)
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
+        await page.screenshot({ path: testInfo.outputPath(`email-hub-${width}-${theme}.png`) })
+      }
+    }
+    expect(errors).toEqual([])
     await logoutTestUser(page)
   })
 })

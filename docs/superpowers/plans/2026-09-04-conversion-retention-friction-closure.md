@@ -1,12 +1,12 @@
 # Conversion, Retention, and Friction Closure Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Execution:** The 2026-09-05 operator request supersedes the original dispatch plan: one implementation owner, sequential bounded commits, and no new planning or routine confirmation gate. The current progress ledger owns completion status; older checklists below describe the original work.
 >
-> **Status:** Revised on 2026-09-05 after independent review of Fable's feedback. No runtime task below is authorised until the operator confirms this revised plan. Confirmation accepts the sequencing and evidence gates below, including Task 13's reconciliation of the existing two-hour operating target with the existing six-hour Stage A scale gate; it does not authorise patient email, Google Search Console, Google Ads, merge, or production-deployment actions.
+> **Status:** Local implementation is authorised by the attached 2026-09-05 operator request. Calendar checkpoints measure outcomes and do not delay independently proven fixes. Patient sends, production data repair, Ads/GSC mutations, merge, and production deployment remain separate actions. See the current release-readiness receipt and progress ledger for proof and blockers.
 
 **Goal:** Close the ten audited conversion and retention actions with real payment proof, optional account access, useful operator measurement, reliable certificate delivery, compliant organic discovery, and narrower specialty-form friction without weakening clinical safeguards.
 
-**Architecture:** Deliver the work as independent, reversible release slices rather than one mega-branch. Diagnose and repair the certificate resend incident first, then establish a hermetic hosted-Stripe proof without breaking the existing development E2E lane. Add aggregate measurement, wait for the fixed 7-day/14-day cohorts, and only then decide whether account-handoff work is justified. SEO and specialty changes use their own evidence windows; production and customer-facing external mutations remain separate approval-gated actions.
+**Architecture:** Deliver the work as independent, reversible release slices rather than one mega-branch. Diagnose and repair the certificate resend incident first, then establish a hermetic hosted-Stripe proof without breaking the existing development E2E lane. Add aggregate measurement and make account-handoff decisions when the specified evidence is available; D+7/D+14 are observation checkpoints, not prerequisites for unrelated fixes. SEO and specialty changes use their own evidence windows; production and customer-facing external mutations remain separate approval-gated actions.
 
 **Tech Stack:** Next.js 15.5 App Router (Webpack), React 18.3, TypeScript 5.9, Supabase/PostgreSQL, Stripe Checkout v22 test mode, Stripe CLI, local Supabase Mailpit, PostHog personless analytics, Resend webhooks, Vitest, Playwright, Vercel, and the existing Google Ads Agent control plane.
 
@@ -35,8 +35,8 @@ Task numbers continue to map the audited actions, but they are not a single line
 1. **Known fulfilment incident:** Task 3, then Task 4. The hosted-payment harness must not delay certificate diagnosis or an approved repair.
 2. **Payment proof:** Task 1, then Task 2, preserving the existing signed-event readiness lane before adding the hosted production-build lane.
 3. **Immediate measurement and low-risk discovery:** Tasks 5, 6, 7, and 11 may proceed as separate slices; Task 12 ships only its redirect measurement in this wave.
-4. **Policy reconciliation after confirmation:** Task 13 codifies the confirmed two-hour target/six-hour new-scale distinction, without altering an existing approved acquisition test.
-5. **Evidence decisions:** run Task 8 at its dated checkpoints, decide the conditional W1 portion of Task 12 only after its sample gate, and close ED E1 only after its settlement gate. Decide Tasks 9 and 10 from the D+14 evidence; current account linking is already optional and passwordless, while their incremental value is unproven.
+4. **Policy reconciliation:** Task 13 codifies the authorised two-hour target/six-hour new-scale distinction, without altering an existing approved acquisition test.
+5. **Evidence decisions:** run Task 8 at its dated checkpoints, decide the conditional W1 portion of Task 12 only after its sample gate, and close ED E1 only after its settlement gate. Decide Task 9 when its verified failure/support evidence exists, without waiting for D+14. Task 10 retains real magic-link ownership proof as its dependency. Neither blocks the existing optional passwordless flow or independent release slices.
 
 The 2026-09-05 review supplied useful dated production aggregates, but they remain review evidence rather than silently trusted implementation inputs. Where a decision depends on those values, the named aggregate reader must reproduce them without patient rows, emails, clinical answers, or identifiers. Unavailable live evidence is reported as unavailable; it is never replaced with zero.
 
@@ -67,10 +67,10 @@ Read-only evidence was frozen at `2026-09-04T14:21:34Z` so this review does not 
 
 | Slice | Items closed | Release boundary | Outcome boundary |
 |---|---:|---|---|
-| A. Certificate reliability | 8 | Diagnose both render entry points, repair only the proven seam, and add a production-bundle resend test | Historical patient resends remain separately authorised |
+| A. Certificate reliability | 8 | Verify the current recovery paths and production-bundle resend test; ship proven persistence/delivery fixes | Historical defect diagnosis is separate; historical patient sends remain separately authorised |
 | B. Payment proof | 1 | Hermetic test-mode harness that preserves the existing readiness lane, plus a real hosted Checkout receipt | One prescribing skip path and one simpler account-link path |
 | C. Measurement and retention | 2, 5, 6, 7 | Aggregate admin reads and repeatable receipt command | D+7/D+14 conversion and 21-day reminder cohorts |
-| D. Optional account access | 3, 4 | Separate default-off or independently reversible auth PRs | Starts only after D+14 evidence is reviewed |
+| D. Optional account access | 3, 4 | Separate independently reversible auth PRs | Verified account-friction evidence or real magic-link ownership proof; no calendar-only gate |
 | E. Organic discovery | 9 | Truthful sitemap/internal-link release | Index request is our action; indexing is Google's outcome |
 | F. Specialty conversion and growth holds | 10 | One service and one presentation variable per PR | Service-specific predeclared sample, settlement, and safety/fulfilment gates |
 
@@ -363,7 +363,7 @@ git diff --check
 git commit -m "fix(certificates): repair proven resend render seam"
 ```
 
-### Task 4: Release-gate certificate repair before any historical resend
+### Task 4: Verify certificate recovery readiness independently of historical diagnosis
 
 **Files:**
 
@@ -378,7 +378,9 @@ corepack pnpm e2e:production -- --spec=e2e/certificate-resend-render.spec.ts
 
 Expected: PASS before requesting merge or deployment approval. After an approved deployment, verify the production alias serves the exact merge SHA and `/api/health` is healthy, then update only the matching roadmap evidence.
 
-**Production recovery gate:** after this release is live, re-query `/admin/ops` and present the current-valid unresolved certificate count without copying patient details into the plan or a tool log. A fresh operator instruction must authorise each exact resend in the authenticated UI. Send one at a time, verify provider acceptance and webhook delivery separately, and never fake historical delivery timestamps or bulk-resend.
+**Historical diagnosis is separate:** an unreproduced historical render error does not block the currently tested recovery actions or a proven persistence fix. No speculative rendering patch is required. The exact recovery sequence is in `docs/superpowers/receipts/2026-09-05-friction-release-readiness.md`.
+
+**Production recovery gate:** after the relevant tested release is live, re-query `/admin/ops` and present the current-valid unresolved certificate count without copying patient details into the plan or a tool log. A fresh operator instruction must authorise each exact resend in the authenticated UI. Send one at a time, verify provider acceptance and webhook delivery separately, and never fake historical delivery timestamps or bulk-resend.
 
 ### Task 5: Add one release-conversion read model without sensitive-path events
 
@@ -611,7 +613,7 @@ git commit -m "feat(retention): measure refill reminder cohorts"
 
 **Second-nudge gate:** do not build or enable day 84 yet. After exactly three fully matured weekly waves each achieve at least 10% strictly UTM-attributed paid renewal within 21 days, with no worsening complaints, unsubscribes, refunds, or support contacts, write a separate experiment using a new durable second-send marker. Do not use the broader same-patient association to open this gate, do not reuse `refill_reminder_sent_at`, and keep the transaction one-off rather than a subscription.
 
-### Task 8: Close the D+7 and D+14 observation gate
+### Task 8: Record D+7 and D+14 outcome observations
 
 **Files:**
 
@@ -630,11 +632,11 @@ corepack pnpm tsx scripts/release-friction-readout.ts --release-sha=99e25c8f9329
 corepack pnpm doc:audit
 ```
 
-Expected: a privacy-safe D+14 decision receipt. Item 2 and the outcome half of item 5 are not closed before this task.
+Expected: a privacy-safe decision receipt for the complete observation window. These dates govern outcome claims; they do not gate proven friction, reliability, measurement, or SEO code releases. Preserve the minimum sample, matched boundaries, refund completeness, and safety thresholds.
 
-### Task 9: Add the earlier account handoff only after D+14
+### Task 9: Add earlier account handoff when verified friction justifies it
 
-**Activation gate:** start this task only if the D+14 receipt shows the existing `identity_or_session` category causing at least two manually verified account-handoff checkout-intent failures with recovery below 70% within 24 hours, or the same problem appears as a repeated manually classified support-contact class. Aggregate analytics alone must not infer that an account exists. If the gate is not met, retain the current optional passwordless account flow and record **not justified** rather than manufacturing scope.
+**Evidence gate (no calendar wait):** start when current evidence shows the existing `identity_or_session` category causing at least two manually verified account-handoff checkout-intent failures with recovery below 70% within 24 hours, or the same problem appears as a repeated manually classified support-contact class. Aggregate analytics alone must not infer that an account exists. If the gate is not met, retain the current optional passwordless account flow and record **not justified** rather than manufacturing scope.
 
 **Files:**
 
@@ -685,9 +687,9 @@ git add components/request/guest-account-handoff.tsx lib/auth/checkout-account-h
 git commit -m "feat(checkout): offer non-enumerating account handoff"
 ```
 
-### Task 10: Add one-tap tracker access after the observation gate
+### Task 10: Add one-tap tracker access after real ownership proof
 
-**Activation gate:** start after D+14 and after Task 2 proves real magic-link/Auth-account linking. This task is optional UI for a patient who already holds a valid tracker capability; it must not expand that capability into document access.
+**Ownership dependency:** start after Task 2 proves real magic-link/Auth-account linking. There is no D+14 wait. This task is optional UI for a patient who already holds a valid tracker capability; it must not expand that capability into document access.
 
 **Files:**
 
@@ -938,7 +940,7 @@ corepack pnpm release:check
 
 Expected: stack pins, route conflicts, cron checks, integrations, audit, dead-code gate, lint, typecheck, unit suite, production build, and bundle gate all PASS.
 
-- [ ] Browser-verify patient surfaces at 375px and desktop in light and dark modes: guest skip, optional link, existing-account recovery, tracker request access, women’s-health repeat steer, ED safe path, and representative red-flag blocks. Verify keyboard/focus and zero console errors. No decorative motion is added, so reduced-motion behavior should remain unchanged and must be smoke-checked once.
+- [ ] Browser-verify each activated and applicable patient surface at 375px and desktop in light and dark modes: guest skip, optional link, existing-account recovery, tracker request access, women’s-health repeat steer, ED safe path, and representative red-flag blocks. Verify keyboard/focus and zero console errors. Conditional Tasks 9 and 10 are verified when their evidence/ownership dependencies pass and those surfaces ship; they do not block release of the already-approved slices. No decorative motion is added, so reduced-motion behavior should remain unchanged and must be smoke-checked once.
 - [ ] Browser-verify staff surfaces: checkout-recovery analytics, refill cohorts, degraded/unavailable data, certificate resend queued/success/failure, and bounded page scrolling.
 - [ ] Keep proof scopes separate in every receipt: repository tests, production build, hosted Stripe test mode, Vercel deployment, production browser, PostHog aggregate, Supabase aggregate, Resend delivery, GSC, and Ads account.
 - [ ] Merge and deploy only the exact approved PR. Verify the production alias serves the exact merge SHA and `/api/health` is healthy before opening its observation window.
@@ -948,10 +950,10 @@ Expected: stack pins, route conflicts, cron checks, integrations, audit, dead-co
 
 | When | Required result |
 |---|---|
-| Immediate engineering | Tasks 3-4 first; then Tasks 1-7 and 11 as separate PRs. Task 12 ships handoff measurement only. Task 13's policy/docs slice waits for explicit confirmation of the six-hour new-scale threshold. |
-| D+7 from `99e25c8f9` readiness | Directional release-friction receipt; no account-flow expansion decision |
-| D+14 | Final medication/checkout/guest-link read; decide Tasks 9-10 from evidence |
-| 21 days after each reminder wave | Mature reminder conversion; require exactly three good post-consent weekly cohorts before a day-84 experiment |
+| Immediate engineering | Tasks 3-4 first; then Tasks 1-7 and 11 as separate PRs. Task 12 ships handoff measurement only. Task 13's policy/docs slice is authorised and locally verified. |
+| D+7 from `99e25c8f9` readiness | Directional release-friction receipt; verified friction can justify its own fix earlier |
+| D+14 | Matched medication/checkout/guest-link outcome read; no release dependency for independent fixes |
+| 21 days after each reminder wave | Mature reminder conversion; require exactly three good reportable weekly cohorts with explicit preference removals honoured before a day-84 experiment |
 | D+7/D+14/D+28 after SEO release | GSC inspection and indexing outcome, without repeated requests |
 | 2026-09-19T05:13:53.870Z or later | Earliest settled close for ED E1; decide any E2 plan only after its retained-order, clinical, and fulfilment receipt |
 | At least 14 complete days, 60 valid flows, and 90% coverage after Task 12 instrumentation | Decide whether a W1 candidate is justified; if not, close it without building or activation |

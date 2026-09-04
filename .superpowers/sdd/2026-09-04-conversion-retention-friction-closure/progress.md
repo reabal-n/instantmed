@@ -24,25 +24,27 @@ The attached operator request authorises sequential local implementation and sup
 
 - Task 6 / minimal refill measurement: reporting migration is limited to cohort indexes and the aggregate RPC. Reporting-only PostgreSQL proof passes without preference/shared-delivery migrations: all test/owner exclusions, deduplicated delivery/click receipts, latest-reminder assignment, Sydney weeks, 21-day maturity, strict UTM orders versus broader same-patient association, and future/unpaid order exclusion. Verification: 44 tests across refill and critical-cron files. Scheduler evidence stays separately missing/unavailable when not proven; no live heartbeat, provider send, retained cash, or experiment result is inferred.
 
-## Plan task state
+- Task 7 / local closure: removed calendar-only dependencies, retained meaningful sample/settlement/ownership conditions, separated current certificate recovery readiness from unknown historical diagnosis, and prepared final-state release packets plus exact recovery actions in `docs/superpowers/receipts/2026-09-05-friction-release-readiness.md`. Verification: 738 Vitest files / 7,010 tests, full lint, TypeScript, doc audit (124 tests), strict content audit (107 articles), dependency audit, dead-code ratchet, fresh Supabase migration replay, local production Webpack build and bundle gate. Two Playwright cases pass: staff resend/reconstruction/terminal retry controls and Business/email-hub views at 1440px/375px in light/dark with reduced motion. Isolated provider/Redis behavior is not live service proof. `release:check` remains blocked at six missing integration configurations; real hosted Stripe acceptance still needs the dedicated test key and two Prices. No external mutation or deployment was performed.
 
-- Schema convergence prerequisite: approved locally; production application remains release-gated
-- Task 1: approved locally; Task 2 hosted proof remains pending
-- Task 2: pending
-- Task 3: approved as diagnostic harness; production repair remains `BLOCKED_DIAGNOSIS`
-- Task 4: blocked until a proven certificate defect exists; historical resend remains separately production-authorised
-- Task 5: pending
-- Task 6: pending
-- Task 7: pending
-- Task 8: time-gated
-- Task 9: D+14-gated
-- Task 10: D+14-gated
-- Task 11: pending
-- Task 12: instrumentation pending; W1 time/sample-gated
-- Task 13: policy slice pending; ED E1 time-gated
-- Task 14: final/release work approval-gated
+## Plan task state (original task numbers)
 
-## Preflight conflict scan
+- Schema convergence: locally verified; deployment application remains unverified.
+- Tasks 1–2: test-webhook policy and hosted runner verified locally. Real provider acceptance is blocked only by the dedicated Stripe test key and two test Price IDs.
+- Tasks 3–4: current certificate recovery and persistence/delivery fixes are independently testable. The original historical render defect remains unexplained; it does not block readiness of the current recovery paths. Historical sends are not authorised by this implementation request.
+- Tasks 5–7: conversion, failure, and minimal refill read models are implemented. Cohort counts, scheduler evidence, and retained cash availability remain separate.
+- Task 8: D+7/D+14 outcome observations remain open, with matched windows, minimum sample, safety and settlement requirements. They are not code-release gates.
+- Task 9: conditional on manually verified account-handoff friction or repeated classified support evidence, without a D+14 wait. No current verified decision-grade evidence was supplied; no new account step is imposed.
+- Task 10: real magic-link/Auth ownership proof is still blocked by Task 2 credentials. The D+14 wait is removed.
+- Task 11: SEO candidate retained; GSC actions and Google indexing are unperformed external outcomes.
+- Task 12: women's-health handoff instrumentation retained; W1 remains inactive until its prespecified flow/sample/coverage evidence is met.
+- Task 13: growth correction is locally verified; ED E1 keeps its active experiment and 24-hour settlement conditions.
+- Task 14: local release preparation is authorised. The current release receipt lists independent slices and exact unresolved deployment checks.
+
+## Historical preflight and implementation records
+
+These records preserve earlier reviews; the current closure and state above supersede their former calendar/approval assumptions.
+
+### Preflight conflict scan
 
 ### Shared files and interfaces
 
@@ -52,7 +54,7 @@ The attached operator request authorises sequential local implementation and sup
 | 2 ↔ 3 | `package.json`, `docs/TESTING.md`, port 3060, local Supabase lifecycle | Serialize and use distinct scripts/configs; never run both production servers concurrently. |
 | 2 → 10 | Real magic-link/account-link proof → tracker-access prerequisite | Keep the stated hard gate. |
 | 2 → 14 | Hosted Stripe receipt → final evidence | Keep test-mode proof separate from deployment and production proof. |
-| 3 → 4 | Diagnosed repair plus production-server E2E → release/recovery gate | Hard dependency; unit render alone is insufficient. |
+| 3 → 4 | Current recovery paths plus production-server E2E → readiness | Current path proof is required; reproducing the unknown historical defect is independent. |
 | 3 → 14 | Certificate action/outbox evidence → final verification | Synthetic data only; provider acceptance and provider delivery stay separate. |
 | 4 ↔ 8/13/14 | `docs/ROADMAP.md` | Serialize dated evidence writes; no slice overwrites another's history. |
 | 5 ↔ 6 | Analytics page/helpers/client and dashboard contract | Serialize. Use namespaced sections and preserve each availability state. |
@@ -67,8 +69,8 @@ The attached operator request authorises sequential local implementation and sup
 | 6 → 14 | Checkout recovery view → final verification | Require legacy-unclassified and degraded-coverage proof. |
 | 7 ↔ 13 | `docs/OPERATIONS.md` | Serialize cron-evidence and growth-hold documentation. |
 | 7 → 14 | Refill evidence → final verification | Delivery, scheduler health, and 21-day outcomes remain distinct proofs. |
-| 8 → 9 | D+14 receipt → account handoff | Hard gate. |
-| 8 → 10 | D+14 receipt → tracker access | Hard gate in addition to Task 2. |
+| 8 → 9 | Verified account-friction evidence → account handoff | Evidence dependency only; no calendar wait. |
+| 2 → 10 | Real magic-link ownership proof → tracker access | Meaningful ownership dependency; D+14 removed. |
 | 8 ↔ 13/14 | ROADMAP and PHI-free receipts | Append/serialize; never replace checkpoint history. |
 | 9 ↔ 10 | Magic-link/account ownership semantics | Coordinate clean return routes and non-enumeration; keep pre-pay and tracker flows separate. |
 | 9 ↔ 12 | Unified/guest checkout | Conditional W1 must preserve typed handoff and guest behavior. |
@@ -143,3 +145,42 @@ The attached operator request authorises sequential local implementation and sup
 - Correction: narrowed the production-bundle webhook-test lane to matching loopback Supabase URLs only; arbitrary hosted refs now fail closed as unknown.
 - Final task review: APPROVED; focused payment/env verification passed 7 files / 128 tests.
 - Outcome: signed test events can reach handlers only through the existing non-production development/test readiness lane or the explicit local production-bundle lane. Live events and authenticated admin replays remain unchanged; Task 2 still owns real hosted-Stripe browser proof.
+
+## Task 2 review record
+
+- Implementer/correction commits: `8e5daae1f`, `378ef5441`, `97013080f`, `f15265c41`, `c3f8d56fd`, `c7e5628bf`.
+- Review corrections: count cleanup rows by the real scoped column; bind the run to one clean local Git SHA and a verified local Docker daemon; keep receipts ignored and Stripe secrets out of argv; scope CI secrets only to the hosted run; correct the documented focused-test count.
+- Final task review: APPROVED as a repeatable local hosted-Stripe harness; focused verification passed 4 files / 84 tests plus lint, typecheck, diff, and missing-secret fail-closed smoke.
+- Outcome: the runner covers repeat-Rx guest skip with no Auth user and med-cert magic-link linkage into the patient dashboard. Actual Stripe provider acceptance is not claimed until a fresh dedicated test key and the two exercised test Price IDs are supplied and the runner succeeds.
+
+## Task 5 review record
+
+- Implementer/correction commits: `fb3390d40`, `500ea85ae`, `e3f8a00a2`.
+- Review corrections: use authoritative release readiness and half-open UTC cohorts; keep cash, funnel, medication, and guest-linkage evidence distinct; fail closed on invalid release timestamps; calculate mobile medication completion from flows that actually viewed the step on mobile while allowing a later cross-device completion.
+- Final task review: APPROVED; focused verification passed 88 tests plus lint, typecheck, and invalid-date smoke.
+- Outcome: release conversion, medication completion, canonical cash availability, and 24h/7d/14d guest linkage can be measured without exposing patient identifiers or turning immature cohorts into zeroes.
+
+## Task 6 review record
+
+- Implementer commit: `d2ff162fc`.
+- Independent final task review: APPROVED; focused verification passed 8 files / 170 tests plus scoped lint, typecheck, and commit diff check. The implementer full suite passed 734 files / 6,910 tests.
+- Outcome: every shared checkout producer returns a central fixed failure code/category/version; the browser emits only allowlisted personless dimensions; the Business surface reports first-failure recovery using strictly later server purchases with maturity, coverage, legacy, unjoinable, and fail-closed provider states. No live PostHog or authenticated-browser query is claimed.
+
+## Task 11 review record
+
+- Implementer/correction commits: `023751212`, `d6a8a9f43`, `65391e5ae`, `9986f7e20`.
+- Final task review: APPROVED locally after centralising the guide-body acquisition boundary and strengthening only compliant non-guide links and crawl contracts.
+- Outcome: `/prescriptions` has stronger crawl/index signals without reintroducing service acquisition links inside educational guide bodies. No GSC mutation or indexing-success claim was made.
+
+## Task 12 review record
+
+- Implementer/correction commits: `ab67d911a`, `84876b671`, `f28b5e1f3`, `e205ffdfd`.
+- Review corrections: make the redirect event durable when the React PostHog client is unavailable; allow only a fixed PHI-free entry marker; synchronously deduplicate rapid activation; retain the navigation latch through source-flow hydration and clear it only at the exact repeat-script destination.
+- Independent final task review: APPROVED; 12 focused files / 164 tests plus scoped lint, typecheck, and commit diff check passed.
+- Outcome: current-pill patients can take the existing repeat-script handoff with one navigation and one personless outcome event. No W1 candidate, clinical scope, or safety-gate change was activated.
+
+## Task 13 review record
+
+- Implementer commit: `7c96d4835`.
+- Independent final task review: APPROVED; 8 files / 158 tests, doc audit 10 files / 124 tests, lint, typecheck, and diff check passed.
+- Outcome: the two-hour queue target is a watch signal, the six-hour threshold blocks only new scale, and 20-hour/24-hour, clinical, fulfilment, support, and QA evidence can create a hard hold with at most an approval-ready Ads pause proposal. No Ads mutation or ED/W1 activation occurred.

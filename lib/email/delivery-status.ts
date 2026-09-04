@@ -14,7 +14,7 @@ const PROVIDER_UNDELIVERED_STATUS_VALUES = [
 export type ProviderTerminalDeliveryStatus =
   typeof PROVIDER_TERMINAL_DELIVERY_STATUS_VALUES[number]
 
-export const PROVIDER_TERMINAL_DELIVERY_STATUSES: ReadonlySet<string> = new Set(
+const PROVIDER_TERMINAL_DELIVERY_STATUSES: ReadonlySet<string> = new Set(
   PROVIDER_TERMINAL_DELIVERY_STATUS_VALUES,
 )
 

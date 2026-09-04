@@ -223,3 +223,5 @@ See [docs/plans/archive/README.md](../plans/archive/README.md) for the retention
 4. Update `docs/bookkeeping/expected-md-count` (subtract 1).
 5. If the doc was drift-pinned, remove its `it(...)` block from `project-docs-drift-contract.test.ts`.
 6. Run `pnpm doc:audit`.
+
+- `docs/superpowers/receipts/2026-09-05-friction-release-readiness.md` — local closure commits, release packet boundaries, exact certificate recovery actions, and outstanding external proof.

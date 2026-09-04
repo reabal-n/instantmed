@@ -407,7 +407,6 @@
     "full|exports|lib/email/review-request.ts|findReviewRequestBackfillCandidates",
     "full|exports|lib/email/sequence-registry.ts|ACTIVE_EMAIL_SEQUENCES",
     "full|exports|lib/email/sequence-registry.ts|INACTIVE_EMAIL_SEQUENCES",
-    "full|exports|lib/email/template-sender.ts|sendTemplateEmail",
     "full|exports|lib/email/utils.ts|isDuplicateEmail",
     "full|exports|lib/email/utils.ts|sanitizeEmailForLog",
     "full|exports|lib/feature-flags.ts|DEFAULT_SAFETY_SYMPTOMS",
