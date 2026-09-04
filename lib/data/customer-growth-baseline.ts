@@ -6,7 +6,7 @@ import {
 import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
 import type { RecoveryMarkerAvailability } from "@/lib/data/customer-growth-revenue-read"
 
-export type CustomerGrowthServiceBaseline = {
+type CustomerGrowthServiceBaseline = {
   createdIntakes: number
   grossRevenueAud: number
   paidAtOrders: number
