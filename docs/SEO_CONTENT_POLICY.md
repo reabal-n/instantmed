@@ -96,7 +96,7 @@ Do not add:
 - "How InstantMed can help" sales sections
 - related-service acquisition panels
 - location SEO blocks such as "Available in Sydney"
-- request, prescription, consult, or medical-certificate links in the guide body, except neutral related-reading links to other `/blog/*` guides
+- service or acquisition links in the guide body, including request, prescription, consult, or medical-certificate destinations; neutral educational and ordinary trust/legal links are governed by §5
 
 Allowed inside guide articles:
 
@@ -216,6 +216,8 @@ Baseline guide quality:
 Medicine, condition, symptom, and other non-guide educational surfaces may link neutrally to an active generic service or pathway from the list below when it is relevant. The link must describe the service or review pathway without promising a medicine, prescription, or outcome.
 
 Health guide bodies in `content/blog/*.mdx` do not inherit the service-linking permission. They remain education-only: neutral related-reading links to `/blog/*`, `/conditions/*`, and `/symptoms/*` are allowed, but `/prescriptions`, `/request`, and other service or acquisition destinations are not.
+
+Neutral links from guides to ordinary trust or legal pages remain allowed when they support the explanation rather than act as a conversion device.
 
 Only active services may be used as acquisition links. Weight management launched on 2026-08-10, so organic and onsite content may link to its service page without implying a prescription outcome or ongoing treatment program.
 

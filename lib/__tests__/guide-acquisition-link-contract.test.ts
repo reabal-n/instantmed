@@ -15,23 +15,20 @@ import { ServiceAvailabilityProvider } from "@/components/providers/service-avai
 import { loadAllMDXArticles } from "@/lib/blog/mdx"
 import type { Article, ArticleIndexItem } from "@/lib/blog/types"
 import { symptoms } from "@/lib/seo/data/symptoms"
+import {
+  GUIDE_FORBIDDEN_ACQUISITION_ROOTS,
+  GUIDE_FORBIDDEN_ACTIVE_SERVICE_ROOTS,
+  GUIDE_FORBIDDEN_REDIRECT_ALIAS_ROOTS,
+  GUIDE_FORBIDDEN_SITEMAP_ROOTS,
+  GUIDE_FORBIDDEN_TRANSACTION_ROOTS,
+  isGuideForbiddenAcquisitionDestination,
+  resolveInstantMedDestinationPath,
+} from "@/lib/seo/guide-acquisition-policy"
+import {
+  getActiveServices,
+  getServiceMarketingHref,
+} from "@/lib/services/service-catalog"
 import { SupabaseAuthProvider } from "@/lib/supabase/auth-provider"
-
-const INSTANTMED_HOSTS = new Set(["instantmed.com.au", "www.instantmed.com.au"])
-const ACQUISITION_ROOTS = [
-  "/consult",
-  "/contraceptive-pill-assessment-online",
-  "/erectile-dysfunction",
-  "/hair-loss",
-  "/intent",
-  "/medical-certificate",
-  "/medical-certificate-online",
-  "/prescriptions",
-  "/pricing",
-  "/request",
-  "/uti-assessment-online",
-  "/weight-loss",
-] as const
 
 interface RenderedAnchor {
   href: string
@@ -68,59 +65,25 @@ function renderedAnchors(markup: string): RenderedAnchor[] {
   })
 }
 
-function decodePathname(pathname: string): string {
-  let decoded = pathname
-
-  for (let pass = 0; pass < 3; pass += 1) {
-    try {
-      const next = decodeURIComponent(decoded)
-      if (next === decoded) break
-      decoded = next
-    } catch {
-      break
-    }
-  }
-
-  return decoded
+function guideBaseUrl(guideSlug: string): string {
+  return `https://instantmed.com.au/blog/${guideSlug}`
 }
 
-function resolveInstantMedPath(destination: string, guideSlug: string): string | null {
-  try {
-    const base = `https://instantmed.com.au/blog/${guideSlug}`
-    const destinationUrl = new URL(destination, base)
-    if (!INSTANTMED_HOSTS.has(destinationUrl.hostname)) return null
-    if (!["http:", "https:"].includes(destinationUrl.protocol)) return null
-
-    const decodedPathname = decodePathname(destinationUrl.pathname)
-    const normalizedPathname = new URL(decodedPathname, "https://instantmed.com.au").pathname
-      .replace(/\/{2,}/g, "/")
-
-    return normalizedPathname.length > 1
-      ? normalizedPathname.replace(/\/$/, "")
-      : normalizedPathname
-  } catch {
-    return null
-  }
-}
-
-function isGuideAcquisitionDestination(destination: string, guideSlug: string): boolean {
-  const pathname = resolveInstantMedPath(destination, guideSlug)
-  if (!pathname) return false
-
-  return ACQUISITION_ROOTS.some(
-    (root) => pathname === root || pathname.startsWith(`${root}/`),
-  )
+function materializeRoutePattern(route: string): string {
+  return route
+    .replace(/:([A-Za-z][A-Za-z0-9_]*)\*/g, "example")
+    .replace(/:([A-Za-z][A-Za-z0-9_]*)/g, "example")
 }
 
 function findGuideAcquisitionLinks(markup: string, guideSlug: string): string[] {
   return renderedAnchors(markup)
-    .filter(({ href }) => isGuideAcquisitionDestination(href, guideSlug))
+    .filter(({ href }) => isGuideForbiddenAcquisitionDestination(href, guideBaseUrl(guideSlug)))
     .map(({ href }) => href)
 }
 
 function hasFollowablePrescriptionsAnchor(markup: string, pageSlug: string): boolean {
   return renderedAnchors(markup).some(({ href, rel }) => {
-    const pathname = resolveInstantMedPath(href, pageSlug)
+    const pathname = resolveInstantMedDestinationPath(href, guideBaseUrl(pageSlug))
     const relTokens = new Set(rel?.toLowerCase().split(/\s+/).filter(Boolean) ?? [])
     return pathname === "/prescriptions" && !relTokens.has("nofollow")
   })
@@ -263,6 +226,16 @@ function renderMaximalGuide(): string {
 describe("health-guide acquisition link contract", () => {
   it("normalizes adversarial guide destinations without blocking educational or external links", () => {
     const serviceHref = "/prescriptions"
+    const allowedDestinations = [
+      "/blog/telehealth-safety",
+      "/conditions/asthma",
+      "/symptoms/cough",
+      "/privacy",
+      "/terms",
+      "/clinical-governance",
+      "/complaints",
+      "https://example.com/request",
+    ]
     const markup = renderToStaticMarkup(
       React.createElement(
         "article",
@@ -279,14 +252,26 @@ describe("health-guide acquisition link contract", () => {
           { href: "https://www.instantmed.com.au/%68air-loss" },
           "Encoded same-site service",
         ),
+        React.createElement("a", { href: "/womens-health" }, "Catalog service"),
+        React.createElement("a", { href: "/online-prescriptions" }, "SEO service variant"),
+        React.createElement("a", { href: "/mens-health" }, "Marketing service hub"),
+        React.createElement("a", { href: "/mental-health-online" }, "Marketing service hub"),
+        React.createElement("a", { href: "/weight-loss-online" }, "SEO service variant"),
+        React.createElement("a", { href: "/start/repeat" }, "Transaction alias child"),
+        React.createElement("a", { href: "/repeat-prescription/renew" }, "Redirect alias child"),
+        React.createElement("a", { href: "/repeat-prescriptions" }, "Redirect alias"),
+        React.createElement("a", { href: "/weight-management/assessment" }, "Redirect alias child"),
+        React.createElement("a", { href: "/gp-consult" }, "Redirect alias"),
+        React.createElement("a", { href: "/flow/prescription" }, "Retired transaction child"),
+        React.createElement("a", { href: "/general-consult" }, "Redirect alias"),
         React.createElement("a", { href: "/blog/telehealth-safety" }, "Blog guide"),
         React.createElement("a", { href: "/conditions/asthma" }, "Condition"),
         React.createElement("a", { href: "/symptoms/cough" }, "Symptom"),
-        React.createElement(
-          "a",
-          { href: "https://example.com/request" },
-          "External request path",
-        ),
+        React.createElement("a", { href: "/privacy" }, "Privacy"),
+        React.createElement("a", { href: "/terms" }, "Terms"),
+        React.createElement("a", { href: "/clinical-governance" }, "Governance"),
+        React.createElement("a", { href: "/complaints" }, "Complaints"),
+        React.createElement("a", { href: "https://example.com/request" }, "External request path"),
       ),
     )
 
@@ -295,14 +280,100 @@ describe("health-guide acquisition link contract", () => {
       "../../prescriptions",
       "//instantmed.com.au/request?service=repeat-script",
       "https://www.instantmed.com.au/%68air-loss",
+      "/womens-health",
+      "/online-prescriptions",
+      "/mens-health",
+      "/mental-health-online",
+      "/weight-loss-online",
+      "/start/repeat",
+      "/repeat-prescription/renew",
+      "/repeat-prescriptions",
+      "/weight-management/assessment",
+      "/gp-consult",
+      "/flow/prescription",
+      "/general-consult",
     ])
+    expect(
+      allowedDestinations.filter((destination) =>
+        isGuideForbiddenAcquisitionDestination(destination, guideBaseUrl("fixture-guide")),
+      ),
+    ).toEqual([])
+  })
+
+  it("keeps active catalog and root-sitemap acquisition routes in classifier parity", async () => {
+    const activeServiceRoots = getActiveServices().map(getServiceMarketingHref)
+    const { default: rootSitemap } = await import("@/app/sitemap")
+    const sitemapPaths = (await rootSitemap()).map((entry) => new URL(entry.url).pathname)
+    const sitemapRootSet = new Set<string>(GUIDE_FORBIDDEN_SITEMAP_ROOTS)
+
+    expect(GUIDE_FORBIDDEN_ACTIVE_SERVICE_ROOTS).toEqual(activeServiceRoots)
+    expect(activeServiceRoots.filter((root) => !sitemapRootSet.has(root))).toEqual([])
+    expect(
+      activeServiceRoots.filter((root) =>
+        !isGuideForbiddenAcquisitionDestination(root, guideBaseUrl("fixture-guide")),
+      ),
+    ).toEqual([])
+    expect(
+      sitemapPaths.filter((pathname) => sitemapRootSet.has(pathname)).sort(),
+    ).toEqual([...GUIDE_FORBIDDEN_SITEMAP_ROOTS].sort())
+    expect(
+      GUIDE_FORBIDDEN_SITEMAP_ROOTS.filter((root) =>
+        !isGuideForbiddenAcquisitionDestination(root, guideBaseUrl("fixture-guide")),
+      ),
+    ).toEqual([])
+    expect(
+      GUIDE_FORBIDDEN_ACQUISITION_ROOTS
+        .flatMap((root) => [root, `${root}/example`])
+        .filter((destination) =>
+          !isGuideForbiddenAcquisitionDestination(destination, guideBaseUrl("fixture-guide")),
+        ),
+    ).toEqual([])
+  })
+
+  it("keeps public redirect aliases in parity with forbidden acquisition targets", async () => {
+    const { default: nextConfig } = await import("../../next.config.mjs")
+    const redirects = await nextConfig.redirects?.() ?? []
+    const privatePrefixes = ["/admin", "/doctor", "/patient"]
+    const publicRedirectsToAcquisition = redirects.filter((redirect) => {
+      const source = materializeRoutePattern(redirect.source)
+      const destination = materializeRoutePattern(redirect.destination)
+      return (
+        !privatePrefixes.some((prefix) => source === prefix || source.startsWith(`${prefix}/`)) &&
+        isGuideForbiddenAcquisitionDestination(destination, guideBaseUrl("fixture-guide"))
+      )
+    })
+    const materializedSources = redirects.map((redirect) =>
+      materializeRoutePattern(redirect.source),
+    )
+
+    expect(publicRedirectsToAcquisition.length).toBeGreaterThan(0)
+    expect(
+      publicRedirectsToAcquisition.flatMap((redirect) => {
+        const source = materializeRoutePattern(redirect.source)
+        return isGuideForbiddenAcquisitionDestination(source, guideBaseUrl("fixture-guide"))
+          ? []
+          : [`${redirect.source} -> ${redirect.destination}`]
+      }),
+    ).toEqual([])
+    expect(
+      GUIDE_FORBIDDEN_REDIRECT_ALIAS_ROOTS.filter((root) =>
+        !materializedSources.some((source) => source === root || source.startsWith(`${root}/`)),
+      ),
+    ).toEqual([])
+    expect(
+      [...GUIDE_FORBIDDEN_REDIRECT_ALIAS_ROOTS, ...GUIDE_FORBIDDEN_TRANSACTION_ROOTS]
+        .flatMap((root) => [root, `${root}/example`])
+        .filter((destination) =>
+          !isGuideForbiddenAcquisitionDestination(destination, guideBaseUrl("fixture-guide")),
+        ),
+    ).toEqual([])
   })
 
   it("keeps parsed guide-body links and every rendered template branch education-only", () => {
     const parsedGuideViolations = loadAllMDXArticles().flatMap((article) =>
       article.content.flatMap((section) =>
         (section.links ?? []).flatMap((link) =>
-          isGuideAcquisitionDestination(link.href, article.slug)
+          isGuideForbiddenAcquisitionDestination(link.href, guideBaseUrl(article.slug))
             ? [`${article.slug}: ${link.href}`]
             : [],
         ),
@@ -310,7 +381,7 @@ describe("health-guide acquisition link contract", () => {
     )
     const templateMarkup = renderMaximalGuide()
     const renderedPaths = renderedAnchors(templateMarkup)
-      .map(({ href }) => resolveInstantMedPath(href, MAXIMAL_GUIDE.slug))
+      .map(({ href }) => resolveInstantMedDestinationPath(href, guideBaseUrl(MAXIMAL_GUIDE.slug)))
       .filter((pathname): pathname is string => pathname !== null)
 
     expect(parsedGuideViolations).toEqual([])
