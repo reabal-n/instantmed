@@ -53,6 +53,15 @@ const AUD = new Intl.NumberFormat("en-AU", {
   style: "currency",
 })
 
+const COHORT_DATE = new Intl.DateTimeFormat("en-AU", {
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  month: "short",
+  timeZone: "Australia/Sydney",
+  timeZoneName: "short",
+})
+
 const REASON_COPY: Record<string, string> = {
   ADS_ACTION_EVIDENCE_UNAVAILABLE: "Ads action readiness could not be verified",
   ADS_EVIDENCE_INVALID_RECORD: "Delivered Ads evidence could not be validated",
@@ -85,6 +94,27 @@ function formatPercent(value: number | null): string {
 
 function formatRatio(value: number | null): string {
   return value === null ? "Unavailable" : `${value.toFixed(2)}x`
+}
+
+function formatCohortRange(from: string, to: string): string {
+  return `${COHORT_DATE.format(new Date(from))} → ${COHORT_DATE.format(new Date(to))}`
+}
+
+function formatCohortRatio(input: {
+  denominator: number | null
+  inProgress: boolean
+  numerator: number | null
+  percent?: number | null
+}): string {
+  if (input.numerator === null || input.denominator === null) {
+    return input.inProgress ? "Pending" : "Unavailable"
+  }
+  const percent = input.percent ?? (
+    input.denominator > 0
+      ? Math.round((input.numerator / input.denominator) * 1_000) / 10
+      : null
+  )
+  return `${input.numerator.toLocaleString("en-AU")}/${input.denominator.toLocaleString("en-AU")} (${percent === null ? "—" : `${percent}%`})`
 }
 
 function formatDailyBudget(cents: number): string {
@@ -451,7 +481,15 @@ function ProfitCell({ row }: { row: BusinessProfitRow }) {
 }
 
 export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
-  const { business, intakeFunnel, recordedAttribution, heardAboutUs, reviewRequestFunnel, trends } = data
+  const {
+    business,
+    heardAboutUs,
+    intakeFunnel,
+    recordedAttribution,
+    releaseFriction,
+    reviewRequestFunnel,
+    trends,
+  } = data
   const decision = decisionCopy(business)
   const summary = intakeFunnel.summary
   const serviceGatesStillApply = business.reasonCodes.some((reason) => (
@@ -727,6 +765,131 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
               Current instrumentation meets the coverage gate; rates remain withheld until older incomplete events leave the rolling 30-day window.
             </p>
           ) : null}
+
+          <section aria-labelledby="release-conversion-heading" className="mt-4 border-t border-border/60 pt-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 id="release-conversion-heading" className="text-sm font-semibold text-foreground">
+                  Release conversion &amp; retention
+                </h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  Paired Baseline windows keep D+7 and D+14 comparisons equal-length. Counts stay withheld while a cohort is still forming.
+                </p>
+              </div>
+              <StatusBadge
+                status={releaseFriction.availability === "available" ? "success" : releaseFriction.availability === "degraded" ? "warning" : "neutral"}
+                size="sm"
+              >
+                {releaseFriction.availability === "available"
+                  ? "Available"
+                  : releaseFriction.availability === "degraded"
+                    ? "Partial evidence"
+                    : releaseFriction.reason === "release_boundary_not_configured"
+                      ? "Not configured"
+                      : "Unavailable"}
+              </StatusBadge>
+            </div>
+
+            {releaseFriction.periods.length > 0 ? (
+              <div className="mt-3 overflow-x-auto rounded-lg border border-border/60">
+                <table className="w-full min-w-[920px] text-left text-[11px]">
+                  <caption className="sr-only">
+                    Equal-window release conversion, guest account linkage, and refund cohorts
+                  </caption>
+                  <thead className="bg-muted/35 text-muted-foreground">
+                    <tr>
+                      <th scope="col" className="px-3 py-2 font-medium">Cohort</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Starts → checkout</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Starts → paid</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Medication complete</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Guest links ≤24h</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Refunded orders</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {releaseFriction.periods.map((period) => {
+                      const inProgress = [
+                        period.cash.cohortStatus,
+                        period.guestLinkage.cohortStatus,
+                        period.posthog.cohortStatus,
+                      ].includes("in_progress")
+                      const linkage = period.guestLinkage.within24h
+                      return (
+                        <tr key={period.label} className="align-top">
+                          <th scope="row" className="px-3 py-2.5 font-medium text-foreground">
+                            {period.label}
+                            <span className="mt-0.5 block font-normal text-muted-foreground">
+                              {formatCohortRange(period.cash.from, period.cash.to)} · end excluded
+                            </span>
+                          </th>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: period.posthog.intakeStartedFlows,
+                              inProgress,
+                              numerator: period.posthog.checkoutInitiatedFlows,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: period.posthog.intakeStartedFlows,
+                              inProgress,
+                              numerator: period.posthog.purchaseCompletedFlows,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: period.posthog.repeatRx.medicationViewedFlows,
+                              inProgress,
+                              numerator: period.posthog.repeatRx.medicationCompletedFlows,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {linkage.status === "pending"
+                              ? "Pending"
+                              : formatCohortRatio({
+                                  denominator: linkage.eligibleOrders,
+                                  inProgress,
+                                  numerator: linkage.linkedOrders,
+                                  percent: linkage.percent,
+                                })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: period.cash.paidOrders,
+                              inProgress,
+                              numerator: period.cash.refundedOrders,
+                              percent: period.cash.refundsPer100Paid,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 text-muted-foreground">
+                            <span className="font-medium text-foreground">
+                              {inProgress
+                                ? "In progress"
+                                : period.availability === "available"
+                                  ? "Available"
+                                  : period.availability === "degraded"
+                                    ? "Degraded"
+                                    : "Unavailable"}
+                            </span>
+                            <span className="mt-0.5 block">
+                              Observation cutoff {COHORT_DATE.format(new Date(period.cash.asOf))}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="mt-3 rounded-lg border border-dashed border-border/70 bg-muted/20 px-3 py-3 text-xs text-muted-foreground">
+                {releaseFriction.reason === "release_boundary_not_configured"
+                  ? "Add the immutable release SHA and ready timestamp to enable aggregate Baseline, D+7, and D+14 measurement. No patient drill-down is collected."
+                  : "Release measurement could not be read. Source values remain unavailable rather than falling back to zero."}
+              </p>
+            )}
+          </section>
         </DashboardCard>
 
         <DashboardCard padding="none">

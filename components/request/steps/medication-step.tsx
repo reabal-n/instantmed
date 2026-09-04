@@ -553,6 +553,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       captureMedicationBlock({
         blockType: "validation",
         blockers,
+        resolution: "shown",
       })
     }
     return blockers.length === 0

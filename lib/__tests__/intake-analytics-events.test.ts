@@ -308,6 +308,9 @@ describe("intake analytics events", () => {
     expect(medicationSource).toContain('blockers: ["controlled_substance"]')
     expect(medicationSource).toContain('blockType: "service_steer"')
     expect(medicationSource).toContain('blockers: ["dedicated_service_steer"]')
+    expect(medicationSource).toMatch(
+      /captureMedicationBlock\(\{\s*blockType: "validation",\s*blockers,\s*resolution: "shown",\s*\}\)/,
+    )
     expect(medicationSource).not.toContain("blockers: Object.values(newErrors)")
   })
 

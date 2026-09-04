@@ -7,6 +7,10 @@ import {
   getRecordedAttributionBreakdown,
 } from "@/lib/admin/recorded-attribution-breakdown"
 import {
+  buildUnavailableReleaseFrictionDashboardSnapshot,
+  getReleaseFrictionDashboardSnapshot,
+} from "@/lib/admin/release-friction-readout"
+import {
   buildDegradedReviewRequestFunnelSnapshot,
   getReviewRequestFunnelSnapshot,
 } from "@/lib/admin/review-request-funnel"
@@ -40,6 +44,7 @@ export default async function AnalyticsDashboardPage() {
     getHeardAboutUsBreakdown(supabase, { days: 30 }),
     getReviewRequestFunnelSnapshot(supabase, now),
     getRecentDeliveredAdsAgentRunDailySpend(supabase),
+    getReleaseFrictionDashboardSnapshot(supabase, { now }),
   ])
 
   const revenueDashboard = reads[0].status === "fulfilled" ? reads[0].value : null
@@ -110,6 +115,12 @@ export default async function AnalyticsDashboardPage() {
     reviewRequestFunnel: reads[5].status === "fulfilled"
       ? reads[5].value
       : buildDegradedReviewRequestFunnelSnapshot(now),
+    releaseFriction: reads[7].status === "fulfilled"
+      ? reads[7].value
+      : buildUnavailableReleaseFrictionDashboardSnapshot(
+          now,
+          "release_measurement_read_failed",
+        ),
     trends,
   }
 

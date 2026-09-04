@@ -149,12 +149,22 @@ describe("secure request tracker contract", () => {
 
   it("keeps guest account completion off browser telemetry and merged profiles off auth", () => {
     const completeAccount = projectFile("app/auth/complete-account/complete-account-form.tsx")
+    const tracker = projectFile("app/track/request/page.tsx")
     const postConversionPaths = projectFile("lib/browser/post-conversion-path.ts")
     const authHelpers = projectFile("lib/auth/helpers.ts")
     const config = projectFile("next.config.mjs")
 
-    expect(completeAccount).not.toContain("trackPurchase")
-    expect(completeAccount).not.toContain("usePostHog")
+    for (const [path, source] of [
+      ["complete-account", completeAccount],
+      ["secure tracker", tracker],
+    ] as const) {
+      expect(source, path).not.toMatch(
+        /from\s+["'](?:posthog-js|@\/lib\/(?:analytics|gtag)|@\/components\/providers\/posthog)/,
+      )
+      expect(source, path).not.toMatch(
+        /\b(?:capture|captureIntakeEvent|trackPurchase|trackEvent|trackFunnelStep|usePostHog)\s*\(/,
+      )
+    }
     expect(postConversionPaths).not.toContain('"/auth/complete-account"')
     expect(config).toContain('source: "/auth/complete-account"')
     expect(authHelpers).toContain("account_closure_reason, merged_into_profile_id")

@@ -47,6 +47,7 @@
     "review:reindex": "tsx scripts/video-review/index-update.ts",
     "review:doctor": "tsx --env-file=.env.local scripts/video-review/doctor.ts",
     "audit:customer-growth": "tsx scripts/customer-growth-baseline.ts",
+    "analytics:release-friction": "node --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/release-friction-readout.ts",
     "marketing:crop-hero-images": "node scripts/crop-hero-images.mjs",
     "marketing:generate-photography": "tsx scripts/generate-marketing-photography.ts",
     "smoke:backend": "npx tsx scripts/smoke-backend.ts",
