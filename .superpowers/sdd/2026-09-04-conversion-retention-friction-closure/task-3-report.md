@@ -10,7 +10,7 @@ The faithful local paths are green and the existing Sentry credential returned H
 
 - Added a fail-closed production-bundle runner and Playwright config. The runner accepts only `e2e/certificate-resend-render.spec.ts`, requires ports `3060` and `55320`–`55329` to be free, creates a unique per-run alternate-port Supabase project, builds the Webpack production bundle, and starts `next start` on `127.0.0.1:3060`.
 - The runner copies the application to a temporary root while excluding `.env`, `.env.local`, `.env.production`, `.env.production.local`, and every other `.env.*` file. Both `next build` and `next start` run from that copy, so Next cannot auto-load credentials from the working checkout. The child environment is allowlisted, Sentry auth/DSN and PostHog keys are explicitly blank, non-GET/HEAD external fetches are rejected, and `api.resend.com` is always answered locally with HTTP 503. Build-time font GETs remain available because they are required by `next/font`; no external mutation is permitted.
-- Startup is marked attempted before invoking Supabase. All spawned commands are tracked in their own process groups, SIGINT/SIGTERM terminates only those tracked groups, and idempotent cleanup always attempts to stop the unique run-owned project. Cleanup then queries only the exact `com.supabase.cli.project=<per-run-id>` Docker label: any remaining owned container or volume makes the command fail and retains/logs the temporary workdir; a nonzero CLI stop after partial startup is accepted only when that exact-label check proves nothing remains.
+- Startup is marked attempted before invoking Supabase. All spawned commands are tracked in their own process groups, SIGINT/SIGTERM terminates only those tracked groups, and idempotent cleanup always attempts to stop the unique run-owned project. Cleanup then queries only the exact `com.supabase.cli.project=<per-run-id>` Docker label: any remaining owned container, volume, or network makes the command fail and retains/logs the temporary workdir; a nonzero CLI stop after partial startup is accepted only when that exact-label check proves nothing remains.
 - Added an unmocked render contract covering four distinct entry points with real certificate email components and renderer: a real `executeCertApproval()` call, patient self-resend action, staff resend action, and a separately constructed no-frozen `reconstructEmailContent()` email-hub row. Database, PDF, storage, auth, rate-limit, and provider boundaries are mocked; React, `MedCertPatientEmail`, and `renderEmailToHtml` are not mocked.
 - Added action contracts proving patient and staff resend pass the constructed certificate template through to `sendEmail` while retaining the existing reservation/finalisation assertions.
 - Added a production Playwright action/bundle/outbox case. It seeds only fabricated data with `exclude_from_reporting: true`, walks the real `pending_payment -> paid -> approved` status transitions, clicks the authenticated staff intake-review `Resend` control, and verifies one finalized resend attempt, one E2E-suppressed durable outbox record, current storage-version binding, no raw storage path, and no render exception.
@@ -48,7 +48,8 @@ The production harness then progressed through genuine harness REDs before reach
 9. Review identified that running Next in the repository could still auto-load dotenv credentials despite a sanitized process environment. Both build and start were moved to a sanitized temporary application copy.
 10. The first sanitized-copy build rejected all external traffic and therefore blocked required `next/font` GETs. The final guard permits GET/HEAD reads but rejects external mutating fetches and always intercepts Resend. Blank Sentry DSN/auth values keep the build wrapper/source-map uploader off; the E2E-mode SDK has no DSN transport.
 11. A refreshed hub row caused the deliberate provider-block message to appear three times and tripped Playwright strict mode. The assertion is now scoped to the notification region.
-12. One final verification attempt hit a transient Supabase Edge Runtime health-check 502 during partial startup, and the CLI stop returned nonzero. Exact ownership-label inspection found zero containers and zero volumes, demonstrating that the stack was already gone; cleanup now encodes that proof rule instead of treating the CLI exit alone as resource state. A fresh authoritative run then passed.
+12. One final verification attempt hit a transient Supabase Edge Runtime health-check 502 during partial startup, and the CLI stop returned nonzero. Manual exact ownership-label inspection found zero containers, volumes, and networks, demonstrating that the stack was already gone; cleanup now encodes that proof rule instead of treating the CLI exit alone as resource state. A fresh authoritative run then passed.
+13. Review found that the same exact project label also owns the per-run Docker network. Cleanup now requires zero labelled containers, volumes, and networks before deleting the recovery workdir or accepting a failed CLI stop. The Docker filter syntax was checked read-only against the running Moirai network; no stack was stopped or changed.
 
 The final green is the observed behavior of the faithful production bundle. Because the historical frame remains unavailable, the task stops at `BLOCKED_DIAGNOSIS`.
 
@@ -78,6 +79,19 @@ PASS — production Webpack build completed; Playwright 1/1 passed in 8.7s; exac
 
 git diff --check
 PASS
+```
+
+Review-round cleanup verification did not repeat the already-green production build:
+
+```text
+corepack pnpm typecheck
+PASS
+
+corepack pnpm exec eslint --no-ignore scripts/run-production-e2e.ts
+PASS
+
+docker network ls --filter 'label=com.supabase.cli.project=moirai' --format '{{.Name}}\t{{.Label "com.supabase.cli.project"}}'
+PASS — read-only proof returned only `supabase_network_moirai\tmoirai`
 ```
 
 The production runner's build emitted the repository's existing OpenTelemetry dynamic-dependency warnings. The staff page also logged a non-fatal fresh-schema `patient_notes.created_by_name` mismatch and local Redis fail-open messages; neither was a certificate render failure.

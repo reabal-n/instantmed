@@ -1,9 +1,9 @@
+import { type ChildProcess, spawn } from "node:child_process"
 import { randomBytes } from "node:crypto"
-import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises"
 import { createServer } from "node:net"
 import { tmpdir } from "node:os"
 import { basename, join, resolve } from "node:path"
-import { spawn, type ChildProcess } from "node:child_process"
 
 const EXPECTED_SPEC = "e2e/certificate-resend-render.spec.ts"
 const LOCAL_PORTS = [3060, 55320, 55321, 55322, 55323, 55324, 55325, 55326, 55329]
@@ -12,7 +12,7 @@ const activeChildren = new Set<ChildProcess>()
 let receivedSignal: NodeJS.Signals | null = null
 
 type CommandResult = { stdout: string; stderr: string }
-type OwnedDockerResources = { containers: string[]; volumes: string[] }
+type OwnedDockerResources = { containers: string[]; volumes: string[]; networks: string[] }
 
 function redact(value: string): string {
   return value
@@ -135,7 +135,7 @@ async function listOwnedDockerResources(
   env: NodeJS.ProcessEnv,
 ): Promise<OwnedDockerResources> {
   const exactProjectLabel = `label=com.supabase.cli.project=${projectId}`
-  const [containers, volumes] = await Promise.all([
+  const [containers, volumes, networks] = await Promise.all([
     run("docker", [
       "ps",
       "-a",
@@ -152,10 +152,19 @@ async function listOwnedDockerResources(
       "--format",
       "{{.Name}}",
     ], env, { allowDuringShutdown: true }),
+    run("docker", [
+      "network",
+      "ls",
+      "--filter",
+      exactProjectLabel,
+      "--format",
+      "{{.Name}}",
+    ], env, { allowDuringShutdown: true }),
   ])
   return {
     containers: nonEmptyLines(containers.stdout),
     volumes: nonEmptyLines(volumes.stdout),
+    networks: nonEmptyLines(networks.stdout),
   }
 }
 
@@ -285,15 +294,19 @@ async function main() {
         }
 
         const owned = await listOwnedDockerResources(supabaseProjectId, commandEnv)
-        if (owned.containers.length > 0 || owned.volumes.length > 0) {
+        if (
+          owned.containers.length > 0 ||
+          owned.volumes.length > 0 ||
+          owned.networks.length > 0
+        ) {
           throw new AggregateError(
             stopError ? [stopError] : [],
-            `Cleanup left ${owned.containers.length} container(s) and ${owned.volumes.length} volume(s) owned by ${supabaseProjectId}`,
+            `Cleanup left ${owned.containers.length} container(s), ${owned.volumes.length} volume(s), and ${owned.networks.length} network(s) owned by ${supabaseProjectId}`,
           )
         }
         if (stopError) {
           process.stderr.write(
-            "Supabase stop exited nonzero after partial startup; exact project-label verification found no owned containers or volumes.\n",
+            "Supabase stop exited nonzero after partial startup; exact project-label verification found no owned containers, volumes, or networks.\n",
           )
         }
       }
