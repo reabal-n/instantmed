@@ -324,28 +324,37 @@ async function exactCount(
   if (values.length === 0) return 0
   const { count, error } = await supabase
     .from(table)
-    .select("id", { count: "exact", head: true })
+    .select(column, { count: "exact", head: true })
     .in(column, values)
   if (error || count === null) throw safeFailure(`survivor check failed for ${table}`)
   return count
+}
+
+/**
+ * Count through a real scoped column rather than assuming every cleanup table
+ * has an `id` primary key (`partial_intakes`, for example, uses `session_id`).
+ */
+export function hostedStripeCleanupCountProjection(
+  operation: HostedStripeCleanupOperation,
+): string | null {
+  return operation.scope.find((scope) => scope.values.length > 0)?.column ?? null
 }
 
 async function exactOperationCount(
   supabase: SupabaseClient,
   operation: HostedStripeCleanupOperation,
 ): Promise<number> {
+  const projection = hostedStripeCleanupCountProjection(operation)
+  if (!projection) return 0
   let query = supabase
     .from(operation.table)
-    .select("id", { count: "exact", head: true })
-  let hasEffectiveScope = false
+    .select(projection, { count: "exact", head: true })
   for (const scope of operation.scope) {
     if (scope.values.length === 0) continue
-    hasEffectiveScope = true
     query = scope.operator === "eq"
       ? query.eq(scope.column, scope.values[0])
       : query.in(scope.column, scope.values)
   }
-  if (!hasEffectiveScope) return 0
   const { count, error } = await query
   if (error || count === null) {
     throw safeFailure(`survivor check failed for ${operation.table}`)

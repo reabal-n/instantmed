@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest"
 import {
   assertZeroHostedStripeSurvivors,
   buildHostedStripeCleanupPlan,
+  hostedStripeCleanupCountProjection,
 } from "../../e2e/helpers/hosted-stripe"
 import {
   buildMailpitLatestMessageUrl,
@@ -418,6 +419,14 @@ describe("hosted Stripe row teardown", () => {
     expect(plan.find(({ table }) => table === "safety_audit_log")).toMatchObject({
       scope: [{ column: "request_id" }],
     })
+    expect(
+      hostedStripeCleanupCountProjection(
+        plan.find(({ table }) => table === "partial_intakes")!,
+      ),
+    ).toBe("email")
+    expect(
+      plan.map(hostedStripeCleanupCountProjection),
+    ).not.toContain(null)
 
     expect(() => buildHostedStripeCleanupPlan({
       intakeIds: [],
