@@ -5,12 +5,15 @@ import {
   authorizeScriptsScaleEligibility,
   evaluateAdsPolicy,
   POLICY,
+  resolveAdsOperationalHold,
 } from "@/lib/ads-agent/policy"
 import type {
   AdsAgentSnapshot,
+  AdsOperationalHold,
   AdsService,
   CampaignEconomics,
   CampaignPortfolioEconomics,
+  ManualGrowthHealthEvidence,
 } from "@/lib/ads-agent/types"
 
 function campaign(
@@ -871,5 +874,306 @@ describe("Attribution Investigation Holds (code-owned, durable)", () => {
     expect(recommendationFor(cleared, "scripts")?.reasonCodes).toEqual([
       "SCRIPTS_SCALE_GATES_PASSED",
     ])
+  })
+})
+
+describe("operational growth holds", () => {
+  const now = new Date("2026-09-05T00:00:00.000Z")
+  const freshManualEvidence: ManualGrowthHealthEvidence = {
+    support: {
+      asOf: "2026-09-04T00:00:00.000Z",
+      contactsPer100Paid: 2,
+      source: "verified_gmail_aggregate",
+    },
+    clinicalQa: {
+      asOf: "2026-09-04T00:00:00.000Z",
+      source: "medical_director_completed_review",
+      state: "current",
+    },
+  }
+
+  function operational(
+    overrides: Partial<Parameters<typeof resolveAdsOperationalHold>[0]> = {},
+  ): AdsOperationalHold {
+    return resolveAdsOperationalHold({
+      affectedService: "scripts",
+      clinicalIncident: false,
+      explicitServiceHold: false,
+      fulfilmentHealthy: true,
+      manualEvidence: freshManualEvidence,
+      now,
+      operationalControlEvidenceAvailable: true,
+      queue: {
+        availability: "available",
+        oldestUnresolvedHours: 1,
+        p95ReviewHours: 1.5,
+        review24hBreaches: 0,
+      },
+      ...overrides,
+    })
+  }
+
+  it("keeps the two-hour target as watch without cancelling a bounded test", () => {
+    const watch = operational({
+      queue: {
+        availability: "available",
+        oldestUnresolvedHours: 4,
+        p95ReviewHours: 3.5,
+        review24hBreaches: 0,
+      },
+    })
+
+    expect(watch).toEqual({
+      affectedService: "scripts",
+      reasons: ["queue_p95_over_2h_watch"],
+      state: "watch",
+    })
+
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
+      operational: {
+        asOf: now.toISOString(),
+        holds: [watch],
+        manualEvidence: freshManualEvidence,
+        queue: { availability: "available", services: [] },
+      },
+    }))
+    expect(recommendationFor(recommendations, "scripts")).toEqual({
+      kind: "INVESTIGATE",
+      proposedMutationFamily: null,
+      reasonCodes: ["QUEUE_P95_OVER_2H_WATCH"],
+      service: "scripts",
+    })
+  })
+
+  it("uses hold over unavailable and watch at the genuine stop boundaries", () => {
+    const result = operational({
+      manualEvidence: { support: null, clinicalQa: null },
+      queue: {
+        availability: "available",
+        oldestUnresolvedHours: 20,
+        p95ReviewHours: 6,
+        review24hBreaches: 1,
+      },
+    })
+
+    expect(result.state).toBe("hold")
+    expect(result.reasons).toEqual(expect.arrayContaining([
+      "queue_p95_at_or_over_6h",
+      "queue_oldest_at_or_over_20h",
+      "queue_24h_breach",
+      "support_evidence_unavailable",
+      "clinical_qa_evidence_unavailable",
+    ]))
+
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
+      operational: {
+        asOf: now.toISOString(),
+        holds: [result],
+        manualEvidence: freshManualEvidence,
+        queue: { availability: "available", services: [] },
+      },
+    }))
+    expect(recommendationFor(recommendations, "scripts")).toEqual({
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_status",
+      reasonCodes: expect.arrayContaining([
+        "QUEUE_P95_AT_OR_OVER_6H",
+        "QUEUE_OLDEST_AT_OR_OVER_20H",
+        "QUEUE_24H_BREACH",
+      ]),
+      service: "scripts",
+    })
+  })
+
+  it("treats stale manual evidence as unavailable, not a pause", () => {
+    const unavailable = operational({
+      manualEvidence: {
+        support: {
+          asOf: "2026-08-28T23:59:59.999Z",
+          contactsPer100Paid: 1,
+          source: "verified_gmail_aggregate",
+        },
+        clinicalQa: freshManualEvidence.clinicalQa,
+      },
+      queue: {
+        availability: "available",
+        oldestUnresolvedHours: 2,
+        p95ReviewHours: 3,
+        review24hBreaches: 0,
+      },
+    })
+
+    expect(unavailable).toEqual({
+      affectedService: "scripts",
+      reasons: [
+        "support_evidence_unavailable",
+        "queue_p95_over_2h_watch",
+      ],
+      state: "unavailable",
+    })
+    const recommendation = recommendationFor(
+      evaluatePolicyWithoutHolds(snapshot({
+        operational: {
+          asOf: now.toISOString(),
+          holds: [unavailable],
+          manualEvidence: freshManualEvidence,
+          queue: { availability: "available", services: [] },
+        },
+      })),
+      "scripts",
+    )
+    expect(recommendation).toMatchObject({
+      kind: "INVESTIGATE",
+      proposedMutationFamily: null,
+    })
+  })
+
+  it("names unavailable queue evidence instead of emitting an empty reason", () => {
+    const unavailable = operational({
+      queue: {
+        availability: "unavailable",
+        oldestUnresolvedHours: null,
+        p95ReviewHours: null,
+        review24hBreaches: null,
+      },
+    })
+
+    expect(unavailable).toEqual({
+      affectedService: "scripts",
+      reasons: [],
+      state: "unavailable",
+    })
+    expect(recommendationFor(
+      evaluatePolicyWithoutHolds(snapshot({
+        operational: {
+          asOf: now.toISOString(),
+          holds: [unavailable],
+          manualEvidence: freshManualEvidence,
+          queue: { availability: "unavailable", services: [] },
+        },
+      })),
+      "scripts",
+    )).toEqual({
+      kind: "INVESTIGATE",
+      proposedMutationFamily: null,
+      reasonCodes: ["OPERATIONAL_EVIDENCE_UNAVAILABLE"],
+      service: "scripts",
+    })
+  })
+
+  it("treats missing incident, service-hold, or fulfilment evidence as unavailable", () => {
+    expect(operational({
+      operationalControlEvidenceAvailable: false,
+    })).toEqual({
+      affectedService: "scripts",
+      reasons: [],
+      state: "unavailable",
+    })
+  })
+
+  it("holds only on fresh support or completed-QA evidence, never qa_sampled", () => {
+    expect(operational({
+      manualEvidence: {
+        ...freshManualEvidence,
+        support: {
+          ...freshManualEvidence.support!,
+          contactsPer100Paid: 5.01,
+        },
+      },
+    })).toMatchObject({
+      reasons: expect.arrayContaining(["support_over_5_per_100"]),
+      state: "hold",
+    })
+    expect(operational({
+      manualEvidence: {
+        ...freshManualEvidence,
+        clinicalQa: {
+          ...freshManualEvidence.clinicalQa!,
+          state: "behind",
+        },
+      },
+    })).toMatchObject({
+      reasons: expect.arrayContaining(["clinical_qa_lag"]),
+      state: "hold",
+    })
+  })
+
+  it.each([
+    ["clinicalIncident", "clinical_incident"],
+    ["explicitServiceHold", "explicit_service_hold"],
+    ["fulfilmentHealthy", "fulfilment_unhealthy"],
+  ] as const)("turns %s into a hard hold", (field, reason) => {
+    const result = operational({
+      [field]: field === "fulfilmentHealthy" ? false : true,
+    })
+    expect(result).toMatchObject({
+      reasons: expect.arrayContaining([reason]),
+      state: "hold",
+    })
+  })
+
+  it("rejects future-dated manual evidence as unavailable", () => {
+    expect(operational({
+      manualEvidence: {
+        support: {
+          ...freshManualEvidence.support!,
+          asOf: "2026-09-05T00:00:00.001Z",
+        },
+        clinicalQa: freshManualEvidence.clinicalQa,
+      },
+    })).toMatchObject({
+      reasons: expect.arrayContaining(["support_evidence_unavailable"]),
+      state: "unavailable",
+    })
+  })
+
+  it("does not let missing operations evidence hide a reached loss-cap pause", () => {
+    const ed = specialtyCampaign("ed", {
+      clicks: 31,
+      contributionCents: -15_000,
+      spendCents: 15_000,
+    })
+    const recommendations = evaluatePolicyWithoutHolds(snapshot({
+      daily: [ed],
+      operational: {
+        asOf: now.toISOString(),
+        holds: [{
+          affectedService: "ed",
+          reasons: ["support_evidence_unavailable"],
+          state: "unavailable",
+        }],
+        manualEvidence: freshManualEvidence,
+        queue: { availability: "available", services: [] },
+      },
+      rolling30: [ed],
+    }))
+
+    expect(recommendationFor(recommendations, "ed")).toEqual({
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_status",
+      reasonCodes: ["SPECIALTY_LOSS_CAP"],
+      service: "ed",
+    })
+  })
+
+  it("lets a hard operational hold outrank an attribution investigation", () => {
+    const hardHold = operational({ clinicalIncident: true })
+    const recommendations = evaluateAdsPolicy(snapshot({
+      operational: {
+        asOf: now.toISOString(),
+        holds: [hardHold],
+        manualEvidence: freshManualEvidence,
+        queue: { availability: "available", services: [] },
+      },
+    }), {
+      openAttributionHolds: new Set(["scripts"]),
+    })
+
+    expect(recommendationFor(recommendations, "scripts")).toEqual({
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_status",
+      reasonCodes: ["CLINICAL_INCIDENT"],
+      service: "scripts",
+    })
   })
 })

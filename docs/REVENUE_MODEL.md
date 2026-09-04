@@ -96,7 +96,7 @@ Review these metrics by service before increasing paid demand:
 | Chargeback rate | Stripe disputes divided by paid orders. | Stay below 0.5%; any cluster gets same-week review. |
 | Support tickets per 100 orders | Patient support contacts per 100 paid orders. | Stay below 5 per 100; above target means fix friction before adding demand. |
 | Paid-to-decision elapsed time | Time from payment to approval or decline, including queue and waiting time. | Track operational responsiveness only; this is not an active-labour input. |
-| Queue P95 | Paid-to-review wait by service. | Keep below 2 hours and below the 24-hour hard ceiling. |
+| Queue P95 | Paid-to-first-clinician-open wait for reportable manual-review requests, by service. | Two hours is the operating target. Above 2 but below 6 hours is watch; 6 hours is the new-scale hard stop. Any 24-hour breach is a service hold. |
 | Clinical/fulfilment health | Safety escalations, unsuitable cases, Parchment completion, delivery failures. | Any unsafe or unreliable pattern blocks scaling. |
 | Capacity review state | Section 8 thresholds. | A triggered state requires an operating decision before further ramp. |
 
@@ -113,6 +113,10 @@ Material budget increases require:
 - `GREEN` deterministic tracking health; an attribution, spend, revenue, refund, or fee failure fails closed and blocks scaling
 - separately reviewed refund, chargeback, clinical, queue, fulfilment, and support metrics; a recorded service-specific breach is an explicit hold, not a hidden portfolio-wide cap
 - explicit operator approval for the exact change
+
+The operational evidence gate is deliberately proportionate. The **two-hour operating target** is the day-to-day goal; a trailing-seven-day P95 above two but below six hours is `watch` and does not cancel an already-approved bounded test. The **six-hour new-scale gate** blocks a new campaign, bid/budget increase, or next product variable when P95 reaches six hours. A 24-hour breach, an oldest unreviewed request at 20 hours, an active clinical incident, broken fulfilment, an explicit service hold, verified support above **5 per 100 paid orders**, or fresh **completed clinical-QA evidence** marked behind creates a hard hold and a pause proposal for approval.
+
+Manual support and completed-QA inputs are fresh for **seven days**. Missing, stale, malformed, or future-dated manual evidence is `unavailable`: it makes a new scale packet incomplete, but is not evidence of harm and does not silently pause live spend. Missing service-level incident, explicit-hold, or fulfilment evidence is unavailable too, never presumed healthy. The selection-only `qa_sampled` stamp is never completed-QA evidence. Operational precedence is `hold > unavailable > watch > clear`; no state mutates Ads without the exact operator approval workflow.
 
 Every budget, keyword, negative keyword, asset, sitelink, targeting, bid-strategy, pause, or enable recommendation follows the approval workflow in `docs/OPERATIONS.md`. No routine Google Ads mutation is autonomous.
 

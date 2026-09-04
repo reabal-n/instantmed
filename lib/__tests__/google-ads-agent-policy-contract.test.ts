@@ -67,4 +67,22 @@ describe("Google Ads Agent policy documentation", () => {
     expect(policy).not.toMatch(/\bfetch\s*\(/)
     expect(policy).not.toContain("proposal:send")
   })
+
+  it("pins the conversion-friendly operational growth gate without weakening real holds", () => {
+    for (const document of [operations, revenue]) {
+      expect(document).toContain("two-hour operating target")
+      expect(document).toContain("six-hour new-scale gate")
+      expect(document).toContain("24-hour")
+      expect(document).toContain("seven days")
+    }
+    expect(operations).toContain("hold > unavailable > watch > clear")
+    expect(operations).toContain(
+      "does not cancel an already-approved bounded test",
+    )
+    expect(operations).toContain(
+      "No operational state mutates Google Ads autonomously",
+    )
+    expect(revenue).toContain("5 per 100 paid orders")
+    expect(revenue).toContain("completed clinical-QA evidence")
+  })
 })

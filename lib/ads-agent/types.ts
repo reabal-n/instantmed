@@ -27,6 +27,64 @@ export type AdsService =
   | "womens_health"
   | "account"
 
+export type AdsOperationalService = Exclude<AdsService, "account">
+
+export type AdsOperationalHoldReason =
+  | "clinical_incident"
+  | "clinical_qa_lag"
+  | "clinical_qa_evidence_unavailable"
+  | "explicit_service_hold"
+  | "fulfilment_unhealthy"
+  | "queue_p95_over_2h_watch"
+  | "queue_p95_at_or_over_6h"
+  | "queue_oldest_at_or_over_20h"
+  | "queue_24h_breach"
+  | "support_evidence_unavailable"
+  | "support_over_5_per_100"
+
+export interface AdsOperationalHold {
+  affectedService: string
+  reasons: AdsOperationalHoldReason[]
+  state: "clear" | "hold" | "unavailable" | "watch"
+}
+
+export interface ManualGrowthHealthEvidence {
+  support: {
+    contactsPer100Paid: number
+    asOf: string
+    source: "verified_gmail_aggregate"
+  } | null
+  clinicalQa: {
+    state: "current" | "behind"
+    asOf: string
+    source: "medical_director_completed_review"
+  } | null
+}
+
+export interface AdsOperationalQueueEvidence {
+  availability: "available" | "unavailable"
+  oldestUnresolvedHours: number | null
+  p95ReviewHours: number | null
+  review24hBreaches: number | null
+}
+
+export interface AdsOperationalQueueServiceEvidence
+  extends AdsOperationalQueueEvidence {
+  affectedService: AdsOperationalService
+}
+
+export interface AdsOperationalQueueSnapshot {
+  availability: AdsOperationalQueueEvidence["availability"]
+  services: AdsOperationalQueueServiceEvidence[]
+}
+
+export interface AdsOperationalSnapshot {
+  asOf: string
+  holds: AdsOperationalHold[]
+  manualEvidence: ManualGrowthHealthEvidence
+  queue: AdsOperationalQueueSnapshot
+}
+
 export interface TrackingHealth {
   evidenceAsOf: string
   reasonCodes: string[]
@@ -125,6 +183,8 @@ export interface AdsAgentSnapshot {
   daily: CampaignEconomics[]
   generatedAt: string
   inputs: Record<string, AdsSnapshotInput>
+  /** Absent only on historical runs created before operational growth gates. */
+  operational?: AdsOperationalSnapshot
   reportDate: string
   rolling30: CampaignEconomics[]
   totals: {

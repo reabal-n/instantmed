@@ -23,6 +23,11 @@ vi.mock("@/lib/analytics/google-ads-report", async (importOriginal) => ({
   getLocalGoogleAdsPurchasesForRange: mocks.getLocalGoogleAdsPurchasesForRange,
 }))
 
+import {
+  aggregateAdsOperationalQueueEvidence,
+  buildManualGrowthHealthEvidence,
+  readAdsOperationalQueueEvidence,
+} from "@/lib/ads-agent/operational-health"
 import { buildAdsAgentSnapshot } from "@/lib/ads-agent/snapshot"
 
 const REPORT_NOW = new Date("2026-07-27T23:00:00.000Z")
@@ -230,7 +235,36 @@ describe("Google Ads Agent snapshot", () => {
 
   it("reconciles closed Sydney windows with fee-aware campaign-ID economics", async () => {
     const snapshot = await buildAdsAgentSnapshot({
+      manualGrowthHealthEvidence: {
+        support: {
+          asOf: REPORT_NOW.toISOString(),
+          contactsPer100Paid: 2,
+          source: "verified_gmail_aggregate",
+        },
+        clinicalQa: {
+          asOf: REPORT_NOW.toISOString(),
+          source: "medical_director_completed_review",
+          state: "current",
+        },
+      },
       now: REPORT_NOW,
+      operationalQueueReader: async () => ({
+        availability: "available",
+        services: [{
+          affectedService: "scripts",
+          availability: "available",
+          oldestUnresolvedHours: 1,
+          p95ReviewHours: 3,
+          review24hBreaches: 0,
+        }],
+      }),
+      serviceOperationalControls: {
+        scripts: {
+          clinicalIncident: false,
+          explicitServiceHold: false,
+          fulfilmentHealthy: true,
+        },
+      },
       supabase: {} as never,
     })
 
@@ -311,6 +345,27 @@ describe("Google Ads Agent snapshot", () => {
     expect(Object.values(snapshot.inputs).every(
       (input) => input.status === "fresh",
     )).toBe(true)
+    expect(snapshot.operational).toEqual({
+      asOf: REPORT_NOW.toISOString(),
+      holds: expect.arrayContaining([{
+        affectedService: "scripts",
+        reasons: ["queue_p95_over_2h_watch"],
+        state: "watch",
+      }]),
+      manualEvidence: {
+        support: {
+          asOf: REPORT_NOW.toISOString(),
+          contactsPer100Paid: 2,
+          source: "verified_gmail_aggregate",
+        },
+        clinicalQa: {
+          asOf: REPORT_NOW.toISOString(),
+          source: "medical_director_completed_review",
+          state: "current",
+        },
+      },
+      queue: expect.objectContaining({ availability: "available" }),
+    })
   })
 
   it("counts an old purchase refund by refunded_at without requiring an old purchase fee", async () => {
@@ -380,6 +435,37 @@ describe("Google Ads Agent snapshot", () => {
     expect(snapshot.inputs.localRolling30.reason).toBeUndefined()
   })
 
+  it("does not infer a clear queue for a missing service aggregate", async () => {
+    const snapshot = await buildAdsAgentSnapshot({
+      manualGrowthHealthEvidence: {
+        support: {
+          asOf: REPORT_NOW.toISOString(),
+          contactsPer100Paid: 2,
+          source: "verified_gmail_aggregate",
+        },
+        clinicalQa: {
+          asOf: REPORT_NOW.toISOString(),
+          source: "medical_director_completed_review",
+          state: "current",
+        },
+      },
+      now: REPORT_NOW,
+      operationalQueueReader: async () => ({
+        availability: "available",
+        services: [],
+      }),
+      supabase: {} as never,
+    })
+
+    expect(snapshot.operational?.holds.find(
+      ({ affectedService }) => affectedService === "scripts",
+    )).toEqual({
+      affectedService: "scripts",
+      reasons: [],
+      state: "unavailable",
+    })
+  })
+
   it("represents missing local revenue as unavailable rather than zero", async () => {
     mocks.getLocalGoogleAdsPurchasesForRange.mockRejectedValue(
       new Error("supabase_unavailable"),
@@ -437,5 +523,305 @@ describe("Google Ads Agent snapshot", () => {
     })
     expect(scripts?.unavailableReasonCodes).toContain("STRIPE_FEES_UNAVAILABLE")
     expect(snapshot.inputs.stripeFees.status).toBe("failed")
+  })
+})
+
+describe("Google Ads Agent operational queue evidence", () => {
+  it("aggregates paid manual-review waits by service without returning row identifiers", () => {
+    const now = new Date("2026-09-05T00:00:00.000Z")
+    const evidence = aggregateAdsOperationalQueueEvidence({
+      clinicianOpens: [
+        {
+          created_at: "2026-09-04T23:30:00.000Z",
+          intake_id: "scripts-opened",
+        },
+        {
+          created_at: "2026-09-04T17:00:00.000Z",
+          intake_id: "ed-slow",
+        },
+        {
+          created_at: "2026-09-04T22:00:00.000Z",
+          intake_id: "cert-manual",
+        },
+      ],
+      intakes: [
+        {
+          auto_approval_state: null,
+          category: "prescription",
+          id: "scripts-opened",
+          paid_at: "2026-09-04T23:00:00.000Z",
+          payment_status: "paid",
+          status: "in_review",
+          subtype: "repeat",
+        },
+        {
+          auto_approval_state: null,
+          category: "prescription",
+          id: "scripts-overdue",
+          paid_at: "2026-09-03T23:00:00.000Z",
+          payment_status: "paid",
+          status: "paid",
+          subtype: "repeat",
+        },
+        {
+          auto_approval_state: null,
+          category: "consult",
+          id: "ed-slow",
+          paid_at: "2026-09-04T10:00:00.000Z",
+          payment_status: "paid",
+          status: "in_review",
+          subtype: "ed",
+        },
+        {
+          auto_approval_state: "needs_doctor",
+          category: "medical_certificate",
+          id: "cert-manual",
+          paid_at: "2026-09-04T21:00:00.000Z",
+          payment_status: "paid",
+          status: "in_review",
+          subtype: "work",
+        },
+        {
+          auto_approval_state: "pending",
+          category: "medical_certificate",
+          id: "cert-clean-protocol-pending",
+          paid_at: "2026-09-04T20:00:00.000Z",
+          payment_status: "paid",
+          status: "paid",
+          subtype: "work",
+        },
+      ],
+      now,
+    })
+
+    expect(evidence.availability).toBe("available")
+    expect(evidence.services).toEqual(expect.arrayContaining([
+      {
+        affectedService: "scripts",
+        availability: "available",
+        oldestUnresolvedHours: 25,
+        p95ReviewHours: 0.5,
+        review24hBreaches: 1,
+      },
+      {
+        affectedService: "ed",
+        availability: "available",
+        oldestUnresolvedHours: null,
+        p95ReviewHours: 7,
+        review24hBreaches: 0,
+      },
+      {
+        affectedService: "med_certs",
+        availability: "available",
+        oldestUnresolvedHours: null,
+        p95ReviewHours: 1,
+        review24hBreaches: 0,
+      },
+    ]))
+    expect(JSON.stringify(evidence)).not.toContain("scripts-opened")
+    expect(JSON.stringify(evidence)).not.toContain("cert-manual")
+    expect(JSON.stringify(evidence)).not.toContain("patient")
+  })
+
+  it("ignores a pre-payment open and excludes clean certificates awaiting protocol", () => {
+    const evidence = aggregateAdsOperationalQueueEvidence({
+      clinicianOpens: [{
+        created_at: "2026-09-04T19:00:00.000Z",
+        intake_id: "scripts-pre-open",
+      }, {
+        created_at: "2026-09-04T20:00:00.000Z",
+        intake_id: "scripts-pre-open",
+      }],
+      intakes: [
+        {
+          auto_approval_state: null,
+          category: "prescription",
+          id: "scripts-pre-open",
+          paid_at: "2026-09-04T20:00:00.000Z",
+          payment_status: "paid",
+          status: "paid",
+          subtype: "repeat",
+        },
+        {
+          auto_approval_state: "pending",
+          category: "medical_certificate",
+          id: "clean-cert",
+          paid_at: "2026-09-01T00:00:00.000Z",
+          payment_status: "paid",
+          status: "paid",
+          subtype: "work",
+        },
+        {
+          auto_approval_state: null,
+          category: "medical_certificate",
+          id: "legacy-manual-cert",
+          paid_at: "2026-09-04T18:00:00.000Z",
+          payment_status: "paid",
+          status: "paid",
+          subtype: "work",
+        },
+      ],
+      now: new Date("2026-09-05T00:00:00.000Z"),
+    })
+
+    expect(evidence.services.find(({ affectedService }) =>
+      affectedService === "scripts")).toMatchObject({
+        oldestUnresolvedHours: 4,
+        p95ReviewHours: null,
+        review24hBreaches: 0,
+      })
+    expect(evidence.services.find(({ affectedService }) =>
+      affectedService === "med_certs")).toMatchObject({
+        oldestUnresolvedHours: 6,
+        p95ReviewHours: null,
+        review24hBreaches: 0,
+      })
+  })
+
+  it("reads only reportable aggregate inputs and returns no patient or staff identifiers", async () => {
+    function query(result: { count: number; data: unknown[]; error: null }) {
+      const chain: Record<string, ReturnType<typeof vi.fn>> & PromiseLike<typeof result> = {
+        then: ((resolve: (value: typeof result) => unknown) =>
+          Promise.resolve(result).then(resolve)) as never,
+      }
+      for (const method of ["eq", "gte", "in", "limit", "lt", "lte", "not", "or", "order", "select"]) {
+        chain[method] = vi.fn(() => chain)
+      }
+      return chain
+    }
+
+    const recent = query({
+      count: 1,
+      data: [{
+        auto_approval_state: null,
+        category: "prescription",
+        id: "scripts-one",
+        paid_at: "2026-09-04T20:00:00.000Z",
+        payment_status: "paid",
+        status: "paid",
+        subtype: "repeat",
+      }],
+      error: null,
+    })
+    const unresolved = query({
+      count: 1,
+      data: [{
+        auto_approval_state: null,
+        category: "prescription",
+        id: "scripts-one",
+        paid_at: "2026-09-04T20:00:00.000Z",
+        payment_status: "paid",
+        status: "paid",
+        subtype: "repeat",
+      }],
+      error: null,
+    })
+    const audit = query({ count: 0, data: [], error: null })
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === "compliance_audit_log") return audit
+        return supabase.from.mock.calls.filter(([name]) => name === "intakes").length === 1
+          ? recent
+          : unresolved
+      }),
+    }
+
+    const evidence = await readAdsOperationalQueueEvidence(
+      supabase as never,
+      { now: new Date("2026-09-05T00:00:00.000Z") },
+    )
+
+    expect(recent.or).toHaveBeenCalledWith(
+      "exclude_from_reporting.is.null,exclude_from_reporting.eq.false",
+    )
+    expect(recent.not).toHaveBeenCalledWith(
+      "patient_id",
+      "in",
+      expect.any(String),
+    )
+    expect(recent.in).toHaveBeenCalledWith(
+      "payment_status",
+      ["paid", "partially_refunded"],
+    )
+    expect(audit.eq).toHaveBeenCalledWith(
+      "event_type",
+      "clinician_opened_request",
+    )
+    expect(audit.eq).toHaveBeenCalledWith("actor_role", "clinician")
+    expect(audit.eq).toHaveBeenCalledWith("is_human_action", true)
+    expect(audit.select).toHaveBeenCalledWith(
+      "intake_id, created_at",
+      { count: "exact" },
+    )
+    expect(audit.in).toHaveBeenCalledWith("intake_id", ["scripts-one"])
+    const selectedColumns = [
+      ...recent.select.mock.calls,
+      ...unresolved.select.mock.calls,
+      ...audit.select.mock.calls,
+    ].map(([columns]) => String(columns)).join(" ")
+    expect(selectedColumns).not.toMatch(/email|name|actor|patient:/i)
+    expect(JSON.stringify(evidence)).not.toContain("scripts-one")
+  })
+
+  it("fails closed on malformed queue evidence instead of understating waits", () => {
+    expect(() => aggregateAdsOperationalQueueEvidence({
+      clinicianOpens: [],
+      intakes: [{
+        auto_approval_state: null,
+        category: "prescription",
+        id: "",
+        paid_at: "not-a-time",
+        payment_status: "paid",
+        status: "paid",
+        subtype: "repeat",
+      }],
+      now: new Date("2026-09-05T00:00:00.000Z"),
+    })).toThrow("ads_operational_queue_malformed")
+  })
+
+  it("accepts only the fixed aggregate support and completed-QA sources", () => {
+    const evidence = buildManualGrowthHealthEvidence([
+      {
+        dimensions: {
+          reason: "must not escape",
+          source: "verified_gmail_aggregate",
+        },
+        metric_name: "ads_support_contacts_per_100_paid",
+        metric_value: 3.2,
+        recorded_at: "2026-09-04T00:00:00.000Z",
+      },
+      {
+        dimensions: {
+          source: "medical_director_completed_review",
+          state: "current",
+        },
+        metric_name: "ads_completed_clinical_qa_state",
+        metric_value: 1,
+        recorded_at: "2026-09-04T01:00:00.000Z",
+      },
+    ])
+
+    expect(evidence).toEqual({
+      support: {
+        asOf: "2026-09-04T00:00:00.000Z",
+        contactsPer100Paid: 3.2,
+        source: "verified_gmail_aggregate",
+      },
+      clinicalQa: {
+        asOf: "2026-09-04T01:00:00.000Z",
+        source: "medical_director_completed_review",
+        state: "current",
+      },
+    })
+    expect(JSON.stringify(evidence)).not.toContain("must not escape")
+
+    expect(buildManualGrowthHealthEvidence([
+      {
+        dimensions: { source: "self_reported", state: "behind" },
+        metric_name: "ads_completed_clinical_qa_state",
+        metric_value: 0,
+        recorded_at: "2026-09-04T01:00:00.000Z",
+      },
+    ])).toEqual({ support: null, clinicalQa: null })
   })
 })
