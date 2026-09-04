@@ -247,6 +247,37 @@ Operational rules:
 2. Update `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in Vercel
 3. Deploy, then verify webhook delivery in Stripe dashboard
 
+#### Manual hosted-checkout test credential
+
+The real guest-checkout acceptance gate runs only with a fresh, dedicated
+Stripe test-mode secret or restricted key and matching test-mode Price IDs. It
+does not read the primary deployment environment, repo `.env*` files, or a
+cached Stripe CLI login. Configure these secret names in the manual GitHub
+environment (values stay outside the repository):
+
+- `HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT_2DAY`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT_3DAY`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_REPEAT_SCRIPT`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_CONSULT`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_CONSULT_ED`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_CONSULT_HAIR_LOSS`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_CONSULT_WOMENS_HEALTH`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_CONSULT_WEIGHT_LOSS`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_PRIORITY_FEE`
+
+Run `corepack pnpm e2e:stripe-hosted` or manually dispatch **Hosted Stripe Guest
+Checkout E2E**. The preflight retrieves every Price and rejects live, missing,
+inactive, recurring, wrong-currency, or wrong-amount configuration before any
+checkout. If the Stripe listener reports expired authentication, refresh access
+with `stripe login` as an operator and provide a new dedicated test credential;
+do not substitute the primary live key. The runner owns loopback app port 3060
+and Supabase ports 55320-55329, refuses occupied ports, never stops an unknown
+owner, and retains its temporary recovery directory if cleanup cannot prove
+zero run-owned database/Auth/Docker survivors. The resulting receipt contains
+only run/commit/timestamp, event-mode, boolean, and count evidence.
+
 ---
 
 ## Debugging Checklist

@@ -217,6 +217,35 @@ The med-cert auto-approval E2E contract uses `/api/test/medcert-immediate-auto-a
 
 **Parchment proof boundary:** local and mocked browser checks can prove InstantMed's responsive sheet, same-page restoration, action sizing, and disabled-state contract. They cannot prove the real third-party iframe. Release proof for the vendor interaction requires an explicitly approved Parchment sandbox/test request at a 375px-class viewport, including launch, prescribe/issue, return, durable `script_sent` refresh, and completion unlock. Never use a production patient or create vendor state merely to obtain visual proof.
 
+### Hosted Stripe guest-checkout proof
+
+`corepack pnpm e2e:stripe-hosted` is the manual, production-bundle acceptance
+gate for guest payment and optional account linking. It is intentionally
+separate from the normal seeded Playwright suite: the runner creates a
+dotenv-free temporary app copy, starts its own Supabase project on ports
+55320-55329 (API 55321 and Mailpit 55324), retrieves and verifies every Stripe
+test Price, starts `stripe listen`, builds and serves Next.js on loopback port
+3060, and uses one Chromium worker with no shared global setup or `webServer`.
+
+The two browser cases use fabricated data only. The repeat-prescription case
+fills the current prescribing identity, medication strength, dose/directions,
+and clinical safety fields, pays on `checkout.stripe.com`, then chooses
+`Continue without an account`; the med-cert case pays the same way, requests a
+passwordless link, reads only its run-specific local Mailpit recipient, and
+links the request to the patient dashboard. Both cases require the current
+Checkout Session, succeeded PaymentIntent, exact stored session/amount/currency,
+paid intake state, and a processed genuine signed webhook. They never use the
+Playwright auth-bypass cookie or fabricated provider responses.
+
+The command fails before startup unless dedicated `HOSTED_STRIPE_E2E_*` test
+credentials and matching test-mode Price IDs are present. It never loads repo
+dotenv files or accepts primary `STRIPE_*`, Supabase, app-domain, Vercel, or
+`E2E_ISOLATED_SUPABASE` values from the shell. Teardown deletes the two
+run-scoped recipients and their intake/payment/auth side effects, asserts zero
+survivors, stops only its labelled Supabase project, and writes a restricted
+PHI-free receipt under `.artifacts/hosted-stripe-e2e/` only after both branches
+and cleanup pass. The GitHub workflow is manual `workflow_dispatch` only.
+
 ### What NOT to E2E Test
 
 - Marketing pages (no auth, no data — snapshot test if needed)
