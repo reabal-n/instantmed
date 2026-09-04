@@ -99,15 +99,19 @@ export function useFlowAnalytics({
     [serviceType],
   )
 
-  // Reset funnel event de-duplication state when changing flows.
+  // A same-route service handoff uses client navigation, so the old flow's
+  // unload-suppression latch must be cleared only after the exact destination
+  // marker and service have mounted. Source-flow hydration must retain it.
   useEffect(() => {
-    // A same-route service handoff uses client navigation, so the old flow's
-    // unload-suppression latch must be cleared only after the destination has
-    // mounted. Otherwise a later genuine exit from the new flow is hidden.
     completeIntentionalNavigationAtFlowDestination({
+      entryRef,
       flowInstanceId,
       serviceType,
     })
+  }, [entryRef, flowInstanceId, serviceType])
+
+  // Reset funnel event de-duplication state when changing flows.
+  useEffect(() => {
     trackedFunnelEventsRef.current = new Set()
     startedFiredRef.current = false
   }, [flowInstanceId, serviceType])

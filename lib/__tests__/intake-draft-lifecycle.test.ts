@@ -284,16 +284,31 @@ describe("intake draft lifecycle", () => {
       expect(isIntentionalNavigationInProgress()).toBe(false)
     })
 
-    it("clears the source latch when the destination service flow is established", () => {
-      markIntentionalNavigation()
+    it("keeps the current-pill handoff latched through source hydration and clears only at its exact destination", () => {
+      const gate = { current: null as string | null }
+      expect(runWomensHealthRepeatHandoffOnce({
+        attemptKey: "womens-health-repeat-handoff:unscoped",
+        capture: vi.fn(),
+        gate,
+        navigate: vi.fn(),
+      })).toBe(true)
 
       completeIntentionalNavigationAtFlowDestination({
-        flowInstanceId: null,
-        serviceType: null,
+        entryRef: null,
+        flowInstanceId: FRESH_FLOW_INSTANCE_ID,
+        serviceType: "consult",
       })
       expect(isIntentionalNavigationInProgress()).toBe(true)
 
       completeIntentionalNavigationAtFlowDestination({
+        entryRef: null,
+        flowInstanceId: FRESH_FLOW_INSTANCE_ID,
+        serviceType: "repeat-script",
+      })
+      expect(isIntentionalNavigationInProgress()).toBe(true)
+
+      completeIntentionalNavigationAtFlowDestination({
+        entryRef: "womens-health-repeat-handoff",
         flowInstanceId: FRESH_FLOW_INSTANCE_ID,
         serviceType: "repeat-script",
       })
@@ -313,6 +328,29 @@ describe("intake draft lifecycle", () => {
 
       expect(runWomensHealthRepeatHandoffOnce(options)).toBe(true)
       expect(runWomensHealthRepeatHandoffOnce(options)).toBe(false)
+
+      expect(navigate).toHaveBeenCalledTimes(1)
+      expect(capture).toHaveBeenCalledTimes(1)
+      expect(isIntentionalNavigationInProgress()).toBe(true)
+    })
+
+    it("keeps one current-pill handoff claim across unscoped to scoped flow hydration", () => {
+      const gate = { current: null as string | null }
+      const navigate = vi.fn()
+      const capture = vi.fn()
+
+      expect(runWomensHealthRepeatHandoffOnce({
+        attemptKey: "womens-health-repeat-handoff:unscoped",
+        capture,
+        gate,
+        navigate,
+      })).toBe(true)
+      expect(runWomensHealthRepeatHandoffOnce({
+        attemptKey: `womens-health-repeat-handoff:${FRESH_FLOW_INSTANCE_ID}`,
+        capture,
+        gate,
+        navigate,
+      })).toBe(false)
 
       expect(navigate).toHaveBeenCalledTimes(1)
       expect(capture).toHaveBeenCalledTimes(1)

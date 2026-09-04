@@ -12,13 +12,34 @@ import { buildPassiveAbandonmentBeacon } from "@/lib/analytics/intake-events"
 // emit the ACTIVE `intake_abandoned` event and must not double-count.
 let intentionalNavigationInProgress = false
 
+interface IntentionalFlowDestination {
+  entryRef: "womens-health-repeat-handoff"
+  serviceType: "repeat-script"
+}
+
+const WOMENS_HEALTH_REPEAT_HANDOFF_DESTINATION: IntentionalFlowDestination = {
+  entryRef: "womens-health-repeat-handoff",
+  serviceType: "repeat-script",
+}
+
+let pendingIntentionalFlowDestination: IntentionalFlowDestination | null = null
+
 export function markIntentionalNavigation(): void {
   intentionalNavigationInProgress = true
+  pendingIntentionalFlowDestination = null
+}
+
+function markIntentionalNavigationToFlowDestination(
+  destination: IntentionalFlowDestination,
+): void {
+  intentionalNavigationInProgress = true
+  pendingIntentionalFlowDestination = destination
 }
 
 /** Clear the transition latch after the destination flow has mounted. */
 export function clearIntentionalNavigation(): void {
   intentionalNavigationInProgress = false
+  pendingIntentionalFlowDestination = null
 }
 
 export interface WomensHealthRepeatHandoffAttemptGate {
@@ -42,10 +63,15 @@ export function runWomensHealthRepeatHandoffOnce({
   gate: WomensHealthRepeatHandoffAttemptGate
   navigate: () => void
 }): boolean {
-  if (gate.current === attemptKey) return false
+  // Hydration can replace the initial `unscoped` key with a real flow ID while
+  // the same navigation is still in flight. Any active claim belongs to this
+  // mounted source step, irrespective of that key refinement.
+  if (gate.current !== null) return false
 
   gate.current = attemptKey
-  markIntentionalNavigation()
+  markIntentionalNavigationToFlowDestination(
+    WOMENS_HEALTH_REPEAT_HANDOFF_DESTINATION,
+  )
 
   try {
     navigate()
@@ -65,13 +91,20 @@ export function runWomensHealthRepeatHandoffOnce({
  * from the destination is measured normally.
  */
 export function completeIntentionalNavigationAtFlowDestination({
-  flowInstanceId,
+  entryRef,
   serviceType,
 }: {
+  entryRef: string | null
   flowInstanceId: string | null
   serviceType: string | null
 }): void {
-  if (!flowInstanceId && !serviceType) return
+  const pendingDestination = pendingIntentionalFlowDestination
+  if (!pendingDestination) return
+  if (
+    serviceType !== pendingDestination.serviceType
+    || entryRef !== pendingDestination.entryRef
+  ) return
+
   clearIntentionalNavigation()
 }
 
