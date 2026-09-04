@@ -14,6 +14,12 @@
  * request-flow (module-scope first-step preload) and step-router (idle
  * next-step prefetch) share.
  *
+ * Do not add next/dynamic's `loading` option here. On Next 15 it opts the
+ * server-rendered step into a streamed Suspense boundary. A cold production
+ * navigation can begin hydration before Next reveals that boundary, causing
+ * React hydration recovery (#418). The active step SSRs directly instead;
+ * later chunks are already warmed by the prefetch path above.
+ *
  * SSR safety contract for FIRST steps of each service (the only ones that
  * ever render on the server — draft restoration moves to a later step only
  * after client hydration): no window/document/localStorage access during
@@ -31,7 +37,7 @@ import type { StepComponentProps } from "./step-loaders"
 
 const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 
-const loadingCopy: Partial<Record<string, { eyebrow?: string; title: string; description: string }>> = {
+const stepIntroCopy: Partial<Record<string, { eyebrow?: string; title: string; description: string }>> = {
   "certificate-step": {
     title: "What do you need covered?",
     description: "Pick the certificate type, dates, and duration.",
@@ -59,105 +65,6 @@ const loadingCopy: Partial<Record<string, { eyebrow?: string; title: string; des
   },
 }
 
-const loadingControlLabels: Partial<Record<string, readonly string[]>> = {
-  "certificate-step": ["Certificate type", "How many days?", "Starting from?"],
-  "symptoms-step": ["What symptoms are you having?", "How long have you felt unwell?"],
-  "medication-step": [
-    "Medication",
-    "Repeat details",
-  ],
-  "ed-goals-step": [
-    "How long has this been a concern?",
-    "How often does this happen?",
-  ],
-  "hair-loss-goals-step": [
-    "What's your main goal?",
-    "When did you first notice changes?",
-  ],
-  "womens-health-type-step": ["Select one"],
-}
-
-interface LoadingCardGeometry {
-  columns: 1 | 2 | 3 | 4 | 5
-  heightClass: string
-  optionCount: number
-}
-
-interface StepLoadingGeometry {
-  cardGeometry: readonly LoadingCardGeometry[]
-  minHeightClass: string
-}
-
-/**
- * Measured against the settled first steps at 390px and 1440px.
- *
- * The first-step HTML is already server rendered, but next/dynamic briefly
- * swaps to its loading component while the client chunk attaches. The old
- * loading component rendered no controls for 150ms, collapsing a full form
- * to its intro before expanding again. These geometry shells keep the same
- * card count and approximately the same occupied height during that handoff.
- */
-const stepLoadingGeometry: Partial<Record<string, StepLoadingGeometry>> = {
-  "certificate-step": {
-    minHeightClass: "min-h-[525px] sm:min-h-[598px]",
-    cardGeometry: [
-      { columns: 3, heightClass: "h-[141px] sm:h-[131px]", optionCount: 3 },
-      { columns: 3, heightClass: "h-[122px]", optionCount: 3 },
-      { columns: 4, heightClass: "h-[105px]", optionCount: 4 },
-    ],
-  },
-  "medication-step": {
-    minHeightClass: "min-h-[825px] sm:min-h-[755px]",
-    cardGeometry: [
-      { columns: 2, heightClass: "h-[146px] sm:h-[126px]", optionCount: 2 },
-      { columns: 3, heightClass: "h-[575px] sm:h-[525px]", optionCount: 6 },
-    ],
-  },
-  "ed-goals-step": {
-    minHeightClass: "min-h-[472px] sm:min-h-[490px]",
-    cardGeometry: [
-      { columns: 2, heightClass: "h-[161px]", optionCount: 4 },
-      { columns: 5, heightClass: "h-[144px] sm:h-[121px]", optionCount: 5 },
-    ],
-  },
-  "hair-loss-goals-step": {
-    minHeightClass: "min-h-[459px] sm:min-h-[480px]",
-    cardGeometry: [
-      { columns: 2, heightClass: "h-[186px] sm:h-[165px]", optionCount: 4 },
-      { columns: 2, heightClass: "h-[161px]", optionCount: 4 },
-    ],
-  },
-  "womens-health-type-step": {
-    minHeightClass: "min-h-[409px] sm:min-h-[451px]",
-    cardGeometry: [
-      { columns: 1, heightClass: "h-[292px]", optionCount: 3 },
-    ],
-  },
-}
-
-const defaultLoadingGeometry: StepLoadingGeometry = {
-  minHeightClass: "min-h-96",
-  cardGeometry: [
-    { columns: 3, heightClass: "h-24", optionCount: 3 },
-  ],
-}
-
-const loadingGridColumns: Record<LoadingCardGeometry["columns"], string> = {
-  1: "grid-cols-1",
-  2: "grid-cols-2",
-  3: "grid-cols-3",
-  4: "grid-cols-4",
-  5: "grid-cols-5",
-}
-
-/**
- * StepLoading — perceived-speed first.
- *
- * Render the real step intro and its measured card geometry immediately.
- * Neutral controls avoid implying selectable defaults, while reserving the
- * destination's space prevents the hydration fallback from collapsing and
- * rebuilding the form.
- */
 export function StepIntroShell({
   componentPath,
   titleOverride,
@@ -165,7 +72,7 @@ export function StepIntroShell({
   componentPath: string
   titleOverride?: string
 }) {
-  const copy = loadingCopy[componentPath]
+  const copy = stepIntroCopy[componentPath]
 
   if (!copy) {
     return (
@@ -189,114 +96,25 @@ export function StepIntroShell({
   )
 }
 
-export function StepLoading({
-  componentPath,
-  showIntro = true,
-}: {
-  componentPath: string
-  showIntro?: boolean
-}) {
-  const controlLabels = loadingControlLabels[componentPath]
-  const geometry = stepLoadingGeometry[componentPath] ?? defaultLoadingGeometry
-
-  return (
-    <div
-      className={`space-y-4 ${geometry.minHeightClass}`}
-      aria-live="polite"
-      aria-busy="true"
-      data-intake-loading-geometry={componentPath}
-    >
-      <span className="sr-only">Loading this step</span>
-      {showIntro && <StepIntroShell componentPath={componentPath} />}
-      <div className="space-y-3" aria-hidden="true">
-        {geometry.cardGeometry.map((card, index) => {
-          const label = controlLabels?.[index] ?? "Preparing your form"
-
-          return (
-            <div
-              key={`${label}-${index}`}
-              data-intake-loading-card={index}
-              className={`rounded-2xl border border-border/40 bg-white p-4 shadow-sm shadow-primary/[0.03] dark:bg-card dark:shadow-none ${card.heightClass}`}
-            >
-              <p className="text-xs font-medium text-muted-foreground">{label}</p>
-              <div className={`mt-3 grid gap-2 ${loadingGridColumns[card.columns]}`}>
-                {Array.from({ length: card.optionCount }, (_, optionIndex) => (
-                  <div
-                    key={optionIndex}
-                    className="h-11 rounded-xl border border-border/30 bg-muted/15"
-                  />
-                ))}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-// The loading fallback only renders on CLIENT transitions to a step whose
-// chunk hasn't arrived yet (the idle prefetch usually wins that race). The
-// server render awaits the real module, so first paint is the real form.
-// certificate-step and symptoms-step hide their intros because step-router
-// owns a persistent shell above the swap area.
-function stepLoadingFallback(componentPath: string, showIntro: boolean) {
-  const Fallback = () => <StepLoading componentPath={componentPath} showIntro={showIntro} />
-  Fallback.displayName = `StepLoading(${componentPath})`
-  return Fallback
-}
-
 // Each entry needs a LITERAL import() inside dynamic() — Next's SWC
 // transform statically extracts the module reference to emit the <head>
 // chunk preload + SSR module registration. Do NOT refactor these to loop
 // over step-loaders' map; the indirection breaks the transform.
 export const stepComponents: Record<string, ComponentType<StepComponentProps>> = {
-  "certificate-step": dynamic<StepComponentProps>(() => import("./steps/certificate-step"), {
-    loading: stepLoadingFallback("certificate-step", false),
-  }),
-  "symptoms-step": dynamic<StepComponentProps>(() => import("./steps/symptoms-step"), {
-    loading: stepLoadingFallback("symptoms-step", false),
-  }),
-  "medication-step": dynamic<StepComponentProps>(() => import("./steps/medication-step"), {
-    loading: stepLoadingFallback("medication-step", true),
-  }),
-  "medical-history-step": dynamic<StepComponentProps>(() => import("./steps/medical-history-step"), {
-    loading: stepLoadingFallback("medical-history-step", true),
-  }),
-  "patient-details-step": dynamic<StepComponentProps>(() => import("./steps/patient-details-step"), {
-    loading: stepLoadingFallback("patient-details-step", true),
-  }),
-  "review-step": dynamic<StepComponentProps>(() => import("./steps/review-step"), {
-    loading: stepLoadingFallback("review-step", true),
-  }),
-  "ed-goals-step": dynamic<StepComponentProps>(() => import("./steps/ed-goals-step"), {
-    loading: stepLoadingFallback("ed-goals-step", true),
-  }),
-  "ed-health-step": dynamic<StepComponentProps>(() => import("./steps/ed-health-step"), {
-    loading: stepLoadingFallback("ed-health-step", true),
-  }),
-  "ed-preferences-step": dynamic<StepComponentProps>(() => import("./steps/ed-preferences-step"), {
-    loading: stepLoadingFallback("ed-preferences-step", true),
-  }),
-  "hair-loss-goals-step": dynamic<StepComponentProps>(() => import("./steps/hair-loss-goals-step"), {
-    loading: stepLoadingFallback("hair-loss-goals-step", true),
-  }),
-  "hair-loss-assessment-step": dynamic<StepComponentProps>(() => import("./steps/hair-loss-assessment-step"), {
-    loading: stepLoadingFallback("hair-loss-assessment-step", true),
-  }),
-  "hair-loss-health-step": dynamic<StepComponentProps>(() => import("./steps/hair-loss-health-step"), {
-    loading: stepLoadingFallback("hair-loss-health-step", true),
-  }),
-  "hair-loss-preferences-step": dynamic<StepComponentProps>(() => import("./steps/hair-loss-preferences-step"), {
-    loading: stepLoadingFallback("hair-loss-preferences-step", true),
-  }),
-  "womens-health-type-step": dynamic<StepComponentProps>(() => import("./steps/womens-health-type-step"), {
-    loading: stepLoadingFallback("womens-health-type-step", true),
-  }),
-  "womens-health-assessment-step": dynamic<StepComponentProps>(() => import("./steps/womens-health-assessment-step"), {
-    loading: stepLoadingFallback("womens-health-assessment-step", true),
-  }),
-  "weight-loss-assessment-step": dynamic<StepComponentProps>(() => import("./steps/weight-loss-assessment-step"), {
-    loading: stepLoadingFallback("weight-loss-assessment-step", true),
-  }),
+  "certificate-step": dynamic<StepComponentProps>(() => import("./steps/certificate-step")),
+  "symptoms-step": dynamic<StepComponentProps>(() => import("./steps/symptoms-step")),
+  "medication-step": dynamic<StepComponentProps>(() => import("./steps/medication-step")),
+  "medical-history-step": dynamic<StepComponentProps>(() => import("./steps/medical-history-step")),
+  "patient-details-step": dynamic<StepComponentProps>(() => import("./steps/patient-details-step")),
+  "review-step": dynamic<StepComponentProps>(() => import("./steps/review-step")),
+  "ed-goals-step": dynamic<StepComponentProps>(() => import("./steps/ed-goals-step")),
+  "ed-health-step": dynamic<StepComponentProps>(() => import("./steps/ed-health-step")),
+  "ed-preferences-step": dynamic<StepComponentProps>(() => import("./steps/ed-preferences-step")),
+  "hair-loss-goals-step": dynamic<StepComponentProps>(() => import("./steps/hair-loss-goals-step")),
+  "hair-loss-assessment-step": dynamic<StepComponentProps>(() => import("./steps/hair-loss-assessment-step")),
+  "hair-loss-health-step": dynamic<StepComponentProps>(() => import("./steps/hair-loss-health-step")),
+  "hair-loss-preferences-step": dynamic<StepComponentProps>(() => import("./steps/hair-loss-preferences-step")),
+  "womens-health-type-step": dynamic<StepComponentProps>(() => import("./steps/womens-health-type-step")),
+  "womens-health-assessment-step": dynamic<StepComponentProps>(() => import("./steps/womens-health-assessment-step")),
+  "weight-loss-assessment-step": dynamic<StepComponentProps>(() => import("./steps/weight-loss-assessment-step")),
 }

@@ -131,14 +131,14 @@ const stepLoaders = {
    `lib/__tests__/request-performance-contract.test.ts`):
 
 ```tsx
-"my-new-step": dynamic(() => import("./steps/my-new-step"), {
-  loading: stepLoadingFallback("my-new-step", true),
-}),
+"my-new-step": dynamic(() => import("./steps/my-new-step")),
 ```
 
    If the step can ever be the FIRST step of a service it will server-render:
    keep its default-state render free of window/localStorage access and
-   date-dependent markup.
+   date-dependent markup. Do not add a `loading` option: on Next 15 that adds
+   a streamed Suspense boundary which can race hydration on cold navigation.
+   Later step chunks are warmed by `step-loaders.ts` before transition.
 
 4. Add step definition to `lib/request/step-registry.ts`:
 
