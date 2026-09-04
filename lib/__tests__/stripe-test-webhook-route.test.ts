@@ -134,12 +134,12 @@ describe("Stripe webhook test-event route policy", () => {
     expect(mocks.handler).toHaveBeenCalledOnce()
   })
 
-  it("acknowledges a rejected signed test event before creating a service client", async () => {
+  it("rejects an arbitrary hosted Supabase target before creating a service client", async () => {
     setCommonTestEnv("production")
     process.env.ALLOW_STRIPE_TEST_WEBHOOKS = "true"
     process.env.E2E_ISOLATED_SUPABASE = "1"
-    process.env.SUPABASE_URL = "https://witzcrovsoumktyndqgz.supabase.co"
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://witzcrovsoumktyndqgz.supabase.co"
+    process.env.SUPABASE_URL = "https://abcdefghijklmnopqrst.supabase.co"
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://abcdefghijklmnopqrst.supabase.co"
     mocks.constructEvent.mockReturnValue(stripeEvent(false))
 
     const response = await postSigned("http://127.0.0.1:3060/api/stripe/webhook")

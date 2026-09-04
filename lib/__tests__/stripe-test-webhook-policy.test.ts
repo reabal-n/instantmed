@@ -117,11 +117,11 @@ describe("Supabase test target classification", () => {
     })).toEqual({ supabaseTarget: "local", supabaseUrlsMatch: true })
   })
 
-  it("accepts one matching hosted non-production project", () => {
+  it("does not infer that an arbitrary hosted project is non-production", () => {
     expect(classifySupabaseTestTarget({
       publicUrl: "https://abcdefghijklmnopqrst.supabase.co",
       serverUrl: "https://abcdefghijklmnopqrst.supabase.co/",
-    })).toEqual({ supabaseTarget: "non_production", supabaseUrlsMatch: true })
+    })).toEqual({ supabaseTarget: "unknown", supabaseUrlsMatch: false })
   })
 
   it("identifies the InstantMed production project", () => {

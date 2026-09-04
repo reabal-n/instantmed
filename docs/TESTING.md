@@ -163,11 +163,11 @@ Signed Stripe test events have two explicit local lanes. Development/test
 servers require exact `NODE_ENV=development|test`, `PLAYWRIGHT=1`, a loopback
 request host, and no `VERCEL` or `VERCEL_ENV`. A production-built local server
 additionally requires exact `ALLOW_STRIPE_TEST_WEBHOOKS=true`, a test-mode
-Stripe secret key, and matching local or non-production `SUPABASE_URL` and
-`NEXT_PUBLIC_SUPABASE_URL` identities. The known production project, custom or
-malformed URLs, URL mismatches, non-loopback requests, unknown/live keys, and
-every Vercel runtime are acknowledged and discarded before a service-role
-client or event handler is created. `E2E_ISOLATED_SUPABASE` is never authority.
+Stripe secret key, and matching local `SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_URL` identities. Every hosted project, custom or malformed
+URL, URL mismatch, non-loopback request, unknown/live key, and every Vercel
+runtime is acknowledged and discarded before a service-role client or event
+handler is created. `E2E_ISOLATED_SUPABASE` is never authority.
 Live signed events and authenticated admin replays retain their normal paths.
 
 #### Production-bundle certificate resend seam

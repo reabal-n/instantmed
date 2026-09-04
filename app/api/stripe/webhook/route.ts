@@ -98,7 +98,7 @@ export async function POST(request: Request) {
   // Test events are considered only after signature verification. The normal
   // development readiness lane stays available, while a production bundle must
   // prove it is an explicitly opted-in loopback test with test Stripe and an
-  // isolated Supabase target. Admin replays and live events never enter this policy.
+  // explicitly local Supabase target. Admin replays and live events never enter this policy.
   if (!isAdminReplay && !event.livemode) {
     const nodeEnv: StripeTestNodeEnvironment =
       process.env.NODE_ENV === "development" ||

@@ -1,7 +1,7 @@
 const PRODUCTION_SUPABASE_PROJECT_REF = "witzcrovsoumktyndqgz"
 
 export type StripeKeyMode = "live" | "test" | "unknown"
-export type SupabaseTestTarget = "local" | "non_production" | "production" | "unknown"
+export type SupabaseTestTarget = "local" | "production" | "unknown"
 export type StripeTestNodeEnvironment = "development" | "test" | "production" | "unknown"
 
 export interface StripeTestEventPolicyInput {
@@ -70,13 +70,11 @@ function parseSupabaseTarget(rawUrl: string | undefined): ParsedSupabaseTarget |
     }
 
     if (url.protocol !== "https:" || url.port) return null
-    const match = hostname.match(/^([a-z0-9]{20})\.supabase\.co$/)
-    if (!match) return null
+    if (hostname !== `${PRODUCTION_SUPABASE_PROJECT_REF}.supabase.co`) return null
 
-    const projectRef = match[1]
     return {
-      identity: `supabase:${projectRef}`,
-      target: projectRef === PRODUCTION_SUPABASE_PROJECT_REF ? "production" : "non_production",
+      identity: `supabase:${PRODUCTION_SUPABASE_PROJECT_REF}`,
+      target: "production",
     }
   } catch {
     return null
@@ -122,5 +120,5 @@ export function mayProcessStripeTestEvent(input: StripeTestEventPolicyInput): bo
     input.allowTestWebhooks &&
     input.stripeKeyMode === "test" &&
     input.supabaseUrlsMatch &&
-    (input.supabaseTarget === "local" || input.supabaseTarget === "non_production")
+    input.supabaseTarget === "local"
 }

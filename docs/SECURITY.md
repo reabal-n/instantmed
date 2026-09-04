@@ -415,8 +415,8 @@ Only local/CI execution with `NODE_ENV=test` or `PLAYWRIGHT=1` may use the E2E a
 Stripe's signed-event test seam is separate from the auth bypass. A
 production-built local server processes a `livemode=false` event only with the
 exact `ALLOW_STRIPE_TEST_WEBHOOKS=true` opt-in plus Playwright, loopback,
-test-key, non-Vercel, and matching non-production Supabase evidence. The known
-production project is always rejected, and self-declared
+test-key, non-Vercel, and matching local Supabase evidence. Every hosted
+Supabase project, including the known production project, is rejected, and self-declared
 `E2E_ISOLATED_SUPABASE` never substitutes for URL-derived ownership. Rejected
 events are acknowledged without constructing the service-role client or
 calling a handler. Signature verification still happens first.
@@ -501,7 +501,7 @@ Payment recovery does not weaken that route exclusion. A domain-separated, seven
 
 `SUPABASE_URL` is an optional server-side endpoint override and is not a
 credential; when used by the Stripe production-bundle test seam it must resolve
-to the same target as `NEXT_PUBLIC_SUPABASE_URL`. `ALLOW_STRIPE_TEST_WEBHOOKS`
+to the same local target as `NEXT_PUBLIC_SUPABASE_URL`. `ALLOW_STRIPE_TEST_WEBHOOKS`
 is a local test opt-in, not a production feature flag, and must not be
 configured in Vercel.
 
