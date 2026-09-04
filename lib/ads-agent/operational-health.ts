@@ -38,7 +38,7 @@ const NON_MANUAL_CERTIFICATE_STATES = new Set([
   "approved",
 ])
 
-export interface AdsOperationalIntakeRow {
+interface AdsOperationalIntakeRow {
   auto_approval_state: string | null
   category: string | null
   id: string | null
@@ -48,7 +48,7 @@ export interface AdsOperationalIntakeRow {
   subtype: string | null
 }
 
-export interface AdsClinicianOpenRow {
+interface AdsClinicianOpenRow {
   created_at: string | null
   intake_id: string | null
 }
@@ -232,7 +232,7 @@ const OPERATIONAL_INTAKE_SELECT = [
 const SUPPORT_GROWTH_HEALTH_METRIC = "ads_support_contacts_per_100_paid"
 const CLINICAL_QA_GROWTH_HEALTH_METRIC = "ads_completed_clinical_qa_state"
 
-export interface ManualGrowthHealthMetricRow {
+interface ManualGrowthHealthMetricRow {
   dimensions: unknown
   metric_name: string | null
   metric_value: number | string | null
