@@ -11,7 +11,7 @@
 ## Plan task state
 
 - Schema convergence prerequisite: approved locally; production application remains release-gated
-- Task 1: pending
+- Task 1: approved locally; Task 2 hosted proof remains pending
 - Task 2: pending
 - Task 3: approved as diagnostic harness; production repair remains `BLOCKED_DIAGNOSIS`
 - Task 4: blocked until a proven certificate defect exists; historical resend remains separately production-authorised
@@ -119,3 +119,11 @@
 - Correction: made `intake_answers` required, left only `request_answers` optional, and added a process-level contract proving a missing `answers_encrypted` column exits the real smoke command with failure.
 - Final task review: APPROVED; focused re-review passed 1 file / 4 tests.
 - Outcome: additive fresh-schema convergence is locally proven and the Task 3 disposable schema shim is gone. No production migration has been applied.
+
+## Task 1 review record
+
+- Implementer commits: `26358c0bc`, `055bd9331`.
+- Initial review: found that treating every hosted Supabase ref except the known current production ref as non-production was denylist evidence and could admit a second production project.
+- Correction: narrowed the production-bundle webhook-test lane to matching loopback Supabase URLs only; arbitrary hosted refs now fail closed as unknown.
+- Final task review: APPROVED; focused payment/env verification passed 7 files / 128 tests.
+- Outcome: signed test events can reach handlers only through the existing non-production development/test readiness lane or the explicit local production-bundle lane. Live events and authenticated admin replays remain unchanged; Task 2 still owns real hosted-Stripe browser proof.
