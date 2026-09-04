@@ -7,10 +7,16 @@ import { useCallback } from "react"
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import {
+  buildIntakeValidationBlockedProperties,
+  captureIntakeEvent,
+  INTAKE_ANALYTICS_EVENTS,
+} from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
+import { markIntentionalNavigation } from "../hooks/use-unsaved-changes"
 import { useRequestStore } from "../store"
 
 interface WomensHealthTypeStepProps {
@@ -69,12 +75,27 @@ export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHeal
     }
     if (womensHealthOption === "ocp_repeat") {
       // Branch-by-intent: a continuation is a repeat prescription, not a consult.
+      captureIntakeEvent(
+        posthog,
+        INTAKE_ANALYTICS_EVENTS.validationBlocked,
+        buildIntakeValidationBlockedProperties({
+          blockType: "service_steer",
+          blockers: ["current_pill_repeat_handoff"],
+          flowInstanceId,
+          resolution: "redirected",
+          serviceType,
+          stepId: "womens-health-type",
+          subtype: answers.consultSubtype as string | undefined,
+        }),
+      )
       const params = new URLSearchParams()
       for (const key of ATTRIBUTION_PARAMS) {
         const value = searchParams.get(key)
         if (value) params.set(key, value)
       }
       params.set("service", "repeat-script")
+      params.set("from", "womens-health-repeat-handoff")
+      markIntentionalNavigation()
       router.push(`/request?${params.toString()}`)
       return
     }

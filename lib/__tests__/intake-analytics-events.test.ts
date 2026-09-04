@@ -282,6 +282,21 @@ describe("intake analytics events", () => {
     expect(womensAssessmentSource.match(/subtype: answers\.consultSubtype/g)).toHaveLength(2)
   })
 
+  it("records the current-pill handoff as intentional progress with fixed privacy-safe tokens", () => {
+    const womensTypeSource = readProjectFile("components/request/steps/womens-health-type-step.tsx")
+    const flowAnalyticsSource = readProjectFile("components/request/hooks/use-flow-analytics.ts")
+
+    expect(womensTypeSource).toContain("buildIntakeValidationBlockedProperties")
+    expect(womensTypeSource).toContain("INTAKE_ANALYTICS_EVENTS.validationBlocked")
+    expect(womensTypeSource).toContain('blockType: "service_steer"')
+    expect(womensTypeSource).toContain('blockers: ["current_pill_repeat_handoff"]')
+    expect(womensTypeSource).toContain('resolution: "redirected"')
+    expect(womensTypeSource).toContain("markIntentionalNavigation()")
+    expect(womensTypeSource).toContain('params.set("from", "womens-health-repeat-handoff")')
+    expect(flowAnalyticsSource).toContain('"womens-health-repeat-handoff"')
+    expect(flowAnalyticsSource).not.toMatch(/entry_ref:\s*searchParams\.get/)
+  })
+
   it("keeps every request-step completion on the one canonical flow hook", () => {
     const stepPaths = readdirSync(requestStepsDir)
       .filter((file) => file.endsWith("-step.tsx"))

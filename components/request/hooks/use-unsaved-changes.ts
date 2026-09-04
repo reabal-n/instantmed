@@ -16,9 +16,14 @@ export function markIntentionalNavigation(): void {
   intentionalNavigationInProgress = true
 }
 
+/** Clear the transition latch after the destination flow has mounted. */
+export function clearIntentionalNavigation(): void {
+  intentionalNavigationInProgress = false
+}
+
 /** Test seam — the module flag would otherwise leak between vitest cases. */
 export function resetIntentionalNavigationForTests(): void {
-  intentionalNavigationInProgress = false
+  clearIntentionalNavigation()
 }
 
 export function isIntentionalNavigationInProgress(): boolean {

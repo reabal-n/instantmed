@@ -16,6 +16,12 @@ import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
 
 import { useRequestStore } from "../store"
+import { clearIntentionalNavigation } from "./use-unsaved-changes"
+
+const INTAKE_ENTRY_REFS = new Set([
+  "repeat-steer",
+  "womens-health-repeat-handoff",
+])
 
 function trackStepEventDeferred(input: {
   stepName: string
@@ -80,9 +86,12 @@ export function useFlowAnalytics({
   const posthog = usePostHog()
   const { email: storeEmail, flowInstanceId } = useRequestStore()
   const searchParams = useSearchParams()
-  // Allowlisted origin marker: only the known repeat-steer value ever reaches
-  // analytics — never arbitrary query-string text.
-  const entryRef = searchParams.get("from") === "repeat-steer" ? "repeat-steer" : null
+  // Allowlisted origin markers only. Arbitrary query-string text never reaches
+  // analytics.
+  const incomingEntryRef = searchParams.get("from")
+  const entryRef = incomingEntryRef && INTAKE_ENTRY_REFS.has(incomingEntryRef)
+    ? incomingEntryRef
+    : null
 
   const trackedFunnelEventsRef = useRef<Set<string>>(new Set())
   // Latches intake_started to once per flow so back-navigation to step 1 does
@@ -99,6 +108,10 @@ export function useFlowAnalytics({
 
   // Reset funnel event de-duplication state when changing flows.
   useEffect(() => {
+    // A same-route service handoff uses client navigation, so the old flow's
+    // unload-suppression latch must be cleared only after the destination has
+    // mounted. Otherwise a later genuine exit from the new flow is hidden.
+    clearIntentionalNavigation()
     trackedFunnelEventsRef.current = new Set()
     startedFiredRef.current = false
   }, [flowInstanceId, serviceType])
