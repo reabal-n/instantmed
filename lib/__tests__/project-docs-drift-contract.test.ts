@@ -147,9 +147,9 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **137 migration files**")
+      expect(source).toContain("Current count on disk: **138 migration files**")
       expect(source).toContain(
-        "`20260904160000_converge_runtime_schema_contracts.sql`",
+        "`20260905120000_refill_reminder_funnel.sql`",
       )
       expect(source).toContain("production application remains unverified")
       expect(source).toContain(
@@ -201,7 +201,7 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Newest timestamp on disk: `20260904160000_converge_runtime_schema_contracts.sql`",
+      "Newest timestamp on disk: `20260905120000_refill_reminder_funnel.sql`",
     )
     expect(architecture).toContain(
       "Production application is unverified",
@@ -223,7 +223,7 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Newest on-disk migration is `20260904160000_converge_runtime_schema_contracts.sql`",
+      "Newest on-disk migration is `20260905120000_refill_reminder_funnel.sql`",
     )
     expect(wikiArchitecture).toContain(
       "Its production application is unverified",

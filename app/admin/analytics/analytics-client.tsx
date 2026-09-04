@@ -63,6 +63,13 @@ const COHORT_DATE = new Intl.DateTimeFormat("en-AU", {
   timeZoneName: "short",
 })
 
+const WAVE_DATE = new Intl.DateTimeFormat("en-AU", {
+  day: "numeric",
+  month: "short",
+  timeZone: "Australia/Sydney",
+  year: "numeric",
+})
+
 const REASON_COPY: Record<string, string> = {
   ADS_ACTION_EVIDENCE_UNAVAILABLE: "Ads action readiness could not be verified",
   ADS_EVIDENCE_INVALID_RECORD: "Delivered Ads evidence could not be validated",
@@ -220,6 +227,144 @@ function metricTone(value: number | null, negativeIsBad = false): string {
   if (value === null) return "text-muted-foreground"
   if (negativeIsBad && value < 0) return "text-destructive"
   return "text-foreground"
+}
+
+function schedulerBadge(
+  evidence: BusinessPageData["refillReminderFunnel"]["schedulerEvidence"],
+): { label: string; status: StatusBadgeStatus } {
+  if (evidence === "healthy") return { label: "Scheduler healthy", status: "success" }
+  if (evidence === "missing") return { label: "Scheduler evidence missing", status: "warning" }
+  return { label: "Scheduler unavailable", status: "neutral" }
+}
+
+function RefillReminderFunnel({
+  snapshot,
+}: {
+  snapshot: BusinessPageData["refillReminderFunnel"]
+}) {
+  const scheduler = schedulerBadge(snapshot.schedulerEvidence)
+
+  return (
+    <section aria-labelledby="refill-reminder-funnel-heading" className="mt-3 border-t border-border/60 pt-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 id="refill-reminder-funnel-heading" className="text-sm font-semibold text-foreground">
+            Refill reminder cohorts
+          </h3>
+          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+            Sydney send weeks · 21-day outcomes · gross paid repeat-script orders.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge status={scheduler.status} size="sm">{scheduler.label}</StatusBadge>
+          <StatusBadge
+            status={snapshot.availability === "available" ? "info" : snapshot.availability === "degraded" ? "warning" : "neutral"}
+            size="sm"
+          >
+            {snapshot.availability === "available" ? "Cohorts available" : "Cohorts unavailable"}
+          </StatusBadge>
+        </div>
+      </div>
+
+      {snapshot.availability === "available" ? (
+        <>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-lg border border-border/60 bg-background/70 px-3 py-2.5">
+              <p className="text-[11px] text-muted-foreground">Real sends</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">{snapshot.sent}</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-background/70 px-3 py-2.5">
+              <p className="text-[11px] text-muted-foreground">Delivered receipts</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">{snapshot.delivered}</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-background/70 px-3 py-2.5">
+              <p className="text-[11px] text-muted-foreground">Observed provider clicks</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">{snapshot.observedProviderClicks}</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-background/70 px-3 py-2.5">
+              <p className="text-[11px] text-muted-foreground">Mature strict conversion</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                {formatPercent(snapshot.utmConversionWithin21dPercent)}
+              </p>
+            </div>
+          </div>
+
+          {snapshot.waves.length > 0 ? (
+            <div className="mt-3 overflow-x-auto rounded-lg border border-border/60">
+              <table className="w-full min-w-[880px] text-left text-[11px]">
+                <caption className="sr-only">
+                  Aggregate refill reminder sends, provider receipts, and matched paid reorder outcomes by Sydney week
+                </caption>
+                <thead className="bg-muted/35 text-muted-foreground">
+                  <tr>
+                    <th scope="col" className="px-3 py-2 font-medium">Send week</th>
+                    <th scope="col" className="px-3 py-2 font-medium">Cohort</th>
+                    <th scope="col" className="px-3 py-2 font-medium">Send evidence</th>
+                    <th scope="col" className="px-3 py-2 font-medium">Strict UTM paid orders</th>
+                    <th scope="col" className="px-3 py-2 font-medium">Broader same-patient orders</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {snapshot.waves.map((wave) => (
+                    <tr key={wave.weekStart} className="align-top">
+                      <th scope="row" className="px-3 py-2.5 font-medium text-foreground">
+                        {WAVE_DATE.format(new Date(wave.weekStart))}
+                        <span className="mt-0.5 block font-normal text-muted-foreground">
+                          to {WAVE_DATE.format(new Date(wave.weekEndExclusive))} · end excluded
+                        </span>
+                      </th>
+                      <td className="px-3 py-2.5">
+                        <StatusBadge status={wave.cohortStatus === "mature" ? "success" : "neutral"} size="sm">
+                          {wave.cohortStatus === "mature" ? "Mature" : "Maturing"}
+                        </StatusBadge>
+                        <span className="mt-1 block text-muted-foreground">
+                          complete {WAVE_DATE.format(new Date(wave.maturityAt))}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 tabular-nums text-foreground">
+                        {wave.sent} sent · {wave.delivered} delivered
+                        <span className="mt-0.5 block text-muted-foreground">
+                          {wave.observedProviderClicks} provider clicks
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 tabular-nums text-foreground">
+                        {wave.utmAttributedPaidRenewalsWithin21d} paid orders
+                        <span className="mt-0.5 block text-muted-foreground">
+                          {wave.cohortStatus === "mature"
+                            ? `${wave.utmConvertedSendsWithin21d}/${wave.eligibleSentCohort} sends · ${formatPercent(wave.utmConversionWithin21dPercent)}`
+                            : "Rate withheld while maturing"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 tabular-nums text-foreground">
+                        {wave.samePatientPaidReordersWithin21d} associated orders
+                        <span className="mt-0.5 block text-muted-foreground">
+                          {wave.cohortStatus === "mature"
+                            ? `${wave.samePatientConvertedSendsWithin21d}/${wave.eligibleSentCohort} sends · ${formatPercent(wave.samePatientReorderWithin21dPercent)}`
+                            : "Rate withheld while maturing"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="mt-3 rounded-lg border border-dashed border-border/70 bg-background/60 px-3 py-3 text-xs text-muted-foreground">
+              No real refill-reminder sends in this 90-day window.
+            </p>
+          )}
+
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Observed provider clicks can include link scanners. Broader same-patient orders are association, not attributed revenue. Net retained unavailable until exact refund and dispute cash evidence is joined.
+          </p>
+        </>
+      ) : (
+        <p className="mt-3 rounded-lg border border-dashed border-border/70 bg-background/60 px-3 py-3 text-xs text-muted-foreground">
+          Refill cohort evidence could not be read. Counts and rates remain unavailable rather than falling back to zero.
+        </p>
+      )}
+    </section>
+  )
 }
 
 function Metric({
@@ -506,6 +651,7 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
     heardAboutUs,
     intakeFunnel,
     recordedAttribution,
+    refillReminderFunnel,
     releaseFriction,
     reviewRequestFunnel,
     trends,
@@ -1121,13 +1267,14 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
               <span className="flex items-center gap-2">
                 <MailCheck className="h-4 w-4 text-muted-foreground" aria-hidden />
                 Measurement checkpoints
-                <span className="hidden text-xs font-normal text-muted-foreground sm:inline">Review requests, external reviews, and self-report coverage</span>
+                <span className="hidden text-xs font-normal text-muted-foreground sm:inline">Review requests, refill reminders, and acquisition coverage</span>
               </span>
               <span className="text-xs text-muted-foreground group-open:hidden">Open</span>
               <span className="hidden text-xs text-muted-foreground group-open:inline">Close</span>
             </summary>
             <div className="border-t border-border/60 bg-muted/15 p-3">
               <ReviewRequestFunnelCard snapshot={reviewRequestFunnel} />
+              <RefillReminderFunnel snapshot={refillReminderFunnel} />
             </div>
           </details>
         </DashboardCard>

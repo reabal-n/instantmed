@@ -7,6 +7,10 @@ import {
   getRecordedAttributionBreakdown,
 } from "@/lib/admin/recorded-attribution-breakdown"
 import {
+  buildUnavailableRefillReminderFunnelSnapshot,
+  getRefillReminderFunnelSnapshot,
+} from "@/lib/admin/refill-reminder-funnel"
+import {
   buildUnavailableReleaseFrictionDashboardSnapshot,
   getReleaseFrictionDashboardSnapshot,
 } from "@/lib/admin/release-friction-readout"
@@ -50,6 +54,7 @@ export default async function AnalyticsDashboardPage() {
     getRecentDeliveredAdsAgentRunDailySpend(supabase),
     getReleaseFrictionDashboardSnapshot(supabase, { now }),
     getPostHogCheckoutRecoveryDashboardSnapshot({ now }),
+    getRefillReminderFunnelSnapshot(supabase, now),
   ])
 
   const revenueDashboard = reads[0].status === "fulfilled" ? reads[0].value : null
@@ -115,6 +120,9 @@ export default async function AnalyticsDashboardPage() {
     recordedAttribution: reads[3].status === "fulfilled"
       ? reads[3].value
       : buildUnavailableRecordedAttributionBreakdown(now, 30),
+    refillReminderFunnel: reads[9].status === "fulfilled"
+      ? reads[9].value
+      : buildUnavailableRefillReminderFunnelSnapshot(now),
     heardAboutUs: reads[4].status === "fulfilled"
       ? reads[4].value
       : {

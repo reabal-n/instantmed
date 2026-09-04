@@ -520,7 +520,7 @@ For every job in `CRITICAL_CRONS`, a heartbeat is a **terminal outcome**, not pr
 | Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Every 20 min (:00/:20/:40) | Payment-stage recovery for submitted intakes stuck at checkout; first nudge eligible after 20 min, follow-up 24h after first nudge |
 | Partial Intake Recovery | `/api/cron/recover-partial-intakes` | Hourly (:15) | Pre-checkout draft recovery only; excludes review/checkout drafts so it does not overlap abandoned-checkout recovery. The service-role candidate RPC excludes every durable outbox owner before its oldest-first 50-row limit. Initial sends and retries re-check conversion, expiry, recipient, latest activity, resumability, bounce/complaint, and account-less suppression. The resume bearer remains only in the encrypted frozen provider payload; metadata carries the non-bearer tracking ID. Confirmed send and terminal suppression use separate mutually exclusive markers, and only confirmed `sent` outbox proof is reconciled. |
 | Cleanup Intake Drafts | `/api/cron/cleanup-intake-drafts` | Daily (4 AM UTC) | Delete stale saved intake drafts so anonymous draft storage does not grow unbounded |
-| Refill Reminders | `/api/cron/refill-reminders` | Daily (11 PM UTC / 9 AM AEST) | One-off reactivation: nudges patients to reorder a repeatable script ~week 10-11 after issue (before a script + 2 repeats supply runs out; window in `lib/clinical/repeats-policy.ts`). Ships OFF; no-ops until `REFILL_REMINDER_EMAILS_ENABLED=true`. Marketing-consent gated per patient. NOT the retired subscription nudge — creates no order |
+| Refill Reminders | `/api/cron/refill-reminders` | Daily (11 PM UTC / 9 AM AEST / 10 AM AEDT) | One-off reactivation: nudges patients to reorder a repeatable script ~week 10-11 after issue (before a script + 2 repeats supply runs out; window in `lib/clinical/repeats-policy.ts`). Ships OFF; no-ops until `REFILL_REMINDER_EMAILS_ENABLED=true`. Marketing-consent gated per patient. NOT the retired subscription nudge — creates no order |
 | Cert Reactivation | `/api/cron/cert-reactivation` | Daily (10 PM UTC / 8 AM AEST) | One reactivation nudge per past med-cert patient whose most recent certificate is 35-120 days old (`lib/email/cert-reactivation.ts`). Ships OFF; no-ops until `CERT_REACTIVATION_EMAILS_ENABLED=true`. Marketing-consent gated; `intakes.reactivation_email_sent_at` dedups; reorder link carries `utm_source=cert_reactivation`. NOT a subscription — creates no order. Pre-flight: `?testEmail=you@x.com` |
 | Emergency Flags | `/api/cron/emergency-flags` | Hourly | Sentry-logs red-flag abandoned intakes for clinical monitoring. Does NOT send outbound SMS/email (the route is logging-only; corrected 2026-06-11). |
 | Telegram Notifications | `/api/cron/telegram-notifications` | Every 5 min | Retry missed paid-request and PHI-free Medical Director voice-message alerts, then send at most one hourly count-only reminder while voice messages remain unresolved. Voice alerts contain category, received time, and a secure admin link; patient identity and message content stay encrypted in the database record. |
@@ -1700,30 +1700,13 @@ ORDER BY paid_at DESC;
 
 ### Q5 — Reactivation reminder funnel (refill reminders → reorders)
 
-Measures whether the one-off refill reminder (`/api/cron/refill-reminders`, fires ~week 10-11 post-issue) actually drives reorders. The first real wave lands ~2026-07-13 (the May-issued scripts maturing into the window). The reorder link carries `utm_source=refill_reminder`, so a paid reorder is attributable. `test=true` outbox rows (operator pre-flight `?testEmail=`) have a NULL `patient_id` and are excluded.
+`/admin/analytics` owns this aggregate. `get_refill_reminder_funnel` groups real `email_outbox` sends into Sydney calendar weeks and excludes operator preflights, local/E2E sends, seeded patients, null-patient rows, owner-written scripts, and non-reportable source or reorder intakes. Provider delivery and click evidence comes from the atomic, deduplicated `metadata.processed_events` receipts written by `record_resend_outbox_event`; mutable `delivery_status` is not the click source of truth. **Observed provider click** is directional because a link scanner may traverse the email.
 
-```sql
-WITH sent AS (
-  SELECT patient_id, MIN(created_at) AS reminded_at
-  FROM email_outbox
-  WHERE email_type = 'refill_reminder' AND patient_id IS NOT NULL
-  GROUP BY patient_id
-),
-reorders AS (
-  SELECT DISTINCT s.patient_id
-  FROM sent s
-  JOIN intakes i ON i.patient_id = s.patient_id
-  WHERE i.utm_source = 'refill_reminder'
-    AND i.status IN ('paid', 'approved', 'completed', 'awaiting_script')
-    AND i.created_at >= s.reminded_at
-)
-SELECT
-  (SELECT COUNT(*) FROM sent) AS patients_reminded,
-  (SELECT COUNT(*) FROM reorders) AS patients_reordered,
-  ROUND(100.0 * (SELECT COUNT(*) FROM reorders) / NULLIF((SELECT COUNT(*) FROM sent), 0), 1) AS conversion_pct;
-```
+Each gross paid repeat-script reorder is assigned once to the latest eligible reminder sent to the same patient in the preceding 21 days. The dashboard keeps two outcomes separate: exact `utm_source=refill_reminder` paid orders are strict attribution, while a paid same-patient reorder without that UTM is association only. Mature-wave conversion uses distinct reminder sends that produced at least one matching order; gross order count remains separately visible. A send week stays **Maturing** until every send in it has had the full 21-day observation window, and no rate is shown before then. Net-retained revenue remains unavailable here until the canonical Stripe refund and dispute cash ledgers can be joined with their completeness gate; intake status or refund columns are not a cash substitute.
 
-Run after each weekly wave. If conversion is healthy, the reactivation lever works → consider widening (e.g. a second nudge, or backfilling lapsed scripts once a back-catalog exists). If ~0 after a few waves with good deliverability, the email/offer needs rework before scaling.
+Cron invocation is separate evidence. The Business surface reads only the `cron_heartbeats` row for `refill-reminders`, using the critical-cron 1,500-minute freshness and unrecovered-failure rules. Delivered emails never prove the daily scheduler is healthy. Missing, stale, failed, and unreadable heartbeat states remain visibly distinct from cohort availability.
+
+Do not add a second reminder yet. A separate day-84 experiment may be proposed only after exactly three fully mature weekly waves each reach at least 10% strict UTM conversion, without worsening complaints, unsubscribes, refunds, or support contacts. It requires a new durable send marker and a separate approval; `refill_reminder_sent_at` remains the one-off first-nudge marker and the product remains transactional, not a subscription.
 
 ### Q6 — Certificate sent but intake timestamp missing (14d)
 

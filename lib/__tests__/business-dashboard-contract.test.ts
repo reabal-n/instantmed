@@ -24,6 +24,8 @@ describe("Business decision surface contract", () => {
     expect(page).toContain("getReleaseFrictionDashboardSnapshot")
     expect(page).toContain("getPostHogCheckoutRecoveryDashboardSnapshot")
     expect(page).toContain("buildUnavailablePostHogCheckoutRecoveryDashboardSnapshot")
+    expect(page).toContain("getRefillReminderFunnelSnapshot")
+    expect(page).toContain("buildUnavailableRefillReminderFunnelSnapshot")
     expect(page).not.toMatch(/\.insert\(|\.update\(|\.upsert\(|\.delete\(/)
     expect(page).not.toContain("buildAdsAgentSnapshot")
     expect(page).not.toContain("getStripeFeeMap")
@@ -71,6 +73,12 @@ describe("Business decision surface contract", () => {
     expect(client).toContain("Self-reported discovery")
     expect(client).toContain("<details")
     expect(client).toContain("Measurement checkpoints")
+    expect(client).toContain("Refill reminder cohorts")
+    expect(client).toContain("Observed provider clicks")
+    expect(client).toContain("Strict UTM paid orders")
+    expect(client).toContain("Broader same-patient orders")
+    expect(client).toContain("Net retained unavailable")
+    expect(client).toContain("Maturing")
   })
 
   it("translates durable Ads service gates into operator language", () => {
