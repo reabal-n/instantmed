@@ -13,7 +13,6 @@ import {
 import { createServer } from "node:net"
 import { tmpdir } from "node:os"
 import { basename, dirname, join, resolve } from "node:path"
-import { fileURLToPath } from "node:url"
 
 import {
   assertHostedStripeE2EEnvironment,
@@ -1149,7 +1148,9 @@ async function main(): Promise<void> {
 }
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : ""
-if (invokedPath === fileURLToPath(import.meta.url)) {
+// Keep this importable by Playwright's CommonJS transform: import.meta causes
+// Node 24 to reinterpret its transformed exports as an ES module.
+if (invokedPath === resolve(process.cwd(), "scripts/run-hosted-stripe-e2e.ts")) {
   main().catch((error) => {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`)
     process.exitCode = 1
