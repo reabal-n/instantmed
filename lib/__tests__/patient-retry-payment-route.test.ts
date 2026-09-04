@@ -49,6 +49,10 @@ const intakeDetailClientSource = readFileSync(
   join(process.cwd(), "app/patient/intakes/[id]/client.tsx"),
   "utf8",
 )
+const intakeDetailPageSource = readFileSync(
+  join(process.cwd(), "app/patient/intakes/[id]/page.tsx"),
+  "utf8",
+)
 
 function postRetryPayment(invoiceId = "pay-1") {
   return POST(new Request("https://instantmed.example/api/patient/retry-payment", {
@@ -171,9 +175,22 @@ describe("POST /api/patient/retry-payment", () => {
     expect(retryPaymentRouteSource).not.toContain("/checkout?invoiceId=")
     expect(retryPaymentRouteSource).toContain("/patient/intakes/${intakeRecovery.intakeId}?retry=true")
     expect(retryPaymentRouteSource).toContain("isPaymentSafetyLock")
-    expect(intakeDetailClientSource).toContain("retryPayment = false")
-    expect(intakeDetailClientSource).toContain("hasAutoRetriedPayment")
-    expect(intakeDetailClientSource).toContain("retryPaymentForIntakeAction(intake.id)")
+    expect(intakeDetailClientSource).not.toContain("retryPayment = false")
+    expect(intakeDetailClientSource).not.toContain("hasAutoRetriedPayment")
+    expect(intakeDetailClientSource).not.toMatch(/\n\s*handleRetryPayment\(\)/)
+    expect(intakeDetailClientSource).toContain("onClick={handleRetryPayment}")
+    expect(intakeDetailClientSource).toContain(
+      "retryPaymentForIntakeAction(intake.id, recoveryProof)",
+    )
+  })
+
+  it("carries server-verifiable recovery email proof through the private patient retry", () => {
+    expect(intakeDetailPageSource).toContain("recovery_proof")
+    expect(intakeDetailPageSource).toContain("recoveryProof={query.recovery_proof}")
+    expect(intakeDetailClientSource).toContain("recoveryProof = null")
+    expect(intakeDetailClientSource).toContain(
+      "retryPaymentForIntakeAction(intake.id, recoveryProof)",
+    )
   })
 
   it("keeps patient retry copy explicit about payment state and free of internal session wording", () => {

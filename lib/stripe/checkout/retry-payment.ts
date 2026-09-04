@@ -12,12 +12,14 @@
 import { cookies } from "next/headers"
 
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
+import { recordRecoveryEmailEngagement } from "@/lib/analytics/recovery-email-engagement"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import {
   getRepeatRxDoseMissingFields,
   hasRepeatRxDoseContractMarker,
   isRepeatPrescriptionRequest,
 } from "@/lib/clinical/repeat-rx-dose-requirement"
+import { verifyRecoveryEmailEngagementToken } from "@/lib/crypto/recovery-email-engagement-token"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getIntakeAnswersForPaymentSafety } from "@/lib/data/intake-answers"
 import { normalizePersistedGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
@@ -66,7 +68,10 @@ function isKnownMissingInformationHold(
   return result === "held" || result === "held_invalidation_unresolved"
 }
 
-export async function retryPaymentForIntakeAction(intakeId: string): Promise<CheckoutResult> {
+export async function retryPaymentForIntakeAction(
+  intakeId: string,
+  recoveryProof?: string | null,
+): Promise<CheckoutResult> {
   try {
     const authUser = await getAuthenticatedUserWithProfile()
     if (!authUser) {
@@ -499,6 +504,14 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
           ? "This request has already been paid — no further payment is needed. Please refresh to see its status."
           : RETRY_PAYMENT_STATE_ERROR,
       }
+    }
+
+    const recoveryResult = recoveryProof
+      ? verifyRecoveryEmailEngagementToken(recoveryProof)
+      : null
+    if (recoveryResult?.intakeId === intake.id) {
+      await recordRecoveryEmailEngagement({ intakeId: intake.id, patientId, supabase })
+        .catch(() => false)
     }
 
     // Count the retry in the server-side "reached pay" denominator so retried

@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useRef, useState, useTransition } from "react"
+import { useCallback, useEffect, useState, useTransition } from "react"
 
 import { cancelIntake } from "@/app/actions/cancel-intake"
 import {
@@ -77,7 +77,7 @@ interface IntakeDetailClientProps {
   intake: PatientIntakeWithPatient
   document?: GeneratedDocument | null
   intakeDocument?: IntakeDocument | null
-  retryPayment?: boolean
+  recoveryProof?: string | null
   isEmailVerified?: boolean
   userEmail?: string
   dateCorrectionState?: PatientDateCorrectionState
@@ -366,7 +366,7 @@ export function IntakeDetailClient({
   intake: initialIntake,
   document,
   intakeDocument,
-  retryPayment = false,
+  recoveryProof = null,
   isEmailVerified = true,
   userEmail,
   dateCorrectionState = "none",
@@ -378,7 +378,6 @@ export function IntakeDetailClient({
   const [actionError, setActionError] = useState<string | null>(null)
   const [resendSuccess, setResendSuccess] = useState(false)
   const [resendQueued, setResendQueued] = useState(false)
-  const hasAutoRetriedPayment = useRef(false)
 
   useEffect(() => {
     setIntake(initialIntake)
@@ -430,7 +429,7 @@ export function IntakeDetailClient({
   const handleRetryPayment = useCallback(() => {
     setActionError(null)
     startTransition(async () => {
-      const result = await retryPaymentForIntakeAction(intake.id)
+      const result = await retryPaymentForIntakeAction(intake.id, recoveryProof)
       if (result.paymentRecoveryReason === "more_information_required") {
         setIntake((previous) => ({
           ...previous,
@@ -447,21 +446,7 @@ export function IntakeDetailClient({
         window.location.href = result.checkoutUrl
       }
     })
-  }, [intake.id, router])
-
-  useEffect(() => {
-    if (
-      !retryPayment ||
-      hasAutoRetriedPayment.current ||
-      isMoreInformationRequiredRecovery ||
-      !["pending_payment", "checkout_failed"].includes(intake.status)
-    ) {
-      return
-    }
-
-    hasAutoRetriedPayment.current = true
-    handleRetryPayment()
-  }, [handleRetryPayment, intake.status, isMoreInformationRequiredRecovery, retryPayment])
+  }, [intake.id, recoveryProof, router])
 
   const [showDateCorrection, setShowDateCorrection] = useState(false)
   const [correctionStartDate, setCorrectionStartDate] = useState("")

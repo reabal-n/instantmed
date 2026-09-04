@@ -20,6 +20,23 @@ function createSentryFormattedLogMessage(value: string) {
 }
 
 describe("Sentry PHI scrubber", () => {
+  it("redacts recovery email proofs in URL strings and structured fields", () => {
+    const event = scrubSentryEvent({
+      request: {
+        url: "https://instantmed.com.au/patient/intakes/request?recovery_proof=signed-proof",
+      },
+      extra: {
+        recoveryProof: "signed-proof",
+        searchParams: "?recovery_proof=signed-proof",
+      },
+    })
+
+    expect(JSON.stringify(event)).not.toContain("signed-proof")
+    expect(event).toMatchObject({
+      extra: { recoveryProof: "[REDACTED]" },
+    })
+  })
+
   it("redacts PHI-shaped keys, not just PHI-looking values", () => {
     expect(scrubPHIFromObject({
       content: "Patient free text",

@@ -134,7 +134,7 @@ const VISUALS = {
   medCert: {
     src: commercialSeoVisuals["same-day-certificate-review"].assetPath,
     alt: "Educational diagram of the same-day medical certificate review pathway",
-    caption: "Certificate pathway: symptoms and dates, scope check, doctor review, secure PDF if approved.",
+    caption: "Certificate pathway: symptoms and dates, bounded clinical assessment, secure PDF if approved.",
   },
   medCertAlt: {
     src: commercialSeoVisuals["work-certificate-evidence"].assetPath,
@@ -500,7 +500,7 @@ export const intentPages: IntentPage[] = [
     faqs: [
       { question: "What does two days cost?", answer: `A two day certificate request is ${PRICING_DISPLAY.MED_CERT_2DAY}.` },
       { question: "Can I request three days instead?", answer: `Yes. The three day option is ${PRICING_DISPLAY.MED_CERT_3DAY} and uses the same bounded clinical pathway.` },
-      { question: "Can this cover yesterday and today?", answer: "You can provide the relevant dates. The doctor assesses whether retrospective coverage is clinically appropriate." },
+      { question: "Can this cover yesterday and today?", answer: "You can provide the relevant dates. The clinical pathway assesses whether retrospective coverage is supported." },
     ],
   }),
   medCertPage({
@@ -546,7 +546,7 @@ export const intentPages: IntentPage[] = [
     ],
     faqs: [
       { question: "Do I need a test result?", answer: "Usually no for a straightforward certificate request, but the doctor may ask follow-up questions if the story is unclear." },
-      { question: "Can this cover a shift I missed?", answer: "You can request the relevant date. The doctor decides whether the absence is clinically supported." },
+      { question: "Can this cover a shift I missed?", answer: "You can request the relevant date. The clinical pathway assesses whether the absence is supported." },
       { question: "What if symptoms last longer?", answer: "Persistent or worsening symptoms should be assessed by a GP or urgent care service." },
     ],
   }),
@@ -554,7 +554,7 @@ export const intentPages: IntentPage[] = [
     priority: 7,
     slug: "medical-certificate-for-mental-health-day",
     title: "Medical Certificate for Mental Health Day | InstantMed",
-    description: `Request a short medical certificate for mental health-related absence online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed.`,
+    description: `Request a short medical certificate for mental health-related absence online from ${PRICING_DISPLAY.MED_CERT}. Bounded clinical pathway.`,
     h1: "Medical certificate for a mental health day",
     answer: "You can request a short certificate for mental health-related absence online, but the doctor may recommend in-person or ongoing care if the situation needs more support.",
     intro: "This pathway is for short-term stress, burnout, anxiety, grief, or similar concerns that have affected your ability to attend work or study.",
@@ -604,7 +604,7 @@ export const intentPages: IntentPage[] = [
     description: `Request a carer's leave certificate online from ${PRICING_DISPLAY.MED_CERT}. Clinically assessed evidence for a short carer absence.`,
     h1: "Carer's leave certificate online",
     answer: "You can request a carer's leave certificate online when you need time away to care for an immediate family or household member and the situation is clinically appropriate.",
-    intro: "This pathway is for short carer absences where a doctor can assess the care need remotely.",
+    intro: "This pathway is for short carer absences that can be assessed remotely.",
     searchQuery: "carers leave certificate online",
     alternateQueries: ["carer certificate online", "medical certificate for carer leave", "carer's leave evidence online"],
     userNeed: "Document a short carer leave absence",
@@ -639,8 +639,8 @@ export const intentPages: IntentPage[] = [
       },
     ],
     faqs: [
-      { question: "Can this cover a child being unwell?", answer: "Yes, if the situation fits carer leave and the doctor considers online review suitable." },
-      { question: "Can this cover an unexpected emergency?", answer: "You can describe the circumstances. The doctor assesses whether a certificate is appropriate." },
+      { question: "Can this cover a child being unwell?", answer: "Yes, if the situation fits carer leave and is suitable for online assessment." },
+      { question: "Can this cover an unexpected emergency?", answer: "You can describe the circumstances. The clinical pathway assesses whether a certificate is appropriate." },
       { question: "Does the other person need an account?", answer: "No. The request is made by the patient seeking carer leave evidence." },
     ],
   }),
@@ -733,7 +733,7 @@ export const intentPages: IntentPage[] = [
       },
     ],
     faqs: [
-      { question: "Can I submit after missing the shift?", answer: "You can provide the relevant dates. The doctor decides whether the timeline is clinically supported." },
+      { question: "Can I submit after missing the shift?", answer: "You can provide the relevant dates. The clinical pathway assesses whether the timeline is supported." },
       { question: "Does the time of my shift matter?", answer: "Yes. Add shift timing in the notes if it explains why a clinic visit was not practical." },
       { question: "Can this clear me for safety-sensitive work?", answer: "No. Fitness-for-duty clearance is a separate, higher-stakes assessment." },
     ],
@@ -926,7 +926,7 @@ export const intentPages: IntentPage[] = [
       { id: "safety", title: "Safety", type: "callout", content: "The Medical Board expects telehealth to meet safe standards and to redirect patients when online care is not appropriate." },
     ],
     faqs: [
-      { question: "Is telehealth always enough?", answer: "No. It is suitable only where the doctor can safely assess the request remotely." },
+      { question: "Is telehealth always enough?", answer: "No. It is suitable only where the request can be safely assessed remotely." },
       { question: "Is a GP better for ongoing problems?", answer: "Usually yes. Ongoing or recurrent issues need continuity of care." },
       { question: "Can I start online and be redirected?", answer: "Yes. The doctor may recommend in-person care if needed." },
     ],
@@ -935,9 +935,9 @@ export const intentPages: IntentPage[] = [
     priority: 17,
     slug: "online-medical-certificate-comparison",
     title: "Online Medical Certificate Comparison | InstantMed",
-    description: `Compare online medical certificate services by price, doctor review, privacy, and evidence quality. InstantMed starts at ${PRICING_DISPLAY.MED_CERT}.`,
+    description: `Compare online medical certificate services by price, clinical assessment, privacy, and evidence quality. InstantMed starts at ${PRICING_DISPLAY.MED_CERT}.`,
     h1: "Online medical certificate comparison",
-    answer: "The best online certificate service is transparent about price, doctor review, clinical limits, privacy, and what happens if the request is declined.",
+    answer: "The best online certificate service is transparent about price, clinical assessment, clinical limits, privacy, and what happens if the request is declined.",
     intro: "This page gives patients a practical buying checklist instead of a generic list of providers.",
     price: PRICING_DISPLAY.FROM_MED_CERT,
     searchQuery: "online medical certificate comparison",
@@ -953,11 +953,11 @@ export const intentPages: IntentPage[] = [
     ctaUrl: "/request?service=med-cert",
     blocks: [
       { id: "checklist", title: "Buying checklist", type: "list", content: ["Clear price before checkout.", "AHPRA-registered clinical governance.", "No unsupported employer outcome promises.", "Secure certificate delivery and verification."] },
-      { id: "watch-outs", title: "Watch-outs", type: "text", content: "Avoid services that promise certificate outcomes without review, hide prices until late, or blur the line between doctor review and self-declaration." },
+      { id: "watch-outs", title: "Watch-outs", type: "text", content: "Avoid services that promise certificate outcomes without assessment, hide prices until late, or blur the line between a clinical pathway and self-declaration." },
       { id: "instantmed-position", title: "InstantMed position", type: "callout", content: "InstantMed optimises for short, clear, clinically assessed requests and keeps protocol and doctor-review boundaries visible before payment." },
     ],
     faqs: [
-      { question: "What should I compare first?", answer: "Price, doctor review, refund/decline handling, privacy, and certificate verification." },
+      { question: "What should I compare first?", answer: "Price, clinical assessment, refund/decline handling, privacy, and certificate verification." },
       { question: "Should the cheapest option always win?", answer: "No. A slightly better clinical and privacy process matters more than saving a few dollars." },
       { question: "What is InstantMed's starting price?", answer: `Medical certificate requests start at ${PRICING_DISPLAY.MED_CERT}.` },
     ],
@@ -966,9 +966,9 @@ export const intentPages: IntentPage[] = [
     priority: 18,
     slug: "instant-scripts-alternative-medical-certificate",
     title: "Instant Scripts Alternative for Medical Certificates | InstantMed",
-    description: `Looking for an Instant Scripts alternative for medical certificates? Compare service fit, price, and doctor review. InstantMed starts at ${PRICING_DISPLAY.MED_CERT}.`,
+    description: `Looking for an Instant Scripts alternative for medical certificates? Compare service fit, price, and clinical assessment. InstantMed starts at ${PRICING_DISPLAY.MED_CERT}.`,
     h1: "Instant Scripts alternative for medical certificates",
-    answer: "If you are comparing certificate services, focus on doctor review, clear price, privacy, and evidence format rather than brand familiarity alone.",
+    answer: "If you are comparing certificate services, focus on clinical assessment, clear price, privacy, and evidence format rather than brand familiarity alone.",
     intro: "InstantMed is a focused alternative for short online medical certificate requests and service-level repeat prescription review.",
     price: PRICING_DISPLAY.FROM_MED_CERT,
     searchQuery: "instant scripts alternative medical certificate",
@@ -988,7 +988,7 @@ export const intentPages: IntentPage[] = [
     ctaUrl: "/request",
     blocks: [
       { id: "compare-on", title: "Compare on", type: "list", content: ["Service scope.", "Upfront pricing.", "Clinical review model.", "Privacy and certificate verification."] },
-      { id: "positioning", title: "InstantMed positioning", type: "text", content: "InstantMed is built around focused, one-off requests with clear pricing and doctor review rather than a broad pharmacy-led marketplace experience." },
+      { id: "positioning", title: "InstantMed positioning", type: "text", content: "InstantMed is built around focused, one-off requests with clear pricing and the clinical pathway required for each service, rather than a broad pharmacy-led marketplace experience." },
       { id: "compliance", title: "Compliance boundary", type: "callout", content: "Prescription pages stay service-level. Specific medicine suitability belongs inside a private clinical request, not public advertising copy." },
     ],
     faqs: [

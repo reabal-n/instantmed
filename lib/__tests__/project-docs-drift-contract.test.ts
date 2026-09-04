@@ -147,7 +147,10 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **135 migration files**")
+      expect(source).toContain("Current count on disk: **136 migration files**")
+      expect(source).toContain(
+        "`20260903120000_recovery_email_engagement.sql`",
+      )
       expect(source).toContain(
         "`20260902090000_converge_fraud_flag_review_state.sql`",
       )
@@ -190,7 +193,10 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest timestamp on disk: `20260902090000_converge_fraud_flag_review_state.sql`",
+      "Latest timestamp on disk: `20260903120000_recovery_email_engagement.sql`",
+    )
+    expect(architecture).toContain(
+      "immediately preceding on-disk migration, `20260902090000_converge_fraud_flag_review_state.sql`",
     )
     expect(architecture).toContain(
       "Latest applied/verified production timestamp remains `20260828090000_specialty_experience_attribution.sql`",
@@ -206,10 +212,13 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Latest timestamp on disk is `20260902090000_converge_fraud_flag_review_state.sql`",
+      "Newest on disk is `20260903120000_recovery_email_engagement.sql`",
     )
     expect(wikiArchitecture).toContain(
-      "latest applied production timestamp remains `20260828090000_specialty_experience_attribution.sql` (verified 2026-08-28)",
+      "immediately preceding on-disk migration is `20260902090000_converge_fraud_flag_review_state.sql`",
+    )
+    expect(wikiArchitecture).toContain(
+      "latest applied and verified production migration (2026-08-28) remains `20260828090000_specialty_experience_attribution.sql`",
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(

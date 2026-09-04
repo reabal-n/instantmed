@@ -620,6 +620,17 @@ const nextConfig = {
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },
+      // Guest checkout recovery URLs carry a signed bearer. GET renders a
+      // scanner-safe confirmation only; keep both it and the explicit action
+      // outside caches, referrers, and search indexes.
+      {
+        source: "/resume/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
       // The review redirect's email path carries a consume-once click key in
       // its URL. The route handler sets these same headers, but the global
       // header block above overrides handler-set values at the edge (verified

@@ -125,6 +125,15 @@ describe("sanitize-phi PHI scrubber", () => {
     expect(sanitized.searchParams.get("duration")).toBe("2")
   })
 
+  it("redacts recovery email proofs from URLs", () => {
+    const sanitized = new URL(sanitizeUrl(
+      "https://instantmed.com.au/patient/intakes/request?recovery_proof=signed-proof&utm_medium=email",
+    ))
+
+    expect(sanitized.searchParams.get("recovery_proof")).toBe(REDACTED)
+    expect(sanitized.searchParams.get("utm_medium")).toBe("email")
+  })
+
   it("redacts the one-use review traversal capability without removing attribution", () => {
     const clickKey = "A".repeat(43)
     const sanitized = new URL(sanitizeUrl(

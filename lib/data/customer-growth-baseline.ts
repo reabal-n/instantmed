@@ -4,11 +4,12 @@ import {
   classifyAttributionSource,
 } from "@/lib/analytics/source-classification"
 import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-capability-path"
+import type { RecoveryMarkerAvailability } from "@/lib/data/customer-growth-revenue-read"
 
-type CustomerGrowthServiceBaseline = {
+export type CustomerGrowthServiceBaseline = {
+  createdIntakes: number
   grossRevenueAud: number
-  intakes: number
-  paid: number
+  paidAtOrders: number
   service: string
 }
 
@@ -26,24 +27,26 @@ export type CustomerGrowthSupabaseBaseline = {
   intakes: {
     averageOrderValueAud: number | null
     byService: CustomerGrowthServiceBaseline[]
+    createdIntakes: number
     grossRevenueAud: number
-    intakes: number
     netRevenueAud: number
-    paid: number
-    paidRate: number | null
+    paidAtOrders: number
     refundedAud: number
   }
   recovery: {
     abandonedCheckoutSent: number
-    convertedPartials: number
-    emailCaptured: number
-    emailCaptureRate: number | null
+    attributionCoverage: RecoveryMarkerAvailability
     partialRecoverySent: number
-    partialsCaptured: number
+    partialSnapshot: {
+      emailCaptureRate: number | null
+      retentionDays: number
+      rowsUpdatedInWindow: number
+      rowsWithConvertedMarker: number
+      rowsWithEmail: number
+    }
     recoveredGrossRevenueAud: number
     recoveredNetRevenueAud: number
     recoveredPaidCount: number
-    recoveryEmailCoverageRate: number | null
   }
 }
 
@@ -63,6 +66,9 @@ function publicLandingPath(value?: string | null): string {
     const url = new URL(landingPage, "https://instantmed.com.au")
     if (url.protocol !== "http:" && url.protocol !== "https:") return "/unknown"
     if (!PUBLIC_LANDING_HOSTS.has(url.hostname)) return "/unknown"
+    // Canonical public routes are ASCII-only. Reject encoded pathnames rather
+    // than risk treating an encoded private-route separator as public data.
+    if (url.pathname.includes("%")) return "/unknown"
     const pathname = url.pathname.replace(/\/+$/, "") || "/"
     if (isExternalAnalyticsExcludedPathname(pathname)) return "/unknown"
     return pathname === "/verify" || pathname.startsWith("/verify/") ? "/verify" : pathname
@@ -140,7 +146,26 @@ const SENSITIVE_PATTERNS = [
   /\b(?:pi|cs|cus|ch|pm|in|sub|price|prod)_[A-Za-z0-9]{8,}\b/,
   /\b(?:gclid|gbraid|wbraid)\b\s*[:="' ]+\s*[A-Za-z0-9_-]{8,}/i,
   /\bIM-(?:WORK|STUDY|CARER)-\d{8}-\d{8}\b/i,
+  /\/(?:auth\/complete-account|track|resume)\/[^\s"'?#]+/i,
 ] as const
+
+function decodePercentEscapes(value: string): string {
+  let decoded = value
+
+  for (let pass = 0; pass < 4; pass += 1) {
+    const next = decoded.replace(/(?:%[0-9a-f]{2})+/gi, (encoded) => {
+      try {
+        return decodeURIComponent(encoded)
+      } catch {
+        return encoded
+      }
+    })
+    if (next === decoded) return decoded
+    decoded = next
+  }
+
+  return decoded
+}
 
 function formatMoney(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "n/a"
@@ -163,13 +188,26 @@ function eventCount(posthog: CustomerGrowthPostHogBaseline, event: string): numb
 
 function phaseOneGate(input: CustomerGrowthBaselineSummaryInput): string {
   const recovery = input.supabase30d.recovery
-  if (recovery.convertedPartials === 0 && recovery.partialRecoverySent > 0) {
-    return "blocked - partial-intake converted marker is zero despite recovery sends"
+  if (recovery.attributionCoverage === "migration-not-applied") {
+    return "blocked - private-route recovery marker migration is not applied"
   }
-  if (recovery.emailCaptured > 0 && recovery.partialRecoverySent === 0) {
-    return "blocked - recovery email coverage is zero"
+  if (
+    recovery.partialSnapshot.rowsWithEmail > 0 &&
+    recovery.partialRecoverySent === 0
+  ) {
+    return "blocked - retained draft rows include email but the report window has no confirmed recovery sends"
   }
-  return "watch - recovery marker is measurable"
+  return "watch - recovery contribution is forward-only; wait for a fully covered closed window"
+}
+
+function recoveryCoverageCopy(availability: RecoveryMarkerAvailability): string {
+  if (availability === "migration-not-applied") {
+    return "public recovery UTMs only; the private-route marker migration is not applied"
+  }
+  if (availability === "not-checked-no-revenue-rows") {
+    return "not checked because the revenue cohort contained no rows"
+  }
+  return "public recovery UTMs plus the forward-only private-route marker; pre-marker history is not reconstructable"
 }
 
 function phaseFourGate(input: CustomerGrowthBaselineSummaryInput): string {
@@ -197,9 +235,8 @@ export function buildCustomerGrowthBaselineSummary(input: CustomerGrowthBaseline
     "",
     "## Supabase Payment Truth",
     "",
-    `- 30-day reportable intakes: ${supabase30d.intakes.intakes}`,
-    `- 30-day paid intakes: ${supabase30d.intakes.paid}`,
-    `- 30-day paid rate from saved intakes: ${formatRate(supabase30d.intakes.paidRate)}`,
+    `- 30-day reportable intakes created: ${supabase30d.intakes.createdIntakes}`,
+    `- 30-day orders paid in window: ${supabase30d.intakes.paidAtOrders}`,
     `- 30-day gross revenue: ${formatMoney(supabase30d.intakes.grossRevenueAud)}`,
     `- 30-day net revenue: ${formatMoney(supabase30d.intakes.netRevenueAud)}`,
     `- 30-day net AOV: ${formatMoney(supabase30d.intakes.averageOrderValueAud)}`,
@@ -216,13 +253,16 @@ export function buildCustomerGrowthBaselineSummary(input: CustomerGrowthBaseline
     "",
     "## Recovery",
     "",
-    `- 30-day partial intakes: ${supabase30d.recovery.partialsCaptured}`,
-    `- 30-day partial-intake email capture: ${supabase30d.recovery.emailCaptured}`,
-    `- 30-day partial-intake email capture rate: ${formatRate(supabase30d.recovery.emailCaptureRate)}`,
-    `- 30-day partial-intake recovery sends: ${supabase30d.recovery.partialRecoverySent}`,
-    `- 30-day partial-intake converted marker: ${supabase30d.recovery.convertedPartials}`,
-    `- 30-day recovered paid count: ${supabase30d.recovery.recoveredPaidCount}`,
-    `- 30-day recovered net revenue: ${formatMoney(supabase30d.recovery.recoveredNetRevenueAud)}`,
+    `Retained partial-intake snapshot (${supabase30d.recovery.partialSnapshot.retentionDays}-day draft retention); these are surviving rows, not complete ${supabase30d.days}-day event totals.`,
+    "",
+    `- Rows updated inside the ${supabase30d.days}-day report window: ${supabase30d.recovery.partialSnapshot.rowsUpdatedInWindow}`,
+    `- Retained rows with email: ${supabase30d.recovery.partialSnapshot.rowsWithEmail}`,
+    `- Retained-row email capture rate: ${formatRate(supabase30d.recovery.partialSnapshot.emailCaptureRate)}`,
+    `- Retained rows with converted marker: ${supabase30d.recovery.partialSnapshot.rowsWithConvertedMarker}`,
+    `- ${supabase30d.days}-day confirmed partial-intake recovery sends (durable outbox): ${supabase30d.recovery.partialRecoverySent}`,
+    `- Recovery contribution coverage: ${recoveryCoverageCopy(supabase30d.recovery.attributionCoverage)}`,
+    `- Observed recovered paid count (non-exhaustive): ${supabase30d.recovery.recoveredPaidCount}`,
+    `- Observed recovered net revenue (non-exhaustive): ${formatMoney(supabase30d.recovery.recoveredNetRevenueAud)}`,
     "",
     "## Google Ads",
     "",
@@ -251,7 +291,10 @@ export function buildCustomerGrowthBaselineSummary(input: CustomerGrowthBaseline
 }
 
 export function assertNoSensitiveBaselineText(text: string): void {
-  if (SENSITIVE_PATTERNS.some((pattern) => pattern.test(text))) {
+  const decodedText = decodePercentEscapes(text)
+  if (SENSITIVE_PATTERNS.some(
+    (pattern) => pattern.test(text) || pattern.test(decodedText),
+  )) {
     throw new Error("Customer growth baseline contains sensitive identifiers")
   }
 }

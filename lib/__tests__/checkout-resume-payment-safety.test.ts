@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
     info: vi.fn(),
     warn: vi.fn(),
   },
+  recordRecoveryEmailEngagement: vi.fn(),
   recordSafetyEvaluationForOperators: vi.fn(),
   revalidatePatient: vi.fn(),
   revalidateStaff: vi.fn(),
@@ -26,6 +27,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/config/env", () => ({
   getAppUrl: mocks.getAppUrl,
+}))
+
+vi.mock("@/lib/analytics/recovery-email-engagement", () => ({
+  recordRecoveryEmailEngagement: mocks.recordRecoveryEmailEngagement,
 }))
 
 vi.mock("@/lib/data/intake-answers", () => ({
@@ -239,6 +244,7 @@ describe("signed guest checkout resume payment safety", () => {
       unit_amount: 995,
     })
     mocks.resolvePaymentRecoveryCanonicality.mockResolvedValue({ kind: "canonical" })
+    mocks.recordRecoveryEmailEngagement.mockResolvedValue(true)
     mocks.stripeSessionCreate.mockResolvedValue({
       id: "cs_resumed",
       metadata: { intake_id: "intake-1" },
@@ -387,6 +393,33 @@ describe("signed guest checkout resume payment safety", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
     expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
     expect(updateRecords).toHaveLength(0)
+  })
+
+  it("records a verified recovery-email engagement before returning checkout", async () => {
+    const { supabase } = createResumeSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const destination = await resolveGuestCheckoutResume(
+      "intake-1",
+      true,
+    )
+
+    expect(destination).toBe("https://checkout.stripe.test/pay/cs_previous")
+    expect(mocks.recordRecoveryEmailEngagement).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+      supabase,
+    })
+  })
+
+  it("does not let a rejected recovery marker block a current checkout", async () => {
+    const { supabase } = createResumeSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.recordRecoveryEmailEngagement.mockRejectedValueOnce(new Error("telemetry unavailable"))
+
+    await expect(resolveGuestCheckoutResume("intake-1", true)).resolves.toBe(
+      "https://checkout.stripe.test/pay/cs_previous",
+    )
   })
 
   it("withholds even a live open Session when the safety rules engine now blocks the answers", async () => {
