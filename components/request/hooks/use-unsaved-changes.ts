@@ -21,6 +21,44 @@ export function clearIntentionalNavigation(): void {
   intentionalNavigationInProgress = false
 }
 
+export interface WomensHealthRepeatHandoffAttemptGate {
+  current: string | null
+}
+
+/**
+ * Claim the current-pill handoff synchronously before navigation starts.
+ * Desktop and mobile actions share the same ref-backed gate, so rapid repeat
+ * activation cannot duplicate either the durable steer event or navigation.
+ * A synchronous navigation failure releases both latches for a real retry.
+ */
+export function runWomensHealthRepeatHandoffOnce({
+  attemptKey,
+  capture,
+  gate,
+  navigate,
+}: {
+  attemptKey: string
+  capture: () => void
+  gate: WomensHealthRepeatHandoffAttemptGate
+  navigate: () => void
+}): boolean {
+  if (gate.current === attemptKey) return false
+
+  gate.current = attemptKey
+  markIntentionalNavigation()
+
+  try {
+    navigate()
+  } catch {
+    gate.current = null
+    clearIntentionalNavigation()
+    return false
+  }
+
+  capture()
+  return true
+}
+
 /**
  * Complete a same-route handoff only once a real destination flow exists. This
  * keeps the source protected during navigation while ensuring a later exit

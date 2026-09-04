@@ -26,6 +26,7 @@ import {
   isIntentionalNavigationInProgress,
   markIntentionalNavigation,
   resetIntentionalNavigationForTests,
+  runWomensHealthRepeatHandoffOnce,
 } from "@/components/request/hooks/use-unsaved-changes"
 import { useRequestStore } from "@/components/request/store"
 import { buildPassiveAbandonmentBeacon } from "@/lib/analytics/intake-events"
@@ -297,6 +298,53 @@ describe("intake draft lifecycle", () => {
         serviceType: "repeat-script",
       })
       expect(isIntentionalNavigationInProgress()).toBe(false)
+    })
+
+    it("runs one current-pill handoff for repeated activation of the same flow", () => {
+      const gate = { current: null as string | null }
+      const navigate = vi.fn()
+      const capture = vi.fn()
+      const options = {
+        attemptKey: `womens-health-repeat-handoff:${FRESH_FLOW_INSTANCE_ID}`,
+        capture,
+        gate,
+        navigate,
+      }
+
+      expect(runWomensHealthRepeatHandoffOnce(options)).toBe(true)
+      expect(runWomensHealthRepeatHandoffOnce(options)).toBe(false)
+
+      expect(navigate).toHaveBeenCalledTimes(1)
+      expect(capture).toHaveBeenCalledTimes(1)
+      expect(isIntentionalNavigationInProgress()).toBe(true)
+    })
+
+    it("releases a failed current-pill navigation so the same flow can retry", () => {
+      const gate = { current: null as string | null }
+      const capture = vi.fn()
+      let shouldFail = true
+      const navigate = vi.fn(() => {
+        if (shouldFail) {
+          shouldFail = false
+          throw new Error("navigation unavailable")
+        }
+      })
+      const options = {
+        attemptKey: `womens-health-repeat-handoff:${FRESH_FLOW_INSTANCE_ID}`,
+        capture,
+        gate,
+        navigate,
+      }
+
+      expect(runWomensHealthRepeatHandoffOnce(options)).toBe(false)
+      expect(gate.current).toBeNull()
+      expect(capture).not.toHaveBeenCalled()
+      expect(isIntentionalNavigationInProgress()).toBe(false)
+
+      expect(runWomensHealthRepeatHandoffOnce(options)).toBe(true)
+      expect(navigate).toHaveBeenCalledTimes(2)
+      expect(capture).toHaveBeenCalledTimes(1)
+      expect(isIntentionalNavigationInProgress()).toBe(true)
     })
 
     it("review-step and exit path actually call the suppressor before navigating", () => {
