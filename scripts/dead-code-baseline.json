@@ -1097,7 +1097,6 @@
     "production|exports|components/request/hooks/use-unsaved-changes.ts|isIntentionalNavigationInProgress",
     "production|exports|components/request/hooks/use-unsaved-changes.ts|resetIntentionalNavigationForTests",
     "production|exports|components/request/shared/medical-history-toggles.tsx|SwitchField",
-    "production|exports|components/request/step-components.tsx|StepLoading",
     "production|exports|components/request/step-loaders.ts|loadStepComponent",
     "production|exports|components/request/time-remaining.tsx|STEP_TIME_ESTIMATES",
     "production|exports|components/shared/emergency-disclaimer.tsx|SAFETY_COPY",

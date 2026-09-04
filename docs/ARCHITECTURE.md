@@ -32,6 +32,8 @@
 
 Unified `/request` entry point routes all clinical flows through a dynamic step-based wizard.
 
+The request registry keeps SSR-enabled, literal `next/dynamic` imports for per-step code splitting and preload discovery, but intentionally has no explicit dynamic `loading` option and the app has no root `app/loading.tsx`. On Next 15, either boundary can defer the active step behind a streamed reveal that races cold-navigation hydration. Route-specific loading files still cover the surfaces that need skeletons, the global navigation progress bar covers transitions, and `step-loaders.ts` prefetches the next intake chunk before the patient advances.
+
 ```
 app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
                             |
@@ -801,7 +803,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 571 files, 248 route files
+### `app/` — 570 files, 248 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 

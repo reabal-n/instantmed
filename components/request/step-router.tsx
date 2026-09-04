@@ -33,8 +33,8 @@ export interface StepRouterProps {
   serviceType: StepComponentProps["serviceType"]
   currentStepId: UnifiedStepId
   componentPath: string
-  /** The following step's component, prefetched at idle so Continue never
-   * pays a fresh chunk round-trip (and its 150ms loading gate) mid-funnel. */
+  /** The following step's component, prefetched at idle so Continue avoids
+   * paying a fresh chunk round-trip mid-funnel. */
   nextComponentPath?: string
   onNext: () => void
   onBack: () => void

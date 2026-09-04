@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -66,11 +66,21 @@ describe("request conversion performance contract", () => {
     expect(stepComponentsSource).not.toContain("ssr: false")
     expect(stepComponentsSource).not.toContain("ssr:false")
     expect(stepComponentsSource).toContain("Pick the certificate type, dates, and duration.")
-    expect(stepComponentsSource).toContain('"Certificate type"')
-    expect(stepComponentsSource).toContain('"How many days?"')
-    expect(stepComponentsSource).toContain('"Starting from?"')
-    expect(stepComponentsSource).toContain('"What symptoms are you having?"')
-    expect(stepComponentsSource).toContain('"How long have you felt unwell?"')
+    expect(stepComponentsSource).toContain("MED_CERT_DOCUMENT_SCOPE")
+  })
+
+  it("does not stream the active step behind a next/dynamic loading boundary", () => {
+    // In Next 15, passing a `loading` option makes Loadable wrap an otherwise
+    // SSR-capable dynamic component in Suspense. The server then emits a
+    // fallback boundary and schedules the real step for a later reveal. Under
+    // cold production navigation, React can begin hydrating before that reveal
+    // and recover with minified error #418. Keep SSR and literal import()
+    // preloads, but do not opt the intake registry into that boundary.
+    expect(stepComponentsSource).not.toContain("loading:")
+    expect(stepComponentsSource).not.toContain("stepLoadingFallback")
+    // A root loading.tsx would become the nearest implicit Suspense boundary
+    // and reintroduce the same deferred reveal when React.lazy suspends.
+    expect(existsSync(join(root, "app/loading.tsx"))).toBe(false)
   })
 
   it("renders steps straight from the dynamic registry instead of a client-only load-state waterfall", () => {
@@ -89,9 +99,9 @@ describe("request conversion performance contract", () => {
     expect(stepLoadersSource).toContain("preloadStepComponent")
   })
 
-  it("keeps med-cert step intros mounted while their control chunks resolve", () => {
+  it("keeps med-cert step intros mounted across step transitions", () => {
     expect(stepRouterSource).toContain('new Set(["certificate-step", "symptoms-step"])')
-    expect(stepComponentsSource).toContain('stepLoadingFallback("symptoms-step", false)')
+    expect(stepRouterSource).toContain("<StepIntroShell")
     expect(stepRouterSource).toContain('state.answers.certType === "carer"')
     expect(stepRouterSource).toContain('titleOverride={persistentIntroTitle}')
   })
