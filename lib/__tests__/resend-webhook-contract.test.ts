@@ -40,10 +40,14 @@ const PATIENT_ID = "patient-1"
 const PROVIDER_ID = "re_test_medcert_1"
 const PATIENT_EMAIL = "patient@example.test"
 
-function createResendRequest(type: ResendEventType, overrides: Record<string, unknown> = {}) {
+function createResendRequest(
+  type: ResendEventType,
+  overrides: Record<string, unknown> = {},
+  eventCreatedAt = "2026-05-11T00:00:00.000Z",
+) {
   const payload = {
     type,
-    created_at: "2026-05-11T00:00:00.000Z",
+    created_at: eventCreatedAt,
     data: {
       email_id: PROVIDER_ID,
       from: "InstantMed <support@instantmed.com.au>",
@@ -202,6 +206,7 @@ describe("Resend webhook contract", () => {
     expect(supabase.rpc).toHaveBeenCalledWith("record_resend_outbox_event", {
       p_bounce_type: null,
       p_error_message: null,
+      p_event_created_at: "2026-05-11T00:00:00.000Z",
       p_event_type: "email.delivered",
       p_provider_message_id: PROVIDER_ID,
     })
@@ -227,6 +232,7 @@ describe("Resend webhook contract", () => {
     expect(supabase.rpc).toHaveBeenCalledWith("record_resend_outbox_event", {
       p_bounce_type: "hard",
       p_error_message: "Mailbox unavailable",
+      p_event_created_at: "2026-05-11T00:00:00.000Z",
       p_event_type: "email.bounced",
       p_provider_message_id: PROVIDER_ID,
     })
@@ -273,6 +279,7 @@ describe("Resend webhook contract", () => {
     expect(supabase.rpc).toHaveBeenCalledWith("record_resend_outbox_event", {
       p_bounce_type: null,
       p_error_message: null,
+      p_event_created_at: "2026-05-11T00:00:00.000Z",
       p_event_type: "email.complained",
       p_provider_message_id: PROVIDER_ID,
     })
@@ -298,6 +305,7 @@ describe("Resend webhook contract", () => {
     expect(supabase.rpc).toHaveBeenCalledWith("record_resend_outbox_event", {
       p_bounce_type: null,
       p_error_message: null,
+      p_event_created_at: "2026-05-11T00:00:00.000Z",
       p_event_type: "email.clicked",
       p_provider_message_id: PROVIDER_ID,
     })
@@ -322,6 +330,36 @@ describe("Resend webhook contract", () => {
     await expect(response.json()).resolves.toEqual({ received: true, duplicate: true })
     expect(mocks.posthogCapture).not.toHaveBeenCalled()
     expect(supabase.updates).toEqual([])
+  })
+
+  it("returns a retryable response while a valid callback is waiting for outbox finalization", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock({ matched: false })
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest("email.delivered"))
+
+    expect(response.status).toBe(503)
+    expect(response.headers.get("retry-after")).toBe("5")
+    await expect(response.json()).resolves.toEqual({
+      error: "Email lifecycle record not ready",
+      retryable: true,
+    })
+    expect(mocks.posthogCapture).not.toHaveBeenCalled()
+  })
+
+  it("rejects a callback whose signed provider event timestamp is invalid", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest("email.delivered", {}, "not-a-timestamp"))
+
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toEqual({ error: "Invalid payload" })
+    expect(supabase.rpc).not.toHaveBeenCalled()
   })
 
   it("leaves out-of-order delivery reconciliation inside the atomic receipt", async () => {

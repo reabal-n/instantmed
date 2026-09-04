@@ -25,12 +25,14 @@ create index if not exists idx_intakes_paid_repeat_patient_time
     and payment_status in ('paid', 'partially_refunded', 'refunded', 'disputed');
 
 drop function if exists public.record_resend_outbox_event(text, text, text, text);
+drop function if exists public.record_resend_outbox_event(text, text, text, text, timestamptz);
 
 create or replace function public.record_resend_outbox_event(
   p_provider_message_id text,
   p_event_type text,
   p_bounce_type text,
-  p_error_message text
+  p_error_message text,
+  p_event_created_at timestamptz default pg_catalog.clock_timestamp()
 )
 returns table (
   matched boolean,
@@ -46,20 +48,26 @@ set search_path = ''
 as $function$
 declare
   v_outbox_id uuid;
+  v_intake_id uuid;
   v_patient_id uuid;
   v_certificate_id uuid;
   v_email_type text;
+  v_to_email text;
   v_status text;
   v_delivery_status text;
+  v_sent_at timestamptz;
+  v_retry_count integer;
   v_metadata jsonb;
   v_processed_events jsonb;
   v_event_key text;
   v_incoming_delivery_status text;
   v_incoming_rank integer;
   v_current_rank integer;
+  v_duplicate boolean;
   v_email_is_test boolean;
   v_delivery_state_applied boolean := false;
   v_event_recorded_at timestamptz;
+  v_masked_recipient text;
 begin
   if p_provider_message_id is null
     or length(p_provider_message_id) < 1
@@ -84,24 +92,36 @@ begin
     raise exception 'invalid Resend bounce type';
   end if;
 
+  if p_event_created_at is null then
+    raise exception 'invalid Resend event timestamp';
+  end if;
+
   select
     outbox.id,
+    outbox.intake_id,
     outbox.patient_id,
     outbox.certificate_id,
     outbox.email_type,
+    outbox.to_email,
     outbox.status,
     outbox.delivery_status,
+    outbox.sent_at,
+    outbox.retry_count,
     case
       when jsonb_typeof(outbox.metadata) = 'object' then outbox.metadata
       else '{}'::jsonb
     end
   into
     v_outbox_id,
+    v_intake_id,
     v_patient_id,
     v_certificate_id,
     v_email_type,
+    v_to_email,
     v_status,
     v_delivery_status,
+    v_sent_at,
+    v_retry_count,
     v_metadata
   from public.email_outbox as outbox
   where outbox.provider_message_id = p_provider_message_id
@@ -125,14 +145,24 @@ begin
     v_metadata @> '{"test": true}'::jsonb
     or v_metadata @> '{"e2e_mode": true}'::jsonb
     or v_metadata @> '{"dev_mode": true}'::jsonb;
+  v_duplicate := v_processed_events ? v_event_key;
+  v_event_recorded_at := p_event_created_at;
+  v_masked_recipient := case
+    when pg_catalog.strpos(v_to_email, '@') = 0
+      or pg_catalog.split_part(v_to_email, '@', 2) = ''
+      then '***@***'
+    else (
+      case
+        when length(pg_catalog.split_part(v_to_email, '@', 1)) > 2
+          then left(pg_catalog.split_part(v_to_email, '@', 1), 1)
+            || '***'
+            || right(pg_catalog.split_part(v_to_email, '@', 1), 1)
+        else '***'
+      end
+    ) || '@' || pg_catalog.split_part(v_to_email, '@', 2)
+  end;
 
-  if v_processed_events ? v_event_key then
-    return query
-      select true, true, v_outbox_id, v_email_type, v_email_is_test;
-    return;
-  end if;
-
-  v_event_recorded_at := pg_catalog.clock_timestamp();
+  if not v_duplicate then
 
   v_incoming_delivery_status := case p_event_type
     when 'email.delivered' then 'delivered'
@@ -217,13 +247,16 @@ begin
     set
       email_bounced = true,
       email_bounce_reason = case
-        when p_event_type = 'email.complained' then 'complaint: Spam complaint'
+        when profile.email_bounced_at is not null
+          and v_event_recorded_at < profile.email_bounced_at
+          then profile.email_bounce_reason
+        when p_event_type = 'email.complained'
+          then 'complaint: Spam complaint'
         else coalesce(p_bounce_type, 'soft') || ': ' || coalesce(p_error_message, '')
       end,
       email_bounced_at = case
-        when v_delivery_status in ('bounced', 'complained')
-          then profile.email_bounced_at
-        else v_event_recorded_at
+        when profile.email_bounced_at is null then v_event_recorded_at
+        else greatest(profile.email_bounced_at, v_event_recorded_at)
       end,
       email_delivery_failures = coalesce(profile.email_delivery_failures, 0) + case
         when v_delivery_status in ('bounced', 'complained') then 0
@@ -273,7 +306,7 @@ begin
   -- event for this same message always wins.
   if v_patient_id is not null
     and p_event_type = 'email.delivered'
-    and v_delivery_status not in ('bounced', 'complained')
+    and coalesce(v_delivery_status, '') not in ('bounced', 'complained')
   then
     update public.profiles as profile
     set
@@ -282,7 +315,14 @@ begin
       email_delivery_failures = 0
     where profile.id = v_patient_id
       and profile.role = 'patient'
-      and profile.email_bounced is true;
+      and profile.email_bounced is true
+      and (
+        profile.email_bounced_at is null
+        or (
+          v_sent_at is not null
+          and v_sent_at >= profile.email_bounced_at
+        )
+      );
   end if;
 
   if v_certificate_id is not null and p_event_type = 'email.opened' then
@@ -292,17 +332,75 @@ begin
       and certificate.email_opened_at is null;
   end if;
 
+  end if;
+
   -- delivery_tracking has a smaller status vocabulary than the outbox. Keep
   -- its terminal state monotonic while retaining independent timestamps for
-  -- valid out-of-order provider evidence.
+  -- valid out-of-order provider evidence. The upsert also closes the race in
+  -- which a provider callback arrives before direct-send tracking is inserted,
+  -- and heals legacy duplicate receipts whose tracking row is absent or stale.
   if p_event_type in (
+    'email.sent',
     'email.delivered',
     'email.bounced',
     'email.complained',
     'email.opened'
   ) then
-    update public.delivery_tracking as tracking
+    insert into public.delivery_tracking as tracking (
+      message_id,
+      intake_id,
+      patient_id,
+      channel,
+      template_type,
+      provider_id,
+      recipient,
+      status,
+      sent_at,
+      delivered_at,
+      bounced_at,
+      opened_at,
+      bounce_type,
+      bounce_reason,
+      error_message,
+      attempt_number
+    ) values (
+      p_provider_message_id,
+      v_intake_id,
+      v_patient_id,
+      'email',
+      v_email_type,
+      p_provider_message_id,
+      v_masked_recipient,
+      case p_event_type
+        when 'email.complained' then 'failed'
+        when 'email.bounced' then 'bounced'
+        when 'email.opened' then 'opened'
+        when 'email.delivered' then 'delivered'
+        else 'sent'
+      end,
+      coalesce(v_sent_at, v_event_recorded_at),
+      case when p_event_type = 'email.delivered' then v_event_recorded_at else null end,
+      case when p_event_type = 'email.bounced' then v_event_recorded_at else null end,
+      case when p_event_type = 'email.opened' then v_event_recorded_at else null end,
+      case
+        when p_event_type = 'email.bounced' then coalesce(p_bounce_type, 'soft')
+        else null
+      end,
+      case
+        when p_event_type = 'email.bounced' then left(coalesce(p_error_message, ''), 2000)
+        else null
+      end,
+      case when p_event_type = 'email.complained' then 'Complaint received' else null end,
+      greatest(coalesce(v_retry_count, 0), 1)
+    )
+    on conflict (message_id) do update
     set
+      intake_id = coalesce(excluded.intake_id, tracking.intake_id),
+      patient_id = coalesce(excluded.patient_id, tracking.patient_id),
+      channel = excluded.channel,
+      template_type = excluded.template_type,
+      provider_id = excluded.provider_id,
+      recipient = excluded.recipient,
       status = case
         when p_event_type = 'email.complained' then 'failed'
         when p_event_type = 'email.bounced'
@@ -314,51 +412,56 @@ begin
         when p_event_type = 'email.delivered'
           and coalesce(tracking.status, 'sent') not in ('failed', 'bounced', 'opened')
           then 'delivered'
+        when p_event_type = 'email.sent' and tracking.status is null then 'sent'
         else tracking.status
       end,
+      sent_at = coalesce(tracking.sent_at, excluded.sent_at),
       delivered_at = case
         when p_event_type = 'email.delivered'
-          then coalesce(tracking.delivered_at, v_event_recorded_at)
+          then coalesce(tracking.delivered_at, excluded.delivered_at)
         else tracking.delivered_at
       end,
       bounced_at = case
         when p_event_type = 'email.bounced'
-          then coalesce(tracking.bounced_at, v_event_recorded_at)
+          then coalesce(tracking.bounced_at, excluded.bounced_at)
         else tracking.bounced_at
       end,
       opened_at = case
         when p_event_type = 'email.opened'
-          then coalesce(tracking.opened_at, v_event_recorded_at)
+          then coalesce(tracking.opened_at, excluded.opened_at)
         else tracking.opened_at
       end,
       bounce_type = case
         when p_event_type = 'email.bounced'
-          then coalesce(p_bounce_type, 'soft')
+          then excluded.bounce_type
         else tracking.bounce_type
       end,
       bounce_reason = case
         when p_event_type = 'email.bounced'
-          then left(coalesce(p_error_message, ''), 2000)
+          then excluded.bounce_reason
         else tracking.bounce_reason
       end,
       error_message = case
-        when p_event_type = 'email.complained' then 'Complaint received'
+        when p_event_type = 'email.complained' then excluded.error_message
         else tracking.error_message
-      end
-    where tracking.provider_id = p_provider_message_id;
+      end,
+      attempt_number = greatest(
+        coalesce(tracking.attempt_number, 0),
+        excluded.attempt_number
+      );
   end if;
 
   return query
-    select true, false, v_outbox_id, v_email_type, v_email_is_test;
+    select true, v_duplicate, v_outbox_id, v_email_type, v_email_is_test;
 end;
 $function$;
 
-comment on function public.record_resend_outbox_event(text, text, text, text) is
+comment on function public.record_resend_outbox_event(text, text, text, text, timestamptz) is
   'Atomically records one deduplicated Resend lifecycle receipt and its critical profile, preference, certificate, and delivery-tracking database mirrors.';
 
-revoke all on function public.record_resend_outbox_event(text, text, text, text)
+revoke all on function public.record_resend_outbox_event(text, text, text, text, timestamptz)
   from public, anon, authenticated, service_role;
-grant execute on function public.record_resend_outbox_event(text, text, text, text)
+grant execute on function public.record_resend_outbox_event(text, text, text, text, timestamptz)
   to service_role;
 
 drop function if exists public.get_refill_reminder_funnel(

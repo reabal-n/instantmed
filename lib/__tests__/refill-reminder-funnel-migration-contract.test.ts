@@ -43,12 +43,18 @@ describe("refill reminder funnel migration", () => {
       "returns table ( matched boolean, duplicate boolean, outbox_id uuid, email_type text, email_is_test boolean )",
     )
     expect(receipt).toContain("metadata @> '{\"test\": true}'::jsonb")
+    expect(receipt).toContain("p_event_created_at timestamptz default pg_catalog.clock_timestamp()")
+    expect(receipt).toContain("v_event_recorded_at := p_event_created_at")
     expect(receipt).toContain("when 'complained' then 6")
     expect(receipt).toContain("when 'bounced' then 5")
     expect(receipt).toContain("v_incoming_rank >= v_current_rank")
     expect(receipt).toContain("v_status <> 'failed'")
-    expect(receipt).not.toContain("to_email")
-    expect(receipt).not.toContain("to_name")
+    const returnBlock = receipt.slice(
+      receipt.indexOf("returns table"),
+      receipt.indexOf("language plpgsql"),
+    )
+    expect(returnBlock).not.toContain("to_email")
+    expect(returnBlock).not.toContain("to_name")
   })
 
   it("commits suppression, entitlement, certificate, and delivery mirrors with the event receipt", () => {
@@ -60,8 +66,10 @@ describe("refill reminder funnel migration", () => {
     expect(receipt).toContain("insert into public.email_preferences")
     expect(receipt).toContain("on conflict (profile_id) do update")
     expect(receipt).toContain("update public.issued_certificates")
-    expect(receipt).toContain("update public.delivery_tracking")
-    expect(receipt).toContain("v_delivery_status not in ('bounced', 'complained')")
+    expect(receipt).toContain("insert into public.delivery_tracking")
+    expect(receipt).toContain("on conflict (message_id) do update")
+    expect(receipt).toContain("coalesce(v_delivery_status, '') not in ('bounced', 'complained')")
+    expect(receipt).toContain("v_sent_at >= profile.email_bounced_at")
   })
 
   it("returns only aggregate Sydney waves from real reportable sends", () => {
@@ -140,7 +148,7 @@ describe("refill reminder funnel migration", () => {
 
   it("keeps both functions callable by service role only", () => {
     for (const signature of [
-      "public.record_resend_outbox_event(text, text, text, text)",
+      "public.record_resend_outbox_event(text, text, text, text, timestamptz)",
       "public.get_refill_reminder_funnel(timestamptz, timestamptz, timestamptz, uuid[])",
     ]) {
       const escaped = signature.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")

@@ -6,9 +6,14 @@ readonly MIGRATION="$REPO_ROOT/supabase/migrations/20260905120000_refill_reminde
 readonly SQL_TEST="$REPO_ROOT/scripts/sql/resend-webhook-mirrors-db.test.sql"
 readonly RUN_TOKEN="${$}-${RANDOM}"
 readonly DB_CONTAINER="instantmed-resend-mirror-${RUN_TOKEN}"
+DB_CONTAINER_STARTED=false
 
 cleanup() {
-  docker rm -f "$DB_CONTAINER" >/dev/null 2>&1 || true
+  if [[ "$DB_CONTAINER_STARTED" == "true" ]] \
+    && [[ "$(docker inspect --format '{{ index .Config.Labels "instantmed.test" }}' "$DB_CONTAINER" 2>/dev/null || true)" == "resend-webhook-mirrors" ]]
+  then
+    docker rm -f "$DB_CONTAINER" >/dev/null 2>&1 || true
+  fi
 }
 trap cleanup EXIT INT TERM
 
@@ -17,6 +22,7 @@ docker run --detach --rm \
   --label "instantmed.test=resend-webhook-mirrors" \
   --env POSTGRES_PASSWORD=instantmed-test \
   postgres:15-alpine >/dev/null
+DB_CONTAINER_STARTED=true
 
 for _attempt in $(seq 1 80); do
   if docker exec "$DB_CONTAINER" pg_isready -U postgres -d postgres >/dev/null 2>&1; then
@@ -61,10 +67,14 @@ create table public.email_preferences (
 create table public.email_outbox (
   id uuid primary key,
   email_type text not null,
+  to_email text not null,
+  subject text not null,
   status text not null default 'pending',
   provider text not null default 'resend',
   provider_message_id text,
   error_message text,
+  retry_count integer not null default 0,
+  intake_id uuid,
   patient_id uuid references public.profiles(id),
   certificate_id uuid references public.issued_certificates(id),
   metadata jsonb default '{}'::jsonb,
@@ -74,17 +84,24 @@ create table public.email_outbox (
   delivery_status_updated_at timestamptz
 );
 create table public.delivery_tracking (
-  id uuid primary key,
+  id uuid primary key default gen_random_uuid(),
   message_id text not null unique,
+  intake_id uuid,
+  patient_id uuid,
+  channel text not null check (channel in ('email', 'sms')),
+  template_type text not null,
   provider_id text not null,
-  status text default 'sent',
+  recipient text not null,
+  status text default 'sent' check (status in ('sent', 'delivered', 'bounced', 'failed', 'opened')),
+  sent_at timestamptz,
   delivered_at timestamptz,
   bounced_at timestamptz,
   opened_at timestamptz,
-  bounce_type text,
+  bounce_type text check (bounce_type in ('hard', 'soft')),
   bounce_reason text,
   error_code text,
-  error_message text
+  error_message text,
+  attempt_number integer default 1
 );
 create table public.intakes (
   id uuid primary key,

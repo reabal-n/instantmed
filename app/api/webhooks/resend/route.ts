@@ -168,6 +168,12 @@ export async function POST(request: NextRequest) {
     }
 
     const { type: eventType, data } = event
+    const eventCreatedAtMs = Date.parse(event.created_at)
+    if (!Number.isFinite(eventCreatedAtMs)) {
+      log.warn("Invalid Resend event timestamp")
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
+    }
+    const eventCreatedAt = new Date(eventCreatedAtMs).toISOString()
 
     const recipientForLog = sanitizeEmailForLog(data.to?.[0] ?? "")
 
@@ -193,6 +199,7 @@ export async function POST(request: NextRequest) {
       .rpc("record_resend_outbox_event", {
         p_bounce_type: bounceType,
         p_error_message: bounceMessage,
+        p_event_created_at: eventCreatedAt,
         p_event_type: eventType,
         p_provider_message_id: data.email_id,
       })
@@ -210,9 +217,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (!recorded.matched) {
-      // Email may have been sent before outbox logging was enabled
-      log.warn("Email log not found for provider_message_id", { providerId: data.email_id })
-      return NextResponse.json({ received: true, matched: false })
+      // Resend delivers at least once and can outrun the provider-id write that
+      // follows a successful send. A non-200 asks it to retry after that atomic
+      // outbox finalization rather than permanently acknowledging a lost event.
+      log.warn("Email lifecycle record not ready for provider_message_id", {
+        providerId: data.email_id,
+      })
+      return NextResponse.json(
+        { error: "Email lifecycle record not ready", retryable: true },
+        { status: 503, headers: { "Retry-After": "5" } },
+      )
     }
 
     if (recorded.duplicate) {
