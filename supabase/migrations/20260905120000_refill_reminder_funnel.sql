@@ -36,10 +36,8 @@ returns table (
   matched boolean,
   duplicate boolean,
   outbox_id uuid,
-  certificate_id uuid,
   email_type text,
-  email_is_test boolean,
-  delivery_state_applied boolean
+  email_is_test boolean
 )
 language plpgsql
 volatile
@@ -48,6 +46,7 @@ set search_path = ''
 as $function$
 declare
   v_outbox_id uuid;
+  v_patient_id uuid;
   v_certificate_id uuid;
   v_email_type text;
   v_status text;
@@ -60,6 +59,7 @@ declare
   v_current_rank integer;
   v_email_is_test boolean;
   v_delivery_state_applied boolean := false;
+  v_event_recorded_at timestamptz;
 begin
   if p_provider_message_id is null
     or length(p_provider_message_id) < 1
@@ -86,6 +86,7 @@ begin
 
   select
     outbox.id,
+    outbox.patient_id,
     outbox.certificate_id,
     outbox.email_type,
     outbox.status,
@@ -96,6 +97,7 @@ begin
     end
   into
     v_outbox_id,
+    v_patient_id,
     v_certificate_id,
     v_email_type,
     v_status,
@@ -109,7 +111,7 @@ begin
 
   if not found then
     return query
-      select false, false, null::uuid, null::uuid, null::text, false, false;
+      select false, false, null::uuid, null::text, false;
     return;
   end if;
 
@@ -126,9 +128,11 @@ begin
 
   if v_processed_events ? v_event_key then
     return query
-      select true, true, v_outbox_id, v_certificate_id, v_email_type, v_email_is_test, false;
+      select true, true, v_outbox_id, v_email_type, v_email_is_test;
     return;
   end if;
+
+  v_event_recorded_at := pg_catalog.clock_timestamp();
 
   v_incoming_delivery_status := case p_event_type
     when 'email.delivered' then 'delivered'
@@ -191,7 +195,7 @@ begin
     end,
     delivery_status_updated_at = case
       when v_delivery_state_applied
-        then pg_catalog.clock_timestamp()
+        then v_event_recorded_at
       else outbox.delivery_status_updated_at
     end,
     error_message = case
@@ -201,14 +205,156 @@ begin
     end
   where outbox.id = v_outbox_id;
 
+  -- The outbox row is the authoritative owner for every patient and
+  -- certificate mirror below. Keeping the mirrors in this row-locked
+  -- transaction means a failed mirror rolls the receipt back so Resend can
+  -- retry it, while a duplicate receipt cannot repeat any mirror.
+  if v_patient_id is not null
+    and p_event_type in ('email.bounced', 'email.complained')
+    and v_delivery_state_applied
+  then
+    update public.profiles as profile
+    set
+      email_bounced = true,
+      email_bounce_reason = case
+        when p_event_type = 'email.complained' then 'complaint: Spam complaint'
+        else coalesce(p_bounce_type, 'soft') || ': ' || coalesce(p_error_message, '')
+      end,
+      email_bounced_at = case
+        when v_delivery_status in ('bounced', 'complained')
+          then profile.email_bounced_at
+        else v_event_recorded_at
+      end,
+      email_delivery_failures = coalesce(profile.email_delivery_failures, 0) + case
+        when v_delivery_status in ('bounced', 'complained') then 0
+        else 1
+      end
+    where profile.id = v_patient_id
+      and profile.role = 'patient';
+  end if;
+
+  if v_patient_id is not null
+    and p_event_type = 'email.complained'
+    and v_delivery_state_applied
+  then
+    insert into public.email_preferences as preferences (
+      profile_id,
+      marketing_emails,
+      abandoned_checkout_emails,
+      unsubscribed_at,
+      unsubscribe_reason,
+      updated_at
+    )
+    select
+      v_patient_id,
+      false,
+      false,
+      v_event_recorded_at,
+      'spam_complaint',
+      v_event_recorded_at
+    where exists (
+      select 1
+      from public.profiles as profile
+      where profile.id = v_patient_id
+        and profile.role = 'patient'
+    )
+    on conflict (profile_id) do update
+    set
+      marketing_emails = false,
+      abandoned_checkout_emails = false,
+      unsubscribed_at = excluded.unsubscribed_at,
+      unsubscribe_reason = excluded.unsubscribe_reason,
+      updated_at = excluded.updated_at;
+  end if;
+
+  -- Opens and clicks can arrive before delivery. A later delivery therefore
+  -- clears suppression inherited from an older message even though its lower
+  -- display rank does not replace the richer open/click state. A terminal
+  -- event for this same message always wins.
+  if v_patient_id is not null
+    and p_event_type = 'email.delivered'
+    and v_delivery_status not in ('bounced', 'complained')
+  then
+    update public.profiles as profile
+    set
+      email_bounced = false,
+      email_bounce_reason = null,
+      email_delivery_failures = 0
+    where profile.id = v_patient_id
+      and profile.role = 'patient'
+      and profile.email_bounced is true;
+  end if;
+
+  if v_certificate_id is not null and p_event_type = 'email.opened' then
+    update public.issued_certificates as certificate
+    set email_opened_at = v_event_recorded_at
+    where certificate.id = v_certificate_id
+      and certificate.email_opened_at is null;
+  end if;
+
+  -- delivery_tracking has a smaller status vocabulary than the outbox. Keep
+  -- its terminal state monotonic while retaining independent timestamps for
+  -- valid out-of-order provider evidence.
+  if p_event_type in (
+    'email.delivered',
+    'email.bounced',
+    'email.complained',
+    'email.opened'
+  ) then
+    update public.delivery_tracking as tracking
+    set
+      status = case
+        when p_event_type = 'email.complained' then 'failed'
+        when p_event_type = 'email.bounced'
+          and coalesce(tracking.status, 'sent') <> 'failed'
+          then 'bounced'
+        when p_event_type = 'email.opened'
+          and coalesce(tracking.status, 'sent') not in ('failed', 'bounced')
+          then 'opened'
+        when p_event_type = 'email.delivered'
+          and coalesce(tracking.status, 'sent') not in ('failed', 'bounced', 'opened')
+          then 'delivered'
+        else tracking.status
+      end,
+      delivered_at = case
+        when p_event_type = 'email.delivered'
+          then coalesce(tracking.delivered_at, v_event_recorded_at)
+        else tracking.delivered_at
+      end,
+      bounced_at = case
+        when p_event_type = 'email.bounced'
+          then coalesce(tracking.bounced_at, v_event_recorded_at)
+        else tracking.bounced_at
+      end,
+      opened_at = case
+        when p_event_type = 'email.opened'
+          then coalesce(tracking.opened_at, v_event_recorded_at)
+        else tracking.opened_at
+      end,
+      bounce_type = case
+        when p_event_type = 'email.bounced'
+          then coalesce(p_bounce_type, 'soft')
+        else tracking.bounce_type
+      end,
+      bounce_reason = case
+        when p_event_type = 'email.bounced'
+          then left(coalesce(p_error_message, ''), 2000)
+        else tracking.bounce_reason
+      end,
+      error_message = case
+        when p_event_type = 'email.complained' then 'Complaint received'
+        else tracking.error_message
+      end
+    where tracking.provider_id = p_provider_message_id;
+  end if;
+
   return query
-    select true, false, v_outbox_id, v_certificate_id, v_email_type, v_email_is_test,
-      v_delivery_state_applied;
+    select true, false, v_outbox_id, v_email_type, v_email_is_test;
 end;
 $function$;
 
 comment on function public.record_resend_outbox_event(text, text, text, text) is
-  'Atomically records one deduplicated Resend lifecycle receipt and returns only the fixed fields required for server-side side effects.';
+  'Atomically records one deduplicated Resend lifecycle receipt and its critical profile, preference, certificate, and delivery-tracking database mirrors.';
 
 revoke all on function public.record_resend_outbox_event(text, text, text, text)
   from public, anon, authenticated, service_role;

@@ -56,6 +56,7 @@
     "db:lint:linked": "supabase db lint --linked --schema public,extensions --fail-on error",
     "db:check-migrations": "node scripts/check-supabase-migration-history.mjs",
     "db:check:security-definer-acls": "tsx scripts/check-security-definer-acls.ts",
+    "db:test:resend-webhook-mirrors": "bash scripts/test-resend-webhook-mirrors-db.sh",
     "db:test:specialty-attribution": "bash scripts/test-specialty-experience-attribution-db.sh",
     "check:rls": "npx tsx scripts/rls-check.ts",
     "import:artg": "npx tsx scripts/import_artg.ts",

@@ -3,16 +3,18 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
-  updateDeliveryStatus: vi.fn(() => Promise.resolve()),
   posthogCapture: vi.fn(),
+  sentryCaptureException: vi.fn(),
+  sentryCaptureMessage: vi.fn(),
+}))
+
+vi.mock("@sentry/nextjs", () => ({
+  captureException: mocks.sentryCaptureException,
+  captureMessage: mocks.sentryCaptureMessage,
 }))
 
 vi.mock("@/lib/supabase/service-role", () => ({
   createServiceRoleClient: mocks.createServiceRoleClient,
-}))
-
-vi.mock("@/lib/monitoring/delivery-tracking", () => ({
-  updateDeliveryStatus: mocks.updateDeliveryStatus,
 }))
 
 vi.mock("@/lib/analytics/posthog-server", () => ({
@@ -61,6 +63,7 @@ function createResendRequest(type: ResendEventType, overrides: Record<string, un
 
 function createSupabaseMock(options: {
   duplicate?: boolean
+  emailType?: string
   emailIsTest?: boolean
   initialBounced?: boolean
   matched?: boolean
@@ -164,10 +167,8 @@ function createSupabaseMock(options: {
       matched: options.matched ?? true,
       duplicate: options.duplicate ?? false,
       outbox_id: OUTBOX_ID,
-      certificate_id: null,
-      email_type: "refill_reminder",
+      email_type: options.emailType ?? "refill_reminder",
       email_is_test: options.emailIsTest ?? false,
-      delivery_state_applied: true,
     },
     error: options.rpcError ?? null,
   }))
@@ -188,7 +189,7 @@ describe("Resend webhook contract", () => {
     vi.unstubAllEnvs()
   })
 
-  it("marks delivered med-cert email rows and clears a prior bounce flag", async () => {
+  it("keeps delivered-state mirrors inside the atomic receipt boundary", async () => {
     vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
     const supabase = createSupabaseMock({ initialBounced: true })
     mocks.createServiceRoleClient.mockReturnValue(supabase.client)
@@ -198,29 +199,20 @@ describe("Resend webhook contract", () => {
 
     await expect(response.json()).resolves.toMatchObject({ received: true, matched: true, updated: true })
 
-    expect(supabase.updates).toContainEqual(expect.objectContaining({
-      table: "profiles",
-      payload: expect.objectContaining({
-        email_bounced: false,
-        email_bounce_reason: null,
-        email_delivery_failures: 0,
-      }),
-    }))
     expect(supabase.rpc).toHaveBeenCalledWith("record_resend_outbox_event", {
       p_bounce_type: null,
       p_error_message: null,
       p_event_type: "email.delivered",
       p_provider_message_id: PROVIDER_ID,
     })
-    expect(supabase.updates).not.toContainEqual(expect.objectContaining({ table: "email_outbox" }))
-    expect(mocks.updateDeliveryStatus).toHaveBeenCalledWith(PROVIDER_ID, "delivered")
+    expect(supabase.updates).toEqual([])
     expect(mocks.posthogCapture).toHaveBeenCalledWith(expect.objectContaining({
       event: "email_delivered",
       requestId: PROVIDER_ID,
     }))
   })
 
-  it("marks hard bounces as failed and records suppression metadata", async () => {
+  it("keeps hard-bounce suppression and delivery mirrors inside the atomic receipt boundary", async () => {
     vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
     const supabase = createSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase.client)
@@ -232,25 +224,43 @@ describe("Resend webhook contract", () => {
 
     await expect(response.json()).resolves.toMatchObject({ received: true, matched: true, updated: true })
 
-    expect(supabase.updates).toContainEqual(expect.objectContaining({
-      table: "profiles",
-      payload: expect.objectContaining({
-        email_bounced: true,
-        email_bounce_reason: "hard: Mailbox unavailable",
-        email_delivery_failures: 1,
-      }),
-    }))
     expect(supabase.rpc).toHaveBeenCalledWith("record_resend_outbox_event", {
       p_bounce_type: "hard",
       p_error_message: "Mailbox unavailable",
       p_event_type: "email.bounced",
       p_provider_message_id: PROVIDER_ID,
     })
-    expect(supabase.updates).not.toContainEqual(expect.objectContaining({ table: "email_outbox" }))
-    expect(mocks.updateDeliveryStatus).toHaveBeenCalledWith(PROVIDER_ID, "bounced", { bounceType: "hard" })
+    expect(supabase.updates).toEqual([])
   })
 
-  it("marks complaints as failed so they stay visible in the ops issue feed", async () => {
+  it.each(["cert_ready", "med_cert_patient", "script_sent"])(
+    "preserves critical hard-bounce alerting for %s fulfilment email",
+    async (emailType) => {
+      vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+      const supabase = createSupabaseMock({ emailType })
+      mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+      const { POST } = await import("@/app/api/webhooks/resend/route")
+      const response = await POST(createResendRequest("email.bounced", {
+        bounce: { message: "Mailbox unavailable", type: "hard" },
+      }))
+
+      expect(response.status).toBe(200)
+      expect(mocks.sentryCaptureMessage).toHaveBeenCalledWith(
+        "Critical fulfilment email bounced",
+        expect.objectContaining({
+          level: "error",
+          tags: expect.objectContaining({
+            bounce_type: "hard",
+            email_type: emailType,
+            source: "resend-webhook",
+          }),
+        }),
+      )
+    },
+  )
+
+  it("keeps complaint suppression and unsubscribe mirrors inside the atomic receipt boundary", async () => {
     vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
     const supabase = createSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase.client)
@@ -260,34 +270,14 @@ describe("Resend webhook contract", () => {
 
     await expect(response.json()).resolves.toMatchObject({ received: true, matched: true, updated: true })
 
-    expect(supabase.updates).toContainEqual(expect.objectContaining({
-      table: "profiles",
-      payload: expect.objectContaining({
-        email_bounced: true,
-        email_bounce_reason: "complaint: Spam complaint",
-      }),
-    }))
-    expect(supabase.upserts).toContainEqual(expect.objectContaining({
-      table: "email_preferences",
-      payload: expect.objectContaining({
-        profile_id: PATIENT_ID,
-        marketing_emails: false,
-        abandoned_checkout_emails: false,
-        unsubscribe_reason: "spam_complaint",
-      }),
-    }))
     expect(supabase.rpc).toHaveBeenCalledWith("record_resend_outbox_event", {
       p_bounce_type: null,
       p_error_message: null,
       p_event_type: "email.complained",
       p_provider_message_id: PROVIDER_ID,
     })
-    expect(supabase.updates).not.toContainEqual(expect.objectContaining({ table: "email_outbox" }))
-    expect(mocks.updateDeliveryStatus).toHaveBeenCalledWith(
-      PROVIDER_ID,
-      "failed",
-      { errorMessage: "Complaint received" },
-    )
+    expect(supabase.updates).toEqual([])
+    expect(supabase.upserts).toEqual([])
   })
 
   it("records an observed provider click atomically and tags PostHog from trusted outbox metadata", async () => {
@@ -330,12 +320,11 @@ describe("Resend webhook contract", () => {
     const response = await POST(createResendRequest("email.delivered"))
 
     await expect(response.json()).resolves.toEqual({ received: true, duplicate: true })
-    expect(mocks.updateDeliveryStatus).not.toHaveBeenCalled()
     expect(mocks.posthogCapture).not.toHaveBeenCalled()
     expect(supabase.updates).toEqual([])
   })
 
-  it("does not regress bounce mirrors when a delivery event arrives out of order", async () => {
+  it("leaves out-of-order delivery reconciliation inside the atomic receipt", async () => {
     vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
     const supabase = createSupabaseMock({
       initialBounced: true,
@@ -343,10 +332,8 @@ describe("Resend webhook contract", () => {
         matched: true,
         duplicate: false,
         outbox_id: OUTBOX_ID,
-        certificate_id: null,
         email_type: "refill_reminder",
         email_is_test: false,
-        delivery_state_applied: false,
       },
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase.client)
@@ -356,7 +343,6 @@ describe("Resend webhook contract", () => {
 
     await expect(response.json()).resolves.toMatchObject({ received: true, matched: true })
     expect(supabase.updates).not.toContainEqual(expect.objectContaining({ table: "profiles" }))
-    expect(mocks.updateDeliveryStatus).not.toHaveBeenCalled()
   })
 
   it("fails closed when the atomic receipt RPC returns a malformed row", async () => {
@@ -366,7 +352,6 @@ describe("Resend webhook contract", () => {
         matched: true,
         duplicate: false,
         outbox_id: null,
-        certificate_id: null,
         email_type: "refill_reminder",
         email_is_test: false,
       },
@@ -378,7 +363,6 @@ describe("Resend webhook contract", () => {
 
     expect(response.status).toBe(500)
     await expect(response.json()).resolves.toEqual({ error: "Database error" })
-    expect(mocks.updateDeliveryStatus).not.toHaveBeenCalled()
     expect(mocks.posthogCapture).not.toHaveBeenCalled()
     expect(supabase.updates).toEqual([])
   })

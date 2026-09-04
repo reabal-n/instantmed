@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { Webhook } from "svix"
 
 import { sanitizeEmailForLog } from "@/lib/email/send/helpers"
-import { updateDeliveryStatus } from "@/lib/monitoring/delivery-tracking"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -11,6 +10,11 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 const log = createLogger("resend-webhook")
+const CRITICAL_FULFILMENT_EMAIL_TYPES = new Set([
+  "cert_ready",
+  "med_cert_patient",
+  "script_sent",
+])
 
 // ---------------------------------------------------------------------------
 // Types
@@ -100,8 +104,6 @@ function mapEventToDeliveryStatus(eventType: ResendEventType): string | null {
 }
 
 interface RecordedOutboxEvent {
-  certificateId: string | null
-  deliveryStateApplied: boolean
   duplicate: boolean
   emailIsTest: boolean
   emailType: string | null
@@ -114,13 +116,9 @@ function parseRecordedOutboxEvent(value: unknown): RecordedOutboxEvent | null {
   const row = value as Record<string, unknown>
   if (typeof row.matched !== "boolean" || typeof row.duplicate !== "boolean") return null
   if (typeof row.email_is_test !== "boolean") return null
-  if (typeof row.delivery_state_applied !== "boolean") return null
 
   const outboxId = typeof row.outbox_id === "string" && row.outbox_id.length > 0
     ? row.outbox_id
-    : null
-  const certificateId = typeof row.certificate_id === "string" && row.certificate_id.length > 0
-    ? row.certificate_id
     : null
   const emailType = typeof row.email_type === "string" && row.email_type.length > 0
     ? row.email_type
@@ -128,122 +126,11 @@ function parseRecordedOutboxEvent(value: unknown): RecordedOutboxEvent | null {
   if (row.matched && (!outboxId || !emailType)) return null
 
   return {
-    certificateId,
-    deliveryStateApplied: row.delivery_state_applied,
     duplicate: row.duplicate,
     emailIsTest: row.email_is_test,
     emailType,
     matched: row.matched,
     outboxId,
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Patient bounce helpers
-// ---------------------------------------------------------------------------
-
-async function flagPatientEmailBounce(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  email: string | undefined,
-  bounceReason: string,
-  bounceType: string,
-): Promise<void> {
-  if (!email) return
-
-  try {
-    const { data: patient } = await supabase
-      .from("profiles")
-      .select("id, email_delivery_failures")
-      .eq("email", email)
-      .eq("role", "patient")
-      .maybeSingle()
-
-    if (!patient) return
-
-    const failures = (patient.email_delivery_failures || 0) + 1
-
-    await supabase
-      .from("profiles")
-      .update({
-        email_bounced: true,
-        email_bounce_reason: `${bounceType}: ${bounceReason}`,
-        email_bounced_at: new Date().toISOString(),
-        email_delivery_failures: failures,
-      })
-      .eq("id", patient.id)
-
-    log.info("Flagged patient email bounce", { patientId: patient.id, bounceType, failures })
-  } catch (error) {
-    log.error("Error flagging patient bounce", {}, error)
-  }
-}
-
-async function resetPatientEmailBounce(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  email: string | undefined,
-): Promise<void> {
-  if (!email) return
-
-  try {
-    const { data: patient } = await supabase
-      .from("profiles")
-      .select("id, email_bounced")
-      .eq("email", email)
-      .eq("role", "patient")
-      .eq("email_bounced", true)
-      .maybeSingle()
-
-    if (!patient) return
-
-    await supabase
-      .from("profiles")
-      .update({
-        email_bounced: false,
-        email_bounce_reason: null,
-        email_delivery_failures: 0,
-      })
-      .eq("id", patient.id)
-
-    log.info("Reset patient email bounce flag", { patientId: patient.id })
-  } catch (error) {
-    log.error("Error resetting patient bounce", {}, error)
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Complaint auto-unsubscribe
-// ---------------------------------------------------------------------------
-
-async function autoUnsubscribeOnComplaint(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  email: string | undefined,
-): Promise<void> {
-  if (!email) return
-
-  try {
-    const { data: patient } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("email", email)
-      .eq("role", "patient")
-      .maybeSingle()
-
-    if (!patient) return
-
-    await supabase
-      .from("email_preferences")
-      .upsert({
-        profile_id: patient.id,
-        marketing_emails: false,
-        abandoned_checkout_emails: false,
-        unsubscribed_at: new Date().toISOString(),
-        unsubscribe_reason: "spam_complaint",
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "profile_id" })
-
-    log.info("Auto-unsubscribed patient after spam complaint", { patientId: patient.id })
-  } catch (error) {
-    log.error("Error auto-unsubscribing after complaint", {}, error)
   }
 }
 
@@ -333,15 +220,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, duplicate: true })
     }
 
-    // 4. The outbox state is durable. Continue with event-specific mirrors.
+    // 4. The receipt and every critical database mirror are durable. Continue
+    // only with best-effort logs and telemetry.
     const deliveryStatus = mapEventToDeliveryStatus(eventType)
 
     // --- Bounced ---
     if (eventType === "email.bounced" && data.bounce) {
-      if (recorded.deliveryStateApplied) {
-        await flagPatientEmailBounce(supabase, data.to?.[0], data.bounce.message, data.bounce.type)
-      }
-
       log.error("Email bounced", {
         providerId: data.email_id,
         bounceType: data.bounce.type,
@@ -360,6 +244,26 @@ export async function POST(request: NextRequest) {
           bounceType: data.bounce.type,
         },
       })
+
+      if (
+        bounceType === "hard"
+        && recorded.emailType
+        && CRITICAL_FULFILMENT_EMAIL_TYPES.has(recorded.emailType)
+      ) {
+        Sentry.captureMessage("Critical fulfilment email bounced", {
+          level: "error",
+          tags: {
+            source: "resend-webhook",
+            event_type: "email.bounced",
+            email_type: recorded.emailType,
+            bounce_type: "hard",
+          },
+          extra: {
+            emailId: data.email_id,
+            bounceType: "hard",
+          },
+        })
+      }
     }
 
     // --- Complained ---
@@ -369,23 +273,6 @@ export async function POST(request: NextRequest) {
         to: recipientForLog,
       })
 
-      if (recorded.deliveryStateApplied) {
-        // Treat complaints the same as bounces for suppression
-        await flagPatientEmailBounce(
-          supabase,
-          data.to?.[0],
-          "Spam complaint",
-          "complaint",
-        )
-
-        // Auto-opt-out from marketing emails (Australian Spam Act compliance)
-        await autoUnsubscribeOnComplaint(supabase, data.to?.[0])
-      }
-    }
-
-    // --- Delivered ---
-    if (eventType === "email.delivered" && recorded.deliveryStateApplied) {
-      await resetPatientEmailBounce(supabase, data.to?.[0])
     }
 
     // --- Delivery delayed ---
@@ -396,31 +283,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // --- Opened (certificate tracking) ---
-    if (eventType === "email.opened" && recorded.certificateId) {
-      supabase
-        .from("issued_certificates")
-        .update({ email_opened_at: new Date().toISOString() })
-        .eq("id", recorded.certificateId)
-        .is("email_opened_at", null) // Only set once
-        .then(() => {}, () => {})
-    }
-
-    // 7. Feed the delivery-tracking monitoring subsystem (fire-and-forget)
-    if (recorded.deliveryStateApplied) {
-      if (eventType === "email.delivered") {
-        updateDeliveryStatus(data.email_id, "delivered").catch(() => {})
-      } else if (eventType === "email.bounced") {
-        const bType = data.bounce?.type === "hard" ? "hard" : "soft" as const
-        updateDeliveryStatus(data.email_id, "bounced", { bounceType: bType }).catch(() => {})
-      } else if (eventType === "email.complained") {
-        updateDeliveryStatus(data.email_id, "failed", { errorMessage: "Complaint received" }).catch(() => {})
-      } else if (eventType === "email.opened") {
-        updateDeliveryStatus(data.email_id, "opened").catch(() => {})
-      }
-    }
-
-    // 7b. PostHog email lifecycle events (fire-and-forget)
+    // 5. PostHog email lifecycle events (fire-and-forget)
     try {
       const { capturePersonlessPostHogEvent } = await import("@/lib/analytics/posthog-server")
       const posthogEvent = eventType === "email.delivered" ? "email_delivered"

@@ -39,7 +39,9 @@ describe("refill reminder funnel migration", () => {
     expect(receipt).toContain("v_event_key")
     expect(receipt).toContain("email.clicked")
     expect(receipt).toContain("email_is_test")
-    expect(receipt).toContain("delivery_state_applied boolean")
+    expect(receipt).toContain(
+      "returns table ( matched boolean, duplicate boolean, outbox_id uuid, email_type text, email_is_test boolean )",
+    )
     expect(receipt).toContain("metadata @> '{\"test\": true}'::jsonb")
     expect(receipt).toContain("when 'complained' then 6")
     expect(receipt).toContain("when 'bounced' then 5")
@@ -47,6 +49,19 @@ describe("refill reminder funnel migration", () => {
     expect(receipt).toContain("v_status <> 'failed'")
     expect(receipt).not.toContain("to_email")
     expect(receipt).not.toContain("to_name")
+  })
+
+  it("commits suppression, entitlement, certificate, and delivery mirrors with the event receipt", () => {
+    const receipt = functionBlock("record_resend_outbox_event", "get_refill_reminder_funnel")
+
+    expect(receipt).toContain("outbox.patient_id")
+    expect(receipt).toContain("v_patient_id")
+    expect(receipt).toContain("update public.profiles")
+    expect(receipt).toContain("insert into public.email_preferences")
+    expect(receipt).toContain("on conflict (profile_id) do update")
+    expect(receipt).toContain("update public.issued_certificates")
+    expect(receipt).toContain("update public.delivery_tracking")
+    expect(receipt).toContain("v_delivery_status not in ('bounced', 'complained')")
   })
 
   it("returns only aggregate Sydney waves from real reportable sends", () => {
