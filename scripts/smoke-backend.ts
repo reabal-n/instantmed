@@ -29,6 +29,7 @@ const REQUIRED_TABLES = [
   "documents",
   "document_verifications",
   "stripe_webhook_events",
+  "patient_notes",
 ] as const
 
 // Optional tables that may exist depending on the flow used
@@ -62,8 +63,15 @@ const EXPECTED_COLUMNS: Record<string, string[]> = {
   documents: ["id", "intake_id", "type", "pdf_url"],
   document_verifications: ["id", "intake_id", "verification_code", "is_valid"],
   stripe_webhook_events: ["id", "event_id", "event_type", "processed_at"],
+  patient_notes: ["id", "patient_id", "created_by", "created_by_name"],
   // Optional tables
-  intake_answers: ["id", "intake_id", "answers"],
+  intake_answers: [
+    "id",
+    "intake_id",
+    "answers",
+    "answers_encrypted",
+    "encryption_metadata",
+  ],
 }
 
 // ============================================

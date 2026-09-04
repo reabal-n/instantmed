@@ -147,7 +147,14 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **136 migration files**")
+      expect(source).toContain("Current count on disk: **137 migration files**")
+      expect(source).toContain(
+        "`20260904160000_converge_runtime_schema_contracts.sql`",
+      )
+      expect(source).toContain("production application remains unverified")
+      expect(source).toContain(
+        "Latest applied/verified production migration remains `20260903120000_recovery_email_engagement.sql`",
+      )
       expect(source).toContain(
         "`20260903120000_recovery_email_engagement.sql`",
       )
@@ -194,13 +201,13 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest timestamp on disk and applied/verified production timestamp: `20260903120000_recovery_email_engagement.sql`",
+      "Newest timestamp on disk: `20260904160000_converge_runtime_schema_contracts.sql`",
     )
     expect(architecture).toContain(
-      "immediately preceding migration, `20260902090000_converge_fraud_flag_review_state.sql`",
+      "Production application is unverified",
     )
     expect(architecture).toContain(
-      "applied/verified production timestamp: `20260903120000_recovery_email_engagement.sql`",
+      "Latest applied/verified production timestamp remains `20260903120000_recovery_email_engagement.sql`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
@@ -216,10 +223,10 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Newest on disk and latest applied/verified production migration is `20260903120000_recovery_email_engagement.sql`",
+      "Newest on-disk migration is `20260904160000_converge_runtime_schema_contracts.sql`",
     )
     expect(wikiArchitecture).toContain(
-      "immediately preceding migration is `20260902090000_converge_fraud_flag_review_state.sql`",
+      "Its production application is unverified",
     )
     expect(wikiArchitecture).toContain(
       "latest applied/verified production migration is `20260903120000_recovery_email_engagement.sql`",

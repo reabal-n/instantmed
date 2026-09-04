@@ -376,23 +376,6 @@ async function main() {
       temporaryRoot,
     ], commandEnv)
 
-    // The checked-in baseline still names this production column `answers_enc`.
-    // Keep the compatibility shim inside the disposable stack; do not mutate a
-    // shared database or conceal the migration drift with an app fallback.
-    await run("docker", [
-      "exec",
-      `supabase_db_${supabaseProjectId}`,
-      "psql",
-      "-U",
-      "postgres",
-      "-d",
-      "postgres",
-      "--set",
-      "ON_ERROR_STOP=1",
-      "--command",
-      "ALTER TABLE public.intake_answers ADD COLUMN IF NOT EXISTS answers_encrypted jsonb, ADD COLUMN IF NOT EXISTS encryption_metadata jsonb",
-    ], commandEnv)
-
     const status = await run("supabase", [
       "status",
       "--workdir",

@@ -54,7 +54,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 
 **Phase 1 (profiles — shipped):** `profiles.medicare_number_encrypted`, `profiles.date_of_birth_encrypted`, `profiles.phone_encrypted`.
 
-**Phase 2 (data layer — shipped, migration `20260311000002`):**
+**Phase 2 (data layer — runtime shipped; fresh-replay schema repaired by on-disk migration `20260904160000`, production application unverified):**
 
 | Table | Plaintext Column | Encrypted Column | Data Layer File | Status |
 |-------|-----------------|------------------|-----------------|--------|
@@ -88,6 +88,8 @@ The Phase 2 PHI fields (added March 2026) are in dual-write mode — plaintext a
 **Backfill receipt (2026-07-24):** key-match preflight passed (local `PHI_MASTER_KEY` decrypts production ciphertext); `intake_answers` 257/257 encrypted, parity 0 mismatch / 0 undecryptable / 0 unencrypted; `doctor_notes` 12 backfilled + 2 stale envelopes repaired (bypass writers had updated plaintext after encryption, so wrapper reads were serving outdated notes on those two intakes), parity 0 mismatch / 0 undecryptable. **One documented exception:** a legacy general-consult intake (`98ab74f5…`) cannot take any UPDATE because the retired-subtype check constraint `intakes_consult_subtype_not_general` validates the whole row on write; its doctor_notes stays plaintext-only rather than rewriting a historical clinical subtype. Re-run the script after any deploy gap to sweep rows created before the write fix landed. Seeded E2E fixture rows (`e2e00000-…` ids) are excluded from the backfill and stay plaintext by design: they are synthetic, CI runs with a different `PHI_MASTER_KEY`, and a production-key envelope on a fixture makes every CI read log a decrypt failure (this briefly broke the checkout-resume spec's zero-console-errors guard on 2026-07-24 before the fixture envelope was stripped).
 
 **Payment-safety exception:** retry and signed-resume clinical revalidation use `getIntakeAnswersForPaymentSafety()`. Once `intake_answers.answers_encrypted` exists, that envelope is authoritative: disabled encrypted reads, malformed ciphertext, missing keys, decrypt failure, or a non-object payload fail closed before Stripe. Plaintext fallback is permitted only for a legacy row with no encrypted envelope.
+
+The forward-only schema repair adds nullable `intake_answers.answers_encrypted`, `intake_answers.encryption_metadata`, and `patient_notes.created_by_name` without copying the retained `answers_enc` legacy envelope or backfilling historical note names. `created_by` remains authoritative for note authorship. The migration is verified only by local fresh replay in this change; its production application remains unverified.
 
 **Guest payment completion proof:** public account-completion pages and guest account email CTAs require the high-entropy Checkout Session ID to exactly match the intake's current `payment_id`. A bare intake UUID never exposes paid order details or renders payment-success UI.
 
