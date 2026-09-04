@@ -527,16 +527,18 @@ function configuredRelease(env: Partial<NodeJS.ProcessEnv>): {
 } | null {
   const releaseSha = env.INSTANTMED_RELEASE_MEASUREMENT_SHA?.trim()
   const releaseAt = env.INSTANTMED_RELEASE_MEASUREMENT_AT?.trim()
+  const releaseAtMs = releaseAt ? Date.parse(releaseAt) : Number.NaN
   if (
     !releaseSha ||
     !RELEASE_SHA_PATTERN.test(releaseSha) ||
     !releaseAt ||
     !STRICT_ISO_PATTERN.test(releaseAt) ||
-    new Date(releaseAt).toISOString() !== releaseAt
+    !Number.isFinite(releaseAtMs) ||
+    new Date(releaseAtMs).toISOString() !== releaseAt
   ) {
     return null
   }
-  return { releaseAt: new Date(releaseAt), releaseSha: releaseSha.toLowerCase() }
+  return { releaseAt: new Date(releaseAtMs), releaseSha: releaseSha.toLowerCase() }
 }
 
 export async function getReleaseFrictionDashboardSnapshot(

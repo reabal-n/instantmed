@@ -56,6 +56,46 @@ describe("PostHog release conversion", () => {
     expect(JSON.stringify(snapshot)).not.toMatch(/11111111|patient@example|flow_instance_id/i)
   })
 
+  it("matches cross-device completions to mobile medication viewers without an impossible rate", () => {
+    const snapshot = buildPostHogReleaseConversionSnapshot({
+      asOf: AS_OF,
+      coverageResults: [["intake_started", 4, 4]],
+      flowResults: [
+        // Viewed on mobile, then completed later on another device: included.
+        [A, at(0), at(1), at(2), null, null, null, null, null, at(1), null],
+        // Viewed elsewhere, then completed on mobile: not a mobile-viewer conversion.
+        [B, at(0), at(1), at(2), null, null, null, null, null, null, at(2)],
+        // A same-instant completion is not strictly after the mobile view.
+        [C, at(0), at(1), at(1), null, null, null, null, null, at(1), at(1)],
+        // A second resumed desktop-view/mobile-complete flow must not inflate the numerator.
+        [
+          "44444444-4444-4444-8444-444444444444",
+          at(0),
+          at(1),
+          at(2),
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          at(2),
+        ],
+      ],
+      from: FROM,
+      to: TO,
+    })
+
+    expect(snapshot.repeatRx).toMatchObject({
+      mobileCompletionPercent: 50,
+      mobileMedicationCompletedFlows: 1,
+      mobileMedicationViewedFlows: 2,
+    })
+    expect(snapshot.repeatRx.mobileMedicationCompletedFlows).toBeLessThanOrEqual(
+      snapshot.repeatRx.mobileMedicationViewedFlows ?? 0,
+    )
+  })
+
   it("ignores downstream events before start or after the independent observation cutoff", () => {
     const snapshot = buildPostHogReleaseConversionSnapshot({
       asOf: AS_OF,

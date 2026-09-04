@@ -318,8 +318,14 @@ export function buildPostHogReleaseConversionSnapshot(
   const flows = input.parsedFlows ?? parseFlowRows(input.flowResults, input)
   const medicationViewedFlows = flows.filter((flow) => flow.medicationViewedAt !== null).length
   const medicationCompletedFlows = flows.filter((flow) => flow.medicationCompletedAt !== null).length
-  const mobileViewedFlows = flows.filter((flow) => flow.mobileMedicationViewedAt !== null).length
-  const mobileCompletedFlows = flows.filter((flow) => flow.mobileMedicationCompletedAt !== null).length
+  const mobileViewerFlows = flows.filter((flow) => flow.mobileMedicationViewedAt !== null)
+  const mobileViewedFlows = mobileViewerFlows.length
+  const mobileCompletedFlows = mobileViewerFlows.filter((flow) => {
+    const viewedAt = flow.mobileMedicationViewedAt
+    return viewedAt !== null &&
+      flow.medicationCompletedAt !== null &&
+      flow.medicationCompletedAt > viewedAt
+  }).length
   const validationBlockedFlows = flows.filter((flow) => flow.validationBlockedAt !== null).length
   const unresolvedValidationBlockedFlows = flows.filter((flow) => {
     if (flow.validationBlockedAt === null) return false

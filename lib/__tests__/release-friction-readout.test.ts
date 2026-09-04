@@ -343,6 +343,24 @@ describe("release friction readout", () => {
     })
   })
 
+  it("fails closed for a calendar-invalid configured release timestamp", async () => {
+    const snapshot = await getReleaseFrictionDashboardSnapshot({} as never, {
+      env: {
+        INSTANTMED_RELEASE_MEASUREMENT_AT: "2026-13-01T00:00:00.000Z",
+        INSTANTMED_RELEASE_MEASUREMENT_SHA: SHA,
+      },
+      now: new Date("2026-09-20T00:00:00.000Z"),
+    })
+
+    expect(snapshot).toMatchObject({
+      availability: "unavailable",
+      periods: [],
+      reason: "release_boundary_not_configured",
+      releaseAt: null,
+      releaseSha: null,
+    })
+  })
+
   it("keeps optional support evidence unavailable and recursively rejects sensitive receipts", () => {
     const unavailable = {
       asOf: "2026-09-20T00:00:00.000Z",
