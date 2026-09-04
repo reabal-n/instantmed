@@ -131,7 +131,6 @@ interface ResolveAdsOperationalHoldInput {
   fulfilmentHealthy: boolean
   manualEvidence: ManualGrowthHealthEvidence
   now: Date
-  operationalControlEvidenceAvailable: boolean
   queue: AdsOperationalQueueEvidence
 }
 
@@ -156,17 +155,16 @@ function isNonNegativeFinite(value: number | null): boolean {
 
 /**
  * Converts aggregate queue and manually verified operating facts into one
- * service-level gate. Missing manual facts block a new growth variable but do
- * not manufacture a pause proposal for an already-approved bounded test.
+ * service-level gate. Optional manual facts create a hold only when fresh,
+ * verified evidence crosses a stop boundary. Missing optional facts are not
+ * evidence of harm; queue evidence remains mandatory for a new growth step.
  */
 export function resolveAdsOperationalHold(
   input: ResolveAdsOperationalHoldInput,
 ): AdsOperationalHold {
   const reasons: AdsOperationalHoldReason[] = []
   let hasHardHold = false
-  let hasUnavailableEvidence =
-    input.queue.availability === "unavailable"
-    || !input.operationalControlEvidenceAvailable
+  let hasUnavailableEvidence = input.queue.availability === "unavailable"
   let hasWatch = false
 
   const addHardHold = (reason: AdsOperationalHoldReason) => {
@@ -214,11 +212,9 @@ export function resolveAdsOperationalHold(
     && Number.isFinite(support.contactsPer100Paid)
     && support.contactsPer100Paid >= 0
     && isFreshManualEvidence(support.asOf, input.now)
-  if (!supportFresh) {
-    hasUnavailableEvidence = true
-    reasons.push("support_evidence_unavailable")
-  } else if (
-    support.contactsPer100Paid
+  if (
+    supportFresh
+    && support.contactsPer100Paid
       > POLICY.operations.supportContactsPer100HardHold
   ) {
     addHardHold("support_over_5_per_100")
@@ -228,10 +224,7 @@ export function resolveAdsOperationalHold(
   const clinicalQaFresh = clinicalQa !== null
     && clinicalQa.source === "medical_director_completed_review"
     && isFreshManualEvidence(clinicalQa.asOf, input.now)
-  if (!clinicalQaFresh) {
-    hasUnavailableEvidence = true
-    reasons.push("clinical_qa_evidence_unavailable")
-  } else if (clinicalQa.state === "behind") {
+  if (clinicalQaFresh && clinicalQa.state === "behind") {
     addHardHold("clinical_qa_lag")
   }
 
@@ -807,12 +800,14 @@ export function evaluateAdsPolicy(
         ? evaluateMedCerts(campaign)
         : evaluateSpecialty(service, campaign)
 
-    // Watch and unavailable evidence block a new growth variable, but they do
-    // not manufacture a pause for a bounded campaign that is already live.
-    // A reached economic stop still wins because pausing reduces exposure.
+    // A queue watch stays visible in the snapshot/brief but is advisory: the
+    // explicit six-hour boundary owns the scale gate. Unavailable queue
+    // evidence still blocks a new growth variable without manufacturing a
+    // pause for a bounded campaign that is already live. A reached economic
+    // stop still wins because pausing reduces exposure.
     if (
       operational
-      && (operational.state === "watch" || operational.state === "unavailable")
+      && operational.state === "unavailable"
       && recommendation.kind === "APPROVAL_NEEDED"
       && recommendation.proposedMutationFamily !== "campaign_status"
     ) {

@@ -758,7 +758,6 @@ export async function buildAdsAgentSnapshot(args: {
       fulfilmentHealthy: controls?.fulfilmentHealthy !== false,
       manualEvidence: manualGrowthHealthEvidence,
       now,
-      operationalControlEvidenceAvailable: controls !== undefined,
       queue,
     })
   })

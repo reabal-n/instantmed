@@ -902,7 +902,6 @@ describe("operational growth holds", () => {
       fulfilmentHealthy: true,
       manualEvidence: freshManualEvidence,
       now,
-      operationalControlEvidenceAvailable: true,
       queue: {
         availability: "available",
         oldestUnresolvedHours: 1,
@@ -913,7 +912,7 @@ describe("operational growth holds", () => {
     })
   }
 
-  it("keeps the two-hour target as watch without cancelling a bounded test", () => {
+  it("keeps a two-to-six-hour watch visible without suppressing scale", () => {
     const watch = operational({
       queue: {
         availability: "available",
@@ -938,9 +937,9 @@ describe("operational growth holds", () => {
       },
     }))
     expect(recommendationFor(recommendations, "scripts")).toEqual({
-      kind: "INVESTIGATE",
-      proposedMutationFamily: null,
-      reasonCodes: ["QUEUE_P95_OVER_2H_WATCH"],
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_bidding",
+      reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
       service: "scripts",
     })
   })
@@ -961,8 +960,6 @@ describe("operational growth holds", () => {
       "queue_p95_at_or_over_6h",
       "queue_oldest_at_or_over_20h",
       "queue_24h_breach",
-      "support_evidence_unavailable",
-      "clinical_qa_evidence_unavailable",
     ]))
 
     const recommendations = evaluatePolicyWithoutHolds(snapshot({
@@ -985,8 +982,8 @@ describe("operational growth holds", () => {
     })
   })
 
-  it("treats stale manual evidence as unavailable, not a pause", () => {
-    const unavailable = operational({
+  it("ignores stale optional evidence while preserving a real queue watch", () => {
+    const watch = operational({
       manualEvidence: {
         support: {
           asOf: "2026-08-28T23:59:59.999Z",
@@ -1003,19 +1000,16 @@ describe("operational growth holds", () => {
       },
     })
 
-    expect(unavailable).toEqual({
+    expect(watch).toEqual({
       affectedService: "scripts",
-      reasons: [
-        "support_evidence_unavailable",
-        "queue_p95_over_2h_watch",
-      ],
-      state: "unavailable",
+      reasons: ["queue_p95_over_2h_watch"],
+      state: "watch",
     })
     const recommendation = recommendationFor(
       evaluatePolicyWithoutHolds(snapshot({
         operational: {
           asOf: now.toISOString(),
-          holds: [unavailable],
+          holds: [watch],
           manualEvidence: freshManualEvidence,
           queue: { availability: "available", services: [] },
         },
@@ -1023,8 +1017,8 @@ describe("operational growth holds", () => {
       "scripts",
     )
     expect(recommendation).toMatchObject({
-      kind: "INVESTIGATE",
-      proposedMutationFamily: null,
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_bidding",
     })
   })
 
@@ -1061,13 +1055,52 @@ describe("operational growth holds", () => {
     })
   })
 
-  it("treats missing incident, service-hold, or fulfilment evidence as unavailable", () => {
-    expect(operational({
-      operationalControlEvidenceAvailable: false,
-    })).toEqual({
+  it("blocks new scale when queue values are invalid", () => {
+    const unavailable = operational({
+      queue: {
+        availability: "available",
+        oldestUnresolvedHours: -1,
+        p95ReviewHours: 1,
+        review24hBreaches: 0,
+      },
+    })
+
+    expect(unavailable).toEqual({
       affectedService: "scripts",
       reasons: [],
       state: "unavailable",
+    })
+    expect(recommendationFor(
+      evaluatePolicyWithoutHolds(snapshot({
+        operational: {
+          asOf: now.toISOString(),
+          holds: [unavailable],
+          manualEvidence: freshManualEvidence,
+          queue: { availability: "available", services: [] },
+        },
+      })),
+      "scripts",
+    )).toMatchObject({
+      kind: "INVESTIGATE",
+      proposedMutationFamily: null,
+    })
+  })
+
+  it("does not require optional service-control rows to clear a healthy service", () => {
+    expect(operational()).toEqual({
+      affectedService: "scripts",
+      reasons: [],
+      state: "clear",
+    })
+  })
+
+  it("does not let missing optional support or QA rows freeze new scale", () => {
+    expect(operational({
+      manualEvidence: { support: null, clinicalQa: null },
+    })).toEqual({
+      affectedService: "scripts",
+      reasons: [],
+      state: "clear",
     })
   })
 
@@ -1112,7 +1145,7 @@ describe("operational growth holds", () => {
     })
   })
 
-  it("rejects future-dated manual evidence as unavailable", () => {
+  it("ignores future-dated optional manual evidence", () => {
     expect(operational({
       manualEvidence: {
         support: {
@@ -1121,13 +1154,14 @@ describe("operational growth holds", () => {
         },
         clinicalQa: freshManualEvidence.clinicalQa,
       },
-    })).toMatchObject({
-      reasons: expect.arrayContaining(["support_evidence_unavailable"]),
-      state: "unavailable",
+    })).toEqual({
+      affectedService: "scripts",
+      reasons: [],
+      state: "clear",
     })
   })
 
-  it("does not let missing operations evidence hide a reached loss-cap pause", () => {
+  it("does not let unavailable queue evidence hide a reached loss-cap pause", () => {
     const ed = specialtyCampaign("ed", {
       clicks: 31,
       contributionCents: -15_000,
@@ -1139,11 +1173,11 @@ describe("operational growth holds", () => {
         asOf: now.toISOString(),
         holds: [{
           affectedService: "ed",
-          reasons: ["support_evidence_unavailable"],
+          reasons: [],
           state: "unavailable",
         }],
         manualEvidence: freshManualEvidence,
-        queue: { availability: "available", services: [] },
+        queue: { availability: "unavailable", services: [] },
       },
       rolling30: [ed],
     }))

@@ -28,6 +28,7 @@ import {
   buildManualGrowthHealthEvidence,
   readAdsOperationalQueueEvidence,
 } from "@/lib/ads-agent/operational-health"
+import { evaluateAdsPolicy } from "@/lib/ads-agent/policy"
 import { buildAdsAgentSnapshot } from "@/lib/ads-agent/snapshot"
 
 const REPORT_NOW = new Date("2026-07-27T23:00:00.000Z")
@@ -366,6 +367,118 @@ describe("Google Ads Agent snapshot", () => {
       },
       queue: expect.objectContaining({ availability: "available" }),
     })
+  })
+
+  it.each(["empty", "watch", "unavailable"] as const)(
+    "evaluates a production-shaped %s queue without optional evidence rows",
+    async (queueState) => {
+    const paidRows = Array.from({ length: 12 }, (_, index) => ({
+      amount_cents: 2995,
+      campaignid: "23870042807",
+      category: "prescription",
+      id: `intake-profitable-script-${index + 1}`,
+      paid_at: "2026-07-15T01:00:00.000Z",
+      payment_status: "paid",
+      refund_amount_cents: 0,
+      stripe_payment_intent_id: `pi_profitable_script_${index + 1}`,
+      subtype: "repeat",
+    }))
+    mocks.getGoogleAdsCampaignRowsForRange.mockResolvedValue([{
+      ...dailySpendRows[0],
+      metrics: { clicks: "120", costMicros: "100000000" },
+    }])
+    mocks.getLocalGoogleAdsPurchasesForRange.mockResolvedValue(paidRows)
+    mocks.getStripeFeeMap.mockResolvedValue(new Map(paidRows.map((row) => [
+      row.id,
+      { status: "available", feeCents: 100, source: "stripe" },
+    ])))
+
+    function query(table: string) {
+      const data = queueState === "watch" && table === "intakes"
+        ? [{
+            id: "synthetic-queue-script",
+            category: "prescription",
+            subtype: "repeat",
+            status: "approved",
+            paid_at: "2026-07-27T01:00:00.000Z",
+            payment_status: "paid",
+            auto_approval_state: null,
+          }]
+        : queueState === "watch" && table === "compliance_audit_log"
+          ? [{
+              intake_id: "synthetic-queue-script",
+              created_at: "2026-07-27T05:00:00.000Z",
+            }]
+          : []
+      const result = {
+        count: data.length,
+        data,
+        error: queueState === "unavailable" && table === "intakes"
+          ? { message: "temporary database failure" }
+          : null,
+      }
+      const chain: Record<string, ReturnType<typeof vi.fn>>
+        & PromiseLike<typeof result> = {
+          then: ((resolve: (value: typeof result) => unknown) =>
+            Promise.resolve(result).then(resolve)) as never,
+        }
+      for (const method of [
+        "eq",
+        "gte",
+        "in",
+        "limit",
+        "lte",
+        "not",
+        "or",
+        "order",
+        "select",
+      ]) {
+        chain[method] = vi.fn(() => chain)
+      }
+      return chain
+    }
+    const supabase = { from: vi.fn((table: string) => query(table)) }
+
+    vi.useFakeTimers()
+    vi.setSystemTime(REPORT_NOW)
+    try {
+      const built = await buildAdsAgentSnapshot({ supabase: supabase as never })
+      const snapshot = {
+        ...built,
+        tracking: {
+          evidenceAsOf: REPORT_NOW.toISOString(),
+          reasonCodes: [],
+          scaleAllowed: true,
+          state: "GREEN" as const,
+        },
+      }
+
+      expect(snapshot.operational?.manualEvidence).toEqual({
+        support: null,
+        clinicalQa: null,
+      })
+      expect(snapshot.operational?.holds.find(
+        ({ affectedService }) => affectedService === "scripts",
+      )).toEqual({
+        affectedService: "scripts",
+        reasons: queueState === "watch" ? ["queue_p95_over_2h_watch"] : [],
+        state: queueState === "empty" ? "clear" : queueState,
+      })
+      expect(evaluateAdsPolicy(snapshot).find(
+        ({ service }) => service === "scripts",
+      )).toEqual({
+        kind: queueState === "unavailable" ? "INVESTIGATE" : "APPROVAL_NEEDED",
+        proposedMutationFamily: queueState === "unavailable" ? null : "campaign_budget",
+        reasonCodes: queueState === "unavailable"
+          ? ["OPERATIONAL_EVIDENCE_UNAVAILABLE"]
+          : ["SCRIPTS_SCALE_GATES_PASSED"],
+        service: "scripts",
+      })
+      expect(supabase.from).toHaveBeenCalledWith("operational_metrics")
+      expect(supabase.from).toHaveBeenCalledWith("intakes")
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it("counts an old purchase refund by refunded_at without requiring an old purchase fee", async () => {

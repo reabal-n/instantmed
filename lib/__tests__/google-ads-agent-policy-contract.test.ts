@@ -9,6 +9,7 @@ const advertising = read("docs/ADVERTISING_COMPLIANCE.md")
 const context = read("CONTEXT.md")
 const operations = read("docs/OPERATIONS.md")
 const policy = read("lib/ads-agent/policy.ts")
+const roadmap = read("docs/ROADMAP.md")
 const revenue = read("docs/REVENUE_MODEL.md")
 
 describe("Google Ads Agent policy documentation", () => {
@@ -77,12 +78,26 @@ describe("Google Ads Agent policy documentation", () => {
     }
     expect(operations).toContain("hold > unavailable > watch > clear")
     expect(operations).toContain(
-      "does not cancel an already-approved bounded test",
+      "do not suppress an otherwise valid operator-approval scale proposal",
+    )
+    expect(operations).toContain(
+      "a missing, malformed, or unavailable queue read remains `unavailable`",
     )
     expect(operations).toContain(
       "No operational state mutates Google Ads autonomously",
     )
     expect(revenue).toContain("5 per 100 paid orders")
     expect(revenue).toContain("completed clinical-QA evidence")
+  })
+
+  it("keeps the current Scripts read-back and Hair-loss checkpoint operator-owned", () => {
+    expect(roadmap).toContain(
+      "approved 2026-09-03 Scripts step from A$79/day to A$95/day was applied and read back",
+    )
+    expect(roadmap).toContain("Hair-loss paid pilot — 2026-09-11")
+    expect(roadmap).toContain(
+      "produce the exact campaign-status pause proposal for operator approval",
+    )
+    expect(roadmap).toContain("must not apply the pause autonomously")
   })
 })

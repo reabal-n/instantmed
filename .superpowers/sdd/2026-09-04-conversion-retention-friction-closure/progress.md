@@ -8,6 +8,12 @@
 - Baseline: `corepack pnpm test` passed on 2026-09-05 — 723 files, 6,738 tests, 0 failures.
 - Sentry incident lookup: existing local token returned HTTP 403 for the read-only issue query; no event frame or patient data was retrieved. Continue with the plan's production-bundle reproduction gate.
 
+## Current closure (operator order, 2026-09-05)
+
+The attached operator request authorises sequential local implementation and supersedes the plan's former confirmation and calendar-only gates. Historical task numbers below remain reference labels.
+
+- Task 1 / growth correction: locally verified. Queue watch is advisory; optional evidence cannot freeze valid proposals; unavailable queue evidence and explicit harm still gate scale. Production-shaped empty/watch/database-failure cases pass. Verification: 153 focused Ads tests, 124 doc tests, scoped ESLint, TypeScript, and doc audit. No Ads mutation or deployment.
+
 ## Plan task state
 
 - Schema convergence prerequisite: approved locally; production application remains release-gated

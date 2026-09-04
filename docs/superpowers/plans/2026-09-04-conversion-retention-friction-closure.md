@@ -849,10 +849,10 @@ git commit -m "feat(intake): simplify womens health service choice"
 
 **Operator rule adopted by confirming this plan:**
 
-1. Two hours remains the service-level operating target. A trailing-7-day manual-review P95 above two but below six hours is **watch**, matching the 2026-08-18 owner decision that the current queue does not by itself cancel an already-approved bounded acquisition test.
-2. A new campaign, budget/bid scale step, or next product experiment requires manual-review P95 below six hours, zero 24-hour breaches, trustworthy measurement/economics, and fresh support and completed-clinical-QA evidence. This makes the Stage A six-hour gate explicit; confirming this revised plan is the operator approval to make that threshold canonical.
+1. Two hours remains the service-level operating target. A trailing-7-day manual-review P95 above two but below six hours is advisory **watch**: it remains visible but does not suppress an otherwise valid operator-approval scale proposal or cancel an already-approved bounded acquisition test, matching the 2026-08-18 owner decision.
+2. A new campaign, budget/bid scale step, or next product experiment requires a valid queue read with manual-review P95 below six hours, zero 24-hour breaches, and trustworthy measurement/economics. This makes the Stage A six-hour gate explicit; confirming this revised plan is the operator approval to make that threshold canonical.
 3. Any affected-service clinical incident, broken fulfilment, manual-review P95 at or above six hours, oldest unresolved manual request at or above 20 hours, 24-hour breach, fresh support rate above 5 per 100 paid orders, fresh completed-QA state of `behind`, or existing explicit service hold produces `HOLD` and an approval-ready pause proposal.
-4. Missing or stale manual support/QA evidence produces **unavailable**, not `HOLD`: it makes a new scale packet incomplete but does not silently pause an already-approved bounded test. `watch` and `unavailable` never authorise another variable. No state mutates Ads autonomously.
+4. Missing or stale optional support/QA evidence remains absent or non-actionable and does not block an otherwise evidence-backed scale proposal. Missing optional service controls work the same way; explicit harmful facts still produce `HOLD`. A queue read that is missing, malformed, or unavailable produces **unavailable** and blocks the next variable. `watch` is advisory, and no state authorises an Ads mutation: every proposal still requires exact operator approval.
 
 **Interfaces:**
 
@@ -889,9 +889,11 @@ export interface ManualGrowthHealthEvidence {
 }
 ```
 
-- [ ] Write precedence tests proving `hold > unavailable > watch > clear`; `hold` blocks a new scale packet and generates only a proposal; `watch`/`unavailable` do not authorise another variable; existing approved bounded tests are not silently cancelled by queue watch or stale manual evidence; and no state invokes an Ads mutation.
+`clinical_qa_evidence_unavailable` and `support_evidence_unavailable` remain only as read-compatible labels for historical persisted snapshots. Current snapshots keep missing optional manual rows visible as `null` and do not emit those reasons as a growth gate.
+
+- [ ] Write precedence tests proving `hold > unavailable > watch > clear`; `hold` generates only an approval-ready pause proposal; unavailable queue evidence blocks a new scale packet; advisory `watch` remains visible without suppressing an otherwise valid operator-approval proposal; missing optional manual/control evidence does not freeze scale; and no state invokes an Ads mutation.
 - [ ] Define the queue input exactly as reportable paid manual-review requests joined to the first later `clinician_opened_request`, aggregated by affected service. Exclude E2E rows. Provide trailing-7-day P95, oldest unresolved age, and 24-hour breach count only—no patient/staff IDs, timestamps, clinical reasons, or queue rows leave the reader.
-- [ ] Accept support only as a non-negative, manually verified Gmail aggregate with an `asOf` timestamp and no message bodies/reasons. Accept QA only as a Medical Director attestation that completed review evidence is current/behind with an `asOf` timestamp; the `qa_sampled` selection stamp is **not** completed-QA evidence. Manual inputs are fresh for seven days, then become unavailable.
+- [ ] Accept support only as a non-negative, manually verified Gmail aggregate with an `asOf` timestamp and no message bodies/reasons. Accept QA only as a Medical Director attestation that completed review evidence is current/behind with an `asOf` timestamp; the `qa_sampled` selection stamp is **not** completed-QA evidence. Manual inputs can create a hold only while fresh for seven days; missing, stale, malformed, or future-dated optional evidence does not block scale.
 - [ ] Feed only aggregate service-level metrics and those typed manual facts into the Ads snapshot. Do not include patient/staff IDs, clinical reasons, queue rows, support text, or free-form QA notes.
 - [ ] Update the three canonical docs in the same commit so the two-hour target, six-hour new-scale gate, 24-hour hard ceiling, manual-evidence freshness rule, and 2026-08-18 owner decision no longer contradict one another.
 - [ ] Close the active ED E1 cohort under its existing minimum 21 days plus 24-hour settlement and retained-order/clinical guardrails. The earliest settled close is `2026-09-19T05:13:53.870Z`; do not change ED intake before that receipt.
