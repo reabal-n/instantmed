@@ -5,6 +5,7 @@
  * Two-phase write pattern: create pending row before send, update after.
  */
 
+import { isProviderTerminalDeliveryStatus } from "@/lib/email/delivery-status"
 import { REVIEW_CLICK_KEY_HASH_METADATA_KEY } from "@/lib/email/review-click-key"
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -16,6 +17,9 @@ import type { OutboxEntry, OutboxRow } from "./types"
 export interface CreatePendingOutboxResult {
   id: string | null
   duplicate: boolean
+  /** Existing exact attempt already has authoritative provider-terminal evidence. */
+  providerTerminal?: boolean
+  persistenceUnavailable?: boolean
   providerPayloadEnc?: string
   certificateStorageVersion?: string
 }
@@ -38,6 +42,7 @@ function pendingOutboxResult(
   id: string | null,
   duplicate: boolean,
   metadata?: unknown,
+  providerTerminal = false,
 ): CreatePendingOutboxResult {
   const encryptedPayload = providerPayloadEnc(metadata)
   const certificateStorageVersion = metadata && typeof metadata === "object" && !Array.isArray(metadata)
@@ -46,6 +51,7 @@ function pendingOutboxResult(
   return {
     id,
     duplicate,
+    ...(providerTerminal ? { providerTerminal: true } : {}),
     ...(encryptedPayload ? { providerPayloadEnc: encryptedPayload } : {}),
     ...(typeof certificateStorageVersion === "string" && certificateStorageVersion
       ? { certificateStorageVersion }
@@ -59,7 +65,6 @@ function pendingOutboxResult(
  * permanently broken send to a handful of cron cycles.
  */
 const MAX_IDEMPOTENT_RECLAIMS = 5
-
 type CreatePendingOutboxEntry = Omit<OutboxEntry, "status"> & {
   initialStatus?: "pending" | "sending"
 }
@@ -82,12 +87,13 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
     if (idempotencyKey) {
       const { data: existing } = await supabase
         .from("email_outbox")
-        .select("id, status, metadata")
+        .select("id, status, metadata, delivery_status")
         .eq("idempotency_key", idempotencyKey)
         .limit(1)
         .maybeSingle()
 
       if (existing) {
+        let currentExisting = existing
         // A FAILED row must not phantom-dedup the retry. Current rows retain an
         // encrypted provider payload for dispatcher replay, while an owning
         // cron may also encounter the same failed lifecycle item before that
@@ -101,7 +107,11 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
         const reclaimCount = typeof existingMetadata.reclaim_count === "number"
           ? existingMetadata.reclaim_count
           : 0
-        if (existing.status === "failed" && reclaimCount < MAX_IDEMPOTENT_RECLAIMS) {
+        if (
+          existing.status === "failed" &&
+          !isProviderTerminalDeliveryStatus(existing.delivery_status) &&
+          reclaimCount < MAX_IDEMPOTENT_RECLAIMS
+        ) {
           const existingProviderPayload = providerPayloadEnc(existingMetadata)
           const incomingProviderPayload = providerPayloadEnc(entry.metadata)
           const incomingReviewClickKeyHash = reviewClickKeyHash(entry.metadata)
@@ -122,7 +132,7 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
             ...adoptedProviderMetadata,
             reclaim_count: reclaimCount + 1,
           }
-          const { data: reclaimed } = await supabase
+          let reclaimQuery = supabase
             .from("email_outbox")
             .update({
               status: entry.initialStatus ?? "pending",
@@ -132,6 +142,14 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
             })
             .eq("id", existing.id)
             .eq("status", "failed")
+
+          // Do not reopen a row if a provider-terminal webhook commits between
+          // the initial idempotency lookup and this reclaim CAS.
+          reclaimQuery = existing.delivery_status
+            ? reclaimQuery.eq("delivery_status", existing.delivery_status)
+            : reclaimQuery.is("delivery_status", null)
+
+          const { data: reclaimed } = await reclaimQuery
             .select("id")
             .maybeSingle()
 
@@ -142,14 +160,40 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
             })
             return pendingOutboxResult(reclaimed.id, false, reclaimedMetadata)
           }
-          // Reclaim raced a concurrent sender - fall through to duplicate.
+          // The reclaim CAS lost. Re-read before classifying the duplicate: a
+          // provider webhook may have terminalized the row between the first
+          // lookup and this write.
+          const { data: refreshed, error: refreshError } = await supabase
+            .from("email_outbox")
+            .select("id, status, metadata, delivery_status")
+            .eq("id", existing.id)
+            .limit(1)
+            .maybeSingle()
+
+          if (refreshError || !refreshed) {
+            logger.error("[Email] Failed to classify outbox row after reclaim race", {
+              existingId: existing.id,
+              emailType: entry.email_type,
+              error: refreshError?.message,
+            })
+            return { ...pendingOutboxResult(existing.id, true, existingMetadata), persistenceUnavailable: true }
+          }
+          currentExisting = refreshed
         }
 
+        const currentMetadata = (currentExisting.metadata ?? {}) as Record<string, unknown>
+        const providerTerminal = isProviderTerminalDeliveryStatus(currentExisting.delivery_status)
+
         logger.info("[Email] DB idempotency guard: duplicate outbox row skipped", {
-          existingId: existing.id,
+          existingId: currentExisting.id,
           emailType: entry.email_type,
         })
-        return pendingOutboxResult(existing.id, true, existingMetadata)
+        return pendingOutboxResult(
+          currentExisting.id,
+          true,
+          currentMetadata,
+          providerTerminal,
+        )
       }
     }
 
@@ -218,7 +262,7 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
       if (error.code === "23505" && idempotencyKey) {
         const { data: existing } = await supabase
           .from("email_outbox")
-          .select("id, metadata")
+          .select("id, metadata, delivery_status")
           .eq("idempotency_key", idempotencyKey)
           .limit(1)
           .maybeSingle()
@@ -228,7 +272,12 @@ export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Prom
             existingId: existing.id,
             emailType: entry.email_type,
           })
-          return pendingOutboxResult(existing.id, true, existing.metadata)
+          return pendingOutboxResult(
+            existing.id,
+            true,
+            existing.metadata,
+            isProviderTerminalDeliveryStatus(existing.delivery_status),
+          )
         }
       }
       logger.error("[Email] Failed to create pending outbox", { error: error.message })
@@ -375,7 +424,7 @@ export async function claimOutboxRow(outboxId: string): Promise<{
     })
     .in("status", ["pending", "failed"])
     .eq("id", outboxId)
-    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at, last_attempt_at, scheduled_for")
+    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, delivery_status, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at, last_attempt_at, scheduled_for")
     .single()
 
   if (error) {

@@ -16,6 +16,8 @@ The attached operator request authorises sequential local implementation and sup
 
 - Task 2 / hosted guest checkout: harness narrowed to the two exercised test Prices; receipt now records one skip action or two magic-link actions, zero repeated profile fields, and measured outcome timing. Removed a test-only second dashboard navigation so the real callback must land correctly. Verification: 129 focused tests, TypeScript and scoped ESLint. Actual provider run failed before startup with `Hosted Stripe E2E requires HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY`; no dedicated test key exists in the inspected shell/repo environments (generic keys are live). Need that dedicated test key plus `HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT` and `HOSTED_STRIPE_E2E_STRIPE_PRICE_REPEAT_SCRIPT`. No payment, Auth-link outcome, or elapsed time is claimed.
 
+- Task 3 / certificate persistence: fixed direct/dispatcher post-acceptance classification and unavailable reclaim read-back. Matching sent state heals successfully; database errors, unmatched attempts, and absent evidence remain retryable; confirmed terminal provider evidence closes only that attempt. Frozen-body/idempotency replay recovers without premature certificate finalization. Verification: 85 tests in 9 focused files, scoped ESLint and TypeScript. Provider responses are simulated in these unit tests; production-bundle verification remains a separate release check.
+
 ## Plan task state
 
 - Schema convergence prerequisite: approved locally; production application remains release-gated

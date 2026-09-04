@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
   fetch: vi.fn(),
+  outboxRead: vi.fn(),
   finalizeCertificateResend: vi.fn(),
   isEmailSuppressed: vi.fn(),
   persistFrozenProviderPayload: vi.fn(),
@@ -100,7 +101,8 @@ describe("certificate resend dispatcher finalization", () => {
       success: true,
       html: "<p>Certificate email</p>",
     })
-    mocks.updateOutboxStatus.mockResolvedValue(undefined)
+    mocks.updateOutboxStatus.mockResolvedValue(true)
+    mocks.outboxRead.mockResolvedValue({ data: null, error: { message: "database unavailable" } })
     mocks.finalizeCertificateResend.mockResolvedValue({
       success: true,
       isDuplicate: false,
@@ -115,7 +117,12 @@ describe("certificate resend dispatcher finalization", () => {
     ]
     let certificateQuery = 0
     mocks.createServiceRoleClient.mockReturnValue({
-      from: vi.fn(() => {
+      from: vi.fn((table: string) => {
+        if (table === "email_outbox") {
+          const chain: Record<string, unknown> = { maybeSingle: mocks.outboxRead }
+          for (const method of ["select", "eq"]) chain[method] = vi.fn(() => chain)
+          return chain
+        }
         const queryIndex = certificateQuery++
         const chain: Record<string, unknown> = {}
         for (const method of ["select", "eq", "order", "limit"]) {
@@ -140,6 +147,62 @@ describe("certificate resend dispatcher finalization", () => {
       }),
     })
   })
+
+  it.each([
+    ["unavailable persistence", null, false, true],
+    ["already sent matching attempt", { status: "sent", provider_message_id: "provider-message-1" }, true, undefined],
+    ["confirmed terminal attempt", { status: "failed", delivery_status: "bounced", provider_message_id: "provider-message-1" }, false, false],
+    ["different provider attempt", { status: "failed", delivery_status: "failed", provider_message_id: "other-message" }, false, true],
+  ])("finalizes only confirmed success after %s", async (_label, persisted, success, retryable) => {
+    mocks.fetch.mockResolvedValue(new Response(JSON.stringify({ id: "provider-message-1" }), { status: 200 }))
+    mocks.updateOutboxStatus.mockResolvedValue(false)
+    mocks.outboxRead.mockResolvedValue({ data: persisted, error: persisted ? null : { message: "database unavailable" } })
+    const result = await sendFromOutboxRow(makeResendOutboxRow())
+    expect(result.success).toBe(success)
+    expect(result.retryable).toBe(retryable)
+    if (success) expect(mocks.finalizeCertificateResend).toHaveBeenCalledWith(expect.objectContaining({ deliverySucceeded: true }))
+    else expect(mocks.finalizeCertificateResend).not.toHaveBeenCalled()
+  })
+
+  it("recovers accepted delivery after temporary persistence failure using the same frozen attempt", async () => {
+    mocks.fetch.mockImplementation(async () => new Response(JSON.stringify({ id: "provider-message-1" }), { status: 200 }))
+    mocks.updateOutboxStatus.mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+    const row = makeResendOutboxRow({ metadata: {
+      resend_attempt_id: "44444444-4444-4444-8444-444444444444",
+      [FROZEN_PROVIDER_PAYLOAD_KEY]: freezeResendProviderPayload({
+        from: "InstantMed <support@instantmed.example>", to: ["patient@example.test"],
+        subject: "Your certificate", html: "<p>Frozen link</p>", text: "Frozen link",
+      }),
+    } })
+    expect(await sendFromOutboxRow(row)).toMatchObject({ success: false, retryable: true })
+    expect(mocks.finalizeCertificateResend).not.toHaveBeenCalled()
+    expect(await sendFromOutboxRow(row)).toEqual({ success: true })
+    expect(mocks.fetch.mock.calls[0][1].body).toBe(mocks.fetch.mock.calls[1][1].body)
+    expect(mocks.fetch.mock.calls[0][1].headers["Idempotency-Key"]).toBe(mocks.fetch.mock.calls[1][1].headers["Idempotency-Key"])
+    expect(mocks.finalizeCertificateResend).toHaveBeenCalledTimes(1)
+    expect(mocks.finalizeCertificateResend).toHaveBeenCalledWith(expect.objectContaining({ deliverySucceeded: true }))
+  })
+
+  it.each(["failed", "suppressed", "bounced", "complained"])(
+    "does not replay a provider-terminal %s attempt with the same Resend idempotency key",
+    async (deliveryStatus) => {
+      const result = await sendFromOutboxRow(makeResendOutboxRow({
+        delivery_status: deliveryStatus,
+        retry_count: 1,
+      }))
+
+      expect(result).toEqual({
+        success: false,
+        error: "Provider-terminal email attempt requires a new send attempt",
+        retryable: false,
+      })
+      expect(mocks.fetch).not.toHaveBeenCalled()
+      expect(mocks.updateOutboxStatus).toHaveBeenCalledWith("outbox-1", "failed", {
+        error_message: "Provider-terminal email attempt requires a new send attempt",
+        attempts: 10,
+      })
+    },
+  )
 
   it("finalizes the reservation when a queued resend later succeeds", async () => {
     mocks.fetch.mockResolvedValue(new Response(JSON.stringify({ id: "provider-message-1" }), {
@@ -183,6 +246,20 @@ describe("certificate resend dispatcher finalization", () => {
     expect(mocks.persistFrozenProviderPayload.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.fetch.mock.invocationCallOrder[0],
     )
+  })
+
+  it("does not finalize a certificate when provider success loses the sent-state CAS", async () => {
+    mocks.fetch.mockResolvedValue(new Response(JSON.stringify({ id: "provider-message-1" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }))
+    mocks.updateOutboxStatus.mockResolvedValueOnce(false)
+
+    const result = await sendFromOutboxRow(makeResendOutboxRow())
+
+    expect(result).toMatchObject({ success: false, retryable: true })
+    expect(mocks.finalizeCertificateResend).not.toHaveBeenCalled()
+    expect(mocks.reconcileCertificateEmailDelivery).not.toHaveBeenCalled()
   })
 
   it("replays the exact frozen request instead of regenerating dynamic content", async () => {

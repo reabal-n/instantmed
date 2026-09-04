@@ -61,6 +61,8 @@ The two paid webhook handlers and `/api/stripe/verify-payment` share the same ex
 5. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron; stale `sending` claims are recovered back to retryable `failed` rows.
 6. For a legacy certificate the operator independently confirms was delivered outside the provider-tracked path, do **not** resend it or backfill `email_sent_at` / `document_sent_at`. Use the service-role-only `record_manual_certificate_delivery_reconciliation(certificate_id, recorded_by)` RPC. It records append-only evidence against the exact current valid storage version and leaves the unknown historical delivery time `NULL`. A superseded/revoked certificate, or an intake with no current valid certificate, remains an integrity escalation and cannot be reconciled through this RPC.
 
+Provider acceptance followed by an unavailable outbox write or read-back leaves the exact certificate resend reservation open for recovery. The dispatcher reuses its encrypted provider body and idempotency key. A matching already-sent provider message is successful reconciliation; only confirmed terminal evidence for that message is non-retryable. A failed compare-and-set or database error alone must never finalize a resend as failed.
+
 ### Database Connection Issues
 
 **Symptoms:** 500 errors across multiple endpoints, slow page loads, connection timeout errors.
