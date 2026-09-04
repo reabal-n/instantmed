@@ -25,6 +25,10 @@ service, Vercel deployment, or Moirai-owned local service was touched.
   closed. Startup, migration reset, health checks, exact-label Docker cleanup,
   process-group shutdown, signals, and zero-survivor assertions belong to the
   runner; it never stops or kills an unknown owner.
+- The runner accepts Docker only through a verified local Unix or Windows named
+  pipe endpoint, then forces that exact endpoint into every Supabase and Docker
+  command. Remote TCP, SSH, and HTTP daemons fail before local infrastructure
+  starts, even when inherited Docker context configuration points at them.
 - The runner copies the application into a temporary dotenv-free directory,
   excludes every `.env*`, links the existing dependencies without changing the
   lockfile, constructs a minimal child environment, validates every Price,
@@ -32,6 +36,10 @@ service, Vercel deployment, or Moirai-owned local service was touched.
   builds the Webpack production bundle, starts `next` on 127.0.0.1:3060, and
   invokes a dedicated one-worker Chromium configuration with no shared global
   setup or `webServer`.
+- Source is accepted only from a clean Git worktree. The runner captures the
+  40-character revision before copying, then requires the same clean revision
+  after both browser journeys before placing it in the receipt; a dirty tree or
+  concurrent commit cannot be mislabelled as commit-bound proof.
 - The repeat-prescription case completes the real intake with current clinical
   safety questions plus prescribing identity, medication strength, dose, and
   current directions. It reaches `checkout.stripe.com`, pays with Stripe's test
@@ -53,7 +61,9 @@ service, Vercel deployment, or Moirai-owned local service was touched.
   marked `exclude_from_reporting: true` at the owning intake before payment.
   Cleanup removes intake-linked payment, event, webhook, audit, follow-up,
   consent, draft, outbox, notification, partial-intake, profile, and Auth state,
-  then counts every owned scope again after app/listener shutdown.
+  then counts every owned scope again after app/listener shutdown. Survivor
+  counts project an actual scoped column rather than assuming every table has
+  an `id` key; this covers `partial_intakes`, whose primary key is `session_id`.
 - Browser evidence is private to the temporary directory. Only after browser,
   database/Auth, process, Mailpit, and exact Docker cleanup succeeds does the
   runner atomically write a mode-0600 receipt. Its exact schema permits only a
@@ -82,15 +92,21 @@ green:
 7. A final source-to-UI contract caught the med-cert case targeting the step
    registry label instead of the rendered heading (1 failed, 33 passed); the
    locator now follows the actual `What do you need covered?` heading.
+8. Independent review caught the survivor counter selecting a nonexistent
+   `partial_intakes.id`; the regression failed before the counter selected the
+   run-scoped `email` column.
+9. Independent isolation review added two RED tests for remote Docker endpoints
+   and dirty/changing Git source; both now fail closed before receipt creation.
 
 After the corresponding implementation changes, the focused Task 2 suite is
-green at 34/34 and the payment-policy/linkage regression set is green at 82/82.
+green at 36/36. The payment-policy/linkage regression set is re-run after each
+independent-review correction.
 
 ## Verification
 
 ```text
 corepack pnpm exec vitest run lib/__tests__/stripe-hosted-e2e-preflight.test.ts
-PASS — 1 file, 34 tests
+PASS — 1 file, 36 tests
 
 corepack pnpm exec vitest run \
   lib/__tests__/stripe-hosted-e2e-preflight.test.ts \

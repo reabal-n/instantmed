@@ -122,6 +122,45 @@ export interface HostedStripeBrowserEvidence {
   }
 }
 
+/** Accept only Docker endpoints that cannot address a remote daemon. */
+export function assertLocalDockerEndpoint(value: unknown): string {
+  const endpoint = typeof value === "string" ? value.trim() : ""
+  if (
+    /^unix:\/\/\/[^\0\r\n]+$/.test(endpoint)
+    || /^npipe:\/\/\/\/\.\/pipe\/[A-Za-z0-9._-]+$/.test(endpoint)
+  ) {
+    return endpoint
+  }
+  throw new Error(
+    "Hosted Stripe E2E requires a verified local Docker socket endpoint",
+  )
+}
+
+/** Bind copied source and the final receipt to one clean Git commit. */
+export function assertStableHostedStripeSourceState({
+  expectedSha,
+  sha,
+  status,
+}: {
+  expectedSha?: string
+  sha: string
+  status: string
+}): string {
+  const normalizedSha = sha.trim().toLowerCase()
+  if (!/^[0-9a-f]{40}$/.test(normalizedSha)) {
+    throw new Error("Hosted Stripe E2E could not bind source to a Git revision")
+  }
+  if (status.trim()) {
+    throw new Error(
+      "Hosted Stripe E2E requires a clean Git worktree before producing commit-bound evidence",
+    )
+  }
+  if (expectedSha && normalizedSha !== expectedSha.toLowerCase()) {
+    throw new Error("Hosted Stripe E2E Git revision changed during the run")
+  }
+  return normalizedSha
+}
+
 type CommandResult = { stdout: string; stderr: string }
 
 function safeCommandFailure(command: string, code: number | null): Error {
@@ -176,6 +215,69 @@ async function runCommand(
       reject(safeCommandFailure(command, code))
     })
   })
+}
+
+async function readStableHostedStripeSourceState({
+  env,
+  expectedSha,
+  root,
+}: {
+  env: Partial<NodeJS.ProcessEnv>
+  expectedSha?: string
+  root: string
+}): Promise<string> {
+  const [revision, status] = await Promise.all([
+    runCommand("git", ["rev-parse", "HEAD"], env, {
+      cwd: root,
+      sensitiveOutput: true,
+    }),
+    runCommand(
+      "git",
+      ["status", "--porcelain=v1", "--untracked-files=all"],
+      env,
+      { cwd: root, sensitiveOutput: true },
+    ),
+  ])
+  return assertStableHostedStripeSourceState({
+    expectedSha,
+    sha: revision.stdout,
+    status: status.stdout,
+  })
+}
+
+async function resolveVerifiedLocalDockerEndpoint(
+  bootstrapEnv: Partial<NodeJS.ProcessEnv>,
+  commandEnv: Partial<NodeJS.ProcessEnv>,
+): Promise<string> {
+  const explicitEndpoint = bootstrapEnv.DOCKER_HOST?.trim()
+  if (explicitEndpoint) return assertLocalDockerEndpoint(explicitEndpoint)
+
+  const contextResult = await runCommand("docker", ["context", "show"], commandEnv, {
+    sensitiveOutput: true,
+  })
+  const contextName = contextResult.stdout.trim()
+  if (!/^[A-Za-z0-9._-]+$/.test(contextName)) {
+    throw new Error("Hosted Stripe E2E could not verify the local Docker context")
+  }
+  const endpointResult = await runCommand(
+    "docker",
+    [
+      "context",
+      "inspect",
+      contextName,
+      "--format",
+      "{{json .Endpoints.docker.Host}}",
+    ],
+    commandEnv,
+    { sensitiveOutput: true },
+  )
+  let endpoint: unknown
+  try {
+    endpoint = JSON.parse(endpointResult.stdout.trim())
+  } catch {
+    throw new Error("Hosted Stripe E2E could not verify the local Docker context")
+  }
+  return assertLocalDockerEndpoint(endpoint)
 }
 
 function spawnOwned(
@@ -745,6 +847,21 @@ async function main(): Promise<void> {
     dedicatedProviderValue(bootstrapEnv, envKey)
   }
 
+  const baseCommandEnv = buildRunnerBootstrapEnvironment(
+    Object.fromEntries(SYSTEM_ENV_ALLOWLIST.map((key) => [key, bootstrapEnv[key]])),
+  )
+  const gitSha = await readStableHostedStripeSourceState({
+    env: baseCommandEnv,
+    root,
+  })
+  const localDockerEndpoint = await resolveVerifiedLocalDockerEndpoint(
+    bootstrapEnv,
+    baseCommandEnv,
+  )
+  const commandEnv = {
+    ...baseCommandEnv,
+    DOCKER_HOST: localDockerEndpoint,
+  }
   await assertPortsAvailable(HOSTED_STRIPE_E2E_PORTS)
 
   const runId = runIdForNow()
@@ -757,13 +874,9 @@ async function main(): Promise<void> {
   const privateBrowserEvidencePath = join(temporaryRoot, "browser-evidence.json")
   const archiveReceiptPath = join(root, ".artifacts", "hosted-stripe-e2e", `${safeReceiptRunId(runId)}.json`)
   const projectId = `hosted-stripe-e2e-${randomBytes(6).toString("hex")}`
-  const commandEnv = buildRunnerBootstrapEnvironment(
-    Object.fromEntries(SYSTEM_ENV_ALLOWLIST.map((key) => [key, bootstrapEnv[key]])),
-  )
   let supabaseStartAttempted = false
   let runtimeEnv: NodeJS.ProcessEnv | undefined
   let browserEvidence: HostedStripeBrowserEvidence | undefined
-  let gitSha: string | undefined
   let survivorCount: number | undefined
   let primaryError: unknown
   let cleanupError: unknown
@@ -955,14 +1068,11 @@ async function main(): Promise<void> {
     validateHostedStripeBrowserEvidence(rawBrowserEvidence)
     browserEvidence = rawBrowserEvidence
 
-    const revision = await runCommand("git", ["rev-parse", "HEAD"], commandEnv, {
-      cwd: root,
-      sensitiveOutput: true,
+    await readStableHostedStripeSourceState({
+      env: commandEnv,
+      expectedSha: gitSha,
+      root,
     })
-    gitSha = revision.stdout.trim()
-    if (!/^[0-9a-f]{40}$/i.test(gitSha)) {
-      throw new Error("Hosted Stripe E2E could not bind evidence to one git revision")
-    }
   } catch (error) {
     primaryError = error
   } finally {
@@ -984,7 +1094,7 @@ async function main(): Promise<void> {
   }
   if (primaryError) throw primaryError
   if (receivedSignal) throw new Error(`Hosted Stripe E2E interrupted by ${receivedSignal}`)
-  if (!browserEvidence || !gitSha || survivorCount === undefined) {
+  if (!browserEvidence || survivorCount === undefined) {
     throw new Error("Hosted Stripe E2E did not produce complete browser and cleanup evidence")
   }
 

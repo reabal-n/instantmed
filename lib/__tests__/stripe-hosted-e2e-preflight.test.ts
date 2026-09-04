@@ -21,8 +21,10 @@ import {
   type RetrievedStripePrice,
 } from "../../scripts/hosted-stripe-e2e-preflight"
 import {
+  assertLocalDockerEndpoint,
   assertNoOwnedDockerResources,
   assertPortsAvailable,
+  assertStableHostedStripeSourceState,
   buildHostedStripeChildEnvironment,
   buildHostedStripeSupabaseConfig,
   buildRunnerBootstrapEnvironment,
@@ -84,6 +86,59 @@ function successfulPriceRetriever() {
 }
 
 describe("hosted Stripe environment preflight", () => {
+  it("accepts only local Docker socket endpoints", () => {
+    expect(assertLocalDockerEndpoint("unix:///var/run/docker.sock")).toBe(
+      "unix:///var/run/docker.sock",
+    )
+    expect(
+      assertLocalDockerEndpoint("unix:///Users/test/.docker/run/docker.sock"),
+    ).toBe("unix:///Users/test/.docker/run/docker.sock")
+    expect(assertLocalDockerEndpoint("npipe:////./pipe/docker_engine")).toBe(
+      "npipe:////./pipe/docker_engine",
+    )
+
+    for (const endpoint of [
+      "tcp://127.0.0.1:2375",
+      "tcp://remote.example:2376",
+      "ssh://operator@remote.example",
+      "https://remote.example",
+      "",
+      "unix://relative.sock",
+    ]) {
+      expect(() => assertLocalDockerEndpoint(endpoint)).toThrow(
+        /local Docker socket/i,
+      )
+    }
+  })
+
+  it("binds the run to one clean immutable Git revision", () => {
+    const sha = "a".repeat(40)
+    expect(
+      assertStableHostedStripeSourceState({ sha, status: "" }),
+    ).toBe(sha)
+    expect(
+      assertStableHostedStripeSourceState({
+        expectedSha: sha,
+        sha: sha.toUpperCase(),
+        status: "\n",
+      }),
+    ).toBe(sha)
+
+    expect(() =>
+      assertStableHostedStripeSourceState({
+        sha,
+        status: " M app/page.tsx",
+      }),
+    ).toThrow(/clean Git worktree/i)
+    expect(() =>
+      assertStableHostedStripeSourceState({
+        expectedSha: sha,
+        sha: "b".repeat(40),
+        status: "",
+      }),
+    ).toThrow(/changed during the run/i)
+  })
+
   it("accepts the exact production-bundle local/test lane and retrieves every price", async () => {
     const retrievePrice = successfulPriceRetriever()
 
@@ -557,6 +612,7 @@ describe("hosted browser journey source contracts", () => {
     expect(config).toContain('screenshot: "off"')
 
     const runner = readFileSync(runnerPath, "utf8")
+    const main = runner.slice(runner.indexOf("async function main(): Promise<void>"))
     const cleanupStart = runner.indexOf("async function cleanup(")
     const childStop = runner.indexOf("await terminateOwnedChildren()", cleanupStart)
     const rowCleanup = runner.indexOf("cleanupHostedStripeRunArtifacts", childStop)
@@ -567,6 +623,14 @@ describe("hosted browser journey source contracts", () => {
     expect(finalReceipt).toBeGreaterThan(rowCleanup)
     expect(runner).toContain("HOSTED_STRIPE_E2E_BROWSER_EVIDENCE_PATH")
     expect(runner).not.toContain("HOSTED_STRIPE_E2E_RECEIPT_PATH")
+    expect(main.match(/readStableHostedStripeSourceState\(/g)).toHaveLength(2)
+    expect(main.indexOf("readStableHostedStripeSourceState({")).toBeLessThan(
+      main.indexOf('await runCommand("rsync"'),
+    )
+    expect(main.indexOf("resolveVerifiedLocalDockerEndpoint(")).toBeLessThan(
+      main.indexOf('await runCommand("supabase", ["start"'),
+    )
+    expect(main).toContain("DOCKER_HOST: localDockerEndpoint")
 
     const workflow = readFileSync(workflowPath, "utf8")
     expect(workflow).toMatch(/on:\s*\n\s*workflow_dispatch:/)
