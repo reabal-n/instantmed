@@ -539,7 +539,7 @@ async function startOwnedRedis(projectId: string, env: Partial<NodeJS.ProcessEnv
   const network = `${projectId}-redis`
   const redisName = `${projectId}-redis-db`
   const labels = ["--label", `com.supabase.cli.project=${projectId}`, "--label", "instantmed.hosted-stripe.redis=true"]
-  await runCommand("docker", ["network", "create", "--internal", ...labels, network], env, { sensitiveOutput: true })
+  await runCommand("docker", ["network", "create", ...labels, network], env, { sensitiveOutput: true })
   await runCommand("docker", ["run", "-d", "--name", redisName, "--network", network, ...labels,
     REDIS_IMAGE, "redis-server", "--save", "", "--appendonly", "no"], env, { sensitiveOutput: true })
   await runCommand("docker", ["run", "-d", "--name", `${projectId}-redis-http`, "--network", network,

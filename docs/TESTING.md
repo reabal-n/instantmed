@@ -254,7 +254,7 @@ a test key, loopback app origins on 3060, matching loopback database origins on
 55321, and no Vercel markers. Deployed test keys, including restricted keys,
 remain rejected. The runner also owns port 55330 for a disposable Redis HTTP
 proxy backed by real Redis. Both container images are digest-pinned; their
-network is internal, Redis has no published port, and the HTTP proxy binds only
+network is run-scoped, Redis has no published port, and the HTTP proxy binds only
 to loopback. Before checkout, the installed rate-limit SDK must prove an allowed
 request followed by a rejected request. Cleanup removes only containers and
 networks with both the exact run label and Redis label, including partial starts.
