@@ -87,6 +87,31 @@ export function classifyStripeKeyMode(key: string | undefined): StripeKeyMode {
   return "unknown"
 }
 
+/** Startup exception for the owned local production-bundle acceptance runner. */
+export function mayStartLocalStripeTestBundle(env: Partial<NodeJS.ProcessEnv>): boolean {
+  function ownedOrigin(raw: string | undefined, port: string): string | null {
+    if (!raw) return null
+    try {
+      const url = new URL(raw)
+      if (url.protocol !== "http:" || !isLoopbackHost(url.host) ||
+        url.port !== port || url.username || url.password ||
+        url.pathname !== "/" || url.search || url.hash) return null
+      return url.origin.replace("localhost", "127.0.0.1")
+    } catch {
+      return null
+    }
+  }
+
+  const app = ownedOrigin(env.NEXT_PUBLIC_APP_URL, "3060")
+  const database = ownedOrigin(env.SUPABASE_URL, "55321")
+  return env.NODE_ENV === "production" &&
+    env.PLAYWRIGHT === "1" && env.ALLOW_STRIPE_TEST_WEBHOOKS === "true" &&
+    env.VERCEL === undefined && env.VERCEL_ENV === undefined &&
+    classifyStripeKeyMode(env.STRIPE_SECRET_KEY) === "test" &&
+    app !== null && app === ownedOrigin(env.NEXT_PUBLIC_SITE_URL, "3060") &&
+    database !== null && database === ownedOrigin(env.NEXT_PUBLIC_SUPABASE_URL, "55321")
+}
+
 export function classifySupabaseTestTarget(
   input: SupabaseTestTargetInput,
 ): { supabaseTarget: SupabaseTestTarget; supabaseUrlsMatch: boolean } {

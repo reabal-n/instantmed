@@ -4,8 +4,44 @@ import {
   classifyStripeKeyMode,
   classifySupabaseTestTarget,
   mayProcessStripeTestEvent,
+  mayStartLocalStripeTestBundle,
   type StripeTestEventPolicyInput,
 } from "@/lib/stripe/test-webhook-policy"
+
+describe("Stripe startup test-bundle exception", () => {
+  const env = {
+    NODE_ENV: "production", PLAYWRIGHT: "1", ALLOW_STRIPE_TEST_WEBHOOKS: "true",
+    STRIPE_SECRET_KEY: "sk_test_synthetic",
+    NEXT_PUBLIC_APP_URL: "http://127.0.0.1:3060",
+    NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3060",
+    SUPABASE_URL: "http://127.0.0.1:55321",
+    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:55321",
+  } as const
+
+  it.each(["sk_test_synthetic", "rk_test_synthetic"])("accepts the owned local runner with %s", (key) => {
+    expect(mayStartLocalStripeTestBundle({ ...env, STRIPE_SECRET_KEY: key })).toBe(true)
+  })
+
+  it.each(Object.keys(env))("requires %s", (key) => {
+    expect(mayStartLocalStripeTestBundle({ ...env, [key]: undefined })).toBe(false)
+  })
+
+  it.each([
+    { VERCEL: "1" }, { VERCEL: "" }, { VERCEL_ENV: "preview" }, { VERCEL_ENV: "" },
+    { STRIPE_SECRET_KEY: "sk_live_synthetic" }, { STRIPE_SECRET_KEY: "unknown" },
+    { PLAYWRIGHT: "0" }, { ALLOW_STRIPE_TEST_WEBHOOKS: "false" },
+    { NEXT_PUBLIC_APP_URL: "https://instantmed.com.au" },
+    { NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3061" },
+    { NEXT_PUBLIC_APP_URL: "http://127.0.0.1:3060/path" },
+    { NEXT_PUBLIC_APP_URL: "http://127.0.0.1:3060?token=synthetic" },
+    { NEXT_PUBLIC_APP_URL: "http://user@127.0.0.1:3060" },
+    { NEXT_PUBLIC_SUPABASE_URL: "https://witzcrovsoumktyndqgz.supabase.co" },
+    { SUPABASE_URL: "http://127.0.0.1:54321" },
+    { SUPABASE_URL: "https://other.supabase.co", NEXT_PUBLIC_SUPABASE_URL: "https://other.supabase.co" },
+  ])("rejects an environment outside the owned runner: %j", (override) => {
+    expect(mayStartLocalStripeTestBundle({ ...env, ...override })).toBe(false)
+  })
+})
 
 const hostedLocalInput: StripeTestEventPolicyInput = {
   allowTestWebhooks: true,
