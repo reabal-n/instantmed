@@ -7,6 +7,11 @@
  * on the first `ok: false`.
  */
 
+import type {
+  CheckoutFailureCode,
+  CheckoutFailureResult,
+} from "../checkout-failure"
+
 export interface CreateCheckoutInput {
   category: string
   subtype: string
@@ -49,13 +54,19 @@ export interface CreateCheckoutInput {
   patientEmail?: string
 }
 
-export interface CheckoutResult {
-  success: boolean
-  checkoutUrl?: string
-  intakeId?: string
-  error?: string
-  paymentRecoveryReason?: "more_information_required"
+export interface CheckoutSuccessResult {
+  success: true
+  checkoutUrl: string
+  error?: undefined
+  failureCategory?: undefined
+  failureCode?: undefined
+  failureTaxonomyVersion?: undefined
+  intakeId: string
+  paymentRecoveryReason?: undefined
+  requiresFreshRequest?: undefined
 }
+
+export type CheckoutResult = CheckoutSuccessResult | CheckoutFailureResult
 
 /**
  * Internal pipeline-step return shape. The orchestrator reads `ok`
@@ -63,12 +74,15 @@ export interface CheckoutResult {
  */
 export type StepResult<T = void> =
   | { ok: true; data: T }
-  | { ok: false; error: string }
+  | { ok: false; error: string; failureCode: CheckoutFailureCode }
 
 export function stepOk<T>(data: T): StepResult<T> {
   return { ok: true, data }
 }
 
-export function stepFail(error: string): StepResult<never> {
-  return { ok: false, error }
+export function stepFail(
+  failureCode: CheckoutFailureCode,
+  error: string,
+): StepResult<never> {
+  return { ok: false, error, failureCode }
 }

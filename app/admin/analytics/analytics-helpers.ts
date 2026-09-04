@@ -5,9 +5,11 @@ import type { RecordedAttributionBreakdown } from "@/lib/admin/recorded-attribut
 import type { ReleaseFrictionDashboardSnapshot } from "@/lib/admin/release-friction-readout"
 import type { ReviewRequestFunnelSnapshot } from "@/lib/admin/review-request-funnel"
 import type { PostHogCanonicalIntakeFunnelSnapshot } from "@/lib/analytics/posthog-canonical-intake-funnel"
+import type { CheckoutRecoveryDashboardSnapshot } from "@/lib/analytics/posthog-checkout-recovery"
 
 export interface BusinessPageData {
   business: BusinessReadModel
+  checkoutRecovery: CheckoutRecoveryDashboardSnapshot
   generatedAt: string
   intakeFunnel: PostHogCanonicalIntakeFunnelSnapshot
   recordedAttribution: RecordedAttributionBreakdown

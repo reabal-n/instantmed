@@ -354,7 +354,7 @@ describe("intake draft lifecycle", () => {
       const flowNav = readFileSync("components/request/hooks/use-flow-navigation.ts", "utf8")
       expect(reviewStep).toContain("markIntentionalNavigation()")
       expect(reviewStep.indexOf("markIntentionalNavigation()")).toBeLessThan(
-        reviewStep.indexOf("window.location.href = result.checkoutUrl!"),
+        reviewStep.indexOf("window.location.href = result.checkoutUrl"),
       )
       expect(flowNav).toContain("markIntentionalNavigation()")
     })

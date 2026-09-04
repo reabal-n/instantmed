@@ -42,6 +42,7 @@ import type {
   BusinessTrendsViewModel,
   RevenueTrendPeriod,
 } from "@/lib/admin/business-trends"
+import type { CheckoutFailureCategory } from "@/lib/analytics/posthog-privacy"
 import { STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
@@ -83,6 +84,24 @@ const SERVICE_GATE_REASON_CODES = new Set([
   "MEDCERT_OBSERVATION_HOLD",
   "PILOT_WITHIN_LOSS_CAP",
 ])
+
+const CHECKOUT_FAILURE_CATEGORY_LABELS: Record<CheckoutFailureCategory, string> = {
+  availability_or_capacity: "Availability / capacity",
+  identity_or_session: "Identity / session",
+  payment_provider: "Payment provider",
+  persistence: "Persistence",
+  pricing_or_configuration: "Pricing / configuration",
+  rate_limit: "Rate limit",
+  unknown: "Unknown",
+  validation: "Validation",
+}
+
+const CHECKOUT_RECOVERY_REASON_LABELS: Record<string, string> = {
+  flow_id_coverage_below_90_percent: "Flow ID coverage below 90%",
+  post_release_sample_below_20: "Building typed sample (fewer than 20 failures)",
+  taxonomy_coverage_below_95_percent: "Taxonomy coverage below 95%",
+  unknown_share_not_below_5_percent: "Unknown share must fall below 5%",
+}
 
 function formatAud(cents: number | null): string {
   return cents === null ? "Unavailable" : AUD.format(cents / 100)
@@ -483,6 +502,7 @@ function ProfitCell({ row }: { row: BusinessProfitRow }) {
 export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
   const {
     business,
+    checkoutRecovery,
     heardAboutUs,
     intakeFunnel,
     recordedAttribution,
@@ -765,6 +785,137 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
               Current instrumentation meets the coverage gate; rates remain withheld until older incomplete events leave the rolling 30-day window.
             </p>
           ) : null}
+
+          <section aria-labelledby="payment-failure-recovery-heading" className="mt-4 border-t border-border/60 pt-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 id="payment-failure-recovery-heading" className="text-sm font-semibold text-foreground">
+                  Payment failure recovery
+                </h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  First failure per flow joined only to a strictly later server purchase. Recovery rates use horizon-mature eligible flows; younger outcomes remain in flight.
+                </p>
+              </div>
+              <StatusBadge
+                status={checkoutRecovery.availability === "available" ? "success" : checkoutRecovery.availability === "degraded" ? "warning" : "neutral"}
+                size="sm"
+              >
+                {checkoutRecovery.availability === "available"
+                  ? "Available"
+                  : checkoutRecovery.availability === "degraded"
+                    ? "Degraded"
+                    : "Unavailable"}
+              </StatusBadge>
+            </div>
+
+            {checkoutRecovery.windows.length > 0 ? (
+              <>
+                <div className="mt-3 overflow-x-auto rounded-lg border border-border/60">
+                  <table className="w-full min-w-[1080px] text-left text-[11px]">
+                    <caption className="sr-only">
+                      Aggregate checkout failure categories and later paid recovery
+                    </caption>
+                    <thead className="bg-muted/35 text-muted-foreground">
+                      <tr>
+                        <th scope="col" className="px-3 py-2 font-medium">Window / category</th>
+                        <th scope="col" className="px-3 py-2 font-medium">First failure per flow</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Eligible / in flight</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Recovered ≤24h</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Recovered ≤7d</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Flow ID coverage</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Taxonomy coverage</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Unknown share</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/60">
+                      {checkoutRecovery.windows.flatMap((window) => [
+                        <tr key={`${window.days}d-summary`} className="bg-muted/15 align-top">
+                          <th scope="row" className="px-3 py-2.5 font-semibold text-foreground">
+                            {window.days}-day view
+                            <span className="mt-0.5 block font-normal text-muted-foreground">
+                              {CHECKOUT_RECOVERY_REASON_LABELS[window.reason ?? ""] ?? "Typed evidence gate met"}
+                            </span>
+                          </th>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {window.failedFlows.toLocaleString("en-AU")}
+                            <span className="mt-0.5 block text-muted-foreground">
+                              Legacy unclassified {window.legacyUnclassifiedEvents} · unjoinable {window.unjoinableEvents}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            24h {window.eligible24hFlows}/{window.inFlight24hFlows}
+                            <span className="mt-0.5 block text-muted-foreground">
+                              7d {window.eligible7dFlows}/{window.inFlight7dFlows}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: window.eligible24hFlows,
+                              inProgress: false,
+                              numerator: window.paidWithin24h,
+                              percent: window.recovery24hPercent,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: window.eligible7dFlows,
+                              inProgress: false,
+                              numerator: window.paidWithin7d,
+                              percent: window.recovery7dPercent,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">{formatPercent(window.flowIdCoveragePercent)}</td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">{formatPercent(window.taxonomyCoveragePercent)}</td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">{formatPercent(window.unknownSharePercent)}</td>
+                        </tr>,
+                        ...window.rows.map((row) => (
+                          <tr key={`${window.days}d-${row.taxonomyVersion}-${row.category}`} className="align-top">
+                            <th scope="row" className="px-3 py-2.5 pl-6 font-medium text-foreground">
+                              {CHECKOUT_FAILURE_CATEGORY_LABELS[row.category] ?? row.category}
+                              <span className="mt-0.5 block font-normal text-muted-foreground">
+                                {row.taxonomyVersion === "legacy" ? "Legacy taxonomy" : "Typed taxonomy"}
+                              </span>
+                            </th>
+                            <td className="px-3 py-2.5 tabular-nums text-foreground">{row.failedFlows}</td>
+                            <td className="px-3 py-2.5 tabular-nums text-foreground">
+                              24h {row.eligible24hFlows}/{row.inFlight24hFlows}
+                              <span className="mt-0.5 block text-muted-foreground">
+                                7d {row.eligible7dFlows}/{row.inFlight7dFlows}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2.5 tabular-nums text-foreground">
+                              {formatCohortRatio({
+                                denominator: row.eligible24hFlows,
+                                inProgress: false,
+                                numerator: row.paidWithin24h,
+                                percent: row.recovery24hPercent,
+                              })}
+                            </td>
+                            <td className="px-3 py-2.5 tabular-nums text-foreground">
+                              {formatCohortRatio({
+                                denominator: row.eligible7dFlows,
+                                inProgress: false,
+                                numerator: row.paidWithin7d,
+                                percent: row.recovery7dPercent,
+                              })}
+                            </td>
+                            <td className="px-3 py-2.5 text-muted-foreground" colSpan={3}>Covered by the window aggregate</td>
+                          </tr>
+                        )),
+                      ])}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  No patient drill-down is collected here. Use Operations for live case recovery; legacy unclassified failures remain visible instead of being folded into typed outcomes.
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 rounded-lg border border-dashed border-border/70 bg-muted/20 px-3 py-3 text-xs text-muted-foreground">
+                Recovery evidence is unavailable. Counts and rates remain withheld rather than falling back to zero.
+              </p>
+            )}
+          </section>
 
           <section aria-labelledby="release-conversion-heading" className="mt-4 border-t border-border/60 pt-4">
             <div className="flex flex-wrap items-start justify-between gap-3">

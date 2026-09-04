@@ -22,6 +22,10 @@ import {
   buildUnavailablePostHogCanonicalIntakeFunnelSnapshot,
   getPostHogCanonicalIntakeFunnelSnapshot,
 } from "@/lib/analytics/posthog-canonical-intake-funnel"
+import {
+  buildUnavailablePostHogCheckoutRecoveryDashboardSnapshot,
+  getPostHogCheckoutRecoveryDashboardSnapshot,
+} from "@/lib/analytics/posthog-checkout-recovery"
 import { requireRole } from "@/lib/auth/helpers"
 import { getRevenueDashboard } from "@/lib/data/revenue-dashboard"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -45,6 +49,7 @@ export default async function AnalyticsDashboardPage() {
     getReviewRequestFunnelSnapshot(supabase, now),
     getRecentDeliveredAdsAgentRunDailySpend(supabase),
     getReleaseFrictionDashboardSnapshot(supabase, { now }),
+    getPostHogCheckoutRecoveryDashboardSnapshot({ now }),
   ])
 
   const revenueDashboard = reads[0].status === "fulfilled" ? reads[0].value : null
@@ -93,6 +98,12 @@ export default async function AnalyticsDashboardPage() {
 
   const data: BusinessPageData = {
     business,
+    checkoutRecovery: reads[8].status === "fulfilled"
+      ? reads[8].value
+      : buildUnavailablePostHogCheckoutRecoveryDashboardSnapshot(
+          now,
+          "posthog_request_failed",
+        ),
     generatedAt: now.toISOString(),
     intakeFunnel: reads[2].status === "fulfilled"
       ? reads[2].value
