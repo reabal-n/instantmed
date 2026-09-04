@@ -27,6 +27,10 @@ describe("makeIntakeFlag", () => {
 })
 
 describe("severity discipline", () => {
+  it("classifies an omitted optional medication form as info", () => {
+    expect(makeIntakeFlag("medication_form_missing").severity).toBe("info")
+  })
+
   it("attentionFlags returns only attention-severity flags", () => {
     const flags = [makeIntakeFlag("medication_count_high"), makeIntakeFlag("medication_strength_missing")]
     expect(attentionFlags(flags).map((f) => f.code)).toEqual(["medication_strength_missing"])

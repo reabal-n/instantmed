@@ -402,6 +402,14 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).toContain("compactClaimChipClass")
   })
 
+  it("keeps red queue chrome separate from doctor-attention flags", () => {
+    expect(queueClientSource).toContain("hasQueueRiskBadge")
+    expect(queueClientSource).not.toContain("hasReviewNextRisk")
+    expect(queueTableSource).toContain("hasClinicalRisk(intake)")
+    expect(queueTableSource).toContain("High risk")
+    expect(queueTableSource).toContain("compact={compactShell}")
+  })
+
   it("retires duplicate doctor decision APIs in favour of canonical server actions", () => {
     expect(existsSync(join(process.cwd(), "app/api/doctor/update-request/route.ts"))).toBe(false)
     expect(existsSync(join(process.cwd(), "app/api/doctor/assign-request/route.ts"))).toBe(false)
