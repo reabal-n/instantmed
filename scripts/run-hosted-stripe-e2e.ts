@@ -14,6 +14,9 @@ import { createServer } from "node:net"
 import { tmpdir } from "node:os"
 import { basename, dirname, join, resolve } from "node:path"
 
+import { Ratelimit } from "@upstash/ratelimit"
+import { Redis } from "@upstash/redis"
+
 import {
   assertHostedStripeE2EEnvironment,
   assertStripeCliWebhookSecret,
@@ -24,6 +27,10 @@ const EXPECTED_SPEC = "e2e/hosted-stripe-guest-journey.spec.ts"
 const APP_ORIGIN = "http://127.0.0.1:3060"
 const SUPABASE_API_ORIGIN = "http://127.0.0.1:55321"
 const MAILPIT_ORIGIN = "http://127.0.0.1:55324"
+const REDIS_REST_ORIGIN = "http://127.0.0.1:55330"
+const REDIS_TEST_TOKEN = "hosted-e2e-local-only"
+const REDIS_IMAGE = "redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf"
+const REDIS_HTTP_IMAGE = "hiett/serverless-redis-http:0.0.10@sha256:65128347949bca511e448fd7238780d624573d74c22b79155a7563db19e9b678"
 const STRIPE_LISTENER_TIMEOUT_MS = 30_000
 const HEALTH_TIMEOUT_MS = 60_000
 const activeChildren = new Set<ChildProcess>()
@@ -41,6 +48,7 @@ export const HOSTED_STRIPE_E2E_PORTS = [
   55327,
   55328,
   55329,
+  55330,
 ] as const
 
 const SYSTEM_ENV_ALLOWLIST = [
@@ -436,8 +444,8 @@ export function buildHostedStripeChildEnvironment({
     NEXT_PUBLIC_POSTHOG_KEY: "",
     RESEND_API_KEY: "re_hosted_e2e_blocked",
     RESEND_FROM_EMAIL: "InstantMed <support@example.test>",
-    UPSTASH_REDIS_REST_URL: "http://127.0.0.1:9",
-    UPSTASH_REDIS_REST_TOKEN: "hosted-e2e-local-only",
+    UPSTASH_REDIS_REST_URL: REDIS_REST_ORIGIN,
+    UPSTASH_REDIS_REST_TOKEN: REDIS_TEST_TOKEN,
     CRON_SECRET: randomBytes(32).toString("hex"),
     TELEGRAM_BOT_TOKEN: "",
     TELEGRAM_CHAT_ID: "",
@@ -525,6 +533,44 @@ export function assertNoOwnedDockerResources(
 
 function nonEmptyLines(output: string): string[] {
   return output.split("\n").map((line) => line.trim()).filter(Boolean)
+}
+
+async function startOwnedRedis(projectId: string, env: Partial<NodeJS.ProcessEnv>): Promise<void> {
+  const network = `${projectId}-redis`
+  const redisName = `${projectId}-redis-db`
+  const labels = ["--label", `com.supabase.cli.project=${projectId}`, "--label", "instantmed.hosted-stripe.redis=true"]
+  await runCommand("docker", ["network", "create", "--internal", ...labels, network], env, { sensitiveOutput: true })
+  await runCommand("docker", ["run", "-d", "--name", redisName, "--network", network, ...labels,
+    REDIS_IMAGE, "redis-server", "--save", "", "--appendonly", "no"], env, { sensitiveOutput: true })
+  await runCommand("docker", ["run", "-d", "--name", `${projectId}-redis-http`, "--network", network,
+    ...labels, "-p", "127.0.0.1:55330:80", "-e", "SRH_MODE=env", "-e", "SRH_TOKEN",
+    "-e", `SRH_CONNECTION_STRING=redis://${redisName}:6379`, REDIS_HTTP_IMAGE],
+  { ...env, SRH_TOKEN: REDIS_TEST_TOKEN }, { sensitiveOutput: true })
+  const redis = new Redis({ url: REDIS_REST_ORIGIN, token: REDIS_TEST_TOKEN, retry: false })
+  const deadline = Date.now() + HEALTH_TIMEOUT_MS
+  let ready = false
+  while (Date.now() < deadline && !receivedSignal) {
+    try { ready = await redis.ping() === "PONG" } catch { /* Startup is bounded below. */ }
+    if (ready) break
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 250))
+  }
+  if (!ready) throw new Error("Runner-owned Redis did not become ready")
+  const limiter = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(1, "1 m"),
+    prefix: "hosted-runner-readiness", analytics: false })
+  const first = await limiter.limit("probe")
+  const second = await limiter.limit("probe")
+  await Promise.all([first.pending, second.pending])
+  if (!first.success || second.success) throw new Error("Runner-owned Redis did not enforce its test quota")
+}
+
+async function stopOwnedRedis(projectId: string, env: Partial<NodeJS.ProcessEnv>): Promise<void> {
+  const filters = ["--filter", `label=com.supabase.cli.project=${projectId}`,
+    "--filter", "label=instantmed.hosted-stripe.redis=true"]
+  const options = { allowDuringShutdown: true, sensitiveOutput: true }
+  const containers = nonEmptyLines((await runCommand("docker", ["ps", "-aq", ...filters], env, options)).stdout)
+  if (containers.length) await runCommand("docker", ["rm", "-f", "-v", ...containers], env, options)
+  const networks = nonEmptyLines((await runCommand("docker", ["network", "ls", "-q", ...filters], env, options)).stdout)
+  if (networks.length) await runCommand("docker", ["network", "rm", ...networks], env, options)
 }
 
 async function listOwnedDockerResources(
@@ -898,6 +944,7 @@ async function main(): Promise<void> {
   const archiveReceiptPath = join(root, ".artifacts", "hosted-stripe-e2e", `${safeReceiptRunId(runId)}.json`)
   const projectId = `hosted-stripe-e2e-${randomBytes(6).toString("hex")}`
   let supabaseStartAttempted = false
+  let redisStartAttempted = false
   let runtimeEnv: NodeJS.ProcessEnv | undefined
   let browserEvidence: HostedStripeBrowserEvidence | undefined
   let survivorCount: number | undefined
@@ -927,6 +974,10 @@ async function main(): Promise<void> {
         } catch (error) {
           errors.push(error)
         }
+      }
+
+      if (redisStartAttempted) {
+        try { await stopOwnedRedis(projectId, commandEnv) } catch (error) { errors.push(error) }
       }
 
       let stopError: unknown
@@ -1020,6 +1071,10 @@ async function main(): Promise<void> {
     )
     await waitForHttpHealth(`${localSupabase.apiUrl}/auth/v1/health`, HEALTH_TIMEOUT_MS)
     await waitForHttpHealth(localSupabase.mailpitUrl!, HEALTH_TIMEOUT_MS)
+
+    process.stdout.write("Starting isolated Redis and verifying real quota enforcement on port 55330...\n")
+    redisStartAttempted = true
+    await startOwnedRedis(projectId, commandEnv)
 
     const placeholderWebhookSecret = `whsec_${randomBytes(24).toString("hex")}`
     runtimeEnv = buildHostedStripeChildEnvironment({

@@ -249,6 +249,16 @@ zero repeated profile fields, and elapsed milliseconds from the confirmed offer
 to its outcome (including local Mailpit wait for linking). These are harness
 measurements, not patient performance promises. The GitHub workflow is manual `workflow_dispatch` only.
 
+The local production bundle's startup exception requires the explicit test flags,
+a test key, loopback app origins on 3060, matching loopback database origins on
+55321, and no Vercel markers. Deployed test keys, including restricted keys,
+remain rejected. The runner also owns port 55330 for a disposable Redis HTTP
+proxy backed by real Redis. Both container images are digest-pinned; their
+network is internal, Redis has no published port, and the HTTP proxy binds only
+to loopback. Before checkout, the installed rate-limit SDK must prove an allowed
+request followed by a rejected request. Cleanup removes only containers and
+networks with both the exact run label and Redis label, including partial starts.
+
 ### What NOT to E2E Test
 
 - Marketing pages (no auth, no data — snapshot test if needed)

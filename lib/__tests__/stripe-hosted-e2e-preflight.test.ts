@@ -347,6 +347,12 @@ describe("hosted Stripe runner isolation", () => {
     expect(cleanupUnknownOwner).not.toHaveBeenCalled()
   })
 
+  it("also refuses another owner's Redis HTTP listener", async () => {
+    expect(HOSTED_STRIPE_E2E_PORTS).toContain(55330)
+    await expect(assertPortsAvailable(HOSTED_STRIPE_E2E_PORTS, async (port) => port !== 55330))
+      .rejects.toThrow("Required hosted Stripe E2E port 55330 is already in use")
+  })
+
   it("treats every surviving run-owned Docker resource as cleanup failure", () => {
     expect(() => assertNoOwnedDockerResources({ containers: [], volumes: [], networks: [] })).not.toThrow()
     for (const owned of [
