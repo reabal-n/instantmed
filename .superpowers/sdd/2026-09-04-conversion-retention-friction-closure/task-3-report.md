@@ -8,9 +8,10 @@ The faithful local paths are green and the existing Sentry credential returned H
 
 ## Implementation and diagnosis
 
-- Added a fail-closed production-bundle runner and Playwright config. The runner accepts only `e2e/certificate-resend-render.spec.ts`, requires ports `3060` and `55320`–`55329` to be free, starts a run-scoped alternate-port Supabase stack, builds the Webpack production bundle, starts `next start` on `127.0.0.1:3060`, and stops only its own stack in `finally`.
-- The runner builds an allowlisted environment from scratch. It does not source or fall back to the primary `.env.local`, does not inherit provider credentials, and supplies only unusable local placeholders. A Node preload blocks `api.resend.com` with a local HTTP 503 before any external delivery.
-- Added an unmocked render contract covering four distinct entry points with real certificate email components and renderer: the normal-approval component/barrel control, patient self-resend action, staff resend action, and a separately constructed no-frozen `reconstructEmailContent()` email-hub row. External auth, database, rate-limit, and provider boundaries remain mocked in the action unit cases; React, the template, and `renderEmailToHtml` are not mocked.
+- Added a fail-closed production-bundle runner and Playwright config. The runner accepts only `e2e/certificate-resend-render.spec.ts`, requires ports `3060` and `55320`–`55329` to be free, creates a unique per-run alternate-port Supabase project, builds the Webpack production bundle, and starts `next start` on `127.0.0.1:3060`.
+- The runner copies the application to a temporary root while excluding `.env`, `.env.local`, `.env.production`, `.env.production.local`, and every other `.env.*` file. Both `next build` and `next start` run from that copy, so Next cannot auto-load credentials from the working checkout. The child environment is allowlisted, Sentry auth/DSN and PostHog keys are explicitly blank, non-GET/HEAD external fetches are rejected, and `api.resend.com` is always answered locally with HTTP 503. Build-time font GETs remain available because they are required by `next/font`; no external mutation is permitted.
+- Startup is marked attempted before invoking Supabase. All spawned commands are tracked in their own process groups, SIGINT/SIGTERM terminates only those tracked groups, and idempotent cleanup always attempts to stop the unique run-owned project. Cleanup then queries only the exact `com.supabase.cli.project=<per-run-id>` Docker label: any remaining owned container or volume makes the command fail and retains/logs the temporary workdir; a nonzero CLI stop after partial startup is accepted only when that exact-label check proves nothing remains.
+- Added an unmocked render contract covering four distinct entry points with real certificate email components and renderer: a real `executeCertApproval()` call, patient self-resend action, staff resend action, and a separately constructed no-frozen `reconstructEmailContent()` email-hub row. Database, PDF, storage, auth, rate-limit, and provider boundaries are mocked; React, `MedCertPatientEmail`, and `renderEmailToHtml` are not mocked.
 - Added action contracts proving patient and staff resend pass the constructed certificate template through to `sendEmail` while retaining the existing reservation/finalisation assertions.
 - Added a production Playwright action/bundle/outbox case. It seeds only fabricated data with `exclude_from_reporting: true`, walks the real `pending_payment -> paid -> approved` status transitions, clicks the authenticated staff intake-review `Resend` control, and verifies one finalized resend attempt, one E2E-suppressed durable outbox record, current storage-version binding, no raw storage path, and no render exception.
 - The same browser case separately seeds a failed no-frozen outbox row, opens the email hub Queue tab, invokes Retry, verifies reconstruction persisted a frozen encrypted provider payload, and then observes the deliberate local 503 provider block. This exercises reconstruction before the provider boundary without sending externally.
@@ -44,6 +45,10 @@ The production harness then progressed through genuine harness REDs before reach
 6. A fresh migration stack lacked `intake_answers.answers_encrypted`; a narrow `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` compatibility shim was applied only inside the disposable runner-owned database. No repository migration or application fallback was added.
 7. The E2E outbox seam intentionally omits the caller idempotency key, so the assertion was corrected to select the unique intake/email row and retain metadata/reservation linkage checks.
 8. The seeded hub retry appeared on the Overview tab while the locator targeted Queue markup; the test now selects Queue before finding the ledger row.
+9. Review identified that running Next in the repository could still auto-load dotenv credentials despite a sanitized process environment. Both build and start were moved to a sanitized temporary application copy.
+10. The first sanitized-copy build rejected all external traffic and therefore blocked required `next/font` GETs. The final guard permits GET/HEAD reads but rejects external mutating fetches and always intercepts Resend. Blank Sentry DSN/auth values keep the build wrapper/source-map uploader off; the E2E-mode SDK has no DSN transport.
+11. A refreshed hub row caused the deliberate provider-block message to appear three times and tripped Playwright strict mode. The assertion is now scoped to the notification region.
+12. One final verification attempt hit a transient Supabase Edge Runtime health-check 502 during partial startup, and the CLI stop returned nonzero. Exact ownership-label inspection found zero containers and zero volumes, demonstrating that the stack was already gone; cleanup now encodes that proof rule instead of treating the CLI exit alone as resource state. A fresh authoritative run then passed.
 
 The final green is the observed behavior of the faithful production bundle. Because the historical frame remains unavailable, the task stops at `BLOCKED_DIAGNOSIS`.
 
@@ -60,7 +65,7 @@ corepack pnpm exec vitest run \
   lib/__tests__/certificate-resend-dispatcher-finalization.test.ts \
   lib/__tests__/email-reconstruct-contract.test.ts \
   lib/__tests__/email-dispatcher-reconstruct-parity-contract.test.ts
-PASS — 6 files, 51 tests, 1.11s
+PASS — 6 files, 51 tests, 1.08s
 
 corepack pnpm typecheck
 PASS
@@ -69,7 +74,7 @@ corepack pnpm exec eslint playwright.production.config.ts e2e/certificate-resend
 PASS
 
 corepack pnpm e2e:production -- --spec=e2e/certificate-resend-render.spec.ts
-PASS — production Webpack build completed; Playwright 1/1 passed in 8.9s; isolated Supabase cleanup exited 0
+PASS — production Webpack build completed; Playwright 1/1 passed in 8.7s; exact-label isolated Supabase cleanup exited 0
 
 git diff --check
 PASS

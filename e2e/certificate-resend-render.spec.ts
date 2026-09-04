@@ -267,7 +267,9 @@ test.describe("certificate resend rendering in the production bundle", () => {
     const retryRow = page.locator("div.grid").filter({ hasText: RETRY_SUBJECT }).first()
     await expect(retryRow).toBeVisible()
     await retryRow.getByRole("button", { name: "Retry", exact: true }).click()
-    await expect(page.getByText(PROVIDER_BLOCK_MESSAGE, { exact: true })).toBeVisible()
+    await expect(
+      page.getByLabel("Notifications alt+T").getByText(PROVIDER_BLOCK_MESSAGE, { exact: true }),
+    ).toBeVisible()
 
     const reconstructedOutbox = await expect.poll(async () => {
       const { data, error } = await supabase

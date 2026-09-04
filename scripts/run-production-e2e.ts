@@ -3,14 +3,16 @@ import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promis
 import { createServer } from "node:net"
 import { tmpdir } from "node:os"
 import { basename, join, resolve } from "node:path"
-import { spawn } from "node:child_process"
+import { spawn, type ChildProcess } from "node:child_process"
 
 const EXPECTED_SPEC = "e2e/certificate-resend-render.spec.ts"
-const SUPABASE_PROJECT_ID = "instantmed-cert-resend-e2e"
 const LOCAL_PORTS = [3060, 55320, 55321, 55322, 55323, 55324, 55325, 55326, 55329]
 const PROVIDER_BLOCK_MESSAGE = "E2E provider blocked before external delivery"
+const activeChildren = new Set<ChildProcess>()
+let receivedSignal: NodeJS.Signals | null = null
 
 type CommandResult = { stdout: string; stderr: string }
+type OwnedDockerResources = { containers: string[]; volumes: string[] }
 
 function redact(value: string): string {
   return value
@@ -22,14 +24,19 @@ async function run(
   command: string,
   args: string[],
   env: NodeJS.ProcessEnv,
-  options: { stream?: boolean } = {},
+  options: { allowDuringShutdown?: boolean; cwd?: string; stream?: boolean } = {},
 ): Promise<CommandResult> {
+  if (receivedSignal && !options.allowDuringShutdown) {
+    throw new Error(`Runner interrupted by ${receivedSignal}`)
+  }
   return new Promise((resolvePromise, reject) => {
     const child = spawn(command, args, {
-      cwd: process.cwd(),
+      cwd: options.cwd ?? process.cwd(),
+      detached: process.platform !== "win32",
       env,
       stdio: ["ignore", "pipe", "pipe"],
     })
+    activeChildren.add(child)
     let stdout = ""
     let stderr = ""
     child.stdout.on("data", (chunk: Buffer) => {
@@ -42,8 +49,12 @@ async function run(
       stderr += text
       if (options.stream) process.stderr.write(text)
     })
-    child.once("error", reject)
+    child.once("error", (error) => {
+      activeChildren.delete(child)
+      reject(error)
+    })
     child.once("exit", (code) => {
+      activeChildren.delete(child)
       if (code === 0) {
         resolvePromise({ stdout, stderr })
         return
@@ -54,6 +65,24 @@ async function run(
     })
   })
 }
+
+function terminateChild(child: ChildProcess) {
+  if (!child.pid || child.exitCode !== null) return
+  try {
+    if (process.platform !== "win32") process.kill(-child.pid, "SIGTERM")
+    else child.kill("SIGTERM")
+  } catch {
+    // The exact tracked process may have exited between the check and signal.
+  }
+}
+
+function handleSignal(signal: NodeJS.Signals) {
+  if (!receivedSignal) receivedSignal = signal
+  for (const child of activeChildren) terminateChild(child)
+}
+
+process.once("SIGINT", handleSignal)
+process.once("SIGTERM", handleSignal)
 
 async function assertPortFree(port: number): Promise<void> {
   await new Promise<void>((resolvePromise, reject) => {
@@ -97,6 +126,39 @@ function parseSupabaseEnv(output: string): Record<string, string> {
   return values
 }
 
+function nonEmptyLines(output: string): string[] {
+  return output.split("\n").map((line) => line.trim()).filter(Boolean)
+}
+
+async function listOwnedDockerResources(
+  projectId: string,
+  env: NodeJS.ProcessEnv,
+): Promise<OwnedDockerResources> {
+  const exactProjectLabel = `label=com.supabase.cli.project=${projectId}`
+  const [containers, volumes] = await Promise.all([
+    run("docker", [
+      "ps",
+      "-a",
+      "--filter",
+      exactProjectLabel,
+      "--format",
+      "{{.ID}}",
+    ], env, { allowDuringShutdown: true }),
+    run("docker", [
+      "volume",
+      "ls",
+      "--filter",
+      exactProjectLabel,
+      "--format",
+      "{{.Name}}",
+    ], env, { allowDuringShutdown: true }),
+  ])
+  return {
+    containers: nonEmptyLines(containers.stdout),
+    volumes: nonEmptyLines(volumes.stdout),
+  }
+}
+
 function requireLocalSupabaseCoordinates(values: Record<string, string>) {
   const apiUrl = values.API_URL
   const dbUrl = values.DB_URL
@@ -117,6 +179,7 @@ function requireLocalSupabaseCoordinates(values: Record<string, string>) {
 function testEnvironment(
   local: Record<string, string>,
   providerPreload: string,
+  temporaryApp: string,
 ): NodeJS.ProcessEnv {
   const encryptionKey = randomBytes(32).toString("base64")
   const appUrl = "http://127.0.0.1:3060"
@@ -130,6 +193,7 @@ function testEnvironment(
     E2E_RUN_ID: `certificate-resend-${Date.now()}`,
     E2E_SECRET: randomBytes(32).toString("hex"),
     E2E_PROVIDER_BLOCK_MESSAGE: PROVIDER_BLOCK_MESSAGE,
+    PRODUCTION_E2E_APP_ROOT: temporaryApp,
     PLAYWRIGHT_BASE_URL: appUrl,
     PLAYWRIGHT_PORT: "3060",
     NEXT_PUBLIC_APP_URL: appUrl,
@@ -165,6 +229,11 @@ function testEnvironment(
     TELEGRAM_BOT_TOKEN: "e2e-local-only",
     TELEGRAM_CHAT_ID: "0",
     INSTANTMED_VALIDATE_PRODUCTION_ENV: "false",
+    SENTRY_AUTH_TOKEN: "",
+    SENTRY_DSN: "",
+    NEXT_PUBLIC_SENTRY_DSN: "",
+    POSTHOG_API_KEY: "",
+    NEXT_PUBLIC_POSTHOG_KEY: "",
     NODE_OPTIONS: `--require=${providerPreload}`,
   }
 }
@@ -186,16 +255,76 @@ async function main() {
   await Promise.all(LOCAL_PORTS.map(assertPortFree))
 
   const temporaryRoot = await mkdtemp(join(tmpdir(), "instantmed-cert-resend-e2e-"))
+  const temporaryApp = join(temporaryRoot, "app")
   const temporarySupabase = join(temporaryRoot, "supabase")
   const providerPreload = join(temporaryRoot, "block-resend-provider.cjs")
   const commandEnv = inheritedProcessEnv()
-  let startedSupabase = false
+  const supabaseProjectId = `instantmed-cert-resend-e2e-${randomBytes(4).toString("hex")}`
+  let supabaseStartAttempted = false
+  let primaryError: unknown
+  let cleanupError: unknown
+  let cleanupPromise: Promise<void> | undefined
+
+  function cleanup(): Promise<void> {
+    if (cleanupPromise) return cleanupPromise
+    cleanupPromise = (async () => {
+      for (const child of activeChildren) terminateChild(child)
+
+      let stopError: unknown
+      if (supabaseStartAttempted) {
+        process.stdout.write("Stopping only the runner-owned isolated Supabase stack...\n")
+        try {
+          await run("supabase", [
+            "stop",
+            "--workdir",
+            temporaryRoot,
+            "--no-backup",
+          ], commandEnv, { allowDuringShutdown: true })
+        } catch (error) {
+          stopError = error
+        }
+
+        const owned = await listOwnedDockerResources(supabaseProjectId, commandEnv)
+        if (owned.containers.length > 0 || owned.volumes.length > 0) {
+          throw new AggregateError(
+            stopError ? [stopError] : [],
+            `Cleanup left ${owned.containers.length} container(s) and ${owned.volumes.length} volume(s) owned by ${supabaseProjectId}`,
+          )
+        }
+        if (stopError) {
+          process.stderr.write(
+            "Supabase stop exited nonzero after partial startup; exact project-label verification found no owned containers or volumes.\n",
+          )
+        }
+      }
+
+      await rm(temporaryRoot, { recursive: true, force: true })
+    })()
+    return cleanupPromise
+  }
 
   try {
+    await mkdir(temporaryApp)
     await mkdir(temporarySupabase)
+    await run("rsync", [
+      "-a",
+      "--exclude=.git",
+      "--exclude=.next",
+      "--exclude=node_modules",
+      "--exclude=.env",
+      "--exclude=.env.*",
+      "--exclude=.superpowers",
+      "--exclude=coverage",
+      "--exclude=playwright-report",
+      "--exclude=test-results",
+      `${root}/`,
+      `${temporaryApp}/`,
+    ], commandEnv)
+    await symlink(join(root, "node_modules"), join(temporaryApp, "node_modules"), "dir")
+
     const sourceConfig = await readFile(join(root, "supabase/config.toml"), "utf8")
     const isolatedConfig = sourceConfig
-      .replace(/^project_id = .*$/m, `project_id = "${SUPABASE_PROJECT_ID}"`)
+      .replace(/^project_id = .*$/m, `project_id = "${supabaseProjectId}"`)
       .replace("port = 54321", "port = 55321")
       .replace("port = 54322", "port = 55322")
       .replace("shadow_port = 54320", "shadow_port = 55320")
@@ -210,11 +339,16 @@ async function main() {
       "const originalFetch = globalThis.fetch.bind(globalThis)",
       "globalThis.fetch = async (input, init) => {",
       "  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url",
-      "  if (new URL(url).hostname === 'api.resend.com') {",
+      "  const parsed = new URL(url)",
+      "  const method = (init?.method || (typeof input === 'object' && 'method' in input ? input.method : 'GET')).toUpperCase()",
+      "  if (parsed.hostname === 'api.resend.com') {",
       "    return new Response(JSON.stringify({ message: process.env.E2E_PROVIDER_BLOCK_MESSAGE }), {",
       "      status: 503,",
       "      headers: { 'Content-Type': 'application/json' },",
       "    })",
+      "  }",
+      "  if (!['127.0.0.1', 'localhost'].includes(parsed.hostname) && !['GET', 'HEAD'].includes(method)) {",
+      "    throw new Error(`E2E external network mutation blocked: ${method} ${parsed.hostname}`)",
       "  }",
       "  return originalFetch(input, init)",
       "}",
@@ -222,19 +356,19 @@ async function main() {
     ].join("\n"), { mode: 0o600 })
 
     process.stdout.write("Starting isolated Supabase on ports 55320-55329...\n")
+    supabaseStartAttempted = true
     await run("supabase", [
       "start",
       "--workdir",
       temporaryRoot,
     ], commandEnv)
-    startedSupabase = true
 
     // The checked-in baseline still names this production column `answers_enc`.
     // Keep the compatibility shim inside the disposable stack; do not mutate a
     // shared database or conceal the migration drift with an app fallback.
     await run("docker", [
       "exec",
-      `supabase_db_${SUPABASE_PROJECT_ID}`,
+      `supabase_db_${supabaseProjectId}`,
       "psql",
       "-U",
       "postgres",
@@ -255,13 +389,16 @@ async function main() {
     ], commandEnv)
     const local = parseSupabaseEnv(status.stdout)
     requireLocalSupabaseCoordinates(local)
-    const env = testEnvironment(local, providerPreload)
+    const env = testEnvironment(local, providerPreload, temporaryApp)
 
-    process.stdout.write("Building the production Webpack bundle with isolated local coordinates...\n")
+    process.stdout.write("Building the production Webpack bundle in a dotenv-free temporary app copy...\n")
     await run(process.execPath, [
-      join(root, "node_modules/next/dist/bin/next"),
+      join(temporaryApp, "node_modules/next/dist/bin/next"),
       "build",
-    ], { ...env, NODE_OPTIONS: "--max-old-space-size=8192" }, { stream: true })
+    ], { ...env, NODE_OPTIONS: `--max-old-space-size=8192 --require=${providerPreload}` }, {
+      cwd: temporaryApp,
+      stream: true,
+    })
 
     process.stdout.write("Running the certificate resend production-server spec...\n")
     await run(process.execPath, [
@@ -271,22 +408,25 @@ async function main() {
       "--project=chromium",
       EXPECTED_SPEC,
     ], env, { stream: true })
+  } catch (error) {
+    primaryError = error
   } finally {
-    if (startedSupabase) {
-      process.stdout.write("Stopping only the runner-owned isolated Supabase stack...\n")
-      try {
-        await run("supabase", [
-          "stop",
-          "--workdir",
-          temporaryRoot,
-          "--no-backup",
-        ], commandEnv)
-      } catch (error) {
-        process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`)
-      }
+    try {
+      await cleanup()
+    } catch (error) {
+      cleanupError = error
     }
-    await rm(temporaryRoot, { recursive: true, force: true })
   }
+
+  if (cleanupError) {
+    process.stderr.write(`Cleanup incomplete; recovery workdir retained at ${temporaryRoot}\n`)
+    throw new AggregateError(
+      [primaryError, cleanupError].filter((error) => error !== undefined),
+      "Production E2E failed and cleanup did not complete",
+    )
+  }
+  if (primaryError) throw primaryError
+  if (receivedSignal) throw new Error(`Runner interrupted by ${receivedSignal}`)
 }
 
 main().catch((error) => {
