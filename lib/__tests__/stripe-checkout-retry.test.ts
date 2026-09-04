@@ -24,6 +24,7 @@ const mocks = vi.hoisted(() => ({
   revalidatePatient: vi.fn(),
   revalidateStaff: vi.fn(),
   recordSafetyEvaluationForOperators: vi.fn(),
+  recordRecoveryEmailEngagement: vi.fn(),
   resolvePaymentRecoveryCanonicality: vi.fn(),
   stripeSessionCreate: vi.fn(),
   stripeSessionExpire: vi.fn(),
@@ -31,6 +32,7 @@ const mocks = vi.hoisted(() => ({
   stripePriceRetrieve: vi.fn(),
   validateRepeatScriptPayload: vi.fn(),
   validateSafetyFieldsPresent: vi.fn(),
+  verifyRecoveryEmailEngagementToken: vi.fn(),
 }))
 
 vi.mock("next/headers", () => ({
@@ -42,6 +44,14 @@ vi.mock("@/lib/analytics/posthog-server", () => ({
   trackOperationalBlock: vi.fn(),
   trackSafetyBlock: vi.fn(),
   trackSafetyOutcome: vi.fn(),
+}))
+
+vi.mock("@/lib/analytics/recovery-email-engagement", () => ({
+  recordRecoveryEmailEngagement: mocks.recordRecoveryEmailEngagement,
+}))
+
+vi.mock("@/lib/crypto/recovery-email-engagement-token", () => ({
+  verifyRecoveryEmailEngagementToken: mocks.verifyRecoveryEmailEngagementToken,
 }))
 
 vi.mock("@/lib/audit/compliance-audit", () => ({
@@ -334,6 +344,8 @@ describe("retryPaymentForIntakeAction", () => {
       unit_amount: 995,
     })
     mocks.resolvePaymentRecoveryCanonicality.mockResolvedValue({ kind: "canonical" })
+    mocks.recordRecoveryEmailEngagement.mockResolvedValue(true)
+    mocks.verifyRecoveryEmailEngagementToken.mockReturnValue(null)
     mocks.stripeSessionCreate.mockResolvedValue({
       id: "cs_retry",
       metadata: { intake_id: "intake-1" },
@@ -392,6 +404,46 @@ describe("retryPaymentForIntakeAction", () => {
       }),
       { idempotencyKey: "authenticated-retry-v2_intake-1_cs_previous" },
     )
+  })
+
+  it("records authenticated recovery-email engagement after attaching checkout", async () => {
+    const { supabase } = createRetrySupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.verifyRecoveryEmailEngagementToken.mockReturnValue({ intakeId: "intake-1" })
+
+    const result = await retryPaymentForIntakeAction(
+      "intake-1",
+      "signed-recovery-proof",
+    )
+
+    expect(result).toMatchObject({ success: true })
+    expect(mocks.recordRecoveryEmailEngagement).toHaveBeenCalledWith({
+      intakeId: "intake-1",
+      patientId: "patient-1",
+      supabase,
+    })
+  })
+
+  it("does not accept a forged client recovery value", async () => {
+    const { supabase } = createRetrySupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const result = await retryPaymentForIntakeAction("intake-1", "forged-campaign")
+
+    expect(result).toMatchObject({ success: true })
+    expect(mocks.recordRecoveryEmailEngagement).not.toHaveBeenCalled()
+  })
+
+  it("does not let a rejected recovery marker strand an attached checkout", async () => {
+    const { supabase } = createRetrySupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.verifyRecoveryEmailEngagementToken.mockReturnValue({ intakeId: "intake-1" })
+    mocks.recordRecoveryEmailEngagement.mockRejectedValueOnce(new Error("telemetry unavailable"))
+
+    await expect(retryPaymentForIntakeAction(
+      "intake-1",
+      "signed-recovery-proof",
+    )).resolves.toMatchObject({ success: true })
   })
 
   it("copies the stored specialty cohort to retry Session and PaymentIntent metadata", async () => {
@@ -807,14 +859,19 @@ describe("retryPaymentForIntakeAction", () => {
       updateResults: [{ data: null, error: { message: "database unavailable" } }],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.verifyRecoveryEmailEngagementToken.mockReturnValue({ intakeId: "intake-1" })
 
-    const result = await retryPaymentForIntakeAction("intake-1")
+    const result = await retryPaymentForIntakeAction(
+      "intake-1",
+      "signed-recovery-proof",
+    )
 
     expect(result).toEqual({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
     expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_retry")
+    expect(mocks.recordRecoveryEmailEngagement).not.toHaveBeenCalled()
   })
 
   it("reuses the retry session when an attach error committed before the response failed", async () => {

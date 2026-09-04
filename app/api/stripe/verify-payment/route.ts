@@ -10,7 +10,10 @@ import {
   completeConfirmedPaymentWork,
   finalizeConfirmedCheckoutPayment,
 } from "@/lib/stripe/confirmed-payment-finalization"
-import { validateCheckoutSessionIntakeMatch } from "@/lib/stripe/payment-integrity"
+import {
+  isPaymentReferenceRequestBody,
+  validateCheckoutSessionIntakeMatch,
+} from "@/lib/stripe/payment-integrity"
 import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -35,7 +38,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { intakeId, sessionId } = await req.json()
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid payment reference" }, { status: 400 })
+    }
+    if (!isPaymentReferenceRequestBody(body)) {
+      return NextResponse.json({ error: "Invalid payment reference" }, { status: 400 })
+    }
+    const { intakeId, sessionId } = body
 
     if (!intakeId) {
       return NextResponse.json({ error: "Missing intake_id" }, { status: 400 })

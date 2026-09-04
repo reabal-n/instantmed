@@ -62,6 +62,7 @@ const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number
   "retry-drafts":           { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "release-stale-claims":   { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "refund-reconciliation":  { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
+  "refill-reminders":       { schedule: "0 23 * * *",    maxDelayMinutes: 1500 }, // ~25h
   "review-request":         { schedule: "0 0,23 * * *",  maxDelayMinutes: 1500 }, // actual 10:00 Sydney run; guard-only slot is neutral
   "stale-queue":            { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "emergency-flags":        { schedule: "0 * * * *",     maxDelayMinutes: 75 },
@@ -144,12 +145,19 @@ export function findCronHeartbeatOutages(input: {
     const heartbeat = heartbeatMap.get(jobName)
 
     if (!heartbeat?.last_run_at) {
-      if (deploymentAgeMinutes >= CRON_WATCHDOG_DEPLOYMENT_GRACE_MINUTES) {
+      // A newly monitored job cannot produce a heartbeat before its first
+      // scheduled window. Keep the 30-minute floor for frequent jobs, while
+      // daily/hourly jobs receive the same jitter allowance as stale rows.
+      const initialGraceMinutes = Math.max(
+        CRON_WATCHDOG_DEPLOYMENT_GRACE_MINUTES,
+        config.maxDelayMinutes,
+      )
+      if (deploymentAgeMinutes >= initialGraceMinutes) {
         outages.push({
           jobName,
           lastRunAt: null,
           minutesOverdue: Math.round(
-            deploymentAgeMinutes - CRON_WATCHDOG_DEPLOYMENT_GRACE_MINUTES,
+            deploymentAgeMinutes - initialGraceMinutes,
           ),
           status: "never_run",
           outageKey: `never:${input.deploymentKey}`,

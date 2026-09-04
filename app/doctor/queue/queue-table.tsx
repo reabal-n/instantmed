@@ -11,7 +11,6 @@ import {
   Loader2,
   MessageSquare,
   RotateCw,
-  ShieldAlert,
   Sparkles,
   Zap,
 } from "lucide-react"
@@ -24,6 +23,7 @@ import { toast } from "sonner"
 import { quickPrescribeRenewalAction } from "@/app/doctor/queue/actions"
 import { IntakeFlagsBadge } from "@/components/doctor/intake-flags-panel"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
+import { QueueClinicalStatusBadges } from "@/components/doctor/queue-clinical-status-badges"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -70,15 +70,6 @@ function getConsultSubtypeLabel(subtype: string | null | undefined): string | nu
   return labels[subtype] ?? null
 }
 
-function getCompactQueueReason(service: { type?: string; name?: string; short_name?: string } | undefined, subtype: string | null | undefined): string {
-  if (service?.type === SERVICE_TYPES.MED_CERTS) return "Medical certificate request"
-  if (service?.type === SERVICE_TYPES.COMMON_SCRIPTS || service?.type === "repeat_rx") return "Prescription request"
-  if (subtype === "ed") return "ED consult request"
-  if (subtype === "hair_loss") return "Hair loss consult request"
-  if (subtype === "womens_health") return "Women's health consult request"
-  return `${service?.short_name || service?.name || "Clinical"} request`
-}
-
 const QUEUE_DOM_WINDOW_LIMIT = 100
 
 // Soft-claim lock timeout — matches the server-side claim TTL in
@@ -113,10 +104,13 @@ export interface QueueTableProps {
   isPending: boolean
   identityComplete: boolean
   onApprove: (intakeId: string, serviceType?: string | null, subtype?: string | null) => void
-  hasRedFlags: (intake: IntakeWithPatient) => boolean
+  hasClinicalRisk: (intake: IntakeWithPatient) => boolean
   calculateWaitTime: (createdAt: string) => string
   getWaitTimeSeverity: (createdAt: string) => "normal" | "warning" | "critical"
-  getWaitTargetState: (createdAt: string) => { label: string }
+  getWaitTargetState: (createdAt: string) => {
+    label: string
+    tone: "normal" | "warning" | "critical"
+  }
   openReviewPanel: (intakeId: string) => void
   onPrimeReviewPanelCode?: () => void
   openIntakeId: string | null
@@ -159,7 +153,7 @@ export function QueueTable({
   isPending,
   identityComplete,
   onApprove,
-  hasRedFlags,
+  hasClinicalRisk,
   calculateWaitTime,
   getWaitTimeSeverity,
   getWaitTargetState,
@@ -350,21 +344,17 @@ export function QueueTable({
               rememberOpenedCase(intake.id)
               openReviewPanel(intake.id)
             }
-            const showRoutineStatus = !compactShell || !["paid", "in_review"].includes(intake.status)
+            const showRoutineStatus = !compactShell
             const showInlineWaitTime = true
             const waitLabel = calculateWaitTime(queueEnteredAt)
             const displayWaitLabel = waitLabel === "just now" ? "Just arrived" : `Waiting ${waitLabel}`
-            const waitTargetLabel = getWaitTargetState(queueEnteredAt).label
-            const compactQueueReason = compactShell
-              ? getCompactQueueReason(service, intake.subtype)
-              : null
+            const waitTargetState = getWaitTargetState(queueEnteredAt)
+            const showWaitTarget = waitTargetState.tone !== "normal"
             const compactTaxonomyChipClass = "border-border/60 bg-background text-muted-foreground"
             const compactActionChipClass =
               intake.status === "pending_info"
                 ? "border-warning-border bg-warning-light text-warning"
                 : "border-primary/25 bg-primary/[0.06] text-primary shadow-none dark:border-primary/35 dark:bg-primary/15 dark:text-primary"
-            const compactStatusChipClass = "border-border/60 bg-background text-foreground shadow-none dark:border-white/15 dark:bg-white/5 dark:text-foreground"
-            const compactClaimChipClass = "border-border/60 bg-muted/35 text-muted-foreground shadow-none dark:border-white/15 dark:bg-white/5"
             return (
               <div
                 key={intake.id}
@@ -445,14 +435,12 @@ export function QueueTable({
                   ) : null}
                   {showRoutineStatus && (
                     <Badge
-                      variant={compactShell ? "default" : "outline"}
+                      variant="outline"
                       className={cn(
                         "text-xs",
-                        compactShell
-                          ? compactStatusChipClass
-                          : statusMeta.tone === "script" && "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300",
-                        !compactShell && statusMeta.tone === "info" && "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300",
-                        !compactShell && statusMeta.tone === "review" && "border-info-border bg-info-light text-info",
+                        statusMeta.tone === "script" && "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300",
+                        statusMeta.tone === "info" && "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300",
+                        statusMeta.tone === "review" && "border-info-border bg-info-light text-info",
                       )}
                       data-queue-status-chip
                     >
@@ -467,12 +455,10 @@ export function QueueTable({
                       <Zap className="w-3 h-3 mr-1" />Priority
                     </Badge>
                   )}
-                  {hasRedFlags(intake) && (
-                    <Badge className="bg-destructive/10 text-destructive border-destructive/20">
-                      <ShieldAlert className="w-3 h-3 mr-1" />
-                      {compactShell ? "Risk" : "Flagged"}
-                    </Badge>
-                  )}
+                  <QueueClinicalStatusBadges
+                    hasClinicalRisk={hasClinicalRisk(intake)}
+                    requiresLiveConsult={intake.requires_live_consult === true}
+                  />
                   {!compactShell && intake.ai_draft_status === "completed" && (
                     <Badge className="bg-info-light text-info border-info-border">
                       <Sparkles className="w-3 h-3 mr-1" />AI ready
@@ -505,9 +491,10 @@ export function QueueTable({
                       </Badge>
                     )
                   })()}
-                  {!compactShell ? (
-                    <IntakeFlagsBadge flags={parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags)} />
-                  ) : null}
+                  <IntakeFlagsBadge
+                    flags={parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags)}
+                    compact={compactShell}
+                  />
                   {/* Soft-claim presence (Phase 7). Two-doctor model: surface
                       who's reviewing a paid case before another doctor opens
                       the same one and races on Approve. The DB-level claim
@@ -533,17 +520,13 @@ export function QueueTable({
                   )}
                   {claimedByMe && (
                     <Badge
-                      variant={compactShell ? "default" : "outline"}
-                      className={cn(
-                        "text-xs",
-                        compactShell
-                          ? compactClaimChipClass
-                          : "border-primary/30 bg-primary/10 text-primary",
-                      )}
+                      variant="outline"
+                      className="border-primary/30 bg-primary/10 text-xs text-primary"
                       title="You're holding the review claim on this case."
+                      aria-label="Reviewing: you. You hold the active review claim on this case."
                       data-queue-status-chip
                     >
-                      <Eye className="h-3 w-3 mr-1" />
+                      <Eye className="h-3 w-3 mr-1" aria-hidden="true" />
                       Reviewing: you
                     </Badge>
                   )}
@@ -574,11 +557,6 @@ export function QueueTable({
                       Last opened
                     </Badge>
                   )}
-                  {compactQueueReason ? (
-                    <span className="min-w-0 truncate text-xs font-medium text-muted-foreground">
-                      {compactQueueReason}
-                    </span>
-                  ) : null}
                 </div>
 
                 {/* Quick actions */}
@@ -609,7 +587,7 @@ export function QueueTable({
                     size={compactShell ? "icon" : "sm"}
                     className={cn(
                       "h-8 px-3 text-xs",
-                      compactShell && "w-8 border-transparent bg-transparent px-0 text-muted-foreground shadow-none hover:bg-muted/45 hover:text-foreground",
+                      compactShell && "h-11 w-11 border-transparent bg-transparent px-0 text-muted-foreground shadow-none hover:bg-muted/45 hover:text-foreground sm:h-8 sm:w-8",
                     )}
                     aria-label={`Open case for ${intake.patient.full_name}`}
                     onPointerDown={(event) => {
@@ -754,8 +732,12 @@ export function QueueTable({
                     >
                       {displayWaitLabel}
                     </span>
-                    <span className="text-muted-foreground/60" aria-hidden="true">·</span>
-                    <span>{waitTargetLabel}</span>
+                    {showWaitTarget ? (
+                      <>
+                        <span className="text-muted-foreground/60" aria-hidden="true">·</span>
+                        <span>{waitTargetState.label}</span>
+                      </>
+                    ) : null}
                   </div>
                 )}
                 {!compactShell && (paidAt || submittedAt) && (

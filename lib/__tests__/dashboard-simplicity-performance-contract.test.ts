@@ -90,7 +90,9 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     const queueUtilsSource = read("lib/doctor/queue-utils.ts")
 
     expect(source).toContain("getQueueClockTickDelayMs")
-    expect(source).toContain("QUEUE_VISIBLE_WAIT_SECONDS_CADENCE")
+    expect(source).toContain("calculateLiveWaitTime(createdAt, clockNow)")
+    expect(source).not.toContain("QUEUE_VISIBLE_WAIT_SECONDS_CADENCE")
+    expect(source).not.toContain("postMinuteCadenceMs:")
     expect(source).toContain("window.setTimeout")
     expect(source).toContain("window.clearTimeout")
     expect(queueUtilsSource).toContain("return 1_000")

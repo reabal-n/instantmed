@@ -4,8 +4,12 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { faqItems, footerLinks } from "@/lib/marketing/homepage"
-import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
+import {
+  DEEP_CITY_CONTENT,
+  type DeepCityContent,
+} from "@/lib/seo/data/deep-city-content"
 import { KEEP_INDEXED_LOCATIONS } from "@/lib/seo/index-policy"
+import { intentPages } from "@/lib/seo/intents"
 import { getActiveServices, getServiceMarketingHref } from "@/lib/services/service-catalog"
 
 const root = process.cwd()
@@ -175,7 +179,96 @@ const prescribingIdentityClaimConsumerPaths = [
   "lib/seo/data/deep-city-content/nsw.ts",
 ] as const
 
+function renderedDeepCityFields(content: DeepCityContent) {
+  return [
+    ...content.healthStats.flatMap((stat, index) => [
+      [`healthStats[${index}].label`, stat.label] as const,
+      [`healthStats[${index}].value`, stat.value] as const,
+      [`healthStats[${index}].context`, stat.context] as const,
+    ]),
+    ...content.sections.flatMap((section, sectionIndex) => [
+      [`sections[${sectionIndex}].title`, section.title] as const,
+      ...section.paragraphs.map(
+        (paragraph, paragraphIndex) =>
+          [
+            `sections[${sectionIndex}].paragraphs[${paragraphIndex}]`,
+            paragraph,
+          ] as const,
+      ),
+    ]),
+    ["pharmacyInfo.title", content.pharmacyInfo.title] as const,
+    ...content.pharmacyInfo.paragraphs.map(
+      (paragraph, index) =>
+        [`pharmacyInfo.paragraphs[${index}]`, paragraph] as const,
+    ),
+    ["telehealthRegulations.title", content.telehealthRegulations.title] as const,
+    ...content.telehealthRegulations.paragraphs.map(
+      (paragraph, index) =>
+        [`telehealthRegulations.paragraphs[${index}]`, paragraph] as const,
+    ),
+    ...content.additionalFaqs.flatMap((faq, index) => [
+      [`additionalFaqs[${index}].q`, faq.q] as const,
+      [`additionalFaqs[${index}].a`, faq.a] as const,
+      [`additionalFaqs[${index}]`, `${faq.q} ${faq.a}`] as const,
+    ]),
+  ]
+}
+
+const prohibitedDeepCityClaims = [
+  {
+    label: "locked certificate-body assertion",
+    pattern: /\b(?:medically unfit|unfit for (?:work|study)|not fit for (?:work|study)|unable to (?:work|study)|shows? (?:that )?(?:you|the patient) (?:were|was) genuinely unwell|documentation for legitimate illness|includes? standard (?:document |absence )?details|recommended period of absence)\b/i,
+  },
+  {
+    label: "employer or institution acceptance guarantee",
+    pattern: /cannot refuse|requires acceptance|accepted under all|fully valid|equally valid|(?:consultation method|method of consultation).{0,120}(?:doesn['’]?t|does not|is not a factor).{0,120}(?:acceptance|validity|documentation review)|telehealth certificates? meet(?:s)? (?:this|the|your) requirement|(?:certificate|certificates).{0,120}(?:valid for employers|valid for Fair Work|valid in (?:both|all|every)|valid across|valid under both|includes standard workplace evidence details|suitable for Fair Work sick-leave evidence|same workplace evidence status)|(?:systems|frameworks|awards?|universit(?:y|ies)|institutions?).{0,120}accept(?:s|ed)? (?:telehealth )?certificates|do not distinguish between telehealth and face-to-face certificates|no (?:legislative|legal) distinction between telehealth and face-to-face certificates|regardless of (?:the )?consultation method|same rule that applies at every Australian university|applies equally to .{0,160} employer|are certificates suitable .{0,80}\byes\b|do .{0,80}employers accept .{0,80}\byes\b/i,
+  },
+  {
+    label: "minor, guardian, or age-independent eligibility",
+    pattern: /\bpartners? and children\b|\bparents?\b.{0,120}\b(?:InstantMed|telehealth|certificate|request)\b|\b(?:InstantMed|telehealth|certificate|request)\b.{0,120}\b(?:parents?|children|child)\b|^(?:yes[. -]*)?(?:eligible )?(?:defence )?famil(?:y|ies|y members) can submit\b|regardless of (?:the patient['’]?s )?age|across all age groups|personal and family healthcare needs/i,
+  },
+  {
+    label: "timing or service-outcome guarantee",
+    pattern: /submissions?.{0,80}(?:reviewed|approved).{0,40}(?:almost )?immediately|requests? submitted.{0,80}reviewed the following morning|(?:eScript|certificate|PDF).{0,100}(?:issued|sent|arrives?|dispatch(?:ed)?).{0,60}(?:in minutes|same[- ]day|same night|immediately|next working day)|(?:InstantMed|telehealth).{0,160}(?:gets you a certificate before|delivers them faster|provides documentation without the wait|fastest path to documentation|significantly faster|20[–-]30 minute process|20[–-]30 minutes from home|30-minute telehealth turnaround|practical immediate solution|certificate arrives via email|provides the documentation without|timely documentation|delivers (?:the )?certificate|delivers reliably)|the whole process takes 20[–-]30 minutes|receive your certificate before the next shift|submit.{0,100}receive (?:the|your) certificate(?: via email)?|your certificate is emailed|can get (?:a |medical )?certificates? via telehealth|with a 14-day (?:response )?(?:SLA|commitment)/i,
+  },
+  {
+    label: "no-charge-before-review claim",
+    pattern: /(?:you|patients?|people|residents|visitors) (?:are|aren['’]?t|won['’]?t|will not|do not|don['’]?t) (?:be )?charged|you will not be charged|no charge|pay(?:ment)? (?:only )?after|charged (?:only )?after|before (?:being )?charged/i,
+  },
+  {
+    label: "blanket prescribing or general-care scope",
+    pattern: /most (?:PBS-listed )?medications can be prescribed|PBS-listed medications can be prescribed via telehealth|(?:our )?doctors? can (?:help|treat patients|provide medical certificates and prescriptions)|routine UTI prescription|personal and family healthcare needs|routine healthcare needs|routine prescriptions|routine certificate and script needs|repeat scripts? (?:on|of) stable (?:chronic )?medications|for straightforward certificates and scripts|alternative pathway for low-acuity needs|when (?:an )?InstantMed(?: doctor)? issues (?:a prescription|an eScript)|telehealth (?:provides it|gets? (?:you|them) (?:the|a) certificate)|the certificate is emailed directly/i,
+  },
+  {
+    label: "equivalent clinical outcome",
+    pattern: /same clinical (?:outcome|assessment)|without (?:sacrificing|reducing).{0,80}(?:clinical assessment|quality of the clinical assessment)/i,
+  },
+] as const
+
 describe("marketing copy contracts", () => {
+  it("certifies every rendered field across all 42 deep-city entries", () => {
+    const cities = Object.entries(DEEP_CITY_CONTENT)
+
+    expect(cities).toHaveLength(42)
+
+    for (const [city, content] of cities) {
+      for (const [field, copy] of renderedDeepCityFields(content)) {
+        expect(copy, `${city}.${field}`).toBeTypeOf("string")
+        expect(copy.trim(), `${city}.${field}`).not.toBe("")
+
+        for (const { label, pattern } of prohibitedDeepCityClaims) {
+          expect.soft(copy, `${city}.${field}: ${label}`).not.toMatch(pattern)
+        }
+
+        if (/^additionalFaqs\[\d+\]$/.test(field) && /^Can .+ use InstantMed\b/i.test(copy)) {
+          expect.soft(copy, `${city}.${field}: explicit 18+ eligibility`).toMatch(
+            /\b(?:adults? aged )?18\+/i,
+          )
+        }
+      }
+    }
+  })
+
   it("keeps city and telehealth acquisition copy inside approved public truth", () => {
     const combined = [
       locationPageSource,
@@ -218,6 +311,36 @@ describe("marketing copy contracts", () => {
       /focused ED, hair-loss, women&apos;s-health \(UTI or a new or switch\s+contraceptive pill\), and weight-management assessments/,
     )
     expect(telehealthAustraliaSource).not.toContain("accepted documentation")
+    expect(locationContentSource).not.toContain("Tell us what you need")
+    expect(locationContentSource).not.toContain("Tell us about your health concern")
+    expect(locationContentSource).toContain("Choose a listed service")
+    expect(locationContentSource).toContain("Answer the service-specific questions")
+    expect(locationPageSource).not.toContain('name: "Online Prescription"')
+    expect(locationPageSource).toContain('name: "Repeat Prescription Review"')
+
+    const cityContentBlock = locationPageSource.match(
+      /const CITY_CONTENT:[\s\S]*?= \{([\s\S]*?)\n\}\n\n\/\/ City-specific FAQ items/,
+    )?.[1]
+    expect(cityContentBlock).toBeDefined()
+    const cityContentEntries = [...(cityContentBlock ?? "").matchAll(
+      /^\s*(?:"[^"]+"|[a-z]+):\s*"([^"]+)",?$/gm,
+    )].map((match) => match[1])
+    expect(cityContentEntries).toHaveLength(42)
+    for (const content of cityContentEntries) {
+      expect(content).toMatch(/medical[- ]certificate/i)
+      expect(content).toMatch(/repeat[- ]prescription/i)
+    }
+
+    const allDeepCityContent = JSON.stringify(DEEP_CITY_CONTENT)
+    expect(allDeepCityContent).not.toMatch(
+      /most (?:PBS-listed )?medications can be prescribed|everything else most people need/i,
+    )
+    expect(allDeepCityContent).not.toMatch(
+      /InstantMed.{0,160}(?:everyday|routine|straightforward) healthcare needs|our doctors can treat patients in both NSW and Victoria|use InstantMed for medical certificates and prescriptions/i,
+    )
+    expect(allDeepCityContent).not.toMatch(
+      /(?:routine|straightforward|everyday|personal and family) healthcare needs|(?:simple|straightforward|non-urgent) prescriptions|medical certificates and prescriptions|straightforward certificates and scripts|straightforward consultations|handle everything else/i,
+    )
 
     for (const city of KEEP_INDEXED_LOCATIONS) {
       expect(locationPageSource, city).toMatch(
@@ -233,10 +356,55 @@ describe("marketing copy contracts", () => {
       expect(renderedDeepCityContent, city).not.toMatch(
         /cannot refuse|requires acceptance|accepted under all|fully valid|we&apos;ve never had.*rejected|we've never had.*rejected|ideal for telehealth|no clinical reason.{0,80}(?:in-person|waiting room)|same process as an in-person|(?:consultation method|method of consultation).{0,120}(?:doesn&apos;t|doesn't|does not).{0,120}(?:acceptance|validity|workplace evidence status)|(?:certificate&apos;s|certificate's|workplace evidence status).{0,120}(?:is|are) not affected by.{0,80}(?:consultation|telehealth)|(?:recognis(?:e|es)|recogniz(?:e|es)).{0,120}(?:medical cert|telehealth-issued certificate|certificate)|meets (?:your )?leave requirements|meet(?:s)? (?:this|the )?requirement|(?:medical certificates?|telehealth-issued certificates?|certificates?).{0,100}(?:are|can be)(?: used as)?.{0,60}evidence|(?:certificate|cert).{0,100}(?:all required elements|formatted identically|next working day)|(?:you|we) (?:(?:won&apos;t|won't|will not)(?: be)?|aren&apos;t|aren't|are not) charged|14-day response SLA/i,
       )
+      expect(renderedDeepCityContent, city).not.toMatch(
+        /immediate access to an Australian doctor|medical certificate that takes a doctor.{0,40}assess|your telehealth doctor assesses|our doctors assess whether your symptoms are appropriate|our doctors can help|our doctors can provide medical certificates and prescriptions/i,
+      )
     }
+
+    const medCertIntentContent = JSON.stringify(
+      intentPages.filter((page) => page.commercial.cluster === "medical-certificate"),
+    )
+    expect(medCertIntentContent).not.toMatch(
+      /doctor reviewed|doctor (?:assesses|decides) whether|where a doctor can assess|doctor considers online review suitable|scope check, doctor review/i,
+    )
+    const comparisonIntentContent = JSON.stringify(
+      intentPages.filter((page) => page.commercial.cluster === "comparison"),
+    )
+    expect(comparisonIntentContent).not.toMatch(
+      /by price, doctor review|price, doctor review|between doctor review and self-declaration|focus on doctor review|clear pricing and doctor review/i,
+    )
 
     expect(telehealthAustraliaSource).not.toMatch(
       /doctor review before certificate issue/i,
+    )
+    expect(locationContentSource).toContain(
+      'getApprovedClaim("clinical_review_sequence")',
+    )
+    expect(locationContentSource).toContain(
+      'getApprovedClaim("doctor_registration")',
+    )
+    expect(locationContentSource).not.toContain(
+      "AHPRA-registered doctor review where required",
+    )
+    expect(locationContentSource).not.toMatch(
+      /Reviewed by AHPRA-registered Australian doctors|title:\s*"Doctor reviews"|An Australian doctor reviews your request|the doctor's outcome|Doctor review, digital delivery|Reviewed by real Australian doctors/i,
+    )
+    expect(telehealthAustraliaSource).not.toMatch(
+      /You submit a structured form; a doctor reviews it|the doctor reviews it later|submit 24\/7 for doctor review/i,
+    )
+    expect(locationPageSource).not.toContain(
+      "an AHPRA-registered doctor can help",
+    )
+    expect(locationPageSource).not.toMatch(
+      /(?:access to|connects?[^.]{0,50}with) (?:Australian(?:-registered)? )?doctors/i,
+    )
+
+    const intentPageSource = readFileSync(
+      join(root, "app/intent/[slug]/page.tsx"),
+      "utf8",
+    )
+    expect(intentPageSource).not.toMatch(
+      /AHPRA-registered doctor review|Doctor reviewed|AHPRA-registered review/i,
     )
 
     expect(locationPageSource).toContain(

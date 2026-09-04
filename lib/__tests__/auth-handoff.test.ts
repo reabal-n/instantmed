@@ -11,8 +11,12 @@ import {
   type AuthHandoffEventDetail,
   buildPostSignInHref,
   buildPostSignInRedirectHref,
+  consumeMagicLinkRecoveryEmail,
+  consumeSignInEmailHandoff,
   createAuthHandoffRefreshGuard,
   navigateToPostSignIn,
+  rememberMagicLinkRecoveryEmail,
+  rememberSignInEmailHandoff,
 } from "@/lib/navigation/auth-handoff"
 
 class TestCustomEvent<T> extends Event {
@@ -21,6 +25,15 @@ class TestCustomEvent<T> extends Event {
   constructor(type: string, init: CustomEventInit<T>) {
     super(type)
     this.detail = init.detail as T
+  }
+}
+
+function createTestStorage() {
+  const values = new Map<string, string>()
+  return {
+    getItem: (key: string) => values.get(key) ?? null,
+    removeItem: (key: string) => { values.delete(key) },
+    setItem: (key: string, value: string) => { values.set(key, value) },
   }
 }
 
@@ -122,6 +135,49 @@ describe("auth post-sign-in handoff", () => {
 
   it("exports the sessionStorage key for cross-page suppression", () => {
     expect(AUTH_HANDOFF_STORAGE_KEY).toBe("instantmed:auth-handoff-ts")
+  })
+
+  it("prefills checkout email only for its exact, unexpired sign-in handoff", () => {
+    const storage = createTestStorage()
+    const now = 1_000
+
+    expect(rememberSignInEmailHandoff(
+      storage,
+      " Patient@Example.com ",
+      "/request?service=repeat-script",
+      now,
+    )).toBe(true)
+    expect(consumeSignInEmailHandoff(
+      storage,
+      "/request?service=repeat-script",
+      now + 1,
+    )).toBe("patient@example.com")
+    expect(consumeSignInEmailHandoff(
+      storage,
+      "/request?service=repeat-script",
+      now + 2,
+    )).toBeNull()
+  })
+
+  it("consumes but rejects a checkout email for another or expired handoff", () => {
+    const storage = createTestStorage()
+    const now = 2_000
+
+    rememberSignInEmailHandoff(storage, "patient@example.com", "/request?service=repeat-script", now)
+    expect(consumeSignInEmailHandoff(storage, "/patient", now + 1)).toBeNull()
+    expect(consumeSignInEmailHandoff(storage, "/request?service=repeat-script", now + 2)).toBeNull()
+
+    rememberSignInEmailHandoff(storage, "patient@example.com", "/request", now)
+    expect(consumeSignInEmailHandoff(storage, "/request", now + 10 * 60 * 1000)).toBeNull()
+  })
+
+  it("bounds expired-link email recovery and removes it after one read", () => {
+    const storage = createTestStorage()
+    const now = 3_000
+
+    expect(rememberMagicLinkRecoveryEmail(storage, "patient@example.com", "/patient", now)).toBe(true)
+    expect(consumeMagicLinkRecoveryEmail(storage, "/patient", now + 1)).toBe("patient@example.com")
+    expect(consumeMagicLinkRecoveryEmail(storage, "/patient", now + 2)).toBeNull()
   })
 
   it("auth-provider reads the sessionStorage key to activate the cross-nav guard", () => {

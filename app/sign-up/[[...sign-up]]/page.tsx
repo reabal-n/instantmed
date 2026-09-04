@@ -11,6 +11,7 @@ import { GoogleIcon } from "@/components/icons/google-icon"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
+import { rememberMagicLinkRecoveryEmail } from '@/lib/navigation/auth-handoff'
 import { createClient } from '@/lib/supabase/client'
 
 export const dynamic = "force-dynamic"
@@ -70,6 +71,12 @@ function SignUpForm() {
       return
     }
 
+    try {
+      rememberMagicLinkRecoveryEmail(window.sessionStorage, trimmed, redirectUrl)
+    } catch {
+      // Some privacy modes block access to sessionStorage. The sign-in link
+      // was still sent, so recovery prefill remains best effort.
+    }
     setFormState('success')
   }, [email, redirectUrl, supabase.auth])
 

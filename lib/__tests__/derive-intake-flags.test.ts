@@ -38,7 +38,7 @@ describe("deriveIntakeFlags — repeat script", () => {
     expect(flags).toEqual([])
   })
 
-  it("flags a missing form", () => {
+  it("keeps a missing optional form as quiet info", () => {
     const flags = deriveIntakeFlags({
       ...repeatBase,
       answers: {
@@ -47,6 +47,7 @@ describe("deriveIntakeFlags — repeat script", () => {
       },
     })
     expect(codes(flags)).toEqual(["medication_form_missing"])
+    expect(flags[0].severity).toBe("info")
   })
 
   it("flags an unknown medication with the description as detail, and does NOT also flag strength/form", () => {

@@ -3,7 +3,10 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { REQUEST_REPEAT_SCRIPT_HREF } from "@/lib/dashboard/routes"
+import {
+  buildPrescriptionRenewalHref,
+  REQUEST_REPEAT_SCRIPT_HREF,
+} from "@/lib/dashboard/routes"
 
 function collectSourceFiles(dir: string): string[] {
   if (!existsSync(dir)) return []
@@ -38,5 +41,32 @@ describe("request links", () => {
     expect(source).not.toContain("/request?service=prescription")
     expect(dashboardHero).toContain('serviceParam: "repeat-script"')
     expect(dashboardHero).not.toContain('serviceParam: "prescription"')
+  })
+
+  it("builds record-specific renewal links from the opaque prescription id only", () => {
+    const prescriptionsClient = readFileSync(
+      join(process.cwd(), "app/patient/prescriptions/client.tsx"),
+      "utf8",
+    )
+    const dashboardHero = readFileSync(
+      join(process.cwd(), "components/patient/dashboard-hero.tsx"),
+      "utf8",
+    )
+    const dashboardActivity = readFileSync(
+      join(process.cwd(), "components/patient/dashboard-activity.tsx"),
+      "utf8",
+    )
+    const href = buildPrescriptionRenewalHref("rx/id?not-phi")
+    const url = new URL(href, "https://instantmed.com.au")
+
+    expect(url.pathname).toBe("/request")
+    expect([...url.searchParams.entries()]).toEqual([
+      ["service", "repeat-script"],
+      ["renewal", "rx/id?not-phi"],
+    ])
+    expect(prescriptionsClient).toContain("buildPrescriptionRenewalHref(rx.id)")
+    expect(dashboardHero).toContain("buildPrescriptionRenewalHref(prescription.id)")
+    expect(dashboardActivity).toContain("buildPrescriptionRenewalHref(prescription.id)")
+    expect(dashboardActivity).toContain("prescription.dosage_instructions?.trim()")
   })
 })

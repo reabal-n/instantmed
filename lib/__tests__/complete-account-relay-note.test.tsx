@@ -13,14 +13,14 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("@/lib/supabase/auth-provider", () => ({
   useAuth: () => ({ isSignedIn: false, isLoaded: true }),
 }))
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({ auth: { signInWithOtp: vi.fn() } }),
+}))
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }))
 vi.mock("@/components/ui/confetti", () => ({
   Confetti: () => null,
-}))
-vi.mock("@/components/patient/related-services-probe", () => ({
-  RelatedServicesProbe: () => null,
 }))
 vi.mock("@/components/patient/heard-about-us-card", () => ({
   HeardAboutUsCard: () => null,
@@ -57,7 +57,20 @@ describe("CompleteAccountForm relay email note", () => {
   it("renders safely with no email prop", () => {
     const html = renderToStaticMarkup(<CompleteAccountForm {...baseProps} />)
     expect(html).not.toMatch(/Hide My Email/)
-    expect(html).toMatch(/Payment successful/)
+    expect(html).toMatch(/Your request is confirmed/)
+  })
+
+  it("makes account creation clearly optional without leaking email into navigation", () => {
+    const html = renderToStaticMarkup(
+      <CompleteAccountForm {...baseProps} email="jane@gmail.com" />,
+    )
+
+    expect(html).toContain("Optional account")
+    expect(html).toContain("No account is required")
+    expect(html).toContain("Email me a sign-in link")
+    expect(html).toContain("Continue without an account")
+    expect(html).not.toContain("email=jane%40gmail.com")
+    expect(html).not.toContain("Already have an account?")
   })
 
   it("shows a no-retry processing surface before an async payment is confirmed", () => {

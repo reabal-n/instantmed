@@ -7,6 +7,7 @@ const adapters = [
   "app/api/stripe/webhook/handlers/checkout-session-completed.ts",
   "app/api/stripe/webhook/handlers/checkout-session-async-payment-succeeded.ts",
   "app/api/stripe/verify-payment/route.ts",
+  "app/api/stripe/reconcile-guest-payment/route.ts",
 ] as const
 
 function read(path: string): string {

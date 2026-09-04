@@ -12,6 +12,11 @@ type SessionMatchResult =
   | { valid: true }
   | { valid: false; reason: "metadata_intake_mismatch" | "missing_intake_metadata" }
 
+export type PaymentReferenceRequestBody = {
+  intakeId?: string
+  sessionId?: string | null
+}
+
 type GuestDuplicateCheckoutIntake = {
   id: string
   payment_id?: string | null
@@ -38,6 +43,28 @@ const RETRYABLE_PAYMENT_STATUSES = new Set(["pending", "unpaid", "failed"])
 export const PAYMENT_REPLACEMENT_LOCK = "payment_session_replacement_in_progress"
 export const CANCELLABLE_UNPAID_INTAKE_STATUSES = new Set(["draft", "pending_payment", "checkout_failed"])
 export const TERMINAL_PAID_PAYMENT_STATUSES = new Set(["paid", "refunded", "partially_refunded", "disputed"])
+
+export function isTerminalPaidPaymentStatus(
+  paymentStatus: string | null | undefined,
+): boolean {
+  return Boolean(paymentStatus && TERMINAL_PAID_PAYMENT_STATUSES.has(paymentStatus))
+}
+
+export function isPaymentReferenceRequestBody(
+  value: unknown,
+): value is PaymentReferenceRequestBody {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false
+  }
+
+  const body = value as Record<string, unknown>
+  return (
+    (body.intakeId === undefined || typeof body.intakeId === "string") &&
+    (body.sessionId === undefined ||
+      body.sessionId === null ||
+      typeof body.sessionId === "string")
+  )
+}
 
 export function buildPaymentIntentMetadata(
   metadata: Record<string, string | null | undefined>,
@@ -68,7 +95,7 @@ export function canCancelUnpaidCheckoutIntake(
   if (!intakeStatus || !CANCELLABLE_UNPAID_INTAKE_STATUSES.has(intakeStatus)) {
     return false
   }
-  return !paymentStatus || !TERMINAL_PAID_PAYMENT_STATUSES.has(paymentStatus)
+  return !isTerminalPaidPaymentStatus(paymentStatus)
 }
 
 export function validateCheckoutSessionIntakeMatch({
@@ -105,9 +132,25 @@ export function resolveCompleteAccountPaymentState({
   // currently stored on the intake first.
   if (!sessionMatches) return "unconfirmed"
 
-  if (intakePaymentStatus === "paid" || sessionState === "paid") return "paid"
+  if (isTerminalPaidPaymentStatus(intakePaymentStatus) || sessionState === "paid") return "paid"
   if (sessionState === "payment_in_flight") return "processing"
   return "unconfirmed"
+}
+
+export function requiresCompleteAccountPaymentReconciliation({
+  intakePaymentStatus,
+  sessionMatches,
+  sessionState,
+}: {
+  intakePaymentStatus?: string | null
+  sessionMatches: boolean
+  sessionState: CompleteAccountSessionState | null
+}): boolean {
+  return Boolean(
+    sessionMatches &&
+    !isTerminalPaidPaymentStatus(intakePaymentStatus) &&
+    sessionState === "paid",
+  )
 }
 
 export function resolveGuestDuplicateCheckoutRecovery({
@@ -119,7 +162,7 @@ export function resolveGuestDuplicateCheckoutRecovery({
   checkoutUrl?: string | null
   intake: GuestDuplicateCheckoutIntake
 }): GuestDuplicateCheckoutRecovery {
-  if (intake.payment_status === "paid") {
+  if (isTerminalPaidPaymentStatus(intake.payment_status)) {
     const destination = `${baseUrl}/auth/complete-account?intake_id=${encodeURIComponent(intake.id)}`
     return {
       success: true,

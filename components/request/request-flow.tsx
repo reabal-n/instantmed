@@ -46,6 +46,15 @@ import {
   getInitialRequestUrlDecision,
 } from "@/lib/request/initial-url-seeding"
 import {
+  buildFlowProfilePrefill,
+  buildHealthProfilePrefillAnswers,
+  buildPrescriptionRenewalPrefillAnswers,
+  canApplyPrescriptionRenewalPrefill,
+  canApplySavedHealthProfilePrefill,
+  type HealthProfilePrefill,
+  type PrescriptionRenewalPrefill,
+} from "@/lib/request/request-prefill"
+import {
   adoptServerDraftSession,
   getServerDraftById,
 } from "@/lib/request/server-draft"
@@ -133,12 +142,6 @@ export function DraftSessionUrlScrubber({ active }: { active: boolean }) {
   return null
 }
 
-
-interface HealthProfilePrefill {
-  allergies?: string[]
-  conditions?: string[]
-  current_medications?: string[]
-}
 
 interface MobilePrimaryActionState {
   available: boolean
@@ -413,6 +416,8 @@ interface RequestFlowProps {
   profileAddress?: { addressLine1: string; suburb: string; state: string; postcode: string }
   /** Health profile data for pre-filling medical history steps */
   healthProfile?: HealthProfilePrefill | null
+  /** Minimal server-validated projection of an owned issued prescription. */
+  renewalPrefill?: PrescriptionRenewalPrefill | null
 }
 
 
@@ -442,6 +447,7 @@ export function RequestFlow({
   profileSex,
   profileAddress,
   healthProfile,
+  renewalPrefill,
 }: RequestFlowProps) {
   const router = useRouter()
   const [restoredDraftStepId, setRestoredDraftStepId] = useState<UnifiedStepId | null>(null)
@@ -752,7 +758,7 @@ export function RequestFlow({
     }
   }, [])
 
-  const profilePrefill = useMemo<RequestProfilePrefill>(() => {
+  const accountProfilePrefill = useMemo<RequestProfilePrefill>(() => {
     const identity: RequestProfilePrefill['identity'] = {}
     const profileAnswers: Record<string, unknown> = {}
 
@@ -774,23 +780,13 @@ export function RequestFlow({
       profileAnswers.state = profileAddress.state
       profileAnswers.postcode = profileAddress.postcode
     }
-    if (healthProfile?.allergies?.length) {
-      profileAnswers.known_allergies = healthProfile.allergies.join(', ')
-      profileAnswers.has_allergies = 'yes'
-    }
-    if (healthProfile?.conditions?.length) {
-      profileAnswers.existing_conditions = healthProfile.conditions.join(', ')
-      profileAnswers.has_conditions = 'yes'
-    }
-    if (healthProfile?.current_medications?.length) {
-      profileAnswers.current_medications = healthProfile.current_medications.join(', ')
-      profileAnswers.takes_medications = 'yes'
-    }
-
     return { identity, answers: profileAnswers }
-  }, [healthProfile, profileAddress, profileDateOfBirth, profileIhi, profileMedicare, profileMedicareIrn, profileSex, userEmail, userName, userPhone])
-
-  // Pre-fill identity and account health context ONCE, post-hydration, blanks only.
+  }, [profileAddress, profileDateOfBirth, profileIhi, profileMedicare, profileMedicareIrn, profileSex, userEmail, userName, userPhone])
+  const savedHealthProfileAnswers = useMemo(
+    () => buildHealthProfilePrefillAnswers(healthProfile),
+    [healthProfile],
+  )
+  // Pre-fill account identity ONCE, post-hydration, blanks only.
   // The previous version re-ran on every answers.* keystroke (deps included
   // medicareNumber etc.) and had no already-set guards on name/dob — so a
   // signed-in patient who corrected their name or DOB on the details step had
@@ -802,10 +798,51 @@ export function RequestFlow({
     if (!hydrated || hasExplicitRecovery || prefillAppliedRef.current) return
     prefillAppliedRef.current = true
     // Profile prefill is account context, not patient work: the store merges
-    // blanks without stamping lastSavedAt. The same bundle is reapplied
-    // atomically when a signed-in patient chooses Start over.
-    applyProfilePrefill(profilePrefill)
-  }, [applyProfilePrefill, hasExplicitRecovery, hydrated, profilePrefill])
+    // blanks without stamping lastSavedAt.
+    applyProfilePrefill(accountProfilePrefill)
+  }, [
+    accountProfilePrefill,
+    applyProfilePrefill,
+    hasExplicitRecovery,
+    hydrated,
+  ])
+
+  const renewalPrefillAnswers = useMemo(
+    () => buildPrescriptionRenewalPrefillAnswers(renewalPrefill),
+    [renewalPrefill],
+  )
+  const renewalPrefillAppliedRef = useRef(false)
+  useEffect(() => {
+    if (!canApplyPrescriptionRenewalPrefill({
+      hydrated,
+      hasRenewalPrefill: Boolean(renewalPrefill),
+      hasExplicitRecovery,
+      alreadyApplied: renewalPrefillAppliedRef.current,
+      isAuthenticated,
+      initialService,
+      serviceType,
+      lastSavedAt,
+    })) return
+
+    renewalPrefillAppliedRef.current = true
+    // An owned prescription is a factual seed for a new request, not patient
+    // work. Blank-only merge plus the lastSavedAt guard keeps every restored
+    // local/server draft authoritative and leaves all fresh attestations open.
+    applyProfilePrefill({ identity: {}, answers: renewalPrefillAnswers })
+    // MedicationStep owns local field state initialised from the store. Remount
+    // it after the post-hydration seed so the owned prescription is visible.
+    setDraftResetRevision((revision) => revision + 1)
+  }, [
+    applyProfilePrefill,
+    hasExplicitRecovery,
+    hydrated,
+    initialService,
+    isAuthenticated,
+    lastSavedAt,
+    renewalPrefill,
+    renewalPrefillAnswers,
+    serviceType,
+  ])
 
   // Initialize service type from URL param
   // IMPORTANT: URL param is the source of truth for which service to show.
@@ -874,6 +911,78 @@ export function RequestFlow({
     if (!effectiveService) return []
     return getStepsForService(effectiveService, stepContext)
   }, [effectiveService, stepContext])
+
+  const hasMedicalHistoryStep = activeSteps.some((step) => step.id === "medical-history")
+  const savedHealthPrefillAppliedFlowRef = useRef<string | null>(null)
+
+  // Saved clinical context belongs only to flows that actually render the
+  // medical-history step. This keeps it out of med-cert and specialty answer
+  // blobs whose patients never had a chance to review those hidden fields.
+  useEffect(() => {
+    if (!flowInstanceId || savedHealthPrefillAppliedFlowRef.current === flowInstanceId) return
+    if (!canApplySavedHealthProfilePrefill({
+      hydrated,
+      hasExplicitRecovery,
+      hasMedicalHistoryStep,
+      lastSavedAt,
+    })) return
+
+    savedHealthPrefillAppliedFlowRef.current = flowInstanceId
+    applyProfilePrefill({ identity: {}, answers: savedHealthProfileAnswers })
+  }, [
+    applyProfilePrefill,
+    flowInstanceId,
+    hasExplicitRecovery,
+    hasMedicalHistoryStep,
+    hydrated,
+    lastSavedAt,
+    savedHealthProfileAnswers,
+  ])
+
+  const getProfilePrefillForFlow = useCallback((
+    targetService: UnifiedServiceType | null,
+    targetSubtype?: string,
+  ): RequestProfilePrefill => {
+    let targetHasMedicalHistoryStep = false
+
+    if (targetService) {
+      const targetAnswers = targetService === "consult"
+        ? { consultSubtype: targetSubtype ?? answers.consultSubtype }
+        : {}
+      try {
+        targetHasMedicalHistoryStep = getStepsForService(targetService, {
+          isAuthenticated,
+          hasProfile,
+          hasCompleteIdentity: hasCompleteIdentity ?? hasProfile,
+          hasMedicare,
+          hasAddress,
+          hasPhone,
+          hasSex,
+          serviceType: targetService,
+          answers: targetAnswers,
+        }).some((step) => step.id === "medical-history")
+      } catch {
+        targetHasMedicalHistoryStep = false
+      }
+    }
+
+    return buildFlowProfilePrefill(
+      accountProfilePrefill,
+      savedHealthProfileAnswers,
+      targetHasMedicalHistoryStep,
+    )
+  }, [
+    accountProfilePrefill,
+    answers.consultSubtype,
+    hasAddress,
+    hasCompleteIdentity,
+    hasMedicare,
+    hasPhone,
+    hasProfile,
+    hasSex,
+    isAuthenticated,
+    savedHealthProfileAnswers,
+  ])
 
   const stepProgress = useMemo(() => deriveRequestStepProgress({
     stepIds: activeSteps.map((step) => step.id),
@@ -1007,7 +1116,7 @@ export function RequestFlow({
     draftSubtype,
     dismissDraftNotice,
     setShowSubtypeMismatch,
-    profilePrefill,
+    getProfilePrefillForFlow,
     onDraftDiscarded: remountFreshDraftStep,
   })
 

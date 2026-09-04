@@ -295,8 +295,8 @@ describe("SEO indexing contracts", () => {
     const lastmod = read("lib/seo/sitemap-lastmod.ts")
     const locationSitemap = read("app/locations/sitemap.ts")
 
-    expect(lastmod).toContain('"/telehealth-australia": "2026-08-29"')
-    expect(locationSitemap).toContain('new Date("2026-08-29")')
+    expect(lastmod).toContain('"/telehealth-australia": "2026-09-03"')
+    expect(locationSitemap).toContain('new Date("2026-09-03")')
   })
 
   it("keeps live money and high-yield SEO pages discoverable in the root sitemap", () => {
@@ -414,13 +414,20 @@ describe("SEO indexing contracts", () => {
       "instant.med",
       "instantmed.com.au",
     ]
-    let request: { requestBody?: { dimensions?: string[] } } | undefined
+    let request: {
+      requestBody?: { dimensions?: string[]; startRow?: number }
+    } | undefined
 
     const brandedLandingPages = await getBrandedLandingPages(
       {
         searchanalytics: {
-          query: async (input: { requestBody?: { dimensions?: string[] } }) => {
+          query: async (input: {
+            requestBody?: { dimensions?: string[]; startRow?: number }
+          }) => {
             request = input
+            if ((input.requestBody?.startRow ?? 0) > 0) {
+              return { data: { rows: [] } }
+            }
             return {
               data: {
                 rows: [
@@ -435,6 +442,8 @@ describe("SEO indexing contracts", () => {
                   { keys: [brandedInputs[0], "https://instantmed.com.au/verify/CARER"], clicks: 5, impressions: 10 },
                   { keys: [brandedInputs[0], "https://instantmed.com.au/track/signed-request-token"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "https://instantmed.com.au/resume/signed-checkout-token"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/resume%2Fsigned-checkout-token"], clicks: 100, impressions: 200 },
+                  { keys: [brandedInputs[0], "https://instantmed.com.au/track%252Fsigned-request-token"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "https://instantmed.com.au/auth/complete-account/signed-account-token"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "https://instantmed.com.au/dashboard/intakes/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200 },
                   { keys: [brandedInputs[0], "https://instantmed.com.au/campaign/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200 },
@@ -465,6 +474,8 @@ describe("SEO indexing contracts", () => {
     expect(publicPagePath("https://instantmed.com.au/verify/CARER")).toBe("/verify")
     expect(publicPagePath("https://instantmed.com.au/track/signed-request-token")).toBeNull()
     expect(publicPagePath("https://instantmed.com.au/resume/signed-checkout-token")).toBeNull()
+    expect(publicPagePath("https://instantmed.com.au/resume%2Fsigned-checkout-token")).toBeNull()
+    expect(publicPagePath("https://instantmed.com.au/track%252Fsigned-request-token")).toBeNull()
     expect(publicPagePath("https://instantmed.com.au/auth/complete-account/signed-account-token")).toBeNull()
     expect(publicPagePath("https://instantmed.com.au/dashboard/intakes/2c82f788-1769-4cf7-97d7-d40db36ad859")).toBeNull()
     expect(publicPagePath("https://instantmed.com.au/campaign/2c82f788-1769-4cf7-97d7-d40db36ad859")).toBeNull()
@@ -502,9 +513,13 @@ describe("SEO indexing contracts", () => {
     const performancePages = await getPerformancePages(
       {
         searchanalytics: {
-          query: async () => ({
-            data: {
-              rows: [
+          query: async (input: { requestBody?: { startRow?: number } }) => {
+            if ((input.requestBody?.startRow ?? 0) > 0) {
+              return { data: { rows: [] } }
+            }
+            return {
+              data: {
+                rows: [
                 { keys: ["https://instantmed.com.au/prescriptions?gclid=first#top"], clicks: 2, impressions: 10, position: 2 },
                 { keys: ["https://www.instantmed.com.au/prescriptions/?utm_source=www"], clicks: 3, impressions: 30, position: 8 },
                 { keys: ["https://instantmed.com.au/prescriptions/"], clicks: 5, impressions: 20, position: 10 },
@@ -515,15 +530,18 @@ describe("SEO indexing contracts", () => {
                 { keys: ["https://instantmed.com.au/verify/CARER"], clicks: 5, impressions: 10, position: 10 },
                 { keys: ["https://instantmed.com.au/track/signed-request-token"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://instantmed.com.au/resume/signed-checkout-token"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://instantmed.com.au/resume%2Fsigned-checkout-token"], clicks: 100, impressions: 200, position: 1 },
+                { keys: ["https://instantmed.com.au/track%252Fsigned-request-token"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://instantmed.com.au/auth/complete-account/signed-account-token"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://instantmed.com.au/dashboard/intakes/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://instantmed.com.au/campaign/2c82f788-1769-4cf7-97d7-d40db36ad859"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://staging.instantmed.com.au/prescriptions?gclid=staging"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["https://example.com/prescriptions?gclid=external"], clicks: 100, impressions: 200, position: 1 },
                 { keys: ["not a URL"], clicks: 100, impressions: 200, position: 1 },
-              ],
-            },
-          }),
+                ],
+              },
+            }
+          },
         },
       },
       "2026-05-27",
@@ -565,6 +583,158 @@ describe("SEO indexing contracts", () => {
     expect(serialized).not.toContain("signed-checkout-token")
     expect(serialized).not.toContain("signed-account-token")
     expect(serialized).not.toContain("2c82f788-1769-4cf7-97d7-d40db36ad859")
+  })
+
+  it("paginates page and branded-query reports past the Search Console row cap", async () => {
+    const { getBrandedLandingPages, getPerformancePages } = await import(
+      "../../tools/gsc-mcp-server/gsc-index-audit.mjs"
+    )
+    const pageRows = Array.from({ length: 25_000 }, () => ({
+      keys: ["https://instantmed.com.au/medical-certificate"],
+      clicks: 1,
+      impressions: 2,
+      position: 3,
+    }))
+    const brandedRows = Array.from({ length: 25_000 }, () => ({
+      keys: ["instantmed", "https://instantmed.com.au/medical-certificate"],
+      clicks: 1,
+      impressions: 2,
+    }))
+
+    for (const [readRows, firstPage, finalRow] of [
+      [getPerformancePages, pageRows, {
+        keys: ["https://instantmed.com.au/prescriptions"],
+        clicks: 2,
+        impressions: 4,
+        position: 5,
+      }],
+      [getBrandedLandingPages, brandedRows, {
+        keys: ["instant med", "https://instantmed.com.au/prescriptions"],
+        clicks: 2,
+        impressions: 4,
+      }],
+    ] as const) {
+      const startRows: number[] = []
+      const rows = await readRows(
+        {
+          searchanalytics: {
+            query: async (input: { requestBody?: { startRow?: number } }) => {
+              const startRow = input.requestBody?.startRow ?? 0
+              startRows.push(startRow)
+              return {
+                data: {
+                  rows: startRow === 0
+                    ? firstPage
+                    : startRow === 25_000
+                      ? [finalRow]
+                      : [],
+                },
+              }
+            },
+          },
+        },
+        "2026-05-27",
+        "2026-08-25",
+      )
+
+      expect(startRows).toEqual([0, 25_000, 50_000])
+      expect(rows).toHaveLength(2)
+      expect(rows[0]).toMatchObject({
+        page: expect.stringContaining("medical-certificate"),
+        clicks: 25_000,
+        impressions: 50_000,
+      })
+      expect(rows[1]).toMatchObject({
+        page: expect.stringContaining("prescriptions"),
+        clicks: 2,
+        impressions: 4,
+      })
+    }
+  })
+
+  it("accepts exactly 250,000 Search Analytics rows only after an empty-page probe", async () => {
+    const { getPerformancePages } = await import(
+      "../../tools/gsc-mcp-server/gsc-index-audit.mjs"
+    )
+    const fullPage = Array.from({ length: 25_000 }, () => ({
+      keys: ["https://instantmed.com.au/medical-certificate"],
+      clicks: 1,
+      impressions: 2,
+      position: 3,
+    }))
+    const startRows: number[] = []
+
+    const rows = await getPerformancePages(
+      {
+        searchanalytics: {
+          query: async (input: { requestBody?: { startRow?: number } }) => {
+            const startRow = input.requestBody?.startRow ?? 0
+            startRows.push(startRow)
+            return { data: { rows: startRow < 250_000 ? fullPage : [] } }
+          },
+        },
+      },
+      "2026-05-27",
+      "2026-08-25",
+    )
+
+    expect(startRows).toEqual([
+      0, 25_000, 50_000, 75_000, 100_000, 125_000,
+      150_000, 175_000, 200_000, 225_000, 250_000,
+    ])
+    expect(rows).toEqual([
+      expect.objectContaining({
+        page: "https://instantmed.com.au/medical-certificate",
+        clicks: 250_000,
+        impressions: 500_000,
+      }),
+    ])
+  })
+
+  it("rejects a 250,001st Search Analytics row", async () => {
+    const { getPerformancePages } = await import(
+      "../../tools/gsc-mcp-server/gsc-index-audit.mjs"
+    )
+    const fullPage = Array.from({ length: 25_000 }, () => ({
+      keys: ["https://instantmed.com.au/medical-certificate"],
+      clicks: 1,
+      impressions: 2,
+      position: 3,
+    }))
+
+    await expect(getPerformancePages(
+      {
+        searchanalytics: {
+          query: async (input: { requestBody?: { startRow?: number } }) => {
+            const startRow = input.requestBody?.startRow ?? 0
+            return {
+              data: {
+                rows: startRow < 250_000
+                  ? fullPage
+                  : [{
+                    keys: ["https://instantmed.com.au/prescriptions"],
+                    clicks: 1,
+                    impressions: 1,
+                    position: 1,
+                  }],
+              },
+            }
+          },
+        },
+      },
+      "2026-05-27",
+      "2026-08-25",
+    )).rejects.toThrow("exceeded the paged-row safety limit")
+  })
+
+  it("discloses Search Analytics top-row limits instead of claiming exhaustive data", () => {
+    const auditScript = read("tools/gsc-mcp-server/gsc-index-audit.mjs")
+
+    expect(auditScript).toContain('completeness: "top-rows-only"')
+    expect(auditScript).toContain(
+      'limitation: "Google Search Console does not guarantee every data row"',
+    )
+    expect(auditScript).not.toContain("complete-read")
   })
 
   it("inspects current money pages by default in GSC indexing audits", () => {

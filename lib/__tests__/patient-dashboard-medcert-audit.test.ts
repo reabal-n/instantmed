@@ -54,19 +54,26 @@ describe("patient dashboard and certificate delivery contracts", () => {
 
   it("does not promise guests a raw emailed certificate attachment", () => {
     const completeAccount = readProjectFile("app/auth/complete-account/complete-account-form.tsx")
-    const confirmed = readProjectFile("app/patient/intakes/confirmed/confirmed-client.tsx")
+    const confirmed = readProjectFile("components/request/guest-confirmation-card.tsx")
 
     expect(completeAccount).not.toContain("Your certificate will be emailed to you regardless")
     expect(completeAccount).not.toContain('params.set("email"')
     expect(completeAccount).not.toContain("&email=")
     expect(confirmed).not.toContain("We'll email your certificate once it's ready")
-    expect(completeAccount).toContain("Create Account & Track Request")
+    expect(completeAccount).toContain("Email me a sign-in link")
+    expect(completeAccount).toContain("Continue without an account")
+    expect(completeAccount).toContain("router.replace(REQUEST_CONFIRMED_HREF)")
+    expect(completeAccount).not.toContain('params.set("intake_id"')
     expect(completeAccount).not.toContain("certificateAccess")
     expect(completeAccount).toContain("heardToken &&")
     expect(readProjectFile("app/auth/complete-account/page.tsx")).toContain(
       'if (intakeId && paymentState === "paid")',
     )
-    expect(confirmed).toContain("We'll email you when the doctor has finished.")
+    expect(confirmed).toContain("We&apos;ll email you when your request is finished.")
+    expect(confirmed).not.toContain("Create account to track progress")
+    const publicConfirmation = readProjectFile("app/request/confirmed/page.tsx")
+    expect(publicConfirmation).not.toContain("createServiceRoleClient")
+    expect(confirmed).not.toContain("capture(")
   })
 
   it("sanitizes PostHog pageview URLs before capture", () => {

@@ -2,6 +2,7 @@
 import { expect,test } from "@playwright/test"
 import { randomUUID } from "crypto"
 
+import { loginAsPatient } from "./helpers/auth"
 import { cleanupTestIntake,getSupabaseClient, isDbAvailable } from "./helpers/db"
 
 /**
@@ -17,6 +18,7 @@ import { cleanupTestIntake,getSupabaseClient, isDbAvailable } from "./helpers/db
 const GUEST_PROFILE_ID = "e2e00000-0000-0000-0000-0000000000a1"
 const GUEST_EMAIL = "e2e-guest-test@example.com"
 const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
+const GUEST_SESSION_ID = "cs_test_e2e_guest_complete_account"
 
 test.describe.serial("Guest Checkout → Account Linking", () => {
   test.skip(!isDbAvailable(), "Skipping: DB not available")
@@ -117,6 +119,7 @@ test.describe.serial("Guest Checkout → Account Linking", () => {
     const { error: paidError } = await supabase
       .from("intakes")
       .update({
+        payment_id: GUEST_SESSION_ID,
         status: "paid",
         payment_status: "paid",
         updated_at: new Date().toISOString(),
@@ -156,6 +159,78 @@ test.describe.serial("Guest Checkout → Account Linking", () => {
     expect(profile!.auth_user_id).toBeNull()
     expect(profile!.email).toBe(GUEST_EMAIL)
     expect(profile!.role).toBe("patient")
+  })
+
+  test("paid guest can continue without an account and no request capability leaks", async ({ page }) => {
+    await page.goto(
+      `/auth/complete-account?intake_id=${guestIntakeId}&session_id=${GUEST_SESSION_ID}`,
+    )
+
+    await expect(page.getByRole("heading", { name: "Your request is confirmed" })).toBeVisible()
+    await expect(page.getByText("Optional account", { exact: true })).toBeVisible()
+    await expect(page.getByText(/No account is required/i)).toBeVisible()
+
+    await page.getByRole("button", { name: "Continue without an account" }).click()
+
+    await expect(page).toHaveURL(/\/request\/confirmed$/)
+    expect(new URL(page.url()).search).toBe("")
+    await expect(page.getByRole("heading", { name: "No account needed to finish" })).toBeVisible()
+    await expect(page.getByText(/email you when your request is finished/i)).toBeVisible()
+    await expect(page.getByRole("link", { name: /create account/i })).toHaveCount(0)
+  })
+
+  test("a different signed-in account does not block the no-account path", async ({ page }) => {
+    const login = await loginAsPatient(page)
+    expect(login.success, login.error).toBe(true)
+
+    await page.goto(
+      `/auth/complete-account?intake_id=${guestIntakeId}&session_id=${GUEST_SESSION_ID}`,
+    )
+
+    await expect(page.getByRole("heading", { name: "Your request is confirmed" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Continue without an account" })).toBeEnabled()
+
+    await page.getByRole("button", { name: "Continue without an account" }).click()
+    await expect(page).toHaveURL(/\/request\/confirmed$/)
+  })
+
+  test("paid guest can request a secure account link without retyping email", async ({ page }) => {
+    let otpPayload: Record<string, unknown> | null = null
+    await page.route("**/auth/v1/otp**", async (route) => {
+      otpPayload = route.request().postDataJSON() as Record<string, unknown>
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ message_id: "e2e-intercepted" }),
+      })
+    })
+    await page.goto(
+      `/auth/complete-account?intake_id=${guestIntakeId}&session_id=${GUEST_SESSION_ID}`,
+    )
+
+    await page.getByRole("button", { name: "Email me a sign-in link" }).click()
+
+    await expect(page.getByRole("status").filter({ hasText: "Check your inbox" })).toBeVisible()
+    expect(otpPayload).toMatchObject({ email: GUEST_EMAIL })
+    expect(page.url()).not.toContain("email=")
+    await expect(page.getByRole("button", { name: "Continue without an account" })).toBeVisible()
+  })
+
+  test("account-link network failure remains retryable", async ({ page }) => {
+    await page.route("**/auth/v1/otp**", async (route) => {
+      await route.abort("connectionfailed")
+    })
+    await page.goto(
+      `/auth/complete-account?intake_id=${guestIntakeId}&session_id=${GUEST_SESSION_ID}`,
+    )
+
+    await page.getByRole("button", { name: "Email me a sign-in link" }).click()
+
+    await expect(
+      page.getByText(/couldn.t send the secure link/i, { exact: false }),
+    ).toBeVisible()
+    await expect(page.getByRole("button", { name: "Email me a sign-in link" })).toBeEnabled()
+    await expect(page.getByRole("button", { name: "Continue without an account" })).toBeEnabled()
   })
 
   test("guest profile can be linked to an auth_user_id", async () => {

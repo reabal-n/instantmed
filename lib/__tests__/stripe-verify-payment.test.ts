@@ -64,7 +64,7 @@ vi.mock("@sentry/nextjs", () => ({
 
 import { POST } from "@/app/api/stripe/verify-payment/route"
 
-function makeRequest(body: Record<string, unknown>) {
+function makeRequest(body: unknown) {
   return new NextRequest("http://localhost/api/stripe/verify-payment", {
     method: "POST",
     body: JSON.stringify(body),
@@ -130,6 +130,33 @@ describe("POST /api/stripe/verify-payment", () => {
     mocks.completeConfirmedPaymentWork.mockResolvedValue(undefined)
     mocks.startPostPaymentReviewWork.mockResolvedValue(undefined)
   })
+
+  it("rejects malformed JSON without reporting an internal failure", async () => {
+    const request = new NextRequest("http://localhost/api/stripe/verify-payment", {
+      method: "POST",
+      body: "{",
+      headers: { "content-type": "application/json" },
+    })
+
+    const response = await POST(request)
+
+    expect(response.status).toBe(400)
+    expect(mocks.captureException).not.toHaveBeenCalled()
+    expect(mocks.logger.error).not.toHaveBeenCalled()
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
+  it.each([null, [], { intakeId: {}, sessionId: [] }])(
+    "rejects invalid JSON body %j without reporting an internal failure",
+    async (body) => {
+      const response = await POST(makeRequest(body))
+
+      expect(response.status).toBe(400)
+      expect(mocks.captureException).not.toHaveBeenCalled()
+      expect(mocks.logger.error).not.toHaveBeenCalled()
+      expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+    },
+  )
 
   it("rejects a paid Stripe session when metadata points at a different intake", async () => {
     const { updates } = setupSupabase()

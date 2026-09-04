@@ -4,6 +4,7 @@ import {
   buildPaymentIntentMetadata,
   canCancelUnpaidCheckoutIntake,
   canRetryPaymentForIntake,
+  requiresCompleteAccountPaymentReconciliation,
   resolveCompleteAccountPaymentState,
   resolveGuestDuplicateCheckoutRecovery,
   validateCheckoutSessionIntakeMatch,
@@ -92,6 +93,26 @@ describe("Stripe payment integrity helpers", () => {
     })
   })
 
+  it.each(["refunded", "partially_refunded", "disputed"])(
+    "routes a duplicate guest checkout with terminal payment status %s to account completion",
+    (paymentStatus) => {
+      expect(resolveGuestDuplicateCheckoutRecovery({
+        baseUrl: "https://instantmed.example",
+        checkoutUrl: null,
+        intake: {
+          id: "intake-terminal",
+          payment_id: "cs_terminal",
+          payment_status: paymentStatus,
+          status: "declined",
+        },
+      })).toEqual({
+        checkoutUrl: "https://instantmed.example/auth/complete-account?intake_id=intake-terminal&session_id=cs_terminal",
+        intakeId: "intake-terminal",
+        success: true,
+      })
+    },
+  )
+
   it("gives the terminal recovery fallback a support exit instead of promising a retry", () => {
     // Reached when the intake is payable but there is no live checkout URL and
     // no rebuilt one. Sometimes transient, sometimes not — the caller can't
@@ -141,6 +162,36 @@ describe("Stripe payment integrity helpers", () => {
       sessionMatches: false,
       sessionState: "paid",
     })).toBe("unconfirmed")
+  })
+
+  it.each(["paid", "refunded", "partially_refunded", "disputed"])(
+    "treats exact-current terminal payment status %s as durably settled",
+    (paymentStatus) => {
+      expect(resolveCompleteAccountPaymentState({
+        intakePaymentStatus: paymentStatus,
+        sessionMatches: true,
+        sessionState: null,
+      })).toBe("paid")
+
+      expect(requiresCompleteAccountPaymentReconciliation({
+        intakePaymentStatus: paymentStatus,
+        sessionMatches: true,
+        sessionState: "paid",
+      })).toBe(false)
+    },
+  )
+
+  it("requires complete-account reconciliation only for a paid Session whose intake is not settled", () => {
+    expect(requiresCompleteAccountPaymentReconciliation({
+      intakePaymentStatus: "pending",
+      sessionMatches: true,
+      sessionState: "paid",
+    })).toBe(true)
+    expect(requiresCompleteAccountPaymentReconciliation({
+      intakePaymentStatus: "pending",
+      sessionMatches: false,
+      sessionState: "paid",
+    })).toBe(false)
   })
 
 })

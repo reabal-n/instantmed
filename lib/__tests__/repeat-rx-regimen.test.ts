@@ -2,11 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import {
   areRepeatRxMedicationDetailsEqual,
-  composeRepeatRxRegimen,
   extractRepeatRxFrequency,
   hasCompleteRepeatRxRegimen,
-  inferRepeatRxDoseUnit,
-  parseRepeatRxRegimenPreset,
 } from "@/lib/request/repeat-rx-regimen"
 
 describe("repeat-Rx regimen editing", () => {
@@ -21,6 +18,8 @@ describe("repeat-Rx regimen editing", () => {
     "One inhalation twice daily",
     "10 mg nightly",
     "Take one daily",
+    "1 daily",
+    "Half at night",
     "A tablet each morning",
     "Half a tablet every second day",
     "5 mL every 8 hours",
@@ -43,6 +42,16 @@ describe("repeat-Rx regimen editing", () => {
     "10 mg",
     "10 mg with food",
     "Apply twice daily",
+    "2 times daily",
+    "Take 2 times daily",
+    "Take two times a day",
+    "Take 3 times weekly",
+    "6 hourly",
+    "6-hourly",
+    "8 hourly as needed",
+    "8-hourly as needed",
+    "Take 6 hourly",
+    "Take 6-hourly",
     "As previously prescribed",
   ])("rejects a regimen missing amount or frequency: %s", (value) => {
     expect(hasCompleteRepeatRxRegimen(value)).toBe(false)
@@ -52,38 +61,6 @@ describe("repeat-Rx regimen editing", () => {
     expect(hasCompleteRepeatRxRegimen("Once daily")).toBe(false)
     expect(hasCompleteRepeatRxRegimen("One tablet")).toBe(false)
     expect(hasCompleteRepeatRxRegimen("One tablet each morning")).toBe(true)
-  })
-
-  it("composes a complete amount, unit, and frequency without free typing", () => {
-    expect(composeRepeatRxRegimen({
-      amount: "one",
-      unit: "tablet",
-      frequency: "morning",
-    })).toBe("1 tablet each morning")
-    expect(composeRepeatRxRegimen({
-      amount: "two",
-      unit: "puff",
-      frequency: "twice_daily",
-    })).toBe("2 puffs twice daily")
-  })
-
-  it("does not manufacture a regimen while a structured answer is incomplete", () => {
-    expect(composeRepeatRxRegimen({ amount: "one", frequency: "once_daily" })).toBe("once daily")
-    expect(composeRepeatRxRegimen({ amount: "two", unit: "capsule" })).toBe("2 capsules")
-  })
-
-  it("restores common structured regimens without changing the reported words", () => {
-    expect(parseRepeatRxRegimenPreset("1 tablet daily")).toEqual({
-      amount: "one",
-      unit: "tablet",
-      frequency: "once_daily",
-    })
-    expect(parseRepeatRxRegimenPreset("2 puffs twice daily")).toEqual({
-      amount: "two",
-      unit: "puff",
-      frequency: "twice_daily",
-    })
-    expect(parseRepeatRxRegimenPreset("Take half a tablet every second day")).toBeNull()
   })
 
   it.each([
@@ -101,13 +78,6 @@ describe("repeat-Rx regimen editing", () => {
   it("does not manufacture a clipboard frequency from uncommon directions", () => {
     expect(extractRepeatRxFrequency("Half a tablet every second day")).toBeNull()
     expect(extractRepeatRxFrequency("One capsule on Mondays and Thursdays")).toBeNull()
-  })
-
-  it("uses the patient-entered medicine form only to preselect its matching unit", () => {
-    expect(inferRepeatRxDoseUnit("tablet")).toBe("tablet")
-    expect(inferRepeatRxDoseUnit("metered dose inhaler")).toBe("puff")
-    expect(inferRepeatRxDoseUnit("cream")).toBe("application")
-    expect(inferRepeatRxDoseUnit("unknown form")).toBeUndefined()
   })
 
   it("distinguishes real medication edits from equivalent stored details", () => {

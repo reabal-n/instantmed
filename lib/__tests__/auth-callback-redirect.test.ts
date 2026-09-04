@@ -52,6 +52,8 @@ describe("resolvePostAuthDestination", () => {
     expect(postSignInSource).toContain("hasDoctorAccess(profile)")
     expect(postSignInSource).toContain("isRedirectAllowedForProfile(safeRedirect, profile)")
     expect(postSignInSource).toContain("defaultDestinationForProfile(profile)")
+    expect(postSignInSource).toContain('return "/patient"')
+    expect(postSignInSource).not.toContain('return profile.onboarding_completed ? "/patient" : "/patient/onboarding"')
   })
 
   it("gives expired magic-link users a recoverable sign-in state", () => {
@@ -59,7 +61,7 @@ describe("resolvePostAuthDestination", () => {
     expect(signInSource).toContain("link_expired")
     expect(signInSource).toContain("That sign-in link expired")
     expect(signInSource).toContain("Email me a sign-in link")
-    expect(signInSource).toContain("sessionStorage.getItem(LAST_MAGIC_LINK_EMAIL_KEY)")
+    expect(signInSource).toContain("consumeMagicLinkRecoveryEmail(sessionStorage, redirectUrl)")
   })
 
   it("keeps sign-in field errors and password visibility accessible", () => {

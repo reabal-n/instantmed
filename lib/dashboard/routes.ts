@@ -23,9 +23,23 @@ export function buildStaffPatientHref(patientId: string): string {
 // ── Public and patient route constants ──────────────────────────────────────
 
 export const REQUEST_HREF = "/request" as const
+export const REQUEST_CONFIRMED_HREF = "/request/confirmed" as const
 export const REQUEST_REPEAT_SCRIPT_HREF = "/request?service=repeat-script" as const
 export const REQUEST_MED_CERT_HREF = "/request?service=med-cert" as const
 export const REQUEST_CONSULT_HREF = "/consult" as const
+
+/**
+ * Start an authenticated renewal from an opaque prescription identifier.
+ * Medication details are deliberately absent from the URL and are resolved
+ * server-side only after patient ownership has been checked.
+ */
+export function buildPrescriptionRenewalHref(prescriptionId: string): string {
+  const params = new URLSearchParams({
+    service: "repeat-script",
+    renewal: prescriptionId,
+  })
+  return `${REQUEST_HREF}?${params.toString()}`
+}
 
 export function buildRequestServiceHref(options: { service: string; subtype?: string | null }): string {
   if (options.service === "consult" && !options.subtype) {

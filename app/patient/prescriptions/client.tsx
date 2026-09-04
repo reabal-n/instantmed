@@ -20,8 +20,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { buildPatientIntakeHref,REQUEST_REPEAT_SCRIPT_HREF } from "@/lib/dashboard/routes"
-import { getDaysUntilExpiry,needsRenewalSoon } from "@/lib/prescriptions"
+import {
+  buildPatientIntakeHref,
+  buildPrescriptionRenewalHref,
+  REQUEST_REPEAT_SCRIPT_HREF,
+} from "@/lib/dashboard/routes"
+import { getDaysUntilExpiry, needsRenewalSoon } from "@/lib/prescriptions"
 
 interface PrescriptionIntake {
   id: string
@@ -38,7 +42,8 @@ interface PrescriptionIntake {
 interface ActivePrescription {
   id: string
   medication_name: string
-  dosage_instructions: string
+  medication_strength: string | null
+  dosage_instructions: string | null
   issued_date: string
   expiry_date: string
   status: "active" | "expired"
@@ -127,7 +132,7 @@ export function PrescriptionsClient({
                     Renews in {getDaysUntilExpiry(rx.expiry_date)} days
                   </p>
                 </div>
-                <Link href={repeatScriptHref}>
+                <Link href={buildPrescriptionRenewalHref(rx.id)}>
                   <Button size="sm">
                     Renew
                   </Button>

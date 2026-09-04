@@ -281,10 +281,9 @@ export function validateRepeatScriptPayload(
     // block. A concrete strength is enforced after the controlled-substance
     // and one-medicine checks so their safer, more specific errors win.
 
-    // A3 softening (boundary 2): a missing form does not block checkout. The
-    // patient flows through and `deriveIntakeFlags` raises an attention flag
-    // (`medication_form_missing`). New-med, dose-change, unknown-med and
-    // controlled substances remain hard blocks.
+    // A missing form does not block checkout. The patient flows through and
+    // `deriveIntakeFlags` preserves it as info-only review context. New-med,
+    // dose-change, unknown-med and controlled substances remain hard blocks.
 
     // Defense in depth: block controlled medications via PBS code and fuzzy name matching.
     if (isPBSCodeBlocked(medicationCode)) {

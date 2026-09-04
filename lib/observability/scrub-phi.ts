@@ -24,7 +24,7 @@ const NAMED_ID_RE = /\b(?:actor|certificate|doctor|intake|patient|profile|reques
 
 /** Route/query locations that often carry patient/request identifiers */
 const SENSITIVE_QUERY_ID_RE = /([?&](?:certificate_id|intake_id|patient_id|profile_id|request_id|user_id|id)=)[^&#]+/gi
-const SENSITIVE_AUTH_PARAM_RE = /([?&#](?:access_token|refresh_token|review_click_key|token(?:_hash)?|code|secret|password|session_id)=)[^&#\s]+/gi
+const SENSITIVE_AUTH_PARAM_RE = /([?&#](?:access_token|refresh_token|recovery_proof|review_click_key|token(?:_hash)?|code|secret|password|session_id)=)[^&#\s]+/gi
 const SENSITIVE_SEARCH_PARAM_RE = /(^|[?&#\s])((?:q|query|search|searchterm|search_term|searchquery|search_query)=)[^&#\r\n]*/gi
 const SENSITIVE_SEARCH_JSON_RE = /("(?:q|query|search|searchterm|search_term|searchquery|search_query)"\s*:\s*")[^"]*(")/gi
 const SENSITIVE_SEARCH_ENCODED_JSON_RE = /(%22(?:q|query|search|searchterm|search_term|searchquery|search_query)%22%3A%22)(?:(?!%22).)*(%22)/gi
@@ -83,6 +83,7 @@ const SENSITIVE_KEY_EXACT = new Set([
   "referer",
   "referrer",
   "reviewclickkey",
+  "recoveryproof",
   "subject",
   "search",
   "searchquery",

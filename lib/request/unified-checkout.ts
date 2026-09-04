@@ -267,6 +267,11 @@ export function transformAnswersForUnifiedCheckout(
 ): Record<string, unknown> {
   const transformed: Record<string, unknown> = { ...answers }
 
+  // Prefill provenance is transient UI state. It may shape patient-facing
+  // reminders during the flow, but it is not part of the clinical record.
+  delete transformed.renewalPrefilled
+  delete transformed.healthProfilePrefilled
+
   if (serviceType === "med-cert") {
     transformed.certificate_type = answers.certType
     transformed.duration = answers.duration

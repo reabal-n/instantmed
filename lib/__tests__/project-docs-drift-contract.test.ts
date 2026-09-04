@@ -147,11 +147,15 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **135 migration files**")
+      expect(source).toContain("Current count on disk: **136 migration files**")
+      expect(source).toContain(
+        "`20260903120000_recovery_email_engagement.sql`",
+      )
       expect(source).toContain(
         "`20260902090000_converge_fraud_flag_review_state.sql`",
       )
-      expect(source).toContain("pending production apply and verification")
+      expect(source).toContain("applied and verified in production on 2026-09-04")
+      expect(source).toContain("aligned through `20260903120000`")
       expect(source).toContain(
         "`20260827210500_twilio_voice_callback_requests.sql`",
       )
@@ -190,15 +194,21 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest timestamp on disk: `20260902090000_converge_fraud_flag_review_state.sql`",
+      "Latest timestamp on disk and applied/verified production timestamp: `20260903120000_recovery_email_engagement.sql`",
     )
     expect(architecture).toContain(
-      "Latest applied/verified production timestamp remains `20260828090000_specialty_experience_attribution.sql`",
+      "immediately preceding migration, `20260902090000_converge_fraud_flag_review_state.sql`",
+    )
+    expect(architecture).toContain(
+      "applied/verified production timestamp: `20260903120000_recovery_email_engagement.sql`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
     expect(architecture).toContain("Production receipt (2026-08-23)")
     expect(architecture).toContain("Production receipt (2026-08-28)")
+    expect(architecture).toContain("Production receipt (2026-09-04)")
+    expect(architecture).toContain("`trg_intakes_preserve_recovery_email_engagement`")
+    expect(architecture).toContain("The migration performed no backfill")
     expect(architecture).toContain("roles exactly `{authenticated}`")
     expect(architecture).toContain("`partial_intakes_growth_experience_version_check`")
     expect(architecture).toContain("`trg_partial_intakes_preserve_growth_experience`")
@@ -206,14 +216,17 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Latest timestamp on disk is `20260902090000_converge_fraud_flag_review_state.sql`",
+      "Newest on disk and latest applied/verified production migration is `20260903120000_recovery_email_engagement.sql`",
     )
     expect(wikiArchitecture).toContain(
-      "latest applied production timestamp remains `20260828090000_specialty_experience_attribution.sql` (verified 2026-08-28)",
+      "immediately preceding migration is `20260902090000_converge_fraud_flag_review_state.sql`",
+    )
+    expect(wikiArchitecture).toContain(
+      "latest applied/verified production migration is `20260903120000_recovery_email_engagement.sql`",
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
-      "Linked migration history is aligned through `20260828090000`",
+      "Linked migration history is aligned through `20260903120000`",
     )
     expect(wikiArchitecture).toContain(
       "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied",
@@ -446,6 +459,7 @@ describe("project docs drift contract", () => {
 
     expect(architecture).toContain(`### \`app/\` — ${appFiles.length} files, ${routeFiles.length} route files`)
     expect(architecture).toContain(`| \`app/api/\` | API routes (${apiRoutes.length} route files) |`)
+    expect(architecture).toContain(`| **Cron** (${cronRoutes.length}) | \`/api/cron/*\` |`)
     expect(architecture).toContain(
       `| \`e2e/\` | ${e2eTypeScriptFiles.length} TypeScript files, including ${e2eSpecs.length} specs`,
     )
@@ -533,6 +547,16 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("active repeat requests accept exactly one medication row")
     expect(claude).toContain("one medication per repeat request")
     expect(agents).toContain("one medication per repeat request")
+  })
+
+  it("pins the low-friction repeat-Rx directions and queue-risk boundary", () => {
+    const clinical = readProjectFile("docs/CLINICAL.md")
+
+    expect(clinical).toContain("one plain-language directions field")
+    expect(clinical).toContain('Concise answers such as "1 daily" are sufficient')
+    expect(clinical).toContain("must not create a red clinical-risk badge")
+    expect(architecture).toContain("an omission is info-only review context")
+    expect(architecture).toContain("The patient copies the directions into one field")
   })
 
   it("keeps new-pill redirect rules and clinical policy blocked before payment", () => {

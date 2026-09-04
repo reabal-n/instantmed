@@ -251,8 +251,25 @@ describe("personless PostHog analytics", () => {
       .toBe("unknown")
 
     const reviewStep = readSource("components/request/steps/review-step.tsx")
+    const checkoutFailurePayloads = Array.from(
+      reviewStep.matchAll(/posthog\?\.capture\("checkout_failed", \{([\s\S]*?)\n\s*\}\)/g),
+      (match) => match[1],
+    )
+
+    expect(checkoutFailurePayloads).toHaveLength(3)
+    for (const payload of checkoutFailurePayloads) {
+      expect(payload).toContain("failure_category:")
+      expect(payload).not.toMatch(/\breason:/)
+    }
     expect(reviewStep).toContain("failure_category: classifyCheckoutFailure(result.error)")
+    expect(reviewStep).toContain(
+      'failure_category: classifyCheckoutFailure("Missing checkout session URL")',
+    )
+    expect(reviewStep).toContain(
+      "failure_category: classifyCheckoutFailure(e instanceof Error ? e.message : undefined)",
+    )
     expect(reviewStep).not.toContain("reason: result.error")
+    expect(reviewStep).not.toContain("e.message.slice")
   })
 
   it("keeps Google enhanced conversions while removing PostHog identify and alias calls", () => {

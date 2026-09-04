@@ -50,6 +50,7 @@ function mkIntake(overrides: Partial<Intake>): Intake {
 interface Rx {
   id: string
   medication_name: string
+  medication_strength: string | null
   dosage_instructions: string
   issued_date: string
   expiry_date: string
@@ -60,6 +61,7 @@ function mkRx(overrides: Partial<Rx>): Rx {
   return {
     id: "rx-test",
     medication_name: "Test medication",
+    medication_strength: null,
     dosage_instructions: "1 tablet daily",
     issued_date: ONE_DAY_AGO,
     expiry_date: SOON,

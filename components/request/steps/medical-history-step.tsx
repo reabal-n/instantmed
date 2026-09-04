@@ -39,8 +39,27 @@ interface MedicalHistoryStepProps {
   onComplete: () => void
 }
 
+export function buildNoneApplyMedicalHistoryAnswers(requiresMedicationSafety: boolean) {
+  const sharedAnswers = {
+    hasAllergies: false,
+    allergies: "",
+    hasConditions: false,
+    conditions: "",
+    hasOtherMedications: false,
+    otherMedications: "",
+  }
+
+  if (!requiresMedicationSafety) return sharedAnswers
+
+  return {
+    ...sharedAnswers,
+    hasAdverseMedicationReactions: false,
+    isPregnantOrBreastfeeding: false,
+  }
+}
+
 export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHistoryStepProps) {
-  const { answers, flowInstanceId, setAnswer } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer, setAnswers } = useRequestStore()
   const posthog = usePostHog()
 
   const hasAllergies = answers.hasAllergies as boolean | undefined
@@ -51,10 +70,33 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
   const otherMedications = (answers.otherMedications as string) || ""
   const isPregnantOrBreastfeeding = answers.isPregnantOrBreastfeeding as boolean | undefined
   const requiresMedicationSafety = serviceType === "prescription" || serviceType === "repeat-script"
+  const hasUnconfirmedSavedAllergies = answers.healthProfilePrefilled === true
+    && hasAllergies === undefined
+    && Boolean(allergies.trim())
+  const hasSavedPositiveHistory = answers.healthProfilePrefilled === true && (
+    hasUnconfirmedSavedAllergies
+    || hasAllergies === true
+    || hasConditions === true
+    || hasOtherMedications === true
+  )
+  const allNoneSelected = hasAllergies === false
+    && hasConditions === false
+    && hasOtherMedications === false
+    && (!requiresMedicationSafety || (
+      answers.hasAdverseMedicationReactions === false
+      && isPregnantOrBreastfeeding === false
+    ))
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [blockedReasons, setBlockedReasons] = useState<string[]>([])
+
+  const applyNone = useCallback(() => {
+    setAnswers(buildNoneApplyMedicalHistoryAnswers(requiresMedicationSafety))
+    setErrors({})
+    setTouched({})
+    setBlockedReasons([])
+  }, [requiresMedicationSafety, setAnswers])
 
   // The allergies question doubles as the medication-reaction check on
   // prescribing flows. Keep the separate `hasAdverseMedicationReactions` answer
@@ -159,13 +201,39 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
         description="A few quick questions so the doctor can prescribe safely."
       />
 
+      {hasSavedPositiveHistory && (
+        <p
+          data-saved-health-history-note="true"
+          className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground"
+        >
+          We filled in saved health details below. Check they&apos;re still current.
+        </p>
+      )}
+
       <StepBlockedSummary reasons={blockedReasons} />
+
+      <div className="space-y-1.5">
+        <Button
+          type="button"
+          variant={allNoneSelected ? "secondary" : "outline"}
+          className="min-h-12 w-full"
+          aria-pressed={allNoneSelected}
+          onClick={applyNone}
+        >
+          None of these apply
+        </Button>
+        <p className="text-center text-xs text-muted-foreground">
+          This answers every question below with No. You can still change any answer.
+        </p>
+      </div>
 
       {/* One screen — no progressive reveal. All checks visible at once. */}
       <QuestionCard className="space-y-5">
         <YesNoDetailQuestion
           label={requiresMedicationSafety ? "Any allergies or bad reactions to a medicine?" : "Any allergies?"}
-          helpText="Drug, food, or environmental allergies, and any past medication reactions"
+          helpText={hasUnconfirmedSavedAllergies
+            ? `Saved in your profile: ${allergies}. Confirm Yes or None.`
+            : "Drug, food, or environmental allergies, and any past medication reactions"}
           noLabel="None"
           yesLabel="Yes"
           value={hasAllergies}

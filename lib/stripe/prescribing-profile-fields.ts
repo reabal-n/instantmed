@@ -11,7 +11,7 @@ const SEX_VALUES: NonNullable<Profile["sex"]>[] = ["M", "F", "N", "I"]
 
 export type PrescribingProfileUpdates = Partial<Pick<
   Profile,
-  "medicare_number" | "medicare_irn" | "medicare_expiry" | "ihi_number" | "address_line1" | "suburb" | "state" | "postcode" | "sex"
+  "medicare_number" | "medicare_irn" | "medicare_expiry" | "ihi_number" | "address_line1" | "suburb" | "state" | "postcode" | "sex" | "onboarding_completed"
 >>
 
 export type CheckoutIdentityProfileUpdates = Partial<Pick<
@@ -180,6 +180,12 @@ export function buildPrescribingProfileUpdates(
   if (state) updates.state = state
   if (postcode) updates.postcode = postcode
   if (sex) updates.sex = sex
+  // Prescribing checkout has already collected and server-validated more
+  // identity detail than the legacy onboarding form. Mark only a genuinely
+  // complete prescribing packet so it is not requested again after sign-in.
+  if (validateRequiredPrescribingProfileAnswers(answers) === null) {
+    updates.onboarding_completed = true
+  }
 
   return updates
 }

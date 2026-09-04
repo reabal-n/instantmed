@@ -527,6 +527,18 @@ describe("unified intake regressions", () => {
     expect(transformed.sex).toBe("M")
   })
 
+  it("strips UI-only prefill markers before checkout persistence", () => {
+    const transformed = transformAnswersForUnifiedCheckout("repeat-script", {
+      renewalPrefilled: true,
+      healthProfilePrefilled: true,
+      medicationName: "Budesonide + formoterol",
+      medicationStrength: "100/3 micrograms",
+    })
+
+    expect(transformed).not.toHaveProperty("renewalPrefilled")
+    expect(transformed).not.toHaveProperty("healthProfilePrefilled")
+  })
+
   it("requires an explicit unchanged dose-and-directions answer before repeat checkout", () => {
     const validRepeatAnswers = {
       medicationName: "Budesonide + formoterol",
@@ -773,21 +785,29 @@ describe("unified intake regressions", () => {
 
     // A frequency alone is not the patient's current dose. Both the Zod step
     // schema and the server checkout gate expose the same single-field error.
-    expect(validateMedicationHistoryStep({
-      prescriptionHistory: "6 to 12 months",
-      currentDose: "Once daily",
-      indication: "asthma",
-      doseChanged: false,
-      hasSideEffects: false,
-    })).toMatchObject({
-      isValid: false,
-      errors: { currentDose: REPEAT_RX_REGIMEN_REQUIRED_MESSAGE },
-    })
-    expect(validateAnswersServerSide("repeat-script", {
-      ...base,
-      currentDose: "Once daily",
-      indication: "asthma",
-    }, identity)).toBe(REPEAT_RX_REGIMEN_REQUIRED_MESSAGE)
+    for (const incompleteDirections of [
+      "Once daily",
+      "6 hourly",
+      "6-hourly",
+      "8 hourly as needed",
+      "8-hourly as needed",
+    ]) {
+      expect(validateMedicationHistoryStep({
+        prescriptionHistory: "6 to 12 months",
+        currentDose: incompleteDirections,
+        indication: "asthma",
+        doseChanged: false,
+        hasSideEffects: false,
+      })).toMatchObject({
+        isValid: false,
+        errors: { currentDose: REPEAT_RX_REGIMEN_REQUIRED_MESSAGE },
+      })
+      expect(validateAnswersServerSide("repeat-script", {
+        ...base,
+        currentDose: incompleteDirections,
+        indication: "asthma",
+      }, identity)).toBe(REPEAT_RX_REGIMEN_REQUIRED_MESSAGE)
+    }
 
     // Both present → allowed.
     expect(

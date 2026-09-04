@@ -8,6 +8,145 @@ export const AUTH_HANDOFF_REFRESH_SUPPRESSION_MS = 5000
 // TOKEN_REFRESHED/SIGNED_IN and would otherwise race with React hydration,
 // producing "Application error: a client-side exception has occurred".
 export const AUTH_HANDOFF_STORAGE_KEY = "instantmed:auth-handoff-ts" as const
+const SIGN_IN_EMAIL_HANDOFF_STORAGE_KEY = "instantmed:sign-in-email-handoff" as const
+const MAGIC_LINK_EMAIL_RECOVERY_STORAGE_KEY = "instantmed:last-magic-link-email" as const
+const SIGN_IN_EMAIL_HANDOFF_TTL_MS = 10 * 60 * 1000
+const MAGIC_LINK_EMAIL_RECOVERY_TTL_MS = 30 * 60 * 1000
+
+type EmailHandoffStorage = Pick<Storage, "getItem" | "removeItem" | "setItem">
+
+type StoredEmailHandoff = {
+  email: string
+  expiresAt: number
+  redirect: string
+  version: 1
+}
+
+function normalizeHandoffEmail(value: string): string | null {
+  const email = value.trim().toLowerCase()
+  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ? email
+    : null
+}
+
+function rememberEmailHandoff({
+  email,
+  expiresAt,
+  key,
+  redirect,
+  storage,
+}: {
+  email: string
+  expiresAt: number
+  key: string
+  redirect: string
+  storage: EmailHandoffStorage
+}): boolean {
+  const normalizedEmail = normalizeHandoffEmail(email)
+  if (!normalizedEmail) return false
+
+  try {
+    const payload: StoredEmailHandoff = {
+      email: normalizedEmail,
+      expiresAt,
+      redirect,
+      version: 1,
+    }
+    storage.setItem(key, JSON.stringify(payload))
+    return true
+  } catch {
+    return false
+  }
+}
+
+function consumeEmailHandoff({
+  key,
+  now,
+  redirect,
+  storage,
+}: {
+  key: string
+  now: number
+  redirect: string
+  storage: EmailHandoffStorage
+}): string | null {
+  try {
+    const raw = storage.getItem(key)
+    storage.removeItem(key)
+    if (!raw) return null
+
+    const payload = JSON.parse(raw) as Partial<StoredEmailHandoff>
+    if (
+      payload.version !== 1 ||
+      payload.redirect !== redirect ||
+      typeof payload.expiresAt !== "number" ||
+      payload.expiresAt <= now ||
+      typeof payload.email !== "string"
+    ) {
+      return null
+    }
+
+    return normalizeHandoffEmail(payload.email)
+  } catch {
+    return null
+  }
+}
+
+export function rememberSignInEmailHandoff(
+  storage: EmailHandoffStorage,
+  email: string,
+  redirect: string,
+  now = Date.now(),
+): boolean {
+  return rememberEmailHandoff({
+    email,
+    expiresAt: now + SIGN_IN_EMAIL_HANDOFF_TTL_MS,
+    key: SIGN_IN_EMAIL_HANDOFF_STORAGE_KEY,
+    redirect,
+    storage,
+  })
+}
+
+export function consumeSignInEmailHandoff(
+  storage: EmailHandoffStorage,
+  redirect: string,
+  now = Date.now(),
+): string | null {
+  return consumeEmailHandoff({
+    key: SIGN_IN_EMAIL_HANDOFF_STORAGE_KEY,
+    now,
+    redirect,
+    storage,
+  })
+}
+
+export function rememberMagicLinkRecoveryEmail(
+  storage: EmailHandoffStorage,
+  email: string,
+  redirect: string,
+  now = Date.now(),
+): boolean {
+  return rememberEmailHandoff({
+    email,
+    expiresAt: now + MAGIC_LINK_EMAIL_RECOVERY_TTL_MS,
+    key: MAGIC_LINK_EMAIL_RECOVERY_STORAGE_KEY,
+    redirect,
+    storage,
+  })
+}
+
+export function consumeMagicLinkRecoveryEmail(
+  storage: EmailHandoffStorage,
+  redirect: string,
+  now = Date.now(),
+): string | null {
+  return consumeEmailHandoff({
+    key: MAGIC_LINK_EMAIL_RECOVERY_STORAGE_KEY,
+    now,
+    redirect,
+    storage,
+  })
+}
 
 type SearchParamsInput =
   | URLSearchParams

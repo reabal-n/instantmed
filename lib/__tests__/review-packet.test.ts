@@ -420,10 +420,12 @@ describe("buildReviewPacket", () => {
   })
 
   it.each([
+    ["within_12_months", "Within 12 months"],
+    ["never", "Never"],
     ["less_than_3_months", "Less than 3 months ago"],
     ["3_to_6_months", "3–6 months ago"],
     ["6_to_12_months", "6–12 months ago"],
-    ["over_12_months", "Over 12 months ago"],
+    ["over_12_months", "Over 12 months"],
   ])("humanises prescription recency %s", (storedValue, displayValue) => {
     const packet = buildReviewPacket(repeatRxInput({
       answers: {

@@ -3,6 +3,7 @@ import "server-only"
 import { createClient } from "@supabase/supabase-js"
 
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
+import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { collectRepeatMedicationEntries, formatRepeatMedication } from "@/lib/clinical/repeat-medications"
 import { env } from "@/lib/config/env"
 import { type DraftCategory,getDraftCategory, normalizeServiceType } from "@/lib/constants/service-types"
@@ -10,6 +11,11 @@ import { createLogger } from "@/lib/observability/logger"
 import type { ServiceType } from "@/types/db"
 
 export const log = createLogger("generate-drafts")
+
+function formatPrescriptionHistory(value: unknown): string {
+  const storedValue = String(value)
+  return PRESCRIPTION_HISTORY_LABELS[storedValue] || storedValue.replace(/_/g, " ")
+}
 
 // Type helper for AI SDK usage (varies by version)
 export interface AIUsage {
@@ -179,8 +185,9 @@ export function formatIntakeContext(
     if (answers.currentDose || answers.current_dose || answers.dosage_instructions) {
       parts.push(`Current Dose: ${sanitizeAnswerValue(answers.currentDose || answers.current_dose || answers.dosage_instructions, intakeId)}`)
     }
-    if (answers.prescriptionHistory || answers.prescription_history || answers.last_prescribed) {
-      parts.push(`Prescription History: ${sanitizeAnswerValue(answers.prescriptionHistory || answers.prescription_history || answers.last_prescribed, intakeId)}`)
+    const prescriptionHistory = answers.prescriptionHistory || answers.prescription_history || answers.last_prescribed
+    if (prescriptionHistory) {
+      parts.push(`Prescription History: ${sanitizeAnswerValue(formatPrescriptionHistory(prescriptionHistory), intakeId)}`)
     }
     if (answers.treatmentDuration || answers.medicationDuration) {
       parts.push(`Treatment Duration: ${sanitizeAnswerValue(answers.treatmentDuration || answers.medicationDuration, intakeId)}`)

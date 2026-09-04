@@ -24,7 +24,7 @@ import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from
 import { applyQueueRealtimeUpdate, removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
 import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getQueueWaitTargetState, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
-import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
+import { hasQueueRiskBadge, sortForReviewNext } from "@/lib/doctor/review-next"
 import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { useDebounce } from "@/lib/hooks/use-debounce"
@@ -43,13 +43,6 @@ import { QueueTable } from "./queue-table"
 import { searchDoctorQueueAction } from "./search-actions"
 import type { QueueClientProps, QueueSearchState } from "./types"
 import { useQueueDialogs } from "./use-queue-dialogs"
-
-// After a case's first minute in queue, the live wait label (and its driving
-// clock tick) only needs coarse updates. 1s ticked the entire queue every second
-// for the whole session — pure jank. 15s keeps the label sane without the
-// per-second re-render storm.
-const QUEUE_VISIBLE_WAIT_SECONDS_CADENCE = 15
-const QUEUE_VISIBLE_WAIT_HOUR_CADENCE_MS = 60_000
 
 interface ActiveQueueSearchView {
   query: string
@@ -171,7 +164,7 @@ function QueueIdlePanel({
         ? `Open ${nextFirstName}'s request when you're ready.`
       : "No cases match this filter."
   const nextCaseLabel = filteredCount > 0
-      ? "Select the oldest case."
+      ? "Select the next case."
       : "Nothing to review."
   const showNextUp = filteredCount > 0
 
@@ -566,8 +559,8 @@ export function QueueClient({
   }, [intakes])
 
   // Tick every second only while a visible queue case is still in its first
-  // minute; after that, schedule a low-frequency seconds cadence. This keeps
-  // row chips visibly live without repainting long queues every second.
+  // minute; after that, update at the next minute boundary. This keeps row
+  // labels exact without repainting long queues for invisible seconds.
   useEffect(() => {
     if (intakes.length === 0) return
     setClockNow(new Date())
@@ -578,10 +571,6 @@ export function QueueClient({
     const tickDelayMs = getQueueClockTickDelayMs(
       intakes.map((intake) => getQueueEnteredAt(intake)),
       clockNow,
-      {
-        postMinuteCadenceMs: QUEUE_VISIBLE_WAIT_SECONDS_CADENCE * 1000,
-        postHourCadenceMs: QUEUE_VISIBLE_WAIT_HOUR_CADENCE_MS,
-      },
     )
     if (tickDelayMs == null) return
     const tickTimeout = window.setTimeout(() => {
@@ -591,9 +580,7 @@ export function QueueClient({
   }, [clockNow, intakes])
 
   const calculateStableWaitTime = useCallback((createdAt: string) => {
-    return calculateLiveWaitTime(createdAt, clockNow, {
-      afterFirstMinuteSecondsCadence: QUEUE_VISIBLE_WAIT_SECONDS_CADENCE,
-    })
+    return calculateLiveWaitTime(createdAt, clockNow)
   }, [clockNow])
 
   const getStableWaitTimeSeverity = useCallback((createdAt: string) => {
@@ -860,7 +847,7 @@ export function QueueClient({
   }, [openReviewPanel, startTransition, intakes, refreshQueue])
 
 
-  const hasRedFlags = useCallback((intake: IntakeWithPatient): boolean => hasReviewNextRisk(intake), [])
+  const hasClinicalRisk = useCallback((intake: IntakeWithPatient): boolean => hasQueueRiskBadge(intake), [])
 
   // Sort: risk -> scripts waiting -> priority -> oldest paid/requested -> pending-info age.
   const sortedIntakes = useMemo(() => {
@@ -1194,7 +1181,7 @@ export function QueueClient({
                   isPending={dialogs.isPending || isApprovePending}
                   identityComplete={identityComplete}
                   onApprove={handleApprove}
-                  hasRedFlags={hasRedFlags}
+                  hasClinicalRisk={hasClinicalRisk}
                   calculateWaitTime={calculateStableWaitTime}
                   getWaitTimeSeverity={getStableWaitTimeSeverity}
                   getWaitTargetState={getStableWaitTargetState}
@@ -1280,7 +1267,7 @@ export function QueueClient({
             isPending={dialogs.isPending || isApprovePending}
             identityComplete={identityComplete}
             onApprove={handleApprove}
-            hasRedFlags={hasRedFlags}
+            hasClinicalRisk={hasClinicalRisk}
             calculateWaitTime={calculateStableWaitTime}
             getWaitTimeSeverity={getStableWaitTimeSeverity}
             getWaitTargetState={getStableWaitTargetState}

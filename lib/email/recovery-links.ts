@@ -1,4 +1,5 @@
 import { signCheckoutResumeToken } from "@/lib/crypto/checkout-resume-token"
+import { signRecoveryEmailEngagementToken } from "@/lib/crypto/recovery-email-engagement-token"
 import { buildDraftResumePath } from "@/lib/request/draft-resume-route"
 
 export interface PartialIntakeRecoveryUrlDraft {
@@ -59,10 +60,17 @@ export function buildSignedCheckoutResumeUrl({
 function addRecoveryAttribution(
   url: URL,
   campaign: CheckoutPaymentRecoveryCampaign | ExpiredCheckoutRecoveryCampaign,
+  intakeId?: string,
 ) {
   url.searchParams.set("utm_source", "recovery_email")
   url.searchParams.set("utm_medium", "email")
   url.searchParams.set("utm_campaign", campaign)
+  if (intakeId) {
+    url.searchParams.set(
+      "recovery_proof",
+      signRecoveryEmailEngagementToken(intakeId),
+    )
+  }
 }
 
 /**
@@ -84,12 +92,12 @@ export function buildCheckoutPaymentRecoveryUrl({
   const base = appUrl.replace(/\/$/, "")
   if (isGuest) {
     const url = new URL(buildSignedCheckoutResumeUrl({ appUrl: base, intakeId }))
-    addRecoveryAttribution(url, campaign)
+    addRecoveryAttribution(url, campaign, intakeId)
     return url.toString()
   }
   const url = new URL(`/patient/intakes/${encodeURIComponent(intakeId)}`, base)
   url.searchParams.set("retry", "true")
-  addRecoveryAttribution(url, campaign)
+  addRecoveryAttribution(url, campaign, intakeId)
   return url.toString()
 }
 

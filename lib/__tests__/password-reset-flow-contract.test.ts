@@ -24,15 +24,26 @@ describe("password reset flow contract", () => {
     expect(signInPage).toContain("Use the newest link if a few arrive.")
     expect(signInPage).toContain("We couldn't send that link. Try again.")
     expect(signInPage).toContain("emailLinkErrorMessage")
-    expect(signInPage).toContain("LAST_MAGIC_LINK_EMAIL_KEY")
     expect(signInPage).toContain("MAGIC_LINK_RESEND_COOLDOWN_MS")
     expect(signInPage).toContain("lastMagicLinkSentAt")
     expect(signInPage).toContain("Give it 30 seconds before sending another link.")
-    expect(signInPage).toContain("sessionStorage.setItem(LAST_MAGIC_LINK_EMAIL_KEY")
-    expect(signInPage).toContain("sessionStorage.getItem(LAST_MAGIC_LINK_EMAIL_KEY)")
+    expect(signInPage).toContain("rememberMagicLinkRecoveryEmail(window.sessionStorage")
+    expect(signInPage).toContain("consumeMagicLinkRecoveryEmail(sessionStorage")
     expect(signInPage).toContain("Wrong email?")
     expect(signInPage).toContain("emailInputRef.current?.focus()")
     expect(signInPage).toContain("googleErrorMessage")
+  })
+
+  it("preserves the exact email and redirect scope for expired links from every OTP entry point", () => {
+    const completeAccount = readRepoFile("app/auth/complete-account/complete-account-form.tsx")
+    const signUpPage = readRepoFile("app/sign-up/[[...sign-up]]/page.tsx")
+
+    expect(completeAccount).toContain(
+      "window.sessionStorage,\n          normalizedEmail,\n          postSignInHref",
+    )
+    expect(signUpPage).toContain(
+      "rememberMagicLinkRecoveryEmail(window.sessionStorage, trimmed, redirectUrl)",
+    )
   })
 
   it("keeps the forgot-password and reset-password routes reachable", () => {

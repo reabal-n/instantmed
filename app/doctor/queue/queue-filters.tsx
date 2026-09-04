@@ -274,8 +274,10 @@ export function QueueFilters({
                   <dd>Move selection</dd>
                   <dt><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">Enter</kbd></dt>
                   <dd>Open selected</dd>
-                  <dt className="flex gap-1"><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">A</kbd><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">D</kbd></dt>
-                  <dd>Review or decline</dd>
+                  <dt><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">A</kbd></dt>
+                  <dd>Approve or open review</dd>
+                  <dt><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">D</kbd></dt>
+                  <dd>Open decline dialog</dd>
                   <dt><kbd className="rounded border border-border/70 bg-muted/45 px-1.5 py-0.5 font-mono text-[10px] text-foreground">Esc</kbd></dt>
                   <dd>Clear selection</dd>
                 </dl>
@@ -308,7 +310,11 @@ export function QueueFilters({
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="grid w-full grid-cols-4 gap-1 rounded-lg bg-muted/25 p-1 sm:flex sm:w-fit sm:flex-wrap sm:gap-1.5">
+      <div
+        role="group"
+        aria-label="Filter queue by status"
+        className="grid w-full grid-cols-4 gap-1 rounded-lg bg-muted/25 p-1 sm:flex sm:w-fit sm:flex-wrap sm:gap-1.5"
+      >
         {([
           { key: "all", mobileLabel: "All", desktopLabel: "All" },
           { key: "review", mobileLabel: "Review", desktopLabel: "Needs review" },

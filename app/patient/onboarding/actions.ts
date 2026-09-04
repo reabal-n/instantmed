@@ -1,13 +1,13 @@
 "use server"
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
+import { updateProfile } from "@/lib/data/profiles"
 import { verifyAddress } from "@/lib/google-places/geocoding"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validatePostcodeState } from "@/lib/validation/australian-address"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
 import type { AustralianState } from "@/types/db"
-
 
 interface OnboardingInput {
   phone: string
@@ -33,8 +33,6 @@ export async function completeOnboardingAction(
   if (authUser.profile.role !== "patient" || authUser.profile.id !== profileId) {
     return { success: false, error: "Unauthorized" }
   }
-
-  const supabase = createServiceRoleClient()
 
   // Server-side validation
   const fieldErrors: Record<string, string> = {}
@@ -87,27 +85,25 @@ export async function completeOnboardingAction(
         postcode: data.postcode,
       }
 
-  // Update profile with onboarding data
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      phone: phoneValidation.e164 || data.phone, // Use E.164 format if available
-      address_line1: finalAddress.address_line1,
-      suburb: finalAddress.suburb,
-      state: finalAddress.state,
-      postcode: finalAddress.postcode,
-      medicare_number: data.medicare_number || null,
-      medicare_irn: data.medicare_irn || null,
-      medicare_expiry: data.medicare_expiry || null,
-      consent_myhr: data.consent_myhr,
-      onboarding_completed: true,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", profileId)
+  // The shared writer owns PHI encryption and remains safe only because the
+  // session-derived profile was matched to the client-supplied id above.
+  const updatedProfile = await updateProfile(authUser.profile.id, {
+    phone: phoneValidation.e164 || data.phone,
+    address_line1: finalAddress.address_line1,
+    suburb: finalAddress.suburb,
+    state: finalAddress.state,
+    postcode: finalAddress.postcode,
+    medicare_number: data.medicare_number || null,
+    medicare_irn: data.medicare_irn || null,
+    medicare_expiry: data.medicare_expiry || null,
+    consent_myhr: data.consent_myhr,
+    onboarding_completed: true,
+  })
 
-  if (error) {
+  if (!updatedProfile) {
     return { success: false, error: "Failed to save your details. Please try again." }
   }
 
+  revalidatePatient({ account: true, patientId: authUser.profile.id, settings: true })
   return { success: true }
 }

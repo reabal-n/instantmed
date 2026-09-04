@@ -68,7 +68,7 @@ function createHeartbeatClient(input: {
 }
 
 describe("cron heartbeat outage classification", () => {
-  it("includes never-run jobs only after the durable deployment grace", async () => {
+  it("uses schedule-aware grace before classifying a job as never run", async () => {
     const {
       CRON_WATCHDOG_DEPLOYMENT_GRACE_MINUTES,
       findCronHeartbeatOutages,
@@ -87,12 +87,28 @@ describe("cron heartbeat outage classification", () => {
       deploymentStartedAtMs: nowMs - 31 * 60_000,
       deploymentKey: "dpl_current",
     })
+    const afterDailyGrace = findCronHeartbeatOutages({
+      heartbeats: [],
+      nowMs,
+      deploymentStartedAtMs: nowMs - 1501 * 60_000,
+      deploymentKey: "dpl_current",
+    })
 
     expect(CRON_WATCHDOG_DEPLOYMENT_GRACE_MINUTES).toBe(30)
     expect(duringGrace).toEqual([])
     expect(afterGrace).toContainEqual(expect.objectContaining({
-      jobName: "posthog-reconciliation",
+      jobName: "email-dispatcher",
       lastRunAt: null,
+      status: "never_run",
+      outageKey: "never:dpl_current",
+    }))
+    expect(afterGrace).not.toContainEqual(expect.objectContaining({
+      jobName: "refill-reminders",
+    }))
+    expect(afterDailyGrace).toContainEqual(expect.objectContaining({
+      jobName: "refill-reminders",
+      lastRunAt: null,
+      minutesOverdue: 1,
       status: "never_run",
       outageKey: "never:dpl_current",
     }))

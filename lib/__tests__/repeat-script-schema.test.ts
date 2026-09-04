@@ -26,7 +26,14 @@ const validRepeatScriptAnswers = {
 }
 
 describe("repeat script schema", () => {
-  it.each(["Once daily", "One tablet"])(
+  it.each([
+    "Once daily",
+    "One tablet",
+    "6 hourly",
+    "6-hourly",
+    "8 hourly as needed",
+    "8-hourly as needed",
+  ])(
     "rejects incomplete current directions: %s",
     (currentDose) => {
       expect(validateRepeatScriptPayload({
@@ -261,7 +268,7 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
       medications: [{ name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "1234" }],
     })
     expect(result.valid).toBe(false)
-    expect(result.error).toMatch(/how much.*how often/i)
+    expect(result.error).toMatch(/amount.*timing/i)
   })
 
   it("still blocks a missing last-prescribed", () => {

@@ -1,3 +1,5 @@
+import "server-only"
+
 import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -10,6 +12,7 @@ import {
 import { trackOperationalBlock } from "@/lib/analytics/posthog-server"
 import { getCurrentUser, getUserProfile } from "@/lib/auth/helpers"
 import { CONTACT_EMAIL_HELLO, PRICING_DISPLAY } from "@/lib/constants"
+import { getHealthProfile } from "@/lib/data/health-profile"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
 import { normalizeIncomingGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
@@ -17,12 +20,23 @@ import { isAtCapacity } from "@/lib/operational-controls/config"
 import { normalizeConsultSubtypeParam } from "@/lib/request/consult-flow"
 import { normalizeWomensHealthIntentParam } from "@/lib/request/consult-subtypes"
 import { isValidDraftSessionId } from "@/lib/request/draft-resume-route"
+import type {
+  HealthProfilePrefill,
+  PrescriptionRenewalPrefill,
+} from "@/lib/request/request-prefill"
 import { mapServiceParam } from "@/lib/request/step-registry"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
 import { normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
+
+const PRESCRIPTION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isValidPrescriptionId(value: string | undefined): value is string {
+  return typeof value === "string" && PRESCRIPTION_ID_PATTERN.test(value)
+}
 
 export const metadata: Metadata = {
   title: "Get Started",
@@ -64,6 +78,7 @@ export default async function RequestPage({
     certType?: string
     duration?: string
     d?: string
+    renewal?: string
     growth_experience_version?: string
   }>
 }) {
@@ -246,6 +261,54 @@ export default async function RequestPage({
     }
   }
 
+  let healthProfile: HealthProfilePrefill | null = null
+  let renewalPrefill: PrescriptionRenewalPrefill | null = null
+  if (user && profile && profile.role === "patient") {
+    const [savedHealthProfile, ownedPrescription] = await Promise.all([
+      getHealthProfile(profile.id).catch(() => null),
+      (async () => {
+        if (
+          initialService !== "repeat-script" ||
+          !isValidPrescriptionId(params.renewal) ||
+          params.d !== undefined
+        ) {
+          return null
+        }
+
+        try {
+          const { data, error } = await createServiceRoleClient()
+            .from("prescriptions")
+            .select("medication_name, medication_strength, dosage_instructions, issued_date")
+            .eq("patient_id", profile.id)
+            .eq("id", params.renewal)
+            .maybeSingle()
+
+          return error ? null : data
+        } catch {
+          return null
+        }
+      })(),
+    ])
+
+    if (savedHealthProfile) {
+      // Send only the three history arrays the intake knows how to reuse; do
+      // not serialize unrelated health-profile PHI into the client payload.
+      healthProfile = {
+        allergies: savedHealthProfile.allergies,
+        conditions: savedHealthProfile.conditions,
+        current_medications: savedHealthProfile.current_medications,
+      }
+    }
+    if (ownedPrescription) {
+      renewalPrefill = {
+        medicationName: ownedPrescription.medication_name,
+        medicationStrength: ownedPrescription.medication_strength,
+        dosageInstructions: ownedPrescription.dosage_instructions,
+        issuedDate: ownedPrescription.issued_date,
+      }
+    }
+  }
+
   let profileDateOfBirth: string | null = null
   if (profile) {
     try {
@@ -302,6 +365,8 @@ export default async function RequestPage({
         state: profile!.state!,
         postcode: profile!.postcode!,
       } : undefined}
+      healthProfile={healthProfile}
+      renewalPrefill={renewalPrefill}
     />
   )
 }

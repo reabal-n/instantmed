@@ -475,11 +475,11 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 
 Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `vercel.json`, documented in this table, and operationally justified as one of: clinical queue safety, payment/intake recovery, delivery recovery, compliance retention, health monitoring, or explicit growth support. `scripts/check-vercel-cron-routes.mjs` fails both directions: scheduled jobs with no route and route files with no schedule. Dormant engagement jobs, duplicate post-care nudges, dashboard digests, and future subscription nudges stay deleted rather than paused in production.
 
-For the 16 jobs in `CRITICAL_CRONS`, a heartbeat is a **terminal outcome**, not proof that the route merely started. `ok` is written only after the route's work completes; handled failures write `error`, `timeout`, `partial_failure`, or `configuration_error`. `disabled` is a deliberate healthy terminal state and rearms monitoring. A planned `skipped` invocation (lock held, outside the active hour, or another run in progress) proves scheduler liveness without clearing an earlier failed-work outage; callers may rearm a skip only when separate durable evidence proves the work already completed, such as an existing delivered Ads brief receipt. Dependency or lock-storage failure is never classified as a neutral skip.
+For every job in `CRITICAL_CRONS`, a heartbeat is a **terminal outcome**, not proof that the route merely started. `ok` is written only after the route's work completes; handled failures write `error`, `timeout`, `partial_failure`, or `configuration_error`. `disabled` is a deliberate healthy terminal state and rearms monitoring. A planned `skipped` invocation (lock held, outside the active hour, or another run in progress) proves scheduler liveness without clearing an earlier failed-work outage; callers may rearm a skip only when separate durable evidence proves the work already completed, such as an existing delivered Ads brief receipt. Dependency or lock-storage failure is never classified as a neutral skip.
 
 | Job | Endpoint | Schedule | Purpose |
 |-----|----------|----------|---------|
-| Health Check | `/api/cron/health-check` | Every 5 min | Cron heartbeat watchdog only; queue delay, delivery failures, and business alerts stay owned by their dedicated jobs. A database-backed deployment marker gives never-run jobs 30 minutes after first watchdog observation, then missing, stale, and unrecovered failed outcomes are unhealthy. Latest invocation, recovery, and failure boundaries are stored separately so a scheduled no-op cannot mask failed work or reuse a pre-recovery outage key. Each job/outage generation is claimed atomically in `operational_metrics` before one Sentry alert; concurrent watchdogs emit only newly claimed jobs. If the claim RPC or its ACL is unavailable, known overdue jobs fail open to one stable, aggregate-only Sentry fingerprint instead of being silently suppressed. If heartbeat state itself is unreadable, the endpoint returns unhealthy and emits a separate stable PHI-free configuration signal without inventing per-job outages or attaching provider query text. |
+| Health Check | `/api/cron/health-check` | Every 5 min | Cron heartbeat watchdog only; queue delay, delivery failures, and business alerts stay owned by their dedicated jobs. A database-backed deployment marker gives never-run jobs the larger of 30 minutes or that job's normal delay allowance, so a newly added daily job is not reported before its first expected run; after that, missing, stale, and unrecovered failed outcomes are unhealthy. Latest invocation, recovery, and failure boundaries are stored separately so a scheduled no-op cannot mask failed work or reuse a pre-recovery outage key. Each job/outage generation is claimed atomically in `operational_metrics` before one Sentry alert; concurrent watchdogs emit only newly claimed jobs. If the claim RPC or its ACL is unavailable, known overdue jobs fail open to one stable, aggregate-only Sentry fingerprint instead of being silently suppressed. If heartbeat state itself is unreadable, the endpoint returns unhealthy and emits a separate stable PHI-free configuration signal without inventing per-job outages or attaching provider query text. |
 | Email Dispatcher | `/api/cron/email-dispatcher` | Every 5 min | Process pending/failed emails from `email_outbox` with atomic claiming; recovers stale `sending` claims and applies `DAILY_EMAIL_LIMIT` only to marketing/engagement sends |
 | Release Stale Claims | `/api/cron/release-stale-claims` | Every 5 min | Release doctor intake claims that have gone stale to prevent queue stalls |
 | Retry Drafts | `/api/cron/retry-drafts` | Every 5 min | Retry failed AI draft generation with exponential backoff |
@@ -706,7 +706,8 @@ Before treating a production deploy or paid-traffic ramp as clean:
 ### Database Migrations
 
 ```bash
-supabase db push --project-ref [SUPABASE_PROJECT_REF]
+supabase db push --dry-run --linked --yes
+supabase db push --linked --yes
 ```
 
 ### Monitoring
@@ -1236,7 +1237,7 @@ aggregate baseline first, then delete only after operator approval.
 ```bash
 vercel logs --follow               # Tail Vercel logs
 stripe prices list --limit 5       # Verify Stripe prices
-supabase db push --project-ref X   # Apply migrations
+supabase db push --linked --yes    # Apply reviewed pending migrations to the linked project
 pnpm support:inbox-alert --count 3 # Post only an aggregate unread count; loads CRON_SECRET without printing it
 ```
 

@@ -50,6 +50,7 @@ const SENSITIVE_FIELDS = new Set([
   "address", "streetaddress", "street_address",
   "ihi", "dva", "dvanumber", "dva_number",
   "reviewclickkey", "review_click_key",
+  "recoveryproof", "recovery_proof",
   "password", "token", "secret", "apikey", "api_key",
 ])
 
@@ -57,6 +58,7 @@ const SENSITIVE_FIELDS = new Set([
 const FORBIDDEN_FIELDS = new Set([
   "password", "token", "secret", "apikey", "api_key", "authorization",
   "reviewclickkey", "review_click_key",
+  "recoveryproof", "recovery_proof",
 ])
 
 /**
@@ -145,6 +147,7 @@ export function sanitizeUrl(url: string): string {
       "email", "phone", "name", "medicare", "dob", "address",
       "token", "code", "secret", "password", "session_id",
       "review_click_key",
+      "recovery_proof",
       "intake_id", "request_id", "patient_id", "profile_id", "user_id",
       "certificate_id",
     ]

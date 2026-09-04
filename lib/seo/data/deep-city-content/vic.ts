@@ -9,6 +9,10 @@ import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import type { DeepCityContent } from "../deep-city-content"
 
 const REFUND_PAYMENT_PROCESS = getApprovedClaim("refund_payment_process")
+const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
+const EMPLOYER_POLICY_CAVEAT = getApprovedClaim("trust_doctor_issued_tooltip")
+const COMPLAINTS_TIMING = getApprovedClaim("complaints_timing")
+const PRESCRIPTION_IF_APPROVED = getApprovedClaim("prescription_if_approved")
 
 export const VIC_CITIES: Record<string, DeepCityContent> = {
   melbourne: {
@@ -32,23 +36,23 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Melbourne's telehealth adoption rate is among the highest in Australia, driven by the city's experience with extended lockdowns and a tech-savvy population. Telehealth usage for non-urgent consultations increased significantly from 2020 onwards and has remained elevated, particularly among 18–44 year olds - the demographic most likely to need medical certificates for work or study.",
           "University students are heavy telehealth users. Melbourne is home to the University of Melbourne, Monash, RMIT, Deakin, La Trobe, Swinburne, and VU - collectively serving hundreds of thousands of students. For academic support requests and coursework documentation, a medical certificate from an AHPRA-registered doctor via telehealth is assessed under Victorian university policies.",
-          "Melbourne's hospitality and retail workforce - a significant portion of the city's employment - particularly benefits from telehealth. These workers often have irregular hours, limited sick leave, and can't easily take time off during business hours to sit in a clinic. Telehealth lets them get the certificate they're entitled to without losing additional income.",
+          "Melbourne's hospitality and retail workforce - a significant portion of the city's employment - often works irregular hours and may struggle to attend a clinic during business hours. Adults aged 18+ can submit a medical-certificate request online; issue depends on the clinical assessment, and employers apply their own evidence policies.",
         ],
       },
       {
         title: "Medical Certificates and Victorian Employment Law",
         paragraphs: [
-          "Victoria follows the national Fair Work Act for leave entitlements, but also has additional state-level protections. Full-time employees get 10 days of personal/carer's leave per year, and employers can request a medical certificate for any absence. There's no legal requirement that the certificate come from a face-to-face consultation.",
-          "Victorian public sector employees (VPS) have their own enterprise agreements, all of which set their own policies for certificates from AHPRA-registered doctors. The same applies to all major Victorian employers - from Coles and Woolworths (both headquartered in Melbourne) to the major banks, universities, and healthcare systems.",
-          "For casual workers in Melbourne, medical certificates serve a different but equally important purpose. While casuals don't accrue sick leave (unless they're long-term regular casuals), a medical certificate can protect your shift arrangements and demonstrate good faith to your employer. The certificate shows you were genuinely unwell, not just no-showing.",
+          `Victorian workplaces apply the Fair Work Act or relevant state industrial instruments, and each employer sets its own leave-evidence policy. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
+          "Victorian public sector enterprise agreements and private-sector workplace policies can set different evidence requirements. Employees should check the current policy that applies to their request.",
+          "For casual workers in Melbourne, each employer decides what absence documentation it requires even when formal sick leave does not apply. Adults aged 18+ can submit a medical-certificate request online and should check the workplace's current evidence policy.",
         ],
       },
     ],
     pharmacyInfo: {
       title: "Pharmacies and eScripts in Melbourne",
       paragraphs: [
-        "Melbourne is home to over 1,400 community pharmacies, including the headquarters of Chemist Warehouse - Australia's largest pharmacy chain. Every major pharmacy chain and virtually all independent pharmacies in Victoria now accept eScripts. When InstantMed issues a prescription, you receive a QR code via SMS that can be scanned at any of these pharmacies.",
-        "Extended-hours pharmacies are common across Melbourne. Many Chemist Warehouse and Priceline locations in shopping centres and high streets stay open until 9pm. Several pharmacies in the CBD and inner suburbs operate late or 24 hours. This means prescriptions from InstantMed can typically be filled the same day, even for evening requests.",
+        `Melbourne is home to over 1,400 community pharmacies, including the headquarters of Chemist Warehouse - Australia's largest pharmacy chain. Every major pharmacy chain and virtually all independent pharmacies in Victoria now accept eScripts. ${PRESCRIPTION_IF_APPROVED}`,
+        "Extended-hours pharmacies are common across Melbourne. Many Chemist Warehouse and Priceline locations in shopping centres and high streets stay open until 9pm. Several pharmacies in the CBD and inner suburbs operate late or 24 hours. If a prescribing request is approved, the eScript can often be filled the same day, including in the evening.",
       ],
     },
     telehealthRegulations: {
@@ -56,15 +60,15 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Victoria was among the most enthusiastic adopters of telehealth during 2020–2021, and the state government has since embedded telehealth into its ongoing healthcare strategy. The Victorian Department of Health recognises telehealth as a legitimate and important component of the primary care system, particularly for reducing pressure on emergency departments.",
         "All telehealth consultations in Australia must be provided by AHPRA-registered practitioners - the same registration standard required for in-person care. The Medical Board of Australia's telehealth guidelines require that doctors exercise the same standard of care via telehealth as they would in person, including appropriate clinical assessment and documentation.",
-        "Prescribing via telehealth in Victoria follows national TGA guidelines. Most medications can be prescribed via telehealth, including common antibiotics, contraceptives, and medications for chronic conditions. Schedule 8 (controlled) substances have additional restrictions and typically require in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "Prescribing via telehealth in Victoria follows national TGA guidelines. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its erectile dysfunction, hair loss, women's health, and weight-management assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Schedule 8 controlled substances have additional restrictions and typically require in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
       ],
     },
     additionalFaqs: [
-      { q: "Do Melbourne employers assess telehealth medical certificates under their own policies?", a: "Yes. All Australian employers must set their own policies for medical certificates from AHPRA-registered doctors, regardless of whether the consultation was in-person or via telehealth. This includes Victorian government, Coles, Woolworths, the major banks, universities, and all Fair Work-covered employers." },
-      { q: "Can I get a medical certificate for a mental health day in Melbourne?", a: "Yes. Mental health is a valid reason for a sick day and a medical certificate. Our doctors assess these requests with clinical rigour. Your employer is not entitled to know the specific nature of your condition - the certificate simply states you were unfit for work." },
+      { q: "How do Melbourne employers assess telehealth medical certificates?", a: `Victorian government, private businesses, universities, and other workplaces apply their own evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
+      { q: "Can I submit a medical-certificate request for a mental health day in Melbourne?", a: `Adults aged 18+ can submit a request for a mental-health-related absence. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "Is InstantMed cheaper than seeing a GP in Melbourne?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Melbourne's declining bulk-billing rates, a standard GP visit can cost $40–$80 out of pocket (gap fee after Medicare rebate). For a straightforward certificate, InstantMed is often the more affordable option.` },
       { q: "How should Monash or UniMelb students check medical-documentation requirements?", a: "Victorian universities set their own policies for medical certificates, academic support, coursework documentation, and missed assessments. Check the current process at Monash or the University of Melbourne before submitting a request." },
-      { q: "What if the doctor decides I need an in-person visit?", a: `If your symptoms or situation require a physical examination, the doctor will recommend you see a GP in person instead. ${REFUND_PAYMENT_PROCESS}` },
+      { q: "What if the doctor decides I need an in-person visit?", a: `If a listed request cannot be safely assessed without a physical examination, the doctor will recommend you see a GP in person instead. ${REFUND_PAYMENT_PROCESS}` },
     ],
   },
   geelong: {
@@ -79,8 +83,8 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
         title: "Healthcare Pressure in a Growing City",
         paragraphs: [
           "Geelong has transformed from a regional centre into a major satellite city of Melbourne. Rapid population growth in suburbs like Armstrong Creek, Lara, and Ocean Grove has outpaced healthcare infrastructure, creating GP shortages and long appointment waits that frustrate residents and employers alike.",
-          "The city's evolution from its manufacturing heritage (Ford, Alcoa) to a knowledge and service economy has brought new residents who commute to Melbourne - often falling sick on days when a 90-minute round trip to a familiar GP simply isn't practical. Telehealth provides Geelong residents with the same quality of doctor access available in inner Melbourne.",
-          "Barwon Health's University Hospital Geelong is the major public hospital, but for straightforward needs like a sick note or prescription renewal, telehealth is a more appropriate and efficient pathway than emergency or urgent care.",
+          "The city's evolution from its manufacturing heritage (Ford, Alcoa) to a knowledge and service economy has brought new residents who commute to Melbourne - often falling sick on days when a 90-minute round trip to a familiar GP simply isn't practical. InstantMed gives eligible Geelong residents access to the same medical-certificate and repeat-prescription review pathways available in inner Melbourne.",
+          "Barwon Health's University Hospital Geelong is the major public hospital, but a medical-certificate request or repeat-prescription review for a regular medicine already taken does not belong in emergency or urgent care. InstantMed provides a focused online pathway for those requests.",
         ],
       },
       {
@@ -105,9 +109,9 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Can Deakin University students use InstantMed?", a: "Yes. Deakin sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and extension requests." },
+      { q: "Can Deakin University students use InstantMed?", a: "Adults aged 18+ can submit a medical-certificate request. Deakin sets its own policy for academic support, missed assessment documentation, and extension requests, so check current requirements before submitting." },
       { q: "Does InstantMed serve the Surf Coast?", a: "Yes. We serve all of Greater Geelong including Torquay, Anglesea, Lorne, Ocean Grove, and the Bellarine Peninsula." },
-      { q: "Is InstantMed cheaper than a Geelong GP?", a: `With bulk-billing declining in Geelong (gap fees of $40–$70 are common), InstantMed is often more affordable for straightforward needs. Medical certificates from ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "Is InstantMed cheaper than a Geelong GP?", a: `With bulk-billing declining in Geelong (gap fees of $40–$70 are common), InstantMed is often more affordable for a straightforward medical-certificate request. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
   ballarat: {
@@ -123,7 +127,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Ballarat is growing fast - it's one of regional Australia's fastest-growing cities, attracting families and professionals priced out of Melbourne's housing market. But healthcare supply hasn't kept pace. Several GP practices have closed their books to new patients, and those accepting new patients often have wait times of 5+ days for non-urgent appointments.",
           "The city serves as a healthcare hub for the Central Highlands and Goldfields region, drawing patients from Daylesford, Creswick, Bacchus Marsh, and beyond. This catchment demand puts additional pressure on local clinics. Ballarat Health Services provides hospital-level care, but for routine needs like medical certificates, the system is overloaded.",
-          "For the estimated 5,000+ Ballarat residents who commute to Melbourne for work, healthcare access is doubly complicated. You're unwell, you can't get a same-day GP appointment in Ballarat, and you certainly can't make the 90-minute drive to a Melbourne clinic. Telehealth solves this in minutes.",
+          "For the estimated 5,000+ Ballarat residents who commute to Melbourne for work, healthcare access is doubly complicated. You're unwell, you can't get a same-day GP appointment in Ballarat, and you certainly can't make the 90-minute drive to a Melbourne clinic. InstantMed lets adults aged 18+ submit a medical-certificate request or eligible repeat-prescription review for a regular medicine they already take online.",
         ],
       },
       {
@@ -148,8 +152,8 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Can Melbourne commuters from Ballarat use InstantMed?", a: "Yes - many do. Complete the form from home or the train. Your certificate is emailed as a PDF you can forward to your employer." },
-      { q: "Is InstantMed cheaper than a Ballarat GP?", a: `With bulk-billing rates around 62% in Ballarat, many GP visits now cost $50–$80 out of pocket. Medical certificates from InstantMed start at ${PRICING_DISPLAY.MED_CERT} - often cheaper and always faster.` },
+      { q: "Can Melbourne commuters from Ballarat use InstantMed?", a: "Adults aged 18+ can submit a medical-certificate request from home or the train. If approved, the certificate is emailed as a PDF; the employer applies its own evidence policy." },
+      { q: "How much does a medical certificate cost in Ballarat?", a: `Medical certificates from InstantMed start at ${PRICING_DISPLAY.MED_CERT}. Local GP fees and wait times vary by clinic.` },
       { q: "Does InstantMed serve Daylesford and Bacchus Marsh?", a: "Yes. We serve all of regional Victoria - anywhere with internet access." },
     ],
   },
@@ -165,15 +169,15 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
         title: "Healthcare in the Goldfields-Loddon Region",
         paragraphs: [
           "Bendigo is the major service centre for the Goldfields-Loddon region of Victoria, serving not just its 100,000+ residents but communities from Castlemaine and Kyneton to Echuca and Swan Hill. Bendigo Health provides hospital services, but GP access is under significant strain. The city's population growth of ~1.8% per year has outpaced the recruitment of new GPs, with several practices either full or operating with reduced hours.",
-          "Bulk-billing in Bendigo has dropped below 60% - one of the lowest rates in regional Victoria. A standard GP consultation can cost $50–$80 out of pocket after Medicare rebate. For a straightforward medical certificate that requires a 5-minute clinical assessment, the economics of the traditional GP model don't stack up.",
-          "The ripple effect extends beyond Bendigo itself. Residents in Heathcote, Castlemaine, and the Loddon Shire often travel to Bendigo for healthcare. Adding a 30–60 minute drive each way to a 5-day wait makes telehealth a practical alternative for routine needs.",
+          `Bulk-billing in Bendigo has dropped below 60% - one of the lowest rates in regional Victoria. A standard GP consultation can cost $50–$80 out of pocket after Medicare rebate. InstantMed medical certificates start from ${PRICING_DISPLAY.MED_CERT}, with issue depending on the clinical assessment.`,
+          "The ripple effect extends beyond Bendigo itself. Residents in Heathcote, Castlemaine, and the Loddon Shire often travel to Bendigo for healthcare. Adding a 30–60 minute drive each way to a 5-day wait makes an online medical-certificate request or eligible repeat-prescription review a practical option.",
         ],
       },
       {
         title: "Bendigo's Workforce",
         paragraphs: [
           "Bendigo's economy is anchored by healthcare (Bendigo Health is the largest employer), education (La Trobe University Bendigo), retail, agriculture, and a growing creative sector. Shift workers at the hospital and aged care facilities, university staff, and agricultural workers all benefit from telehealth when clinic schedules don't align with work rosters.",
-          "La Trobe University Bendigo serves thousands of students from across regional Victoria. Medical certificates from AHPRA-registered doctors are used as supporting documentation for academic support applications. For students juggling study, part-time work, and the realities of regional living, telehealth provides a practical solution.",
+          "La Trobe University Bendigo serves thousands of students from across regional Victoria. The university applies its own policy to academic-support documentation. Adults aged 18+ can submit a medical-certificate request online and should check current institution requirements first.",
         ],
       },
     ],
@@ -192,8 +196,8 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed serve Castlemaine and Kyneton?", a: "Yes. We serve all of regional Victoria - Castlemaine, Kyneton, Heathcote, Echuca, and everywhere in between." },
-      { q: "Is telehealth adequate for a medical certificate?", a: "For straightforward illnesses (cold, flu, gastro, migraine), yes. Telehealth medical certificates have the same workplace evidence status as in-person ones. If physical examination is needed, we'll recommend an in-person visit - and you won't be charged." },
-      { q: "Can La Trobe Bendigo students use InstantMed?", a: "Yes. La Trobe and Victorian universities set their own policies for certificates from AHPRA-registered doctors for academic support and academic support requests." },
+      { q: "Can every medical-certificate request be handled by telehealth?", a: `No. Some symptoms need a physical examination or other in-person care. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT} ${REFUND_PAYMENT_PROCESS}` },
+      { q: "Can La Trobe Bendigo students use InstantMed?", a: "Adults aged 18+ can submit a medical-certificate request. La Trobe sets its own policy for academic support and coursework documentation, so check current requirements before submitting." },
     ],
   },
   shepparton: {
@@ -209,7 +213,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Shepparton is the largest city in the Goulburn Valley and the main service hub for a region that includes Mooroopna, Kyabram, Tatura, Numurkah, Cobram, Seymour, and Benalla. With roughly 65,000 residents and a broader Goulburn Valley catchment well over 150,000, the city sits at a familiar regional Victorian intersection of rapid population change and constrained GP workforce. Same-day appointments are rare, several practices have stopped accepting new patients, and wait times stretch to a week or more for non-urgent needs.",
           "Goulburn Valley Health anchors hospital and specialist services for the region, but the pinch point - as everywhere in regional Victoria - is primary care. The Modified Monash Model (MMM) classifies the Goulburn Valley as a workforce priority area, and the RACGP's regional and rural data consistently identifies the region as short of GPs relative to its population. Bulk-billing has declined in Shepparton in line with the national trend, with gap fees of $40–$70 now common.",
-          "For residents of the smaller Goulburn Valley communities - Mooroopna, Tatura, Kyabram, Numurkah, Cobram, Nathalia - Shepparton is often the nearest GP hub. A round trip of 60–90 minutes plus waiting room time is a significant cost for a straightforward certificate. Telehealth eliminates the travel entirely without reducing the quality of the clinical assessment.",
+          "For residents of the smaller Goulburn Valley communities - Mooroopna, Tatura, Kyabram, Numurkah, Cobram, Nathalia - Shepparton is often the nearest GP hub. A round trip of 60–90 minutes plus waiting-room time is a significant cost. Adults aged 18+ can submit InstantMed's listed medical-certificate and repeat-prescription review requests online without that travel.",
         ],
       },
       {
@@ -217,31 +221,31 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "The Goulburn Valley is the food bowl of Victoria. Shepparton's economy is dominated by dairy, fruit (pears, apples, stone fruit), tomatoes, and processing industries including SPC, Campbell's, Unilever, and the dairy processors in Tatura. These are heavily shift-based industries, and harvest season brings a large influx of seasonal workers - including working-holiday visa holders - on top of the permanent workforce.",
           "Medical certificates for unplanned absences are a constant requirement across these workplaces. For shift workers and seasonal staff, getting to a GP during business hours is often impossible - and for working-holiday visa holders without an established local GP, it's even harder. Telehealth provides a consistent pathway that works around rosters and does not require a local patient relationship.",
-          "Shepparton has one of the most culturally diverse populations in regional Australia, with established communities of Albanian, Iraqi, Afghan, Congolese, and Pacific Islander origin, alongside long-standing Italian and Greek communities. For residents who prefer a GP who shares their language, available appointments are often further narrowed. Telehealth - where the assessment is standardised and the documentation is consistent - removes the language-matching bottleneck for routine certificate and script needs.",
+          "Shepparton has one of the most culturally diverse populations in regional Australia, with established communities of Albanian, Iraqi, Afghan, Congolese, and Pacific Islander origin, alongside long-standing Italian and Greek communities. For residents who prefer a GP who shares their language, available appointments are often further narrowed. InstantMed provides a standardised online pathway for medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken.",
         ],
       },
       {
         title: "Students, Universities, and Workers Under Victorian Law",
         paragraphs: [
-          "La Trobe University's Shepparton campus, together with GOTAFE Goulburn Ovens, serves thousands of regional students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation. The consultation method does not affect validity - the same rule that applies at every other Victorian university.",
-          "Shepparton employers - from the Greater Shepparton City Council and Goulburn Valley Health, through to SPC, Campbell's, and the dairy processors - all operate under the Fair Work Act 2009 or Victorian-specific industrial instruments. Medical certificates from AHPRA-registered doctors via telehealth are fully valid for leave purposes under all of them.",
-          "We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If your symptoms suggest a physical exam is required, the doctor will refer you to in-person care and you will not be charged for the telehealth consultation.",
+          "La Trobe University's Shepparton campus, together with GOTAFE Goulburn Ovens, serves thousands of regional students. Both set their own policies for medical certificates used for academic support, missed assessment documentation, and coursework documentation. Adults aged 18+ should check current institution requirements before submitting a request.",
+          `Shepparton employers - from the Greater Shepparton City Council and Goulburn Valley Health, through to SPC, Campbell's, and the dairy processors - apply their own workplace evidence policies. ${EMPLOYER_POLICY_CAVEAT}`,
+          `We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If your symptoms suggest a physical exam is required, the doctor will refer you to in-person care. ${REFUND_PAYMENT_PROCESS}`,
         ],
       },
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
-          "Telehealth is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
-          "For Shepparton's diverse population, telehealth has a particular advantage: the clinical assessment and the certificate are standardised, so the language barrier that often constrains access to a preferred local GP is not the same constraint here. The documentation produced is identical regardless of whether you would normally see a Greek-speaking, Arabic-speaking, or English-speaking GP. For routine certificate and script needs, that consistency matters.",
-          "If your symptoms or situation are not appropriate for telehealth, the doctor will tell you and refer you to in-person care. You will not be charged for the consultation. The clinical filter applies identically in Shepparton and every other location we serve.",
+          "Telehealth is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. InstantMed provides focused online pathways for medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken.",
+          "For Shepparton's diverse population, InstantMed has a particular advantage: its medical-certificate assessment and documentation are standardised, so the language barrier that often constrains access to a preferred local GP is not the same constraint here. The documentation produced is consistent regardless of whether you would normally see a Greek-speaking, Arabic-speaking, or English-speaking GP.",
+          `If a listed request is not appropriate for telehealth, the doctor will refer you to in-person care. The same suitability boundary applies in Shepparton and every other location we serve. ${REFUND_PAYMENT_PROCESS}`,
         ],
       },
       {
         title: "Cost, Time, and the Practical Case for Telehealth in the Goulburn Valley",
         paragraphs: [
-          "The economics of GP access in regional Victoria have shifted significantly over the past five years. Bulk-billing has declined, gap fees have grown, and waiting times for non-urgent appointments have stretched. For a working family in Mooroopna or Tatura, the combined cost of a routine GP visit - fuel to drive to Shepparton, lost work time, gap fee, and the wait - frequently exceeds what telehealth charges flat. The math is straightforward and it usually favours telehealth for the routine middle of healthcare.",
-          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees, no bill shock, no surprise add-ons. For families managing tight budgets in a region where wages have not kept pace with cost of living, that predictability matters as much as the time savings.",
-          "Requests can be submitted and reviewed 24/7. The eScript or PDF arrives via email or SMS, and you can forward it directly to your supervisor, employer, or labour hire provider. The process stays online from intake to delivery. For Shepparton residents and workers across the Goulburn Valley, that is significantly faster than securing a same-day clinic appointment.",
+          "The economics of GP access in regional Victoria have shifted significantly over the past five years. Bulk-billing has declined, gap fees have grown, and waiting times for non-urgent appointments have stretched. For a working family in Mooroopna or Tatura, the combined cost of attending a GP for a medical-certificate request or eligible repeat-prescription review - fuel to drive to Shepparton, lost work time, gap fee, and the wait - can exceed InstantMed's listed fee for the corresponding service.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what a medical-certificate request or repeat-prescription review costs before you start the intake. There are no gap fees, no bill shock, no surprise add-ons. For families managing tight budgets in a region where wages have not kept pace with cost of living, that predictability matters as much as the time savings.",
+          "Requests can be submitted and reviewed 24/7. After review, an approved medical certificate is sent as a PDF; an eScript is sent only if a prescribing request is approved. The process stays online from intake to delivery. For Shepparton residents and workers across the Goulburn Valley, that avoids competing for a same-day clinic appointment for these focused requests.",
         ],
       },
     ],
@@ -257,15 +261,15 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in Victoria",
       paragraphs: [
         "Victoria follows the national AHPRA and Medical Board of Australia framework for telehealth. The Victorian Government has invested heavily in telehealth infrastructure and has explicitly identified regional Victoria - including the Goulburn Valley - as a priority area for digital healthcare delivery. The Goulburn Valley Primary Health Network has integrated telehealth into its service planning.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any Victorian pharmacy. Schedule 8 controlled substances require Victorian Department of Health authority and in-person assessment, and are not prescribed through InstantMed.",
-        "The Health Complaints Commissioner Victoria handles complaints about health services in Victoria, including telehealth. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+        "Prescribing follows national TGA rules. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its named specialty assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Schedule 8 controlled substances require Victorian Department of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        `The Health Complaints Commissioner Victoria handles complaints about health services in Victoria, including telehealth. InstantMed operates a formal complaints process at complaints@instantmed.com.au. ${COMPLAINTS_TIMING}`,
       ],
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the Goulburn Valley?", a: "Yes. Mooroopna, Tatura, Kyabram, Numurkah, Cobram, Seymour, Benalla - anywhere in the Goulburn Valley with internet access is covered." },
       { q: "Can working-holiday visa holders use InstantMed during harvest?", a: "Yes. Any resident 18+ currently in Australia can use InstantMed regardless of visa status. Certificates are subject to employer and labour-hire provider policies." },
-      { q: "Can La Trobe Shepparton students use InstantMed?", a: "Yes. La Trobe and Victorian universities set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
-      { q: "Is InstantMed cheaper than a Shepparton GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Shepparton bulk-billing around 62% and gap fees of $40–$70 common, InstantMed is often more affordable for straightforward certificates and scripts.` },
+      { q: "Can La Trobe Shepparton students use InstantMed?", a: "Adults aged 18+ can submit a medical-certificate request. La Trobe sets its own policy for academic support, missed assessment documentation, and coursework documentation, so check current requirements before submitting." },
+      { q: "Is InstantMed cheaper than a Shepparton GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Shepparton bulk-billing around 62% and gap fees of $40–$70 common, InstantMed is often more affordable for a straightforward medical-certificate request or eligible repeat-prescription review.` },
     ],
   },
   mildura: {
@@ -281,39 +285,39 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Mildura is the largest population centre in the Sunraysia region and sits at the intersection of three states - Victoria, New South Wales, and South Australia. The city serves as the healthcare hub for a catchment that extends across Wentworth, Robinvale, Swan Hill, Ouyen, Red Cliffs, and into the South Australian Riverland. Despite being a substantial regional centre, Mildura faces some of the most acute GP access challenges in regional Victoria. The Modified Monash Model (MMM) classifies the entire Sunraysia region as a workforce priority area, and that classification has translated into persistent shortages on the ground.",
           "The region's geography is the underlying problem. Mildura is six hours by road from Melbourne and four from Adelaide. For GPs, it is one of the hardest regional postings to attract doctors to, and several practices in the city have closed their books to new patients. Bulk-billing has dropped below 60% - significantly lower than the Victorian average - and gap fees of $40–$70 are common. For a straightforward sick note, that economics is hard to justify.",
-          "Mildura Base Public Hospital provides acute services, but its emergency department regularly handles presentations that a GP could resolve in minutes, simply because people cannot get GP appointments in time. This is a well-documented pattern in regional Australia: when primary care is constrained, ED becomes the default. Telehealth offers the alternative pathway - same-day, clinically appropriate, and without ever setting foot in a waiting room.",
+          "Mildura Base Public Hospital provides acute services, but its emergency department regularly handles non-urgent presentations when people cannot get GP appointments in time. An online medical-certificate request or eligible repeat-prescription review provides a focused alternative without using emergency resources.",
         ],
       },
       {
         title: "Horticulture, Seasonal Workers, and the Sunraysia Economy",
         paragraphs: [
           "Sunraysia is one of Australia's most productive horticultural regions - table grapes, wine grapes, citrus, almonds, stone fruit, and vegetables. The annual harvest season brings a huge influx of seasonal workers, including significant numbers of working-holiday visa holders and Pacific Australia Labour Mobility (PALM) scheme workers from Pacific island nations. Add this to the permanent workforce across packing sheds, wineries, transport operators, and processing facilities, and you get a heavily shift-based local labour market.",
-          "Medical certificates for unplanned absences during harvest are a routine operational requirement. For workers without an established local GP, securing a same-day appointment during peak season is essentially impossible. Telehealth provides a consistent pathway: 20–30 minute intake, clinical assessment by an AHPRA-registered Australian doctor, and a PDF certificate forwarded directly to the supervisor or labour hire provider. For PALM scheme workers in particular, the standardisation and reliability are valuable.",
-          "The region's cross-border nature - Mildura in Victoria, Wentworth just across the Murray in NSW, and Renmark only a couple of hours away in SA - means AHPRA's national registration framework is genuinely useful. A telehealth doctor registered with AHPRA can treat patients on any side of the border, and certificates are valid across all three states without any additional processing.",
+          "Medical certificates for unplanned absences during harvest are a routine operational requirement. For workers without an established local GP, securing a same-day appointment during peak season is difficult. Adults aged 18+ can submit a medical-certificate request online, with a PDF sent only if the request is approved. Employers and labour hire providers apply their own evidence policies.",
+          "The region's cross-border nature - Mildura in Victoria, Wentworth just across the Murray in NSW, and Renmark only a couple of hours away in SA - makes AHPRA's national registration framework relevant. InstantMed's listed services are available to eligible adults aged 18+ across those state borders, while employers and institutions set their own evidence policies.",
         ],
       },
       {
         title: "Students and Workers Under Victorian Law",
         paragraphs: [
-          "La Trobe University's Mildura campus, Latrobe Rural Clinical School, and SuniTAFE serve thousands of regional students. All set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation. The consultation method does not affect validity - the same rule that applies at every Australian university.",
-          "Mildura employers - from the Mildura Rural City Council and Mildura Base Hospital, through to the major horticultural operations, wineries, and processors - operate under the Fair Work Act 2009 or Victorian-specific industrial instruments. Both frameworks allow employers to assess certificates from AHPRA-registered practitioners without distinguishing between telehealth and face-to-face consultations.",
-          "We never issue a certificate when the clinical situation is inappropriate for telehealth. If a physical examination is required, the doctor refers you to in-person care and you are not charged for the telehealth consultation. The filter applies identically in Mildura, Melbourne, and every other location we serve.",
+          "La Trobe University's Mildura campus, Latrobe Rural Clinical School, and SuniTAFE serve thousands of regional students. Each sets its own policy for medical certificates used for academic support, missed assessment documentation, and coursework documentation. Adults aged 18+ should check current institution requirements before submitting a request.",
+          `Mildura Rural City Council, Mildura Base Hospital, horticultural operations, wineries, and processors apply their own workplace evidence policies. ${MED_CERT_DOCUMENT_SCOPE} ${EMPLOYER_POLICY_CAVEAT}`,
+          `We never issue a certificate when the clinical situation is inappropriate for telehealth. If a physical examination is required, the doctor refers you to in-person care. The same suitability boundary applies in Mildura, Melbourne, and every other location we serve. ${REFUND_PAYMENT_PROCESS}`,
         ],
       },
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
-          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, dressings, and injections still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
-          "Mildura's distance from major capital cities makes the in-person versus telehealth distinction especially valuable. Residents do not have the option of a quick alternative GP appointment in another suburb when their usual practice cannot fit them in. The next nearest substantial GP catchment is hours away. Telehealth lets people in Sunraysia handle routine needs immediately and save in-person appointments for the things that genuinely require them.",
-          "If your situation is not appropriate for telehealth, the doctor will tell you and refer you to in-person care. You will not be charged. The clinical filter is identical regardless of which side of the Murray you live on or how far you are from the nearest physical clinic.",
+          "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, dressings, and injections still require face-to-face care. InstantMed provides focused online pathways for medical-certificate requests and eligible repeat-prescription reviews for a regular medicine already taken.",
+          "Mildura's distance from major capital cities makes the in-person versus telehealth distinction especially valuable. Residents do not have the option of a quick alternative GP appointment in another suburb when their usual practice cannot fit them in. InstantMed lets eligible adults aged 18+ in Sunraysia submit those focused requests online and reserve in-person appointments for care that requires them.",
+          `If a listed request is not appropriate for telehealth, the doctor will refer you to in-person care. The same suitability boundary applies on either side of the Murray. ${REFUND_PAYMENT_PROCESS}`,
         ],
       },
       {
         title: "Practical Cost and Time Comparison for Sunraysia",
         paragraphs: [
           "Mildura GP economics have moved in line with the broader regional trend. Bulk-billing has declined to one of the lowest rates in regional Victoria, gap fees of $40–$80 are common, and waiting times for non-urgent appointments have stretched to a week or more. For a working family in Robinvale, Wentworth, or Red Cliffs, the combined cost of a routine GP visit - fuel, gap fee, lost work time, the wait - frequently exceeds what telehealth charges flat.",
-          "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For households budgeting tightly in a region where wages have not kept pace with cost of living, that predictability matters as much as the time saved.",
-          "Requests can be submitted and reviewed 24/7. The eScript or PDF arrives via email or SMS, and you can forward it to your supervisor, employer, or labour hire provider directly. The process stays online from intake to delivery. For Sunraysia residents, that is significantly faster than competing for a same-day clinic appointment in any of the three states the region touches.",
+          "InstantMed's flat-fee model removes the unpredictability. You know what a medical-certificate request or repeat-prescription review costs before you start the intake. There are no gap fees and no surprise add-ons. For households budgeting tightly in a region where wages have not kept pace with cost of living, that predictability matters as much as the time saved.",
+          "Requests can be submitted and reviewed 24/7. After review, an approved medical certificate is sent as a PDF; an eScript is sent only if a prescribing request is approved. The process stays online from intake to delivery. For Sunraysia residents, that avoids competing for a same-day clinic appointment for these focused requests.",
         ],
       },
     ],
@@ -328,16 +332,16 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
     telehealthRegulations: {
       title: "Telehealth Regulation in Victoria and the Cross-Border Murray",
       paragraphs: [
-        "Victoria follows the national AHPRA and Medical Board of Australia framework for telehealth. AHPRA registration is national, which is particularly relevant in a cross-border region like Mildura: a doctor registered with AHPRA can treat patients in Victoria, NSW, and SA without needing additional state-specific licences, and certificates are valid in all three states.",
-        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any Australian pharmacy. Schedule 8 controlled substances require state health authority and in-person assessment, and are not prescribed through InstantMed.",
-        "The Health Complaints Commissioner Victoria handles complaints about health services in Victoria, including telehealth. InstantMed maintains a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+        "Victoria follows the national AHPRA and Medical Board of Australia framework for telehealth. AHPRA registration is national, which is particularly relevant in a cross-border region like Mildura. InstantMed's listed services are available to eligible adults aged 18+ in Victoria, NSW, and SA.",
+        "Prescribing follows national TGA rules. InstantMed accepts eligible prescribing requests only through repeat-prescription reviews for a regular medicine the patient already takes and its named specialty assessment pathways. Every prescribing request requires an individual doctor review, and an eScript is sent only if approved. Schedule 8 controlled substances require state health authority and in-person assessment, and are not prescribed through InstantMed.",
+        `The Health Complaints Commissioner Victoria handles complaints about health services in Victoria, including telehealth. InstantMed maintains a formal complaints process at complaints@instantmed.com.au. ${COMPLAINTS_TIMING}`,
       ],
     },
     additionalFaqs: [
-      { q: "Does InstantMed cover Wentworth, Robinvale, and the Riverland?", a: "Yes. Wentworth (NSW), Robinvale, Red Cliffs, Ouyen, Swan Hill, and the SA Riverland - anywhere in Sunraysia and the Murray-Mallee with internet access is covered. Certificates are valid across state borders." },
+      { q: "Does InstantMed cover Wentworth, Robinvale, and the Riverland?", a: `Yes. Eligible adults aged 18+ can submit a listed request from Wentworth, Robinvale, Red Cliffs, Ouyen, Swan Hill, and the SA Riverland. ${EMPLOYER_POLICY_CAVEAT}` },
       { q: "Can PALM scheme and working-holiday visa holders use InstantMed?", a: "Yes. Any resident 18+ currently in Australia can use InstantMed regardless of visa status. Certificates are subject to employer and labour-hire provider policies." },
-      { q: "Can La Trobe Mildura students use InstantMed?", a: "Yes. La Trobe and Victorian universities set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
-      { q: "Is InstantMed cheaper than a Mildura GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Mildura bulk-billing rates around 60% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
+      { q: "Can La Trobe Mildura students use InstantMed?", a: "Adults aged 18+ can submit a medical-certificate request. La Trobe sets its own policy for academic support, missed assessment documentation, and coursework documentation, so check current requirements before submitting." },
+      { q: "Is InstantMed cheaper than a Mildura GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Mildura bulk-billing rates around 60% and typical gap fees of $40–$70, InstantMed is often more affordable for a straightforward medical-certificate request or eligible repeat-prescription review.` },
     ],
   },
 }

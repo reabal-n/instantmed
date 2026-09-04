@@ -1,3 +1,4 @@
+import { recordRecoveryEmailEngagement } from "@/lib/analytics/recovery-email-engagement"
 import {
   getRepeatRxDoseMissingFields,
   hasRepeatRxDoseContractMarker,
@@ -15,7 +16,10 @@ import {
 } from "@/lib/stripe/canonical-payment-recovery"
 import { buildGuestCheckoutCancelUrl } from "@/lib/stripe/checkout-recovery-link"
 import { getPriceIdForRequest, stripe } from "@/lib/stripe/client"
-import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
+import {
+  canRetryPaymentForIntake,
+  isTerminalPaidPaymentStatus,
+} from "@/lib/stripe/payment-integrity"
 import {
   isHighStakesPaymentLock,
   isMissingSafetyInformationPaymentLock,
@@ -154,7 +158,7 @@ async function resolveChangedHighStakesPayment(
   }
 
   const intake = refreshed.intake
-  if (intake.payment_status === "paid") {
+  if (isTerminalPaidPaymentStatus(intake.payment_status)) {
     return accountCompletionDestination(intake.id, intake.payment_id)
   }
 
@@ -185,6 +189,7 @@ async function rebuildGuestCheckoutSession(
   supabase: ReturnType<typeof createServiceRoleClient>,
   intake: ResumeIntake,
   baseUrl: string,
+  recoveryEmailVerified = false,
 ): Promise<string | null> {
   const priceId =
     intake.stripe_price_id ||
@@ -277,7 +282,16 @@ async function rebuildGuestCheckoutSession(
         source: "guest_resume",
         supabase,
       })
-      if (confirmation.outcome === "current") return session.url
+      if (confirmation.outcome === "current") {
+        if (recoveryEmailVerified) {
+          await recordRecoveryEmailEngagement({
+            intakeId: intake.id,
+            patientId: intake.patient_id || undefined,
+            supabase,
+          }).catch(() => false)
+        }
+        return session.url
+      }
       if (confirmation.outcome === "state_changed") {
         return resolveCurrentPaymentCompletion(supabase, intake.id)
       }
@@ -294,7 +308,10 @@ async function rebuildGuestCheckoutSession(
   }
 }
 
-export async function resolveGuestCheckoutResume(intakeId: string): Promise<string> {
+export async function resolveGuestCheckoutResume(
+  intakeId: string,
+  recoveryEmailVerified = false,
+): Promise<string> {
   const supabase = createServiceRoleClient()
   const initial = await readResumeIntake(supabase, intakeId)
 
@@ -309,7 +326,7 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
   if (!initial.intake) return "/request?error=not_found"
 
   const intake = initial.intake
-  if (intake.payment_status === "paid") {
+  if (isTerminalPaidPaymentStatus(intake.payment_status)) {
     return accountCompletionDestination(intake.id, intake.payment_id)
   }
 
@@ -459,7 +476,16 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
           source: "guest_resume",
           supabase,
         })
-        if (confirmation.outcome === "current") return inspection.session.url
+        if (confirmation.outcome === "current") {
+          if (recoveryEmailVerified) {
+            await recordRecoveryEmailEngagement({
+              intakeId: intake.id,
+              patientId: intake.patient_id || undefined,
+              supabase,
+            }).catch(() => false)
+          }
+          return inspection.session.url
+        }
         if (confirmation.outcome === "state_changed") {
           return resolveCurrentPaymentCompletion(supabase, intake.id)
         }
@@ -475,7 +501,12 @@ export async function resolveGuestCheckoutResume(intakeId: string): Promise<stri
     }
 
     if (canRebuild) {
-      const checkoutUrl = await rebuildGuestCheckoutSession(supabase, intake, getAppUrl())
+      const checkoutUrl = await rebuildGuestCheckoutSession(
+        supabase,
+        intake,
+        getAppUrl(),
+        recoveryEmailVerified,
+      )
       if (checkoutUrl) return checkoutUrl
       return PAYMENT_STATE_UNRESOLVED_DESTINATION
     }

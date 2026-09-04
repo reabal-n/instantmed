@@ -4,7 +4,6 @@ import { join, resolve } from "node:path"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
 import { buildGoogleAdsReturnSnapshot } from "@/lib/analytics/google-ads-return-summary"
-import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import {
   assertNoSensitiveBaselineText,
   buildCustomerGrowthBaselineSummary,
@@ -16,7 +15,9 @@ import {
 import {
   buildCustomerGrowthRevenueForIntakeIds,
   collectCustomerGrowthAttributionIntakeIds,
+  collectRecoveryEmailIntakeIds,
   countSentAbandonedCheckoutEmails,
+  countSentPartialRecoveryEmails,
   readCustomerGrowthAttributionRows,
   readCustomerGrowthCreatedIntakeRows,
   readCustomerGrowthRevenueEvidence,
@@ -35,6 +36,7 @@ const POSTHOG_EVENTS = [
   "google_ads_server_conversion",
 ] as const
 const DAY_MS = 24 * 60 * 60 * 1000
+const PARTIAL_INTAKE_RETENTION_DAYS = 7
 
 type CliOptions = {
   days: number
@@ -152,18 +154,30 @@ async function querySupabaseBaseline(
   })
   // Saved-intake demand is a created-at cohort. Revenue and paid-order volume
   // are event-window metrics, so they come from the canonical paid-at read.
-  const byService = new Map<string, { grossRevenueCents: number; intakes: number; paid: number }>()
+  const byService = new Map<string, {
+    createdIntakes: number
+    grossRevenueCents: number
+    paidAtOrders: number
+  }>()
 
   for (const row of intakes) {
     const service = serviceFromIntake(row)
-    const bucket = byService.get(service) ?? { grossRevenueCents: 0, intakes: 0, paid: 0 }
-    bucket.intakes += 1
+    const bucket = byService.get(service) ?? {
+      createdIntakes: 0,
+      grossRevenueCents: 0,
+      paidAtOrders: 0,
+    }
+    bucket.createdIntakes += 1
     byService.set(service, bucket)
   }
   for (const row of paidRows) {
     const service = serviceFromIntake(row)
-    const bucket = byService.get(service) ?? { grossRevenueCents: 0, intakes: 0, paid: 0 }
-    bucket.paid += 1
+    const bucket = byService.get(service) ?? {
+      createdIntakes: 0,
+      grossRevenueCents: 0,
+      paidAtOrders: 0,
+    }
+    bucket.paidAtOrders += 1
     bucket.grossRevenueCents += Number(row.amount_cents ?? 0)
     byService.set(service, bucket)
   }
@@ -201,27 +215,18 @@ async function querySupabaseBaseline(
         .lte("updated_at", nowIso)
         .not("converted_to_intake_id", "is", null),
     ),
-    countQuery(
-      "partial_intakes recovery marked sent",
-      supabase
-        .from("partial_intakes")
-        .select("session_id", { count: "exact", head: true })
-        .gte("updated_at", sinceIso)
-        .lte("updated_at", nowIso)
-        .not("recovery_email_sent_at", "is", null),
-    ),
+    countSentPartialRecoveryEmails(supabase, sinceIso, nowIso),
     countSentAbandonedCheckoutEmails(supabase, sinceIso, nowIso),
   ])
 
   const currentPaidIntakeIds = new Set(paidRows.flatMap((row) => row.id ? [row.id] : []))
   const revenueEvidenceIntakeIds = collectCustomerGrowthAttributionIntakeIds(revenueEvidence)
-  const attributionRows = await readCustomerGrowthAttributionRows(
+  const attributionEvidence = await readCustomerGrowthAttributionRows(
     supabase,
     revenueEvidenceIntakeIds,
   )
-  const recoveryIntakeIds = new Set(attributionRows.filter(
-    (row) => classifyAttributionSource(row).group === "recovery_email",
-  ).map((row) => row.id))
+  const attributionRows = attributionEvidence.rows
+  const recoveryIntakeIds = collectRecoveryEmailIntakeIds(attributionRows)
   const recoveredRevenue = buildCustomerGrowthRevenueForIntakeIds(
     revenueEvidence,
     recoveryIntakeIds,
@@ -244,30 +249,32 @@ async function querySupabaseBaseline(
           : roundMoney(revenue.averageOrderCents / 100),
       byService: Array.from(byService.entries())
         .map(([service, bucket]) => ({
+          createdIntakes: bucket.createdIntakes,
           grossRevenueAud: roundMoney(bucket.grossRevenueCents / 100),
-          intakes: bucket.intakes,
-          paid: bucket.paid,
+          paidAtOrders: bucket.paidAtOrders,
           service,
         }))
         .sort((a, b) => b.grossRevenueAud - a.grossRevenueAud),
+      createdIntakes: intakes.length,
       grossRevenueAud: roundMoney(revenue.grossCents / 100),
-      intakes: intakes.length,
       netRevenueAud: roundMoney(revenue.netCents / 100),
-      paid: revenue.orderCount,
-      paidRate: roundRate(revenue.orderCount, intakes.length),
+      paidAtOrders: revenue.orderCount,
       refundedAud: roundMoney(revenue.refundCents / 100),
     },
     recovery: {
       abandonedCheckoutSent,
-      convertedPartials,
-      emailCaptured,
-      emailCaptureRate: roundRate(emailCaptured, partialsCaptured),
+      attributionCoverage: attributionEvidence.recoveryMarkerAvailability,
       partialRecoverySent,
-      partialsCaptured,
+      partialSnapshot: {
+        emailCaptureRate: roundRate(emailCaptured, partialsCaptured),
+        retentionDays: PARTIAL_INTAKE_RETENTION_DAYS,
+        rowsUpdatedInWindow: partialsCaptured,
+        rowsWithConvertedMarker: convertedPartials,
+        rowsWithEmail: emailCaptured,
+      },
       recoveredGrossRevenueAud: roundMoney(recoveredRevenue.grossCents / 100),
       recoveredNetRevenueAud: roundMoney(recoveredRevenue.netCents / 100),
       recoveredPaidCount: recoveredRevenue.orderCount,
-      recoveryEmailCoverageRate: roundRate(partialRecoverySent, emailCaptured),
     },
   }
 }

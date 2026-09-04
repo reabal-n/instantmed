@@ -70,7 +70,7 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
     expect(result.ok ? "" : result.error).toMatch(/strength shown on the medication label/i)
   })
 
-  it("a repeat with a strength but no form carries the form attention flag", async () => {
+  it("a repeat with a strength but no form carries a quiet form info flag", async () => {
     const input = {
       category: "prescription",
       subtype: "repeat",
@@ -93,7 +93,7 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
     const flags = result.ok ? result.data.intakeFlags : []
     const codes = flags.map((f) => f.code)
     expect(codes).toContain("medication_form_missing")
-    expect(flags.every((f) => f.severity === "attention")).toBe(true)
+    expect(flags.find((f) => f.code === "medication_form_missing")?.severity).toBe("info")
   })
 
   it("an accepted inline strength does not persist a false missing-strength flag", async () => {

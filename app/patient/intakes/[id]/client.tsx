@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useRef, useState, useTransition } from "react"
+import { useCallback, useEffect, useState, useTransition } from "react"
 
 import { cancelIntake } from "@/app/actions/cancel-intake"
 import {
@@ -58,6 +58,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
 import type { WaitState } from "@/lib/brand/wait-counter-types"
+import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import {
   buildPatientMessagesHref,
@@ -76,7 +77,7 @@ interface IntakeDetailClientProps {
   intake: PatientIntakeWithPatient
   document?: GeneratedDocument | null
   intakeDocument?: IntakeDocument | null
-  retryPayment?: boolean
+  recoveryProof?: string | null
   isEmailVerified?: boolean
   userEmail?: string
   dateCorrectionState?: PatientDateCorrectionState
@@ -92,6 +93,10 @@ function formatFieldValue(value: unknown): string | null {
   if (Array.isArray(value)) return value.join(", ")
   if (typeof value === "object") return null
   return String(value)
+}
+
+function formatPrescriptionHistory(value: string): string {
+  return PRESCRIPTION_HISTORY_LABELS[value] || value.replace(/_/g, " ")
 }
 
 function SubmittedAnswers({
@@ -114,7 +119,7 @@ function SubmittedAnswers({
   const scriptFields = [
     { keys: ["medication_name", "medication_display"], label: "Medication" },
     { keys: ["medication_dosage", "dosage"], label: "Dosage" },
-    { keys: ["last_prescribed"], label: "Last Prescribed" },
+    { keys: ["last_prescribed", "prescriptionHistory", "prescription_history"], label: "Last Prescribed" },
     { keys: ["pharmacy_preference"], label: "Preferred Pharmacy" },
     { keys: ["is_repeat"], label: "Repeat Prescription" },
   ]
@@ -155,6 +160,8 @@ function SubmittedAnswers({
       const displayValue =
         field.label === "Symptom Duration" && typeof formatted === "string"
           ? formatted.replace(/_/g, "-").replace(/-days?$/i, " days")
+          : field.label === "Last Prescribed"
+            ? formatPrescriptionHistory(formatted)
           : formatted
       orderedEntries.push({ key: keys[0], label: field.label, value: displayValue })
     }
@@ -359,7 +366,7 @@ export function IntakeDetailClient({
   intake: initialIntake,
   document,
   intakeDocument,
-  retryPayment = false,
+  recoveryProof = null,
   isEmailVerified = true,
   userEmail,
   dateCorrectionState = "none",
@@ -371,7 +378,6 @@ export function IntakeDetailClient({
   const [actionError, setActionError] = useState<string | null>(null)
   const [resendSuccess, setResendSuccess] = useState(false)
   const [resendQueued, setResendQueued] = useState(false)
-  const hasAutoRetriedPayment = useRef(false)
 
   useEffect(() => {
     setIntake(initialIntake)
@@ -423,7 +429,7 @@ export function IntakeDetailClient({
   const handleRetryPayment = useCallback(() => {
     setActionError(null)
     startTransition(async () => {
-      const result = await retryPaymentForIntakeAction(intake.id)
+      const result = await retryPaymentForIntakeAction(intake.id, recoveryProof)
       if (result.paymentRecoveryReason === "more_information_required") {
         setIntake((previous) => ({
           ...previous,
@@ -440,21 +446,7 @@ export function IntakeDetailClient({
         window.location.href = result.checkoutUrl
       }
     })
-  }, [intake.id, router])
-
-  useEffect(() => {
-    if (
-      !retryPayment ||
-      hasAutoRetriedPayment.current ||
-      isMoreInformationRequiredRecovery ||
-      !["pending_payment", "checkout_failed"].includes(intake.status)
-    ) {
-      return
-    }
-
-    hasAutoRetriedPayment.current = true
-    handleRetryPayment()
-  }, [handleRetryPayment, intake.status, isMoreInformationRequiredRecovery, retryPayment])
+  }, [intake.id, recoveryProof, router])
 
   const [showDateCorrection, setShowDateCorrection] = useState(false)
   const [correctionStartDate, setCorrectionStartDate] = useState("")

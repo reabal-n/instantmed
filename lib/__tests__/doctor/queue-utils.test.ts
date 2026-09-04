@@ -91,6 +91,7 @@ describe("calculateLiveWaitTime", () => {
   })
 
   it("falls back to compact minute and hour labels after the first minute", () => {
+    expect(calculateLiveWaitTime("2026-04-09T11:56:45Z")).toBe("3m")
     expect(calculateLiveWaitTime("2026-04-09T11:45:00Z")).toBe("15m")
     expect(calculateLiveWaitTime("2026-04-09T10:30:00Z")).toBe("1h 30m")
   })
@@ -164,18 +165,21 @@ describe("getQueueClockTickDelayMs", () => {
 describe("getQueueWaitTargetState", () => {
   const now = new Date("2026-04-09T12:00:00Z")
 
-  it("replaces a generic breach label with the useful amount over target", () => {
+  it("reports the exact amount over the queue target", () => {
     expect(getQueueWaitTargetState("2026-04-09T08:40:00Z", now)).toMatchObject({
-      label: "1h 20m over",
+      label: "1h 20m over target",
       tone: "critical",
       elapsedMinutes: 200,
       deltaMinutes: 80,
     })
   })
 
-  it("keeps pre-target states concise", () => {
-    expect(getQueueWaitTargetState("2026-04-09T11:08:00Z", now).label).toBe("On track")
-    expect(getQueueWaitTargetState("2026-04-09T10:20:00Z", now).label).toBe("At risk")
+  it("reports the exact time remaining once a wait enters warning", () => {
+    expect(getQueueWaitTargetState("2026-04-09T10:20:00Z", now)).toMatchObject({
+      label: "20m to target",
+      tone: "warning",
+      deltaMinutes: -20,
+    })
   })
 })
 

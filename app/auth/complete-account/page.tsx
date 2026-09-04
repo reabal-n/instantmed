@@ -8,6 +8,8 @@ import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
 import { inspectCheckoutSession } from "@/lib/stripe/checkout/checkout-session-safety"
 import {
   type CompleteAccountPaymentState,
+  isTerminalPaidPaymentStatus,
+  requiresCompleteAccountPaymentReconciliation,
   resolveCompleteAccountPaymentState,
 } from "@/lib/stripe/payment-integrity"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -18,8 +20,8 @@ import { CompleteAccountForm } from "./complete-account-form"
 
 export const dynamic = "force-dynamic"
 export const metadata = {
-  title: "Complete Your Account",
-  description: "Create your account to access your medical certificate",
+  title: "Request Confirmed",
+  description: "Your request is underway. Creating an account is optional.",
 }
 
 export default async function CompleteAccountPage({
@@ -51,6 +53,7 @@ export default async function CompleteAccountPage({
   let paidServiceCategory: string | undefined
   let paidFlowInstanceId: string | undefined
   let paymentState: CompleteAccountPaymentState = "unconfirmed"
+  let requiresPaymentReconciliation = false
   if (intakeId) {
     try {
       const supabase = createServiceRoleClient()
@@ -64,19 +67,34 @@ export default async function CompleteAccountPage({
 
       const sessionMatches =
         !!sessionId && !!intake?.payment_id && intake.payment_id === sessionId
+      const intakePaymentIsTerminalPaid = isTerminalPaidPaymentStatus(
+        intake?.payment_status,
+      )
       const inspection =
-        sessionMatches && intake?.payment_status !== "paid" && sessionId && intake?.payment_id
+        sessionMatches && !intakePaymentIsTerminalPaid && sessionId && intake?.payment_id
           ? await inspectCheckoutSession(sessionId, intakeId, {
               intakeStatus: intake.status,
               paymentStatus: intake.payment_status,
               storedPaymentId: intake.payment_id,
             })
           : null
-      paymentState = resolveCompleteAccountPaymentState({
+      const resolvedPaymentState = resolveCompleteAccountPaymentState({
         intakePaymentStatus: intake?.payment_status,
         sessionMatches,
         sessionState: inspection?.state ?? null,
       })
+      // Stripe can confirm payment before the webhook has durably moved the
+      // request into the clinical queue. Keep success UI gated on persisted
+      // payment truth; the client invokes the exact-current POST fallback and
+      // refreshes only after the guarded transition succeeds.
+      requiresPaymentReconciliation = requiresCompleteAccountPaymentReconciliation({
+        intakePaymentStatus: intake?.payment_status,
+        sessionMatches,
+        sessionState: inspection?.state ?? null,
+      })
+      paymentState = requiresPaymentReconciliation
+        ? "processing"
+        : resolvedPaymentState
 
       if (intake && paymentState === "paid") {
         const patient = intake.patient as { email?: string } | null
@@ -122,6 +140,8 @@ export default async function CompleteAccountPage({
               paidServiceCategory={paidServiceCategory}
               paidFlowInstanceId={paidFlowInstanceId}
               paymentState={paymentState}
+              requiresPaymentReconciliation={requiresPaymentReconciliation}
+              sessionId={sessionId}
               heardToken={heardToken}
             />
           </Suspense>
