@@ -124,7 +124,7 @@ corepack pnpm exec vitest run \
   lib/__tests__/stripe-test-webhook-policy.test.ts \
   lib/__tests__/stripe-test-webhook-route.test.ts \
   lib/__tests__/guest-account-linkage.test.ts
-PASS — 4 files, 82 tests
+PASS — 4 files, 84 tests
 
 corepack pnpm exec eslint --no-ignore \
   scripts/hosted-stripe-e2e-preflight.ts \
