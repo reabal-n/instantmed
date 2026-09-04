@@ -524,7 +524,7 @@ Role assignment methods: SQL update on `profiles` table (production) via Supabas
 | `stripe_refund_attempts` | Private durable ownership for each bounded Stripe Refund.create generation, recovery lease, and downstream-finalization state | `intakes.id`; optional actor `profiles.id`; immutable PaymentIntent/Refund identity |
 | `support_refund_attempts` | Private non-PHI receipts for atomic support-role refund amount/rate enforcement | `profiles.id` actor + `intakes.id` request |
 | `google_ads_conversion_adjustment_claims` | Durable desired-state generations and leases for external Ads restatements | `intakes.id` |
-| `email_preferences` | Unsubscribe / email prefs | `profiles.id` |
+| `email_preferences` | Default-on communication prefs; `preferences_changed_at` orders deliberate changes/complaints independently of generic `updated_at`. Existing choices are inherited by duplicate/default rows. | `profiles.id` |
 | `email_suppressions` | Account-less marketing opt-outs (email-keyed unsubscribe for recipients with no profile, e.g. partial-intake drafts; Spam Act s18). Service-role only, no anon/authenticated grants | Standalone (`email_lower` PK) |
 | `referrals` | Legacy referral tracking retained for compatibility; acquisition program retired 2026-07-17 and must not be expanded | `profiles.id` (referrer + referee) |
 | `document_drafts` | Certificate/document draft editing | `intakes.id` via `request_id` |

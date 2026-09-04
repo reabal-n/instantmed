@@ -3,6 +3,8 @@ set -euo pipefail
 
 readonly REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly MIGRATION="$REPO_ROOT/supabase/migrations/20260905120000_refill_reminder_funnel.sql"
+readonly PREFERENCE_MIGRATION="$REPO_ROOT/supabase/migrations/20260905110000_email_preference_ordering.sql"
+readonly PREFERENCE_SQL_TEST="$REPO_ROOT/scripts/sql/email-preference-ordering-db.test.sql"
 readonly SQL_TEST="$REPO_ROOT/scripts/sql/resend-webhook-mirrors-db.test.sql"
 readonly RUN_TOKEN="${$}-${RANDOM}"
 readonly DB_CONTAINER="instantmed-resend-mirror-${RUN_TOKEN}"
@@ -44,11 +46,34 @@ create role service_role nologin;
 create table public.profiles (
   id uuid primary key,
   role text not null,
+  email text,
+  phone text,
+  normalized_email text,
+  normalized_phone text,
+  merged_into_profile_id uuid,
   email_bounced boolean default false,
   email_bounce_reason text,
   email_bounced_at timestamptz,
   email_delivery_failures integer default 0
 );
+create or replace function public.normalize_au_phone(value text)
+returns text
+language sql
+immutable
+as $$ select nullif(regexp_replace(value, '\\D', '', 'g'), '') $$;
+create or replace function public.tg_profiles_identity_normalize()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.normalized_email := nullif(lower(btrim(new.email)), '');
+  new.normalized_phone := public.normalize_au_phone(new.phone);
+  return new;
+end;
+$$;
+create trigger profiles_identity_normalize
+  before insert or update of email, phone on public.profiles
+  for each row execute function public.tg_profiles_identity_normalize();
 create table public.issued_certificates (
   id uuid primary key,
   email_opened_at timestamptz
@@ -64,6 +89,17 @@ create table public.email_preferences (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- Match the production baseline trigger, which always rewrites updated_at.
+CREATE OR REPLACE FUNCTION public.update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE OR REPLACE TRIGGER email_preferences_updated_at
+  BEFORE UPDATE ON public.email_preferences
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 create table public.email_outbox (
   id uuid primary key,
   email_type text not null,
@@ -120,6 +156,12 @@ create table public.prescriptions (
 );
 SQL
 
+run_psql < "$PREFERENCE_MIGRATION" >/dev/null
+run_psql < "$PREFERENCE_SQL_TEST" >/dev/null
+if [[ "${1:-}" == "--preferences-only" ]]; then
+  printf 'Preference ordering database tests passed with the production updated_at trigger.\n'
+  exit 0
+fi
 run_psql < "$MIGRATION" >/dev/null
 run_psql < "$SQL_TEST" >/dev/null
 

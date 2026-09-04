@@ -7,6 +7,47 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("email-utils")
 
+function escapePostgrestLikePattern(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
+function hasHardBounceMetadata(metadata: unknown): boolean {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return false
+  const record = metadata as Record<string, unknown>
+  const bounce = record.bounce && typeof record.bounce === "object" && !Array.isArray(record.bounce)
+    ? record.bounce as Record<string, unknown>
+    : null
+  const values = [record.bounce_type, bounce?.type]
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim().toLowerCase())
+  return values.some((value) => value === "hard" || value === "permanent")
+}
+
+type DeliveryOutcome = {
+  id: string
+  delivery_status: string | null
+  metadata: unknown
+  sent_at: string | null
+  created_at: string
+}
+
+function countConsecutiveSoftBounces(outcomes: DeliveryOutcome[]): number {
+  const orderedOutcomes = [...outcomes].sort((left, right) => {
+    const leftAttempt = Date.parse(left.sent_at ?? left.created_at)
+    const rightAttempt = Date.parse(right.sent_at ?? right.created_at)
+    if (leftAttempt !== rightAttempt) return rightAttempt - leftAttempt
+    const createdDifference = Date.parse(right.created_at) - Date.parse(left.created_at)
+    return createdDifference || right.id.localeCompare(left.id)
+  })
+
+  let count = 0
+  for (const outcome of orderedOutcomes) {
+    if (outcome.delivery_status !== "bounced" || hasHardBounceMetadata(outcome.metadata)) break
+    count += 1
+  }
+  return count
+}
+
 export type EmailBounceSuppressionDecision =
   | { kind: "allowed" }
   | { kind: "policy_suppressed" }
@@ -21,6 +62,7 @@ export type EmailBounceSuppressionDecision =
  *
  * Suppression rules:
  * - Complaint → always suppress (spam report = permanent)
+ * - Provider suppression → always suppress (address is on Resend's list)
  * - Hard bounce → suppress after 1 occurrence
  * - 3+ soft bounces in 24h → transient block
  * - Query failure → transient block
@@ -29,34 +71,150 @@ export async function getEmailBounceSuppressionDecision(
   email: string,
 ): Promise<EmailBounceSuppressionDecision> {
   const supabase = createServiceRoleClient()
+  const normalizedEmail = email.trim().toLowerCase()
+  const exactAddressPattern = escapePostgrestLikePattern(normalizedEmail)
 
   try {
-    // Check for complaint or hard bounce (permanent suppress)
-    const { data: hardSuppress, error: hardError } = await supabase
-      .from("email_outbox")
-      .select("id")
-      .eq("to_email", email)
-      .or("delivery_status.eq.complained,and(delivery_status.eq.bounced,metadata->>bounce_type.eq.hard)")
-      .limit(1)
-      .maybeSingle()
+    // For a current patient address, the transactional webhook RPC owns the
+    // deterministic message-attempt ordering and manual-clear semantics on the
+    // profile. A sticky spam complaint remains policy suppression through the
+    // preference row even if a later critical email happens to deliver.
+    const { data: profiles, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, email_bounced, email_delivery_failures")
+      .eq("normalized_email", normalizedEmail)
+      .eq("role", "patient")
+      .is("merged_into_profile_id", null)
+      .limit(100)
 
-    if (hardError) {
-      logger.warn("Failed to check hard-bounce suppression", {
+    if (profileError) {
+      logger.warn("Failed to check profile bounce suppression", {
         email: email.replace(/(.{2}).*@/, "$1***@"),
-        error: hardError.message,
+        error: profileError.message,
       })
       return { kind: "transiently_blocked", reason: "lookup_failed" }
     }
-    if (hardSuppress) return { kind: "policy_suppressed" }
 
-    // Check for repeated soft bounces (3+ in last 24h = temporary suppress)
+    if (profiles && profiles.length > 0) {
+      const profileIds = profiles.map((profile) => profile.id)
+      const { data: addressPreferences, error: preferenceError } = await supabase
+        .from("email_preferences")
+        .select("profile_id, marketing_emails, abandoned_checkout_emails, unsubscribe_reason, unsubscribed_at, preferences_changed_at, updated_at")
+        .in("profile_id", profileIds)
+        .limit(100)
+
+      if (preferenceError) {
+        logger.warn("Failed to check complaint suppression", {
+          email: email.replace(/(.{2}).*@/, "$1***@"),
+          error: preferenceError.message,
+        })
+        return { kind: "transiently_blocked", reason: "lookup_failed" }
+      }
+      const complaintTimes = (addressPreferences ?? [])
+        .filter((preference) => preference.unsubscribe_reason === "spam_complaint")
+        .map((preference) => Date.parse(preference.preferences_changed_at ?? preference.unsubscribed_at ?? preference.updated_at))
+      const explicitConsentTimes = (addressPreferences ?? [])
+        .filter((preference) =>
+          preference.unsubscribe_reason === null
+          && preference.marketing_emails === true
+          && preference.abandoned_checkout_emails === true
+          && preference.preferences_changed_at != null,
+        )
+        .map((preference) => Date.parse(preference.preferences_changed_at))
+      const latestComplaintAt = complaintTimes.length > 0
+        ? Math.max(...complaintTimes.map((value) => Number.isFinite(value) ? value : Number.POSITIVE_INFINITY))
+        : Number.NEGATIVE_INFINITY
+      const latestExplicitConsentAt = explicitConsentTimes.length > 0
+        ? Math.max(...explicitConsentTimes.filter(Number.isFinite))
+        : Number.NEGATIVE_INFINITY
+      const hasActiveComplaint = complaintTimes.length > 0
+        && latestComplaintAt >= latestExplicitConsentAt
+
+      if (profiles.some((profile) => profile.email_bounced) || hasActiveComplaint) {
+        return { kind: "policy_suppressed" }
+      }
+
+      // The webhook transaction maintains the ordered soft-bounce suffix.
+      // Only read the underlying attempts when the suffix reaches the policy
+      // threshold, because the block expires after 24 hours even without a new
+      // callback to rewrite the profile mirror.
+      if (Math.max(...profiles.map((profile) => profile.email_delivery_failures ?? 0)) >= 3) {
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+        const { data: recentProfileOutcomes, error: recentProfileError } = await supabase
+          .from("email_outbox")
+          .select("id, delivery_status, metadata, sent_at, created_at")
+          .in("patient_id", profileIds)
+          .ilike("to_email", exactAddressPattern)
+          .in("delivery_status", [
+            "delivered",
+            "opened",
+            "clicked",
+            "bounced",
+            "complained",
+            "failed",
+            "suppressed",
+          ])
+          .gte("delivery_status_updated_at", oneDayAgo)
+          .limit(100)
+
+        if (recentProfileError) {
+          return { kind: "transiently_blocked", reason: "lookup_failed" }
+        }
+        if (countConsecutiveSoftBounces(recentProfileOutcomes ?? []) >= 3) {
+          return {
+            kind: "transiently_blocked",
+            reason: "soft_bounce_threshold",
+          }
+        }
+      }
+
+      return { kind: "allowed" }
+    } else {
+      // Profile-less recipients do not have the canonical address-state mirror.
+      // Retain conservative permanent provider evidence for those uncommon
+      // sends; patient addresses always take the ordered profile path above.
+      const { data: hardSuppress, error: hardError } = await supabase
+        .from("email_outbox")
+        .select("id")
+        .ilike("to_email", exactAddressPattern)
+        .or([
+          "delivery_status.eq.complained",
+          "delivery_status.eq.suppressed",
+          "and(delivery_status.eq.bounced,metadata->>bounce_type.ilike.hard)",
+          "and(delivery_status.eq.bounced,metadata->bounce->>type.ilike.hard)",
+          "and(delivery_status.eq.bounced,metadata->bounce->>type.ilike.permanent)",
+        ].join(","))
+        .limit(1)
+        .maybeSingle()
+
+      if (hardError) {
+        logger.warn("Failed to check hard-bounce suppression", {
+          email: email.replace(/(.{2}).*@/, "$1***@"),
+          error: hardError.message,
+        })
+        return { kind: "transiently_blocked", reason: "lookup_failed" }
+      }
+      if (hardSuppress) return { kind: "policy_suppressed" }
+    }
+
+    // Profile-less recipients have no transactional consecutive-failure
+    // mirror, so retain the bounded historical fallback for those addresses.
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    const { count, error: softError } = await supabase
+    const { data: recentOutcomes, error: softError } = await supabase
       .from("email_outbox")
-      .select("id", { count: "exact", head: true })
-      .eq("to_email", email)
-      .eq("delivery_status", "bounced")
-      .gte("created_at", oneDayAgo)
+      .select("id, delivery_status, metadata, sent_at, created_at")
+      .ilike("to_email", exactAddressPattern)
+      .in("delivery_status", [
+        "delivered",
+        "opened",
+        "clicked",
+        "bounced",
+        "complained",
+        "failed",
+        "suppressed",
+      ])
+      .gte("delivery_status_updated_at", oneDayAgo)
+      .limit(100)
 
     if (softError) {
       logger.warn("Failed to check soft-bounce suppression", {
@@ -65,7 +223,7 @@ export async function getEmailBounceSuppressionDecision(
       })
       return { kind: "transiently_blocked", reason: "lookup_failed" }
     }
-    if ((count || 0) >= 3) {
+    if (countConsecutiveSoftBounces(recentOutcomes ?? []) >= 3) {
       return {
         kind: "transiently_blocked",
         reason: "soft_bounce_threshold",

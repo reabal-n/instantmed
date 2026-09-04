@@ -308,6 +308,8 @@ Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Res
 
 ---
 
+Email preference ordering uses the existing profile-owned preferences table plus one nullable explicit-change timestamp. The narrowly scoped choice triggers may mirror only communication flags for active patient profiles at the same normalized address; they never link Auth accounts or transfer clinical records. The complaint RPC is service-role-only. Default rows cannot grant re-enablement, and patient action payloads accept only the two preference flags.
+
 ## Webhook Security
 
 All webhooks use signature verification (not CSRF).

@@ -3,6 +3,7 @@
 import { withServerAction } from "@/lib/actions/with-server-action"
 import { getApiAuth } from "@/lib/auth/helpers"
 import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
+import { buildExplicitEmailPreferenceUpdate } from "@/lib/email/preference-updates"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ActionResult } from "@/types/shared"
@@ -63,10 +64,7 @@ export const updateEmailPreferences = withServerAction<UpdateEmailPrefsInput>(
     // Update preferences
     const { error } = await supabase
       .from("email_preferences")
-      .update({
-        ...preferences,
-        updated_at: new Date().toISOString(),
-      })
+      .update(buildExplicitEmailPreferenceUpdate(preferences, new Date().toISOString()))
       .eq("profile_id", profile.id)
 
     if (error) {

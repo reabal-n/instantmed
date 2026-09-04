@@ -18,6 +18,8 @@ The attached operator request authorises sequential local implementation and sup
 
 - Task 3 / certificate persistence: fixed direct/dispatcher post-acceptance classification and unavailable reclaim read-back. Matching sent state heals successfully; database errors, unmatched attempts, and absent evidence remain retryable; confirmed terminal provider evidence closes only that attempt. Frozen-body/idempotency replay recovers without premature certificate finalization. Verification: 85 tests in 9 focused files, scoped ESLint and TypeScript. Provider responses are simulated in these unit tests; production-bundle verification remains a separate release check.
 
+- Task 4 / preference order: one nullable `preferences_changed_at` separates deliberate changes/complaints from generic timestamps. Defaults stay on; default upserts cannot re-enable disabled flags; duplicate/default rows inherit the recorded choice, and explicit later changes synchronize existing preference rows for that recipient. No account linking or clinical consent change. Verification: 32 focused unit tests; isolated PostgreSQL preference tests pass with the real unconditional `updated_at` trigger. The outbox callback delegates to the same complaint RPC in Task 5; full delivery-harness verification belongs there.
+
 ## Plan task state
 
 - Schema convergence prerequisite: approved locally; production application remains release-gated
