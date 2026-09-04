@@ -193,10 +193,8 @@ create table public.prescriptions (
   intake_id uuid references public.intakes(id)
 );
 
--- Pre-migration legacy state: the retired route marked a single soft bounce
--- and a complaint as permanent profile defects. The forward migration must
--- release those address flags without erasing genuine hard evidence or the
--- separate sticky complaint preference.
+-- Historical fixtures are untouched by deploy migrations. Only the separate
+-- rollback-only repair proposal exercises cleanup of these legacy flags.
 insert into public.profiles (
   id, role, email, email_bounced, email_bounce_reason, email_bounced_at,
   email_delivery_failures
@@ -242,6 +240,12 @@ insert into public.email_outbox (
 );
 SQL
 
+if [[ "${1:-}" == "--refill-only" ]]; then
+  run_psql < "$MIGRATION" >/dev/null
+  run_psql < "$REPO_ROOT/scripts/sql/refill-reminder-funnel-db.test.sql" >/dev/null
+  printf 'Refill aggregate database tests passed without preference or shared delivery migrations.\n'
+  exit 0
+fi
 run_psql < "$PREFERENCE_MIGRATION" >/dev/null
 run_psql < "$PREFERENCE_SQL_TEST" >/dev/null
 if [[ "${1:-}" == "--preferences-only" ]]; then

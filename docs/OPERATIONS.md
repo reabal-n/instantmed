@@ -1702,6 +1702,8 @@ Each gross paid repeat-script reorder is assigned once to the latest eligible re
 
 Cron invocation is separate evidence. The Business surface reads only the `cron_heartbeats` row for `refill-reminders`, using the critical-cron 1,500-minute freshness and unrecovered-failure rules. Delivered emails never prove the daily scheduler is healthy. Missing, stale, failed, and unreadable heartbeat states remain visibly distinct from cohort availability.
 
+The reporting migration contains only the three cohort indexes and the aggregate RPC; it does not change profiles, preferences, identity normalization, or historical delivery rows. `bash scripts/test-resend-webhook-mirrors-db.sh --refill-only` applies only that migration to an isolated database and verifies exclusions, durable receipt counts, latest-reminder assignment, strict UTM versus same-patient outcomes, Sydney boundaries, and incomplete windows.
+
 Do not add a second reminder yet. A separate day-84 experiment may be proposed only after exactly three fully mature weekly waves each reach at least 10% strict UTM conversion, without worsening complaints, unsubscribes, refunds, or support contacts. It requires a new durable send marker and a separate approval; `refill_reminder_sent_at` remains the one-off first-nudge marker and the product remains transactional, not a subscription.
 
 ### Q6 — Certificate sent but intake timestamp missing (14d)

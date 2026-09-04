@@ -22,6 +22,8 @@ The attached operator request authorises sequential local implementation and sup
 
 - Task 5 / delivery order: delayed sent/delivered callbacks preserve delivered/opened tracking; complaints retain delivery evidence and close only their exact attempt. Shared callback mirrors, terminal retry consumers, hash-bound auth complaints, and real certificate ownership fixtures pass 85 focused tests plus the isolated PostgreSQL ordering/concurrency harness; scoped ESLint and TypeScript pass. Split shared receipt migration 1150 from refill aggregate 1200. Historical/address-trigger work is a separate rollback-only proposal, verified synthetically and excluded from deployment. Staff browser interaction proof remains the final release check.
 
+- Task 6 / minimal refill measurement: reporting migration is limited to cohort indexes and the aggregate RPC. Reporting-only PostgreSQL proof passes without preference/shared-delivery migrations: all test/owner exclusions, deduplicated delivery/click receipts, latest-reminder assignment, Sydney weeks, 21-day maturity, strict UTM orders versus broader same-patient association, and future/unpaid order exclusion. Verification: 44 tests across refill and critical-cron files. Scheduler evidence stays separately missing/unavailable when not proven; no live heartbeat, provider send, retained cash, or experiment result is inferred.
+
 ## Plan task state
 
 - Schema convergence prerequisite: approved locally; production application remains release-gated
