@@ -73,8 +73,8 @@ export function MedCertPatientEmail({
 
       {isGuest && (
         <Text>
-          You checked out as a guest, so the first time you open your certificate
-          you&apos;ll set a password (there&apos;s no existing login to reset).
+          You checked out as a guest. Open the secure link below, then create or sign in
+          with the email used for your request to view your certificate.
         </Text>
       )}
 

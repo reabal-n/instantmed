@@ -25,6 +25,7 @@ import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
 import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+import { rememberSignInEmailHandoff } from "@/lib/navigation/auth-handoff"
 import { getAddressReviewSummary, getAddressStatusDisplay } from "@/lib/request/address-metadata"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
@@ -392,7 +393,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
           growth_experience_version: growthExperienceVersion,
           consult_subtype: answers.consultSubtype,
           stage: "missing_checkout_url",
-          reason: "missing_checkout_url",
+          failure_category: classifyCheckoutFailure("Missing checkout session URL"),
         })
         setError("Unable to create payment session. Please try again.")
         return
@@ -418,7 +419,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         flow_instance_id: flowInstanceId,
         consult_subtype: answers.consultSubtype,
         stage: "exception",
-        reason: e instanceof Error ? e.message.slice(0, 200) : "exception",
+        failure_category: classifyCheckoutFailure(e instanceof Error ? e.message : undefined),
       })
       setError("Something went wrong. Please try again or contact support.")
     } finally {
@@ -1184,6 +1185,13 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
                 <p>
                   <a
                     href={`/sign-in?redirect_url=${encodeURIComponent('/request' + window.location.search)}`}
+                    onClick={() => {
+                      rememberSignInEmailHandoff(
+                        sessionStorage,
+                        getIdentity().email || "",
+                        `/request${window.location.search}`,
+                      )
+                    }}
                     className="underline font-medium hover:opacity-80"
                   >
                     Sign in to continue →

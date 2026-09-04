@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { processRefillReminders, sendTestRefillReminder } from "@/lib/email/refill-reminder"
 import { toError } from "@/lib/errors"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
 
@@ -18,6 +19,8 @@ const logger = createLogger("cron-refill-reminders")
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
+
+  const startedAt = Date.now()
 
   // Pre-flight: `?testEmail=you@example.com` sends ONE sample reminder to that
   // address (deliverability check before the first real wave). Bypasses the
@@ -35,6 +38,15 @@ export async function GET(request: NextRequest) {
     const result = await processRefillReminders()
 
     logger.info("Cron: refill reminders processed", result)
+    await recordCronHeartbeat("refill-reminders", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: result.candidates,
+      status: !result.enabled
+        ? "disabled"
+        : result.failed > 0
+          ? "partial_failure"
+          : "ok",
+    })
 
     return NextResponse.json({
       success: true,
@@ -46,6 +58,11 @@ export async function GET(request: NextRequest) {
     const err = toError(error)
     logger.error("Cron: refill reminders failed", { error: err.message })
     captureCronError(err, { jobName: "refill-reminders" })
+    await recordCronHeartbeat("refill-reminders", {
+      durationMs: Date.now() - startedAt,
+      itemsProcessed: 0,
+      status: "error",
+    })
 
     return NextResponse.json(
       { error: "Failed to process refill reminders" },

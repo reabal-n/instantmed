@@ -14,12 +14,16 @@ import { Input } from '@/components/ui/input'
 import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
 import { getSignInContext } from '@/lib/auth/sign-in-context'
 import { type SignInFieldErrors, validateSignInCredentials } from '@/lib/auth/sign-in-validation'
-import { buildPostSignInRedirectHref } from '@/lib/navigation/auth-handoff'
+import {
+  buildPostSignInRedirectHref,
+  consumeMagicLinkRecoveryEmail,
+  consumeSignInEmailHandoff,
+  rememberMagicLinkRecoveryEmail,
+} from '@/lib/navigation/auth-handoff'
 import { createClient } from '@/lib/supabase/client'
 
 export const dynamic = "force-dynamic"
 
-const LAST_MAGIC_LINK_EMAIL_KEY = "instantmed:last-magic-link-email"
 const MAGIC_LINK_RESEND_COOLDOWN_MS = 30 * 1000
 const MAGIC_LINK_COOLDOWN_MESSAGE = "Give it 30 seconds before sending another link."
 const trustMarks = [
@@ -62,17 +66,21 @@ function SignInForm() {
   const supabase = createClient()
 
   useEffect(() => {
-    if (!linkExpired || email) return
+    if (email) return
 
     try {
-      const lastMagicLinkEmail = sessionStorage.getItem(LAST_MAGIC_LINK_EMAIL_KEY)
-      if (lastMagicLinkEmail) {
-        setEmail(lastMagicLinkEmail)
+      const handoffEmail = consumeSignInEmailHandoff(sessionStorage, redirectUrl)
+      const recoveryEmail = linkExpired
+        ? consumeMagicLinkRecoveryEmail(sessionStorage, redirectUrl)
+        : null
+      const rememberedEmail = handoffEmail || recoveryEmail
+      if (rememberedEmail) {
+        setEmail(rememberedEmail)
       }
     } catch {
       // Browsers may block storage in private contexts. The field remains editable.
     }
-  }, [email, linkExpired])
+  }, [email, linkExpired, redirectUrl])
 
   const handleSignIn = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -194,11 +202,7 @@ function SignInForm() {
     setEmailLinkSent(true)
     setLastMagicLinkSentAt(Date.now())
     setEmailLinkErrorMessage('')
-    try {
-      sessionStorage.setItem(LAST_MAGIC_LINK_EMAIL_KEY, trimmed)
-    } catch {
-      // Non-critical: expired-link recovery just falls back to manual entry.
-    }
+    rememberMagicLinkRecoveryEmail(sessionStorage, trimmed, redirectUrl)
     setEmailLinkLoading(false)
   }, [email, lastMagicLinkSentAt, redirectUrl, supabase.auth])
 

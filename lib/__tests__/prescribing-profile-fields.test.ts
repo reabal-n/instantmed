@@ -26,6 +26,7 @@ describe("buildPrescribingProfileUpdates", () => {
       state: "NSW",
       postcode: "2000",
       sex: "M",
+      onboarding_completed: true,
     })
   })
 

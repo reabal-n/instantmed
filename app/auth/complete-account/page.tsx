@@ -18,8 +18,8 @@ import { CompleteAccountForm } from "./complete-account-form"
 
 export const dynamic = "force-dynamic"
 export const metadata = {
-  title: "Complete Your Account",
-  description: "Create your account to access your medical certificate",
+  title: "Request Confirmed",
+  description: "Your request is underway. Creating an account is optional.",
 }
 
 export default async function CompleteAccountPage({
@@ -51,6 +51,7 @@ export default async function CompleteAccountPage({
   let paidServiceCategory: string | undefined
   let paidFlowInstanceId: string | undefined
   let paymentState: CompleteAccountPaymentState = "unconfirmed"
+  let requiresPaymentReconciliation = false
   if (intakeId) {
     try {
       const supabase = createServiceRoleClient()
@@ -72,11 +73,23 @@ export default async function CompleteAccountPage({
               storedPaymentId: intake.payment_id,
             })
           : null
-      paymentState = resolveCompleteAccountPaymentState({
+      const resolvedPaymentState = resolveCompleteAccountPaymentState({
         intakePaymentStatus: intake?.payment_status,
         sessionMatches,
         sessionState: inspection?.state ?? null,
       })
+      // Stripe can confirm payment before the webhook has durably moved the
+      // request into the clinical queue. Keep success UI gated on persisted
+      // payment truth; the client invokes the exact-current POST fallback and
+      // refreshes only after the guarded transition succeeds.
+      requiresPaymentReconciliation = Boolean(
+        sessionMatches &&
+        intake?.payment_status !== "paid" &&
+        inspection?.state === "paid",
+      )
+      paymentState = requiresPaymentReconciliation
+        ? "processing"
+        : resolvedPaymentState
 
       if (intake && paymentState === "paid") {
         const patient = intake.patient as { email?: string } | null
@@ -122,6 +135,8 @@ export default async function CompleteAccountPage({
               paidServiceCategory={paidServiceCategory}
               paidFlowInstanceId={paidFlowInstanceId}
               paymentState={paymentState}
+              requiresPaymentReconciliation={requiresPaymentReconciliation}
+              sessionId={sessionId}
               heardToken={heardToken}
             />
           </Suspense>

@@ -62,7 +62,10 @@ function destinationKind(destination: string): string {
 function defaultDestinationForProfile(profile: PostSignInProfile): string {
   if (hasAdminAccess(profile) || hasDoctorAccess(profile)) return STAFF_DASHBOARD_HREF
   if (hasSupportAccess(profile)) return STAFF_OPS_HREF
-  return profile.onboarding_completed ? "/patient" : "/patient/onboarding"
+  // Patient profile completion is progressive and optional. The dashboard
+  // already exposes contextual completion prompts, so a normal sign-in must
+  // never force people through a second intake-like form before access.
+  return "/patient"
 }
 
 function isRedirectAllowedForProfile(destination: string, profile: PostSignInProfile): boolean {

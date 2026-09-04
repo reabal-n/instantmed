@@ -4,16 +4,16 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import {
+  normalizePrescriptionHistory,
+  PRESCRIPTION_HISTORY_LABELS,
+} from "@/lib/clinical/prescription-history"
+import {
   buildFlowProfilePrefill,
   buildHealthProfilePrefillAnswers,
   buildPrescriptionRenewalPrefillAnswers,
   canApplyPrescriptionRenewalPrefill,
   canApplySavedHealthProfilePrefill,
-} from "@/components/request/request-flow"
-import {
-  normalizePrescriptionHistory,
-  PRESCRIPTION_HISTORY_LABELS,
-} from "@/lib/clinical/prescription-history"
+} from "@/lib/request/request-prefill"
 
 describe("request prefill", () => {
   it.each([

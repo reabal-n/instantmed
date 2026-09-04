@@ -68,4 +68,20 @@ describe("parseIntakeFlags (defensive JSONB reader)", () => {
     const valid = makeIntakeFlag("medication_form_missing")
     expect(parseIntakeFlags([valid, { junk: true }])).toEqual([valid])
   })
+
+  it("canonicalizes recognized legacy flags while preserving their audit context", () => {
+    expect(parseIntakeFlags([{
+      code: "medication_form_missing",
+      label: "Medication form missing",
+      source: "clinical",
+      severity: "attention",
+      detail: "Atorvastatin",
+    }])).toEqual([{
+      code: "medication_form_missing",
+      label: "Form not provided",
+      source: "clinical",
+      severity: "info",
+      detail: "Atorvastatin",
+    }])
+  })
 })

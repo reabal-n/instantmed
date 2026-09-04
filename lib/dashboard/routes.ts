@@ -23,6 +23,7 @@ export function buildStaffPatientHref(patientId: string): string {
 // ── Public and patient route constants ──────────────────────────────────────
 
 export const REQUEST_HREF = "/request" as const
+export const REQUEST_CONFIRMED_HREF = "/request/confirmed" as const
 export const REQUEST_REPEAT_SCRIPT_HREF = "/request?service=repeat-script" as const
 export const REQUEST_MED_CERT_HREF = "/request?service=med-cert" as const
 export const REQUEST_CONSULT_HREF = "/consult" as const

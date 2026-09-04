@@ -7,8 +7,6 @@ import type { ReactNode } from "react"
 
 import {
   DraftSessionUrlScrubber,
-  type HealthProfilePrefill,
-  type PrescriptionRenewalPrefill,
   RequestFlow,
 } from "@/components/request/request-flow"
 import { trackOperationalBlock } from "@/lib/analytics/posthog-server"
@@ -22,6 +20,10 @@ import { isAtCapacity } from "@/lib/operational-controls/config"
 import { normalizeConsultSubtypeParam } from "@/lib/request/consult-flow"
 import { normalizeWomensHealthIntentParam } from "@/lib/request/consult-subtypes"
 import { isValidDraftSessionId } from "@/lib/request/draft-resume-route"
+import type {
+  HealthProfilePrefill,
+  PrescriptionRenewalPrefill,
+} from "@/lib/request/request-prefill"
 import { mapServiceParam } from "@/lib/request/step-registry"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
