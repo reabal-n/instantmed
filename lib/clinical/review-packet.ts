@@ -1,3 +1,4 @@
+import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import {
   getRepeatRxAttestationStatus,
   hasLegacyRepeatRxReconciliationNote,
@@ -107,14 +108,6 @@ const REPEAT_SERVICE_TYPES = new Set([
 // derived the generic "consult" workflow (no Prescribe button, completion
 // ungated by fulfilment evidence).
 const PRESCRIBING_CONSULT_SUBTYPES = new Set(["ed", "hair_loss", "womens_health", "weight_loss"])
-
-const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
-  less_than_3_months: "Less than 3 months ago",
-  last_3_months: "Less than 3 months ago",
-  "3_to_6_months": "3–6 months ago",
-  "6_to_12_months": "6–12 months ago",
-  over_12_months: "Over 12 months ago",
-}
 
 const MISSING_VALUE_PATTERN = /^(not provided|not recorded|not specified|not captured|unknown)$/i
 

@@ -412,6 +412,30 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent?.directionsTemplate).toContain("10 mg nightly")
   })
 
+  it.each([
+    ["within_12_months", "Within 12 months"],
+    ["over_12_months", "Over 12 months"],
+    ["less_than_3_months", "Less than 3 months ago"],
+    ["3_to_6_months", "3–6 months ago"],
+    ["6_to_12_months", "6–12 months ago"],
+  ])("renders repeat-prescription recency %s for the doctor", (storedValue, displayValue) => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "repeat-script",
+      patientName: "Pat Script",
+      answers: {
+        medicationName: "Rosuvastatin",
+        medicationStrength: "10 mg",
+        prescriptionHistory: storedValue,
+        currentDose: "1 tablet nightly",
+        indication: "High cholesterol",
+        doseChanged: false,
+      },
+    })
+
+    expect(summary.keyFacts).toContainEqual({ label: "Last prescribed", value: displayValue })
+  })
+
   it("surfaces unified repeat-prescription safety answers in the doctor summary", () => {
     const summary = buildClinicalCaseSummary({
       category: "prescription",

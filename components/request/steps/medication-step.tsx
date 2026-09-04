@@ -68,6 +68,7 @@ import {
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { isControlledMedicationName } from "@/lib/clinical/intake-validation"
 import { type DedicatedServiceMatch, detectDedicatedServiceForMedication, ROUTING_CONTEXT_LABELS } from "@/lib/clinical/medication-service-routing"
+import { normalizePrescriptionHistory } from "@/lib/clinical/prescription-history"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import {
@@ -120,10 +121,9 @@ interface MedicationEntry {
 const MEDICATION_STEER_ATTRIBUTION_PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "ref", "gclid", "gbraid", "wbraid"]
 
 const PRESCRIPTION_HISTORY_OPTIONS = [
-  { value: "less_than_3_months", label: "Under 3 months" },
-  { value: "3_to_6_months", label: "3-6 months" },
-  { value: "6_to_12_months", label: "6-12 months" },
+  { value: "within_12_months", label: "Within 12 months" },
   { value: "over_12_months", label: "Over 12 months" },
+  { value: "never", label: "Never" },
 ] as const
 
 const DOSE_CONFIRMATION_REQUIRED = "Please confirm whether the dose or the way you take this medicine has changed"
@@ -151,6 +151,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const medicationForm = stringAnswer(answers.medicationForm)
 
   const prescriptionHistory = answers.prescriptionHistory as string | undefined
+  const selectedPrescriptionHistory = normalizePrescriptionHistory(prescriptionHistory)
   const currentDose = (answers.currentDose as string) || ""
   const indication = (answers.indication as string) || ""
   const doseChanged = answers.doseChanged as boolean | undefined
@@ -668,6 +669,15 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         description="One medicine per request. Use the name and strength on the label."
       />
 
+      {answers.renewalPrefilled === true && (
+        <p
+          data-renewal-prefill-note="true"
+          className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground"
+        >
+          Filled from your selected prescription. Check the medicine and directions are still current.
+        </p>
+      )}
+
       <StepBlockedSummary
         reasons={blockedReasons}
         getFocusTarget={getBlockedFocusTarget}
@@ -816,8 +826,9 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
             {recentMeds.slice(0, 3).map((med) => (
               <button
                 key={med.name}
+                type="button"
                 onClick={() => handleRecentMedClick(med)}
-                className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
+                className="inline-flex min-h-12 items-center rounded-full bg-primary/10 px-3 py-2 text-xs text-primary outline-none transition-colors hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 + {med.name}{med.strength ? ` ${med.strength}` : ''}
               </button>
@@ -909,7 +920,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
               <button
                 type="button"
                 onClick={() => setShowMedicationForm(true)}
-                className="text-xs font-medium text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="inline-flex min-h-12 items-center text-xs font-medium text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 Add form (optional)
               </button>
@@ -939,7 +950,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
             <QuestionPrompt label="Last prescribed" required />
             <SegmentedChoiceGroup
               options={PRESCRIPTION_HISTORY_OPTIONS}
-              value={prescriptionHistory}
+              value={selectedPrescriptionHistory}
               onChange={(value) => {
                 setAnswer("prescriptionHistory", value)
                 setErrors((prev) => {
@@ -949,20 +960,13 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                 })
               }}
               ariaLabel="When were you last prescribed this medication?"
-              columns="auto"
+              columns="three"
             />
             {touched.prescriptionHistory && errors.prescriptionHistory && (
               <p className="text-xs text-destructive" role="alert" aria-live="polite">
                 {errors.prescriptionHistory}
               </p>
             )}
-            <button
-              type="button"
-              onClick={() => setAnswer("prescriptionHistory", "never")}
-              className="text-xs font-medium text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              I have not been prescribed this before
-            </button>
           </div>
 
           {showRepeatDetails && (
@@ -1073,6 +1077,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                   <div className="space-y-1.5">
                     {hasSideEffects === true && (
                       <Textarea
+                        id="side-effects-details"
                         value={sideEffects}
                         onValueChange={(value) => {
                           setAnswer("sideEffects", value)
@@ -1084,12 +1089,20 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                             })
                           }
                         }}
+                        aria-label="Describe side effects"
+                        aria-invalid={Boolean(errors.sideEffects)}
+                        aria-describedby={errors.sideEffects ? "side-effects-details-error" : undefined}
                         placeholder="Briefly describe what happened"
                         className="min-h-[60px]"
                       />
                     )}
                     {errors.sideEffects && (
-                      <p className="text-xs text-destructive" role="alert" aria-live="polite">
+                      <p
+                        id="side-effects-details-error"
+                        className="text-xs text-destructive"
+                        role="alert"
+                        aria-live="polite"
+                      >
                         {errors.sideEffects}
                       </p>
                     )}
@@ -1143,11 +1156,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                 medicationNameRef.current?.focus()
                 medicationNameRef.current?.scrollIntoView({ block: "center" })
               }}
-              className="flex-1 gap-2"
+              className="h-12 flex-1 gap-2"
             >
               Change medication
             </Button>
-            <Button variant="ghost" asChild className="flex-1 gap-2">
+            <Button variant="ghost" asChild className="h-12 flex-1 gap-2">
               <a href="/request">Browse other services</a>
             </Button>
           </div>

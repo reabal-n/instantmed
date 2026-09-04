@@ -45,6 +45,17 @@ describe("clinical note is service-aware + brief paragraph", () => {
     expect(src).toContain("utiSymptoms")
   })
 
+  it("formats current and historical repeat-prescription recency for draft context", () => {
+    const src = read("app/actions/drafts/shared.ts")
+    const labels = read("lib/clinical/prescription-history.ts")
+
+    expect(labels).toContain('within_12_months: "Within 12 months"')
+    expect(labels).toContain('less_than_3_months: "Less than 3 months ago"')
+    expect(src).toContain('from "@/lib/clinical/prescription-history"')
+    expect(src).toContain("formatPrescriptionHistory")
+    expect(src).toContain("sanitizeAnswerValue(formatPrescriptionHistory(prescriptionHistory), intakeId)")
+  })
+
   it("clinical-note prompt is service-aware, not medical-certificate-only", () => {
     const src = read("app/actions/drafts/generate-clinical-note.ts")
     // Must explicitly cover the consult subtypes + forbid assuming a med cert

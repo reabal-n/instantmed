@@ -24,10 +24,10 @@ import {
   buildPatientIntakeHref,
   buildPatientMessagesHref,
   buildPatientSettingsHref,
+  buildPrescriptionRenewalHref,
   buildRequestServiceHref,
   PATIENT_DOCUMENTS_HREF,
   REQUEST_HREF,
-  REQUEST_REPEAT_SCRIPT_HREF,
 } from "@/lib/dashboard/routes"
 import { isMoreInformationRequiredPaymentRecovery } from "@/lib/patient/payment-recovery"
 import { needsRenewalSoon } from "@/lib/prescriptions"
@@ -36,7 +36,8 @@ import { cn } from "@/lib/utils"
 interface Prescription {
   id: string
   medication_name: string
-  dosage_instructions: string
+  medication_strength: string | null
+  dosage_instructions: string | null
   issued_date: string
   expiry_date: string
   status: "active" | "expired"
@@ -491,12 +492,14 @@ export function DashboardHero({
               : "Submit a quick repeat prescription form."
           }
           primaryCta={
-            <Button asChild>
-              <Link href={REQUEST_REPEAT_SCRIPT_HREF}>
-                Renew prescription
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            prescription && (
+              <Button asChild>
+                <Link href={buildPrescriptionRenewalHref(prescription.id)}>
+                  Renew prescription
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            )
           }
         />
       )

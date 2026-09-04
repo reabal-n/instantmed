@@ -58,6 +58,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
 import type { WaitState } from "@/lib/brand/wait-counter-types"
+import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import {
   buildPatientMessagesHref,
@@ -94,6 +95,10 @@ function formatFieldValue(value: unknown): string | null {
   return String(value)
 }
 
+function formatPrescriptionHistory(value: string): string {
+  return PRESCRIPTION_HISTORY_LABELS[value] || value.replace(/_/g, " ")
+}
+
 function SubmittedAnswers({
   answers,
   serviceType,
@@ -114,7 +119,7 @@ function SubmittedAnswers({
   const scriptFields = [
     { keys: ["medication_name", "medication_display"], label: "Medication" },
     { keys: ["medication_dosage", "dosage"], label: "Dosage" },
-    { keys: ["last_prescribed"], label: "Last Prescribed" },
+    { keys: ["last_prescribed", "prescriptionHistory", "prescription_history"], label: "Last Prescribed" },
     { keys: ["pharmacy_preference"], label: "Preferred Pharmacy" },
     { keys: ["is_repeat"], label: "Repeat Prescription" },
   ]
@@ -155,6 +160,8 @@ function SubmittedAnswers({
       const displayValue =
         field.label === "Symptom Duration" && typeof formatted === "string"
           ? formatted.replace(/_/g, "-").replace(/-days?$/i, " days")
+          : field.label === "Last Prescribed"
+            ? formatPrescriptionHistory(formatted)
           : formatted
       orderedEntries.push({ key: keys[0], label: field.label, value: displayValue })
     }

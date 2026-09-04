@@ -191,23 +191,12 @@ async function completeDetailsStep(
 }
 
 /**
- * Complete the Medical History step (allergies, conditions, other meds).
- *
- * Waits for "Any allergies?" which is the first visible text in this step.
- * The no-medications label is "No medications" (not "No other medications").
+ * Complete Medical History with the explicit bundled negative answer.
  */
 async function completeMedicalHistoryStep(page: Page) {
   await waitForStep(page, /Anything the doctor should know/i)
   // Each question is a Yes/No radiogroup with a question-specific "no" label.
-  // #209 folded the old "previous medication reactions?" toggle into the
-  // allergies question, so there is no separate reactions question.
-  await page.getByRole("radiogroup", { name: /allerg/i }).getByRole("radio", { name: /^None$/i }).click()
-  await page.getByRole("radiogroup", { name: /medical conditions/i }).getByRole("radio", { name: /^No conditions$/i }).click()
-  await page.getByRole("radiogroup", { name: /other medications/i }).getByRole("radio", { name: /^No medications$/i }).click()
-  const pregnancy = page.getByRole("radiogroup", { name: /pregnant or breastfeeding/i })
-  if (await pregnancy.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await pregnancy.getByRole("radio", { name: /^No$/i }).click()
-  }
+  await page.getByRole("button", { name: /None of these apply/i }).click()
   await clickContinue(page)
 }
 
@@ -295,7 +284,7 @@ async function completeMedicationStep(page: Page) {
 
   // P2.1 merged the old `medication-history` step in here — one screen, one
   // Continue, every field always mounted.
-  await clickChip(page, /Under 3 months/i)
+  await clickChip(page, /Within 12 months/i)
   await page.locator("#current-dose").fill("1 tablet once daily")
   await page
     .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
@@ -554,10 +543,9 @@ test.describe("Intake: Validation & edge cases", () => {
     await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E test medication")
 
-    // Take the "never prescribed" escape (#210 renamed the "Never" chip to
-    // "I have not been prescribed this before"). P2.1 keeps this route-out on
+    // Take the explicit "Never" escape. It remains a terminal route-out on
     // the merged screen.
-    await clickChip(page, /I have not been prescribed this before/i)
+    await clickChip(page, /^Never$/i)
 
     // Warning should appear with "Browse other services" CTA (rendered as a link)
     await expect(page.getByText(/Not a repeat prescription/i).first()).toBeVisible()

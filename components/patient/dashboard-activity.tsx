@@ -10,16 +10,17 @@ import type { Intake } from "@/components/patient/intake-types"
 import { Button } from "@/components/ui/button"
 import {
   buildPatientIntakeHref,
+  buildPrescriptionRenewalHref,
   PATIENT_INTAKES_HREF,
   PATIENT_PRESCRIPTIONS_HREF,
-  REQUEST_REPEAT_SCRIPT_HREF,
 } from "@/lib/dashboard/routes"
 import { formatDate } from "@/lib/format"
 
 interface Prescription {
   id: string
   medication_name: string
-  dosage_instructions: string
+  medication_strength: string | null
+  dosage_instructions: string | null
   issued_date: string
   expiry_date: string
   status: "active" | "expired"
@@ -90,9 +91,11 @@ export function DashboardActivity({
                     <h3 className="font-semibold text-foreground">
                       {prescription.medication_name}
                     </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {prescription.dosage_instructions}
-                    </p>
+                    {prescription.dosage_instructions?.trim() && (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {prescription.dosage_instructions}
+                      </p>
+                    )}
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1.5">
                         <Calendar className="h-4 w-4" />
@@ -104,7 +107,7 @@ export function DashboardActivity({
                       </span>
                     </div>
                   </div>
-                  <Link href={REQUEST_REPEAT_SCRIPT_HREF} className="shrink-0">
+                  <Link href={buildPrescriptionRenewalHref(prescription.id)} className="shrink-0">
                     <Button variant="outline" size="sm">
                       <Pill className="mr-2 h-4 w-4" />
                       Renew

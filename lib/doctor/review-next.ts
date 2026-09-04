@@ -1,4 +1,3 @@
-import { attentionFlags, parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -15,7 +14,11 @@ export function hasQueueRiskBadge(intake: IntakeWithPatient): boolean {
 export function hasReviewNextRisk(intake: IntakeWithPatient): boolean {
   if (intake.flagged_for_followup) return true
   if (hasQueueRiskBadge(intake)) return true
-  if (attentionFlags(parseIntakeFlags(intake.risk_flags)).length > 0) return true
+  // Queue chrome and review order are separate concerns. Preserve every
+  // persisted workflow flag and the established score fallback in the
+  // comparator even when neither earns a red clinical-risk badge.
+  if (Array.isArray(intake.risk_flags) && intake.risk_flags.length > 0) return true
+  if (intake.risk_score >= 7) return true
   return Boolean(intake.requires_live_consult)
 }
 

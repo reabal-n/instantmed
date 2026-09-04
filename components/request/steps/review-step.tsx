@@ -21,6 +21,7 @@ import { usePostHog } from "@/lib/analytics/posthog-context"
 import { classifyCheckoutFailure } from "@/lib/analytics/posthog-privacy"
 import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/lib/analytics/priority-review-events"
 import { classifyAttributionSource } from "@/lib/analytics/source-classification"
+import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
 import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
@@ -503,13 +504,6 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     const doseChanged = answers.doseChanged as boolean | undefined
     const hasSideEffects = answers.hasSideEffects as boolean | undefined
     const sideEffects = stringAnswer(answers.sideEffects) || undefined
-
-    const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
-      less_than_3_months: 'Less than 3 months ago',
-      '3_to_6_months': '3-6 months ago',
-      '6_to_12_months': '6-12 months ago',
-      over_12_months: 'Over 12 months ago',
-    }
 
     const medicationItems: ReviewItem[] = medications.length > 1
       ? medications.flatMap((med, i) => [

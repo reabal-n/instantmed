@@ -55,14 +55,14 @@ describe("review next priority", () => {
     expect(hasReviewNextRisk(intake({ requires_live_consult: true }))).toBe(true)
   })
 
-  it("ignores malformed legacy risk_flags instead of treating any non-empty array as risk", () => {
+  it("keeps malformed persisted flags in the established review-order bucket without showing a badge", () => {
     const malformed = intake({ risk_flags: [{ code: "legacy" }] })
 
     expect(hasQueueRiskBadge(malformed)).toBe(false)
-    expect(hasReviewNextRisk(malformed)).toBe(false)
+    expect(hasReviewNextRisk(malformed)).toBe(true)
   })
 
-  it("prioritizes attention flags but not info-only context", () => {
+  it("keeps all persisted flags prioritized while reserving red chrome for clinical risk", () => {
     const attention = intake({
       id: "attention",
       risk_flags: [makeIntakeFlag("medication_strength_missing")],
@@ -79,9 +79,16 @@ describe("review next priority", () => {
     })
 
     expect(hasReviewNextRisk(attention)).toBe(true)
-    expect(hasReviewNextRisk(infoOnly)).toBe(false)
+    expect(hasReviewNextRisk(infoOnly)).toBe(true)
     expect(sortForReviewNext([infoOnly, attention, ordinary]).map((row) => row.id))
-      .toEqual(["attention", "ordinary", "info-only"])
+      .toEqual(["info-only", "attention", "ordinary"])
+  })
+
+  it("preserves the legacy score fallback for review order without inferring a badge", () => {
+    const scored = intake({ risk_score: 7 })
+
+    expect(hasQueueRiskBadge(scored)).toBe(false)
+    expect(hasReviewNextRisk(scored)).toBe(true)
   })
 
   it("uses the operator ladder: risk, scripts, priority, oldest paid, pending-info age", () => {

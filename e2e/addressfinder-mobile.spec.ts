@@ -44,7 +44,7 @@ async function completeToDetails(page: import("@playwright/test").Page) {
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
   await page.locator("#medication-strength-0").fill("20 mg")
 
-  await page.getByRole("radio", { name: /Under 3 months/i }).click()
+  await page.getByRole("radio", { name: /Within 12 months/i }).click()
   await page.locator("#current-dose").fill("1 tablet once daily")
   await page
     .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
@@ -64,15 +64,8 @@ async function completeToDetails(page: import("@playwright/test").Page) {
       exact: true,
     }),
   ).toBeVisible()
-  // #209: each question is a radiogroup with a question-specific "no" label;
-  // the separate "Medication safety" / "No reactions" question was folded in.
-  await page.getByRole("radiogroup", { name: /allerg/i }).getByRole("radio", { name: /^None$/i }).click()
-  await page.getByRole("radiogroup", { name: /medical conditions/i }).getByRole("radio", { name: /^No conditions$/i }).click()
-  await page.getByRole("radiogroup", { name: /other medications/i }).getByRole("radio", { name: /^No medications$/i }).click()
-  const pregnancy = page.getByRole("radiogroup", { name: /pregnant or breastfeeding/i })
-  if (await pregnancy.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await pregnancy.getByRole("radio", { name: /^No$/i }).click()
-  }
+  // One explicit action records each visible safety answer as No.
+  await page.getByRole("button", { name: /None of these apply/i }).click()
   await clickPrimary()
 
   await expect(

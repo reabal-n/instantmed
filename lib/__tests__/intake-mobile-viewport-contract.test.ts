@@ -158,13 +158,25 @@ describe("intake mobile viewport contract", () => {
 
   it("uses compact repeat-prescription history labels on mobile", () => {
     const source = readProjectFile("components/request/steps/medication-step.tsx")
-    expect(source).toContain('{ value: "less_than_3_months", label: "Under 3 months" }')
-    expect(source).not.toContain('{ value: "never", label: "Never" }')
-    expect(source).toContain("I have not been prescribed this before")
+    const reviewSource = readProjectFile("components/request/steps/review-step.tsx")
+    const patientIntakeSource = readProjectFile("app/patient/intakes/[id]/client.tsx")
+    const historySource = readProjectFile("lib/clinical/prescription-history.ts")
+    expect(source).toContain('{ value: "within_12_months", label: "Within 12 months" }')
+    expect(source).toContain('{ value: "over_12_months", label: "Over 12 months" }')
+    expect(source).toContain('{ value: "never", label: "Never" }')
+    expect(source).not.toContain('{ value: "less_than_3_months", label: "Under 3 months" }')
+    expect(source).not.toContain('{ value: "3_to_6_months"')
+    expect(source).not.toContain('{ value: "6_to_12_months"')
     expect(source).toContain('label="Last prescribed"')
-    expect(source).toContain('columns="auto"')
+    expect(source).toContain('columns="three"')
     expect(source).not.toContain("Less than 3 months ago")
     expect(source).not.toContain("Never prescribed this medication")
+    expect(historySource).toContain('within_12_months: "Within 12 months"')
+    expect(historySource).toContain('never: "Never"')
+    expect(historySource).toContain('less_than_3_months: "Less than 3 months ago"')
+    expect(reviewSource).toContain('from "@/lib/clinical/prescription-history"')
+    expect(patientIntakeSource).toContain('from "@/lib/clinical/prescription-history"')
+    expect(patientIntakeSource).toContain("formatPrescriptionHistory")
   })
 
   it("keeps the repeat-prescription new-medication handoff aligned to live specialty services", () => {
@@ -210,6 +222,38 @@ describe("intake mobile viewport contract", () => {
     expect(source).toContain("const showRepeatDetails = !isNeverPrescribed")
     expect(source).not.toContain("needsDose")
     expect(source).not.toContain("hasPrescriptionHistory")
+  })
+
+  it("labels repeat-Rx side-effect details and keeps small actions tappable", () => {
+    const source = readProjectFile("components/request/steps/medication-step.tsx")
+
+    expect(source).toContain('id="side-effects-details"')
+    expect(source).toContain('aria-label="Describe side effects"')
+    expect(source).toContain('aria-describedby={errors.sideEffects ? "side-effects-details-error" : undefined}')
+    expect(source).toContain('id="side-effects-details-error"')
+    expect(source).toContain('className="inline-flex min-h-12 items-center')
+    expect(source).toContain('className="h-12 flex-1 gap-2"')
+  })
+
+  it("asks patients to verify selected-prescription prefill without implying approval", () => {
+    const source = readProjectFile("components/request/steps/medication-step.tsx")
+
+    expect(source).toContain("answers.renewalPrefilled === true")
+    expect(source).toContain("Filled from your selected prescription.")
+    expect(source).toContain("Check the medicine and directions are still current.")
+    expect(source).not.toContain("Your prescription is approved")
+  })
+
+  it("offers an explicit one-tap negative medical history without silently defaulting", () => {
+    const source = readProjectFile("components/request/steps/medical-history-step.tsx")
+
+    expect(source).toContain("None of these apply")
+    expect(source).toContain("buildNoneApplyMedicalHistoryAnswers(requiresMedicationSafety)")
+    expect(source).toContain("setErrors({})")
+    expect(source).toContain("setBlockedReasons([])")
+    expect(source).toContain("healthProfilePrefilled")
+    expect(source).toContain("Check they&apos;re still current.")
+    expect(source).toContain('className="min-h-12 w-full"')
   })
 
   it("keeps repeat-prescription identity details compact and visually restrained", () => {

@@ -72,7 +72,10 @@ interface UseFlowNavigationOptions {
   draftSubtype: string | null
   dismissDraftNotice: () => void
   setShowSubtypeMismatch: (v: boolean) => void
-  profilePrefill: RequestProfilePrefill
+  getProfilePrefillForFlow: (
+    serviceType: UnifiedServiceType | null,
+    consultSubtype?: string,
+  ) => RequestProfilePrefill
   onDraftDiscarded: () => void
 }
 
@@ -103,7 +106,7 @@ export function useFlowNavigation({
   draftSubtype,
   dismissDraftNotice,
   setShowSubtypeMismatch,
-  profilePrefill,
+  getProfilePrefillForFlow,
   onDraftDiscarded,
 }: UseFlowNavigationOptions) {
   const router = useRouter()
@@ -271,7 +274,7 @@ export function useFlowNavigation({
 
   const handleDiscardDraft = useCallback(() => {
     dismissDraftNotice()
-    discardCurrentDraft(profilePrefill)
+    discardCurrentDraft(getProfilePrefillForFlow(initialService ?? effectiveService, initialSubtype))
     // Discard wipes consultSubtype, and for a consult the step list is EMPTY
     // without one — before this re-seed, Discard on any consult deep link
     // (/request?service=consult&subtype=ed) stranded the patient on a
@@ -287,7 +290,7 @@ export function useFlowNavigation({
       service_type: analyticsServiceType,
       flow_instance_id: flowInstanceId,
     })
-  }, [dismissDraftNotice, discardCurrentDraft, profilePrefill, initialService, initialSubtype, setServiceType, setAnswer, onDraftDiscarded, analyticsServiceType, posthog, flowInstanceId])
+  }, [dismissDraftNotice, discardCurrentDraft, getProfilePrefillForFlow, initialService, effectiveService, initialSubtype, setServiceType, setAnswer, onDraftDiscarded, analyticsServiceType, posthog, flowInstanceId])
 
   const handleResumeDraft = useCallback(() => {
     setShowSubtypeMismatch(false)
@@ -304,7 +307,7 @@ export function useFlowNavigation({
 
   const handleStartFreshSubtype = useCallback(() => {
     setShowSubtypeMismatch(false)
-    discardCurrentDraft(profilePrefill)
+    discardCurrentDraft(getProfilePrefillForFlow('consult', initialSubtype))
     setAnswer('consultSubtype', initialSubtype, { touch: false })
     setServiceType('consult')
     posthog?.capture('consult_draft_cleared_for_new_subtype', {
@@ -318,7 +321,7 @@ export function useFlowNavigation({
     draftSubtype,
     analyticsServiceType,
     discardCurrentDraft,
-    profilePrefill,
+    getProfilePrefillForFlow,
     setServiceType,
     setAnswer,
     posthog,
@@ -363,7 +366,7 @@ export function useFlowNavigation({
         // patient chose a different subtype, that is a genuinely fresh
         // attempt: retire the old local/server flow before seeding the new one.
         if (restoredSubtype || effectiveService === service) {
-          discardCurrentDraft(profilePrefill)
+          discardCurrentDraft(getProfilePrefillForFlow(service, consultSubtype))
         } else {
           clearConsultSubtypeAnswers()
         }
@@ -377,7 +380,7 @@ export function useFlowNavigation({
     } else {
       router.push(`/request?service=${service}`)
     }
-  }, [clearConsultSubtypeAnswers, discardCurrentDraft, effectiveService, profilePrefill, setServiceType, setAnswer, router])
+  }, [clearConsultSubtypeAnswers, discardCurrentDraft, effectiveService, getProfilePrefillForFlow, setServiceType, setAnswer, router])
 
   return {
     handleBack,

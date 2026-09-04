@@ -344,6 +344,8 @@ describe("doctor queue production contract", () => {
     expect(queueFiltersSource).toContain("[&_input]:text-base")
     expect(queueFiltersSource).toContain("sm:[&_input]:text-sm")
     expect(queueFiltersSource).toContain("h-8 w-8 shrink-0")
+    expect(queueTableSource).toContain("h-11 w-11")
+    expect(queueTableSource).toContain("sm:h-8 sm:w-8")
   })
 
   it("does not write patient email addresses into decline logs", () => {
@@ -391,15 +393,53 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).toContain("data-queue-action-chip")
     expect(queueTableSource).toContain("resolveStaffCaseActionLabel")
     expect(queueTableSource).toContain("Next action:")
-    expect(queueTableSource).toContain("data-queue-status-chip")
-    expect(queueTableSource).toContain("getWaitTargetState(queueEnteredAt).label")
-    expect(queueUtilsSource).toContain('label: "On track"')
-    expect(queueUtilsSource).toContain('label: "At risk"')
-    expect(queueUtilsSource).toContain("`${formatMinutes(deltaMinutes)} over`")
-    expect(queueTableSource).toContain("compactStatusChipClass")
     expect(queueTableSource).toContain("compactTaxonomyChipClass")
-    expect(queueTableSource).toContain("bg-background text-foreground")
-    expect(queueTableSource).toContain("compactClaimChipClass")
+  })
+
+  it("labels the recommended next case without claiming it is always the oldest", () => {
+    expect(queueClientSource).toContain('const nextCaseLabel = filteredCount > 0\n      ? "Select the next case."')
+    expect(queueClientSource).not.toContain("Select the oldest case.")
+  })
+
+  it("keeps compact rows to one action-led state and one service taxonomy", () => {
+    expect(queueTableSource).toContain("const showRoutineStatus = !compactShell")
+    expect(queueTableSource).not.toContain("getCompactQueueReason")
+    expect(queueTableSource).not.toContain("compactQueueReason")
+  })
+
+  it("hides a doctor's own compact claim chip without hiding another doctor's claim", () => {
+    expect(queueTableSource).toContain("{claimedByOther && (")
+    expect(queueTableSource).toContain("{claimedByMe && !compactShell && (")
+    expect(queueTableSource).toContain("Reviewing: you")
+  })
+
+  it("adds target context only for warning and critical waits", () => {
+    expect(queueTableSource).toContain("const waitTargetState = getWaitTargetState(queueEnteredAt)")
+    expect(queueTableSource).toContain('waitTargetState.tone !== "normal"')
+    expect(queueUtilsSource).toContain("`${formatMinutes(Math.abs(deltaMinutes))} to target`")
+    expect(queueUtilsSource).toContain("`${formatMinutes(deltaMinutes)} over target`")
+    expect(queueUtilsSource).not.toContain('label: "At risk"')
+  })
+
+  it("keeps row wait labels minute-granular after the first minute", () => {
+    const stableWaitStart = queueClientSource.indexOf("const calculateStableWaitTime")
+    const stableWaitEnd = queueClientSource.indexOf("const getStableWaitTimeSeverity", stableWaitStart)
+    const stableWaitBlock = queueClientSource.slice(stableWaitStart, stableWaitEnd)
+
+    expect(stableWaitStart).toBeGreaterThan(-1)
+    expect(stableWaitEnd).toBeGreaterThan(stableWaitStart)
+    expect(stableWaitBlock).toContain("calculateLiveWaitTime(createdAt, clockNow)")
+    expect(stableWaitBlock).not.toContain("afterFirstMinuteSecondsCadence")
+    expect(queueClientSource).not.toContain("QUEUE_VISIBLE_WAIT_SECONDS_CADENCE")
+    expect(queueClientSource).not.toContain("postMinuteCadenceMs:")
+  })
+
+  it("names the status filter group and documents A and D separately", () => {
+    expect(queueFiltersSource).toContain('role="group"')
+    expect(queueFiltersSource).toContain('aria-label="Filter queue by status"')
+    expect(queueFiltersSource).toContain("Approve or open review")
+    expect(queueFiltersSource).toContain("Open decline dialog")
+    expect(queueFiltersSource).not.toContain("Review or decline")
   })
 
   it("keeps red queue chrome separate from doctor-attention flags", () => {
@@ -469,11 +509,11 @@ describe("doctor queue production contract", () => {
   })
 
   it("uses one live row wait signal with a useful shared target label", () => {
-    expect(queueTableSource).toContain("getWaitTargetState(queueEnteredAt).label")
+    expect(queueTableSource).toContain("getWaitTargetState(queueEnteredAt)")
     expect(queueTableSource).toContain("data-live-wait-counter")
     expect(queueTableSource).not.toContain("Over review target")
     expect(queueTableSource).not.toContain("isFulfilmentEntitledPaymentStatus(intake.payment_status)")
-    expect(queueClientSource).toContain("postHourCadenceMs")
+    expect(queueClientSource).toContain("getQueueClockTickDelayMs")
   })
 
   it("keeps compact queue controls explicit and confirms manual refreshes", () => {

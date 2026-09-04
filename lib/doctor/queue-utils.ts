@@ -281,7 +281,7 @@ export function getQueueWaitTargetState(
 
   if (deltaMinutes >= 0) {
     return {
-      label: deltaMinutes === 0 ? "At target" : `${formatMinutes(deltaMinutes)} over`,
+      label: deltaMinutes === 0 ? "At target" : `${formatMinutes(deltaMinutes)} over target`,
       tone: "critical",
       elapsedMinutes,
       deltaMinutes,
@@ -290,7 +290,7 @@ export function getQueueWaitTargetState(
 
   if (elapsedMinutes >= safeTargetMinutes * 0.75) {
     return {
-      label: "At risk",
+      label: `${formatMinutes(Math.abs(deltaMinutes))} to target`,
       tone: "warning",
       elapsedMinutes,
       deltaMinutes,

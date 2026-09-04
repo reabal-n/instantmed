@@ -8,6 +8,7 @@ import {
   hasUncertainMedicationAnswer,
   requiresClinicalAdministration,
 } from "@/lib/clinical/medication-flags"
+import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import { normaliseSymptomText } from "@/lib/clinical/symptom-normaliser"
 import { computeBmi, WEIGHT_LOSS_BMI_FLOOR } from "@/lib/clinical/weight-loss-eligibility"
@@ -282,6 +283,10 @@ function humanize(value: unknown): string {
     .replace(/_/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase())
     .replace(/\bTo\b/g, "to")
+}
+
+function formatPrescriptionHistory(value: string): string {
+  return PRESCRIPTION_HISTORY_LABELS[value] || humanize(value)
 }
 
 function sentenceHumanize(value: unknown): string {
@@ -947,7 +952,7 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     { label: hasMultipleMedications ? "Requested medications" : "Requested medication", value: requestedMedicationValue },
     !hasMultipleMedications ? fact("Strength", strength) : null,
     !hasMultipleMedications ? fact("Form", form) : null,
-    { label: "Last prescribed", value: humanize(history) },
+    { label: "Last prescribed", value: formatPrescriptionHistory(history) },
     fact("Patient-reported dose", currentDose),
     { label: "Same dose and directions", value: doseDirectionsConfirmation },
     fact("Last prescription date", str(answers, "lastPrescriptionDate")),
@@ -1121,7 +1126,7 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       : doseChangedAnswer === true
         ? "Patient reported that the dose or directions have changed."
         : "Dose and directions confirmation was not captured for this legacy request.",
-    history && history !== "not specified" ? `Last prescribed ${humanize(history).toLowerCase()}.` : null,
+    history && history !== "not specified" ? `Last prescribed ${formatPrescriptionHistory(history).toLowerCase()}.` : null,
   ]
     .filter(Boolean)
     .join(" ")

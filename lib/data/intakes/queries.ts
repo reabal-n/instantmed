@@ -1259,7 +1259,7 @@ export const getPatientDashboardData = (patientId: string): Promise<{
 
         supabase
           .from("prescriptions")
-          .select("id, medication_name, dosage_instructions, issued_date, expiry_date, status")
+          .select("id, medication_name, medication_strength, dosage_instructions, issued_date, expiry_date, status")
           .eq("patient_id", patientId)
           .order("issued_date", { ascending: false })
           .limit(10),

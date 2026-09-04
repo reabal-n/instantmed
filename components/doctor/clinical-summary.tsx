@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { getContraindicationRationale } from "@/lib/clinical/contraindication-rationales"
+import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { cn } from "@/lib/utils"
 
 /** Convert camelCase or snake_case keys into readable labels */
@@ -64,6 +65,8 @@ const FIELD_LABELS: Record<string, string> = {
   strength: "Strength",
   manufacturer: "Manufacturer",
   last_prescribed: "Last Prescribed",
+  prescriptionHistory: "Last Prescribed",
+  prescription_history: "Last Prescribed",
   pharmacy_preference: "Preferred Pharmacy",
   is_repeat: "Repeat Prescription",
   // Consult fields
@@ -315,13 +318,6 @@ const SYMPTOM_DURATION_LABELS: Record<string, string> = {
   "1_week_plus": "1 week or more",
 }
 
-const LAST_PRESCRIBED_LABELS: Record<string, string> = {
-  within_3mo: "Within 3 months",
-  "3_6mo": "3-6 months",
-  "6_12mo": "6-12 months",
-  over_1yr: "Over a year",
-}
-
 const HAIR_ONSET_LABELS: Record<string, string> = {
   not_yet: "Not yet",
   under_6_months: "Under 6 months",
@@ -492,8 +488,8 @@ function formatValue(key: string, value: unknown): string {
   if (key === "symptom_duration" && typeof value === "string") {
     return SYMPTOM_DURATION_LABELS[value] || value
   }
-  if (key === "last_prescribed" && typeof value === "string") {
-    return LAST_PRESCRIBED_LABELS[value] || value
+  if (["last_prescribed", "prescriptionHistory", "prescription_history"].includes(key) && typeof value === "string") {
+    return PRESCRIPTION_HISTORY_LABELS[value] || value
   }
   if (key === "hairOnset" && typeof value === "string") {
     return HAIR_ONSET_LABELS[value] || value
@@ -653,6 +649,10 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
     "is_priority",
     "subscribeAndSave",
     "subscribe_and_save",
+    // Transient UI provenance. Kept here for pre-cutover draft compatibility;
+    // unified checkout strips these before new answers are persisted.
+    "renewalPrefilled",
+    "healthProfilePrefilled",
   ])
   
   for (const [key, value] of sortedEntries) {

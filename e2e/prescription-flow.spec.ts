@@ -159,7 +159,7 @@ async function completeMedicationStep(page: Page) {
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
   await page.locator("#medication-strength-0").fill("500 mg")
 
-  await clickChip(page, /Under 3 months/i)
+  await clickChip(page, /Within 12 months/i)
   await enterRegimen(page)
   await confirmUnchangedRegimen(page)
   await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
@@ -175,16 +175,7 @@ async function completeMedicationStep(page: Page) {
 async function completeMedicalHistoryStep(page: Page) {
   await waitForStep(page, /Anything the doctor should know/i)
   // Each question is a Yes/No radiogroup labelled by its question text. #209
-  // folded the old "previous medication reactions?" toggle into the allergies
-  // question, so there is no separate reactions question to answer.
-  await page.getByRole("radiogroup", { name: /allerg/i }).getByRole("radio", { name: /^None$/i }).click()
-  await page.getByRole("radiogroup", { name: /medical conditions/i }).getByRole("radio", { name: /^No conditions$/i }).click()
-  await page.getByRole("radiogroup", { name: /other medications/i }).getByRole("radio", { name: /^No medications$/i }).click()
-  // Prescribing flows add a single pregnancy/breastfeeding check.
-  const pregnancy = page.getByRole("radiogroup", { name: /pregnant or breastfeeding/i })
-  if (await pregnancy.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await pregnancy.getByRole("radio", { name: /^No$/i }).click()
-  }
+  await page.getByRole("button", { name: /None of these apply/i }).click()
   await clickContinue(page)
 }
 
@@ -325,6 +316,7 @@ test.describe("Prescription: full flow - start to checkout", () => {
     await waitForStep(page, /One last check/i)
     await expect(page.getByRole("heading", { name: "Medication", level: 3 })).toBeVisible()
     await expect(page.getByRole("heading", { name: "Prescription details", level: 3 })).toBeVisible()
+    await expect(page.getByText("Within 12 months", { exact: true })).toBeVisible()
     await expect(page.getByText("Used for", { exact: true })).toBeVisible()
     await expect(page.getByText("asthma", { exact: true })).toBeVisible()
     await expect(page.getByText("No side effects reported", { exact: true })).toBeVisible()
@@ -342,6 +334,9 @@ test.describe("Prescription: full flow - start to checkout", () => {
     await expect(page.locator("#medication-name-0")).toHaveValue("E2E test medication")
     await expect(page.getByText("1 tablet once daily", { exact: true })).toBeVisible()
     await expect(page.getByPlaceholder(/e\.g\. asthma/i)).toHaveValue("asthma")
+    await expect(
+      page.getByRole("radio", { name: "Within 12 months", exact: true }),
+    ).toHaveAttribute("aria-checked", "true")
     await expect(
       page
         .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
@@ -387,10 +382,9 @@ test.describe("Prescription: prescription-history gating", () => {
     await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E test medication")
 
-    // Take the "never prescribed" escape (#210 renamed the "Never" chip to
-    // "I have not been prescribed this before"). P2.1 keeps this route-out on
+    // Take the explicit "Never" escape. It remains a terminal route-out on
     // the merged screen.
-    await clickChip(page, /I have not been prescribed this before/i)
+    await clickChip(page, /^Never$/i)
 
     // Warning should appear with "Browse other services" CTA
     await expect(page.getByText(/Not a repeat prescription/i).first()).toBeVisible()
@@ -451,7 +445,7 @@ test.describe("Prescription: step validation", () => {
     await page.locator("#medication-form-0").fill("capsule")
 
     // Answer the rest of the merged screen.
-    await clickChip(page, /Under 3 months/i)
+    await clickChip(page, /Within 12 months/i)
     await enterRegimen(page, "1 capsule once daily")
     await confirmUnchangedRegimen(page)
     await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
@@ -480,7 +474,7 @@ test.describe("Prescription: step validation", () => {
     await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
     await expect(page.locator("#medication-strength-0")).toHaveAttribute("aria-required", "false")
     await expect(page.getByText(/Using 100mg from the medication name/i)).toBeVisible()
-    await clickChip(page, /Under 3 months/i)
+    await clickChip(page, /Within 12 months/i)
     await enterRegimen(page)
     await confirmUnchangedRegimen(page)
     await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
@@ -498,7 +492,7 @@ test.describe("Prescription: step validation", () => {
     await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E missing dose medication")
     await page.locator("#medication-strength-0").fill("20 mg")
-    await clickChip(page, /Under 3 months/i)
+    await clickChip(page, /Within 12 months/i)
     await page.getByPlaceholder(/e\.g\. asthma/i).fill("anxiety")
     await confirmNoSideEffects(page)
 
@@ -534,7 +528,7 @@ test.describe("Prescription: step validation", () => {
     await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E missing dose medication")
     await page.locator("#medication-strength-0").fill("20 mg")
-    await clickChip(page, /Under 3 months/i)
+    await clickChip(page, /Within 12 months/i)
     await confirmUnchangedRegimen(page)
     await page.getByPlaceholder(/e\.g\. asthma/i).fill("anxiety")
     await confirmNoSideEffects(page)
@@ -562,7 +556,7 @@ test.describe("Prescription: step validation", () => {
     await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E test medication")
     await page.locator("#medication-strength-0").fill("500 mg")
-    await clickChip(page, /Under 3 months/i)
+    await clickChip(page, /Within 12 months/i)
     await enterRegimen(page)
     await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
     await confirmNoSideEffects(page)
@@ -594,7 +588,7 @@ test.describe("Prescription: step validation", () => {
     await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E test medication")
     await page.locator("#medication-strength-0").fill("500 mg")
-    await clickChip(page, /Under 3 months/i)
+    await clickChip(page, /Within 12 months/i)
     await enterRegimen(page)
     await page.getByPlaceholder(/e\.g\. asthma/i).fill("asthma")
     await confirmNoSideEffects(page)
@@ -631,7 +625,7 @@ test.describe("Prescription: step validation", () => {
 
     await waitForStep(page, /Your medication/i)
     await page.locator("#medication-name-0").fill("E2E test medication")
-    await clickChip(page, /Under 3 months/i)
+    await clickChip(page, /Within 12 months/i)
 
     const doseInput = await enterRegimen(page, "Half a tablet every second day")
     await expect(doseInput).toHaveValue("Half a tablet every second day")

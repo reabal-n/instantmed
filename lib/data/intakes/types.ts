@@ -30,7 +30,8 @@ export type PatientIntakeWithPatient = IntakeWithPatient & PatientPaymentRecover
 export interface DashboardPrescription {
   id: string
   medication_name: string
-  dosage_instructions: string
+  medication_strength: string | null
+  dosage_instructions: string | null
   issued_date: string
   expiry_date: string
   status: "active" | "expired"

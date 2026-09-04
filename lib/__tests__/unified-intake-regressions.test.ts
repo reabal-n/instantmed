@@ -527,6 +527,18 @@ describe("unified intake regressions", () => {
     expect(transformed.sex).toBe("M")
   })
 
+  it("strips UI-only prefill markers before checkout persistence", () => {
+    const transformed = transformAnswersForUnifiedCheckout("repeat-script", {
+      renewalPrefilled: true,
+      healthProfilePrefilled: true,
+      medicationName: "Budesonide + formoterol",
+      medicationStrength: "100/3 micrograms",
+    })
+
+    expect(transformed).not.toHaveProperty("renewalPrefilled")
+    expect(transformed).not.toHaveProperty("healthProfilePrefilled")
+  })
+
   it("requires an explicit unchanged dose-and-directions answer before repeat checkout", () => {
     const validRepeatAnswers = {
       medicationName: "Budesonide + formoterol",

@@ -23,6 +23,46 @@ function render(element: React.ReactElement): string {
   return renderToStaticMarkup(element)
 }
 
+describe("ClinicalSummary - repeat prescription recency", () => {
+  it.each([
+    ["within_12_months", "Within 12 months"],
+    ["over_12_months", "Over 12 months"],
+    ["less_than_3_months", "Less than 3 months ago"],
+    ["3_to_6_months", "3–6 months ago"],
+    ["6_to_12_months", "6–12 months ago"],
+  ])("renders %s as readable doctor copy", (storedValue, displayValue) => {
+    const html = render(<ClinicalSummary answers={{ last_prescribed: storedValue }} />)
+
+    expect(html).toContain(displayValue)
+    expect(html).not.toContain(storedValue)
+  })
+
+  it.each(["prescriptionHistory", "prescription_history"])(
+    "formats the %s compatibility key too",
+    (key) => {
+      const html = render(<ClinicalSummary answers={{ [key]: "within_12_months" }} />)
+
+      expect(html).toContain("Within 12 months")
+      expect(html).not.toContain("within_12_months")
+    },
+  )
+
+  it("does not render UI-only prefill markers from historical drafts", () => {
+    const html = render(
+      <ClinicalSummary
+        answers={{
+          renewalPrefilled: true,
+          healthProfilePrefilled: true,
+        }}
+      />,
+    )
+
+    expect(html).toContain("No intake data available")
+    expect(html).not.toContain("Renewal Prefilled")
+    expect(html).not.toContain("Health Profile Prefilled")
+  })
+})
+
 describe("ClinicalSummary - ED subtype (camelCase keys)", () => {
   // Mirrors the keys written by ed-assessment-step.tsx + ed-health-step.tsx
   const edAnswers = {
