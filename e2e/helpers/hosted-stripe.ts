@@ -499,7 +499,7 @@ async function dismissIntakeOverlay(page: Page): Promise<void> {
 }
 
 async function fillCoreIdentity(page: Page, recipient: string): Promise<void> {
-  await expect(page.getByRole("heading", { name: /Your details/i })).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole("heading", { name: /Your details/i, level: 2 })).toBeVisible({ timeout: 20_000 })
   const noThanks = page.getByRole("button", { name: /No thanks/i })
   if (await noThanks.isVisible({ timeout: 1_000 }).catch(() => false)) await noThanks.click()
   await page.locator('input[placeholder="Jane"]').fill("Stripe")
@@ -511,7 +511,7 @@ async function fillCoreIdentity(page: Page, recipient: string): Promise<void> {
 async function completeRepeatScriptIntake(page: Page, recipient: string): Promise<void> {
   await page.goto("/request?service=repeat-script")
   await dismissIntakeOverlay(page)
-  await expect(page.getByRole("heading", { name: "Your medication", exact: true })).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole("heading", { name: "Your medication", exact: true, level: 2 })).toBeVisible({ timeout: 20_000 })
 
   await page.locator("#medication-name-0").fill("Atorvastatin")
   await page.locator("#medication-strength-0").fill("20 mg")
@@ -528,7 +528,7 @@ async function completeRepeatScriptIntake(page: Page, recipient: string): Promis
     .click()
   await clickPrimaryContinue(page)
 
-  await expect(page.getByRole("heading", { name: /Anything the doctor should know/i })).toBeVisible()
+  await expect(page.getByRole("heading", { name: /Anything the doctor should know/i, level: 2 })).toBeVisible()
   await page.getByRole("button", { name: /None of these apply/i }).click()
   await clickPrimaryContinue(page)
 
@@ -550,7 +550,7 @@ async function completeRepeatScriptIntake(page: Page, recipient: string): Promis
   await page.locator("#postcode").fill("2000")
   await clickPrimaryContinue(page)
 
-  await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "One last check", level: 2 })).toBeVisible()
   await expect(page.getByText("Atorvastatin", { exact: true })).toBeVisible()
   await expect(page.getByText("20 mg", { exact: true })).toBeVisible()
   await expect(page.getByText("1 tablet each evening", { exact: true })).toBeVisible()
@@ -563,6 +563,7 @@ async function completeMedCertIntake(page: Page, recipient: string): Promise<voi
   await expect(page.getByRole("heading", {
     name: "What do you need covered?",
     exact: true,
+    level: 2,
   })).toBeVisible({ timeout: 20_000 })
   await page
     .getByRole("radiogroup", { name: /Certificate type/i })
@@ -575,7 +576,7 @@ async function completeMedCertIntake(page: Page, recipient: string): Promise<voi
   await page.getByRole("radio", { name: /^Today$/i }).click()
   await clickPrimaryContinue(page)
 
-  await expect(page.getByRole("heading", { name: /What is stopping you today/i })).toBeVisible()
+  await expect(page.getByRole("heading", { name: /What is stopping you today/i, level: 2 })).toBeVisible()
   await page.getByRole("button", { name: /Cold or flu/i }).click()
   await page.locator("#symptom-details").fill(
     "Mild cold symptoms since yesterday with a runny nose and tiredness.",
@@ -588,7 +589,7 @@ async function completeMedCertIntake(page: Page, recipient: string): Promise<voi
 
   await fillCoreIdentity(page, recipient)
   await clickPrimaryContinue(page)
-  await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "One last check", level: 2 })).toBeVisible()
   await page.locator("#safety-consent").click()
 }
 
