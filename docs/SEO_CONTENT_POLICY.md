@@ -21,7 +21,7 @@ Organic SEO pages do not share one template. Pick the page type first, then appl
 
 | Page type | Routes | Primary job | CTA/link boundary |
 |---|---|---|---|
-| Health guide | `/blog/[slug]` from `content/blog/*.mdx` | Reviewed education and source-backed explanation | No service CTAs, no `/request`, no service sales panels, no location SEO blocks. Related reading stays guide-to-guide; the non-guide linking permission below does not apply. |
+| Health guide | `/blog/[slug]` from `content/blog/*.mdx` | Reviewed education and source-backed explanation | No service CTAs, no `/request`, no service sales panels, no location SEO blocks. Related reading may link neutrally to `/blog/*`, `/conditions/*`, and `/symptoms/*`; the service-linking permission below does not apply. |
 | Condition page | `/conditions/[slug]` | Education-first condition explainer | May explain telehealth fit and limits, but must not behave like a treatment landing page. No above-fold treatment promises, no platform stats as clinical proof, no drug-specific CTAs. |
 | Symptom page | `/symptoms/[slug]` | Non-diagnostic symptom education | Must avoid "symptom + X = diagnosis" framing. Use uncertainty, red flags, and what a doctor may ask. |
 | Medication guide | usually `/blog/[slug]` | Medicine education: uses, risks, contraindications, interactions, monitoring | Medicine names may appear in education. No "get/buy/start [medicine] online", no prescription-only medicine prices, no medicine-specific request URLs, no paid destination use. |
@@ -215,7 +215,7 @@ Baseline guide quality:
 
 Medicine, condition, symptom, and other non-guide educational surfaces may link neutrally to an active generic service or pathway from the list below when it is relevant. The link must describe the service or review pathway without promising a medicine, prescription, or outcome.
 
-Health guide bodies in `content/blog/*.mdx` do not inherit this permission. They remain related-reading-only: they may link neutrally to other `/blog/*` guides, but never to `/prescriptions`, `/request`, or another acquisition surface.
+Health guide bodies in `content/blog/*.mdx` do not inherit the service-linking permission. They remain education-only: neutral related-reading links to `/blog/*`, `/conditions/*`, and `/symptoms/*` are allowed, but `/prescriptions`, `/request`, and other service or acquisition destinations are not.
 
 Only active services may be used as acquisition links. Weight management launched on 2026-08-10, so organic and onsite content may link to its service page without implying a prescription outcome or ongoing treatment program.
 
