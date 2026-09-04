@@ -567,11 +567,13 @@ describe("hosted browser journey source contracts", () => {
     const configPath = join(root, "playwright.hosted-stripe.config.ts")
     const runnerPath = join(root, "scripts/run-hosted-stripe-e2e.ts")
     const workflowPath = join(root, ".github/workflows/hosted-stripe-e2e.yml")
+    const gitignorePath = join(root, ".gitignore")
     expect(existsSync(specPath)).toBe(true)
     expect(existsSync(helperPath)).toBe(true)
     expect(existsSync(configPath)).toBe(true)
     expect(existsSync(runnerPath)).toBe(true)
     expect(existsSync(workflowPath)).toBe(true)
+    expect(existsSync(gitignorePath)).toBe(true)
 
     const spec = readFileSync(specPath, "utf8")
     expect(spec).toContain("checkout.stripe.com")
@@ -631,10 +633,15 @@ describe("hosted browser journey source contracts", () => {
       main.indexOf('await runCommand("supabase", ["start"'),
     )
     expect(main).toContain("DOCKER_HOST: localDockerEndpoint")
+    expect(main).toContain("STRIPE_API_KEY: dedicatedStripeKey")
+    expect(main).not.toContain('"--api-key"')
 
     const workflow = readFileSync(workflowPath, "utf8")
     expect(workflow).toMatch(/on:\s*\n\s*workflow_dispatch:/)
     expect(workflow).not.toMatch(/schedule:/)
     expect(workflow).not.toMatch(/push:/)
+
+    const gitignore = readFileSync(gitignorePath, "utf8")
+    expect(gitignore).toContain("/.artifacts/hosted-stripe-e2e/")
   })
 })

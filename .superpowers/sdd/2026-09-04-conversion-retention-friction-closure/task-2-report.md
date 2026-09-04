@@ -40,6 +40,10 @@ service, Vercel deployment, or Moirai-owned local service was touched.
   40-character revision before copying, then requires the same clean revision
   after both browser journeys before placing it in the receipt; a dirty tree or
   concurrent commit cannot be mislabelled as commit-bound proof.
+- The dedicated test key is supplied to the Stripe listener through its scoped
+  `STRIPE_API_KEY` environment rather than process arguments. Successful
+  receipts live in the exactly ignored `.artifacts/hosted-stripe-e2e/`
+  directory, so one successful run cannot dirty and block the next run.
 - The repeat-prescription case completes the real intake with current clinical
   safety questions plus prescribing identity, medication strength, dose, and
   current directions. It reaches `checkout.stripe.com`, pays with Stripe's test
@@ -97,6 +101,9 @@ green:
    run-scoped `email` column.
 9. Independent isolation review added two RED tests for remote Docker endpoints
    and dirty/changing Git source; both now fail closed before receipt creation.
+10. The final repeatability/hardening contract failed until the exact receipt
+    directory was ignored and the Stripe listener stopped placing the test key
+    in its process arguments.
 
 After the corresponding implementation changes, the focused Task 2 suite is
 green at 36/36. The payment-policy/linkage regression set is re-run after each

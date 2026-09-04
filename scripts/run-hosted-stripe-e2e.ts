@@ -1010,8 +1010,6 @@ async function main(): Promise<void> {
     process.stdout.write("Starting the Stripe test-mode webhook listener...\n")
     const stripeListener = spawnOwned("stripe", [
       "listen",
-      "--api-key",
-      dedicatedStripeKey,
       "--forward-to",
       `${APP_ORIGIN}/api/stripe/webhook`,
       "--events",
@@ -1019,6 +1017,7 @@ async function main(): Promise<void> {
     ], {
       ...commandEnv,
       HOME: temporaryStripeHome,
+      STRIPE_API_KEY: dedicatedStripeKey,
       STRIPE_CLI_TELEMETRY_OPTOUT: "1",
       XDG_CONFIG_HOME: join(temporaryStripeHome, ".config"),
     }, root)

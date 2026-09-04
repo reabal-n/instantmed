@@ -16,6 +16,7 @@
 /playwright-report/
 /playwright-report*/
 /.verification/
+/.artifacts/hosted-stripe-e2e/
 /playwright/.auth/
 e2e/.e2e-run-id*
 
