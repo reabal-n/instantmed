@@ -82,7 +82,13 @@ interface BuildHostedStripeChildEnvironmentInput {
   webhookSecret: string
 }
 
+export interface HostedStripeAccountMeasurement {
+  skip: { actions: 1; repeatedProfileFields: 0; elapsedMs: number }
+  link: { actions: 2; repeatedProfileFields: 0; elapsedMs: number }
+}
+
 export interface HostedStripeReceipt {
+  account: HostedStripeAccountMeasurement
   runId: string
   gitSha: string
   startedAt: string
@@ -106,6 +112,7 @@ export interface HostedStripeReceipt {
 }
 
 export interface HostedStripeBrowserEvidence {
+  account: HostedStripeAccountMeasurement
   stripe: {
     eventType: "checkout.session.completed"
     livemode: false
@@ -663,13 +670,27 @@ function isCanonicalTimestamp(value: unknown): value is string {
     Number.isFinite(Date.parse(value))
 }
 
+function validateAccountMeasurement(value: unknown): void {
+  if (!isRecord(value)) throw new Error("Hosted Stripe receipt contains a forbidden account measurement")
+  validateExactKeys(value, ["skip", "link"], "account")
+  for (const [journey, actions] of [["skip", 1], ["link", 2]] as const) {
+    const measurement = value[journey]
+    if (!isRecord(measurement)) throw new Error("Hosted Stripe receipt contains a forbidden account measurement")
+    validateExactKeys(measurement, ["actions", "repeatedProfileFields", "elapsedMs"], `account.${journey}`)
+    if (measurement.actions !== actions || measurement.repeatedProfileFields !== 0
+      || !Number.isSafeInteger(measurement.elapsedMs) || Number(measurement.elapsedMs) < 0) {
+      throw new Error("Hosted Stripe receipt contains a forbidden account measurement")
+    }
+  }
+}
+
 export function validateHostedStripeReceipt(
   value: unknown,
 ): asserts value is HostedStripeReceipt {
   if (!isRecord(value)) throw new Error("Hosted Stripe receipt contains a forbidden root value")
   validateExactKeys(
     value,
-    ["runId", "gitSha", "startedAt", "finishedAt", "stripe", "assertions", "counts"],
+    ["runId", "gitSha", "startedAt", "finishedAt", "stripe", "assertions", "counts", "account"],
     "receipt",
   )
   if (
@@ -708,6 +729,8 @@ export function validateHostedStripeReceipt(
     throw new Error("Hosted Stripe receipt contains a forbidden failed assertion")
   }
 
+  validateAccountMeasurement(value.account)
+
   if (!isRecord(value.counts)) throw new Error("Hosted Stripe receipt contains a forbidden count value")
   validateExactKeys(value.counts, ["journeys", "webhookEvents", "survivors"], "receipt.counts")
   if (Object.values(value.counts).some((count) => !Number.isSafeInteger(count) || Number(count) < 0)) {
@@ -728,7 +751,8 @@ export function validateHostedStripeBrowserEvidence(
   if (!isRecord(value)) {
     throw new Error("Hosted Stripe browser evidence contains a forbidden root value")
   }
-  validateExactKeys(value, ["stripe", "assertions", "counts"], "browserEvidence")
+  validateExactKeys(value, ["stripe", "assertions", "counts", "account"], "browserEvidence")
+  validateAccountMeasurement(value.account)
 
   if (!isRecord(value.stripe)) {
     throw new Error("Hosted Stripe browser evidence contains a forbidden Stripe value")
@@ -1109,6 +1133,7 @@ async function main(): Promise<void> {
     startedAt,
     finishedAt,
     stripe: browserEvidence.stripe,
+    account: browserEvidence.account,
     assertions: {
       ...browserEvidence.assertions,
       zeroSurvivors: survivorCount === 0,

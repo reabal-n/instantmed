@@ -35,6 +35,10 @@ import {
 } from "../../scripts/run-hosted-stripe-e2e"
 
 const root = process.cwd()
+const accountMeasurement = {
+  skip: { actions: 1, repeatedProfileFields: 0, elapsedMs: 150 },
+  link: { actions: 2, repeatedProfileFields: 0, elapsedMs: 800 },
+}
 const TEST_KEY = "sk_test_dedicated_hosted_e2e"
 const localUrls = {
   apiUrl: "http://127.0.0.1:55321",
@@ -152,7 +156,8 @@ describe("hosted Stripe environment preflight", () => {
       stripeKeyMode: "test",
       supabaseUrl: localUrls.apiUrl,
     })
-    expect(retrievePrice).toHaveBeenCalledTimes(HOSTED_STRIPE_PRICE_REQUIREMENTS.length)
+    expect(Object.keys(context.priceIds)).toEqual(["STRIPE_PRICE_MEDCERT", "STRIPE_PRICE_REPEAT_SCRIPT"])
+    expect(retrievePrice).toHaveBeenCalledTimes(2)
   })
 
   it("accepts an explicitly dedicated restricted test key", async () => {
@@ -359,6 +364,7 @@ describe("hosted Stripe runner isolation", () => {
       gitSha: "a".repeat(40),
       startedAt: "2026-09-05T00:00:00.000Z",
       finishedAt: "2026-09-05T00:05:00.000Z",
+      account: accountMeasurement,
       stripe: { eventType: "checkout.session.completed", livemode: false },
       assertions: {
         hostedCheckout: true,
@@ -372,6 +378,10 @@ describe("hosted Stripe runner isolation", () => {
     expect(() => validateHostedStripeReceipt(safeReceipt)).not.toThrow()
 
     for (const unsafe of [
+      { ...safeReceipt, account: { ...accountMeasurement, link: { ...accountMeasurement.link, elapsedMs: -1 } } },
+      { ...safeReceipt, account: { ...accountMeasurement, link: { ...accountMeasurement.link, repeatedProfileFields: 1 } } },
+      { ...safeReceipt, account: { ...accountMeasurement, skip: { ...accountMeasurement.skip, actions: 2 } } },
+      { ...safeReceipt, account: { ...accountMeasurement, token: "secret" } },
       { ...safeReceipt, email: "patient@example.test" },
       { ...safeReceipt, nested: { intakeId: "00000000-0000-4000-8000-000000000001" } },
       { ...safeReceipt, nested: { token: "secret" } },
@@ -402,6 +412,7 @@ describe("hosted Stripe runner isolation", () => {
       gitSha: "a".repeat(40),
       startedAt: "2026-09-05T00:00:00.000Z",
       finishedAt: "2026-09-05T00:05:00.000Z",
+      account: accountMeasurement,
       stripe: { eventType: "checkout.session.completed", livemode: false },
       assertions: {
         hostedCheckout: true,
@@ -425,6 +436,7 @@ describe("hosted Stripe runner isolation", () => {
 
   it("accepts only complete PHI-free browser evidence", () => {
     const safeEvidence = {
+      account: accountMeasurement,
       stripe: { eventType: "checkout.session.completed", livemode: false },
       assertions: {
         hostedCheckout: true,

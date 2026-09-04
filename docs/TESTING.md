@@ -223,8 +223,8 @@ The med-cert auto-approval E2E contract uses `/api/test/medcert-immediate-auto-a
 gate for guest payment and optional account linking. It is intentionally
 separate from the normal seeded Playwright suite: the runner creates a
 dotenv-free temporary app copy, starts its own Supabase project on ports
-55320-55329 (API 55321 and Mailpit 55324), retrieves and verifies every Stripe
-test Price, starts `stripe listen`, builds and serves Next.js on loopback port
+55320-55329 (API 55321 and Mailpit 55324), retrieves and verifies the two exercised Stripe
+test Prices (one-day med-cert and repeat prescription), starts `stripe listen`, builds and serves Next.js on loopback port
 3060, and uses one Chromium worker with no shared global setup or `webServer`.
 
 The two browser cases use fabricated data only. The repeat-prescription case
@@ -244,7 +244,10 @@ dotenv files or accepts primary `STRIPE_*`, Supabase, app-domain, Vercel, or
 run-scoped recipients and their intake/payment/auth side effects, asserts zero
 survivors, stops only its labelled Supabase project, and writes a restricted
 PHI-free receipt under `.artifacts/hosted-stripe-e2e/` only after both branches
-and cleanup pass. The GitHub workflow is manual `workflow_dispatch` only.
+and cleanup pass. The receipt includes account-skip and magic-link action counts,
+zero repeated profile fields, and elapsed milliseconds from the confirmed offer
+to its outcome (including local Mailpit wait for linking). These are harness
+measurements, not patient performance promises. The GitHub workflow is manual `workflow_dispatch` only.
 
 ### What NOT to E2E Test
 

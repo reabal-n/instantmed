@@ -856,7 +856,7 @@ export async function expectNoAuthAccountForPaidGuest(
 export async function followMagicLinkAndExpectOwnedIntake(
   page: Page,
   evidence: PaidIntakeEvidence,
-): Promise<void> {
+): Promise<number> {
   const coordinates = hostedStripeCoordinates()
   const magicLink = await readLatestMailpitLink(evidence.email, {
     mailpitOrigin: coordinates.mailpitOrigin,
@@ -865,6 +865,11 @@ export async function followMagicLinkAndExpectOwnedIntake(
   await page.waitForURL((url) => (
     url.origin === APP_ORIGIN && url.pathname.startsWith("/patient")
   ), { timeout: PAYMENT_TIMEOUT_MS })
+  await expect(page).toHaveURL(`${APP_ORIGIN}/patient`)
+  await expect(page.locator(`a[href="/patient/intakes/${evidence.intakeId}"]`).first()).toBeVisible({
+    timeout: PAYMENT_TIMEOUT_MS,
+  })
+  const dashboardReadyAt = performance.now()
 
   const supabase = serviceClient(coordinates)
   await expect.poll(async () => {
@@ -879,9 +884,5 @@ export async function followMagicLinkAndExpectOwnedIntake(
   const users = await listRunAuthUsers(supabase, [evidence.email])
   if (users.length !== 1) throw safeFailure("magic-link journey did not create one Auth user")
 
-  await page.goto("/patient")
-  await expect(page).toHaveURL(`${APP_ORIGIN}/patient`)
-  await expect(page.locator(`a[href="/patient/intakes/${evidence.intakeId}"]`).first()).toBeVisible({
-    timeout: PAYMENT_TIMEOUT_MS,
-  })
+  return dashboardReadyAt
 }

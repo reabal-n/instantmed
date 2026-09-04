@@ -7,17 +7,11 @@ import {
   type StripeKeyMode,
 } from "../lib/stripe/test-webhook-policy"
 
+// These journeys exercise one-day certificates and repeat prescriptions only.
+// Optional duration, priority, and specialty prices are resolved lazily by checkout.
 export const HOSTED_STRIPE_PRICE_REQUIREMENTS = [
   { envKey: "STRIPE_PRICE_MEDCERT", amountCents: 2495 },
-  { envKey: "STRIPE_PRICE_MEDCERT_2DAY", amountCents: 2995 },
-  { envKey: "STRIPE_PRICE_MEDCERT_3DAY", amountCents: 3995 },
   { envKey: "STRIPE_PRICE_REPEAT_SCRIPT", amountCents: 2995 },
-  { envKey: "STRIPE_PRICE_CONSULT", amountCents: 4995 },
-  { envKey: "STRIPE_PRICE_CONSULT_ED", amountCents: 4995 },
-  { envKey: "STRIPE_PRICE_CONSULT_HAIR_LOSS", amountCents: 4995 },
-  { envKey: "STRIPE_PRICE_CONSULT_WOMENS_HEALTH", amountCents: 4995 },
-  { envKey: "STRIPE_PRICE_CONSULT_WEIGHT_LOSS", amountCents: 8995 },
-  { envKey: "STRIPE_PRICE_PRIORITY_FEE", amountCents: 995 },
 ] as const
 
 type HostedStripePriceEnvironmentKey =

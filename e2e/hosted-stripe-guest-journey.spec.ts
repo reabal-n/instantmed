@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-import { writeHostedStripeBrowserEvidenceAtomic } from "../scripts/run-hosted-stripe-e2e"
+import { type HostedStripeAccountMeasurement, writeHostedStripeBrowserEvidenceAtomic } from "../scripts/run-hosted-stripe-e2e"
 import {
   completeRealHostedGuestPayment,
   expectNoAuthAccountForPaidGuest,
@@ -23,6 +23,7 @@ test.describe.serial("real hosted Stripe guest checkout", () => {
   let linkedAccount: PaidIntakeEvidence | null = null
   let skipOutcome = false
   let linkOutcome = false
+  const account: Partial<HostedStripeAccountMeasurement> = {}
 
   test.afterAll(async () => {
     const webhookEvents = new Set(
@@ -31,12 +32,15 @@ test.describe.serial("real hosted Stripe guest checkout", () => {
     if (
       !skipOutcome ||
       !linkOutcome ||
+      !account.skip ||
+      !account.link ||
       !skippedAccount ||
       !linkedAccount ||
       webhookEvents !== 2
     ) return
 
     await writeHostedStripeBrowserEvidenceAtomic(browserEvidencePath, {
+      account,
       stripe: {
         eventType: "checkout.session.completed",
         livemode: false,
@@ -74,8 +78,11 @@ test.describe.serial("real hosted Stripe guest checkout", () => {
     expect(durableEvidence.checkoutSessionId).toBe(evidence.checkoutSessionId)
 
     await expect(page).toHaveURL(/\/auth\/complete-account/)
+    await expect(page.locator("input:visible, select:visible, textarea:visible")).toHaveCount(0)
+    const started = performance.now()
     await page.getByRole("button", { name: "Continue without an account" }).click()
     await expect(page).toHaveURL(/\/request\/confirmed$/)
+    account.skip = { actions: 1, repeatedProfileFields: 0, elapsedMs: Math.round(performance.now() - started) }
     await expectNoAuthAccountForPaidGuest(evidence)
     skipOutcome = true
   })
@@ -95,9 +102,12 @@ test.describe.serial("real hosted Stripe guest checkout", () => {
     const durableEvidence = await waitForActualStripePayment(evidence.intakeId)
     expect(durableEvidence.checkoutSessionId).toBe(evidence.checkoutSessionId)
 
+    await expect(page.locator("input:visible, select:visible, textarea:visible")).toHaveCount(0)
+    const started = performance.now()
     await page.getByRole("button", { name: "Email me a sign-in link" }).click()
     await expect(page.getByRole("status").filter({ hasText: "Check your inbox" })).toBeVisible()
-    await followMagicLinkAndExpectOwnedIntake(page, evidence)
+    const dashboardReadyAt = await followMagicLinkAndExpectOwnedIntake(page, evidence)
+    account.link = { actions: 2, repeatedProfileFields: 0, elapsedMs: Math.round(dashboardReadyAt - started) }
     linkOutcome = true
   })
 })
