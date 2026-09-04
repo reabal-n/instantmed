@@ -35,6 +35,15 @@ interface RenderedAnchor {
   rel: string | null
 }
 
+const KNOWN_ACQUISITION_HUB_ROOTS = [
+  "/locations",
+  "/for",
+  "/guides",
+  "/compare",
+  "/alternatives",
+  "/business",
+] as const
+
 const TEST_ROUTER: AppRouterInstance = {
   back: () => undefined,
   forward: () => undefined,
@@ -224,6 +233,19 @@ function renderMaximalGuide(): string {
 }
 
 describe("health-guide acquisition link contract", () => {
+  it.each(KNOWN_ACQUISITION_HUB_ROOTS)(
+    "blocks the known acquisition hub root %s and its children",
+    (root) => {
+      expect(isGuideForbiddenAcquisitionDestination(root, guideBaseUrl("fixture-guide"))).toBe(true)
+      expect(
+        isGuideForbiddenAcquisitionDestination(
+          `${root}/adversarial-child`,
+          guideBaseUrl("fixture-guide"),
+        ),
+      ).toBe(true)
+    },
+  )
+
   it("normalizes adversarial guide destinations without blocking educational or external links", () => {
     const serviceHref = "/prescriptions"
     const allowedDestinations = [

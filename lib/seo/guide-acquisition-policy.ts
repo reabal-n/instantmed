@@ -39,6 +39,16 @@ export const GUIDE_FORBIDDEN_SITEMAP_STATIC_ROOTS = Object.freeze([
 /** Indexed acquisition hubs kept in the root sitemap's lower-priority service group. */
 export const GUIDE_FORBIDDEN_SITEMAP_SERVICE_ROOTS = ["/consult"] as const
 
+/** Repo-owned audience, location, comparison, and sales hubs that lead into conversion. */
+export const GUIDE_FORBIDDEN_ACQUISITION_HUB_ROOTS = [
+  "/locations",
+  "/for",
+  "/guides",
+  "/compare",
+  "/alternatives",
+  "/business",
+] as const
+
 /** Direct and compatibility entry points into the transactional intake. */
 export const GUIDE_FORBIDDEN_TRANSACTION_ROOTS = ["/request", "/start"] as const
 
@@ -70,6 +80,7 @@ export const GUIDE_FORBIDDEN_ACQUISITION_ROOTS = Object.freeze([
   ...new Set([
     ...GUIDE_FORBIDDEN_ACTIVE_SERVICE_ROOTS,
     ...GUIDE_FORBIDDEN_SITEMAP_ROOTS,
+    ...GUIDE_FORBIDDEN_ACQUISITION_HUB_ROOTS,
     ...GUIDE_FORBIDDEN_TRANSACTION_ROOTS,
     ...GUIDE_FORBIDDEN_REDIRECT_ALIAS_ROOTS,
     ...GUIDE_FORBIDDEN_COMMERCIAL_SEO_ROOTS,
