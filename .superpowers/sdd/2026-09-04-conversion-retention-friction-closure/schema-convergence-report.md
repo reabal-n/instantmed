@@ -85,3 +85,24 @@ exit 0
 ## Remaining boundary
 
 The new migration exists and has replayed successfully only in the disposable local stack. There is no claim that it is present in linked or production migration history. Applying it to production requires a separately authorised production migration step and post-apply metadata verification.
+
+## Review correction
+
+A fresh review found that the backend smoke map listed the new columns but still treated `intake_answers` as optional, allowing `request_answers` to mask a failed encrypted-column probe. A focused process-level contract first reproduced the false pass against a local fake PostgREST boundary:
+
+```text
+corepack pnpm exec vitest run lib/__tests__/smoke-backend-schema-contract.test.ts
+
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Reason      backend smoke exited 0 after swallowing the missing intake_answers column
+```
+
+The corrected smoke now requires `intake_answers`; only `request_answers` remains optional. The same behavioural contract was retained in `runtime-schema-convergence-migration-contract.test.ts` and passes after the fix:
+
+```text
+corepack pnpm exec vitest run lib/__tests__/runtime-schema-convergence-migration-contract.test.ts
+
+Test Files  1 passed (1)
+Tests       4 passed (4)
+```

@@ -30,12 +30,12 @@ const REQUIRED_TABLES = [
   "document_verifications",
   "stripe_webhook_events",
   "patient_notes",
+  "intake_answers",
 ] as const
 
 // Optional tables that may exist depending on the flow used
 const OPTIONAL_TABLES = [
   "request_answers",  // Used by newer request flow
-  "intake_answers",   // Used by older intake flow
 ] as const
 
 const EXPECTED_COLUMNS: Record<string, string[]> = {
@@ -64,7 +64,7 @@ const EXPECTED_COLUMNS: Record<string, string[]> = {
   document_verifications: ["id", "intake_id", "verification_code", "is_valid"],
   stripe_webhook_events: ["id", "event_id", "event_type", "processed_at"],
   patient_notes: ["id", "patient_id", "created_by", "created_by_name"],
-  // Optional tables
+  // Runtime intake-answer persistence
   intake_answers: [
     "id",
     "intake_id",
@@ -177,21 +177,15 @@ async function testCriticalTablesExist(): Promise<void> {
     }
   }
 
-  // Test optional tables (at least one should exist)
-  let hasAnswersTable = false
+  // Test optional tables without making them release blockers.
   for (const table of OPTIONAL_TABLES) {
     const columns = EXPECTED_COLUMNS[table] || []
     try {
       await testTableExistsWithColumns(table, columns)
       log(`  ✓ ${table} (optional, ${columns.length} columns verified)`, "info")
-      hasAnswersTable = true
     } catch {
       log(`  - ${table} (optional, not present)`, "info")
     }
-  }
-
-  if (!hasAnswersTable) {
-    log(`  ⚠ No answers table found (request_answers or intake_answers)`, "warn")
   }
 
   if (failures.length > 0) {

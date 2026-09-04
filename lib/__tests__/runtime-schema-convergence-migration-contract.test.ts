@@ -1,5 +1,8 @@
+import { execFile } from "node:child_process"
 import { existsSync, readFileSync } from "node:fs"
+import { createServer } from "node:http"
 import { join } from "node:path"
+import { promisify } from "node:util"
 
 import { describe, expect, it } from "vitest"
 
@@ -12,6 +15,7 @@ const SCHEMA_VALIDATION_PATH = join(
   "lib/validation/schema-validation.ts",
 )
 const BACKEND_SMOKE_PATH = join(process.cwd(), "scripts/smoke-backend.ts")
+const execFileAsync = promisify(execFile)
 
 function sourceWithoutComments(path: string): string {
   return readFileSync(path, "utf8")
@@ -73,4 +77,59 @@ describe("runtime schema convergence migration", () => {
       expect(patientNotesColumns).toContain('"created_by_name"')
     }
   })
+
+  it("fails the backend smoke when encrypted intake-answer columns are missing", async () => {
+    const server = createServer((request, response) => {
+      const requestUrl = new URL(request.url || "/", `http://${request.headers.host}`)
+      const isIntakeAnswersProbe =
+        requestUrl.pathname === "/rest/v1/intake_answers" &&
+        requestUrl.searchParams.get("select")?.includes("answers_encrypted")
+
+      response.setHeader("Content-Type", "application/json")
+
+      if (isIntakeAnswersProbe) {
+        response.writeHead(400).end(JSON.stringify({
+          code: "42703",
+          details: null,
+          hint: null,
+          message: "column intake_answers.answers_encrypted does not exist",
+        }))
+        return
+      }
+
+      response.writeHead(200).end("[]")
+    })
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve))
+    const address = server.address()
+    if (!address || typeof address === "string") {
+      server.close()
+      throw new Error("Failed to start the test Supabase server")
+    }
+
+    try {
+      await expect(execFileAsync(
+        process.execPath,
+        ["--import", "tsx", "scripts/smoke-backend.ts"],
+        {
+          cwd: process.cwd(),
+          env: {
+            ...process.env,
+            NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${address.port}`,
+            SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key",
+            SUPABASE_URL: `http://127.0.0.1:${address.port}`,
+          },
+        },
+      )).rejects.toMatchObject({
+        code: 1,
+        stdout: expect.stringContaining(
+          "intake_answers.answers_encrypted does not exist",
+        ),
+      })
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => error ? reject(error) : resolve())
+      })
+    }
+  }, 15_000)
 })
