@@ -21,6 +21,22 @@ export function clearIntentionalNavigation(): void {
   intentionalNavigationInProgress = false
 }
 
+/**
+ * Complete a same-route handoff only once a real destination flow exists. This
+ * keeps the source protected during navigation while ensuring a later exit
+ * from the destination is measured normally.
+ */
+export function completeIntentionalNavigationAtFlowDestination({
+  flowInstanceId,
+  serviceType,
+}: {
+  flowInstanceId: string | null
+  serviceType: string | null
+}): void {
+  if (!flowInstanceId && !serviceType) return
+  clearIntentionalNavigation()
+}
+
 /** Test seam — the module flag would otherwise leak between vitest cases. */
 export function resetIntentionalNavigationForTests(): void {
   clearIntentionalNavigation()

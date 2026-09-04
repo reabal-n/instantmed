@@ -10,7 +10,9 @@ import {
   buildIntakeStepCompletedProperties,
   buildIntakeStepViewedProperties,
   buildIntakeValidationBlockedProperties,
+  captureWomensHealthRepeatHandoff,
   INTAKE_ANALYTICS_EVENTS,
+  normalizeIntakeEntryRef,
 } from "@/lib/analytics/intake-events"
 
 const root = process.cwd()
@@ -282,19 +284,77 @@ describe("intake analytics events", () => {
     expect(womensAssessmentSource.match(/subtype: answers\.consultSubtype/g)).toHaveLength(2)
   })
 
-  it("records the current-pill handoff as intentional progress with fixed privacy-safe tokens", () => {
-    const womensTypeSource = readProjectFile("components/request/steps/womens-health-type-step.tsx")
-    const flowAnalyticsSource = readProjectFile("components/request/hooks/use-flow-analytics.ts")
+  it("emits the current-pill handoff with exact fixed properties when PostHog is ready", () => {
+    const captured: Array<{ event: string; properties?: Record<string, unknown> }> = []
 
-    expect(womensTypeSource).toContain("buildIntakeValidationBlockedProperties")
-    expect(womensTypeSource).toContain("INTAKE_ANALYTICS_EVENTS.validationBlocked")
-    expect(womensTypeSource).toContain('blockType: "service_steer"')
-    expect(womensTypeSource).toContain('blockers: ["current_pill_repeat_handoff"]')
-    expect(womensTypeSource).toContain('resolution: "redirected"')
-    expect(womensTypeSource).toContain("markIntentionalNavigation()")
-    expect(womensTypeSource).toContain('params.set("from", "womens-health-repeat-handoff")')
-    expect(flowAnalyticsSource).toContain('"womens-health-repeat-handoff"')
-    expect(flowAnalyticsSource).not.toMatch(/entry_ref:\s*searchParams\.get/)
+    captureWomensHealthRepeatHandoff({
+      fallbackCapture: () => {
+        throw new Error("ready clients must not use the retry fallback")
+      },
+      flowInstanceId: "11111111-1111-4111-8111-111111111111",
+      posthog: {
+        capture: (event, properties) => captured.push({ event, properties }),
+      },
+    })
+
+    expect(captured).toEqual([{
+      event: "intake_validation_blocked",
+      properties: {
+        service_type: "consult",
+        flow_instance_id: "11111111-1111-4111-8111-111111111111",
+        step_id: "womens-health-type",
+        subtype: "womens_health",
+        block_type: "service_steer",
+        resolution: "redirected",
+        blocker_count: 1,
+        blockers: ["current_pill_repeat_handoff"],
+      },
+    }])
+  })
+
+  it("queues the exact current-pill handoff when PostHog is not ready", () => {
+    const queued: Array<{ event: string; properties?: Record<string, unknown> }> = []
+
+    captureWomensHealthRepeatHandoff({
+      fallbackCapture: (event, properties) => queued.push({ event, properties }),
+      flowInstanceId: "11111111-1111-4111-8111-111111111111",
+      posthog: null,
+    })
+
+    expect(queued).toEqual([{
+      event: "intake_validation_blocked",
+      properties: {
+        service_type: "consult",
+        flow_instance_id: "11111111-1111-4111-8111-111111111111",
+        step_id: "womens-health-type",
+        subtype: "womens_health",
+        block_type: "service_steer",
+        resolution: "redirected",
+        blocker_count: 1,
+        blockers: ["current_pill_repeat_handoff"],
+      },
+    }])
+  })
+
+  it("accepts only known intake entry markers", () => {
+    expect(normalizeIntakeEntryRef("repeat-steer")).toBe("repeat-steer")
+    expect(normalizeIntakeEntryRef("womens-health-repeat-handoff")).toBe(
+      "womens-health-repeat-handoff",
+    )
+  })
+
+  it("drops arbitrary, decorated, and non-string intake entry markers", () => {
+    for (const value of [
+      "patient@example.com",
+      "repeat-steer?email=patient@example.com",
+      " womens-health-repeat-handoff",
+      "",
+      null,
+      undefined,
+      42,
+    ]) {
+      expect(normalizeIntakeEntryRef(value)).toBeNull()
+    }
   })
 
   it("keeps every request-step completion on the one canonical flow hook", () => {

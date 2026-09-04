@@ -22,6 +22,7 @@ const localStorageMock = {
 Object.defineProperty(globalThis, "localStorage", { value: localStorageMock })
 
 import {
+  completeIntentionalNavigationAtFlowDestination,
   isIntentionalNavigationInProgress,
   markIntentionalNavigation,
   resetIntentionalNavigationForTests,
@@ -279,6 +280,22 @@ describe("intake draft lifecycle", () => {
       markIntentionalNavigation()
       expect(isIntentionalNavigationInProgress()).toBe(true)
       resetIntentionalNavigationForTests()
+      expect(isIntentionalNavigationInProgress()).toBe(false)
+    })
+
+    it("clears the source latch when the destination service flow is established", () => {
+      markIntentionalNavigation()
+
+      completeIntentionalNavigationAtFlowDestination({
+        flowInstanceId: null,
+        serviceType: null,
+      })
+      expect(isIntentionalNavigationInProgress()).toBe(true)
+
+      completeIntentionalNavigationAtFlowDestination({
+        flowInstanceId: FRESH_FLOW_INSTANCE_ID,
+        serviceType: "repeat-script",
+      })
       expect(isIntentionalNavigationInProgress()).toBe(false)
     })
 
