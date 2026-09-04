@@ -45,16 +45,7 @@ async function completeToDetails(page: import("@playwright/test").Page) {
   await page.locator("#medication-strength-0").fill("20 mg")
 
   await page.getByRole("radio", { name: /Under 3 months/i }).click()
-  await page
-    .getByRole("radiogroup", { name: "How much do you take?" })
-    .getByRole("radio", { name: "1", exact: true })
-    .click()
-  await page.locator("#current-dose-unit").click()
-  await page.getByRole("option", { name: "Tablet", exact: true }).click()
-  await page
-    .getByRole("radiogroup", { name: "How often do you take it?" })
-    .getByRole("radio", { name: "Once daily", exact: true })
-    .click()
+  await page.locator("#current-dose").fill("1 tablet once daily")
   await page
     .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
     .getByRole("radio", { name: "Same", exact: true })

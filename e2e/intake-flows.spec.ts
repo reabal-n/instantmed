@@ -296,16 +296,7 @@ async function completeMedicationStep(page: Page) {
   // P2.1 merged the old `medication-history` step in here — one screen, one
   // Continue, every field always mounted.
   await clickChip(page, /Under 3 months/i)
-  await page
-    .getByRole("radiogroup", { name: "How much do you take?" })
-    .getByRole("radio", { name: "1", exact: true })
-    .click()
-  await page.locator("#current-dose-unit").click()
-  await page.getByRole("option", { name: "Tablet", exact: true }).click()
-  await page
-    .getByRole("radiogroup", { name: "How often do you take it?" })
-    .getByRole("radio", { name: "Once daily", exact: true })
-    .click()
+  await page.locator("#current-dose").fill("1 tablet once daily")
   await page
     .getByRole("radiogroup", { name: "Same dose and directions as last time?" })
     .getByRole("radio", { name: "Same", exact: true })

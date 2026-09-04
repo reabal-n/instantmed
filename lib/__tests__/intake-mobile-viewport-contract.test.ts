@@ -185,16 +185,20 @@ describe("intake mobile viewport contract", () => {
 
     // Every question the merged screen owns.
     expect(source).toContain('label="Last prescribed"')
-    expect(source).toContain('label="Current directions"')
+    expect(source).toContain('label="How do you take it?"')
     expect(source).toContain('label="What is it for?"')
     expect(source).toContain('label="Same dose and directions as last time?"')
     expect(source).toContain('label="Any side effects?"')
 
-    // Common regimens are complete button/select answers, not frequency words
-    // copied into a textarea that still fail the amount requirement.
-    expect(source).toContain("composeRepeatRxRegimen")
-    expect(source).toContain('ariaLabel="How much do you take?"')
-    expect(source).toContain('ariaLabel="How often do you take it?"')
+    // One patient-entered label-copy field replaces the old amount/unit/timing
+    // mini-form while the shared validator still requires amount plus timing.
+    expect(source).toContain('id="current-dose"')
+    expect(source).toContain("Include how much and how often.")
+    expect(source).toContain("hasCompleteRepeatRxRegimen(currentDose)")
+    expect(source).not.toContain("composeRepeatRxRegimen")
+    expect(source).not.toContain('id="current-dose-unit"')
+    expect(source).not.toContain('ariaLabel="How much do you take?"')
+    expect(source).not.toContain('ariaLabel="How often do you take it?"')
     expect(source).not.toContain("No side effects")
 
     // The dropped field stays dropped — optional, desktop-only, unused clinically.

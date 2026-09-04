@@ -21,6 +21,8 @@ describe("repeat-Rx regimen editing", () => {
     "One inhalation twice daily",
     "10 mg nightly",
     "Take one daily",
+    "1 daily",
+    "Half at night",
     "A tablet each morning",
     "Half a tablet every second day",
     "5 mL every 8 hours",
@@ -43,6 +45,7 @@ describe("repeat-Rx regimen editing", () => {
     "10 mg",
     "10 mg with food",
     "Apply twice daily",
+    "2 times daily",
     "As previously prescribed",
   ])("rejects a regimen missing amount or frequency: %s", (value) => {
     expect(hasCompleteRepeatRxRegimen(value)).toBe(false)
