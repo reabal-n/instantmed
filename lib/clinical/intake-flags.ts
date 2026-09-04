@@ -43,7 +43,9 @@ interface TaxonomyEntry {
 export const INTAKE_FLAG_TAXONOMY = {
   medication_needs_identification: { label: "Medication needs identification", severity: "attention" },
   medication_strength_missing: { label: "Strength not provided", severity: "attention" },
-  medication_form_missing: { label: "Form not provided", severity: "attention" },
+  // Form is explicitly optional in the patient intake. Preserve the omission
+  // as review context without escalating a routine request in the queue.
+  medication_form_missing: { label: "Form not provided", severity: "info" },
   dose_not_stated: { label: "Current dose not stated", severity: "attention" },
   medication_count_high: { label: "More than one medication requested", severity: "info" },
   // A medicine with a dedicated service (ED / hair loss / women's health) was

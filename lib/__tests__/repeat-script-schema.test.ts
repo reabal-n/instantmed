@@ -261,7 +261,7 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
       medications: [{ name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "1234" }],
     })
     expect(result.valid).toBe(false)
-    expect(result.error).toMatch(/how much.*how often/i)
+    expect(result.error).toMatch(/amount.*timing/i)
   })
 
   it("still blocks a missing last-prescribed", () => {

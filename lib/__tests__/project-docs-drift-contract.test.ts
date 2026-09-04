@@ -535,6 +535,16 @@ describe("project docs drift contract", () => {
     expect(agents).toContain("one medication per repeat request")
   })
 
+  it("pins the low-friction repeat-Rx directions and queue-risk boundary", () => {
+    const clinical = readProjectFile("docs/CLINICAL.md")
+
+    expect(clinical).toContain("one plain-language directions field")
+    expect(clinical).toContain('Concise answers such as "1 daily" are sufficient')
+    expect(clinical).toContain("must not create a red clinical-risk badge")
+    expect(architecture).toContain("an omission is info-only review context")
+    expect(architecture).toContain("The patient copies the directions into one field")
+  })
+
   it("keeps new-pill redirect rules and clinical policy blocked before payment", () => {
     const clinical = readProjectFile("docs/CLINICAL.md")
     const safetyRules = readProjectFile("lib/safety/rules.ts")

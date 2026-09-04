@@ -70,9 +70,6 @@ function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[]
       }))
     }
 
-    // A medicine whose dedicated service is not live yet. Never steered, never
-    // blocked — the reviewer just needs to know.
-
     const code = (medication.pbsCode || "").toUpperCase()
     const isUnknown = code === "UNKNOWN" || medication.name.toLowerCase().includes("unknown - doctor")
     if (isUnknown) {

@@ -222,19 +222,17 @@ export const medicationStepSchema = z
         })
       }
 
-      // Form remains optional. If omitted, the doctor receives the existing
-      // medication_form_missing attention flag.
+      // Form remains optional. If omitted, the doctor receives quiet review
+      // context rather than a queue-level attention or risk signal.
     })
   })
 
 export const medicationHistoryStepSchema = z
   .object({
     prescriptionHistory: nonEmptyString("Please indicate when you last had this prescribed"),
-    // Repeat-Rx requires dose+frequency and an indication so the doctor knows
-    // exactly what to prescribe (operator decision 2026-06-26; reverses the
-    // earlier A3 boundary-4 softening for repeat scripts). Enforced only for a
-    // genuine repeat — the not-prescribed-before / unknown-medication escapes
-    // are handled upstream in the medication step.
+    // Repeat-Rx requires one plain-language answer containing amount + timing,
+    // plus an indication. Enforced only for a genuine repeat — the
+    // not-prescribed-before / unknown-medication escapes are handled upstream.
     currentDose: z.string().optional(),
     indication: z.string().optional(),
     doseChanged: z.boolean().optional(),

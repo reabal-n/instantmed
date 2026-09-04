@@ -113,7 +113,7 @@ export interface QueueTableProps {
   isPending: boolean
   identityComplete: boolean
   onApprove: (intakeId: string, serviceType?: string | null, subtype?: string | null) => void
-  hasRedFlags: (intake: IntakeWithPatient) => boolean
+  hasClinicalRisk: (intake: IntakeWithPatient) => boolean
   calculateWaitTime: (createdAt: string) => string
   getWaitTimeSeverity: (createdAt: string) => "normal" | "warning" | "critical"
   getWaitTargetState: (createdAt: string) => { label: string }
@@ -159,7 +159,7 @@ export function QueueTable({
   isPending,
   identityComplete,
   onApprove,
-  hasRedFlags,
+  hasClinicalRisk,
   calculateWaitTime,
   getWaitTimeSeverity,
   getWaitTargetState,
@@ -467,10 +467,10 @@ export function QueueTable({
                       <Zap className="w-3 h-3 mr-1" />Priority
                     </Badge>
                   )}
-                  {hasRedFlags(intake) && (
+                  {hasClinicalRisk(intake) && (
                     <Badge className="bg-destructive/10 text-destructive border-destructive/20">
                       <ShieldAlert className="w-3 h-3 mr-1" />
-                      {compactShell ? "Risk" : "Flagged"}
+                      High risk
                     </Badge>
                   )}
                   {!compactShell && intake.ai_draft_status === "completed" && (
@@ -505,9 +505,10 @@ export function QueueTable({
                       </Badge>
                     )
                   })()}
-                  {!compactShell ? (
-                    <IntakeFlagsBadge flags={parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags)} />
-                  ) : null}
+                  <IntakeFlagsBadge
+                    flags={parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags)}
+                    compact={compactShell}
+                  />
                   {/* Soft-claim presence (Phase 7). Two-doctor model: surface
                       who's reviewing a paid case before another doctor opens
                       the same one and races on Approve. The DB-level claim

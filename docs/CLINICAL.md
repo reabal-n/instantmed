@@ -363,7 +363,8 @@ For the authenticated doctor handoff only, `lib/clinical/generic-medication-reso
 - Helper text: "Request one regular medicine at a time. Enter the name and the strength shown on the label — the doctor confirms the medicine before prescribing."
 - The box is plain free text — no results list, no autocomplete, and nothing highlighted as "recommended", "suitable", "eligible", or "approved"
 - Codeine-combination brands that remain eligible for human review can show a pre-payment likely-decline note. The acknowledgement is a fixed brand token persisted in the draft and revalidated at checkout; it never overrides the doctor's decision, and changing the matched brand invalidates it.
-- Every active repeat request must state both how much the patient takes and how often. A frequency-only answer such as "Once daily", or "Same as before" without the actual current regimen, is not sufficient; incomplete dose/frequency fails checkout.
+- Every active repeat request must state both how much the patient takes and how often. Keep this as one plain-language directions field rather than separate amount/unit/frequency controls. Concise answers such as "1 daily" are sufficient because the medicine and strength are collected separately; a frequency-only answer such as "Once daily", or "Same as before" without the actual current regimen, is not sufficient.
+- Medication form remains optional. If it is omitted, preserve it as quiet review context; it must not create a red clinical-risk badge or elevate an otherwise routine request in the queue.
 - Doctor copy controls may copy only a locally verified generic medicine name. They must never copy the patient-entered strength, form, dose, directions, or a whole prescribing-context paragraph.
 
 ### Forbidden Language

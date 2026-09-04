@@ -17,11 +17,21 @@ import { cn } from "@/lib/utils"
  * attention-severity flag (info flags do not earn a row badge). Count + amber
  * dot, with the flag labels in the tooltip; the full detail lives in the panel.
  */
-export function IntakeFlagsBadge({ flags, className }: { flags: IntakeFlag[]; className?: string }) {
+export function IntakeFlagsBadge({
+  flags,
+  className,
+  compact = false,
+}: {
+  flags: IntakeFlag[]
+  className?: string
+  compact?: boolean
+}) {
   const attention = attentionFlags(flags)
   if (attention.length === 0) return null
 
-  const label = attention.length === 1 ? attention[0].label : `${attention.length} flags for review`
+  const label = compact
+    ? (attention.length === 1 ? "Check detail" : `${attention.length} details`)
+    : (attention.length === 1 ? attention[0].label : `${attention.length} flags for review`)
 
   return (
     <span
@@ -51,6 +61,7 @@ export function IntakeFlagsPanel({
   const visibleFlags = hideRequestFieldFlags ? withoutRequestPacketFlags(flags) : flags
   if (visibleFlags.length === 0) return null
 
+  const needsAttention = attentionFlags(visibleFlags).length > 0
   const ordered = [
     ...attentionFlags(visibleFlags),
     ...visibleFlags.filter((flag) => flag.severity === "info"),
@@ -64,9 +75,13 @@ export function IntakeFlagsPanel({
         className,
       )}
     >
-      <h3 className="text-sm font-medium text-foreground">Needs doctor attention</h3>
+      <h3 className="text-sm font-medium text-foreground">
+        {needsAttention ? "Needs doctor attention" : "Review context"}
+      </h3>
       <p className="mt-0.5 text-xs text-muted-foreground">
-        The form let these through so the patient could finish: your call on each.
+        {needsAttention
+          ? "Check these details before deciding."
+          : "Extra context from the patient’s request."}
       </p>
       <ul className="mt-3 space-y-2">
         {ordered.map((flag, index) => (

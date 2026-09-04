@@ -1,12 +1,21 @@
+import { attentionFlags, parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
 import type { IntakeWithPatient } from "@/types/db"
 
+/**
+ * Red queue chrome is reserved for an actual high-risk clinical assessment.
+ * Review notes, follow-up work, and form-quality flags still influence the
+ * review order, but must not make a routine case look clinically dangerous.
+ */
+export function hasQueueRiskBadge(intake: IntakeWithPatient): boolean {
+  if (intake.risk_tier === "high") return true
+  return intake.risk_tier === "critical"
+}
+
 export function hasReviewNextRisk(intake: IntakeWithPatient): boolean {
   if (intake.flagged_for_followup) return true
-  if (intake.risk_tier === "high") return true
-  if (intake.risk_tier === "critical") return true
-  if (Array.isArray(intake.risk_flags) && intake.risk_flags.length > 0) return true
-  if (intake.risk_score >= 7) return true
+  if (hasQueueRiskBadge(intake)) return true
+  if (attentionFlags(parseIntakeFlags(intake.risk_flags)).length > 0) return true
   return Boolean(intake.requires_live_consult)
 }
 

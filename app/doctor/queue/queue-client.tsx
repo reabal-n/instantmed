@@ -24,7 +24,7 @@ import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from
 import { applyQueueRealtimeUpdate, removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
 import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getQueueWaitTargetState, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
-import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
+import { hasQueueRiskBadge, sortForReviewNext } from "@/lib/doctor/review-next"
 import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { useDebounce } from "@/lib/hooks/use-debounce"
@@ -860,7 +860,7 @@ export function QueueClient({
   }, [openReviewPanel, startTransition, intakes, refreshQueue])
 
 
-  const hasRedFlags = useCallback((intake: IntakeWithPatient): boolean => hasReviewNextRisk(intake), [])
+  const hasClinicalRisk = useCallback((intake: IntakeWithPatient): boolean => hasQueueRiskBadge(intake), [])
 
   // Sort: risk -> scripts waiting -> priority -> oldest paid/requested -> pending-info age.
   const sortedIntakes = useMemo(() => {
@@ -1194,7 +1194,7 @@ export function QueueClient({
                   isPending={dialogs.isPending || isApprovePending}
                   identityComplete={identityComplete}
                   onApprove={handleApprove}
-                  hasRedFlags={hasRedFlags}
+                  hasClinicalRisk={hasClinicalRisk}
                   calculateWaitTime={calculateStableWaitTime}
                   getWaitTimeSeverity={getStableWaitTimeSeverity}
                   getWaitTargetState={getStableWaitTargetState}
@@ -1280,7 +1280,7 @@ export function QueueClient({
             isPending={dialogs.isPending || isApprovePending}
             identityComplete={identityComplete}
             onApprove={handleApprove}
-            hasRedFlags={hasRedFlags}
+            hasClinicalRisk={hasClinicalRisk}
             calculateWaitTime={calculateStableWaitTime}
             getWaitTimeSeverity={getStableWaitTimeSeverity}
             getWaitTargetState={getStableWaitTargetState}
