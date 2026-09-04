@@ -706,7 +706,8 @@ Before treating a production deploy or paid-traffic ramp as clean:
 ### Database Migrations
 
 ```bash
-supabase db push --project-ref [SUPABASE_PROJECT_REF]
+supabase db push --dry-run --linked --yes
+supabase db push --linked --yes
 ```
 
 ### Monitoring
@@ -1236,7 +1237,7 @@ aggregate baseline first, then delete only after operator approval.
 ```bash
 vercel logs --follow               # Tail Vercel logs
 stripe prices list --limit 5       # Verify Stripe prices
-supabase db push --project-ref X   # Apply migrations
+supabase db push --linked --yes    # Apply reviewed pending migrations to the linked project
 pnpm support:inbox-alert --count 3 # Post only an aggregate unread count; loads CRON_SECRET without printing it
 ```
 

@@ -154,7 +154,8 @@ describe("project docs drift contract", () => {
       expect(source).toContain(
         "`20260902090000_converge_fraud_flag_review_state.sql`",
       )
-      expect(source).toContain("pending production apply and verification")
+      expect(source).toContain("applied and verified in production on 2026-09-04")
+      expect(source).toContain("aligned through `20260903120000`")
       expect(source).toContain(
         "`20260827210500_twilio_voice_callback_requests.sql`",
       )
@@ -193,18 +194,21 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest timestamp on disk: `20260903120000_recovery_email_engagement.sql`",
+      "Latest timestamp on disk and applied/verified production timestamp: `20260903120000_recovery_email_engagement.sql`",
     )
     expect(architecture).toContain(
-      "immediately preceding on-disk migration, `20260902090000_converge_fraud_flag_review_state.sql`",
+      "immediately preceding migration, `20260902090000_converge_fraud_flag_review_state.sql`",
     )
     expect(architecture).toContain(
-      "Latest applied/verified production timestamp remains `20260828090000_specialty_experience_attribution.sql`",
+      "applied/verified production timestamp: `20260903120000_recovery_email_engagement.sql`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
     expect(architecture).toContain("Production receipt (2026-08-23)")
     expect(architecture).toContain("Production receipt (2026-08-28)")
+    expect(architecture).toContain("Production receipt (2026-09-04)")
+    expect(architecture).toContain("`trg_intakes_preserve_recovery_email_engagement`")
+    expect(architecture).toContain("The migration performed no backfill")
     expect(architecture).toContain("roles exactly `{authenticated}`")
     expect(architecture).toContain("`partial_intakes_growth_experience_version_check`")
     expect(architecture).toContain("`trg_partial_intakes_preserve_growth_experience`")
@@ -212,17 +216,17 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Newest on disk is `20260903120000_recovery_email_engagement.sql`",
+      "Newest on disk and latest applied/verified production migration is `20260903120000_recovery_email_engagement.sql`",
     )
     expect(wikiArchitecture).toContain(
-      "immediately preceding on-disk migration is `20260902090000_converge_fraud_flag_review_state.sql`",
+      "immediately preceding migration is `20260902090000_converge_fraud_flag_review_state.sql`",
     )
     expect(wikiArchitecture).toContain(
-      "latest applied and verified production migration (2026-08-28) remains `20260828090000_specialty_experience_attribution.sql`",
+      "latest applied/verified production migration is `20260903120000_recovery_email_engagement.sql`",
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
-      "Linked migration history is aligned through `20260828090000`",
+      "Linked migration history is aligned through `20260903120000`",
     )
     expect(wikiArchitecture).toContain(
       "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied",
