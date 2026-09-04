@@ -91,6 +91,14 @@ describe("certificate delivery rescue", () => {
       kind: "failed",
       label: "bounced",
     })
+    expect(interpretEmailDelivery({ status: "sent", deliveryStatus: "failed" })).toMatchObject({
+      kind: "failed",
+      label: "failed",
+    })
+    expect(interpretEmailDelivery({ status: "sent", deliveryStatus: "suppressed" })).toMatchObject({
+      kind: "failed",
+      label: "suppressed",
+    })
   })
 
   it("recommends no patient action when the certificate was downloaded, even if document_sent_at is missing", () => {

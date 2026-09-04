@@ -63,6 +63,8 @@ The two paid webhook handlers and `/api/stripe/verify-payment` share the same ex
 
 Provider acceptance followed by an unavailable outbox write or read-back leaves the exact certificate resend reservation open for recovery. The dispatcher reuses its encrypted provider body and idempotency key. A matching already-sent provider message is successful reconciliation; only confirmed terminal evidence for that message is non-retryable. A failed compare-and-set or database error alone must never finalize a resend as failed.
 
+Resend lifecycle receipts and shared delivery mirrors are deployed by `20260905115000_resend_delivery_receipts.sql`, separately from aggregate refill reporting. Delayed sent events cannot downgrade delivered/opened tracking. A complaint preserves delivery evidence, applies the event-time preference removal, and closes only its exact provider attempt; it is not an undelivered certificate. Failed/bounced/suppressed attempts require a new audited send rather than replaying their cached provider acceptance. The local database harness covers reversed callbacks, concurrency, current certificate ownership, and the production preference timestamp trigger. The proposed address-trigger/historical cleanup is preserved in `scripts/sql/proposed-email-address-state-repair.sql`, defaults to rollback, and is excluded from deploy migrations. Its synthetic-only check is `bash scripts/test-resend-webhook-mirrors-db.sh --repair-proposal`.
+
 ### Database Connection Issues
 
 **Symptoms:** 500 errors across multiple endpoints, slow page loads, connection timeout errors.

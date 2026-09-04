@@ -2,6 +2,7 @@ import { createHash } from "node:crypto"
 
 import { buildStaffEmailHubHref } from "@/lib/dashboard/routes"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
+import { isProviderUndeliveredStatus } from "@/lib/email/delivery-status"
 import { createLogger } from "@/lib/observability/logger"
 import type { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -140,10 +141,12 @@ export function interpretEmailDelivery(
   const deliveryStatus = normalize(email?.deliveryStatus)
   const status = normalize(email?.status)
 
-  if (deliveryStatus === "bounced" || deliveryStatus === "complained" || status === "failed") {
+  if (isProviderUndeliveredStatus(deliveryStatus) || (status === "failed" && deliveryStatus !== "complained")) {
     return {
       kind: "failed",
-      label: deliveryStatus === "complained" ? "complained" : deliveryStatus === "bounced" ? "bounced" : "failed",
+      label: isProviderUndeliveredStatus(deliveryStatus)
+        ? deliveryStatus!
+        : "failed",
       at: firstTimestamp(email?.sentAt, email?.createdAt, fallback?.failedAt),
     }
   }

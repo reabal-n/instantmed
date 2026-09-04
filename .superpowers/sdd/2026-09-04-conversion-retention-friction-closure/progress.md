@@ -20,6 +20,8 @@ The attached operator request authorises sequential local implementation and sup
 
 - Task 4 / preference order: one nullable `preferences_changed_at` separates deliberate changes/complaints from generic timestamps. Defaults stay on; default upserts cannot re-enable disabled flags; duplicate/default rows inherit the recorded choice, and explicit later changes synchronize existing preference rows for that recipient. No account linking or clinical consent change. Verification: 32 focused unit tests; isolated PostgreSQL preference tests pass with the real unconditional `updated_at` trigger. The outbox callback delegates to the same complaint RPC in Task 5; full delivery-harness verification belongs there.
 
+- Task 5 / delivery order: delayed sent/delivered callbacks preserve delivered/opened tracking; complaints retain delivery evidence and close only their exact attempt. Shared callback mirrors, terminal retry consumers, hash-bound auth complaints, and real certificate ownership fixtures pass 85 focused tests plus the isolated PostgreSQL ordering/concurrency harness; scoped ESLint and TypeScript pass. Split shared receipt migration 1150 from refill aggregate 1200. Historical/address-trigger work is a separate rollback-only proposal, verified synthetically and excluded from deployment. Staff browser interaction proof remains the final release check.
+
 ## Plan task state
 
 - Schema convergence prerequisite: approved locally; production application remains release-gated

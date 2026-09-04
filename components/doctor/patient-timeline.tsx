@@ -40,6 +40,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { buildAdminIntakeHref, buildDoctorIntakeHref } from "@/lib/dashboard/routes"
+import { isProviderTerminalDeliveryStatus } from "@/lib/email/delivery-status"
 import { formatDateTime } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
@@ -650,8 +651,15 @@ const INTAKE_STATUS_TONE: Record<string, BadgeProps["variant"]> = {
 function emailTone(email: PatientTimelineEmail): { variant: BadgeProps["variant"]; label: string } {
   const delivery = email.delivery_status?.toLowerCase()
   const status = email.status?.toLowerCase()
-  if (delivery === "bounced" || status === "bounced" || status === "failed") {
-    return { variant: "destructive", label: "Bounced" }
+  if (isProviderTerminalDeliveryStatus(delivery) || status === "bounced" || status === "failed") {
+    const terminalLabel = delivery === "complained"
+      ? "Complained"
+      : delivery === "suppressed"
+        ? "Suppressed"
+        : delivery === "failed"
+          ? "Failed"
+          : "Bounced"
+    return { variant: "destructive", label: terminalLabel }
   }
   if (delivery === "delivered" || status === "delivered") {
     return { variant: "success", label: "Delivered" }

@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { Webhook } from "svix"
 
+import { hashAuthEmailRecipient } from "@/lib/data/auth-email-events"
 import { sanitizeEmailForLog } from "@/lib/email/send/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -15,6 +16,7 @@ const CRITICAL_FULFILMENT_EMAIL_TYPES = new Set([
   "med_cert_patient",
   "script_sent",
 ])
+const UNMATCHED_OUTBOX_RETRY_WINDOW_MS = 35 * 60_000
 
 // ---------------------------------------------------------------------------
 // Types
@@ -24,23 +26,34 @@ type ResendEventType =
   | "email.sent"
   | "email.delivered"
   | "email.delivery_delayed"
+  | "email.failed"
+  | "email.suppressed"
   | "email.bounced"
   | "email.complained"
   | "email.opened"
   | "email.clicked"
 
+const TRACKED_RESEND_EVENT_TYPES = new Set<string>([
+  "email.sent",
+  "email.delivered",
+  "email.delivery_delayed",
+  "email.failed",
+  "email.suppressed",
+  "email.bounced",
+  "email.complained",
+  "email.opened",
+  "email.clicked",
+])
+const AUTH_EMAIL_TERMINAL_FAILURE_TYPES = new Set<ResendEventType>([
+  "email.failed",
+  "email.suppressed",
+  "email.bounced",
+])
+
 interface ResendWebhookPayload {
-  type: ResendEventType
-  created_at: string
-  data: {
-    email_id: string
-    from: string
-    to: string[]
-    subject: string
-    created_at: string
-    bounce?: { message: string; type: string }
-    click?: { link: string; timestamp: string; user_agent: string }
-  }
+  type: unknown
+  created_at?: unknown
+  data?: unknown
 }
 
 // ---------------------------------------------------------------------------
@@ -94,6 +107,10 @@ function mapEventToDeliveryStatus(eventType: ResendEventType): string | null {
       return "complained"
     case "email.delivery_delayed":
       return "delayed"
+    case "email.failed":
+      return "failed"
+    case "email.suppressed":
+      return "suppressed"
     case "email.opened":
       return "opened"
     case "email.clicked":
@@ -101,6 +118,33 @@ function mapEventToDeliveryStatus(eventType: ResendEventType): string | null {
     default:
       return null
   }
+}
+
+function isTrackedResendEventType(value: unknown): value is ResendEventType {
+  return typeof value === "string" && TRACKED_RESEND_EVENT_TYPES.has(value)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value)
+}
+
+function boundedProviderField(
+  value: unknown,
+  maxLength: number,
+): string | undefined {
+  if (typeof value !== "string") return undefined
+  const normalized = value.trim()
+  return normalized.length > 0 ? normalized.slice(0, maxLength) : undefined
+}
+
+function normalizeBounceType(value: string | undefined): "hard" | "soft" {
+  const normalized = value?.trim().toLowerCase()
+  if (normalized === "permanent" || normalized === "hard") return "hard"
+
+  // Resend currently emits Transient or Undetermined; Temporary is retained
+  // as a provider/legacy soft-bounce alias. Unknown values fail conservative
+  // to soft instead of inventing permanent-address evidence.
+  return "soft"
 }
 
 interface RecordedOutboxEvent {
@@ -167,19 +211,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
     }
 
-    const { type: eventType, data } = event
-    const eventCreatedAtMs = Date.parse(event.created_at)
-    if (!Number.isFinite(eventCreatedAtMs)) {
-      log.warn("Invalid Resend event timestamp")
+    const eventType = event.type
+    if (typeof eventType !== "string" || eventType.length === 0) {
+      log.warn("Invalid Resend event type")
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
+    }
+
+    // Resend can add event types independently of this route. A validly signed
+    // event outside the explicitly tracked lifecycle must be acknowledged so a
+    // provider expansion cannot create an endless retry loop.
+    if (!isTrackedResendEventType(eventType)) {
+      log.info("Ignoring untracked Resend event", { type: eventType.slice(0, 80) })
+      return NextResponse.json({ received: true, tracked: false })
+    }
+
+    const data = event.data
+    const eventCreatedAtMs = typeof event.created_at === "string"
+      ? Date.parse(event.created_at)
+      : Number.NaN
+    if (
+      !isRecord(data)
+      || typeof data.email_id !== "string"
+      || data.email_id.length === 0
+      || data.email_id.length > 255
+      || !Number.isFinite(eventCreatedAtMs)
+    ) {
+      log.warn("Invalid tracked Resend event payload")
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
     }
     const eventCreatedAt = new Date(eventCreatedAtMs).toISOString()
+    const providerId = data.email_id
+    const recipients = Array.isArray(data.to) ? data.to : []
+    const recipient = typeof recipients[0] === "string" ? recipients[0] : ""
+    const bounce = isRecord(data.bounce) ? data.bounce : null
+    const failed = isRecord(data.failed) ? data.failed : null
+    const suppressed = isRecord(data.suppressed) ? data.suppressed : null
+    const rawBounceType = boundedProviderField(bounce?.type, 100)
+    const bounceMessage = boundedProviderField(bounce?.message, 500)
+    const failedReason = boundedProviderField(failed?.reason, 500)
+    const suppressionType = boundedProviderField(suppressed?.type, 100)
+    const suppressionMessage = boundedProviderField(suppressed?.message, 500)
 
-    const recipientForLog = sanitizeEmailForLog(data.to?.[0] ?? "")
+    const recipientForLog = sanitizeEmailForLog(recipient)
 
     log.info("Received event", {
       type: eventType,
-      providerId: data.email_id,
+      providerId,
       to: recipientForLog,
     })
 
@@ -189,19 +266,26 @@ export async function POST(request: NextRequest) {
     // locks the outbox row, set-unions metadata.processed_events, and applies a
     // monotonic delivery state so concurrent click/open/delivery callbacks
     // cannot overwrite one another's durable receipt.
-    const bounceType = eventType === "email.bounced" && data.bounce
-      ? data.bounce.type === "hard" ? "hard" : "soft"
+    const bounceType = eventType === "email.bounced"
+      ? normalizeBounceType(rawBounceType)
       : null
-    const bounceMessage = eventType === "email.bounced" && data.bounce
-      ? data.bounce.message
-      : null
+    const providerErrorMessage = eventType === "email.bounced"
+      ? bounceMessage ?? null
+      : eventType === "email.failed"
+        ? failedReason ?? null
+        : eventType === "email.suppressed"
+          ? suppressionMessage ?? null
+          : null
     const { data: recordedData, error: recordError } = await supabase
       .rpc("record_resend_outbox_event", {
         p_bounce_type: bounceType,
-        p_error_message: bounceMessage,
+        p_error_message: providerErrorMessage,
         p_event_created_at: eventCreatedAt,
         p_event_type: eventType,
-        p_provider_message_id: data.email_id,
+        p_provider_detail_type: eventType === "email.suppressed"
+          ? suppressionType ?? null
+          : null,
+        p_provider_message_id: providerId,
       })
       .single()
 
@@ -217,16 +301,97 @@ export async function POST(request: NextRequest) {
     }
 
     if (!recorded.matched) {
+      const { data: authEmailEvent, error: authEmailError } = await supabase
+        .from("auth_email_events")
+        .select("id, recipient_hash")
+        .eq("provider_message_id", providerId)
+        .limit(1)
+        .maybeSingle()
+
+      if (authEmailError) {
+        log.error("Error checking auth email lifecycle ownership", {
+          error: authEmailError.message,
+        })
+        return NextResponse.json({ error: "Database error" }, { status: 500 })
+      }
+
+      if (authEmailEvent) {
+        if (eventType === "email.complained") {
+          const normalizedRecipient = recipient.trim().toLowerCase()
+          if (
+            normalizedRecipient.length === 0
+            || hashAuthEmailRecipient(normalizedRecipient) !== authEmailEvent.recipient_hash
+          ) {
+            log.error("Auth email complaint recipient did not match durable ownership")
+            return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
+          }
+
+          const { error: complaintPreferenceError } = await supabase.rpc(
+            "record_email_spam_complaint",
+            {
+              p_event_created_at: eventCreatedAt,
+              p_normalized_email: normalizedRecipient,
+            },
+          )
+
+          if (complaintPreferenceError) {
+            log.error("Error recording auth email complaint preference", {
+              error: complaintPreferenceError.message,
+            })
+            return NextResponse.json({ error: "Database error" }, { status: 500 })
+          }
+        }
+
+        if (AUTH_EMAIL_TERMINAL_FAILURE_TYPES.has(eventType)) {
+          // Auth sends do not use email_outbox. Persist provider-terminal
+          // evidence on their PHI-free operational row so the existing
+          // critical auth-email health check can see it. The guarded
+          // assignment is idempotent under Resend's at-least-once delivery.
+          const { error: authEmailUpdateError } = await supabase
+            .from("auth_email_events")
+            .update({
+              error_message: `Resend ${eventType}`,
+              status: "failed",
+            })
+            .eq("id", authEmailEvent.id)
+            .neq("status", "failed")
+
+          if (authEmailUpdateError) {
+            log.error("Error recording auth email terminal failure", {
+              error: authEmailUpdateError.message,
+              type: eventType,
+            })
+            return NextResponse.json({ error: "Database error" }, { status: 500 })
+          }
+        }
+
+        log.info("Managed auth email lifecycle callback acknowledged", {
+          type: eventType,
+          providerId,
+        })
+        return NextResponse.json({ received: true, matched: true, tracked: false })
+      }
+
       // Resend delivers at least once and can outrun the provider-id write that
-      // follows a successful send. A non-200 asks it to retry after that atomic
-      // outbox finalization rather than permanently acknowledging a lost event.
-      log.warn("Email lifecycle record not ready for provider_message_id", {
-        providerId: data.email_id,
+      // follows a successful send. Retry only inside that bounded race window;
+      // direct unmanaged and legacy sends must not churn through every provider
+      // retry after it is impossible for normal outbox finalization to catch up.
+      const eventAgeMs = Date.now() - eventCreatedAtMs
+      if (Math.abs(eventAgeMs) <= UNMATCHED_OUTBOX_RETRY_WINDOW_MS) {
+        log.warn("Email lifecycle record not ready for provider_message_id", {
+          providerId,
+        })
+        return NextResponse.json(
+          { error: "Email lifecycle record not ready", retryable: true },
+          { status: 503, headers: { "Retry-After": "5" } },
+        )
+      }
+
+      log.info("Unmanaged email lifecycle callback acknowledged", {
+        type: eventType,
+        providerId,
       })
-      return NextResponse.json(
-        { error: "Email lifecycle record not ready", retryable: true },
-        { status: 503, headers: { "Retry-After": "5" } },
-      )
+      return NextResponse.json({ received: true, matched: false, tracked: false })
     }
 
     if (recorded.duplicate) {
@@ -239,10 +404,10 @@ export async function POST(request: NextRequest) {
     const deliveryStatus = mapEventToDeliveryStatus(eventType)
 
     // --- Bounced ---
-    if (eventType === "email.bounced" && data.bounce) {
+    if (eventType === "email.bounced") {
       log.error("Email bounced", {
-        providerId: data.email_id,
-        bounceType: data.bounce.type,
+        providerId,
+        bounceType,
       })
 
       Sentry.captureMessage("Email bounced", {
@@ -250,12 +415,12 @@ export async function POST(request: NextRequest) {
         tags: {
           source: "resend-webhook",
           event_type: "email.bounced",
-          bounce_type: data.bounce.type,
+          bounce_type: bounceType,
         },
         extra: {
-          emailId: data.email_id,
+          emailId: providerId,
           recipient: recipientForLog,
-          bounceType: data.bounce.type,
+          bounceType,
         },
       })
 
@@ -273,9 +438,36 @@ export async function POST(request: NextRequest) {
             bounce_type: "hard",
           },
           extra: {
-            emailId: data.email_id,
+            emailId: providerId,
             bounceType: "hard",
           },
+        })
+      }
+    }
+
+    if (eventType === "email.failed" || eventType === "email.suppressed") {
+      log.error("Email provider terminal failure", {
+        providerId,
+        eventType,
+      })
+      Sentry.captureMessage("Email provider terminal failure", {
+        level: "warning",
+        tags: {
+          source: "resend-webhook",
+          event_type: eventType,
+        },
+        extra: { emailId: providerId },
+      })
+
+      if (recorded.emailType && CRITICAL_FULFILMENT_EMAIL_TYPES.has(recorded.emailType)) {
+        Sentry.captureMessage("Critical fulfilment email failed", {
+          level: "error",
+          tags: {
+            source: "resend-webhook",
+            event_type: eventType,
+            email_type: recorded.emailType,
+          },
+          extra: { emailId: providerId },
         })
       }
     }
@@ -283,7 +475,7 @@ export async function POST(request: NextRequest) {
     // --- Complained ---
     if (eventType === "email.complained") {
       log.warn("Email complaint received", {
-        providerId: data.email_id,
+        providerId,
         to: recipientForLog,
       })
 
@@ -292,7 +484,7 @@ export async function POST(request: NextRequest) {
     // --- Delivery delayed ---
     if (eventType === "email.delivery_delayed") {
       log.warn("Email delivery delayed", {
-        providerId: data.email_id,
+        providerId,
         to: recipientForLog,
       })
     }
@@ -302,6 +494,8 @@ export async function POST(request: NextRequest) {
       const { capturePersonlessPostHogEvent } = await import("@/lib/analytics/posthog-server")
       const posthogEvent = eventType === "email.delivered" ? "email_delivered"
         : eventType === "email.bounced" ? "email_bounced"
+        : eventType === "email.failed" ? "email_failed"
+        : eventType === "email.suppressed" ? "email_suppressed"
         : eventType === "email.complained" ? "email_complained"
         : eventType === "email.opened" ? "email_opened"
         : eventType === "email.clicked" ? "email_clicked"
@@ -310,11 +504,11 @@ export async function POST(request: NextRequest) {
       if (posthogEvent) {
         capturePersonlessPostHogEvent({
           event: posthogEvent,
-          requestId: data.email_id,
+          requestId: providerId,
           properties: {
             email_is_test: recorded.emailIsTest,
             email_type: recorded.emailType,
-            ...(eventType === "email.bounced" && data.bounce ? { bounce_type: data.bounce.type } : {}),
+            ...(eventType === "email.bounced" ? { bounce_type: bounceType } : {}),
           },
         })
       }

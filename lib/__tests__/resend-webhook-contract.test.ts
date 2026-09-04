@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto"
+
 import { NextRequest } from "next/server"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
@@ -39,9 +41,10 @@ const OUTBOX_ID = "email-log-1"
 const PATIENT_ID = "patient-1"
 const PROVIDER_ID = "re_test_medcert_1"
 const PATIENT_EMAIL = "patient@example.test"
+const PATIENT_EMAIL_HASH = createHash("sha256").update(PATIENT_EMAIL).digest("hex")
 
 function createResendRequest(
-  type: ResendEventType,
+  type: ResendEventType | string | null,
   overrides: Record<string, unknown> = {},
   eventCreatedAt = "2026-05-11T00:00:00.000Z",
 ) {
@@ -71,13 +74,40 @@ function createSupabaseMock(options: {
   emailIsTest?: boolean
   initialBounced?: boolean
   matched?: boolean
+  authEmailMatched?: boolean
+  authRecipientHash?: string
+  authEmailError?: { message: string } | null
+  authEmailUpdateError?: { message: string } | null
+  authComplaintProfileError?: { message: string } | null
+  authComplaintProfileMatched?: boolean
+  authComplaintPreferenceError?: { message: string } | null
   rpcData?: unknown
   rpcError?: { message: string } | null
 } = {}) {
   const updates: QueryState[] = []
   const upserts: QueryState[] = []
+  const selects: QueryState[] = []
 
   const resolveSelect = (state: QueryState) => {
+    if (state.table === "auth_email_events" && state.columns === "id, recipient_hash") {
+      return {
+        data: options.authEmailMatched
+          ? {
+              id: "auth-email-event-1",
+              recipient_hash: options.authRecipientHash ?? PATIENT_EMAIL_HASH,
+            }
+          : null,
+        error: options.authEmailError ?? null,
+      }
+    }
+
+    if (state.table === "profiles" && state.columns === "id") {
+      return {
+        data: options.authComplaintProfileMatched === false ? null : { id: PATIENT_ID },
+        error: options.authComplaintProfileError ?? null,
+      }
+    }
+
     if (state.table === "email_outbox" && state.columns === "metadata, patient_id") {
       return {
         data: {
@@ -122,16 +152,17 @@ function createSupabaseMock(options: {
       }
     }
 
-    if (state.table === "profiles" && state.columns === "id") {
-      return { data: { id: PATIENT_ID }, error: null }
-    }
-
     return { data: null, error: null }
   }
 
   const resolveMutation = (state: QueryState) => {
     updates.push({ ...state, filters: { ...state.filters } })
-    return Promise.resolve({ data: null, error: null })
+    return Promise.resolve({
+      data: null,
+      error: state.table === "auth_email_events"
+        ? options.authEmailUpdateError ?? null
+        : null,
+    })
   }
 
   const from = vi.fn((table: string) => {
@@ -147,18 +178,42 @@ function createSupabaseMock(options: {
         state.payload = payload
         return query
       }),
-      upsert: vi.fn((payload: Record<string, unknown>) => {
+      upsert: vi.fn((
+        payload: Record<string, unknown>,
+        upsertOptions?: Record<string, unknown>,
+      ) => {
         state.payload = payload
+        state.filters = { ...state.filters, upsertOptions }
         upserts.push({ ...state, action: "update", filters: { ...state.filters } })
-        return Promise.resolve({ data: null, error: null })
+        return Promise.resolve({
+          data: null,
+          error: state.table === "email_preferences"
+            ? options.authComplaintPreferenceError ?? null
+            : null,
+        })
       }),
       eq: vi.fn((column: string, value: unknown) => {
         state.filters[column] = value
         return query
       }),
-      maybeSingle: vi.fn(() => Promise.resolve(resolveSelect(state))),
+      neq: vi.fn((column: string, value: unknown) => {
+        state.filters[`${column}:neq`] = value
+        return query
+      }),
+      is: vi.fn((column: string, value: unknown) => {
+        state.filters[`${column}:is`] = value
+        return query
+      }),
+      limit: vi.fn(() => query),
+      maybeSingle: vi.fn(() => {
+        selects.push({ ...state, filters: { ...state.filters } })
+        return Promise.resolve(resolveSelect(state))
+      }),
       single: vi.fn(() => Promise.resolve(resolveSelect(state))),
-      then: vi.fn((resolve: (value: { data: null; error: null }) => void) => {
+      then: vi.fn((resolve: (value: {
+        data: null
+        error: { message: string } | null
+      }) => void) => {
         resolveMutation(state).then(resolve)
       }),
     }
@@ -176,12 +231,20 @@ function createSupabaseMock(options: {
     },
     error: options.rpcError ?? null,
   }))
-  const rpc = vi.fn(() => ({ single: rpcSingle }))
+  const complaintRpc = vi.fn(async () => ({
+    data: true,
+    error: options.authComplaintPreferenceError ?? null,
+  }))
+  const rpc = vi.fn((name: string) => name === "record_email_spam_complaint"
+    ? complaintRpc()
+    : { single: rpcSingle })
 
   return {
     client: { from, rpc },
+    complaintRpc,
     rpc,
     rpcSingle,
+    selects,
     updates,
     upserts,
   }
@@ -208,6 +271,7 @@ describe("Resend webhook contract", () => {
       p_error_message: null,
       p_event_created_at: "2026-05-11T00:00:00.000Z",
       p_event_type: "email.delivered",
+      p_provider_detail_type: null,
       p_provider_message_id: PROVIDER_ID,
     })
     expect(supabase.updates).toEqual([])
@@ -224,7 +288,7 @@ describe("Resend webhook contract", () => {
 
     const { POST } = await import("@/app/api/webhooks/resend/route")
     const response = await POST(createResendRequest("email.bounced", {
-      bounce: { message: "Mailbox unavailable", type: "hard" },
+      bounce: { message: "Mailbox unavailable", type: "Permanent" },
     }))
 
     await expect(response.json()).resolves.toMatchObject({ received: true, matched: true, updated: true })
@@ -234,6 +298,7 @@ describe("Resend webhook contract", () => {
       p_error_message: "Mailbox unavailable",
       p_event_created_at: "2026-05-11T00:00:00.000Z",
       p_event_type: "email.bounced",
+      p_provider_detail_type: null,
       p_provider_message_id: PROVIDER_ID,
     })
     expect(supabase.updates).toEqual([])
@@ -248,7 +313,7 @@ describe("Resend webhook contract", () => {
 
       const { POST } = await import("@/app/api/webhooks/resend/route")
       const response = await POST(createResendRequest("email.bounced", {
-        bounce: { message: "Mailbox unavailable", type: "hard" },
+        bounce: { message: "Mailbox unavailable", type: "Permanent" },
       }))
 
       expect(response.status).toBe(200)
@@ -266,6 +331,29 @@ describe("Resend webhook contract", () => {
     },
   )
 
+  it.each([
+    ["Transient", "soft"],
+    ["Temporary", "soft"],
+    ["Undetermined", "soft"],
+    ["hard", "hard"],
+    ["soft", "soft"],
+  ])("normalizes Resend bounce type %s to %s", async (providerType, expectedType) => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest("email.bounced", {
+      bounce: { message: "Mailbox unavailable", type: providerType },
+    }))
+
+    expect(response.status).toBe(200)
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      "record_resend_outbox_event",
+      expect.objectContaining({ p_bounce_type: expectedType }),
+    )
+  })
+
   it("keeps complaint suppression and unsubscribe mirrors inside the atomic receipt boundary", async () => {
     vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
     const supabase = createSupabaseMock()
@@ -281,6 +369,7 @@ describe("Resend webhook contract", () => {
       p_error_message: null,
       p_event_created_at: "2026-05-11T00:00:00.000Z",
       p_event_type: "email.complained",
+      p_provider_detail_type: null,
       p_provider_message_id: PROVIDER_ID,
     })
     expect(supabase.updates).toEqual([])
@@ -307,6 +396,7 @@ describe("Resend webhook contract", () => {
       p_error_message: null,
       p_event_created_at: "2026-05-11T00:00:00.000Z",
       p_event_type: "email.clicked",
+      p_provider_detail_type: null,
       p_provider_message_id: PROVIDER_ID,
     })
     expect(mocks.posthogCapture).toHaveBeenCalledWith({
@@ -332,13 +422,159 @@ describe("Resend webhook contract", () => {
     expect(supabase.updates).toEqual([])
   })
 
-  it("returns a retryable response while a valid callback is waiting for outbox finalization", async () => {
+  it("acknowledges a managed auth email when no outbox row owns the provider id", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock({ matched: false, authEmailMatched: true })
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest("email.delivered"))
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({
+      received: true,
+      matched: true,
+      tracked: false,
+    })
+    expect(supabase.client.from).toHaveBeenCalledWith("auth_email_events")
+    expect(supabase.updates).toEqual([])
+    expect(mocks.posthogCapture).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ["email.failed", { failed: { reason: "reached_daily_quota" } }],
+    ["email.suppressed", {
+      suppressed: {
+        message: "Address is on the account suppression list",
+        type: "OnAccountSuppressionList",
+      },
+    }],
+    ["email.bounced", {
+      bounce: { message: "Mailbox unavailable", type: "Permanent" },
+    }],
+  ])(
+    "marks a managed auth email failed for terminal provider event %s idempotently",
+    async (eventType, payload) => {
+      vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+      const supabase = createSupabaseMock({ matched: false, authEmailMatched: true })
+      mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+      const { POST } = await import("@/app/api/webhooks/resend/route")
+      const firstResponse = await POST(createResendRequest(eventType, payload))
+      const duplicateResponse = await POST(createResendRequest(eventType, payload))
+
+      expect(firstResponse.status).toBe(200)
+      expect(duplicateResponse.status).toBe(200)
+      expect(supabase.updates).toHaveLength(2)
+      expect(supabase.updates).toEqual([
+        expect.objectContaining({
+          filters: {
+            id: "auth-email-event-1",
+            "status:neq": "failed",
+          },
+          payload: {
+            error_message: `Resend ${eventType}`,
+            status: "failed",
+          },
+          table: "auth_email_events",
+        }),
+        expect.objectContaining({
+          filters: {
+            id: "auth-email-event-1",
+            "status:neq": "failed",
+          },
+          payload: {
+            error_message: `Resend ${eventType}`,
+            status: "failed",
+          },
+          table: "auth_email_events",
+        }),
+      ])
+      expect(mocks.posthogCapture).not.toHaveBeenCalled()
+    },
+  )
+
+  it("persists a managed auth complaint only for the hash-bound active patient", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock({ matched: false, authEmailMatched: true })
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest("email.complained"))
+
+    expect(response.status).toBe(200)
+    expect(supabase.complaintRpc).toHaveBeenCalledWith()
+    expect(supabase.rpc).toHaveBeenCalledWith("record_email_spam_complaint", {
+      p_event_created_at: "2026-05-11T00:00:00.000Z",
+      p_normalized_email: PATIENT_EMAIL,
+    })
+    // A complaint proves the auth message was delivered. It updates consent,
+    // but must not trigger the critical undelivered-auth alert.
+    expect(supabase.updates).toEqual([])
+  })
+
+  it("rejects a managed auth complaint whose recipient does not match its durable hash", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock({
+      matched: false,
+      authEmailMatched: true,
+      authRecipientHash: createHash("sha256").update("other@example.test").digest("hex"),
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest("email.complained"))
+
+    expect(response.status).toBe(400)
+    expect(supabase.updates).toEqual([])
+    expect(supabase.complaintRpc).not.toHaveBeenCalled()
+  })
+
+  it("retries a managed auth complaint when its sticky preference cannot be stored", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock({
+      matched: false,
+      authEmailMatched: true,
+      authComplaintPreferenceError: { message: "preference write unavailable" },
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest("email.complained"))
+
+    expect(response.status).toBe(500)
+    expect(supabase.updates).toEqual([])
+  })
+
+  it("fails retryably when a managed auth terminal outcome cannot be recorded", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock({
+      matched: false,
+      authEmailMatched: true,
+      authEmailUpdateError: { message: "auth update unavailable" },
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest("email.failed", {
+      failed: { reason: "reached_daily_quota" },
+    }))
+
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({ error: "Database error" })
+  })
+
+  it("returns a retryable response while a recent valid callback awaits provider-id finalization", async () => {
     vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
     const supabase = createSupabaseMock({ matched: false })
     mocks.createServiceRoleClient.mockReturnValue(supabase.client)
 
     const { POST } = await import("@/app/api/webhooks/resend/route")
-    const response = await POST(createResendRequest("email.delivered"))
+    const response = await POST(createResendRequest(
+      "email.delivered",
+      {},
+      new Date(Date.now() - 5_000).toISOString(),
+    ))
 
     expect(response.status).toBe(503)
     expect(response.headers.get("retry-after")).toBe("5")
@@ -347,6 +583,147 @@ describe("Resend webhook contract", () => {
       retryable: true,
     })
     expect(mocks.posthogCapture).not.toHaveBeenCalled()
+  })
+
+  it("acknowledges an old unmanaged callback after the bounded provider-id race window", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock({ matched: false })
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest(
+      "email.delivered",
+      {},
+      new Date(Date.now() - 36 * 60_000).toISOString(),
+    ))
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({
+      received: true,
+      matched: false,
+      tracked: false,
+    })
+    expect(mocks.posthogCapture).not.toHaveBeenCalled()
+  })
+
+  it("keeps the provider callback retryable through Resend's 30-minute retry", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock({ matched: false })
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest(
+      "email.delivered",
+      {},
+      new Date(Date.now() - 30 * 60_000).toISOString(),
+    ))
+
+    expect(response.status).toBe(503)
+    expect(response.headers.get("retry-after")).toBe("5")
+  })
+
+  it("fails retryably when the auth email ownership lookup errors", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock({
+      matched: false,
+      authEmailError: { message: "auth lookup unavailable" },
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest("email.delivered"))
+
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({ error: "Database error" })
+  })
+
+  it.each([
+    {
+      eventType: "email.failed",
+      payload: { failed: { reason: "reached_daily_quota" } },
+      expectedError: "reached_daily_quota",
+      expectedDetailType: null,
+    },
+    {
+      eventType: "email.suppressed",
+      payload: {
+        suppressed: {
+          message: "Address is on the account suppression list",
+          type: "OnAccountSuppressionList",
+        },
+      },
+      expectedError: "Address is on the account suppression list",
+      expectedDetailType: "OnAccountSuppressionList",
+    },
+  ])(
+    "records $eventType as a durable terminal provider outcome",
+    async ({ eventType, payload, expectedError, expectedDetailType }) => {
+      vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+      const supabase = createSupabaseMock({ emailType: "med_cert_patient" })
+      mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+      const { POST } = await import("@/app/api/webhooks/resend/route")
+      const response = await POST(createResendRequest(eventType, payload))
+
+      expect(response.status).toBe(200)
+      expect(supabase.rpc).toHaveBeenCalledWith("record_resend_outbox_event", {
+        p_bounce_type: null,
+        p_error_message: expectedError,
+        p_event_created_at: "2026-05-11T00:00:00.000Z",
+        p_event_type: eventType,
+        p_provider_detail_type: expectedDetailType,
+        p_provider_message_id: PROVIDER_ID,
+      })
+      expect(mocks.sentryCaptureMessage).toHaveBeenCalledWith(
+        "Critical fulfilment email failed",
+        expect.objectContaining({
+          level: "error",
+          tags: expect.objectContaining({
+            email_type: "med_cert_patient",
+            event_type: eventType,
+          }),
+        }),
+      )
+      for (const call of mocks.sentryCaptureMessage.mock.calls) {
+        expect(call[1]).not.toMatchObject({
+          tags: expect.objectContaining({ provider_reason_type: expect.anything() }),
+        })
+      }
+      expect(mocks.posthogCapture).toHaveBeenCalledWith(expect.objectContaining({
+        properties: expect.not.objectContaining({
+          provider_reason_type: expect.anything(),
+        }),
+      }))
+    },
+  )
+
+  it.each(["email.future_event", "domain.updated"])(
+    "acknowledges signed but untracked provider event %s without entering the RPC",
+    async (eventType) => {
+      vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+      const supabase = createSupabaseMock()
+      mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+      const { POST } = await import("@/app/api/webhooks/resend/route")
+      const response = await POST(createResendRequest(eventType, { email_id: undefined }))
+
+      expect(response.status).toBe(200)
+      await expect(response.json()).resolves.toEqual({ received: true, tracked: false })
+      expect(supabase.rpc).not.toHaveBeenCalled()
+    },
+  )
+
+  it("rejects a malformed event without a string type", async () => {
+    vi.stubEnv("RESEND_WEBHOOK_SECRET", "")
+    const supabase = createSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase.client)
+
+    const { POST } = await import("@/app/api/webhooks/resend/route")
+    const response = await POST(createResendRequest(null))
+
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toEqual({ error: "Invalid payload" })
+    expect(supabase.rpc).not.toHaveBeenCalled()
   })
 
   it("rejects a callback whose signed provider event timestamp is invalid", async () => {

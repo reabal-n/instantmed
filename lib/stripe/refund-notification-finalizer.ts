@@ -77,7 +77,7 @@ export async function finalizeRefundNotifications(input: {
       stripeRefundId: refund.stripeRefundId,
       to: recipient.value.email,
     })
-    if (!reservation.success) {
+    if (!reservation.success && !reservation.terminalExisting) {
       return {
         error: reservation.error || "Refund notification reservation failed",
       }
