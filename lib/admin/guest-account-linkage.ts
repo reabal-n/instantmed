@@ -9,7 +9,7 @@ const DAY_MS = 24 * 60 * 60 * 1000
 const MAX_GUEST_LINKAGE_ROWS = 5_000
 
 export type ReleaseEvidenceAvailability = "available" | "degraded" | "unavailable"
-export type LinkageHorizonStatus = "available" | "pending" | "unavailable"
+export type LinkageHorizonStatus = "available" | "maturing" | "pending" | "unavailable"
 
 export interface ReleaseMeasurementWindow {
   asOf: Date
@@ -43,12 +43,13 @@ export interface GuestAccountLinkageSnapshot {
   asOf: string
   availability: ReleaseEvidenceAvailability
   cohortStatus: "complete" | "in_progress" | "unavailable"
+  currentlyLinkedAtReadOrders: number | null
+  currentlyUnlinkedAtReadOrders: number | null
   eligiblePaidGuestOrders: number | null
   from: string
-  currentlyLinkedOrders: number | null
+  linkStateBasis: "current_profile_at_read"
   reason: string | null
   to: string
-  unlinkedAtCutoffOrders: number | null
   verifiedBeforePaidAnomalies: number | null
   within24h: GuestLinkageHorizon
   within7d: GuestLinkageHorizon
@@ -101,12 +102,13 @@ export function buildUnavailableGuestAccountLinkageSnapshot({
     asOf: asOf.toISOString(),
     availability: "unavailable",
     cohortStatus: "unavailable",
+    currentlyLinkedAtReadOrders: null,
+    currentlyUnlinkedAtReadOrders: null,
     eligiblePaidGuestOrders: null,
     from: from.toISOString(),
-    currentlyLinkedOrders: null,
+    linkStateBasis: "current_profile_at_read",
     reason,
     to: to.toISOString(),
-    unlinkedAtCutoffOrders: null,
     verifiedBeforePaidAnomalies: null,
     within14d: unavailableHorizon(),
     within24h: unavailableHorizon(),
@@ -125,28 +127,23 @@ function patientForRow(row: GuestAccountLinkageReadRow) {
 
 function buildHorizon(input: {
   asOfMs: number
-  cohortToMs: number
-  eligibleOrders: number
   horizonMs: number
-  linkedDeltasMs: number[]
+  orders: Array<{ linkedDeltaMs: number | null; paidAtMs: number }>
 }): GuestLinkageHorizon {
-  if (input.asOfMs < input.cohortToMs + input.horizonMs) {
-    return {
-      eligibleOrders: null,
-      linkedOrders: null,
-      percent: null,
-      status: "pending",
-    }
-  }
-
-  const linkedOrders = input.linkedDeltasMs.filter(
-    (delta) => delta >= 0 && delta <= input.horizonMs,
+  const eligible = input.orders.filter(
+    ({ paidAtMs }) => paidAtMs + input.horizonMs <= input.asOfMs,
+  )
+  const linkedOrders = eligible.filter(
+    ({ linkedDeltaMs }) =>
+      linkedDeltaMs !== null &&
+      linkedDeltaMs >= 0 &&
+      linkedDeltaMs <= input.horizonMs,
   ).length
   return {
-    eligibleOrders: input.eligibleOrders,
+    eligibleOrders: eligible.length,
     linkedOrders,
-    percent: percentage(linkedOrders, input.eligibleOrders),
-    status: "available",
+    percent: percentage(linkedOrders, eligible.length),
+    status: eligible.length === input.orders.length ? "available" : "maturing",
   }
 }
 
@@ -168,12 +165,13 @@ export function buildGuestAccountLinkageSnapshot(
       asOf: window.asOf.toISOString(),
       availability: "degraded",
       cohortStatus: "in_progress",
+      currentlyLinkedAtReadOrders: null,
+      currentlyUnlinkedAtReadOrders: null,
       eligiblePaidGuestOrders: null,
       from: window.from.toISOString(),
-      currentlyLinkedOrders: null,
+      linkStateBasis: "current_profile_at_read",
       reason: "cohort_in_progress",
       to: window.to.toISOString(),
-      unlinkedAtCutoffOrders: null,
       verifiedBeforePaidAnomalies: null,
       within14d: pendingHorizon(),
       within24h: pendingHorizon(),
@@ -192,42 +190,51 @@ export function buildGuestAccountLinkageSnapshot(
     if (!uniqueRows.has(id)) uniqueRows.set(id, row)
   }
 
-  let currentlyLinkedOrders = 0
+  let currentlyLinkedAtReadOrders = 0
   let verifiedBeforePaidAnomalies = 0
-  const linkedDeltasMs: number[] = []
+  const horizonOrders: Array<{ linkedDeltaMs: number | null; paidAtMs: number }> = []
 
   for (const row of uniqueRows.values()) {
     const paidAtMs = Date.parse(row.paid_at ?? "")
     const patient = patientForRow(row)
     const verifiedAtMs = Date.parse(patient?.email_verified_at ?? "")
-    if (!patient?.auth_user_id || !Number.isFinite(verifiedAtMs)) continue
+    if (!patient?.auth_user_id || !Number.isFinite(verifiedAtMs)) {
+      horizonOrders.push({ linkedDeltaMs: null, paidAtMs })
+      continue
+    }
+    // The profile relation is current state at read time. Keep that distinct
+    // from matched historical horizons, which remain bounded by `asOf` below.
+    currentlyLinkedAtReadOrders += 1
     const delta = verifiedAtMs - paidAtMs
     if (delta < 0) {
       verifiedBeforePaidAnomalies += 1
+      horizonOrders.push({ linkedDeltaMs: null, paidAtMs })
       continue
     }
-    if (verifiedAtMs > asOfMs) continue
-    currentlyLinkedOrders += 1
-    linkedDeltasMs.push(delta)
+    if (verifiedAtMs > asOfMs) {
+      horizonOrders.push({ linkedDeltaMs: null, paidAtMs })
+      continue
+    }
+    horizonOrders.push({ linkedDeltaMs: delta, paidAtMs })
   }
 
   const eligiblePaidGuestOrders = uniqueRows.size
   const horizonInput = {
     asOfMs,
-    cohortToMs: toMs,
-    eligibleOrders: eligiblePaidGuestOrders,
-    linkedDeltasMs,
+    orders: horizonOrders,
   }
   return {
     asOf: window.asOf.toISOString(),
     availability: "available",
     cohortStatus: "complete",
+    currentlyLinkedAtReadOrders,
+    currentlyUnlinkedAtReadOrders:
+      eligiblePaidGuestOrders - currentlyLinkedAtReadOrders,
     eligiblePaidGuestOrders,
     from: window.from.toISOString(),
-    currentlyLinkedOrders,
+    linkStateBasis: "current_profile_at_read",
     reason: null,
     to: window.to.toISOString(),
-    unlinkedAtCutoffOrders: eligiblePaidGuestOrders - currentlyLinkedOrders,
     verifiedBeforePaidAnomalies,
     within14d: buildHorizon({ ...horizonInput, horizonMs: 14 * DAY_MS }),
     within24h: buildHorizon({ ...horizonInput, horizonMs: DAY_MS }),

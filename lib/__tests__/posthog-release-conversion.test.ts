@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
-
 import { describe, expect, it, vi } from "vitest"
 
 import {
@@ -18,7 +15,7 @@ const C = "33333333-3333-4333-8333-333333333333"
 const at = (day: number) => new Date(FROM.getTime() + day * 86_400_000).toISOString()
 
 describe("PostHog release conversion", () => {
-  it("uses a valid-v4 start cohort, de-duplicates flows, and resolves blockers only after completion", () => {
+  it("uses a valid-v4 start cohort and resolves blockers only after completion", () => {
     const snapshot = buildPostHogReleaseConversionSnapshot({
       asOf: AS_OF,
       coverageResults: [
@@ -32,15 +29,9 @@ describe("PostHog release conversion", () => {
       ],
       flowResults: [
         [A, at(0), at(1), at(2), at(3), at(4), null, null, at(1), at(1), at(2)],
-        // A duplicate transport row must not double count the same flow.
-        [A, at(0), at(1), at(2), at(3), at(4), null, null, at(1), at(1), at(2)],
         [B, at(1), at(2), null, at(3), null, at(2), null, at(2), at(2), null],
         // Completion precedes the block, so the block remains unresolved.
         [C, at(2), at(2), at(3), null, null, null, at(4), at(4), null, null],
-        ["patient@example.com", at(0), at(1), at(2), at(3), at(4), null, null, null, null, null],
-        ["11111111-1111-1111-8111-111111111111", at(0), at(1), at(2), at(3), at(4), null, null, null, null, null],
-        // Half-open start cohort excludes exactly `to`.
-        ["44444444-4444-4444-8444-444444444444", TO.toISOString(), at(4), at(5), at(5), at(5), null, null, null, null, null],
       ],
       from: FROM,
       to: TO,
@@ -55,6 +46,8 @@ describe("PostHog release conversion", () => {
       clinicalHardBlockFlows: 1,
       medicationCompletedFlows: 2,
       medicationViewedFlows: 3,
+      mobileMedicationCompletedFlows: 1,
+      mobileMedicationViewedFlows: 2,
       mobileCompletionPercent: 50,
       serviceSteerFlows: 1,
       unresolvedValidationBlockedFlows: 2,
@@ -315,33 +308,109 @@ describe("PostHog release conversion", () => {
     })
   })
 
-  it("pins HogQL to uniqExact, valid v4 flow ids, exclusive cohort end, and approved events only", () => {
-    const source = readFileSync(
-      join(process.cwd(), "lib/analytics/posthog-release-conversion.ts"),
-      "utf8",
+  it.each([
+    {
+      label: "a start exactly at the half-open cohort end",
+      rows: [[A, TO.toISOString(), null, null, null, null, null, null, null, null, null]],
+    },
+    {
+      label: "an invalid start timestamp",
+      rows: [[A, "not-a-timestamp", null, null, null, null, null, null, null, null, null]],
+    },
+    {
+      label: "a short provider row",
+      rows: [[A, at(0)]],
+    },
+    {
+      label: "duplicate grouped flow rows",
+      rows: [
+        [A, at(0), null, null, null, null, null, null, null, null, null],
+        [A, at(0), null, null, null, null, null, null, null, null, null],
+      ],
+    },
+  ])("fails closed before count reconciliation for $label", async ({ rows }) => {
+    const fetchImpl = vi.fn(async (_url: string, init: RequestInit) => {
+      const request = JSON.parse(String(init.body)) as { name: string }
+      return {
+        json: async () => ({
+          results: request.name.includes("coverage")
+            ? [["intake_started", 1, 1]]
+            : request.name.includes("count")
+              ? [[1]]
+              : rows,
+        }),
+        ok: true,
+        status: 200,
+      }
+    })
+
+    const snapshot = await getPostHogReleaseConversionSnapshot(
+      { asOf: AS_OF, from: FROM, to: TO },
+      {
+        env: {
+          POSTHOG_PROJECT_API_KEY: "secret-project-key",
+          POSTHOG_PROJECT_ID: "123",
+        },
+        fetchImpl,
+      },
     )
-    expect(source).toContain('import "server-only"')
-    expect(source).toContain("uniqExact")
-    expect(source).toContain("AS exact_started_flows")
-    expect(source).not.toContain("uniqExactIf")
-    expect(source).toContain("POSTHOG_FLOW_OVERFLOW_SENTINEL = MAX_POSTHOG_FLOW_ROWS + 1")
-    expect(source).toContain("LIMIT ${POSTHOG_FLOW_OVERFLOW_SENTINEL}")
-    expect(source).toContain("flow_instance_id")
-    expect(source).toContain("timestamp < toDateTime64")
-    expect(source).toContain("intake_started")
-    expect(source).toContain("step_viewed")
-    expect(source).toContain("step_completed")
-    expect(source).toContain("checkout_initiated")
-    expect(source).toContain("purchase_completed_server")
-    expect(source).toContain("intake_validation_blocked")
-    expect(source).toContain("resolution")
-    expect(source).toContain("shown")
-    expect(source).toContain("$device_type")
-    expect(source).toContain("Mobile")
-    expect(source).not.toContain("distinct_id")
-    expect(source).not.toContain("$session_id")
-    expect(source).not.toContain("request_id")
-    expect(source).not.toContain("intake_id")
-    expect(source).not.toContain("event_uuid")
+
+    expect(snapshot).toMatchObject({
+      availability: "unavailable",
+      intakeStartedFlows: null,
+      reason: "posthog_malformed_response",
+    })
+  })
+
+  it("emits ClickHouse-compatible UTC queries and limits coverage to the event-time window", async () => {
+    const requests: Array<{ name: string; query: { query: string } }> = []
+    const fetchImpl = vi.fn(async (_url: string, init: RequestInit) => {
+      const request = JSON.parse(String(init.body)) as { name: string; query: { query: string } }
+      requests.push(request)
+      return {
+        json: async () => ({
+          results: request.name.includes("coverage")
+            ? [["intake_started", 1, 1]]
+            : request.name.includes("count")
+              ? [[1]]
+              : [[A, at(0), null, null, null, null, null, null, null, null, null]],
+        }),
+        ok: true,
+        status: 200,
+      }
+    })
+
+    await getPostHogReleaseConversionSnapshot(
+      { asOf: AS_OF, from: FROM, to: TO },
+      {
+        env: {
+          POSTHOG_PROJECT_API_KEY: "secret-project-key",
+          POSTHOG_PROJECT_ID: "123",
+        },
+        fetchImpl,
+      },
+    )
+
+    const queryFor = (name: string) => requests.find((request) => request.name === name)?.query.query ?? ""
+    const coverage = queryFor("InstantMed release event-window valid-v4 coverage")
+    const flowCount = queryFor("InstantMed release exact start cohort count")
+    const flows = queryFor("InstantMed release start cohort")
+    const allQueries = requests.map((request) => request.query.query).join("\n")
+    const utcDateTimeCalls = [...allQueries.matchAll(
+      /toDateTime64\('(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})', 3, 'UTC'\)/g,
+    )]
+
+    expect(requests).toHaveLength(3)
+    expect(utcDateTimeCalls.length).toBeGreaterThan(0)
+    expect(allQueries.match(/toDateTime64\(/g)).toHaveLength(utcDateTimeCalls.length)
+    expect(allQueries).not.toMatch(/toDateTime64\('[^']*[TZ][^']*'/)
+    expect(coverage).toContain("timestamp >= toDateTime64('2026-09-01 00:00:00.000', 3, 'UTC')")
+    expect(coverage).toContain("timestamp < toDateTime64('2026-09-08 00:00:00.000', 3, 'UTC')")
+    expect(coverage).not.toContain("2026-09-15 00:00:00.000")
+    expect(flowCount).toContain("uniqExact(toString(properties.flow_instance_id))")
+    expect(flows).toContain("LIMIT 50001")
+    expect(flows).toContain("properties.$device_type = 'Mobile'")
+    expect(allQueries).toContain("intake_validation_blocked")
+    expect(allQueries).not.toMatch(/distinct_id|\$session_id|request_id|intake_id|event_uuid/)
   })
 })

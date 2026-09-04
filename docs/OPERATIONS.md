@@ -703,6 +703,24 @@ Before treating a production deploy or paid-traffic ramp as clean:
 
 **Recommended:** `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `SENTRY_DSN`
 
+### Release conversion measurement boundary
+
+Configure release measurement only after the intended production deployment is READY. The boundary is the deployment's ready time, not its commit time, build start, merge time, or the time an operator happens to run the report.
+
+1. Deploy or promote the release through the normal release gate.
+2. From the READY production deployment, capture the exact 40-character Git SHA and canonical UTC ready timestamp including milliseconds.
+3. Set `INSTANTMED_RELEASE_MEASUREMENT_SHA` and `INSTANTMED_RELEASE_MEASUREMENT_AT` for the Vercel Production environment.
+4. Redeploy that release so the new environment values are present in the running deployment.
+5. Verify the production alias serves the captured SHA, `/api/health` is healthy, and `/admin/analytics` shows the same release boundary. A missing, malformed, or future boundary stays unavailable.
+
+Run a receipt with both immutable arguments; `--release-at` is required:
+
+```bash
+pnpm analytics:release-friction --release-sha="$INSTANTMED_RELEASE_MEASUREMENT_SHA" --release-at="$INSTANTMED_RELEASE_MEASUREMENT_AT" --window=7d
+```
+
+The Baseline and release cohorts are equal-length and receive the same post-cohort follow-up exposure. PostHog flow-ID coverage is an event-time `[from,to)` instrumentation measure; downstream conversion events are observed only through the matched cutoff. Guest-link rates use only paid guest orders whose full 24-hour, 7-day, or 14-day horizon has matured, with the denominator shown while the tail is still maturing. Current profile linkage is current state observed at read time, not an `ever linked` claim. Refunds and disputes use the canonical cash ledger through the same matched cutoff; missing ledger completeness remains unavailable rather than zero. Receipts are aggregate-only and must pass the existing privacy assertion before being committed.
+
 ### Database Migrations
 
 ```bash

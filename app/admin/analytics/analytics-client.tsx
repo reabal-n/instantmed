@@ -773,7 +773,7 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
                   Release conversion &amp; retention
                 </h3>
                 <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                  Paired Baseline windows keep D+7 and D+14 comparisons equal-length. Counts stay withheld while a cohort is still forming.
+                  Paired Baseline windows keep D+7 and D+14 comparisons equal-length with matched follow-up. Counts stay withheld while a cohort is still forming.
                 </p>
               </div>
               <StatusBadge
@@ -791,8 +791,9 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
             </div>
 
             {releaseFriction.periods.length > 0 ? (
-              <div className="mt-3 overflow-x-auto rounded-lg border border-border/60">
-                <table className="w-full min-w-[920px] text-left text-[11px]">
+              <>
+                <div className="mt-3 overflow-x-auto rounded-lg border border-border/60">
+                  <table className="w-full min-w-[1120px] text-left text-[11px]">
                   <caption className="sr-only">
                     Equal-window release conversion, guest account linkage, and refund cohorts
                   </caption>
@@ -801,9 +802,10 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
                       <th scope="col" className="px-3 py-2 font-medium">Cohort</th>
                       <th scope="col" className="px-3 py-2 font-medium">Starts → checkout</th>
                       <th scope="col" className="px-3 py-2 font-medium">Starts → paid</th>
-                      <th scope="col" className="px-3 py-2 font-medium">Medication complete</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Mobile medication complete</th>
                       <th scope="col" className="px-3 py-2 font-medium">Guest links ≤24h</th>
                       <th scope="col" className="px-3 py-2 font-medium">Refunded orders</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Repeat Rx decline/refund</th>
                       <th scope="col" className="px-3 py-2 font-medium">Status</th>
                     </tr>
                   </thead>
@@ -839,20 +841,20 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
                           </td>
                           <td className="px-3 py-2.5 tabular-nums text-foreground">
                             {formatCohortRatio({
-                              denominator: period.posthog.repeatRx.medicationViewedFlows,
+                              denominator: period.posthog.repeatRx.mobileMedicationViewedFlows,
                               inProgress,
-                              numerator: period.posthog.repeatRx.medicationCompletedFlows,
+                              numerator: period.posthog.repeatRx.mobileMedicationCompletedFlows,
                             })}
                           </td>
                           <td className="px-3 py-2.5 tabular-nums text-foreground">
                             {linkage.status === "pending"
                               ? "Pending"
-                              : formatCohortRatio({
+                              : `${formatCohortRatio({
                                   denominator: linkage.eligibleOrders,
                                   inProgress,
                                   numerator: linkage.linkedOrders,
                                   percent: linkage.percent,
-                                })}
+                                })}${linkage.status === "maturing" ? " · maturing" : ""}`}
                           </td>
                           <td className="px-3 py-2.5 tabular-nums text-foreground">
                             {formatCohortRatio({
@@ -861,6 +863,24 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
                               numerator: period.cash.refundedOrders,
                               percent: period.cash.refundsPer100Paid,
                             })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            <span className="block">
+                              Declined {formatCohortRatio({
+                                denominator: period.cash.prescription.paidOrders,
+                                inProgress,
+                                numerator: period.cash.prescription.declinedOrders,
+                                percent: period.cash.prescription.declinesPer100Paid,
+                              })}
+                            </span>
+                            <span className="mt-0.5 block text-muted-foreground">
+                              Refunded {formatCohortRatio({
+                                denominator: period.cash.prescription.paidOrders,
+                                inProgress,
+                                numerator: period.cash.prescription.refundedOrders,
+                                percent: period.cash.prescription.refundsPer100Paid,
+                              })}
+                            </span>
                           </td>
                           <td className="px-3 py-2.5 text-muted-foreground">
                             <span className="font-medium text-foreground">
@@ -873,15 +893,21 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
                                     : "Unavailable"}
                             </span>
                             <span className="mt-0.5 block">
-                              Observation cutoff {COHORT_DATE.format(new Date(period.cash.asOf))}
+                              {period.cash.observationFollowUpHours === null
+                                ? "Matched follow-up pending"
+                                : `Matched follow-up ${period.cash.observationFollowUpHours}h · cutoff ${COHORT_DATE.format(new Date(period.cash.asOf))}`}
                             </span>
                           </td>
                         </tr>
                       )
                     })}
                   </tbody>
-                </table>
-              </div>
+                  </table>
+                </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  Guest-link rates use only paid orders whose full horizon has matured. Current profile link state is observed at read time, not treated as durable history.
+                </p>
+              </>
             ) : (
               <p className="mt-3 rounded-lg border border-dashed border-border/70 bg-muted/20 px-3 py-3 text-xs text-muted-foreground">
                 {releaseFriction.reason === "release_boundary_not_configured"

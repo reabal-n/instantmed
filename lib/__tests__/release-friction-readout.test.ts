@@ -12,7 +12,9 @@ import {
   buildReleaseDashboardWindows,
   buildReleaseFrictionReceipt,
   buildReleaseMeasurementWindows,
+  getReleaseFrictionDashboardSnapshot,
   parseReleaseFrictionArgs,
+  RELEASE_FRICTION_USAGE,
   writeAggregateReceiptAtomic,
 } from "@/lib/admin/release-friction-readout"
 import { buildUnavailablePostHogReleaseConversionSnapshot } from "@/lib/analytics/posthog-release-conversion"
@@ -46,15 +48,17 @@ function evidence(): CustomerGrowthRevenueEvidence {
       {
         amount_cents: 10_000,
         category: "prescription",
+        declined_at: "2026-09-06T00:00:00.000Z",
         id: "paid-a",
         paid_at: "2026-09-01T00:00:00.000Z",
         payment_status: "partially_refunded",
-        status: "pending",
+        status: "declined",
         subtype: null,
       },
       {
         amount_cents: 10_000,
         category: "prescription",
+        declined_at: null,
         id: "paid-b",
         paid_at: "2026-09-01T12:00:00.000Z",
         payment_status: "refunded",
@@ -64,6 +68,7 @@ function evidence(): CustomerGrowthRevenueEvidence {
       {
         amount_cents: 10_000,
         category: "prescription",
+        declined_at: null,
         id: "paid-c",
         paid_at: "2026-09-02T00:00:00.000Z",
         payment_status: "disputed",
@@ -73,6 +78,7 @@ function evidence(): CustomerGrowthRevenueEvidence {
       {
         amount_cents: 10_000,
         category: "prescription",
+        declined_at: null,
         id: "excluded-at-end",
         paid_at: "2026-09-08T00:00:00.000Z",
         payment_status: "paid",
@@ -120,7 +126,7 @@ function evidence(): CustomerGrowthRevenueEvidence {
 }
 
 describe("release friction readout", () => {
-  it("uses an equal half-open pre-release baseline and separate observation cutoff", () => {
+  it("uses equal half-open cohorts with matched follow-up exposure", () => {
     const windows = buildReleaseMeasurementWindows({
       asOf: new Date("2026-09-20T00:00:00.000Z"),
       releaseAt: new Date(RELEASE_AT),
@@ -130,8 +136,11 @@ describe("release friction readout", () => {
     expect(windows.baseline.to).toBe(RELEASE_AT)
     expect(windows.release.from).toBe(RELEASE_AT)
     expect(Date.parse(windows.release.to) - Date.parse(windows.release.from)).toBe(7 * DAY_MS)
-    expect(windows.baseline.asOf).toBe("2026-09-20T00:00:00.000Z")
+    expect(windows.baseline.asOf).toBe("2026-09-13T00:00:00.000Z")
     expect(windows.release.asOf).toBe("2026-09-20T00:00:00.000Z")
+    expect(Date.parse(windows.baseline.asOf) - Date.parse(windows.baseline.to)).toBe(
+      Date.parse(windows.release.asOf) - Date.parse(windows.release.to),
+    )
   })
 
   it("pairs D+7 and D+14 with equal-length, unambiguous baselines", () => {
@@ -151,7 +160,18 @@ describe("release friction readout", () => {
       expect(Date.parse(baseline.to) - Date.parse(baseline.from)).toBe(
         Date.parse(release.to) - Date.parse(release.from),
       )
+      expect(Date.parse(baseline.asOf) - Date.parse(baseline.to)).toBe(
+        Date.parse(release.asOf) - Date.parse(release.to),
+      )
     }
+  })
+
+  it("rejects a release boundary that is still in the future", () => {
+    expect(() => buildReleaseMeasurementWindows({
+      asOf: new Date("2026-09-05T00:00:00.000Z"),
+      releaseAt: new Date("2026-09-05T00:00:00.001Z"),
+      window: "7d",
+    })).toThrow("Release boundary cannot be in the future")
   })
 
   it("uses canonical cash evidence and counts distinct outstanding refund/dispute orders", () => {
@@ -170,6 +190,15 @@ describe("release friction readout", () => {
       refundedCents: 5_000,
       refundedOrders: 1,
       refundsPer100Paid: 33.3,
+      observationFollowUpHours: 0,
+      prescription: {
+        declinedOrders: 1,
+        declinesPer100Paid: 33.3,
+        paidOrders: 3,
+        refundedCents: 5_000,
+        refundedOrders: 1,
+        refundsPer100Paid: 33.3,
+      },
     })
     expect(JSON.stringify(cash)).not.toMatch(/paid-a|paid-b|refund-/)
   })
@@ -241,14 +270,32 @@ describe("release friction readout", () => {
     expect(complete.paidOrders).toBe(3)
   })
 
+  it("counts a prescription decline only once its durable decline timestamp reaches the matched cutoff", () => {
+    const input = evidence()
+    input.paidRows[0].declined_at = "2026-09-08T00:00:00.001Z"
+
+    const cash = buildReleaseCashSnapshot(input, {
+      asOf: new Date("2026-09-08T00:00:00.000Z"),
+      from: new Date("2026-09-01T00:00:00.000Z"),
+      to: new Date("2026-09-08T00:00:00.000Z"),
+    })
+
+    expect(cash.prescription).toMatchObject({
+      declinedOrders: 0,
+      declinesPer100Paid: 0,
+      paidOrders: 3,
+    })
+  })
+
   it("strictly validates release CLI arguments and rejects ambiguous numeric input", () => {
+    const now = new Date("2026-09-20T00:00:00.000Z")
     expect(parseReleaseFrictionArgs([
       `--release-sha=${SHA.toUpperCase()}`,
       `--release-at=${RELEASE_AT}`,
       "--window=14d",
       "--support-contacts=0",
       "--output=artifacts/release.json",
-    ])).toMatchObject({
+    ], { now })).toMatchObject({
       output: "artifacts/release.json",
       releaseAt: RELEASE_AT,
       releaseSha: SHA,
@@ -268,10 +315,32 @@ describe("release friction readout", () => {
       [`--release-sha=${SHA}`, `--release-at=${RELEASE_AT}`, "--window=7d", `--support-contacts=${Number.MAX_SAFE_INTEGER + 1}`],
       [`--release-sha=${SHA}`, `--release-sha=${SHA}`, `--release-at=${RELEASE_AT}`, "--window=7d"],
       [`--release-sha=${SHA}`, `--release-at=${RELEASE_AT}`, "--window=7d", "--output="],
+      [`--release-sha=${SHA}`, "--release-at=2026-09-20T00:00:00.001Z", "--window=7d"],
     ]
     for (const args of invalidCases) {
-      expect(() => parseReleaseFrictionArgs(args), args.join(" ")).toThrow()
+      expect(() => parseReleaseFrictionArgs(args, { now }), args.join(" ")).toThrow()
     }
+  })
+
+  it("shows the immutable ready-time argument in the executable CLI usage", () => {
+    expect(RELEASE_FRICTION_USAGE).toBe(
+      "Usage: pnpm analytics:release-friction --release-sha=<40-hex-sha> --release-at=<canonical-utc-ready-time> --window=<7d|14d> [--support-contacts=<count>] [--output=<path>]",
+    )
+  })
+
+  it("keeps a future configured release unavailable without starting source reads", async () => {
+    const snapshot = await getReleaseFrictionDashboardSnapshot({} as never, {
+      env: {
+        INSTANTMED_RELEASE_MEASUREMENT_AT: "2026-09-20T00:00:00.001Z",
+        INSTANTMED_RELEASE_MEASUREMENT_SHA: SHA,
+      },
+      now: new Date("2026-09-20T00:00:00.000Z"),
+    })
+    expect(snapshot).toMatchObject({
+      availability: "unavailable",
+      periods: [],
+      reason: "release_boundary_in_future",
+    })
   })
 
   it("keeps optional support evidence unavailable and recursively rejects sensitive receipts", () => {
@@ -284,7 +353,16 @@ describe("release friction readout", () => {
       from: "2026-09-01T00:00:00.000Z",
       grossCents: null,
       netCents: null,
+      observationFollowUpHours: null,
       paidOrders: null,
+      prescription: {
+        declinedOrders: null,
+        declinesPer100Paid: null,
+        paidOrders: null,
+        refundedCents: null,
+        refundedOrders: null,
+        refundsPer100Paid: null,
+      },
       reason: "query_failed",
       refundedCents: null,
       refundedOrders: null,
@@ -353,7 +431,9 @@ describe("release friction readout", () => {
       join(process.cwd(), "scripts/release-friction-readout.ts"),
       "utf8",
     )
-    expect(script).toContain("parseReleaseFrictionArgs(process.argv.slice(2))")
+    expect(script).toContain("parseReleaseFrictionArgs(process.argv.slice(2),")
+    expect(script).toContain("now: generatedAt")
+    expect(script).toContain("RELEASE_FRICTION_USAGE")
     expect(script).toContain("writeAggregateReceiptAtomic")
     expect(script).toContain("process.stdout.write")
     expect(script).not.toMatch(/console\.log|SUPABASE_SERVICE_ROLE_KEY.*stdout|POSTHOG_PROJECT_API_KEY.*stdout/)

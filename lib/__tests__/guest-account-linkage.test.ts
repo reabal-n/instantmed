@@ -55,6 +55,9 @@ describe("guest account linkage", () => {
       row("i", 9 * 60 * 60 * 1000, null),
       // A second paid order for the same linked guest remains a second order.
       row("j", 10 * 60 * 60 * 1000, DAY_MS, "shared-auth"),
+      // Current profile state is reported as current-at-read even when the
+      // matched historical cutoff precedes the verification timestamp.
+      row("k", 11 * 60 * 60 * 1000, 20 * DAY_MS),
       row("b", 2 * 60 * 60 * 1000, DAY_MS + 1),
       row("at-end", DAY_MS, DAY_MS),
       row("before-start", -1, DAY_MS),
@@ -67,26 +70,27 @@ describe("guest account linkage", () => {
     })
 
     expect(snapshot.availability).toBe("available")
-    expect(snapshot.eligiblePaidGuestOrders).toBe(10)
-    expect(snapshot.currentlyLinkedOrders).toBe(7)
-    expect(snapshot.unlinkedAtCutoffOrders).toBe(3)
+    expect(snapshot.eligiblePaidGuestOrders).toBe(11)
+    expect(snapshot.currentlyLinkedAtReadOrders).toBe(9)
+    expect(snapshot.currentlyUnlinkedAtReadOrders).toBe(2)
+    expect(snapshot.linkStateBasis).toBe("current_profile_at_read")
     expect(snapshot.verifiedBeforePaidAnomalies).toBe(1)
     expect(snapshot.within24h).toMatchObject({
-      eligibleOrders: 10,
+      eligibleOrders: 11,
       linkedOrders: 2,
-      percent: 20,
+      percent: 18.2,
       status: "available",
     })
     expect(snapshot.within7d).toMatchObject({
-      eligibleOrders: 10,
+      eligibleOrders: 11,
       linkedOrders: 4,
-      percent: 40,
+      percent: 36.4,
       status: "available",
     })
     expect(snapshot.within14d).toMatchObject({
-      eligibleOrders: 10,
+      eligibleOrders: 11,
       linkedOrders: 6,
-      percent: 60,
+      percent: 54.5,
       status: "available",
     })
     expect(JSON.stringify(snapshot)).not.toMatch(
@@ -94,29 +98,42 @@ describe("guest account linkage", () => {
     )
   })
 
-  it("returns pending rather than zero until each complete cohort horizon matures", () => {
-    const rows = [row("a", 0, DAY_MS)]
-    const justBeforeSevenDays = buildGuestAccountLinkageSnapshot(rows, {
-      asOf: new Date(TO.getTime() + 7 * DAY_MS - 1),
+  it("uses only horizon-mature paid orders as the denominator while the tail matures", () => {
+    const rows = [
+      row("a", 0, DAY_MS),
+      row("b", 20 * 60 * 60 * 1000, DAY_MS),
+    ]
+    const partial24Hours = buildGuestAccountLinkageSnapshot(rows, {
+      asOf: new Date(TO.getTime() + 12 * 60 * 60 * 1000),
       from: FROM,
       to: TO,
     })
-    expect(justBeforeSevenDays.within24h.status).toBe("available")
-    expect(justBeforeSevenDays.within7d).toEqual({
-      eligibleOrders: null,
-      linkedOrders: null,
+    expect(partial24Hours.within24h).toEqual({
+      eligibleOrders: 1,
+      linkedOrders: 1,
+      percent: 100,
+      status: "maturing",
+    })
+    expect(partial24Hours.within7d).toEqual({
+      eligibleOrders: 0,
+      linkedOrders: 0,
       percent: null,
-      status: "pending",
+      status: "maturing",
     })
-    expect(justBeforeSevenDays.within14d.status).toBe("pending")
+    expect(partial24Hours.within14d.status).toBe("maturing")
 
-    const exactSevenDays = buildGuestAccountLinkageSnapshot(rows, {
-      asOf: new Date(TO.getTime() + 7 * DAY_MS),
+    const complete24Hours = buildGuestAccountLinkageSnapshot(rows, {
+      asOf: new Date(TO.getTime() + DAY_MS),
       from: FROM,
       to: TO,
     })
-    expect(exactSevenDays.within7d.status).toBe("available")
-    expect(exactSevenDays.within14d.status).toBe("pending")
+    expect(complete24Hours.within24h).toEqual({
+      eligibleOrders: 2,
+      linkedOrders: 2,
+      percent: 100,
+      status: "available",
+    })
+    expect(complete24Hours.within7d.status).toBe("maturing")
   })
 
   it("withholds a partial cohort until the exact half-open end is observed", () => {
@@ -152,9 +169,10 @@ describe("guest account linkage", () => {
       availability: "unavailable",
       cohortStatus: "unavailable",
       eligiblePaidGuestOrders: null,
-      currentlyLinkedOrders: null,
+      currentlyLinkedAtReadOrders: null,
+      currentlyUnlinkedAtReadOrders: null,
+      linkStateBasis: "current_profile_at_read",
       reason: "query_failed",
-      unlinkedAtCutoffOrders: null,
       verifiedBeforePaidAnomalies: null,
       within14d: { linkedOrders: null, status: "unavailable" },
       within24h: { linkedOrders: null, status: "unavailable" },

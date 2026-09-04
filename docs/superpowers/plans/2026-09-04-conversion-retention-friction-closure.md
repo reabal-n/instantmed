@@ -457,6 +457,7 @@ Show baseline, D+7, and D+14; counts and denominators must be visible. `degraded
 ```bash
 corepack pnpm tsx scripts/release-friction-readout.ts \
   --release-sha=99e25c8f9329bd66da009d68127199405b37cd07 \
+  --release-at=2026-09-05T01:02:03.456Z \
   --window=7d
 ```
 
@@ -625,7 +626,7 @@ git commit -m "feat(retention): measure refill reminder cohorts"
 - [ ] Run the receipt privacy assertion before committing. Receipt JSON may contain aggregate counts, percentages, timestamp boundaries, and SHA only.
 
 ```bash
-corepack pnpm tsx scripts/release-friction-readout.ts --release-sha=99e25c8f9329bd66da009d68127199405b37cd07 --window=14d --output=docs/superpowers/receipts/2026-09-18-friction-readout.json
+corepack pnpm tsx scripts/release-friction-readout.ts --release-sha=99e25c8f9329bd66da009d68127199405b37cd07 --release-at="$INSTANTMED_RELEASE_MEASUREMENT_AT" --window=14d --output=docs/superpowers/receipts/2026-09-18-friction-readout.json
 corepack pnpm doc:audit
 ```
 

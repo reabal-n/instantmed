@@ -44,6 +44,8 @@ export interface PostHogReleaseConversionSnapshot {
     medicationCompletedFlows: number | null
     medicationViewedFlows: number | null
     mobileCompletionPercent: number | null
+    mobileMedicationCompletedFlows: number | null
+    mobileMedicationViewedFlows: number | null
     serviceSteerFlows: number | null
     unresolvedValidationBlockedFlows: number | null
     validationBlockedFlows: number | null
@@ -54,6 +56,7 @@ export interface PostHogReleaseConversionSnapshot {
 interface BuildSnapshotInput extends ReleaseMeasurementWindow {
   coverageResults: unknown[][]
   flowResults: unknown[][]
+  parsedFlows?: ParsedFlow[]
 }
 
 interface ParsedFlow {
@@ -83,6 +86,12 @@ interface PostHogReleaseConversionDependencies {
   fetchImpl?: ReleaseConversionFetch
 }
 
+class SafePostHogReadError extends Error {
+  constructor(readonly reason: string) {
+    super(reason)
+  }
+}
+
 function assertValidWindow(window: ReleaseMeasurementWindow): void {
   const from = window.from.getTime()
   const to = window.to.getTime()
@@ -98,6 +107,8 @@ function nullableRepeatRx() {
     medicationCompletedFlows: null,
     medicationViewedFlows: null,
     mobileCompletionPercent: null,
+    mobileMedicationCompletedFlows: null,
+    mobileMedicationViewedFlows: null,
     serviceSteerFlows: null,
     unresolvedValidationBlockedFlows: null,
     validationBlockedFlows: null,
@@ -126,7 +137,11 @@ export function buildUnavailablePostHogReleaseConversionSnapshot(
 
 function parseTimestamp(value: unknown): number | null {
   if (typeof value !== "string" || !value) return null
-  const timestamp = Date.parse(value)
+  const clickHouse = /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})(?:\.(\d{1,9}))?$/.exec(value)
+  const normalized = clickHouse
+    ? `${clickHouse[1]}T${clickHouse[2]}.${(clickHouse[3] ?? "0").padEnd(3, "0").slice(0, 3)}Z`
+    : value
+  const timestamp = Date.parse(normalized)
   return Number.isFinite(timestamp) ? timestamp : null
 }
 
@@ -135,8 +150,12 @@ function observedAt(
   startedAt: number,
   asOf: number,
 ): number | null {
+  if (value === null) return null
   const timestamp = parseTimestamp(value)
-  return timestamp !== null && timestamp >= startedAt && timestamp <= asOf
+  if (timestamp === null) {
+    throw new SafePostHogReadError("posthog_malformed_response")
+  }
+  return timestamp >= startedAt && timestamp <= asOf
     ? timestamp
     : null
 }
@@ -151,7 +170,9 @@ function parseFlowRows(
   const flows = new Map<string, ParsedFlow>()
 
   for (const row of results) {
-    if (!Array.isArray(row)) continue
+    if (!Array.isArray(row) || row.length !== 11) {
+      throw new SafePostHogReadError("posthog_malformed_response")
+    }
     // PostHog also applies the v4 predicate. Re-validating here prevents a
     // malformed or unexpectedly transformed upstream row becoming a cohort ID.
     const flowInstanceId = normalizeFlowInstanceId(row[0])
@@ -161,11 +182,11 @@ function parseFlowRows(
       startedAt === null ||
       startedAt < from ||
       startedAt >= to ||
-      startedAt > asOf
+      startedAt > asOf ||
+      flows.has(flowInstanceId)
     ) {
-      continue
+      throw new SafePostHogReadError("posthog_malformed_response")
     }
-    if (flows.has(flowInstanceId)) continue
     flows.set(flowInstanceId, {
       checkoutInitiatedAt: observedAt(row[4], startedAt, asOf),
       clinicalHardBlockAt: observedAt(row[7], startedAt, asOf),
@@ -236,7 +257,8 @@ function parseCoverage(results: unknown[][]): {
 function validateFlowQueryEvidence(
   results: unknown[][],
   countResults: unknown[][],
-): void {
+  window: ReleaseMeasurementWindow,
+): ParsedFlow[] {
   if (results.length > MAX_POSTHOG_FLOW_ROWS) {
     throw new SafePostHogReadError("posthog_flow_cohort_truncated")
   }
@@ -253,17 +275,11 @@ function validateFlowQueryEvidence(
     throw new SafePostHogReadError("posthog_flow_cohort_truncated")
   }
 
-  const flowIds = new Set<string>()
-  for (const row of results) {
-    const flowId = normalizeFlowInstanceId(row?.[0])
-    if (!flowId) {
-      throw new SafePostHogReadError("posthog_malformed_response")
-    }
-    flowIds.add(flowId)
-  }
-  if (exact !== flowIds.size) {
+  const flows = parseFlowRows(results, window)
+  if (exact !== flows.length) {
     throw new SafePostHogReadError("posthog_flow_count_mismatch")
   }
+  return flows
 }
 
 function percent(numerator: number, denominator: number): number | null {
@@ -299,7 +315,7 @@ export function buildPostHogReleaseConversionSnapshot(
     )
   }
 
-  const flows = parseFlowRows(input.flowResults, input)
+  const flows = input.parsedFlows ?? parseFlowRows(input.flowResults, input)
   const medicationViewedFlows = flows.filter((flow) => flow.medicationViewedAt !== null).length
   const medicationCompletedFlows = flows.filter((flow) => flow.medicationCompletedAt !== null).length
   const mobileViewedFlows = flows.filter((flow) => flow.mobileMedicationViewedAt !== null).length
@@ -326,6 +342,8 @@ export function buildPostHogReleaseConversionSnapshot(
       medicationCompletedFlows,
       medicationViewedFlows,
       mobileCompletionPercent: percent(mobileCompletedFlows, mobileViewedFlows),
+      mobileMedicationCompletedFlows: mobileCompletedFlows,
+      mobileMedicationViewedFlows: mobileViewedFlows,
       serviceSteerFlows: flows.filter((flow) => flow.serviceSteerAt !== null).length,
       unresolvedValidationBlockedFlows,
       validationBlockedFlows,
@@ -335,7 +353,11 @@ export function buildPostHogReleaseConversionSnapshot(
 }
 
 function sqlDate(value: Date): string {
-  return value.toISOString().replace(/'/g, "''")
+  return value.toISOString().slice(0, -1).replace("T", " ").replace(/'/g, "''")
+}
+
+function utcDateTime64(value: string): string {
+  return `toDateTime64('${value}', 3, 'UTC')`
 }
 
 function buildQueries(window: ReleaseMeasurementWindow): {
@@ -358,6 +380,9 @@ function buildQueries(window: ReleaseMeasurementWindow): {
   const validFlow = `match(toString(properties.flow_instance_id), '${v4}')`
   const medicationEvent = "properties.service_type = 'prescription' AND properties.step_id = 'medication'"
   const shownBlock = "event = 'intake_validation_blocked' AND properties.resolution = 'shown'"
+  const fromUtc = utcDateTime64(from)
+  const toUtc = utcDateTime64(to)
+  const asOfUtc = utcDateTime64(asOf)
 
   return {
     coverage: `
@@ -366,18 +391,17 @@ function buildQueries(window: ReleaseMeasurementWindow): {
         count() AS raw_rows,
         countIf(${validFlow}) AS valid_v4_rows
       FROM events
-      WHERE timestamp >= toDateTime64('${from}', 3)
-        AND timestamp <= toDateTime64('${asOf}', 3)
+      WHERE timestamp >= ${fromUtc}
+        AND timestamp < ${toUtc}
         AND event IN (${eventFilter})
-        AND (event != 'intake_started' OR timestamp < toDateTime64('${to}', 3))
         AND (properties.is_e2e IS NULL OR properties.is_e2e != true)
       GROUP BY event
     `,
     flowCount: `
       SELECT uniqExact(toString(properties.flow_instance_id)) AS exact_started_flows
       FROM events
-      WHERE timestamp >= toDateTime64('${from}', 3)
-        AND timestamp < toDateTime64('${to}', 3)
+      WHERE timestamp >= ${fromUtc}
+        AND timestamp < ${toUtc}
         AND event = 'intake_started'
         AND ${validFlow}
         AND (properties.is_e2e IS NULL OR properties.is_e2e != true)
@@ -385,7 +409,7 @@ function buildQueries(window: ReleaseMeasurementWindow): {
     flows: `
       SELECT
         toString(properties.flow_instance_id) AS flow_instance_id,
-        minIf(timestamp, event = 'intake_started' AND timestamp >= toDateTime64('${from}', 3) AND timestamp < toDateTime64('${to}', 3)) AS started_at,
+        minIf(timestamp, event = 'intake_started' AND timestamp >= ${fromUtc} AND timestamp < ${toUtc}) AS started_at,
         minIf(timestamp, event = 'step_viewed' AND ${medicationEvent}) AS medication_viewed_at,
         maxIf(timestamp, event = 'step_completed' AND ${medicationEvent}) AS medication_completed_at,
         minIf(timestamp, event = 'checkout_initiated') AS checkout_initiated_at,
@@ -396,22 +420,16 @@ function buildQueries(window: ReleaseMeasurementWindow): {
         minIf(timestamp, event = 'step_viewed' AND ${medicationEvent} AND properties.$device_type = 'Mobile') AS mobile_medication_viewed_at,
         maxIf(timestamp, event = 'step_completed' AND ${medicationEvent} AND properties.$device_type = 'Mobile') AS mobile_medication_completed_at
       FROM events
-      WHERE timestamp >= toDateTime64('${from}', 3)
-        AND timestamp <= toDateTime64('${asOf}', 3)
+      WHERE timestamp >= ${fromUtc}
+        AND timestamp <= ${asOfUtc}
         AND event IN (${eventFilter})
         AND ${validFlow}
         AND (properties.is_e2e IS NULL OR properties.is_e2e != true)
       GROUP BY flow_instance_id
-      HAVING started_at >= toDateTime64('${from}', 3)
-        AND started_at < toDateTime64('${to}', 3)
+      HAVING started_at >= ${fromUtc}
+        AND started_at < ${toUtc}
       LIMIT ${POSTHOG_FLOW_OVERFLOW_SENTINEL}
     `,
-  }
-}
-
-class SafePostHogReadError extends Error {
-  constructor(readonly reason: string) {
-    super(reason)
   }
 }
 
@@ -503,16 +521,21 @@ export async function getPostHogReleaseConversionSnapshot(
         apiKey,
         fetchImpl,
         host,
-        name: "InstantMed release valid-v4 coverage",
+        name: "InstantMed release event-window valid-v4 coverage",
         projectId,
         query: queries.coverage,
       }),
     ])
-    validateFlowQueryEvidence(flowResults, flowCountResults)
+    const parsedFlows = validateFlowQueryEvidence(
+      flowResults,
+      flowCountResults,
+      window,
+    )
     return buildPostHogReleaseConversionSnapshot({
       ...window,
       coverageResults,
       flowResults,
+      parsedFlows,
     })
   } catch (error) {
     const reason = error instanceof SafePostHogReadError

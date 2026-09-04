@@ -295,6 +295,9 @@ describe("customer growth baseline", () => {
     expect(calls).toContainEqual(expect.objectContaining({ table: "stripe_refund_cash_movements" }))
     expect(calls).toContainEqual(expect.objectContaining({ table: "stripe_refund_ledger_health" }))
     expect(calls).toContainEqual(expect.objectContaining({ table: "stripe_disputes" }))
+    expect(calls.find(
+      ({ method, table }) => method === "select" && table === "intakes",
+    )?.args[0]).toContain("declined_at")
   })
 
   it("fails closed when exact refund evidence is incomplete", async () => {

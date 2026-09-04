@@ -5,6 +5,7 @@ import {
   buildReleaseMeasurementWindows,
   parseReleaseFrictionArgs,
   readReleaseFrictionPeriod,
+  RELEASE_FRICTION_USAGE,
   writeAggregateReceiptAtomic,
 } from "@/lib/admin/release-friction-readout"
 
@@ -18,8 +19,10 @@ function createAggregateReadClient(): SupabaseClient | null {
 }
 
 async function main(): Promise<void> {
-  const options = parseReleaseFrictionArgs(process.argv.slice(2))
   const generatedAt = new Date()
+  const options = parseReleaseFrictionArgs(process.argv.slice(2), {
+    now: generatedAt,
+  })
   const windows = buildReleaseMeasurementWindows({
     asOf: generatedAt,
     releaseAt: new Date(options.releaseAt),
@@ -53,5 +56,6 @@ async function main(): Promise<void> {
 
 void main().catch(() => {
   process.stderr.write("Release friction readout failed. Check arguments and source availability.\n")
+  process.stderr.write(`${RELEASE_FRICTION_USAGE}\n`)
   process.exitCode = 1
 })

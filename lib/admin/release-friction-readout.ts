@@ -26,6 +26,7 @@ import {
 import { getRecordedRefundCents } from "@/lib/data/net-retained-purchase-value"
 
 const DAY_MS = 24 * 60 * 60 * 1000
+const HOUR_MS = 60 * 60 * 1000
 const RELEASE_SHA_PATTERN = /^[0-9a-f]{40}$/i
 const STRICT_ISO_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 const EMAIL_VALUE_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i
@@ -55,6 +56,18 @@ const SENSITIVE_UPSTREAM_KEY = /^(?:payload|results|rows|raw.*|.*body)$/i
 
 export type ReleaseMeasurementWindowName = "7d" | "14d"
 
+export const RELEASE_FRICTION_USAGE =
+  "Usage: pnpm analytics:release-friction --release-sha=<40-hex-sha> --release-at=<canonical-utc-ready-time> --window=<7d|14d> [--support-contacts=<count>] [--output=<path>]"
+
+export interface ReleasePrescriptionCashSnapshot {
+  declinedOrders: number | null
+  declinesPer100Paid: number | null
+  paidOrders: number | null
+  refundedCents: number | null
+  refundedOrders: number | null
+  refundsPer100Paid: number | null
+}
+
 export interface ReleaseCashSnapshot {
   asOf: string
   availability: ReleaseEvidenceAvailability
@@ -64,7 +77,9 @@ export interface ReleaseCashSnapshot {
   from: string
   grossCents: number | null
   netCents: number | null
+  observationFollowUpHours: number | null
   paidOrders: number | null
+  prescription: ReleasePrescriptionCashSnapshot
   reason: string | null
   refundedCents: number | null
   refundedOrders: number | null
@@ -140,6 +155,17 @@ function rate(numerator: number, denominator: number): number | null {
     : Math.round((numerator / denominator) * 1_000) / 10
 }
 
+function unavailablePrescriptionCash(): ReleasePrescriptionCashSnapshot {
+  return {
+    declinedOrders: null,
+    declinesPer100Paid: null,
+    paidOrders: null,
+    refundedCents: null,
+    refundedOrders: null,
+    refundsPer100Paid: null,
+  }
+}
+
 export function buildUnavailableReleaseCashSnapshot(
   window: ReleaseMeasurementWindow,
   reason: string,
@@ -154,7 +180,9 @@ export function buildUnavailableReleaseCashSnapshot(
     from: window.from.toISOString(),
     grossCents: null,
     netCents: null,
+    observationFollowUpHours: null,
     paidOrders: null,
+    prescription: unavailablePrescriptionCash(),
     reason,
     refundedCents: null,
     refundedOrders: null,
@@ -175,6 +203,41 @@ function cohortIntakeIds(
       ? [row.id]
       : []
   }))
+}
+
+function prescriptionCohortIntakeIds(
+  evidence: CustomerGrowthRevenueEvidence,
+  intakeIds: ReadonlySet<string>,
+): Set<string> {
+  return new Set(evidence.paidRows.flatMap((row) =>
+    row.id && intakeIds.has(row.id) && row.category === "prescription"
+      ? [row.id]
+      : [],
+  ))
+}
+
+function countPrescriptionDeclines(
+  evidence: CustomerGrowthRevenueEvidence,
+  intakeIds: ReadonlySet<string>,
+  asOf: Date,
+): number {
+  const declined = new Set<string>()
+  const asOfMs = asOf.getTime()
+  for (const row of evidence.paidRows) {
+    if (!row.id || !intakeIds.has(row.id) || row.status !== "declined") continue
+    const declinedAt = Date.parse(row.declined_at ?? "")
+    if (!Number.isFinite(declinedAt)) {
+      throw new Error("Prescription decline evidence is incomplete")
+    }
+    if (declinedAt <= asOfMs) declined.add(row.id)
+  }
+  return declined.size
+}
+
+function followUpHours(window: ReleaseMeasurementWindow): number {
+  return Math.round(
+    (Math.max(window.asOf.getTime() - window.to.getTime(), 0) / HOUR_MS) * 10,
+  ) / 10
 }
 
 function countOutstandingRefundOrders(
@@ -248,7 +311,9 @@ export function buildReleaseCashSnapshot(
       from: window.from.toISOString(),
       grossCents: null,
       netCents: null,
+      observationFollowUpHours: null,
       paidOrders: null,
+      prescription: unavailablePrescriptionCash(),
       reason: "cohort_in_progress",
       refundedCents: null,
       refundedOrders: null,
@@ -264,6 +329,23 @@ export function buildReleaseCashSnapshot(
     window.asOf,
   )
   const refundedOrders = countOutstandingRefundOrders(evidence, intakeIds, window.asOf)
+  const prescriptionIds = prescriptionCohortIntakeIds(evidence, intakeIds)
+  const prescriptionCash = buildCustomerGrowthRevenueForIntakeIds(
+    evidence,
+    prescriptionIds,
+    window.from,
+    window.asOf,
+  )
+  const prescriptionDeclinedOrders = countPrescriptionDeclines(
+    evidence,
+    prescriptionIds,
+    window.asOf,
+  )
+  const prescriptionRefundedOrders = countOutstandingRefundOrders(
+    evidence,
+    prescriptionIds,
+    window.asOf,
+  )
   return {
     asOf: window.asOf.toISOString(),
     availability: "available",
@@ -273,7 +355,22 @@ export function buildReleaseCashSnapshot(
     from: window.from.toISOString(),
     grossCents: cash.grossCents,
     netCents: cash.netCents,
+    observationFollowUpHours: followUpHours(window),
     paidOrders: cash.orderCount,
+    prescription: {
+      declinedOrders: prescriptionDeclinedOrders,
+      declinesPer100Paid: rate(
+        prescriptionDeclinedOrders,
+        prescriptionCash.orderCount,
+      ),
+      paidOrders: prescriptionCash.orderCount,
+      refundedCents: prescriptionCash.refundCents,
+      refundedOrders: prescriptionRefundedOrders,
+      refundsPer100Paid: rate(
+        prescriptionRefundedOrders,
+        prescriptionCash.orderCount,
+      ),
+    },
     reason: null,
     refundedCents: cash.refundCents,
     refundedOrders,
@@ -377,16 +474,22 @@ export function buildReleaseMeasurementWindows(input: {
   if (!Number.isFinite(input.releaseAt.getTime()) || !Number.isFinite(input.asOf.getTime())) {
     throw new Error("Release timestamps are invalid")
   }
+  if (input.releaseAt.getTime() > input.asOf.getTime()) {
+    throw new Error("Release boundary cannot be in the future")
+  }
+  const releaseTo = input.releaseAt.getTime() + duration
+  const matchedFollowUp = Math.max(input.asOf.getTime() - releaseTo, 0)
+  const baselineAsOf = input.releaseAt.getTime() + matchedFollowUp
   return {
     baseline: {
-      asOf: input.asOf.toISOString(),
+      asOf: new Date(baselineAsOf).toISOString(),
       from: new Date(input.releaseAt.getTime() - duration).toISOString(),
       to: input.releaseAt.toISOString(),
     },
     release: {
       asOf: input.asOf.toISOString(),
       from: input.releaseAt.toISOString(),
-      to: new Date(input.releaseAt.getTime() + duration).toISOString(),
+      to: new Date(releaseTo).toISOString(),
     },
   }
 }
@@ -448,6 +551,12 @@ export async function getReleaseFrictionDashboardSnapshot(
       "release_boundary_not_configured",
     )
   }
+  if (release.releaseAt.getTime() > now.getTime()) {
+    return buildUnavailableReleaseFrictionDashboardSnapshot(
+      now,
+      "release_boundary_in_future",
+    )
+  }
 
   const dashboardWindows = buildReleaseDashboardWindows({
     asOf: now,
@@ -475,7 +584,10 @@ export async function getReleaseFrictionDashboardSnapshot(
   }
 }
 
-export function parseReleaseFrictionArgs(args: string[]): ReleaseFrictionCliOptions {
+export function parseReleaseFrictionArgs(
+  args: string[],
+  options: { now?: Date } = {},
+): ReleaseFrictionCliOptions {
   const values = new Map<string, string>()
   const allowed = new Set([
     "release-sha",
@@ -505,6 +617,13 @@ export function parseReleaseFrictionArgs(args: string[]): ReleaseFrictionCliOpti
     new Date(releaseAt).toISOString() !== releaseAt
   ) {
     throw new Error("--release-at must be a canonical ISO timestamp")
+  }
+  const now = options.now ?? new Date()
+  if (!Number.isFinite(now.getTime())) {
+    throw new Error("Current timestamp is invalid")
+  }
+  if (Date.parse(releaseAt) > now.getTime()) {
+    throw new Error("--release-at cannot be in the future")
   }
   if (window !== "7d" && window !== "14d") {
     throw new Error("--window must be 7d or 14d")
@@ -557,7 +676,7 @@ export function buildReleaseFrictionReceipt(input: ReceiptInput) {
       : availability === "degraded"
         ? "partial_or_degraded_evidence"
         : "no_usable_evidence",
-    schemaVersion: 1,
+    schemaVersion: 2,
     support: {
       asOf: input.generatedAt.toISOString(),
       availability: supportAvailable ? "available" as const : "unavailable" as const,
