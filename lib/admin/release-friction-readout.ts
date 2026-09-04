@@ -54,12 +54,12 @@ const SENSITIVE_PHI_KEY = /(?:email|phone|dob|dateofbirth|address|token)/i
 const SENSITIVE_MEDICAL_KEY = /^(?:allergies|clinicalnotes?|conditions|currentdose|currentmedications|dosageinstructions|medicationform|medicationname|medicationstrength|othermedications|symptoms)$/i
 const SENSITIVE_UPSTREAM_KEY = /^(?:payload|results|rows|raw.*|.*body)$/i
 
-export type ReleaseMeasurementWindowName = "7d" | "14d"
+type ReleaseMeasurementWindowName = "7d" | "14d"
 
 export const RELEASE_FRICTION_USAGE =
   "Usage: pnpm analytics:release-friction --release-sha=<40-hex-sha> --release-at=<canonical-utc-ready-time> --window=<7d|14d> [--support-contacts=<count>] [--output=<path>]"
 
-export interface ReleasePrescriptionCashSnapshot {
+interface ReleasePrescriptionCashSnapshot {
   declinedOrders: number | null
   declinesPer100Paid: number | null
   paidOrders: number | null
@@ -68,7 +68,7 @@ export interface ReleasePrescriptionCashSnapshot {
   refundsPer100Paid: number | null
 }
 
-export interface ReleaseCashSnapshot {
+interface ReleaseCashSnapshot {
   asOf: string
   availability: ReleaseEvidenceAvailability
   cohortStatus: "complete" | "in_progress" | "unavailable"
@@ -87,7 +87,7 @@ export interface ReleaseCashSnapshot {
   to: string
 }
 
-export interface ReleaseFrictionPeriodSnapshot {
+interface ReleaseFrictionPeriodSnapshot {
   availability: ReleaseEvidenceAvailability
   cash: ReleaseCashSnapshot
   guestLinkage: GuestAccountLinkageSnapshot
@@ -95,7 +95,7 @@ export interface ReleaseFrictionPeriodSnapshot {
   reason: string | null
 }
 
-export interface ReleaseFrictionDashboardPeriod extends ReleaseFrictionPeriodSnapshot {
+interface ReleaseFrictionDashboardPeriod extends ReleaseFrictionPeriodSnapshot {
   label: "Baseline · 7d" | "D+7" | "Baseline · 14d" | "D+14"
 }
 
@@ -108,7 +108,7 @@ export interface ReleaseFrictionDashboardSnapshot {
   releaseSha: string | null
 }
 
-export interface ReleaseFrictionCliOptions {
+interface ReleaseFrictionCliOptions {
   output?: string
   releaseAt: string
   releaseSha: string
@@ -166,7 +166,7 @@ function unavailablePrescriptionCash(): ReleasePrescriptionCashSnapshot {
   }
 }
 
-export function buildUnavailableReleaseCashSnapshot(
+function buildUnavailableReleaseCashSnapshot(
   window: ReleaseMeasurementWindow,
   reason: string,
 ): ReleaseCashSnapshot {
@@ -379,7 +379,7 @@ export function buildReleaseCashSnapshot(
   }
 }
 
-export async function readReleaseCashSnapshot(
+async function readReleaseCashSnapshot(
   supabase: SupabaseClient,
   window: ReleaseMeasurementWindow,
 ): Promise<ReleaseCashSnapshot> {
@@ -400,7 +400,7 @@ export async function readReleaseCashSnapshot(
   }
 }
 
-export function combineReleaseEvidenceAvailability(
+function combineReleaseEvidenceAvailability(
   sources: Array<{ availability: ReleaseEvidenceAvailability }>,
 ): ReleaseEvidenceAvailability {
   const usable = sources.filter((source) => source.availability !== "unavailable")

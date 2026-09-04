@@ -55,7 +55,7 @@ export interface PaidIntakeEvidence {
   signedWebhook: true
 }
 
-export interface HostedStripeCleanupScope {
+interface HostedStripeCleanupScope {
   column: string
   operator: "eq" | "in"
   values: string[]

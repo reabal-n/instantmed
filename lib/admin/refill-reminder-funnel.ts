@@ -10,13 +10,13 @@ const REFILL_REMINDER_FUNNEL_WINDOW_DAYS = 90
 const REFILL_REMINDER_CRON_MAX_DELAY_MS =
   CRITICAL_CRONS["refill-reminders"].maxDelayMinutes * 60 * 1000
 
-export type RefillReminderFunnelAvailability =
+type RefillReminderFunnelAvailability =
   | "available"
   | "degraded"
   | "unavailable"
-export type RefillReminderSchedulerEvidence = "healthy" | "missing" | "unavailable"
+type RefillReminderSchedulerEvidence = "healthy" | "missing" | "unavailable"
 
-export interface RefillReminderFunnelWave {
+interface RefillReminderFunnelWave {
   cohortStatus: "mature" | "maturing"
   delivered: number
   eligibleSentCohort: number | null

@@ -37,7 +37,7 @@ function markIntentionalNavigationToFlowDestination(
 }
 
 /** Clear the transition latch after the destination flow has mounted. */
-export function clearIntentionalNavigation(): void {
+function clearIntentionalNavigation(): void {
   intentionalNavigationInProgress = false
   pendingIntentionalFlowDestination = null
 }

@@ -11,13 +11,13 @@ export const GUIDE_FORBIDDEN_ACTIVE_SERVICE_ROOTS = Object.freeze(
 )
 
 /** Indexed head-term landing pages whose job includes service acquisition. */
-export const GUIDE_FORBIDDEN_SITEMAP_PILLAR_ROOTS = [
+const GUIDE_FORBIDDEN_SITEMAP_PILLAR_ROOTS = [
   "/online-doctor-australia",
   "/telehealth-australia",
 ] as const
 
 /** Indexed marketing hubs and SEO variants beyond the canonical service catalog. */
-export const GUIDE_FORBIDDEN_MARKETING_VARIANT_ROOTS = [
+const GUIDE_FORBIDDEN_MARKETING_VARIANT_ROOTS = [
   "/medical-certificate-online",
   "/online-prescriptions",
   "/pricing",
@@ -29,7 +29,7 @@ export const GUIDE_FORBIDDEN_MARKETING_VARIANT_ROOTS = [
 ] as const
 
 /** Indexed money pages and variants that live in the root sitemap's static group. */
-export const GUIDE_FORBIDDEN_SITEMAP_STATIC_ROOTS = Object.freeze([
+const GUIDE_FORBIDDEN_SITEMAP_STATIC_ROOTS = Object.freeze([
   ...new Set([
     ...GUIDE_FORBIDDEN_ACTIVE_SERVICE_ROOTS,
     ...GUIDE_FORBIDDEN_MARKETING_VARIANT_ROOTS,
@@ -37,10 +37,10 @@ export const GUIDE_FORBIDDEN_SITEMAP_STATIC_ROOTS = Object.freeze([
 ])
 
 /** Indexed acquisition hubs kept in the root sitemap's lower-priority service group. */
-export const GUIDE_FORBIDDEN_SITEMAP_SERVICE_ROOTS = ["/consult"] as const
+const GUIDE_FORBIDDEN_SITEMAP_SERVICE_ROOTS = ["/consult"] as const
 
 /** Repo-owned audience, location, comparison, and sales hubs that lead into conversion. */
-export const GUIDE_FORBIDDEN_ACQUISITION_HUB_ROOTS = [
+const GUIDE_FORBIDDEN_ACQUISITION_HUB_ROOTS = [
   "/locations",
   "/for",
   "/guides",
@@ -68,7 +68,7 @@ export const GUIDE_FORBIDDEN_REDIRECT_ALIAS_ROOTS = [
 ] as const
 
 /** Retired commercial-intent URLs remain acquisition destinations even while noindexed. */
-export const GUIDE_FORBIDDEN_COMMERCIAL_SEO_ROOTS = ["/intent"] as const
+const GUIDE_FORBIDDEN_COMMERCIAL_SEO_ROOTS = ["/intent"] as const
 
 export const GUIDE_FORBIDDEN_SITEMAP_ROOTS = Object.freeze([
   ...GUIDE_FORBIDDEN_SITEMAP_PILLAR_ROOTS,

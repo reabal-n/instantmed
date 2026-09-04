@@ -15,7 +15,7 @@ export const CHECKOUT_FAILURE_CODES = [
 ] as const
 
 export type CheckoutFailureCode = typeof CHECKOUT_FAILURE_CODES[number]
-export type CheckoutFailureTaxonomyVersion =
+type CheckoutFailureTaxonomyVersion =
   typeof CHECKOUT_FAILURE_TAXONOMY_VERSION
 
 const CATEGORY_BY_CODE: Record<CheckoutFailureCode, CheckoutFailureCategory> = {

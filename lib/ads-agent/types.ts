@@ -78,7 +78,7 @@ export interface AdsOperationalQueueSnapshot {
   services: AdsOperationalQueueServiceEvidence[]
 }
 
-export interface AdsOperationalSnapshot {
+interface AdsOperationalSnapshot {
   asOf: string
   holds: AdsOperationalHold[]
   manualEvidence: ManualGrowthHealthEvidence

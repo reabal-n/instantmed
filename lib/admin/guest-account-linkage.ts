@@ -9,7 +9,7 @@ const DAY_MS = 24 * 60 * 60 * 1000
 const MAX_GUEST_LINKAGE_ROWS = 5_000
 
 export type ReleaseEvidenceAvailability = "available" | "degraded" | "unavailable"
-export type LinkageHorizonStatus = "available" | "maturing" | "pending" | "unavailable"
+type LinkageHorizonStatus = "available" | "maturing" | "pending" | "unavailable"
 
 export interface ReleaseMeasurementWindow {
   asOf: Date
@@ -32,7 +32,7 @@ export interface GuestAccountLinkageReadRow {
     | null
 }
 
-export interface GuestLinkageHorizon {
+interface GuestLinkageHorizon {
   eligibleOrders: number | null
   linkedOrders: number | null
   percent: number | null

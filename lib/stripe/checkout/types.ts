@@ -54,7 +54,7 @@ export interface CreateCheckoutInput {
   patientEmail?: string
 }
 
-export interface CheckoutSuccessResult {
+interface CheckoutSuccessResult {
   success: true
   checkoutUrl: string
   error?: undefined

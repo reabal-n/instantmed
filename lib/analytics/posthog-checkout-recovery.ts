@@ -35,7 +35,7 @@ const CHECKOUT_FAILURE_CATEGORIES = [
 const CATEGORY_SET = new Set<string>(CHECKOUT_FAILURE_CATEGORIES)
 const CODE_SET = new Set<string>(CHECKOUT_FAILURE_CODES)
 
-export type CheckoutRecoveryAvailability =
+type CheckoutRecoveryAvailability =
   | "available"
   | "degraded"
   | "unavailable"
@@ -67,7 +67,7 @@ export interface CheckoutRecoveryRow {
   recovery7dPercent: number | null
 }
 
-export interface CheckoutRecoveryWindowSnapshot {
+interface CheckoutRecoveryWindowSnapshot {
   asOf: string
   availability: Exclude<CheckoutRecoveryAvailability, "unavailable">
   days: 7 | 30
