@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   captureException: vi.fn(),
   completeConfirmedPaymentWork: vi.fn(),
   createServiceRoleClient: vi.fn(),
+  finalizeConfirmedCheckoutPayment: vi.fn(),
   generateDraftsForIntake: vi.fn(),
   logger: {
     error: vi.fn(),
@@ -50,9 +51,14 @@ vi.mock("@/lib/stripe/confirmed-payment-finalization", async () => {
     typeof import("@/lib/stripe/confirmed-payment-finalization")
   >("@/lib/stripe/confirmed-payment-finalization")
 
+  mocks.finalizeConfirmedCheckoutPayment.mockImplementation(
+    actual.finalizeConfirmedCheckoutPayment,
+  )
+
   return {
     ...actual,
     completeConfirmedPaymentWork: mocks.completeConfirmedPaymentWork,
+    finalizeConfirmedCheckoutPayment: mocks.finalizeConfirmedCheckoutPayment,
   }
 })
 
@@ -66,7 +72,7 @@ vi.mock("@sentry/nextjs", () => ({
 
 import { POST } from "@/app/api/stripe/reconcile-guest-payment/route"
 
-function makeRequest(body: Record<string, unknown>) {
+function makeRequest(body: unknown) {
   return new NextRequest("http://localhost/api/stripe/reconcile-guest-payment", {
     method: "POST",
     body: JSON.stringify(body),
@@ -166,6 +172,18 @@ describe("POST /api/stripe/reconcile-guest-payment", () => {
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
   })
 
+  it.each([null, [], { intakeId: {}, sessionId: [] }])(
+    "rejects invalid JSON body %j without reporting an internal failure",
+    async (body) => {
+      const response = await POST(makeRequest(body))
+
+      expect(response.status).toBe(400)
+      expect(mocks.captureException).not.toHaveBeenCalled()
+      expect(mocks.logger.error).not.toHaveBeenCalled()
+      expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+    },
+  )
+
   it("does not retrieve Stripe when the supplied Session is not current", async () => {
     setupSupabase()
 
@@ -239,7 +257,7 @@ describe("POST /api/stripe/reconcile-guest-payment", () => {
     expect(updates).toHaveLength(0)
   })
 
-  it("restarts idempotent review work when the exact request is already paid", async () => {
+  it("accepts an exact request already settled by the webhook without racing completion work", async () => {
     setupSupabase({
       intake: {
         id: INTAKE_ID,
@@ -255,9 +273,39 @@ describe("POST /api/stripe/reconcile-guest-payment", () => {
 
     expect(response.status).toBe(200)
     expect(mocks.retrieveCheckoutSession).not.toHaveBeenCalled()
-    expect(mocks.startPostPaymentReviewWork).toHaveBeenCalledWith(expect.objectContaining({
-      intakeId: INTAKE_ID,
-      serviceCategory: "medical_certificate",
-    }))
+    expect(mocks.finalizeConfirmedCheckoutPayment).not.toHaveBeenCalled()
+    expect(mocks.completeConfirmedPaymentWork).not.toHaveBeenCalled()
+    expect(mocks.startPostPaymentReviewWork).not.toHaveBeenCalled()
+    expect(mocks.generateDraftsForIntake).not.toHaveBeenCalled()
   })
+
+  it.each(["refunded", "partially_refunded", "disputed"])(
+    "accepts an exact-current %s request without restarting payment or draft work",
+    async (paymentStatus) => {
+      setupSupabase({
+        intake: {
+          id: INTAKE_ID,
+          category: "medical_certificate",
+          patient_id: "profile-1",
+          payment_id: SESSION_ID,
+          payment_status: paymentStatus,
+          status: paymentStatus === "refunded" ? "declined" : "in_review",
+        },
+      })
+
+      const response = await POST(makeRequest({ intakeId: INTAKE_ID, sessionId: SESSION_ID }))
+
+      expect(response.status).toBe(200)
+      expect(await response.json()).toEqual({
+        already_paid: true,
+        status: "paid",
+        success: true,
+      })
+      expect(mocks.retrieveCheckoutSession).not.toHaveBeenCalled()
+      expect(mocks.finalizeConfirmedCheckoutPayment).not.toHaveBeenCalled()
+      expect(mocks.completeConfirmedPaymentWork).not.toHaveBeenCalled()
+      expect(mocks.startPostPaymentReviewWork).not.toHaveBeenCalled()
+      expect(mocks.generateDraftsForIntake).not.toHaveBeenCalled()
+    },
+  )
 })

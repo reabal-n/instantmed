@@ -3,7 +3,11 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
 import { IntakeFlagsBadge, IntakeFlagsPanel } from "@/components/doctor/intake-flags-panel"
-import { makeIntakeFlag, parseIntakeFlags } from "@/lib/clinical/intake-flags"
+import {
+  makeEngineSoftFlag,
+  makeIntakeFlag,
+  parseIntakeFlags,
+} from "@/lib/clinical/intake-flags"
 
 const render = (element: React.ReactElement) => renderToStaticMarkup(element)
 
@@ -54,6 +58,17 @@ describe("IntakeFlagsBadge (queue/ledger row)", () => {
     expect(render(<IntakeFlagsBadge flags={[makeIntakeFlag("medication_form_missing")]} />)).toBe("")
     expect(render(<IntakeFlagsBadge flags={[makeIntakeFlag("medication_count_high")]} />)).toBe("")
     expect(render(<IntakeFlagsBadge flags={[]} />)).toBe("")
+  })
+
+  it("shows engine soft flags as quiet review context without risk language", () => {
+    const html = render(
+      <IntakeFlagsBadge flags={[makeEngineSoftFlag("panic_co_symptom")]} compact />,
+    )
+
+    expect(html).toContain("Review context")
+    expect(html).toContain("bg-slate-400")
+    expect(html).not.toContain("bg-amber-500")
+    expect(html).not.toMatch(/risk/i)
   })
 })
 

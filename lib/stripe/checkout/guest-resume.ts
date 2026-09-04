@@ -16,7 +16,10 @@ import {
 } from "@/lib/stripe/canonical-payment-recovery"
 import { buildGuestCheckoutCancelUrl } from "@/lib/stripe/checkout-recovery-link"
 import { getPriceIdForRequest, stripe } from "@/lib/stripe/client"
-import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
+import {
+  canRetryPaymentForIntake,
+  isTerminalPaidPaymentStatus,
+} from "@/lib/stripe/payment-integrity"
 import {
   isHighStakesPaymentLock,
   isMissingSafetyInformationPaymentLock,
@@ -155,7 +158,7 @@ async function resolveChangedHighStakesPayment(
   }
 
   const intake = refreshed.intake
-  if (intake.payment_status === "paid") {
+  if (isTerminalPaidPaymentStatus(intake.payment_status)) {
     return accountCompletionDestination(intake.id, intake.payment_id)
   }
 
@@ -323,7 +326,7 @@ export async function resolveGuestCheckoutResume(
   if (!initial.intake) return "/request?error=not_found"
 
   const intake = initial.intake
-  if (intake.payment_status === "paid") {
+  if (isTerminalPaidPaymentStatus(intake.payment_status)) {
     return accountCompletionDestination(intake.id, intake.payment_id)
   }
 

@@ -1,3 +1,5 @@
+import { isTerminalPaidPaymentStatus } from "@/lib/stripe/payment-integrity"
+
 import { inspectCheckoutSession } from "./checkout-session-safety"
 
 export interface CheckoutReturnPaymentState {
@@ -20,7 +22,7 @@ export async function reconcileChangedCheckoutSessionForReturn({
 }): Promise<ChangedCheckoutSessionReturnResult> {
   if (!state?.payment_id) return { outcome: "not_payable" }
 
-  if (state.payment_status === "paid" || state.status === "paid") {
+  if (isTerminalPaidPaymentStatus(state.payment_status) || state.status === "paid") {
     return { outcome: "payment_in_flight", sessionId: state.payment_id }
   }
 

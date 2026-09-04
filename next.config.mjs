@@ -622,12 +622,14 @@ const nextConfig = {
       },
       // Guest checkout recovery URLs carry a signed bearer. GET renders a
       // scanner-safe confirmation only; keep both it and the explicit action
-      // outside caches, referrers, and search indexes.
+      // outside caches, bearer-bearing referrers, and search indexes. The
+      // native server-action POST needs a valid Origin header, so strict-origin
+      // keeps only the origin while withholding the signed path and query.
       {
         source: "/resume/:path*",
         headers: [
           { key: "Cache-Control", value: "private, no-store, max-age=0" },
-          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Referrer-Policy", value: "strict-origin" },
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },

@@ -8,6 +8,8 @@ import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
 import { inspectCheckoutSession } from "@/lib/stripe/checkout/checkout-session-safety"
 import {
   type CompleteAccountPaymentState,
+  isTerminalPaidPaymentStatus,
+  requiresCompleteAccountPaymentReconciliation,
   resolveCompleteAccountPaymentState,
 } from "@/lib/stripe/payment-integrity"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -65,8 +67,11 @@ export default async function CompleteAccountPage({
 
       const sessionMatches =
         !!sessionId && !!intake?.payment_id && intake.payment_id === sessionId
+      const intakePaymentIsTerminalPaid = isTerminalPaidPaymentStatus(
+        intake?.payment_status,
+      )
       const inspection =
-        sessionMatches && intake?.payment_status !== "paid" && sessionId && intake?.payment_id
+        sessionMatches && !intakePaymentIsTerminalPaid && sessionId && intake?.payment_id
           ? await inspectCheckoutSession(sessionId, intakeId, {
               intakeStatus: intake.status,
               paymentStatus: intake.payment_status,
@@ -82,11 +87,11 @@ export default async function CompleteAccountPage({
       // request into the clinical queue. Keep success UI gated on persisted
       // payment truth; the client invokes the exact-current POST fallback and
       // refreshes only after the guarded transition succeeds.
-      requiresPaymentReconciliation = Boolean(
-        sessionMatches &&
-        intake?.payment_status !== "paid" &&
-        inspection?.state === "paid",
-      )
+      requiresPaymentReconciliation = requiresCompleteAccountPaymentReconciliation({
+        intakePaymentStatus: intake?.payment_status,
+        sessionMatches,
+        sessionState: inspection?.state ?? null,
+      })
       paymentState = requiresPaymentReconciliation
         ? "processing"
         : resolvedPaymentState

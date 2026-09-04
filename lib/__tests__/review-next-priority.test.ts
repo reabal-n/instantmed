@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { makeIntakeFlag } from "@/lib/clinical/intake-flags"
+import { makeEngineSoftFlag, makeIntakeFlag } from "@/lib/clinical/intake-flags"
 import {
   hasQueueRiskBadge,
   sortForReviewNext,
@@ -64,7 +64,10 @@ describe("review next priority", () => {
 
   it("keeps follow-up and live-consult work prioritized without labeling it high risk", () => {
     expect(receivesRiskPriority(intake({ flagged_for_followup: true }))).toBe(true)
-    expect(receivesRiskPriority(intake({ requires_live_consult: true }))).toBe(true)
+
+    const needsCall = intake({ risk_tier: "moderate", requires_live_consult: true })
+    expect(receivesRiskPriority(needsCall)).toBe(true)
+    expect(hasQueueRiskBadge(needsCall)).toBe(false)
   })
 
   it("keeps malformed persisted flags in the established review-order bucket without showing a badge", () => {
@@ -94,6 +97,19 @@ describe("review next priority", () => {
     expect(receivesRiskPriority(infoOnly)).toBe(false)
     expect(sortForReviewNext([infoOnly, attention, ordinary]).map((row) => row.id))
       .toEqual(["attention", "ordinary", "info-only"])
+  })
+
+  it("prioritizes med-cert engine context without labeling routine info as risk", () => {
+    const engineContext = intake({
+      risk_flags: [makeEngineSoftFlag("panic_co_symptom")],
+    })
+    const optionalForm = intake({
+      risk_flags: [makeIntakeFlag("medication_form_missing")],
+    })
+
+    expect(receivesRiskPriority(engineContext)).toBe(true)
+    expect(hasQueueRiskBadge(engineContext)).toBe(false)
+    expect(receivesRiskPriority(optionalForm)).toBe(false)
   })
 
   it("does not prioritize a legacy optional-form flag stored with attention severity", () => {

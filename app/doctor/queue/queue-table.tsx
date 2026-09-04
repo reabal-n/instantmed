@@ -11,7 +11,6 @@ import {
   Loader2,
   MessageSquare,
   RotateCw,
-  ShieldAlert,
   Sparkles,
   Zap,
 } from "lucide-react"
@@ -24,6 +23,7 @@ import { toast } from "sonner"
 import { quickPrescribeRenewalAction } from "@/app/doctor/queue/actions"
 import { IntakeFlagsBadge } from "@/components/doctor/intake-flags-panel"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
+import { QueueClinicalStatusBadges } from "@/components/doctor/queue-clinical-status-badges"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -455,12 +455,10 @@ export function QueueTable({
                       <Zap className="w-3 h-3 mr-1" />Priority
                     </Badge>
                   )}
-                  {hasClinicalRisk(intake) && (
-                    <Badge className="bg-destructive/10 text-destructive border-destructive/20">
-                      <ShieldAlert className="w-3 h-3 mr-1" />
-                      High risk
-                    </Badge>
-                  )}
+                  <QueueClinicalStatusBadges
+                    hasClinicalRisk={hasClinicalRisk(intake)}
+                    requiresLiveConsult={intake.requires_live_consult === true}
+                  />
                   {!compactShell && intake.ai_draft_status === "completed" && (
                     <Badge className="bg-info-light text-info border-info-border">
                       <Sparkles className="w-3 h-3 mr-1" />AI ready
@@ -520,14 +518,15 @@ export function QueueTable({
                         : `Reviewing: ${claimantName ?? "Another doctor"}`}
                     </Badge>
                   )}
-                  {claimedByMe && !compactShell && (
+                  {claimedByMe && (
                     <Badge
                       variant="outline"
                       className="border-primary/30 bg-primary/10 text-xs text-primary"
                       title="You're holding the review claim on this case."
+                      aria-label="Reviewing: you. You hold the active review claim on this case."
                       data-queue-status-chip
                     >
-                      <Eye className="h-3 w-3 mr-1" />
+                      <Eye className="h-3 w-3 mr-1" aria-hidden="true" />
                       Reviewing: you
                     </Badge>
                   )}

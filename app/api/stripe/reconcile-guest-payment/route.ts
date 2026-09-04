@@ -9,8 +9,11 @@ import {
   completeConfirmedPaymentWork,
   finalizeConfirmedCheckoutPayment,
 } from "@/lib/stripe/confirmed-payment-finalization"
-import { validateCheckoutSessionIntakeMatch } from "@/lib/stripe/payment-integrity"
-import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
+import {
+  isPaymentReferenceRequestBody,
+  isTerminalPaidPaymentStatus,
+  validateCheckoutSessionIntakeMatch,
+} from "@/lib/stripe/payment-integrity"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("stripe-reconcile-guest-payment")
@@ -34,10 +37,13 @@ export async function POST(request: NextRequest) {
   if (rateLimitResponse) return rateLimitResponse
 
   try {
-    let body: { intakeId?: unknown; sessionId?: unknown }
+    let body: unknown
     try {
-      body = await request.json() as { intakeId?: unknown; sessionId?: unknown }
+      body = await request.json()
     } catch {
+      return NextResponse.json({ error: "Invalid payment reference" }, { status: 400 })
+    }
+    if (!isPaymentReferenceRequestBody(body)) {
       return NextResponse.json({ error: "Invalid payment reference" }, { status: 400 })
     }
     const intakeId = typeof body.intakeId === "string" ? body.intakeId : ""
@@ -62,14 +68,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (intake.payment_status === "paid") {
-      await startPostPaymentReviewWork({
-        generateDraftsForIntake,
-        intakeId,
-        schedule: (task) => after(task),
-        serviceCategory: intake.category,
-        supabase,
-      })
+    if (isTerminalPaidPaymentStatus(intake.payment_status)) {
+      // The webhook has already won the paid transition and owns completion
+      // work. Starting drafts here would race that same post-payment pass.
       return NextResponse.json({ success: true, status: "paid", already_paid: true })
     }
 

@@ -13,6 +13,7 @@ import { Heading } from "@/components/ui/heading"
 import { buildCompleteAccountPostSignInHref } from "@/lib/auth/complete-account-handoff"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { REQUEST_CONFIRMED_HREF } from "@/lib/dashboard/routes"
+import { rememberMagicLinkRecoveryEmail } from "@/lib/navigation/auth-handoff"
 import { clearDraftAfterPayment } from "@/lib/request/draft-storage"
 import type { CompleteAccountPaymentState } from "@/lib/stripe/payment-integrity"
 import { useAuth } from "@/lib/supabase/auth-provider"
@@ -151,8 +152,9 @@ export function CompleteAccountForm({
       const supabase = createClient()
       const callbackUrl = new URL("/auth/callback", window.location.origin)
       callbackUrl.searchParams.set("next", postSignInHref)
+      const normalizedEmail = email.trim().toLowerCase()
       const { error: authError } = await supabase.auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         options: {
           emailRedirectTo: callbackUrl.toString(),
           shouldCreateUser: true,
@@ -169,6 +171,16 @@ export function CompleteAccountForm({
         return
       }
 
+      try {
+        rememberMagicLinkRecoveryEmail(
+          window.sessionStorage,
+          normalizedEmail,
+          postSignInHref,
+        )
+      } catch {
+        // Some privacy modes block access to sessionStorage. The sign-in link
+        // was still sent, so recovery prefill remains best effort.
+      }
       setAccountLinkState("sent")
     } catch {
       setAccountLinkError(

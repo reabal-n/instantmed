@@ -56,6 +56,10 @@ const queueTableSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/queue-table.tsx"),
   "utf8",
 )
+const queueClinicalStatusBadgesSource = readFileSync(
+  join(process.cwd(), "components/doctor/queue-clinical-status-badges.tsx"),
+  "utf8",
+)
 const queueUtilsSource = readFileSync(
   join(process.cwd(), "lib/doctor/queue-utils.ts"),
   "utf8",
@@ -407,9 +411,10 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).not.toContain("compactQueueReason")
   })
 
-  it("hides a doctor's own compact claim chip without hiding another doctor's claim", () => {
+  it("shows both the current doctor's and another doctor's active review claims", () => {
     expect(queueTableSource).toContain("{claimedByOther && (")
-    expect(queueTableSource).toContain("{claimedByMe && !compactShell && (")
+    expect(queueTableSource).toContain("{claimedByMe && (")
+    expect(queueTableSource).not.toContain("{claimedByMe && !compactShell && (")
     expect(queueTableSource).toContain("Reviewing: you")
   })
 
@@ -446,7 +451,9 @@ describe("doctor queue production contract", () => {
     expect(queueClientSource).toContain("hasQueueRiskBadge")
     expect(queueClientSource).not.toContain("hasReviewNextRisk")
     expect(queueTableSource).toContain("hasClinicalRisk(intake)")
-    expect(queueTableSource).toContain("High risk")
+    expect(queueClinicalStatusBadgesSource).toContain("High risk")
+    expect(queueClinicalStatusBadgesSource).toContain("Needs call")
+    expect(queueTableSource).toContain("requiresLiveConsult={intake.requires_live_consult === true}")
     expect(queueTableSource).toContain("compact={compactShell}")
   })
 

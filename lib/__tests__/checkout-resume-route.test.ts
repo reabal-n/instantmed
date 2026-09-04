@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
+import { renderToStaticMarkup } from "react-dom/server"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
@@ -9,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   verifyCheckoutResumeToken: vi.fn(),
   verifyRecoveryEmailEngagementToken: vi.fn(),
 }))
+
+const nextConfigSource = readFileSync(join(process.cwd(), "next.config.mjs"), "utf8")
 
 vi.mock("next/navigation", () => ({
   redirect: mocks.redirect,
@@ -33,11 +36,6 @@ import ResumeCheckoutPage, {
   revalidate,
 } from "@/app/resume/[token]/page"
 
-const pageSource = readFileSync(
-  join(process.cwd(), "app/resume/[token]/page.tsx"),
-  "utf8",
-)
-
 describe("signed checkout resume interstitial", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -58,17 +56,22 @@ describe("signed checkout resume interstitial", () => {
       searchParams: Promise.resolve({ recovery_proof: "signed-recovery-proof" }),
     })
 
-    expect(page).toBeTruthy()
+    const html = renderToStaticMarkup(page)
+
     expect(dynamic).toBe("force-dynamic")
     expect(revalidate).toBe(0)
     expect(metadata.robots).toEqual({ index: false, follow: false })
-    expect(metadata.referrer).toBe("no-referrer")
+    expect(metadata.referrer).toBe("strict-origin")
+    expect(nextConfigSource).toMatch(
+      /source: "\/resume\/:path\*"[\s\S]*?Referrer-Policy", value: "strict-origin"/,
+    )
     expect(mocks.verifyCheckoutResumeToken).toHaveBeenCalledWith("valid-token")
     expect(mocks.verifyRecoveryEmailEngagementToken).not.toHaveBeenCalled()
     expect(mocks.resolveGuestCheckoutResume).not.toHaveBeenCalled()
-    expect(pageSource).toContain("continueGuestCheckoutResume.bind")
-    expect(pageSource).toContain("<form action={continueAction}")
-    expect(pageSource).toContain("Continue to secure payment")
+    expect(html).toContain("Continue your saved request")
+    expect(html).toContain("Your request stays unchanged until you choose to continue")
+    expect(html).toContain("<form")
+    expect(html).toContain("Continue to secure payment")
     expect(existsSync(join(process.cwd(), "app/resume/[token]/route.ts"))).toBe(false)
   })
 

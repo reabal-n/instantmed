@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: "Continue to secure payment | InstantMed",
   description: "Continue an InstantMed request to secure payment.",
   robots: { index: false, follow: false },
-  referrer: "no-referrer",
+  referrer: "strict-origin",
 }
 
 export default async function ResumeCheckoutPage({

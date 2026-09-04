@@ -16,12 +16,15 @@ function hasReviewNextRisk(intake: IntakeWithPatient): boolean {
   if (intake.flagged_for_followup) return true
   if (hasQueueRiskBadge(intake)) return true
   // Queue chrome and review order are separate concerns. Valid attention
-  // flags stay ahead; info-only context (for example an omitted optional
-  // medication form) follows ordinary queue age. Malformed legacy data stays
-  // conservative until a clinician has seen it.
+  // flags and med-cert engine context stay ahead; routine info-only context
+  // (for example an omitted optional medication form) follows ordinary queue
+  // age. Malformed legacy data stays conservative until a clinician has seen it.
   if (Array.isArray(intake.risk_flags) && intake.risk_flags.length > 0) {
     const parsedFlags = parseIntakeFlags(intake.risk_flags)
     if (attentionFlags(parsedFlags).length > 0) return true
+    if (parsedFlags.some((flag) => (
+      flag.source === "auto_approval" && flag.severity === "info"
+    ))) return true
     if (parsedFlags.length !== intake.risk_flags.length) return true
   }
   if (intake.risk_score >= 7) return true

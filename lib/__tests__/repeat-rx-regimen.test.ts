@@ -43,6 +43,15 @@ describe("repeat-Rx regimen editing", () => {
     "10 mg with food",
     "Apply twice daily",
     "2 times daily",
+    "Take 2 times daily",
+    "Take two times a day",
+    "Take 3 times weekly",
+    "6 hourly",
+    "6-hourly",
+    "8 hourly as needed",
+    "8-hourly as needed",
+    "Take 6 hourly",
+    "Take 6-hourly",
     "As previously prescribed",
   ])("rejects a regimen missing amount or frequency: %s", (value) => {
     expect(hasCompleteRepeatRxRegimen(value)).toBe(false)

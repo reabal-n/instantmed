@@ -459,6 +459,7 @@ describe("project docs drift contract", () => {
 
     expect(architecture).toContain(`### \`app/\` — ${appFiles.length} files, ${routeFiles.length} route files`)
     expect(architecture).toContain(`| \`app/api/\` | API routes (${apiRoutes.length} route files) |`)
+    expect(architecture).toContain(`| **Cron** (${cronRoutes.length}) | \`/api/cron/*\` |`)
     expect(architecture).toContain(
       `| \`e2e/\` | ${e2eTypeScriptFiles.length} TypeScript files, including ${e2eSpecs.length} specs`,
     )

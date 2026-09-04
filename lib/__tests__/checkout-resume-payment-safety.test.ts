@@ -383,6 +383,28 @@ describe("signed guest checkout resume payment safety", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
+  it.each(["refunded", "partially_refunded", "disputed"])(
+    "routes terminal payment status %s to account completion without reopening checkout",
+    async (paymentStatus) => {
+      const { supabase, updateRecords } = createResumeSupabaseMock({
+        payment_status: paymentStatus,
+        status: paymentStatus === "refunded" ? "declined" : "in_review",
+      })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+      const destination = await resolveGuestCheckoutResume("intake-1")
+
+      expect(destination).toBe(
+        "/auth/complete-account?intake_id=intake-1&session_id=cs_previous",
+      )
+      expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(updateRecords).toHaveLength(0)
+    },
+  )
+
   it("returns the existing open Checkout Session for a safe persisted request", async () => {
     const { supabase, updateRecords } = createResumeSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)

@@ -42,19 +42,11 @@ interface MedicalHistoryStepProps {
 export function buildNoneApplyMedicalHistoryAnswers(requiresMedicationSafety: boolean) {
   const sharedAnswers = {
     hasAllergies: false,
-    has_allergies: false,
     allergies: "",
-    known_allergies: "",
     hasConditions: false,
-    has_conditions: false,
     conditions: "",
-    existing_conditions: "",
     hasOtherMedications: false,
-    has_other_medications: false,
-    takes_medications: false,
     otherMedications: "",
-    other_medications: "",
-    current_medications: "",
   }
 
   if (!requiresMedicationSafety) return sharedAnswers
@@ -62,9 +54,7 @@ export function buildNoneApplyMedicalHistoryAnswers(requiresMedicationSafety: bo
   return {
     ...sharedAnswers,
     hasAdverseMedicationReactions: false,
-    has_adverse_medication_reactions: false,
     isPregnantOrBreastfeeding: false,
-    is_pregnant_or_breastfeeding: false,
   }
 }
 

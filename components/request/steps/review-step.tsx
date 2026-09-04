@@ -1186,11 +1186,15 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
                   <a
                     href={`/sign-in?redirect_url=${encodeURIComponent('/request' + window.location.search)}`}
                     onClick={() => {
-                      rememberSignInEmailHandoff(
-                        sessionStorage,
-                        getIdentity().email || "",
-                        `/request${window.location.search}`,
-                      )
+                      try {
+                        rememberSignInEmailHandoff(
+                          window.sessionStorage,
+                          getIdentity().email || "",
+                          `/request${window.location.search}`,
+                        )
+                      } catch {
+                        // A blocked storage API must never block sign-in.
+                      }
                     }}
                     className="underline font-medium hover:opacity-80"
                   >

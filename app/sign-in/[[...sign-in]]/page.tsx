@@ -202,7 +202,12 @@ function SignInForm() {
     setEmailLinkSent(true)
     setLastMagicLinkSentAt(Date.now())
     setEmailLinkErrorMessage('')
-    rememberMagicLinkRecoveryEmail(sessionStorage, trimmed, redirectUrl)
+    try {
+      rememberMagicLinkRecoveryEmail(window.sessionStorage, trimmed, redirectUrl)
+    } catch {
+      // Storage may be blocked by the browser. The email was still sent, so
+      // recovery prefill remains a best-effort convenience rather than a gate.
+    }
     setEmailLinkLoading(false)
   }, [email, lastMagicLinkSentAt, redirectUrl, supabase.auth])
 

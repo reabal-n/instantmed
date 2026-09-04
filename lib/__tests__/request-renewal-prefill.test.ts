@@ -102,7 +102,7 @@ describe("request prefill", () => {
       medicationStrength: "20 mg",
       dosageInstructions: "Take one tablet at night",
       issuedDate: "2026-07-10",
-    }, new Date("2026-09-04T00:00:00.000Z"))
+    }, new Date(2026, 8, 4, 12))
 
     expect(answers).toEqual({
       medications: [{ name: "Atorvastatin", strength: "20 mg", pbsCode: "MANUAL" }],
@@ -127,7 +127,7 @@ describe("request prefill", () => {
       medicationStrength: null,
       dosageInstructions: null,
       issuedDate: "2025-08-01",
-    }, new Date("2026-09-04T00:00:00.000Z"))).toEqual({
+    }, new Date(2026, 8, 4, 12))).toEqual({
       medications: [{ name: "Sertraline 100 mg", pbsCode: "MANUAL" }],
       medicationName: "Sertraline 100 mg",
       pbsCode: "MANUAL",
@@ -158,14 +158,28 @@ describe("request prefill", () => {
     expect(buildPrescriptionRenewalPrefillAnswers({
       ...seed,
       issuedDate: "2025-09-04",
-    }, new Date("2026-09-04T00:00:00.000Z"))).toMatchObject({
+    }, new Date(2026, 8, 4, 12))).toMatchObject({
       prescriptionHistory: "within_12_months",
     })
     expect(buildPrescriptionRenewalPrefillAnswers({
       ...seed,
       issuedDate: "2025-09-03",
-    }, new Date("2026-09-04T00:00:00.000Z"))).toMatchObject({
+    }, new Date(2026, 8, 4, 12))).toMatchObject({
       prescriptionHistory: "over_12_months",
+    })
+  })
+
+  it("does not derive prescription history from a future issued date", () => {
+    expect(buildPrescriptionRenewalPrefillAnswers({
+      medicationName: "Sertraline",
+      medicationStrength: null,
+      dosageInstructions: null,
+      issuedDate: "2026-09-05",
+    }, new Date(2026, 8, 4, 12))).toEqual({
+      medications: [{ name: "Sertraline", pbsCode: "MANUAL" }],
+      medicationName: "Sertraline",
+      pbsCode: "MANUAL",
+      renewalPrefilled: true,
     })
   })
 

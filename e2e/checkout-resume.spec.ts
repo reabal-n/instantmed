@@ -168,9 +168,18 @@ test.describe("Checkout recovery notices", () => {
     ).toBeVisible()
     await expect(page.getByText(/please don.t try payment again/i)).toBeVisible()
     await expect(page.getByText("Payment successful", { exact: true })).toHaveCount(0)
-    await expect(
-      page.getByRole("button", { name: /create account|track request/i }),
-    ).toHaveCount(0)
+    await expect(page.getByRole("button", {
+      name: "Email me a sign-in link",
+      exact: true,
+    })).toHaveCount(0)
+    await expect(page.getByRole("button", {
+      name: "Continue without an account",
+      exact: true,
+    })).toHaveCount(0)
+    await expect(page.getByRole("heading", {
+      name: "Your request is confirmed",
+      exact: true,
+    })).toHaveCount(0)
 
     for (const actionName of ["Contact support", "Return home"]) {
       await expect(page.getByRole("link", { name: actionName, exact: true })).toHaveCSS(
@@ -291,6 +300,35 @@ test.describe("Signed guest checkout resume safety", () => {
     await page.goto(`/resume/${encodeURIComponent(token)}`, {
       waitUntil: "domcontentloaded",
     })
+
+    await expect(page.getByRole("heading", {
+      name: "Continue your saved request",
+      exact: true,
+    })).toBeVisible()
+    const continueButton = page.getByRole("button", {
+      name: "Continue to secure payment",
+      exact: true,
+    })
+    await expect(continueButton).toBeVisible()
+    expect(mainNavigationUrls.some(isStripeNavigation)).toBe(false)
+
+    const { data: beforeContinue, error: beforeContinueError } = await supabase
+      .from("intakes")
+      .select("status, payment_status, payment_id")
+      .eq("id", intakeId)
+      .single()
+    if (beforeContinueError || !beforeContinue) {
+      throw new Error(
+        `Could not verify scanner-safe resume state: ${beforeContinueError?.message || "missing row"}`,
+      )
+    }
+    expect(beforeContinue).toEqual({
+      payment_id: null,
+      payment_status: "unpaid",
+      status: "pending_payment",
+    })
+
+    await continueButton.click()
 
     await page.waitForURL((url) => {
       return (
@@ -509,6 +547,7 @@ test.describe("Signed guest checkout resume safety", () => {
 
     const stripeRequests: string[] = []
     const stripeMainNavigations: string[] = []
+    const resumeActionRequests: string[] = []
     const retryActionRequests: string[] = []
     const consoleErrors: string[] = []
     const pageErrors: string[] = []
@@ -525,9 +564,12 @@ test.describe("Signed guest checkout resume safety", () => {
         stripeMainNavigations.push(request.url())
       }
       if (
-        request.url().includes("/api/patient/retry-payment") ||
-        (request.method() === "POST" && Boolean(request.headers()["next-action"]))
+        request.method() === "POST" &&
+        new URL(request.url()).pathname.startsWith("/resume/")
       ) {
+        resumeActionRequests.push(request.url())
+      }
+      if (request.url().includes("/api/patient/retry-payment")) {
         retryActionRequests.push(request.url())
       }
     })
@@ -541,10 +583,24 @@ test.describe("Signed guest checkout resume safety", () => {
 
     const token = signCheckoutResumeToken(intakeId)
     await page.goto(`/resume/${encodeURIComponent(token)}`, { waitUntil: "domcontentloaded" })
+    await expect(page.getByRole("heading", {
+      name: "Continue your saved request",
+      exact: true,
+    })).toBeVisible()
+    expect(resumeActionRequests).toEqual([])
+    expect(retryActionRequests).toEqual([])
+    expect(stripeRequests).toEqual([])
+
+    await page.getByRole("button", {
+      name: "Continue to secure payment",
+      exact: true,
+    }).click()
     await page.waitForURL((url) => (
       url.pathname === "/checkout/cancelled" &&
       url.searchParams.get("reason") === "more_information_required"
     ))
+    expect(resumeActionRequests).toHaveLength(1)
+    expect(retryActionRequests).toEqual([])
 
     const cancelledDestination = new URL(page.url())
     const baseUrl = testInfo.project.use.baseURL
@@ -709,6 +765,7 @@ test.describe("Signed guest checkout resume safety", () => {
     })
     expect(stripeRequests).toEqual([])
     expect(stripeMainNavigations).toEqual([])
+    expect(resumeActionRequests).toHaveLength(1)
     expect(retryActionRequests).toEqual([])
     expect(consoleErrors).toEqual([])
     expect(pageErrors).toEqual([])

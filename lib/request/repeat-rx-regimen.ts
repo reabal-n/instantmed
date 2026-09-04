@@ -51,7 +51,7 @@ const AMOUNT_PATTERNS = [
   new RegExp(String.raw`\b${QUANTITY_TOKEN}\s*${DOSE_UNIT_TOKEN}\b`, "i"),
   new RegExp(String.raw`\b(?:a|an)\s+${DOSE_UNIT_TOKEN}\b`, "i"),
   new RegExp(
-    String.raw`\b(?:take|use|apply|insert|inhale|instil|instill|inject|swallow|chew|dissolve)\s+${QUANTITY_TOKEN}\b`,
+    String.raw`\b(?:take|use|apply|insert|inhale|instil|instill|inject|swallow|chew|dissolve)\s+${QUANTITY_TOKEN}\b(?![-\s]*(?:times?|x|hours?|hourly)\b)`,
     "i",
   ),
   /\b(?:a|one)\s+(?:thin\s+)?layer\b/i,
@@ -85,7 +85,7 @@ const FREQUENCY_PATTERNS = [
 // separately, so requiring them to also name the tablet/capsule unit here is
 // unnecessary friction. Exclude "2 times daily", which states frequency only.
 const BARE_AMOUNT_WITH_FREQUENCY = new RegExp(
-  String.raw`^(?:(?:take|use|apply|insert|inhale|instil|instill|inject|swallow|chew|dissolve)\s+)?${QUANTITY_TOKEN}\b(?!\s*(?:times?|x)\b)`,
+  String.raw`^(?:(?:take|use|apply|insert|inhale|instil|instill|inject|swallow|chew|dissolve)\s+)?${QUANTITY_TOKEN}\b(?![-\s]*(?:times?|x|hours?|hourly)\b)`,
   "i",
 )
 
