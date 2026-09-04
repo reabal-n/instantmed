@@ -72,6 +72,7 @@
     "e2e:functional": "env -u NO_COLOR PLAYWRIGHT=1 playwright test --project=chromium e2e/operator.journey.spec.ts e2e/admin.ops-index.spec.ts e2e/medcert.approval.spec.ts e2e/doctor.queue.spec.ts e2e/admin.clinic.spec.ts",
     "e2e:a11y": "env -u NO_COLOR PLAYWRIGHT=1 playwright test --project=chromium e2e/accessibility.spec.ts",
     "e2e:prod-synthetic": "env -u NO_COLOR E2E_BASE_URL=https://instantmed.com.au playwright test --config=playwright.preview.config.ts --project=chromium e2e/prod-request-flow-synthetic.spec.ts",
+    "e2e:production": "tsx scripts/run-production-e2e.ts",
     "verify:full": "tsx scripts/verification/full-system-check.ts",
     "verify:full:dev": "tsx scripts/verification/full-system-check.ts --target=dev --start-server",
     "verify:full:preview": "tsx scripts/verification/full-system-check.ts --target=preview",

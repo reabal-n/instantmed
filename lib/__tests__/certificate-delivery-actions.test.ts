@@ -110,6 +110,7 @@ const INTAKE_ID = "11111111-1111-4111-8111-111111111111"
 const PATIENT_ID = "22222222-2222-4222-8222-222222222222"
 const CERTIFICATE_ID = "33333333-3333-4333-8333-333333333333"
 const DOCTOR_ID = "44444444-4444-4444-8444-444444444444"
+const EMAIL_TEMPLATE_MARKER = { kind: "certificate-email-template" }
 
 function createResendSupabase() {
   return {
@@ -213,6 +214,7 @@ describe("patient certificate resend delivery reconciliation", () => {
     mocks.reserveCertificateResend.mockResolvedValue({ success: true, attemptStatus: "reserved" })
     mocks.finalizeCertificateResend.mockResolvedValue({ success: true, isDuplicate: false })
     mocks.reconcileCertificateResendAttempts.mockResolvedValue({ success: true, reconciledCount: 0 })
+    mocks.medCertPatientEmail.mockReturnValue(EMAIL_TEMPLATE_MARKER)
     mocks.sendEmail.mockResolvedValue({ success: true, messageId: "email-message-1" })
   })
 
@@ -229,6 +231,9 @@ describe("patient certificate resend delivery reconciliation", () => {
     expect(mocks.finalizeCertificateResend).toHaveBeenCalledWith(expect.objectContaining({
       deliverySucceeded: true,
       providerMessageId: "email-message-1",
+    }))
+    expect(mocks.sendEmail).toHaveBeenCalledWith(expect.objectContaining({
+      template: EMAIL_TEMPLATE_MARKER,
     }))
     expect(mocks.revalidatePatient).toHaveBeenCalledWith({ intakeId: INTAKE_ID })
   })
@@ -344,6 +349,7 @@ describe("staff certificate resend idempotency", () => {
     mocks.reserveCertificateResend.mockResolvedValue({ success: true, attemptStatus: "reserved" })
     mocks.finalizeCertificateResend.mockResolvedValue({ success: true, isDuplicate: false })
     mocks.reconcileCertificateResendAttempts.mockResolvedValue({ success: true, reconciledCount: 0 })
+    mocks.medCertPatientEmail.mockReturnValue(EMAIL_TEMPLATE_MARKER)
   })
 
   it("retries an ambiguous bookkeeping result with the same durable idempotency key", async () => {
@@ -369,6 +375,7 @@ describe("staff certificate resend idempotency", () => {
     const reservedAttemptId = mocks.reserveCertificateResend.mock.calls[0][0].attemptId
     expect(mocks.sendEmail).toHaveBeenCalledWith(expect.objectContaining({
       idempotencyKey: `certificate-resend:${reservedAttemptId}`,
+      template: EMAIL_TEMPLATE_MARKER,
     }))
     expect(mocks.finalizeCertificateResend).toHaveBeenCalledWith(expect.objectContaining({
       attemptId: reservedAttemptId,

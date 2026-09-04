@@ -159,6 +159,12 @@ When `PLAYWRIGHT=1` is set:
 - **Intake status reset:** use `e2e_reset_intake_status()` RPC (see below) — direct status updates are blocked by the state machine trigger
 - **Seeded queue data:** the fixed `E2E Test Patient` seed is hidden from live operational queue reads unless an E2E/test env flag is set
 
+#### Production-bundle certificate resend seam
+
+`corepack pnpm e2e:production -- --spec=e2e/certificate-resend-render.spec.ts` is the narrow production-Webpack certificate-render check. Its runner fails closed unless port `3060` and the isolated Supabase ports `55320`–`55329` are free, creates a run-scoped local Supabase project, builds with explicit local coordinates, and starts `next start` rather than `next dev`. It does not source `.env.local`, use a shared Supabase stack, or carry provider credentials. The synthetic intake is excluded from reporting, Resend network delivery is blocked locally, and cleanup verifies the resend-attempt, outbox, and intake rows before the runner stops only its own stack in `finally`.
+
+The browser assertion owns the server-action/production-bundle/outbox integration. The companion unmocked Vitest contract covers the normal approval control, patient self-resend, staff resend, and no-frozen email-hub reconstruction with real certificate email components; it is supporting render coverage, not proof of the Webpack seam.
+
 ### E2E Intake Reset RPC
 
 The `validate_intake_status_transition` trigger blocks terminal-state resets (e.g. `approved → paid`), which breaks E2E test cleanup that needs to reuse intakes across test runs.
