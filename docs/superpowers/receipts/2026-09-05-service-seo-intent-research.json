@@ -1,0 +1,3009 @@
+{
+  "checkedAt": "2026-09-05T03:17:33.847Z",
+  "scope": {
+    "siteUrl": "sc-domain:instantmed.com.au",
+    "routes": [
+      "/medical-certificate",
+      "/medical-certificate-online",
+      "/prescriptions",
+      "/online-prescriptions",
+      "/erectile-dysfunction",
+      "/hair-loss",
+      "/womens-health",
+      "/uti-assessment-online",
+      "/contraceptive-pill-assessment-online"
+    ],
+    "currentPeriod": {
+      "startDate": "2026-08-04",
+      "endDate": "2026-09-02"
+    },
+    "priorPeriod": {
+      "startDate": "2026-07-05",
+      "endDate": "2026-08-03"
+    },
+    "timezone": "America/Los_Angeles",
+    "dataState": "final",
+    "externalVisibility": "deferred by operator; no publisher, directory, prospect or outreach research performed",
+    "openSeo": "not used; no credits spent",
+    "patientSystems": "not accessed"
+  },
+  "methodology": {
+    "gsc": "Google Search Console API through existing local GoogleAuth ADC with webmasters.readonly. Page totals were exported separately from page+query, page+country and page+device rows. Trailing-slash and non-trailing-slash URL variants were normalised and summed.",
+    "privacy": "Omit identifier patterns, very long free text, and personal clinical narratives. Omitted query text is never persisted.",
+    "privacyRowTotals": {
+      "current": {
+        "personal_clinical_free_text": {
+          "rowCount": 13,
+          "clicks": 0,
+          "impressions": 174,
+          "ctr": 0,
+          "averagePosition": 55.09770114942529
+        }
+      },
+      "prior": {
+        "personal_clinical_free_text": {
+          "rowCount": 10,
+          "clicks": 0,
+          "impressions": 63,
+          "ctr": 0,
+          "averagePosition": 49.23809523809524
+        }
+      }
+    },
+    "html": "Current public HTML was fetched for the nine pages and seven support routes. Title, meta description, H1, robots, canonical, JSON-LD types and internal anchors were parsed from rendered response HTML.",
+    "intent": "Visible queries were classified as service-relevant commercial, service-relevant explanatory, brand or irrelevant from query text. Landing pathname alone was not used to infer brand.",
+    "rankBands": [
+      "1-3",
+      "4-10",
+      "11-20",
+      "21-50",
+      "51-100",
+      "100+"
+    ]
+  },
+  "externalSearchIntentChecks": [
+    {
+      "sampledAt": "2026-09-05",
+      "queryFamily": "online medical certificate Australia",
+      "finding": "Sampled results are strongly transactional service pages organised around certificate type, request flow, price and clinical review. This supports the existing commercial/explainer page split; no competitor claim was adopted.",
+      "examples": [
+        "https://updoc.com.au/medical-certificate",
+        "https://www.holadoc.com.au/services/medical-certificates"
+      ]
+    },
+    {
+      "sampledAt": "2026-09-05",
+      "queryFamily": "repeat prescription online Australia / how online prescriptions work",
+      "finding": "Results mix repeat-service pages with official eScript explainers. This supports /prescriptions as the commercial owner and /online-prescriptions as the explanatory owner.",
+      "examples": [
+        "https://www.digitalhealth.gov.au/initiatives-and-programs/electronic-prescriptions",
+        "https://www.healthdirect.gov.au/amp/article/escript-electronic-prescription"
+      ]
+    },
+    {
+      "sampledAt": "2026-09-05",
+      "queryFamily": "erectile dysfunction assessment or treatment online Australia",
+      "finding": "Results mix clinical explanation with commercial assessment/treatment entry pages. The intent bridge is real, but InstantMed must retain assessment, underlying-condition and no-guarantee boundaries.",
+      "examples": [
+        "https://www.healthdirect.gov.au/erectile-dysfunction",
+        "https://instantmed.com.au/erectile-dysfunction"
+      ]
+    },
+    {
+      "sampledAt": "2026-09-05",
+      "queryFamily": "online hair loss treatment Australia doctor",
+      "finding": "Commercial results commonly use treatment language while describing doctor assessment. This corroborates the GSC vocabulary gap but does not justify a change during the held experiment.",
+      "examples": [
+        "https://www.qoctor.com.au/hair-loss/"
+      ]
+    },
+    {
+      "sampledAt": "2026-09-05",
+      "queryFamily": "UTI assessment online / contraceptive pill assessment online Australia",
+      "finding": "Sampled results show narrow pathway pages rather than a single broad women's-health answer. InstantMed's pill child page surfaced for the exact pill query; the UTI sample surfaced another narrow assessment provider. No rank or search-volume claim is made.",
+      "examples": [
+        "https://instantmed.com.au/contraceptive-pill-assessment-online",
+        "https://www.qoctor.com.au/product/uti/"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "path": "/medical-certificate",
+      "url": "https://instantmed.com.au/medical-certificate",
+      "baselineIndexStatus": "Submitted and indexed",
+      "baselineIndexVerdict": "PASS",
+      "currentPublicHtml": {
+        "httpStatus": 200,
+        "title": "Medical Certificates Online | From $24.95 | InstantMed",
+        "metaDescription": "Online medical certificates for routine 1-3 day work, study or carer's leave. Secure form, no appointment, from $24.95. Issued only when clinically appropriate.",
+        "h1": [
+          "Medical certificate. From your bed."
+        ],
+        "robotsMeta": "index, follow",
+        "xRobotsTag": null,
+        "canonical": "https://instantmed.com.au/medical-certificate",
+        "directAnswerInFirstScreen": true,
+        "schema": {
+          "service": "MedicalServiceSchema",
+          "article": true,
+          "howTo": true,
+          "faq": true,
+          "breadcrumb": true,
+          "speakable": true
+        },
+        "renderedSchemaTypes": [
+          "Answer",
+          "BreadcrumbList",
+          "ContactPoint",
+          "Country",
+          "EducationalOccupationalCredential",
+          "FAQPage",
+          "HowTo",
+          "HowToStep",
+          "HowToTool",
+          "ListItem",
+          "MedicalOrganization",
+          "MedicalService",
+          "MedicalWebPage",
+          "MonetaryAmount",
+          "Offer",
+          "OfferCatalog",
+          "Organization",
+          "PostalAddress",
+          "Question",
+          "Service",
+          "SpeakableSpecification",
+          "WebPage",
+          "WebSite"
+        ],
+        "invalidJsonLdBlocks": 0,
+        "visibleLastReviewed": null
+      },
+      "gsc": {
+        "current": {
+          "startDate": "2026-08-04",
+          "endDate": "2026-09-02",
+          "pageTotals": {
+            "clicks": 10,
+            "impressions": 7654,
+            "ctr": 0.0013065064018813691,
+            "averagePosition": 52.84922916122289
+          },
+          "pageQueryExport": {
+            "safeTopRows": [
+              {
+                "route": "/medical-certificate",
+                "query": "instant med",
+                "intent": "brand",
+                "rankBand": "1-3",
+                "clicks": 2,
+                "impressions": 74,
+                "ctr": 0.02702702702702703,
+                "averagePosition": 1
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "instantmed",
+                "intent": "brand",
+                "rankBand": "1-3",
+                "clicks": 2,
+                "impressions": 57,
+                "ctr": 0.03508771929824561,
+                "averagePosition": 1.0175438596491229
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "medical certificate",
+                "intent": "service_relevant_explanatory",
+                "rankBand": "51-100",
+                "clicks": 1,
+                "impressions": 99,
+                "ctr": 0.010101010101010102,
+                "averagePosition": 66.85858585858585
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "medical certificate online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 244,
+                "ctr": 0,
+                "averagePosition": 50.47950819672131
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "online medical certificate",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 186,
+                "ctr": 0,
+                "averagePosition": 51.74193548387097
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "doctors certificate online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 174,
+                "ctr": 0,
+                "averagePosition": 54.43103448275862
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "online medical certificate australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 137,
+                "ctr": 0,
+                "averagePosition": 57.29197080291971
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "instant medical certificate",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 104,
+                "ctr": 0,
+                "averagePosition": 40.60576923076923
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "medical certificate australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 102,
+                "ctr": 0,
+                "averagePosition": 53.71568627450981
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "online doctors certificate",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 102,
+                "ctr": 0,
+                "averagePosition": 56.88235294117647
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "doctors certificate",
+                "intent": "service_relevant_explanatory",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 90,
+                "ctr": 0,
+                "averagePosition": 60.46666666666667
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "sick certificate online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 86,
+                "ctr": 0,
+                "averagePosition": 52.94186046511628
+              }
+            ],
+            "safeVisibleAggregate": {
+              "rowCount": 494,
+              "clicks": 5,
+              "impressions": 7180,
+              "ctr": 0.0006963788300835655,
+              "averagePosition": 0
+            },
+            "byIntent": {
+              "brand": {
+                "rowCount": 3,
+                "clicks": 4,
+                "impressions": 132,
+                "ctr": 0.030303030303030304,
+                "averagePosition": 0
+              },
+              "service_relevant_explanatory": {
+                "rowCount": 125,
+                "clicks": 1,
+                "impressions": 1649,
+                "ctr": 0.0006064281382656155,
+                "averagePosition": 0
+              },
+              "service_relevant_commercial": {
+                "rowCount": 294,
+                "clicks": 0,
+                "impressions": 4958,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "irrelevant": {
+                "rowCount": 72,
+                "clicks": 0,
+                "impressions": 441,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "byRankBand": {
+              "1-3": {
+                "rowCount": 10,
+                "clicks": 4,
+                "impressions": 139,
+                "ctr": 0.02877697841726619,
+                "averagePosition": 0
+              },
+              "51-100": {
+                "rowCount": 393,
+                "clicks": 1,
+                "impressions": 6034,
+                "ctr": 0.00016572754391779913,
+                "averagePosition": 0
+              },
+              "21-50": {
+                "rowCount": 89,
+                "clicks": 0,
+                "impressions": 1005,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "11-20": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "4-10": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "privacyOmittedByReason": [
+              {
+                "reason": "personal_clinical_free_text",
+                "rowCount": 13,
+                "clicks": 0,
+                "impressions": 174,
+                "ctr": 0,
+                "averagePosition": 55.09770114942529
+              }
+            ],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [
+            {
+              "country": "aus",
+              "clicks": 5,
+              "impressions": 7257,
+              "ctr": 0.000688989940746865,
+              "averagePosition": 54.18437370814386
+            },
+            {
+              "country": "gbr",
+              "clicks": 0,
+              "impressions": 18,
+              "ctr": 0,
+              "averagePosition": 48.166666666666664
+            },
+            {
+              "country": "esp",
+              "clicks": 0,
+              "impressions": 9,
+              "ctr": 0,
+              "averagePosition": 53.55555555555556
+            },
+            {
+              "country": "phl",
+              "clicks": 0,
+              "impressions": 6,
+              "ctr": 0,
+              "averagePosition": 62.333333333333336
+            },
+            {
+              "country": "tur",
+              "clicks": 0,
+              "impressions": 6,
+              "ctr": 0,
+              "averagePosition": 51.333333333333336
+            },
+            {
+              "country": "usa",
+              "clicks": 0,
+              "impressions": 6,
+              "ctr": 0,
+              "averagePosition": 51.166666666666664
+            },
+            {
+              "country": "vnm",
+              "clicks": 0,
+              "impressions": 6,
+              "ctr": 0,
+              "averagePosition": 58.166666666666664
+            },
+            {
+              "country": "deu",
+              "clicks": 0,
+              "impressions": 5,
+              "ctr": 0,
+              "averagePosition": 52.2
+            },
+            {
+              "country": "idn",
+              "clicks": 0,
+              "impressions": 5,
+              "ctr": 0,
+              "averagePosition": 58.4
+            },
+            {
+              "country": "aut",
+              "clicks": 0,
+              "impressions": 4,
+              "ctr": 0,
+              "averagePosition": 54
+            },
+            {
+              "country": "fra",
+              "clicks": 0,
+              "impressions": 4,
+              "ctr": 0,
+              "averagePosition": 58.25
+            },
+            {
+              "country": "ind",
+              "clicks": 0,
+              "impressions": 4,
+              "ctr": 0,
+              "averagePosition": 43.75
+            },
+            {
+              "country": "mar",
+              "clicks": 0,
+              "impressions": 4,
+              "ctr": 0,
+              "averagePosition": 53.75
+            },
+            {
+              "country": "bgd",
+              "clicks": 0,
+              "impressions": 3,
+              "ctr": 0,
+              "averagePosition": 50.333333333333336
+            },
+            {
+              "country": "dza",
+              "clicks": 0,
+              "impressions": 3,
+              "ctr": 0,
+              "averagePosition": 55.666666666666664
+            },
+            {
+              "country": "jor",
+              "clicks": 0,
+              "impressions": 2,
+              "ctr": 0,
+              "averagePosition": 67.5
+            },
+            {
+              "country": "sau",
+              "clicks": 0,
+              "impressions": 2,
+              "ctr": 0,
+              "averagePosition": 49
+            },
+            {
+              "country": "tha",
+              "clicks": 0,
+              "impressions": 2,
+              "ctr": 0,
+              "averagePosition": 44
+            },
+            {
+              "country": "chn",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 1
+            },
+            {
+              "country": "grc",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 48
+            },
+            {
+              "country": "irq",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 66
+            },
+            {
+              "country": "ita",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 60
+            },
+            {
+              "country": "lka",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 1
+            },
+            {
+              "country": "mex",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 67
+            },
+            {
+              "country": "mys",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 49
+            },
+            {
+              "country": "nzl",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 1
+            }
+          ],
+          "deviceRows": [
+            {
+              "device": "MOBILE",
+              "clicks": 5,
+              "impressions": 1108,
+              "ctr": 0.004512635379061372,
+              "averagePosition": 52.22924187725632
+            },
+            {
+              "device": "DESKTOP",
+              "clicks": 0,
+              "impressions": 6220,
+              "ctr": 0,
+              "averagePosition": 54.495659163987135
+            },
+            {
+              "device": "TABLET",
+              "clicks": 0,
+              "impressions": 26,
+              "ctr": 0,
+              "averagePosition": 53.61538461538461
+            }
+          ]
+        },
+        "prior": {
+          "startDate": "2026-07-05",
+          "endDate": "2026-08-03",
+          "pageTotals": {
+            "clicks": 8,
+            "impressions": 4058,
+            "ctr": 0.001971414489896501,
+            "averagePosition": 41.5704780680138
+          },
+          "pageQueryExport": {
+            "safeTopRows": [
+              {
+                "route": "/medical-certificate",
+                "query": "instantmed",
+                "intent": "brand",
+                "rankBand": "1-3",
+                "clicks": 1,
+                "impressions": 28,
+                "ctr": 0.03571428571428571,
+                "averagePosition": 1.2142857142857142
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "online med cert",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 1,
+                "impressions": 27,
+                "ctr": 0.037037037037037035,
+                "averagePosition": 39.18518518518518
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "australia medical certificate",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 1,
+                "impressions": 12,
+                "ctr": 0.08333333333333333,
+                "averagePosition": 47
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "medical certificate no call",
+                "intent": "service_relevant_explanatory",
+                "rankBand": "1-3",
+                "clicks": 1,
+                "impressions": 5,
+                "ctr": 0.2,
+                "averagePosition": 1
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "medical certificate online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 153,
+                "ctr": 0,
+                "averagePosition": 40.3921568627451
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "instant medical certificate",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 133,
+                "ctr": 0,
+                "averagePosition": 29.165413533834588
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "online medical certificate",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 101,
+                "ctr": 0,
+                "averagePosition": 46.08910891089109
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "doctors certificate online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 75,
+                "ctr": 0,
+                "averagePosition": 54.8
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "instant scripts medical certificate",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 71,
+                "ctr": 0,
+                "averagePosition": 30.6056338028169
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "instant script medical certificate",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 60,
+                "ctr": 0,
+                "averagePosition": 24.75
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "online medical certificate australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 56,
+                "ctr": 0,
+                "averagePosition": 50.42857142857143
+              },
+              {
+                "route": "/medical-certificate",
+                "query": "medical certificate",
+                "intent": "service_relevant_explanatory",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 55,
+                "ctr": 0,
+                "averagePosition": 43.945454545454545
+              }
+            ],
+            "safeVisibleAggregate": {
+              "rowCount": 394,
+              "clicks": 4,
+              "impressions": 3621,
+              "ctr": 0.0011046672190002762,
+              "averagePosition": 0
+            },
+            "byIntent": {
+              "brand": {
+                "rowCount": 3,
+                "clicks": 1,
+                "impressions": 59,
+                "ctr": 0.01694915254237288,
+                "averagePosition": 0
+              },
+              "service_relevant_commercial": {
+                "rowCount": 233,
+                "clicks": 2,
+                "impressions": 2561,
+                "ctr": 0.0007809449433814916,
+                "averagePosition": 0
+              },
+              "service_relevant_explanatory": {
+                "rowCount": 107,
+                "clicks": 1,
+                "impressions": 772,
+                "ctr": 0.0012953367875647669,
+                "averagePosition": 0
+              },
+              "irrelevant": {
+                "rowCount": 51,
+                "clicks": 0,
+                "impressions": 229,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "byRankBand": {
+              "1-3": {
+                "rowCount": 10,
+                "clicks": 2,
+                "impressions": 75,
+                "ctr": 0.02666666666666667,
+                "averagePosition": 0
+              },
+              "21-50": {
+                "rowCount": 226,
+                "clicks": 2,
+                "impressions": 2041,
+                "ctr": 0.0009799118079372856,
+                "averagePosition": 0
+              },
+              "51-100": {
+                "rowCount": 136,
+                "clicks": 0,
+                "impressions": 1455,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "11-20": {
+                "rowCount": 16,
+                "clicks": 0,
+                "impressions": 35,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "4-10": {
+                "rowCount": 6,
+                "clicks": 0,
+                "impressions": 15,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "privacyOmittedByReason": [
+              {
+                "reason": "personal_clinical_free_text",
+                "rowCount": 10,
+                "clicks": 0,
+                "impressions": 63,
+                "ctr": 0,
+                "averagePosition": 49.23809523809524
+              }
+            ],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [
+            {
+              "country": "aus",
+              "clicks": 3,
+              "impressions": 3573,
+              "ctr": 0.0008396305625524769,
+              "averagePosition": 45.03666386789813
+            },
+            {
+              "country": "kor",
+              "clicks": 1,
+              "impressions": 1,
+              "ctr": 1,
+              "averagePosition": 20
+            },
+            {
+              "country": "usa",
+              "clicks": 0,
+              "impressions": 41,
+              "ctr": 0,
+              "averagePosition": 19.78048780487805
+            },
+            {
+              "country": "gbr",
+              "clicks": 0,
+              "impressions": 31,
+              "ctr": 0,
+              "averagePosition": 21.35483870967742
+            },
+            {
+              "country": "vnm",
+              "clicks": 0,
+              "impressions": 7,
+              "ctr": 0,
+              "averagePosition": 30.714285714285715
+            },
+            {
+              "country": "esp",
+              "clicks": 0,
+              "impressions": 3,
+              "ctr": 0,
+              "averagePosition": 35.666666666666664
+            },
+            {
+              "country": "idn",
+              "clicks": 0,
+              "impressions": 3,
+              "ctr": 0,
+              "averagePosition": 30.666666666666668
+            },
+            {
+              "country": "mex",
+              "clicks": 0,
+              "impressions": 3,
+              "ctr": 0,
+              "averagePosition": 27
+            },
+            {
+              "country": "sgp",
+              "clicks": 0,
+              "impressions": 3,
+              "ctr": 0,
+              "averagePosition": 15.666666666666666
+            },
+            {
+              "country": "nzl",
+              "clicks": 0,
+              "impressions": 2,
+              "ctr": 0,
+              "averagePosition": 17
+            },
+            {
+              "country": "phl",
+              "clicks": 0,
+              "impressions": 2,
+              "ctr": 0,
+              "averagePosition": 39.5
+            },
+            {
+              "country": "pol",
+              "clicks": 0,
+              "impressions": 2,
+              "ctr": 0,
+              "averagePosition": 30
+            },
+            {
+              "country": "tur",
+              "clicks": 0,
+              "impressions": 2,
+              "ctr": 0,
+              "averagePosition": 45.5
+            },
+            {
+              "country": "bgd",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 31
+            },
+            {
+              "country": "bra",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 19
+            },
+            {
+              "country": "geo",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 1
+            },
+            {
+              "country": "grc",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 28
+            },
+            {
+              "country": "ind",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 17
+            },
+            {
+              "country": "jpn",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 21
+            },
+            {
+              "country": "nld",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 30
+            },
+            {
+              "country": "npl",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 1
+            },
+            {
+              "country": "pak",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 7
+            },
+            {
+              "country": "rus",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 49
+            },
+            {
+              "country": "sau",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 41
+            }
+          ],
+          "deviceRows": [
+            {
+              "device": "MOBILE",
+              "clicks": 3,
+              "impressions": 508,
+              "ctr": 0.005905511811023622,
+              "averagePosition": 36.81299212598425
+            },
+            {
+              "device": "DESKTOP",
+              "clicks": 1,
+              "impressions": 3094,
+              "ctr": 0.0003232062055591467,
+              "averagePosition": 45.37491919844861
+            },
+            {
+              "device": "TABLET",
+              "clicks": 0,
+              "impressions": 82,
+              "ctr": 0,
+              "averagePosition": 53.28048780487805
+            }
+          ]
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 2,
+            "percent": 0.25
+          },
+          "impressions": {
+            "absolute": 3596,
+            "percent": 0.8861508132084771
+          },
+          "ctrPercentagePoints": -0.0006649080880151317,
+          "averagePosition": 11.278751093209088
+        }
+      },
+      "recommendation": {
+        "decision": "defer",
+        "currentOwner": "commercial medical-certificate service intent",
+        "evidence": "Normalised current impressions rose to 7,654 from 4,058, while clicks moved from 8 to 10 and average position weakened from 41.57 to 52.85. The page already answers eligibility, price and outcome in the first screen and links contextually to the explainer, verification, employers and repeat prescriptions.",
+        "fit": "High business fit and bounded certificate scope.",
+        "action": "Keep the current title, H1, direct answer and contextual links. Do not alter the held landing-page experiment; continue measurement and diagnose the high-impression, low-CTR query mix after the hold.",
+        "observedGap": "High commercial-query visibility has not converted into proportional clicks, but the active experiment prevents attributing a new title/copy change cleanly."
+      }
+    },
+    {
+      "path": "/medical-certificate-online",
+      "url": "https://instantmed.com.au/medical-certificate-online",
+      "baselineIndexStatus": "Submitted and indexed",
+      "baselineIndexVerdict": "PASS",
+      "currentPublicHtml": {
+        "httpStatus": 200,
+        "title": "Online Medical Certificates: Costs, Rules & Safety | InstantMed",
+        "metaDescription": "Understand routine online medical certificates in Australia: costs, eligibility, safety limits and verification. Start a 1-3 day request from $24.95.",
+        "h1": [
+          "Medical certificate online Australia"
+        ],
+        "robotsMeta": "index, follow",
+        "xRobotsTag": null,
+        "canonical": "https://instantmed.com.au/medical-certificate-online",
+        "directAnswerInFirstScreen": true,
+        "schema": {
+          "service": "ServiceSchema",
+          "article": true,
+          "howTo": true,
+          "faq": true,
+          "breadcrumb": true,
+          "speakable": true
+        },
+        "renderedSchemaTypes": [
+          "Answer",
+          "BreadcrumbList",
+          "ContactPoint",
+          "Country",
+          "EducationalOccupationalCredential",
+          "FAQPage",
+          "HowTo",
+          "HowToStep",
+          "HowToTool",
+          "ListItem",
+          "MedicalOrganization",
+          "MedicalWebPage",
+          "MonetaryAmount",
+          "Offer",
+          "OfferCatalog",
+          "Organization",
+          "PostalAddress",
+          "Question",
+          "Service",
+          "SpeakableSpecification",
+          "WebPage",
+          "WebSite"
+        ],
+        "invalidJsonLdBlocks": 0,
+        "visibleLastReviewed": "2026-06"
+      },
+      "gsc": {
+        "current": {
+          "startDate": "2026-08-04",
+          "endDate": "2026-09-02",
+          "pageTotals": {
+            "clicks": 1,
+            "impressions": 25,
+            "ctr": 0.04,
+            "averagePosition": 13.96
+          },
+          "pageQueryExport": {
+            "safeTopRows": [],
+            "safeVisibleAggregate": {
+              "rowCount": 0,
+              "clicks": 0,
+              "impressions": 0,
+              "ctr": null,
+              "averagePosition": null
+            },
+            "byIntent": {},
+            "byRankBand": {},
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [],
+          "deviceRows": []
+        },
+        "prior": {
+          "startDate": "2026-07-05",
+          "endDate": "2026-08-03",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 12,
+            "ctr": 0,
+            "averagePosition": 7
+          },
+          "pageQueryExport": {
+            "safeTopRows": [],
+            "safeVisibleAggregate": {
+              "rowCount": 0,
+              "clicks": 0,
+              "impressions": 0,
+              "ctr": null,
+              "averagePosition": null
+            },
+            "byIntent": {},
+            "byRankBand": {},
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [],
+          "deviceRows": []
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 1,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 13,
+            "percent": 1.0833333333333333
+          },
+          "ctrPercentagePoints": 0.04,
+          "averagePosition": 6.960000000000001
+        }
+      },
+      "recommendation": {
+        "decision": "defer",
+        "currentOwner": "explanatory medical-certificate intent",
+        "evidence": "Current page totals are 25 impressions and 1 click versus 12 impressions and 0 clicks; query text is fully anonymised at this sample. The page already gives a first-screen practical answer and links repeatedly to the commercial certificate page plus verification.",
+        "fit": "High explanatory fit; the paired commercial owner remains /medical-certificate.",
+        "action": "Keep the current explanatory purpose and pair links. Defer changes during the certificate measurement hold.",
+        "observedGap": "The sample is too small to justify repurposing the page or adding generic FAQ/schema/link work that already exists."
+      }
+    },
+    {
+      "path": "/prescriptions",
+      "url": "https://instantmed.com.au/prescriptions",
+      "baselineIndexStatus": "Discovered - currently not indexed",
+      "baselineIndexVerdict": "NEUTRAL",
+      "currentPublicHtml": {
+        "httpStatus": 200,
+        "title": "Repeat Prescription Online | Doctor Review | InstantMed",
+        "metaDescription": "Request doctor review for regular repeat medications online. Fill out a form, no appointment needed, no waiting room. eScript sent if approved. From $29.95.",
+        "h1": [
+          "Repeat prescription, reviewed from home."
+        ],
+        "robotsMeta": "index, follow",
+        "xRobotsTag": null,
+        "canonical": "https://instantmed.com.au/prescriptions",
+        "directAnswerInFirstScreen": true,
+        "schema": {
+          "service": "MedicalServiceSchema",
+          "article": true,
+          "howTo": true,
+          "faq": true,
+          "breadcrumb": true,
+          "speakable": true
+        },
+        "renderedSchemaTypes": [
+          "Answer",
+          "BreadcrumbList",
+          "ContactPoint",
+          "Country",
+          "EducationalOccupationalCredential",
+          "FAQPage",
+          "HowTo",
+          "HowToStep",
+          "HowToTool",
+          "ListItem",
+          "MedicalOrganization",
+          "MedicalService",
+          "MedicalWebPage",
+          "MonetaryAmount",
+          "Offer",
+          "OfferCatalog",
+          "Organization",
+          "PostalAddress",
+          "Question",
+          "Service",
+          "SpeakableSpecification",
+          "WebPage",
+          "WebSite"
+        ],
+        "invalidJsonLdBlocks": 0,
+        "visibleLastReviewed": null
+      },
+      "gsc": {
+        "current": {
+          "startDate": "2026-08-04",
+          "endDate": "2026-09-02",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 0,
+            "ctr": null,
+            "averagePosition": null
+          },
+          "pageQueryExport": {
+            "safeTopRows": [],
+            "safeVisibleAggregate": {
+              "rowCount": 0,
+              "clicks": 0,
+              "impressions": 0,
+              "ctr": null,
+              "averagePosition": null
+            },
+            "byIntent": {},
+            "byRankBand": {},
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [],
+          "deviceRows": []
+        },
+        "prior": {
+          "startDate": "2026-07-05",
+          "endDate": "2026-08-03",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 0,
+            "ctr": null,
+            "averagePosition": null
+          },
+          "pageQueryExport": {
+            "safeTopRows": [],
+            "safeVisibleAggregate": {
+              "rowCount": 0,
+              "clicks": 0,
+              "impressions": 0,
+              "ctr": null,
+              "averagePosition": null
+            },
+            "byIntent": {},
+            "byRankBand": {},
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [],
+          "deviceRows": []
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 0,
+            "percent": null
+          },
+          "ctrPercentagePoints": null,
+          "averagePosition": null
+        }
+      },
+      "recommendation": {
+        "decision": "defer",
+        "currentOwner": "commercial repeat-prescription service intent",
+        "evidence": "Zero page or query impressions in both periods; baseline URL Inspection was Discovered - currently not indexed. The live page is 200, canonical, index/follow, direct about repeat-only scope, and links to /online-prescriptions.",
+        "fit": "High business fit for one established regular medicine; not a general or new-prescription page.",
+        "action": "Keep content and the existing explainer link. Recheck crawl/index state after the separately owned crawl release, then observe the held experiment before changing copy.",
+        "observedGap": "Indexing/crawl evidence is missing, not an orphan or on-page link deficit."
+      }
+    },
+    {
+      "path": "/online-prescriptions",
+      "url": "https://instantmed.com.au/online-prescriptions",
+      "baselineIndexStatus": "Discovered - currently not indexed",
+      "baselineIndexVerdict": "NEUTRAL",
+      "currentPublicHtml": {
+        "httpStatus": 200,
+        "title": "How Online Prescriptions Work in Australia | InstantMed",
+        "metaDescription": "Learn how online prescription requests work in Australia, including doctor review, eScripts, PBS, Medicare, safety checks, and when in-person care is needed.",
+        "h1": [
+          "How online prescriptions work in Australia"
+        ],
+        "robotsMeta": "index, follow",
+        "xRobotsTag": null,
+        "canonical": "https://instantmed.com.au/online-prescriptions",
+        "directAnswerInFirstScreen": true,
+        "schema": {
+          "service": null,
+          "article": true,
+          "howTo": false,
+          "faq": true,
+          "breadcrumb": true,
+          "speakable": true
+        },
+        "renderedSchemaTypes": [
+          "Answer",
+          "BreadcrumbList",
+          "ContactPoint",
+          "Country",
+          "EducationalOccupationalCredential",
+          "FAQPage",
+          "ListItem",
+          "MedicalOrganization",
+          "MedicalWebPage",
+          "Offer",
+          "OfferCatalog",
+          "Organization",
+          "PostalAddress",
+          "Question",
+          "Service",
+          "SpeakableSpecification",
+          "WebPage",
+          "WebSite"
+        ],
+        "invalidJsonLdBlocks": 0,
+        "visibleLastReviewed": "2026-07"
+      },
+      "gsc": {
+        "current": {
+          "startDate": "2026-08-04",
+          "endDate": "2026-09-02",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 0,
+            "ctr": null,
+            "averagePosition": null
+          },
+          "pageQueryExport": {
+            "safeTopRows": [],
+            "safeVisibleAggregate": {
+              "rowCount": 0,
+              "clicks": 0,
+              "impressions": 0,
+              "ctr": null,
+              "averagePosition": null
+            },
+            "byIntent": {},
+            "byRankBand": {},
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [],
+          "deviceRows": []
+        },
+        "prior": {
+          "startDate": "2026-07-05",
+          "endDate": "2026-08-03",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 0,
+            "ctr": null,
+            "averagePosition": null
+          },
+          "pageQueryExport": {
+            "safeTopRows": [],
+            "safeVisibleAggregate": {
+              "rowCount": 0,
+              "clicks": 0,
+              "impressions": 0,
+              "ctr": null,
+              "averagePosition": null
+            },
+            "byIntent": {},
+            "byRankBand": {},
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [],
+          "deviceRows": []
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 0,
+            "percent": null
+          },
+          "ctrPercentagePoints": null,
+          "averagePosition": null
+        }
+      },
+      "recommendation": {
+        "decision": "defer",
+        "currentOwner": "explanatory online-prescription and eScript intent",
+        "evidence": "Zero page or query impressions in both periods; baseline URL Inspection was Discovered - currently not indexed. The page already distinguishes clinical review, repeat scope, eScripts, PBS and pharmacy cost, and links back to /prescriptions.",
+        "fit": "High explanatory fit; commercial requests belong to /prescriptions.",
+        "action": "Keep the distinct guide purpose and pair links. Recheck indexing after the crawl release; do not merge purposes or add generic content during the Rx hold.",
+        "observedGap": "No GSC demand is observable because the page has not reached a measurable indexed state."
+      }
+    },
+    {
+      "path": "/erectile-dysfunction",
+      "url": "https://instantmed.com.au/erectile-dysfunction",
+      "baselineIndexStatus": "Submitted and indexed",
+      "baselineIndexVerdict": "PASS",
+      "currentPublicHtml": {
+        "httpStatus": 200,
+        "title": "Erectile Dysfunction Assessment Online Australia | InstantMed",
+        "metaDescription": "Private one-off erectile dysfunction assessment from an Australian doctor. Start with a secure form from $49.95. Prescription is not guaranteed.",
+        "h1": [
+          "Private ED assessment, from home."
+        ],
+        "robotsMeta": "index, follow",
+        "xRobotsTag": null,
+        "canonical": "https://instantmed.com.au/erectile-dysfunction",
+        "directAnswerInFirstScreen": true,
+        "schema": {
+          "service": "ServiceSchema",
+          "article": true,
+          "howTo": false,
+          "faq": true,
+          "breadcrumb": true,
+          "speakable": true
+        },
+        "renderedSchemaTypes": [
+          "Answer",
+          "BreadcrumbList",
+          "ContactPoint",
+          "Country",
+          "EducationalOccupationalCredential",
+          "FAQPage",
+          "ListItem",
+          "MedicalOrganization",
+          "MedicalWebPage",
+          "Offer",
+          "OfferCatalog",
+          "Organization",
+          "PostalAddress",
+          "Question",
+          "Service",
+          "SpeakableSpecification",
+          "WebPage",
+          "WebSite"
+        ],
+        "invalidJsonLdBlocks": 0,
+        "visibleLastReviewed": "2026-06"
+      },
+      "gsc": {
+        "current": {
+          "startDate": "2026-08-04",
+          "endDate": "2026-09-02",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 305,
+            "ctr": 0,
+            "averagePosition": 36.5344262295082
+          },
+          "pageQueryExport": {
+            "safeTopRows": [
+              {
+                "route": "/erectile-dysfunction",
+                "query": "online doctor erectile dysfunction australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 83,
+                "ctr": 0,
+                "averagePosition": 30.03614457831325
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "erectile dysfunction treatment online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 72,
+                "ctr": 0,
+                "averagePosition": 48.486111111111114
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "ed treatment online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 34,
+                "ctr": 0,
+                "averagePosition": 40.73529411764706
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "online ed treatment australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 12,
+                "ctr": 0,
+                "averagePosition": 28.25
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "online erectile dysfunction treatment",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 9,
+                "ctr": 0,
+                "averagePosition": 42.888888888888886
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "online ed prescription",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 8,
+                "ctr": 0,
+                "averagePosition": 40.75
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "erectile dysfunction online treatment",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 6,
+                "ctr": 0,
+                "averagePosition": 48.666666666666664
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "erectile dysfunction treatment online australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 4,
+                "ctr": 0,
+                "averagePosition": 31
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "ed help online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 3,
+                "ctr": 0,
+                "averagePosition": 39
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "online erectile dysfunction prescription",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 3,
+                "ctr": 0,
+                "averagePosition": 38.666666666666664
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "ed treatment online australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 32
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "erectile dysfunction treatment online​",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 50
+              }
+            ],
+            "safeVisibleAggregate": {
+              "rowCount": 20,
+              "clicks": 0,
+              "impressions": 245,
+              "ctr": 0,
+              "averagePosition": 0
+            },
+            "byIntent": {
+              "service_relevant_commercial": {
+                "rowCount": 15,
+                "clicks": 0,
+                "impressions": 239,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "irrelevant": {
+                "rowCount": 4,
+                "clicks": 0,
+                "impressions": 5,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "brand": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "byRankBand": {
+              "21-50": {
+                "rowCount": 15,
+                "clicks": 0,
+                "impressions": 239,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "4-10": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 2,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "1-3": {
+                "rowCount": 2,
+                "clicks": 0,
+                "impressions": 2,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "11-20": {
+                "rowCount": 2,
+                "clicks": 0,
+                "impressions": 2,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [
+            {
+              "country": "aus",
+              "clicks": 0,
+              "impressions": 242,
+              "ctr": 0,
+              "averagePosition": 38.070247933884296
+            },
+            {
+              "country": "gbr",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 31
+            },
+            {
+              "country": "nld",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 42
+            },
+            {
+              "country": "usa",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 12
+            }
+          ],
+          "deviceRows": [
+            {
+              "device": "DESKTOP",
+              "clicks": 0,
+              "impressions": 233,
+              "ctr": 0,
+              "averagePosition": 38.72532188841202
+            },
+            {
+              "device": "MOBILE",
+              "clicks": 0,
+              "impressions": 12,
+              "ctr": 0,
+              "averagePosition": 22.916666666666668
+            }
+          ]
+        },
+        "prior": {
+          "startDate": "2026-07-05",
+          "endDate": "2026-08-03",
+          "pageTotals": {
+            "clicks": 1,
+            "impressions": 96,
+            "ctr": 0.010416666666666666,
+            "averagePosition": 29.479166666666668
+          },
+          "pageQueryExport": {
+            "safeTopRows": [
+              {
+                "route": "/erectile-dysfunction",
+                "query": "online doctor erectile dysfunction australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 53,
+                "ctr": 0,
+                "averagePosition": 33.39622641509434
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "ed pills cost",
+                "intent": "service_relevant_commercial",
+                "rankBand": "11-20",
+                "clicks": 0,
+                "impressions": 3,
+                "ctr": 0,
+                "averagePosition": 10.666666666666666
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "online ed prescription",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 2,
+                "ctr": 0,
+                "averagePosition": 48
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "ed medication review australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 30
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "erectile dysfunction online australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 35
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "erectile dysfunction online treatment",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 61
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "online doctor for erectile dysfunction",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 33
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "online ed doctor",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 69
+              },
+              {
+                "route": "/erectile-dysfunction",
+                "query": "online erectile dysfunction treatment",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 60
+              }
+            ],
+            "safeVisibleAggregate": {
+              "rowCount": 9,
+              "clicks": 0,
+              "impressions": 64,
+              "ctr": 0,
+              "averagePosition": 0
+            },
+            "byIntent": {
+              "service_relevant_commercial": {
+                "rowCount": 9,
+                "clicks": 0,
+                "impressions": 64,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "byRankBand": {
+              "21-50": {
+                "rowCount": 5,
+                "clicks": 0,
+                "impressions": 58,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "11-20": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 3,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "51-100": {
+                "rowCount": 3,
+                "clicks": 0,
+                "impressions": 3,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [
+            {
+              "country": "aus",
+              "clicks": 0,
+              "impressions": 63,
+              "ctr": 0,
+              "averagePosition": 34.17460317460318
+            },
+            {
+              "country": "grc",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 33
+            }
+          ],
+          "deviceRows": [
+            {
+              "device": "DESKTOP",
+              "clicks": 0,
+              "impressions": 58,
+              "ctr": 0,
+              "averagePosition": 35.258620689655174
+            },
+            {
+              "device": "MOBILE",
+              "clicks": 0,
+              "impressions": 6,
+              "ctr": 0,
+              "averagePosition": 23.5
+            }
+          ]
+        },
+        "delta": {
+          "clicks": {
+            "absolute": -1,
+            "percent": -1
+          },
+          "impressions": {
+            "absolute": 209,
+            "percent": 2.1770833333333335
+          },
+          "ctrPercentagePoints": -0.010416666666666666,
+          "averagePosition": 7.055259562841531
+        }
+      },
+      "recommendation": {
+        "decision": "defer",
+        "currentOwner": "commercial ED assessment intent",
+        "evidence": "Impressions rose to 305 from 96, clicks fell to 0 from 1, and average position weakened to 36.53 from 29.48. Visible current queries are overwhelmingly commercial and use 'online doctor' and 'treatment online' wording; the page correctly keeps the outcome framed as assessment and doctor decision.",
+        "fit": "High business fit, with a required clinical boundary against guaranteed treatment or prescription outcomes.",
+        "action": "Keep the assessment title/H1 and safety framing during the ED landing experiment. After the hold, test a compliant clarification that the assessment is the entry point for people seeking treatment, without promising treatment.",
+        "observedGap": "Search wording leans toward treatment while the safe service promise is assessment; the hold makes a new copy test ineligible now."
+      }
+    },
+    {
+      "path": "/hair-loss",
+      "url": "https://instantmed.com.au/hair-loss",
+      "baselineIndexStatus": "Submitted and indexed",
+      "baselineIndexVerdict": "PASS",
+      "currentPublicHtml": {
+        "httpStatus": 200,
+        "title": "Private Hair Loss Assessment | Doctor Review | InstantMed",
+        "metaDescription": "A private one-off hair loss assessment from an Australian doctor. Complete a secure form for doctor review. From $49.95. Prescription is not guaranteed.",
+        "h1": [
+          "Private hair loss assessment, from home."
+        ],
+        "robotsMeta": "index, follow",
+        "xRobotsTag": null,
+        "canonical": "https://instantmed.com.au/hair-loss",
+        "directAnswerInFirstScreen": true,
+        "schema": {
+          "service": "MedicalServiceSchema",
+          "article": true,
+          "howTo": false,
+          "faq": true,
+          "breadcrumb": true,
+          "speakable": true
+        },
+        "renderedSchemaTypes": [
+          "Answer",
+          "BreadcrumbList",
+          "ContactPoint",
+          "Country",
+          "EducationalOccupationalCredential",
+          "FAQPage",
+          "ListItem",
+          "MedicalOrganization",
+          "MedicalService",
+          "MedicalWebPage",
+          "Offer",
+          "OfferCatalog",
+          "Organization",
+          "PostalAddress",
+          "Question",
+          "Service",
+          "SpeakableSpecification",
+          "WebPage",
+          "WebSite"
+        ],
+        "invalidJsonLdBlocks": 0,
+        "visibleLastReviewed": null
+      },
+      "gsc": {
+        "current": {
+          "startDate": "2026-08-04",
+          "endDate": "2026-09-02",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 36,
+            "ctr": 0,
+            "averagePosition": 48.97222222222222
+          },
+          "pageQueryExport": {
+            "safeTopRows": [
+              {
+                "route": "/hair-loss",
+                "query": "online hair loss treatment australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 28,
+                "ctr": 0,
+                "averagePosition": 57.464285714285715
+              },
+              {
+                "route": "/hair-loss",
+                "query": "hair loss online doctor",
+                "intent": "service_relevant_commercial",
+                "rankBand": "21-50",
+                "clicks": 0,
+                "impressions": 2,
+                "ctr": 0,
+                "averagePosition": 33
+              }
+            ],
+            "safeVisibleAggregate": {
+              "rowCount": 2,
+              "clicks": 0,
+              "impressions": 30,
+              "ctr": 0,
+              "averagePosition": 0
+            },
+            "byIntent": {
+              "service_relevant_commercial": {
+                "rowCount": 2,
+                "clicks": 0,
+                "impressions": 30,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "byRankBand": {
+              "51-100": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 28,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "21-50": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 2,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [
+            {
+              "country": "aus",
+              "clicks": 0,
+              "impressions": 30,
+              "ctr": 0,
+              "averagePosition": 55.833333333333336
+            }
+          ],
+          "deviceRows": [
+            {
+              "device": "DESKTOP",
+              "clicks": 0,
+              "impressions": 30,
+              "ctr": 0,
+              "averagePosition": 55.833333333333336
+            }
+          ]
+        },
+        "prior": {
+          "startDate": "2026-07-05",
+          "endDate": "2026-08-03",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 11,
+            "ctr": 0,
+            "averagePosition": 54.54545454545455
+          },
+          "pageQueryExport": {
+            "safeTopRows": [
+              {
+                "route": "/hair-loss",
+                "query": "online hair loss treatment australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 11,
+                "ctr": 0,
+                "averagePosition": 54.54545454545455
+              }
+            ],
+            "safeVisibleAggregate": {
+              "rowCount": 1,
+              "clicks": 0,
+              "impressions": 11,
+              "ctr": 0,
+              "averagePosition": 0
+            },
+            "byIntent": {
+              "service_relevant_commercial": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 11,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "byRankBand": {
+              "51-100": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 11,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [
+            {
+              "country": "aus",
+              "clicks": 0,
+              "impressions": 11,
+              "ctr": 0,
+              "averagePosition": 54.54545454545455
+            }
+          ],
+          "deviceRows": [
+            {
+              "device": "DESKTOP",
+              "clicks": 0,
+              "impressions": 11,
+              "ctr": 0,
+              "averagePosition": 54.54545454545455
+            }
+          ]
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 25,
+            "percent": 2.272727272727273
+          },
+          "ctrPercentagePoints": 0,
+          "averagePosition": -5.573232323232325
+        }
+      },
+      "recommendation": {
+        "decision": "defer",
+        "currentOwner": "commercial hair-loss assessment intent",
+        "evidence": "Impressions rose to 36 from 11, with 0 clicks; the only material current visible query is 'online hair loss treatment australia' at 28 impressions and average position 57.46. The page already states assessment, price, possible doctor contact and no guaranteed prescription.",
+        "fit": "High business fit when kept medical and assessment-led.",
+        "action": "Keep the current held landing experiment. After the hold, consider a compliant bridge from treatment-seeking intent to doctor assessment; do not promise results or name prescription medicines in acquisition copy.",
+        "observedGap": "The query vocabulary says treatment while the title says assessment, but only 30 query-visible impressions exist and the experiment is held."
+      }
+    },
+    {
+      "path": "/womens-health",
+      "url": "https://instantmed.com.au/womens-health",
+      "baselineIndexStatus": "Submitted and indexed",
+      "baselineIndexVerdict": "PASS",
+      "currentPublicHtml": {
+        "httpStatus": 200,
+        "title": "Women's Health Assessment | UTI + Pill Online | InstantMed",
+        "metaDescription": "UTI and contraceptive pill assessment from an Australian doctor. Fill out a secure form, no booked appointment or waiting room. From $49.95.",
+        "h1": [
+          "Women's health: choose the right online assessment."
+        ],
+        "robotsMeta": "index, follow",
+        "xRobotsTag": null,
+        "canonical": "https://instantmed.com.au/womens-health",
+        "directAnswerInFirstScreen": true,
+        "schema": {
+          "service": "MedicalServiceSchema",
+          "article": true,
+          "howTo": false,
+          "faq": true,
+          "breadcrumb": true,
+          "speakable": true
+        },
+        "renderedSchemaTypes": [
+          "Answer",
+          "BreadcrumbList",
+          "ContactPoint",
+          "Country",
+          "EducationalOccupationalCredential",
+          "FAQPage",
+          "ListItem",
+          "MedicalOrganization",
+          "MedicalService",
+          "MedicalWebPage",
+          "Offer",
+          "OfferCatalog",
+          "Organization",
+          "PostalAddress",
+          "Question",
+          "Service",
+          "SpeakableSpecification",
+          "WebPage",
+          "WebSite"
+        ],
+        "invalidJsonLdBlocks": 0,
+        "visibleLastReviewed": null
+      },
+      "gsc": {
+        "current": {
+          "startDate": "2026-08-04",
+          "endDate": "2026-09-02",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 62,
+            "ctr": 0,
+            "averagePosition": 6.967741935483871
+          },
+          "pageQueryExport": {
+            "safeTopRows": [
+              {
+                "route": "/womens-health",
+                "query": "instantmed",
+                "intent": "brand",
+                "rankBand": "1-3",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 3
+              }
+            ],
+            "safeVisibleAggregate": {
+              "rowCount": 2,
+              "clicks": 0,
+              "impressions": 13,
+              "ctr": 0,
+              "averagePosition": 0
+            },
+            "byIntent": {
+              "irrelevant": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 12,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "brand": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "byRankBand": {
+              "4-10": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 12,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "1-3": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [
+            {
+              "country": "tur",
+              "clicks": 0,
+              "impressions": 12,
+              "ctr": 0,
+              "averagePosition": 7.416666666666667
+            },
+            {
+              "country": "aus",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 3
+            }
+          ],
+          "deviceRows": [
+            {
+              "device": "MOBILE",
+              "clicks": 0,
+              "impressions": 13,
+              "ctr": 0,
+              "averagePosition": 7.076923076923077
+            }
+          ]
+        },
+        "prior": {
+          "startDate": "2026-07-05",
+          "endDate": "2026-08-03",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 40,
+            "ctr": 0,
+            "averagePosition": 54.4
+          },
+          "pageQueryExport": {
+            "safeTopRows": [
+              {
+                "route": "/womens-health",
+                "query": "pill script online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 5,
+                "ctr": 0,
+                "averagePosition": 53.2
+              },
+              {
+                "route": "/womens-health",
+                "query": "telehealth uti",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 3,
+                "ctr": 0,
+                "averagePosition": 80
+              },
+              {
+                "route": "/womens-health",
+                "query": "uti script online australia",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 3,
+                "ctr": 0,
+                "averagePosition": 74.66666666666667
+              },
+              {
+                "route": "/womens-health",
+                "query": "uti telehealth",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 3,
+                "ctr": 0,
+                "averagePosition": 74.33333333333333
+              },
+              {
+                "route": "/womens-health",
+                "query": "uti medication online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 2,
+                "ctr": 0,
+                "averagePosition": 73.5
+              },
+              {
+                "route": "/womens-health",
+                "query": "birth control online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 84
+              },
+              {
+                "route": "/womens-health",
+                "query": "contraception online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 83
+              },
+              {
+                "route": "/womens-health",
+                "query": "contraceptive pill online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 63
+              },
+              {
+                "route": "/womens-health",
+                "query": "contraceptive pill prescription online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 64
+              },
+              {
+                "route": "/womens-health",
+                "query": "contraceptive pill script online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 66
+              },
+              {
+                "route": "/womens-health",
+                "query": "get birth control pill online",
+                "intent": "service_relevant_commercial",
+                "rankBand": "51-100",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 82
+              },
+              {
+                "route": "/womens-health",
+                "query": "instantmed",
+                "intent": "brand",
+                "rankBand": "1-3",
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 2
+              }
+            ],
+            "safeVisibleAggregate": {
+              "rowCount": 23,
+              "clicks": 0,
+              "impressions": 34,
+              "ctr": 0,
+              "averagePosition": 0
+            },
+            "byIntent": {
+              "service_relevant_commercial": {
+                "rowCount": 18,
+                "clicks": 0,
+                "impressions": 29,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "irrelevant": {
+                "rowCount": 4,
+                "clicks": 0,
+                "impressions": 4,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "brand": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "byRankBand": {
+              "51-100": {
+                "rowCount": 17,
+                "clicks": 0,
+                "impressions": 28,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "1-3": {
+                "rowCount": 4,
+                "clicks": 0,
+                "impressions": 4,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "4-10": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 0
+              },
+              "21-50": {
+                "rowCount": 1,
+                "clicks": 0,
+                "impressions": 1,
+                "ctr": 0,
+                "averagePosition": 0
+              }
+            },
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [
+            {
+              "country": "aus",
+              "clicks": 0,
+              "impressions": 34,
+              "ctr": 0,
+              "averagePosition": 59.529411764705884
+            }
+          ],
+          "deviceRows": [
+            {
+              "device": "DESKTOP",
+              "clicks": 0,
+              "impressions": 21,
+              "ctr": 0,
+              "averagePosition": 66.14285714285714
+            },
+            {
+              "device": "MOBILE",
+              "clicks": 0,
+              "impressions": 12,
+              "ctr": 0,
+              "averagePosition": 46.916666666666664
+            },
+            {
+              "device": "TABLET",
+              "clicks": 0,
+              "impressions": 1,
+              "ctr": 0,
+              "averagePosition": 72
+            }
+          ]
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 22,
+            "percent": 0.55
+          },
+          "ctrPercentagePoints": 0,
+          "averagePosition": -47.43225806451613
+        }
+      },
+      "recommendation": {
+        "decision": "keep",
+        "currentOwner": "broad routing intent for the two narrow women's-health pathways",
+        "evidence": "Page totals rose to 62 impressions from 40 and average position appears to improve to 6.97, but current visible rows are 12 irrelevant Turkish impressions plus 1 brand impression. Prior visible rows included 24 service-commercial impressions across UTI and pill terms. The hub already links both child pages and repeat prescriptions.",
+        "fit": "Good routing fit; it must remain narrower than a general women's-health consultation.",
+        "action": "Keep the hub title/H1, narrow scope and existing child/repeat links. Do not claim a ranking win from the current aggregate position.",
+        "observedGap": "Current aggregate position is distorted by irrelevant foreign visibility and is not service-intent proof."
+      }
+    },
+    {
+      "path": "/uti-assessment-online",
+      "url": "https://instantmed.com.au/uti-assessment-online",
+      "baselineIndexStatus": "URL is unknown to Google",
+      "baselineIndexVerdict": "NEUTRAL",
+      "currentPublicHtml": {
+        "httpStatus": 200,
+        "title": "UTI Assessment Online Australia | Doctor Review | InstantMed",
+        "metaDescription": "UTI symptom assessment from an Australian doctor. Start with a secure form, no booked appointment or waiting room. From $49.95.",
+        "h1": [
+          "UTI assessment online Australia"
+        ],
+        "robotsMeta": "index, follow",
+        "xRobotsTag": null,
+        "canonical": "https://instantmed.com.au/uti-assessment-online",
+        "directAnswerInFirstScreen": true,
+        "schema": {
+          "service": "ServiceSchema",
+          "article": true,
+          "howTo": false,
+          "faq": true,
+          "breadcrumb": true,
+          "speakable": true
+        },
+        "renderedSchemaTypes": [
+          "Answer",
+          "BreadcrumbList",
+          "ContactPoint",
+          "Country",
+          "EducationalOccupationalCredential",
+          "FAQPage",
+          "ListItem",
+          "MedicalOrganization",
+          "MedicalWebPage",
+          "Offer",
+          "OfferCatalog",
+          "Organization",
+          "PostalAddress",
+          "Question",
+          "Service",
+          "SpeakableSpecification",
+          "WebPage",
+          "WebSite"
+        ],
+        "invalidJsonLdBlocks": 0,
+        "visibleLastReviewed": "2026-06"
+      },
+      "gsc": {
+        "current": {
+          "startDate": "2026-08-04",
+          "endDate": "2026-09-02",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 0,
+            "ctr": null,
+            "averagePosition": null
+          },
+          "pageQueryExport": {
+            "safeTopRows": [],
+            "safeVisibleAggregate": {
+              "rowCount": 0,
+              "clicks": 0,
+              "impressions": 0,
+              "ctr": null,
+              "averagePosition": null
+            },
+            "byIntent": {},
+            "byRankBand": {},
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [],
+          "deviceRows": []
+        },
+        "prior": {
+          "startDate": "2026-07-05",
+          "endDate": "2026-08-03",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 0,
+            "ctr": null,
+            "averagePosition": null
+          },
+          "pageQueryExport": {
+            "safeTopRows": [],
+            "safeVisibleAggregate": {
+              "rowCount": 0,
+              "clicks": 0,
+              "impressions": 0,
+              "ctr": null,
+              "averagePosition": null
+            },
+            "byIntent": {},
+            "byRankBand": {},
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [],
+          "deviceRows": []
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 0,
+            "percent": null
+          },
+          "ctrPercentagePoints": null,
+          "averagePosition": null
+        }
+      },
+      "recommendation": {
+        "decision": "clarify",
+        "currentOwner": "commercial possible-uncomplicated-UTI assessment intent",
+        "evidence": "Zero GSC impressions in both periods and baseline URL Inspection reported URL unknown to Google. Live HTML is 200, canonical, index/follow, with an exact-intent title/H1 and a contextual link back to the women's hub. The hero still says 'Start · choose UTI next' and 'On the next screen, choose UTI symptoms' even though the route already preserves the UTI selection.",
+        "fit": "Eligible narrow on-site pathway; red flags, pregnancy risk, recurrent symptoms and unclear patterns remain outside scope.",
+        "action": "Clarify the first-screen process to say the UTI option is already selected, surface the $49.95 review fee and possible doctor call in the mobile lead, and keep metadata, H1, safety lists, CTA hrefs and hub links unchanged.",
+        "observedGap": "The current lead describes a selection step the routed journey has already completed and delays key process facts on mobile."
+      }
+    },
+    {
+      "path": "/contraceptive-pill-assessment-online",
+      "url": "https://instantmed.com.au/contraceptive-pill-assessment-online",
+      "baselineIndexStatus": "Submitted and indexed",
+      "baselineIndexVerdict": "PASS",
+      "currentPublicHtml": {
+        "httpStatus": 200,
+        "title": "Contraceptive Pill Assessment Online | InstantMed",
+        "metaDescription": "Start or switch the contraceptive pill after Australian doctor review. Secure form-first assessment, no booked appointment. From $49.95.",
+        "h1": [
+          "Contraceptive pill assessment online"
+        ],
+        "robotsMeta": "index, follow",
+        "xRobotsTag": null,
+        "canonical": "https://instantmed.com.au/contraceptive-pill-assessment-online",
+        "directAnswerInFirstScreen": true,
+        "schema": {
+          "service": "ServiceSchema",
+          "article": true,
+          "howTo": false,
+          "faq": true,
+          "breadcrumb": true,
+          "speakable": true
+        },
+        "renderedSchemaTypes": [
+          "Answer",
+          "BreadcrumbList",
+          "ContactPoint",
+          "Country",
+          "EducationalOccupationalCredential",
+          "FAQPage",
+          "ListItem",
+          "MedicalOrganization",
+          "MedicalWebPage",
+          "Offer",
+          "OfferCatalog",
+          "Organization",
+          "PostalAddress",
+          "Question",
+          "Service",
+          "SpeakableSpecification",
+          "WebPage",
+          "WebSite"
+        ],
+        "invalidJsonLdBlocks": 0,
+        "visibleLastReviewed": "2026-06"
+      },
+      "gsc": {
+        "current": {
+          "startDate": "2026-08-04",
+          "endDate": "2026-09-02",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 3,
+            "ctr": 0,
+            "averagePosition": 6.666666666666667
+          },
+          "pageQueryExport": {
+            "safeTopRows": [],
+            "safeVisibleAggregate": {
+              "rowCount": 0,
+              "clicks": 0,
+              "impressions": 0,
+              "ctr": null,
+              "averagePosition": null
+            },
+            "byIntent": {},
+            "byRankBand": {},
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [],
+          "deviceRows": []
+        },
+        "prior": {
+          "startDate": "2026-07-05",
+          "endDate": "2026-08-03",
+          "pageTotals": {
+            "clicks": 0,
+            "impressions": 4,
+            "ctr": 0,
+            "averagePosition": 8.25
+          },
+          "pageQueryExport": {
+            "safeTopRows": [],
+            "safeVisibleAggregate": {
+              "rowCount": 0,
+              "clicks": 0,
+              "impressions": 0,
+              "ctr": null,
+              "averagePosition": null
+            },
+            "byIntent": {},
+            "byRankBand": {},
+            "privacyOmittedByReason": [],
+            "selectionNote": "Top 12 non-irrelevant rows by clicks then impressions are persisted; all privacy-safe rows are represented in aggregate. Irrelevant rows remain only in byIntent aggregate."
+          },
+          "countryRows": [],
+          "deviceRows": []
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": -1,
+            "percent": -0.25
+          },
+          "ctrPercentagePoints": 0,
+          "averagePosition": -1.583333333333333
+        }
+      },
+      "recommendation": {
+        "decision": "clarify",
+        "currentOwner": "commercial start-or-switch pill assessment intent",
+        "evidence": "Page totals are 3 current impressions versus 4 prior, with no query text available. Exact-query sampling surfaced the page, and live HTML is 200, canonical and index/follow. The hero still says 'Start · choose pill next' and uses internal wording ('pre-checkout terminal checks') even though the route already preserves the pill selection.",
+        "fit": "Eligible narrow start-or-switch assessment; unchanged repeats belong to /prescriptions and the clinical safety exits remain mandatory.",
+        "action": "Clarify the first-screen process, replace implementation jargon with patient language, surface the $49.95 review fee and possible doctor call in the mobile lead, and keep metadata, H1, safety lists, CTA hrefs, repeat link and hub link unchanged.",
+        "observedGap": "The current lead repeats an already-completed choice and exposes implementation language instead of the patient-facing process."
+      }
+    }
+  ],
+  "linkInventory": {
+    "globalExposure": "All five main service parents (/medical-certificate, /prescriptions, /erectile-dysfunction, /hair-loss, /womens-health) are present in the global footer on every crawled route. /pricing is present in header/footer. The explanatory and child pages use contextual pair/hub links rather than pretending to be global-nav entries.",
+    "observedContextualLinks": [
+      {
+        "source": "/medical-certificate",
+        "destination": "/medical-certificate-online",
+        "anchor": "Online certificate guide",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/medical-certificate",
+        "destination": "/prescriptions",
+        "anchor": "Repeat prescriptions",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/medical-certificate",
+        "destination": "/employers",
+        "anchor": "For Employers and HR",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/medical-certificate",
+        "destination": "/verify",
+        "anchor": "Verify a Certificate",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/medical-certificate-online",
+        "destination": "/medical-certificate",
+        "anchor": "Compare certificate options / See the main service page",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/medical-certificate-online",
+        "destination": "/prescriptions",
+        "anchor": "Prescriptions",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/medical-certificate-online",
+        "destination": "/verify",
+        "anchor": "Verify a certificate",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/prescriptions",
+        "destination": "/online-prescriptions",
+        "anchor": "Online prescriptions in Australia",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/online-prescriptions",
+        "destination": "/prescriptions",
+        "anchor": "Repeat prescription service / See repeat prescription service",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/online-prescriptions",
+        "destination": "/medical-certificate-online",
+        "anchor": "Medical certificate online",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/erectile-dysfunction",
+        "destination": "/hair-loss",
+        "anchor": "Hair loss assessment",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/erectile-dysfunction",
+        "destination": "/prescriptions",
+        "anchor": "Repeat prescriptions",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/hair-loss",
+        "destination": "/mens-health",
+        "anchor": "Men's health online",
+        "region": "supporting_content_after_main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/hair-loss",
+        "destination": "/prescriptions",
+        "anchor": "Repeat prescriptions",
+        "region": "supporting_content_after_main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/womens-health",
+        "destination": "/uti-assessment-online",
+        "anchor": "View UTI assessment",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/womens-health",
+        "destination": "/contraceptive-pill-assessment-online",
+        "anchor": "View pill assessment",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/womens-health",
+        "destination": "/prescriptions",
+        "anchor": "Continuing the same pill? Use repeat prescriptions.",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/uti-assessment-online",
+        "destination": "/womens-health",
+        "anchor": "Compare women's health options / Women's health hub",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/contraceptive-pill-assessment-online",
+        "destination": "/womens-health",
+        "anchor": "Compare women's health options / Women's health hub",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/contraceptive-pill-assessment-online",
+        "destination": "/prescriptions",
+        "anchor": "Repeat prescription",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/pricing",
+        "destination": "/medical-certificate",
+        "anchor": "Learn about medical certificate",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/pricing",
+        "destination": "/prescriptions",
+        "anchor": "Learn about refill a prescription",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/pricing",
+        "destination": "/erectile-dysfunction",
+        "anchor": "Learn about erectile dysfunction",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/pricing",
+        "destination": "/hair-loss",
+        "anchor": "Learn about hair loss treatment",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/pricing",
+        "destination": "/womens-health",
+        "anchor": "Learn about women's health",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/how-it-works",
+        "destination": "/medical-certificate",
+        "anchor": "Medical certificates",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/how-it-works",
+        "destination": "/prescriptions",
+        "anchor": "Online prescriptions",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/mens-health",
+        "destination": "/erectile-dysfunction",
+        "anchor": "Erectile dysfunction assessment / Read ED assessment guide",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/mens-health",
+        "destination": "/hair-loss",
+        "anchor": "Hair loss assessment / Read hair loss guide",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/mens-health",
+        "destination": "/online-prescriptions",
+        "anchor": "Online prescriptions",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/employers",
+        "destination": "/verify",
+        "anchor": "Single certificate",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/trust",
+        "destination": "/verify",
+        "anchor": "Certificate verification",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/trust",
+        "destination": "/clinical-governance",
+        "anchor": "Clinical governance",
+        "region": "main",
+        "proposedAction": "keep"
+      },
+      {
+        "source": "/verify",
+        "destination": "/employers",
+        "anchor": "Employer verification guide",
+        "region": "main",
+        "proposedAction": "keep"
+      }
+    ],
+    "proposedDeltas": [],
+    "conclusion": "No useful missing internal link was found for this batch. Certificate and prescription pairs cross-link, the women's hub links both child pages and repeat prescriptions, each child links back to the hub, and the pill page links the unchanged-repeat route. Repeating global links inside every section would add noise without solving an observed gap."
+  },
+  "aggregateFindings": [
+    "The normalised /medical-certificate total is 7,654 impressions, two more than the canonical-only baseline because the page export also found and summed a two-impression trailing-slash row.",
+    "The women's hub average-position improvement is not a service-intent win: nearly all current visible query impressions are an irrelevant Turkish term, while most page-level impressions are not exposed in query dimensions.",
+    "ED and hair visibility grew around treatment-seeking commercial wording, but both landing experiments are held and compliant assessment framing remains the correct promise.",
+    "The prescription pair and UTI child have no measurable page/query visibility; crawl/index rechecks precede copy expansion.",
+    "Only the UTI and pill child first-screen process wording is eligible now; no metadata, H1, safety, CTA routing or link expansion is supported by the evidence."
+  ],
+  "limitations": [
+    "Search Console suppresses/anonymises query and dimension rows. Page totals are authoritative for page performance and are intentionally kept separate from query, country and device rows, which may not sum to them.",
+    "Low-volume query samples cannot establish stable intent ownership or conversion impact. Null percent deltas mean the prior value was zero.",
+    "Average position is an impression-weighted aggregate, not a fixed rank. Positive deltas in average-position numeric value mean worse position.",
+    "URL Inspection status comes from the separate 2026-09-05 baseline receipt and is not a Live Test rendered proof.",
+    "Current public HTML was fetched before the separately owned crawl/schema release and before the parent child-page wording change; post-release verification belongs to the coordinating task.",
+    "Search-result sampling establishes result type and vocabulary only. It is not search volume, rank tracking, market-share or competitor-claim substantiation.",
+    "General antibiotics articles were excluded as growth targets. No external publisher, directory, prospect, backlink or outreach work was performed."
+  ]
+}

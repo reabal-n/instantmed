@@ -28,7 +28,7 @@ import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { UTI_LANDING_FAQ } from "@/lib/data/womens-health-faq"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
-import { GUARANTEE } from "@/lib/marketing/voice"
+import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
 const ASSESSMENT_HREF = "/request?service=consult&subtype=womens_health&intent=uti"
@@ -38,7 +38,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "womens-health",
   analyticsId: "uti-assessment",
   sticky: {
-    ctaText: `Start · choose UTI next · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
+    ctaText: `Start UTI assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
     ctaHref: ASSESSMENT_HREF,
     mobileSummary: "UTI symptom assessment",
     responseTime: "Doctor review 24/7",
@@ -110,8 +110,8 @@ const OUTSIDE_SCOPE_ITEMS = [
 const REVIEW_COST_OUTCOMES = [
   {
     icon: Droplets,
-    title: "1 · Choose UTI symptoms",
-    body: "The link opens the shared women's-health form. Choose UTI symptoms on the next screen, then complete the symptom and safety questions.",
+    title: "1 · Tell us about your symptoms",
+    body: "Confirm UTI symptoms in the form, then answer the symptom and safety questions.",
   },
   {
     icon: Stethoscope,
@@ -320,7 +320,10 @@ export function UtiAssessmentLanding({ visuals }: { visuals: RenderableArticleVi
                   UTI assessment online Australia
                 </Heading>
                 <p data-speakable className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-                  Complete a secure symptom and safety screen for a possible uncomplicated UTI. An AHPRA-registered doctor reviews a suitable request and decides whether online care is appropriate.
+                  For women aged 18 or over in Australia with possible uncomplicated UTI symptoms. One-off doctor review: {PRICING_DISPLAY.WOMENS_HEALTH}. Pharmacy costs are separate if a prescription is approved.
+                </p>
+                <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
+                  {FORM_FIRST_WEDGE}
                 </p>
 
                 <div ref={heroCTARef} className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -332,7 +335,7 @@ export function UtiAssessmentLanding({ visuals }: { visuals: RenderableArticleVi
                     onClick={handleHeroCTA}
                   >
                     <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                      {isDisabled ? "Contact us" : "Start · choose UTI next"}
+                      {isDisabled ? "Contact us" : "Start UTI assessment"}
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                   </Button>
@@ -342,7 +345,7 @@ export function UtiAssessmentLanding({ visuals }: { visuals: RenderableArticleVi
                 </div>
 
                 <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-                  On the next screen, choose UTI symptoms. {GUARANTEE} Treatment is not guaranteed.
+                  {GUARANTEE} Treatment is not guaranteed.
                 </p>
               </Reveal>
 
@@ -504,12 +507,12 @@ export function UtiAssessmentLanding({ visuals }: { visuals: RenderableArticleVi
                   Start a UTI symptom assessment
                 </Heading>
                 <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-                  The link opens the shared women's-health form. Choose UTI symptoms on the next screen, then complete the secure safety questions for doctor review.
+                  Confirm UTI symptoms and complete the secure safety questions. A doctor reviews suitable requests and decides whether online care is appropriate.
                 </p>
                 <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <Button asChild size="lg" className="w-full sm:w-auto" disabled={isDisabled} onClick={handleFinalCTA}>
                     <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                      {isDisabled ? "Contact us" : `Start · choose UTI next · ${PRICING_DISPLAY.WOMENS_HEALTH}`}
+                      {isDisabled ? "Contact us" : `Start UTI assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`}
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                   </Button>

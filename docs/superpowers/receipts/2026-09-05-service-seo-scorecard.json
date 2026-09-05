@@ -1,0 +1,2003 @@
+{
+  "checkedAt": "2026-09-05T03:27:10.145Z",
+  "status": "complete_with_named_unavailable_metrics",
+  "scope": {
+    "focusPurchasedServices": [
+      "medical_certificates",
+      "repeat_prescriptions",
+      "ed",
+      "hair_loss",
+      "womens_health"
+    ],
+    "whitelistedLandingPathnames": [
+      "/medical-certificate",
+      "/medical-certificate-online",
+      "/prescriptions",
+      "/online-prescriptions",
+      "/erectile-dysfunction",
+      "/hair-loss",
+      "/womens-health",
+      "/uti-assessment-online",
+      "/contraceptive-pill-assessment-online"
+    ],
+    "financialPeriods": {
+      "current": {
+        "localStartDate": "2026-08-06",
+        "localEndDate": "2026-09-04",
+        "timezone": "Australia/Sydney",
+        "inclusiveStartInstant": "2026-08-05T14:00:00.000Z",
+        "inclusiveEndInstant": "2026-09-04T13:59:59.999Z",
+        "closedCalendarDays": 30
+      },
+      "prior": {
+        "localStartDate": "2026-07-07",
+        "localEndDate": "2026-08-05",
+        "timezone": "Australia/Sydney",
+        "inclusiveStartInstant": "2026-07-06T14:00:00.000Z",
+        "inclusiveEndInstant": "2026-08-05T13:59:59.999Z",
+        "closedCalendarDays": 30
+      }
+    },
+    "searchConsolePeriods": {
+      "current": {
+        "startDate": "2026-08-04",
+        "endDate": "2026-09-02"
+      },
+      "prior": {
+        "startDate": "2026-07-05",
+        "endDate": "2026-08-03"
+      },
+      "timezone": "America/Los_Angeles",
+      "dataState": "final",
+      "alignment": "Separate final Google periods; not aligned to the Sydney financial periods."
+    },
+    "systemsRead": [
+      "Supabase aggregate payment and recorded-attribution evidence",
+      "existing aggregate GSC/index receipts"
+    ],
+    "systemsNotCalled": [
+      "Stripe API",
+      "Google Ads endpoint",
+      "provider sync",
+      "PostHog",
+      "external outreach or mutation"
+    ],
+    "privacy": "No identifiers, credentials, patient rows, clinical answers, free text, query strings, referrers or click IDs are persisted. Only aggregate counts/cash and whitelisted public pathnames are present."
+  },
+  "methodology": {
+    "cashAccounting": "Canonical readCustomerGrowthRevenueEvidence plus buildCustomerGrowthRevenueForIntakeIds/buildNetRetainedPurchaseValue. Purchases enter by paid_at; exact live-AUD refund/dispute cash events leave or return in their own windows; reportable and seeded-E2E exclusions are inherited from the reader.",
+    "serviceJoin": "Identifiers were used only in memory to attach canonical cash events to category/subtype cohorts, recorded acquisition source and entry pathname. They were not logged or written.",
+    "serviceSeparation": "Landing pathname never determines purchased service. Every landing/channel row states the separately recorded purchased service.",
+    "sourceClassification": "Canonical classifyAttributionSource; Google/Bing organic are separated only when a recorded exact UTM source or search-referrer host supports the provider. AI provider uses exact classifyAiSource evidence.",
+    "organicIntentBoundary": "No organic brand/non-brand row is presented as an observed query split. GSC query text is omitted.",
+    "createdIntakes": "Created-intake counts use created_at cohorts and are shown separately from paid_at order counts. No conversion rate is calculated.",
+    "search": "Existing 2026-09-05 GSC intent receipt provides final page totals; existing URL Inspection baseline provides index status and last-crawl time. GSC and financial periods remain separate."
+  },
+  "availability": {
+    "createdIntakes": {
+      "status": "available",
+      "note": "Separate created_at cohort; not a joined session funnel."
+    },
+    "paidOrders": {
+      "status": "available",
+      "note": "Canonical reportable paid_at orders."
+    },
+    "refundsAndDisputes": {
+      "status": "available",
+      "note": "Exact live-AUD cash-event evidence passed the canonical completeness gate."
+    },
+    "netRetainedCash": {
+      "status": "available",
+      "note": "Canonical cash-event accounting."
+    },
+    "sessions": {
+      "status": "unavailable",
+      "reason": "No verified existing reader joins sessions to these payment and service cohorts; PostHog was intentionally not queried."
+    },
+    "funnelRates": {
+      "status": "unavailable",
+      "reason": "Sessions, created intakes and paid orders use separate event/cohort boundaries; a rate would be invented."
+    },
+    "retainedOrderCount": {
+      "status": "unavailable",
+      "reason": "The canonical reader exports paid order count and net-retained cash, not a durable retained-order-count definition."
+    },
+    "paymentFees": {
+      "status": "unavailable",
+      "reason": "The canonical customer-growth reader does not expose exact per-order Stripe fees for these service/channel/landing cohorts."
+    },
+    "firstOrderContribution": {
+      "status": "unavailable",
+      "reason": "Exact cohort fees and attributable acquisition cost were not available in this bounded read; net-retained cash is not contribution."
+    },
+    "discovery7Day": {
+      "status": "unavailable",
+      "reason": "The supplied final GSC receipt contains equal closed 30-day periods, not a dated 7-day export."
+    },
+    "discovery14Day": {
+      "status": "unavailable",
+      "reason": "The supplied final GSC receipt contains equal closed 30-day periods, not a dated 14-day export."
+    }
+  },
+  "financial": {
+    "current": {
+      "period": {
+        "localStartDate": "2026-08-06",
+        "localEndDate": "2026-09-04",
+        "timezone": "Australia/Sydney",
+        "inclusiveStartInstant": "2026-08-05T14:00:00.000Z",
+        "inclusiveEndInstant": "2026-09-04T13:59:59.999Z",
+        "closedCalendarDays": 30
+      },
+      "account": {
+        "createdIntakes": 314,
+        "paidOrders": 292,
+        "grossCents": 954810,
+        "refundCents": 39410,
+        "disputeCents": 0,
+        "netRetainedCents": 915400
+      },
+      "focusTotals": {
+        "createdIntakes": 314,
+        "paidOrders": 292,
+        "grossCents": 954810,
+        "refundCents": 39410,
+        "disputeCents": 0,
+        "netRetainedCents": 915400
+      },
+      "outOfFocusTotals": {
+        "createdIntakes": 0,
+        "paidOrders": 0,
+        "grossCents": 0,
+        "refundCents": 0,
+        "disputeCents": 0,
+        "netRetainedCents": 0
+      },
+      "sourceCoverage": {
+        "denominator": "focus paid orders in this paid_at window",
+        "knownPaidOrders": 261,
+        "unknownPaidOrders": 31,
+        "knownPercent": 89.4,
+        "recoveryMarkerAvailability": "available-forward-only"
+      },
+      "byPurchasedService": [
+        {
+          "service": "medical_certificates",
+          "label": "Medical certificates",
+          "createdIntakes": 121,
+          "paidOrders": 115,
+          "grossCents": 327890,
+          "refundCents": 5490,
+          "disputeCents": 0,
+          "netRetainedCents": 322400
+        },
+        {
+          "service": "repeat_prescriptions",
+          "label": "Repeat prescriptions",
+          "createdIntakes": 159,
+          "paidOrders": 148,
+          "grossCents": 474105,
+          "refundCents": 32925,
+          "disputeCents": 0,
+          "netRetainedCents": 441180
+        },
+        {
+          "service": "ed",
+          "label": "ED",
+          "createdIntakes": 18,
+          "paidOrders": 17,
+          "grossCents": 90885,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 90885
+        },
+        {
+          "service": "hair_loss",
+          "label": "Hair loss",
+          "createdIntakes": 1,
+          "paidOrders": 1,
+          "grossCents": 4995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4995
+        },
+        {
+          "service": "womens_health",
+          "label": "Women's health",
+          "createdIntakes": 15,
+          "paidOrders": 11,
+          "grossCents": 56935,
+          "refundCents": 995,
+          "disputeCents": 0,
+          "netRetainedCents": 55940
+        }
+      ],
+      "byChannel": [
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 155,
+          "grossCents": 537565,
+          "refundCents": 23940,
+          "disputeCents": 0,
+          "netRetainedCents": 513625
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "paidOrders": 53,
+          "grossCents": 151220,
+          "refundCents": 2995,
+          "disputeCents": 0,
+          "netRetainedCents": 148225
+        },
+        {
+          "channel": {
+            "code": "organic_google",
+            "label": "Google organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "paidOrders": 39,
+          "grossCents": 122280,
+          "refundCents": 2495,
+          "disputeCents": 0,
+          "netRetainedCents": 119785
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 26,
+          "grossCents": 86340,
+          "refundCents": 3990,
+          "disputeCents": 0,
+          "netRetainedCents": 82350
+        },
+        {
+          "channel": {
+            "code": "recovery_email",
+            "label": "Recovery email",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 7,
+          "grossCents": 19465,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 19465
+        },
+        {
+          "channel": {
+            "code": "unknown",
+            "label": "Unknown",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 5,
+          "grossCents": 15975,
+          "refundCents": 2995,
+          "disputeCents": 0,
+          "netRetainedCents": 12980
+        },
+        {
+          "channel": {
+            "code": "organic_bing",
+            "label": "Bing organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "paidOrders": 5,
+          "grossCents": 14975,
+          "refundCents": 2995,
+          "disputeCents": 0,
+          "netRetainedCents": 11980
+        },
+        {
+          "channel": {
+            "code": "referral",
+            "label": "Referral",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 1,
+          "grossCents": 3995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 3995
+        },
+        {
+          "channel": {
+            "code": "lifecycle_email",
+            "label": "Lifecycle email",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 1,
+          "grossCents": 2995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2995
+        }
+      ],
+      "byChannelLandingAndPurchasedService": [
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/prescriptions",
+          "landingBucket": "whitelisted",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 94,
+          "grossCents": 298445,
+          "refundCents": 8975,
+          "disputeCents": 0,
+          "netRetainedCents": 289470
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "landingPathname": "/medical-certificate-online",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 25,
+          "grossCents": 71365,
+          "refundCents": 2995,
+          "disputeCents": 0,
+          "netRetainedCents": 68370
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/medical-certificate",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 22,
+          "grossCents": 65375,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 65375
+        },
+        {
+          "channel": {
+            "code": "organic_google",
+            "label": "Google organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 21,
+          "grossCents": 59390,
+          "refundCents": 2495,
+          "disputeCents": 0,
+          "netRetainedCents": 56895
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 20,
+          "grossCents": 53400,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 53400
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/womens-health",
+          "landingBucket": "whitelisted",
+          "purchasedService": "womens_health",
+          "purchasedServiceLabel": "Women's health",
+          "paidOrders": 10,
+          "grossCents": 51940,
+          "refundCents": 995,
+          "disputeCents": 0,
+          "netRetainedCents": 50945
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/erectile-dysfunction",
+          "landingBucket": "whitelisted",
+          "purchasedService": "ed",
+          "purchasedServiceLabel": "ED",
+          "paidOrders": 9,
+          "grossCents": 46945,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 46945
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 13,
+          "grossCents": 43910,
+          "refundCents": 3990,
+          "disputeCents": 0,
+          "netRetainedCents": 39920
+        },
+        {
+          "channel": {
+            "code": "organic_google",
+            "label": "Google organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 10,
+          "grossCents": 31940,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 31940
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 12,
+          "grossCents": 41910,
+          "refundCents": 13970,
+          "disputeCents": 0,
+          "netRetainedCents": 27940
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/prescriptions",
+          "landingBucket": "whitelisted",
+          "purchasedService": "ed",
+          "purchasedServiceLabel": "ED",
+          "paidOrders": 4,
+          "grossCents": 21970,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 21970
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 8,
+          "grossCents": 21455,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 21455
+        },
+        {
+          "channel": {
+            "code": "organic_google",
+            "label": "Google organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "ed",
+          "purchasedServiceLabel": "ED",
+          "paidOrders": 3,
+          "grossCents": 16975,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 16975
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "landingPathname": "/prescriptions",
+          "landingBucket": "whitelisted",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 5,
+          "grossCents": 14975,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 14975
+        },
+        {
+          "channel": {
+            "code": "organic_google",
+            "label": "Google organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "landingPathname": "/medical-certificate",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 5,
+          "grossCents": 13975,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 13975
+        },
+        {
+          "channel": {
+            "code": "organic_bing",
+            "label": "Bing organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 5,
+          "grossCents": 14975,
+          "refundCents": 2995,
+          "disputeCents": 0,
+          "netRetainedCents": 11980
+        },
+        {
+          "channel": {
+            "code": "recovery_email",
+            "label": "Recovery email",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 4,
+          "grossCents": 11980,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 11980
+        },
+        {
+          "channel": {
+            "code": "unknown",
+            "label": "Unknown",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 3,
+          "grossCents": 9985,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 9985
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/medical-certificate",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 2,
+          "grossCents": 7990,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 7990
+        },
+        {
+          "channel": {
+            "code": "recovery_email",
+            "label": "Recovery email",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 3,
+          "grossCents": 7485,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 7485
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/womens-health",
+          "landingBucket": "whitelisted",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 2,
+          "grossCents": 5990,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 5990
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "landingPathname": "/contraceptive-pill-assessment-online",
+          "landingBucket": "whitelisted",
+          "purchasedService": "womens_health",
+          "purchasedServiceLabel": "Women's health",
+          "paidOrders": 1,
+          "grossCents": 4995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4995
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "hair_loss",
+          "purchasedServiceLabel": "Hair loss",
+          "paidOrders": 1,
+          "grossCents": 4995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4995
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "ed",
+          "purchasedServiceLabel": "ED",
+          "paidOrders": 1,
+          "grossCents": 4995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4995
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 2,
+          "grossCents": 4990,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4990
+        },
+        {
+          "channel": {
+            "code": "referral",
+            "label": "Referral",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 1,
+          "grossCents": 3995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 3995
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 1,
+          "grossCents": 3990,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 3990
+        },
+        {
+          "channel": {
+            "code": "unknown",
+            "label": "Unknown",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 2,
+          "grossCents": 5990,
+          "refundCents": 2995,
+          "disputeCents": 0,
+          "netRetainedCents": 2995
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/medical-certificate-online",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 1,
+          "grossCents": 2995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2995
+        },
+        {
+          "channel": {
+            "code": "lifecycle_email",
+            "label": "Lifecycle email",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/medical-certificate",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 1,
+          "grossCents": 2995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2995
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "landingPathname": "/medical-certificate",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 1,
+          "grossCents": 2495,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2495
+        }
+      ]
+    },
+    "prior": {
+      "period": {
+        "localStartDate": "2026-07-07",
+        "localEndDate": "2026-08-05",
+        "timezone": "Australia/Sydney",
+        "inclusiveStartInstant": "2026-07-06T14:00:00.000Z",
+        "inclusiveEndInstant": "2026-08-05T13:59:59.999Z",
+        "closedCalendarDays": 30
+      },
+      "account": {
+        "createdIntakes": 139,
+        "paidOrders": 115,
+        "grossCents": 356855,
+        "refundCents": 22955,
+        "disputeCents": 0,
+        "netRetainedCents": 333900
+      },
+      "focusTotals": {
+        "createdIntakes": 139,
+        "paidOrders": 115,
+        "grossCents": 356855,
+        "refundCents": 22955,
+        "disputeCents": 0,
+        "netRetainedCents": 333900
+      },
+      "outOfFocusTotals": {
+        "createdIntakes": 0,
+        "paidOrders": 0,
+        "grossCents": 0,
+        "refundCents": 0,
+        "disputeCents": 0,
+        "netRetainedCents": 0
+      },
+      "sourceCoverage": {
+        "denominator": "focus paid orders in this paid_at window",
+        "knownPaidOrders": 104,
+        "unknownPaidOrders": 11,
+        "knownPercent": 90.4,
+        "recoveryMarkerAvailability": "available-forward-only"
+      },
+      "byPurchasedService": [
+        {
+          "service": "medical_certificates",
+          "label": "Medical certificates",
+          "createdIntakes": 67,
+          "paidOrders": 60,
+          "grossCents": 170190,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 170190
+        },
+        {
+          "service": "repeat_prescriptions",
+          "label": "Repeat prescriptions",
+          "createdIntakes": 61,
+          "paidOrders": 50,
+          "grossCents": 161690,
+          "refundCents": 17960,
+          "disputeCents": 0,
+          "netRetainedCents": 143730
+        },
+        {
+          "service": "ed",
+          "label": "ED",
+          "createdIntakes": 6,
+          "paidOrders": 4,
+          "grossCents": 19980,
+          "refundCents": 4995,
+          "disputeCents": 0,
+          "netRetainedCents": 14985
+        },
+        {
+          "service": "hair_loss",
+          "label": "Hair loss",
+          "createdIntakes": 3,
+          "paidOrders": 1,
+          "grossCents": 4995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4995
+        },
+        {
+          "service": "womens_health",
+          "label": "Women's health",
+          "createdIntakes": 2,
+          "paidOrders": 0,
+          "grossCents": 0,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 0
+        }
+      ],
+      "byChannel": [
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 63,
+          "grossCents": 203625,
+          "refundCents": 17960,
+          "disputeCents": 0,
+          "netRetainedCents": 185665
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "paidOrders": 19,
+          "grossCents": 56405,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 56405
+        },
+        {
+          "channel": {
+            "code": "organic_google",
+            "label": "Google organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "paidOrders": 14,
+          "grossCents": 43920,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 43920
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 5,
+          "grossCents": 13975,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 13975
+        },
+        {
+          "channel": {
+            "code": "unknown",
+            "label": "Unknown",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 6,
+          "grossCents": 17970,
+          "refundCents": 4995,
+          "disputeCents": 0,
+          "netRetainedCents": 12975
+        },
+        {
+          "channel": {
+            "code": "referral",
+            "label": "Referral",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 3,
+          "grossCents": 7985,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 7985
+        },
+        {
+          "channel": {
+            "code": "organic_unspecified",
+            "label": "Organic \u2014 provider unspecified",
+            "known": true,
+            "evidence": "canonical organic classification without an exact provider field"
+          },
+          "paidOrders": 2,
+          "grossCents": 4990,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4990
+        },
+        {
+          "channel": {
+            "code": "organic_bing",
+            "label": "Bing organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "paidOrders": 1,
+          "grossCents": 2995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2995
+        },
+        {
+          "channel": {
+            "code": "lifecycle_email",
+            "label": "Lifecycle email",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 1,
+          "grossCents": 2495,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2495
+        },
+        {
+          "channel": {
+            "code": "recovery_email",
+            "label": "Recovery email",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "paidOrders": 1,
+          "grossCents": 2495,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2495
+        }
+      ],
+      "byChannelLandingAndPurchasedService": [
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/prescriptions",
+          "landingBucket": "whitelisted",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 32,
+          "grossCents": 104795,
+          "refundCents": 6985,
+          "disputeCents": 0,
+          "netRetainedCents": 97810
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/medical-certificate",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 17,
+          "grossCents": 50410,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 50410
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 12,
+          "grossCents": 34940,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 34940
+        },
+        {
+          "channel": {
+            "code": "organic_google",
+            "label": "Google organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 6,
+          "grossCents": 18965,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 18965
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "landingPathname": "/medical-certificate-online",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 6,
+          "grossCents": 16470,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 16470
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 8,
+          "grossCents": 25950,
+          "refundCents": 10975,
+          "disputeCents": 0,
+          "netRetainedCents": 14975
+        },
+        {
+          "channel": {
+            "code": "organic_google",
+            "label": "Google organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 5,
+          "grossCents": 14970,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 14970
+        },
+        {
+          "channel": {
+            "code": "unknown",
+            "label": "Unknown",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 4,
+          "grossCents": 11980,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 11980
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/erectile-dysfunction",
+          "landingBucket": "whitelisted",
+          "purchasedService": "ed",
+          "purchasedServiceLabel": "ED",
+          "paidOrders": 2,
+          "grossCents": 9990,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 9990
+        },
+        {
+          "channel": {
+            "code": "referral",
+            "label": "Referral",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 3,
+          "grossCents": 7985,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 7985
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 3,
+          "grossCents": 7485,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 7485
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 2,
+          "grossCents": 5990,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 5990
+        },
+        {
+          "channel": {
+            "code": "unknown",
+            "label": "Unknown",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "repeat_prescriptions",
+          "purchasedServiceLabel": "Repeat prescriptions",
+          "paidOrders": 2,
+          "grossCents": 5990,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 5990
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 2,
+          "grossCents": 5490,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 5490
+        },
+        {
+          "channel": {
+            "code": "organic_google",
+            "label": "Google organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "ed",
+          "purchasedServiceLabel": "ED",
+          "paidOrders": 1,
+          "grossCents": 4995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4995
+        },
+        {
+          "channel": {
+            "code": "google_ads",
+            "label": "Google Ads",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/hair-loss",
+          "landingBucket": "whitelisted",
+          "purchasedService": "hair_loss",
+          "purchasedServiceLabel": "Hair loss",
+          "paidOrders": 1,
+          "grossCents": 4995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4995
+        },
+        {
+          "channel": {
+            "code": "ai_chatgpt",
+            "label": "AI referral \u2014 ChatGPT",
+            "known": true,
+            "evidence": "exact utm_source"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "ed",
+          "purchasedServiceLabel": "ED",
+          "paidOrders": 1,
+          "grossCents": 4995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4995
+        },
+        {
+          "channel": {
+            "code": "organic_unspecified",
+            "label": "Organic \u2014 provider unspecified",
+            "known": true,
+            "evidence": "canonical organic classification without an exact provider field"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 2,
+          "grossCents": 4990,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4990
+        },
+        {
+          "channel": {
+            "code": "organic_google",
+            "label": "Google organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "landingPathname": "/medical-certificate",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 2,
+          "grossCents": 4990,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 4990
+        },
+        {
+          "channel": {
+            "code": "organic_bing",
+            "label": "Bing organic",
+            "known": true,
+            "evidence": "recorded UTM source or search referrer host"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 1,
+          "grossCents": 2995,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2995
+        },
+        {
+          "channel": {
+            "code": "direct",
+            "label": "Direct",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/medical-certificate-online",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 1,
+          "grossCents": 2495,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2495
+        },
+        {
+          "channel": {
+            "code": "lifecycle_email",
+            "label": "Lifecycle email",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": "/medical-certificate",
+          "landingBucket": "whitelisted",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 1,
+          "grossCents": 2495,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2495
+        },
+        {
+          "channel": {
+            "code": "recovery_email",
+            "label": "Recovery email",
+            "known": true,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "medical_certificates",
+          "purchasedServiceLabel": "Medical certificates",
+          "paidOrders": 1,
+          "grossCents": 2495,
+          "refundCents": 0,
+          "disputeCents": 0,
+          "netRetainedCents": 2495
+        },
+        {
+          "channel": {
+            "code": "unknown",
+            "label": "Unknown",
+            "known": false,
+            "evidence": "canonical recorded-attribution classification"
+          },
+          "landingPathname": null,
+          "landingBucket": "other_or_unavailable",
+          "purchasedService": "ed",
+          "purchasedServiceLabel": "ED",
+          "paidOrders": 0,
+          "grossCents": 0,
+          "refundCents": 4995,
+          "disputeCents": 0,
+          "netRetainedCents": -4995
+        }
+      ]
+    },
+    "comparison": {
+      "account": {
+        "paidOrders": {
+          "absolute": 177,
+          "percent": 153.9
+        },
+        "netRetainedCents": {
+          "absolute": 581500,
+          "percent": 174.2
+        }
+      },
+      "byPurchasedService": [
+        {
+          "service": "medical_certificates",
+          "paidOrders": {
+            "absolute": 55,
+            "percent": 91.7
+          },
+          "netRetainedCents": {
+            "absolute": 152210,
+            "percent": 89.4
+          }
+        },
+        {
+          "service": "repeat_prescriptions",
+          "paidOrders": {
+            "absolute": 98,
+            "percent": 196
+          },
+          "netRetainedCents": {
+            "absolute": 297450,
+            "percent": 207
+          }
+        },
+        {
+          "service": "ed",
+          "paidOrders": {
+            "absolute": 13,
+            "percent": 325
+          },
+          "netRetainedCents": {
+            "absolute": 75900,
+            "percent": 506.5
+          }
+        },
+        {
+          "service": "hair_loss",
+          "paidOrders": {
+            "absolute": 0,
+            "percent": 0
+          },
+          "netRetainedCents": {
+            "absolute": 0,
+            "percent": 0
+          }
+        },
+        {
+          "service": "womens_health",
+          "paidOrders": {
+            "absolute": 11,
+            "percent": null
+          },
+          "netRetainedCents": {
+            "absolute": 55940,
+            "percent": null
+          }
+        }
+      ]
+    }
+  },
+  "search": {
+    "totals": {
+      "current": {
+        "clicks": 11,
+        "impressions": 8085
+      },
+      "prior": {
+        "clicks": 9,
+        "impressions": 4221
+      }
+    },
+    "pages": [
+      {
+        "pathname": "/medical-certificate",
+        "current": {
+          "clicks": 10,
+          "impressions": 7654,
+          "ctr": 0.0013065064018813691,
+          "averagePosition": 52.84922916122289
+        },
+        "prior": {
+          "clicks": 8,
+          "impressions": 4058,
+          "ctr": 0.001971414489896501,
+          "averagePosition": 41.5704780680138
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 2,
+            "percent": 0.25
+          },
+          "impressions": {
+            "absolute": 3596,
+            "percent": 0.8861508132084771
+          },
+          "ctrPercentagePoints": -0.0006649080880151317,
+          "averagePosition": 11.278751093209088
+        },
+        "index": {
+          "checkedAt": "2026-09-05T02:41:16.041Z",
+          "status": "Submitted and indexed",
+          "verdict": "PASS",
+          "lastCrawl": "2026-08-28T05:07:37Z",
+          "crawlAgeDaysAtCheck": 7.9,
+          "requestReportedByOperator": false,
+          "inspectionBoundary": "URL Inspection API index status, not Live Test rendered proof"
+        },
+        "smallSample": {
+          "currentClicksUnder10": false,
+          "priorClicksUnder10": true
+        }
+      },
+      {
+        "pathname": "/medical-certificate-online",
+        "current": {
+          "clicks": 1,
+          "impressions": 25,
+          "ctr": 0.04,
+          "averagePosition": 13.96
+        },
+        "prior": {
+          "clicks": 0,
+          "impressions": 12,
+          "ctr": 0,
+          "averagePosition": 7
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 1,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 13,
+            "percent": 1.0833333333333333
+          },
+          "ctrPercentagePoints": 0.04,
+          "averagePosition": 6.960000000000001
+        },
+        "index": {
+          "checkedAt": "2026-09-05T02:41:16.041Z",
+          "status": "Submitted and indexed",
+          "verdict": "PASS",
+          "lastCrawl": "2026-08-16T23:16:02Z",
+          "crawlAgeDaysAtCheck": 19.1,
+          "requestReportedByOperator": false,
+          "inspectionBoundary": "URL Inspection API index status, not Live Test rendered proof"
+        },
+        "smallSample": {
+          "currentClicksUnder10": true,
+          "priorClicksUnder10": true
+        }
+      },
+      {
+        "pathname": "/prescriptions",
+        "current": {
+          "clicks": 0,
+          "impressions": 0,
+          "ctr": null,
+          "averagePosition": null
+        },
+        "prior": {
+          "clicks": 0,
+          "impressions": 0,
+          "ctr": null,
+          "averagePosition": null
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 0,
+            "percent": null
+          },
+          "ctrPercentagePoints": null,
+          "averagePosition": null
+        },
+        "index": {
+          "checkedAt": "2026-09-05T02:41:16.041Z",
+          "status": "Discovered - currently not indexed",
+          "verdict": "NEUTRAL",
+          "lastCrawl": null,
+          "crawlAgeDaysAtCheck": null,
+          "requestReportedByOperator": true,
+          "inspectionBoundary": "URL Inspection API index status, not Live Test rendered proof"
+        },
+        "smallSample": {
+          "currentClicksUnder10": true,
+          "priorClicksUnder10": true
+        }
+      },
+      {
+        "pathname": "/online-prescriptions",
+        "current": {
+          "clicks": 0,
+          "impressions": 0,
+          "ctr": null,
+          "averagePosition": null
+        },
+        "prior": {
+          "clicks": 0,
+          "impressions": 0,
+          "ctr": null,
+          "averagePosition": null
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 0,
+            "percent": null
+          },
+          "ctrPercentagePoints": null,
+          "averagePosition": null
+        },
+        "index": {
+          "checkedAt": "2026-09-05T02:41:16.041Z",
+          "status": "Discovered - currently not indexed",
+          "verdict": "NEUTRAL",
+          "lastCrawl": null,
+          "crawlAgeDaysAtCheck": null,
+          "requestReportedByOperator": true,
+          "inspectionBoundary": "URL Inspection API index status, not Live Test rendered proof"
+        },
+        "smallSample": {
+          "currentClicksUnder10": true,
+          "priorClicksUnder10": true
+        }
+      },
+      {
+        "pathname": "/erectile-dysfunction",
+        "current": {
+          "clicks": 0,
+          "impressions": 305,
+          "ctr": 0,
+          "averagePosition": 36.5344262295082
+        },
+        "prior": {
+          "clicks": 1,
+          "impressions": 96,
+          "ctr": 0.010416666666666666,
+          "averagePosition": 29.479166666666668
+        },
+        "delta": {
+          "clicks": {
+            "absolute": -1,
+            "percent": -1
+          },
+          "impressions": {
+            "absolute": 209,
+            "percent": 2.1770833333333335
+          },
+          "ctrPercentagePoints": -0.010416666666666666,
+          "averagePosition": 7.055259562841531
+        },
+        "index": {
+          "checkedAt": "2026-09-05T02:41:16.041Z",
+          "status": "Submitted and indexed",
+          "verdict": "PASS",
+          "lastCrawl": "2026-08-25T04:12:07Z",
+          "crawlAgeDaysAtCheck": 10.9,
+          "requestReportedByOperator": false,
+          "inspectionBoundary": "URL Inspection API index status, not Live Test rendered proof"
+        },
+        "smallSample": {
+          "currentClicksUnder10": true,
+          "priorClicksUnder10": true
+        }
+      },
+      {
+        "pathname": "/hair-loss",
+        "current": {
+          "clicks": 0,
+          "impressions": 36,
+          "ctr": 0,
+          "averagePosition": 48.97222222222222
+        },
+        "prior": {
+          "clicks": 0,
+          "impressions": 11,
+          "ctr": 0,
+          "averagePosition": 54.54545454545455
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 25,
+            "percent": 2.272727272727273
+          },
+          "ctrPercentagePoints": 0,
+          "averagePosition": -5.573232323232325
+        },
+        "index": {
+          "checkedAt": "2026-09-05T02:41:16.041Z",
+          "status": "Submitted and indexed",
+          "verdict": "PASS",
+          "lastCrawl": "2026-08-21T05:25:37Z",
+          "crawlAgeDaysAtCheck": 14.9,
+          "requestReportedByOperator": false,
+          "inspectionBoundary": "URL Inspection API index status, not Live Test rendered proof"
+        },
+        "smallSample": {
+          "currentClicksUnder10": true,
+          "priorClicksUnder10": true
+        }
+      },
+      {
+        "pathname": "/womens-health",
+        "current": {
+          "clicks": 0,
+          "impressions": 62,
+          "ctr": 0,
+          "averagePosition": 6.967741935483871
+        },
+        "prior": {
+          "clicks": 0,
+          "impressions": 40,
+          "ctr": 0,
+          "averagePosition": 54.4
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 22,
+            "percent": 0.55
+          },
+          "ctrPercentagePoints": 0,
+          "averagePosition": -47.43225806451613
+        },
+        "index": {
+          "checkedAt": "2026-09-05T02:41:16.041Z",
+          "status": "Submitted and indexed",
+          "verdict": "PASS",
+          "lastCrawl": "2026-08-01T01:17:30Z",
+          "crawlAgeDaysAtCheck": 35.1,
+          "requestReportedByOperator": false,
+          "inspectionBoundary": "URL Inspection API index status, not Live Test rendered proof"
+        },
+        "smallSample": {
+          "currentClicksUnder10": true,
+          "priorClicksUnder10": true
+        }
+      },
+      {
+        "pathname": "/uti-assessment-online",
+        "current": {
+          "clicks": 0,
+          "impressions": 0,
+          "ctr": null,
+          "averagePosition": null
+        },
+        "prior": {
+          "clicks": 0,
+          "impressions": 0,
+          "ctr": null,
+          "averagePosition": null
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": 0,
+            "percent": null
+          },
+          "ctrPercentagePoints": null,
+          "averagePosition": null
+        },
+        "index": {
+          "checkedAt": "2026-09-05T02:41:16.041Z",
+          "status": "URL is unknown to Google",
+          "verdict": "NEUTRAL",
+          "lastCrawl": null,
+          "crawlAgeDaysAtCheck": null,
+          "requestReportedByOperator": false,
+          "inspectionBoundary": "URL Inspection API index status, not Live Test rendered proof"
+        },
+        "smallSample": {
+          "currentClicksUnder10": true,
+          "priorClicksUnder10": true
+        }
+      },
+      {
+        "pathname": "/contraceptive-pill-assessment-online",
+        "current": {
+          "clicks": 0,
+          "impressions": 3,
+          "ctr": 0,
+          "averagePosition": 6.666666666666667
+        },
+        "prior": {
+          "clicks": 0,
+          "impressions": 4,
+          "ctr": 0,
+          "averagePosition": 8.25
+        },
+        "delta": {
+          "clicks": {
+            "absolute": 0,
+            "percent": null
+          },
+          "impressions": {
+            "absolute": -1,
+            "percent": -0.25
+          },
+          "ctrPercentagePoints": 0,
+          "averagePosition": -1.583333333333333
+        },
+        "index": {
+          "checkedAt": "2026-09-05T02:41:16.041Z",
+          "status": "Submitted and indexed",
+          "verdict": "PASS",
+          "lastCrawl": "2026-06-21T04:42:21Z",
+          "crawlAgeDaysAtCheck": 75.9,
+          "requestReportedByOperator": false,
+          "inspectionBoundary": "URL Inspection API index status, not Live Test rendered proof"
+        },
+        "smallSample": {
+          "currentClicksUnder10": true,
+          "priorClicksUnder10": true
+        }
+      }
+    ],
+    "limitations": [
+      "Search Console suppresses/anonymises query and dimension rows. Page totals are authoritative for page performance and are intentionally kept separate from query, country and device rows, which may not sum to them.",
+      "Low-volume query samples cannot establish stable intent ownership or conversion impact. Null percent deltas mean the prior value was zero.",
+      "Average position is an impression-weighted aggregate, not a fixed rank. Positive deltas in average-position numeric value mean worse position.",
+      "URL Inspection status comes from the separate 2026-09-05 baseline receipt and is not a Live Test rendered proof.",
+      "Current public HTML was fetched before the separately owned crawl/schema release and before the parent child-page wording change; post-release verification belongs to the coordinating task.",
+      "Search-result sampling establishes result type and vocabulary only. It is not search volume, rank tracking, market-share or competitor-claim substantiation.",
+      "General antibiotics articles were excluded as growth targets. No external publisher, directory, prospect, backlink or outreach work was performed."
+    ]
+  },
+  "annotations": [
+    {
+      "at": "2026-08-24",
+      "services": [
+        "medical_certificates"
+      ],
+      "note": "Certificate verification work is recorded as shipped August 24 in the canonical plan addendum; exact production time is not established here. Preserve its two-window readout and do not shift its boundary to August 25."
+    },
+    {
+      "at": "2026-08-25",
+      "services": [
+        "repeat_prescriptions"
+      ],
+      "note": "Repeat-prescription answer-density release opened its longer measurement windows; this receipt does not reset them."
+    },
+    {
+      "at": "2026-08-28T05:13:53.870Z",
+      "services": [
+        "ed",
+        "hair_loss"
+      ],
+      "note": "ED E1 and Hair H1 product cohorts opened. The current financial and GSC periods overlap this release, so changes are not attributable to it."
+    },
+    {
+      "at": "2026-09-03",
+      "services": [
+        "repeat_prescriptions"
+      ],
+      "note": "Approved Scripts Ads budget step occurred near the end of the current financial period; this scorecard does not attribute period growth to SEO."
+    },
+    {
+      "at": "2026-09-05",
+      "services": [
+        "medical_certificates",
+        "repeat_prescriptions",
+        "ed",
+        "hair_loss",
+        "womens_health"
+      ],
+      "note": "GSC/index receipts captured. Crawl/schema release remains separately owned; UTI/pill wording edits and post-release proof are outside this receipt."
+    }
+  ],
+  "decision": {
+    "verdict": "HOLD_PERFORMANCE_CONCLUSION",
+    "reasons": [
+      "Current closed-period paid orders and net-retained cash are materially higher, but paid acquisition, product experiments and releases overlap the comparison.",
+      "Search clicks remain tiny relative to impressions; prescription and UTI routes lack measurable GSC visibility, and indexing/crawl gaps remain recorded.",
+      "Fees, acquisition cost, retained-order count and a session-to-order join are unavailable, so service contribution and funnel success cannot be claimed."
+    ],
+    "nextEvidence": "Recheck prescription and UTI crawl/index status after the separately owned release, preserve the open certificate/repeat-Rx and ED/Hair windows, and compare mature closed cohorts before commissioning another page change."
+  }
+}
