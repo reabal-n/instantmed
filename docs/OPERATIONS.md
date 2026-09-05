@@ -443,6 +443,12 @@ impossible. Payment state is never mutated, and each attempt writes a
 
 ## Sentry Configuration
 
+Incident access is separate from source-map upload access. Run `corepack pnpm check:sentry --issues` to verify the production issue-list endpoint; a successful project/release preflight does not prove issue or event read permission. The check prints no issue payloads or credentials.
+
+The pending-email alert measures lateness from both creation and `scheduled_for`: a scheduled send must itself be over 30 minutes late. Patient-cooldown review invitations scheduled for the future are not stuck. On 2026-09-05, the former creation-only query counted 43 such invitations; the schedule-aware read found zero overdue sends.
+
+Feature-flag reads retry once after 150 ms only for PostgREST's empty-code `TypeError: fetch failed` transport failure. Sustained failures retain the existing uncached fallback and strict-reader rejection; authorization/schema failures and cancelled reads are not retried. Successful recovery can preserve embedded prescribing within the same request.
+
 ### Recommended Alerts
 
 | Alert | Filter | Threshold | Action |
@@ -1170,7 +1176,8 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 |---------|---------|-------|
 | `pnpm check:staff-roles` | Read-only Supabase check for the one-human-admin model and doctor readiness | Defaults owner admin to `me@reabal.ai`; override with `OWNER_ADMIN_EMAIL`. Set `ALLOW_OWNER_ADMIN_PAUSED=1` only when releasing intentionally paused. |
 | `DEMOTE_ADMIN_EMAILS='old-admin@example.com' DEMOTE_ADMIN_ROLE=patient pnpm fix:staff-roles` | Dry-run demotion for extra human admin profiles | Add `-- --apply` only after reviewing the target list. Writes go through `admin_change_profile_role`, which refuses to remove the last auth-linked human admin and resets clinical capability flags on demotion. |
-| `pnpm check:sentry` | Verifies `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` can reach the configured Sentry project via project-read access or the project release API used by organization CI tokens | Does not print the token. 401 means rotate the token; 403 means the token lacks project release access; 404 usually means wrong org/project slug. |
+| `pnpm check:sentry` | Checks project/release API access for the configured org/project, including organization CI tokens | Does not verify issue/event read permission or print the token. 401 means rejected credentials; 403 means insufficient access; 404 means an incorrect or inaccessible org/project. |
+| `pnpm check:sentry --issues` | Checks the production issue-list endpoint directly, with no release-permission fallback | Requires a read-only token with `project:read` and `event:read`. Does not print issue titles, event payloads, or credentials. |
 
 ### Sentry Saved Searches
 

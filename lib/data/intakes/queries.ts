@@ -742,12 +742,13 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
       )
     `)
     .eq("id", intakeId)
-    .single()
+    .maybeSingle()
 
-  if (error || !data) {
+  if (error) {
     logger.error("Error fetching intake details", {}, toError(error))
     return null
   }
+  if (!data) return null
 
   // Decrypt PHI fields
   const rawPatient = Array.isArray(data.patient) ? data.patient[0] : data.patient
