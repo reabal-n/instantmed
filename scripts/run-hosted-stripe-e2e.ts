@@ -1089,6 +1089,8 @@ async function main(): Promise<void> {
       webhookSecret: placeholderWebhookSecret,
     })
     await assertHostedStripeE2EEnvironment({ env: runtimeEnv })
+    const { assertHostedStripeCleanupSchema } = await import("../e2e/helpers/hosted-stripe")
+    await assertHostedStripeCleanupSchema(runtimeEnv)
 
     process.stdout.write("Starting the Stripe test-mode webhook listener...\n")
     const stripeListener = spawnOwned("stripe", [

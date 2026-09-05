@@ -89,7 +89,6 @@ const INTAKE_CHILD_TABLES = [
   "ai_draft_retry_queue",
   "stripe_webhook_dead_letter",
   "stripe_webhook_events",
-  "payment_reconciliation",
   "payments",
   "email_outbox",
   "intake_events",
@@ -443,6 +442,21 @@ export async function cleanupHostedStripeRunArtifacts(
   return Object.values(counts).reduce((total, count) => total + count, 0)
 }
 
+export async function assertHostedStripeCleanupSchema(env: Partial<NodeJS.ProcessEnv>): Promise<void> {
+  const coordinates = hostedStripeCoordinates(env)
+  const supabase = serviceClient(coordinates)
+  const plan = buildHostedStripeCleanupPlan({
+    runId: coordinates.runId,
+    intakeIds: ["00000000-0000-4000-8000-000000000001"],
+    profileIds: ["00000000-0000-4000-8000-000000000002"],
+  })
+  for (const operation of plan) {
+    const column = hostedStripeCleanupCountProjection(operation)!
+    const { error } = await supabase.from(operation.table).select(column).limit(0)
+    if (error) throw safeFailure(`cleanup schema missing ${operation.table}.${column}`)
+  }
+}
+
 async function pause(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -618,7 +632,9 @@ async function fillHostedStripeCard(page: Page): Promise<void> {
   // Stripe's payment-method accordion can start collapsed when alternatives
   // are available. Open its visible button before looking inside card frames.
   const cardOption = page.getByRole("button", { name: "Pay with card", exact: true })
-  if (await cardOption.isVisible().catch(() => false)) await cardOption.click()
+  const hasCardOption = await cardOption.waitFor({ state: "visible", timeout: 10_000 })
+    .then(() => true).catch(() => false)
+  if (hasCardOption) await cardOption.click()
   const cardNumber = await findStripeField(
     page,
     'input[name="cardNumber"], input[autocomplete="cc-number"], input[placeholder*="1234"]',

@@ -488,6 +488,7 @@ describe("hosted Stripe row teardown", () => {
       "profiles",
     ]))
     expect(plan.at(-1)).toMatchObject({ table: "profiles" })
+    expect(plan.some(({ table }) => table === "payment_reconciliation")).toBe(false)
     expect(plan.every(({ scope }) => scope.length > 0)).toBe(true)
     expect(plan.find(({ table }) => table === "safety_audit_log")).toMatchObject({
       scope: [{ column: "request_id" }],
