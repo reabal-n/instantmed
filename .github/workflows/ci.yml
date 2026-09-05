@@ -148,6 +148,9 @@ jobs:
           bash scripts/test-resend-webhook-mirrors-db.sh
           bash scripts/test-resend-webhook-mirrors-db.sh --legacy-delivery
 
+      - name: Google Ads adjustment evidence and alert classification
+        run: bash scripts/test-google-ads-adjustment-health-db.sh
+
       - name: Check design token compliance
         run: bash scripts/verify-tokens.sh
 
