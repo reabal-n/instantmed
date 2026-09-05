@@ -54,7 +54,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 
 **Phase 1 (profiles — shipped):** `profiles.medicare_number_encrypted`, `profiles.date_of_birth_encrypted`, `profiles.phone_encrypted`.
 
-**Phase 2 (data layer — runtime shipped; fresh-replay schema repaired by on-disk migration `20260904160000`, production application unverified):**
+**Phase 2 (data layer — runtime shipped; fresh-replay schema repaired by migration `20260904160000`, applied and metadata-verified in production on 2026-09-05):**
 
 | Table | Plaintext Column | Encrypted Column | Data Layer File | Status |
 |-------|-----------------|------------------|-----------------|--------|

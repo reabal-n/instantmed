@@ -147,13 +147,14 @@ describe("project docs drift contract", () => {
 
   it("keeps root migration canon aligned with the on-disk release tranche", () => {
     for (const source of [agents, claude]) {
-      expect(source).toContain("Current count on disk: **138 migration files**")
+      const migrationCount = readdirSync(join(root, "supabase/migrations")).filter((name) => name.endsWith(".sql")).length
+      expect(source).toContain(`Current count on disk: **${migrationCount} migration files**`)
       expect(source).toContain(
         "`20260905120000_refill_reminder_funnel.sql`",
       )
-      expect(source).toContain("production application remains unverified")
+      expect(source).toContain("were applied in order on 2026-09-05")
       expect(source).toContain(
-        "Latest applied/verified production migration remains `20260903120000_recovery_email_engagement.sql`",
+        "Newest on-disk and applied/verified production migration is `20260905120000_refill_reminder_funnel.sql`",
       )
       expect(source).toContain(
         "`20260903120000_recovery_email_engagement.sql`",
@@ -204,10 +205,10 @@ describe("project docs drift contract", () => {
       "Newest timestamp on disk: `20260905120000_refill_reminder_funnel.sql`",
     )
     expect(architecture).toContain(
-      "Production application is unverified",
+      "All four pending migrations, including runtime-schema convergence `20260904160000`, were applied in order on 2026-09-05",
     )
     expect(architecture).toContain(
-      "Latest applied/verified production timestamp remains `20260903120000_recovery_email_engagement.sql`",
+      "Latest applied/verified production timestamp is `20260905120000`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
@@ -223,17 +224,17 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Newest on-disk migration is `20260905120000_refill_reminder_funnel.sql`",
+      "Newest on-disk and applied/verified production migration is `20260905120000_refill_reminder_funnel.sql`",
     )
     expect(wikiArchitecture).toContain(
-      "Its production application is unverified",
+      "were applied in order on 2026-09-05",
     )
     expect(wikiArchitecture).toContain(
-      "latest applied/verified production migration is `20260903120000_recovery_email_engagement.sql`",
+      "zero SECURITY DEFINER ACL violations",
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
-      "Linked migration history is aligned through `20260903120000`",
+      "Linked migration history is aligned through `20260905120000`",
     )
     expect(wikiArchitecture).toContain(
       "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied",

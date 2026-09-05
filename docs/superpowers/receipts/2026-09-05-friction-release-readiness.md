@@ -156,3 +156,42 @@ and CI was running. That is not a passing CI or production-release claim.
 The PR includes the exact scope, rollback, privacy, environment, and verification
 boundaries. The remaining packets retain their local closure-candidate proof
 until each is independently assembled and checked.
+
+## Final integration release gate — 2026-09-05
+
+The operator subsequently authorised release, merge, and consolidation to only
+`main`. Draft PR #516 preserves the bounded implementation commits and includes
+the independently assembled growth history from #515, allowing one final runtime
+release. Historical recovery sends and Ads/GSC mutations remain outside scope.
+
+Candidate `aca9542575d8397e6c3731a7e3978c0473e261e4` passed the complete
+credentialled `corepack pnpm release:check`: 741 Vitest files / 7,072 tests, full
+lint, TypeScript, strict integration checks, security audit, exact dead-code
+ratchet, production build (65 seconds), and enforced bundle budgets. The
+OpenTelemetry dynamic-dependency build warning and request unique-chunk advisory
+remain warnings; no enforced budget was relaxed. The private launcher excludes
+deployment flags, Redis credentials, and Sentry DSNs from unit-fixture execution.
+A stale certificate-tracker contract was corrected in `aca954257`.
+
+The isolated delivery/preference/refill PostgreSQL harness passed. Both
+certificate/staff production-browser cases passed in 20.7 seconds. The final
+hosted Stripe run passed all three browser cases in 31.2 seconds, including real
+test payments, signed webhooks, optional tracker email, ownership denial and
+consumed-link rejection. Receipt `run-112a4e8ad7f4b6f4.json` completed at
+`2026-09-05T01:33:26.577Z` with two processed webhook events and zero survivors.
+Receipts and clean tracker screenshots are preserved outside disposable worktrees
+at `/Users/rey/.config/instantmed/release-evidence/2026-09-05/`.
+
+The production migration dry run identified exactly the reviewed convergence,
+preference `1100`, shared receipt `1150`, and refill `1200` migrations. All four
+were applied in that order. Metadata read-back confirmed history through
+`20260905120000`, the expected nullable columns, enabled preference triggers,
+service-role-only invoker RPC execution, and zero SECURITY DEFINER ACL violations.
+The standalone historical repair script was not executed.
+
+Before the runtime release, authenticated production health returned HTTP 200 and
+healthy database, Redis, Stripe, Resend, Auth, and environment checks. Email
+dispatcher, refill-reminder, and Parchment smoke heartbeats had successful latest
+outcomes. These are baseline reads, not post-deployment proof. Final PR CI,
+production runtime deployment/read-back, and branch cleanup remain pending at
+this receipt commit; the final operator report must state their actual outcome.

@@ -210,3 +210,11 @@ These records preserve earlier reviews; the current closure and state above supe
 - 13-file growth-only slice, preserving the queue-watch/optional-evidence correction, bounded aggregate reader, explicit harm holds, and operator approval. No unrelated closure docs or email/checkout changes were copied.
 - Assembled-candidate verification: 254 Ads Agent tests across 18 files, full ESLint, TypeScript, and doc audit (124 tests). No env, migration, or dependency changes. Clean working tree; draft/head read-back verified. CI initially running, so no CI completion claim.
 - No merge, production deployment, or Ads mutation. Remaining release packets still require their own candidate assembly/checks; see the release receipt.
+
+## 2026-09-05 authorised final release and consolidation
+
+- Operator authorised next release steps and consolidation to only main. Final PR #516 retains all bounded implementation history including growth #515; no unmerged work is discarded.
+- Exact code candidate `aca954257` passes full credentialled release:check: 741 files / 7,072 unit tests, lint, typecheck, strict integrations, audit, ratchet, production build and bundle budgets. The stale tracker contract is fixed. Growth's two test-only export baseline entries were preserved from the original tested closure.
+- Isolated database ordering/receipt/refill tests pass. Two certificate browser cases pass (20.7s); all three hosted Stripe/account/tracker cases pass (31.2s), receipt run-112a4e8ad7f4b6f4, zero survivors. Evidence archived privately outside the worktrees before cleanup.
+- Four reviewed migrations were applied to production in timestamp order and metadata/ACL-verified through `20260905120000`; historical repair and patient sends were not executed. Canonical migration docs now distinguish the separate shared-receipt and refill migrations.
+- Baseline authenticated production health and latest email/refill/Parchment heartbeats are healthy. PR CI, exact runtime deployment, post-deploy verification, and branch cleanup are still pending at this commit.
