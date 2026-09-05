@@ -9,6 +9,8 @@
 
 ## 1. Strategic Decision
 
+Prioritise organic growth around active services, starting with medical certificates and repeat prescriptions. Select existing service pages and directly relevant supporting resources using service fit, qualified demand, and attributable paid orders. Search impressions or clicks alone do not justify an article expansion; general medicine education such as antibiotics access is not a growth priority merely because it receives traffic. `docs/ROADMAP.md` remains the active queue and existing page experiments retain their measurement windows.
+
 Keep educational prescription SEO pages. Do not delete the organic education moat.
 
 The correction is not "remove all medicine education." The correction is to separate **education** from **promotion**.
@@ -262,6 +264,8 @@ Weight management is live for organic and onsite acquisition, but `/weight-loss`
 Those paid destinations should avoid prescription drug names and follow `docs/ADVERTISING_COMPLIANCE.md`.
 
 ## 7. Schema And Metadata
+
+`app/robots.ts` must allow crawling of public Next.js scripts, styles, and image assets under `/_next/` so search engines can render public pages. Keep private patient, staff, and API route exclusions intact. Auth pages intentionally remain crawlable for Google to read their `noindex` metadata; authentication and authorisation own access control. Verify the generated robots rules after changes. Crawl access does not guarantee indexing or rankings.
 
 Educational pages may use neutral article/FAQ metadata.
 
