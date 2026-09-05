@@ -234,3 +234,18 @@ linked public/extensions schema lint exits zero with no errors. Metadata confirm
 the valid unique message key, nullable legacy message type, opened-state support,
 migration history through `20260905120001`, and zero ACL violations. The final
 runtime deployment remains gated on the updated PR's build and E2E checks.
+
+## Release browser regression correction — 2026-09-05
+
+Growth CI exposed two reproducible intake defects also present in the combined
+candidate: a desktop-only one-shot action mirror retained a removed safety CTA,
+and medication inputs captured the empty pre-hydration store while the safety
+warning correctly read the restored medicine. The action mirror now listens at
+all widths, including desktop-to-mobile resizing. Medication fields derive from
+the persisted store instead of keeping a stale initial copy. Prescribing and
+server safety rules are unchanged. E2E assertions now require restored name and
+strength before and after reload, plus no action bar after resizing a terminal
+pregnancy screen. Both original failures reproduce in a dotenv-free local copy
+with provider credentials removed; both corrected cases pass (20.3s). Focused
+unit tests pass (59), scoped ESLint and TypeScript pass. Final CI must run again
+on this correction before merge and deployment.

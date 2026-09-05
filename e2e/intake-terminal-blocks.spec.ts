@@ -397,6 +397,8 @@ test.describe("persisted intake terminal blocks", () => {
     await waitForPageLoad(page)
 
     await expect(page.getByText("This medication cannot be prescribed online")).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator("#medication-name-0")).toHaveValue("Oxycodone")
+    await expect(page.locator("#medication-strength-0")).toHaveValue("5 mg")
     await expect(page.locator('button[data-intake-primary-action="true"]')).toHaveAttribute("data-intake-primary-ready", "false")
 
     await page.reload()
@@ -404,6 +406,8 @@ test.describe("persisted intake terminal blocks", () => {
     await dismissCookieBanner(page)
 
     await expect(page.getByText("This medication cannot be prescribed online")).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator("#medication-name-0")).toHaveValue("Oxycodone")
+    await expect(page.locator("#medication-strength-0")).toHaveValue("5 mg")
     await page.locator("#medication-name-0").fill("Atorvastatin")
 
     await expect(page.getByText("This medication cannot be prescribed online")).toHaveCount(0)

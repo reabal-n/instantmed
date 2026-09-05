@@ -211,3 +211,16 @@ linked public/extensions schema lint exits zero with no errors. Metadata confirm
 the valid unique message key, nullable legacy message type, opened-state support,
 migration history through `20260905120001`, and zero ACL violations. The final
 runtime deployment remains gated on the updated PR's build and E2E checks.
+
+### Intake regression follow-up
+
+The required browser suite exposed two reproducible defects: medication inputs
+kept their empty pre-hydration values while the safety block read the restored
+medicine, and the mobile action mirror retained a removed safety action when the
+page began at desktop width. Medication fields now derive from the restored
+store; action announcements are observed at every width. Existing E2E cases now
+assert restored name/strength before and after reload and no stale action after
+resizing the pregnancy stop. Both failures reproduced locally and both corrected
+cases pass (20.3s); 59 focused unit tests, scoped ESLint, and TypeScript pass.
+The local reproduction used a dotenv-free app copy with provider credentials
+removed. Final release remains gated on fresh CI for this correction.

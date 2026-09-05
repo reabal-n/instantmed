@@ -338,6 +338,10 @@ async function expectFreshConfirmedPregnancyTerminalBlock(page: Page) {
   await expect(reason).toHaveCSS("font-size", "16px")
   await expect(page.locator('button[data-intake-primary-action="true"]')).toHaveCount(0)
   await expect(page.locator('[data-intake-mobile-action-bar="true"]')).toHaveCount(0)
+  const originalViewport = page.viewportSize()
+  await page.setViewportSize({ width: 390, height: 844 })
+  await expect(page.locator('[data-intake-mobile-action-bar="true"]')).toHaveCount(0)
+  if (originalViewport) await page.setViewportSize(originalViewport)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
   const terminalActions = page.getByRole("main")

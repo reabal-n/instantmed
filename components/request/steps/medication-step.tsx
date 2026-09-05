@@ -144,12 +144,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   // Old drafts may carry a PBS `selectedMedication` object or multiple
   // medication rows. Collapse everything to the first requested medicine: a
   // repeat request now covers one medicine so dose/history answers stay clear.
-  const existingMedications = normalizeMedicationEntriesAnswer(answers.medications) as MedicationEntry[]
-  const legacyProduct = normalizeMedicationProductAnswer(answers.selectedMedication) as { drug_name?: string; strength?: string; form?: string } | null
-  const medicationName = stringAnswer(answers.medicationName)
-  const medicationStrength = stringAnswer(answers.medicationStrength)
-  const medicationForm = stringAnswer(answers.medicationForm)
-
   const prescriptionHistory = answers.prescriptionHistory as string | undefined
   const selectedPrescriptionHistory = normalizePrescriptionHistory(prescriptionHistory)
   const currentDose = (answers.currentDose as string) || ""
@@ -158,8 +152,15 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const sideEffects = (answers.sideEffects as string) || ""
   const hasSideEffects = answers.hasSideEffects as boolean | undefined
 
-  // Initialize medications array from existing data
-  const [medications, setMedications] = useState<MedicationEntry[]>(() => {
+  // The step may mount before persisted answers hydrate. Derive the fields
+  // from the same store as the safety checks, so a restored medicine cannot
+  // produce a warning beside blank inputs or lose its strength on the next edit.
+  const medications = useMemo<MedicationEntry[]>(() => {
+    const existingMedications = normalizeMedicationEntriesAnswer(answers.medications)
+    const legacyProduct = normalizeMedicationProductAnswer(answers.selectedMedication)
+    const medicationName = stringAnswer(answers.medicationName)
+    const medicationStrength = stringAnswer(answers.medicationStrength)
+    const medicationForm = stringAnswer(answers.medicationForm)
     if (existingMedications && existingMedications.length > 0) {
       const med = existingMedications[0] ?? { name: "" }
       return [{
@@ -183,7 +184,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       }]
     }
     return [{ name: "" }]
-  })
+  }, [answers.medications, answers.selectedMedication, answers.medicationName, answers.medicationStrength, answers.medicationForm])
 
   const [showMedicationForm, setShowMedicationForm] = useState(
     Boolean(medications[0]?.form?.trim()),
@@ -246,7 +247,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     const previousPrimary = medications[0] ?? { name: "" }
     const medicationChanged = !areRepeatRxMedicationDetailsEqual(previousPrimary, primary)
     const next = [primary]
-    setMedications(next)
     // Always keep medications[] in answers; one request covers one medicine.
     setAnswer("medications", next)
     // Backward compat: primary medication fields from first entry. The PBS
