@@ -615,6 +615,10 @@ async function findStripeField(
 }
 
 async function fillHostedStripeCard(page: Page): Promise<void> {
+  // Stripe's payment-method accordion can start collapsed when alternatives
+  // are available. Open its visible button before looking inside card frames.
+  const cardOption = page.getByRole("button", { name: "Pay with card", exact: true })
+  if (await cardOption.isVisible().catch(() => false)) await cardOption.click()
   const cardNumber = await findStripeField(
     page,
     'input[name="cardNumber"], input[autocomplete="cc-number"], input[placeholder*="1234"]',

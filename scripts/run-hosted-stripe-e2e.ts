@@ -972,6 +972,11 @@ async function main(): Promise<void> {
           )
           survivors = await cleanupHostedStripeRunArtifacts(runId, runtimeEnv)
         } catch (error) {
+          // These helper errors contain only fixed messages/table names, never
+          // provider payloads or patient data. Preserve the actionable cause.
+          if (error instanceof Error && error.message.startsWith("Hosted Stripe browser proof failed:")) {
+            process.stderr.write(`${error.message}\n`)
+          }
           errors.push(error)
         }
       }
