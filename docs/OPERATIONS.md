@@ -447,7 +447,7 @@ Incident access is separate from source-map upload access. Run `corepack pnpm ch
 
 The pending-email alert measures lateness from both creation and `scheduled_for`: a scheduled send must itself be over 30 minutes late. Patient-cooldown review invitations scheduled for the future are not stuck. On 2026-09-05, the former creation-only query counted 43 such invitations; the schedule-aware read found zero overdue sends.
 
-Feature-flag reads retry once after 150 ms only for PostgREST's empty-code `TypeError: fetch failed` transport failure. Sustained failures retain the existing uncached fallback and strict-reader rejection; authorization/schema failures and cancelled reads are not retried. Successful recovery can preserve embedded prescribing within the same request.
+Feature-flag reads retry once after 150 ms only for PostgREST's empty-code `TypeError: fetch failed` transport failure. The retry uses a fresh abort signal with a five-second timeout to bypass Next's memoized rejected fetch. Sustained failures retain the existing uncached fallback and strict-reader rejection; authorization/schema failures and cancelled reads are not retried. Successful recovery can preserve embedded prescribing within the same request.
 
 ### Recommended Alerts
 

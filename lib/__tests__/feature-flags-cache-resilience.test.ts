@@ -31,6 +31,17 @@ vi.mock("@/lib/security/audit-log", () => ({
   logAuditEvent: vi.fn(),
 }))
 
+function mockFlagReads(select: (...args: unknown[]) => Promise<unknown>) {
+  mocks.createClient.mockReturnValue({
+    from: vi.fn(() => ({
+      select: (...args: unknown[]) => {
+        const query = select(...args)
+        return Object.assign(query, { abortSignal: () => query })
+      },
+    })),
+  })
+}
+
 describe("feature flag cache resilience", () => {
   beforeEach(() => {
     vi.resetModules()
@@ -44,7 +55,7 @@ describe("feature flag cache resilience", () => {
         data: [{ key: "parchment_embedded_prescribing", value: true }],
         error: null,
       })
-    mocks.createClient.mockReturnValue({ from: vi.fn(() => ({ select })) })
+    mockFlagReads(select)
 
     const { getFeatureFlags } = await import("@/lib/feature-flags")
 
@@ -52,6 +63,35 @@ describe("feature flag cache resilience", () => {
     expect(select).toHaveBeenCalledTimes(2)
     expect((await getFeatureFlags()).parchment_embedded_prescribing).toBe(true)
     expect(select).toHaveBeenCalledTimes(2)
+  })
+
+  it("makes a fresh network read when the request cache retains the rejected fetch", async () => {
+    const { createClient } = await vi.importActual<typeof import("@supabase/supabase-js")>("@supabase/supabase-js")
+    const network = vi.fn<typeof fetch>()
+      .mockRejectedValueOnce(new TypeError("fetch failed"))
+      .mockImplementationOnce(async () => Response.json([
+        { key: "parchment_embedded_prescribing", value: true },
+      ]))
+    let cachedRequest: Promise<Response> | undefined
+    const requestCachedFetch: typeof fetch = (url, init) => {
+      // Next 15's dedupe-fetch retains rejected GET promises within a request.
+      // An explicit signal opts out; cache: "no-store" alone does not.
+      if (init?.signal) return network(url, init)
+      cachedRequest ??= network(url, init)
+      return cachedRequest
+    }
+    mocks.createClient.mockImplementation(() => createClient("https://synthetic.supabase.co", "synthetic-key", {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { fetch: requestCachedFetch },
+    }))
+    const { getFeatureFlags } = await import("@/lib/feature-flags")
+
+    expect((await getFeatureFlags()).parchment_embedded_prescribing).toBe(true)
+    expect(network).toHaveBeenCalledTimes(2)
+    expect(network.mock.calls[0][1]?.signal).toBeUndefined()
+    expect(network.mock.calls[1][1]?.signal).toBeInstanceOf(AbortSignal)
+    expect((await getFeatureFlags()).parchment_embedded_prescribing).toBe(true)
+    expect(network).toHaveBeenCalledTimes(2)
   })
 
   it("does not cache fallback defaults after a transient database read failure", async () => {
@@ -77,9 +117,7 @@ describe("feature flag cache resilience", () => {
         error: null,
       })
 
-    mocks.createClient.mockReturnValue({
-      from: vi.fn(() => ({ select })),
-    })
+    mockFlagReads(select)
 
     const { getFeatureFlags, isMaintenanceModeStrict } = await import("@/lib/feature-flags")
 
@@ -101,7 +139,7 @@ describe("feature flag cache resilience", () => {
     { message: "TypeError: fetch failed", code: "PGRST301" },
   ])("does not retry configuration, authorization, or cancelled reads: $code $message", async (error) => {
     const select = vi.fn().mockResolvedValue({ data: null, error })
-    mocks.createClient.mockReturnValue({ from: vi.fn(() => ({ select })) })
+    mockFlagReads(select)
     const { isMaintenanceModeStrict } = await import("@/lib/feature-flags")
 
     await expect(isMaintenanceModeStrict()).rejects.toThrow(error.message)
@@ -113,7 +151,7 @@ describe("feature flag cache resilience", () => {
       data: null,
       error: { message: "TypeError: fetch failed", code: "" },
     })
-    mocks.createClient.mockReturnValue({ from: vi.fn(() => ({ select })) })
+    mockFlagReads(select)
     const { isMaintenanceModeStrict } = await import("@/lib/feature-flags")
 
     await expect(isMaintenanceModeStrict()).rejects.toThrow("TypeError: fetch failed")
@@ -124,7 +162,7 @@ describe("feature flag cache resilience", () => {
     const select = vi.fn()
       .mockResolvedValueOnce({ data: [{ key: "disable_repeat_scripts", value: true }], error: null })
       .mockResolvedValue({ data: null, error: { message: "TypeError: fetch failed", code: "" } })
-    mocks.createClient.mockReturnValue({ from: vi.fn(() => ({ select })) })
+    mockFlagReads(select)
     const { getFeatureFlags, refreshFeatureFlags } = await import("@/lib/feature-flags")
 
     expect((await getFeatureFlags()).disable_repeat_scripts).toBe(true)
