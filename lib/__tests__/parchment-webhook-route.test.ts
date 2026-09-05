@@ -20,6 +20,8 @@ const mocks = vi.hoisted(() => ({
     correlatedPatientLookupError: false,
     partnerPatientProfileId: "",
     patientProfileFound: true,
+    activePatientProfileIds: [] as string[],
+    patientLookupError: false,
     prescriptionUpserts: [] as Array<Record<string, unknown>>,
     prescriberRows: [] as Array<{ id: string }>,
   },
@@ -106,6 +108,14 @@ function createQuery(table: string, operation: "select" | "update") {
       return query
     },
     limit() {
+      if (table === "profiles") {
+        return Promise.resolve({
+          data: mocks.state.patientProfileFound
+            ? mocks.state.activePatientProfileIds.map((id) => ({ id }))
+            : [],
+          error: mocks.state.patientLookupError ? { message: "Database unavailable" } : null,
+        })
+      }
       return Promise.resolve({
         data: filters.patient_id && filters.patient_id !== PATIENT_PROFILE_ID
           ? []
@@ -227,6 +237,8 @@ describe("Parchment webhook route", () => {
     })
     mocks.getIntakeWithDetails.mockResolvedValue(null)
     mocks.state.patientProfileFound = true
+    mocks.state.activePatientProfileIds = [PATIENT_PROFILE_ID]
+    mocks.state.patientLookupError = false
     mocks.state.correlatedPatientProfileId = PATIENT_PROFILE_ID
     mocks.state.correlatedPatientLookupError = false
     mocks.state.partnerPatientProfileId = PATIENT_PROFILE_ID
@@ -245,6 +257,26 @@ describe("Parchment webhook route", () => {
         subtype: null,
       },
     ]
+  })
+
+  it("does not guess an old partner profile for an uncorrelated duplicate patient link", async () => {
+    mocks.state.activePatientProfileIds = [PATIENT_PROFILE_ID, "old-profile"]
+    const response = await POST(makeWebhookRequest({ reserved_1: "IM-PATIENT-PROFILE" }))
+    expect(await response.json()).toMatchObject({ warning: "Multiple patient links require review" })
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+    expect(mocks.getPatientPrescriptions).not.toHaveBeenCalled()
+    expect(mocks.logWebhookFailure).toHaveBeenCalledWith(
+      expect.any(String), "parchment:prescription.created", null,
+      "patient_identity_ambiguous", expect.any(Object),
+    )
+  })
+
+  it("keeps a failed patient lookup retryable instead of falling back to partner metadata", async () => {
+    mocks.state.patientLookupError = true
+    const response = await POST(makeWebhookRequest())
+    expect(response.status).toBe(500)
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+    expect(mocks.getPatientPrescriptions).not.toHaveBeenCalled()
   })
 
   it("logs external prescribing boundary evidence when Parchment completes a script", async () => {

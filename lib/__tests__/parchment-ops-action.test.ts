@@ -67,6 +67,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
 type QueryFixture = {
   limitData?: unknown
   maybeSingleData?: unknown
+  error?: { message: string }
 }
 
 function createQuery(fixture: QueryFixture) {
@@ -74,8 +75,8 @@ function createQuery(fixture: QueryFixture) {
     eq: vi.fn(),
     in: vi.fn(),
     is: vi.fn(),
-    limit: vi.fn(async () => ({ data: fixture.limitData ?? null, error: null })),
-    maybeSingle: vi.fn(async () => ({ data: fixture.maybeSingleData ?? null, error: null })),
+    limit: vi.fn(async () => ({ data: fixture.limitData ?? null, error: fixture.error ?? null })),
+    maybeSingle: vi.fn(async () => ({ data: fixture.maybeSingleData ?? null, error: fixture.error ?? null })),
     select: vi.fn(),
   }
   query.select.mockReturnValue(query)
@@ -124,6 +125,71 @@ describe("retryParchmentWebhookFailureAction", () => {
       success: true,
     })
     mocks.logAuditEvent.mockResolvedValue(undefined)
+    mocks.updateScriptSent.mockResolvedValue(true)
+  })
+
+  it.each([
+    { limitData: [{ id: PATIENT_ID }, { id: ADMIN_ID }] },
+    { limitData: [] },
+    { error: { message: "Database unavailable" } },
+  ])("refuses ambiguous, missing or failed current patient links despite historical metadata: %j", async (patientFixture) => {
+    mocks.createServiceRoleClient.mockReturnValue(createSupabase([
+      createQuery({ maybeSingleData: webhookFailure() }),
+      createQuery(patientFixture),
+    ]))
+    const { retryParchmentWebhookFailureAction } = await import("@/app/actions/parchment-ops")
+    const result = await retryParchmentWebhookFailureAction(AUDIT_ID)
+    expect(result.success).toBe(false)
+    expect(result.error).toContain("Check the request and Parchment patient links")
+    expect(mocks.syncParchmentPrescriptionToPms).not.toHaveBeenCalled()
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+  })
+
+  it("pins a linked retry to its request, SCID and verified current patient instead of the old partner", async () => {
+    const intakeId = "77777777-7777-4777-8777-777777777777"
+    const failure = {
+      ...webhookFailure(), intake_id: intakeId,
+      metadata: { ...webhookFailure().metadata, partner_patient_id: ADMIN_ID, error: "script_completion_failed" },
+    }
+    const intakeQuery = createQuery({ maybeSingleData: { patient_id: PATIENT_ID, claimed_by: CURRENT_PRESCRIBER_ID } })
+    mocks.createServiceRoleClient.mockReturnValue(createSupabase([
+      createQuery({ maybeSingleData: failure }), intakeQuery,
+      createQuery({ maybeSingleData: { id: CURRENT_PRESCRIBER_ID } }),
+    ]))
+    const { retryParchmentWebhookFailureAction } = await import("@/app/actions/parchment-ops")
+    const result = await retryParchmentWebhookFailureAction(AUDIT_ID)
+    expect(result).toMatchObject({ success: true, markedScriptSent: true })
+    expect(intakeQuery.eq).toHaveBeenCalledWith("id", intakeId)
+    expect(intakeQuery.eq).toHaveBeenCalledWith("parchment_reference", "scid-123")
+    expect(intakeQuery.eq).toHaveBeenCalledWith("patient.parchment_patient_id", "parchment-patient")
+    expect(mocks.syncParchmentPrescriptionToPms).toHaveBeenCalledWith(expect.objectContaining({
+      intakeId, patientProfileId: PATIENT_ID,
+    }))
+  })
+
+  it("does not sync or complete when the retry's request no longer matches its SCID and patient", async () => {
+    mocks.createServiceRoleClient.mockReturnValue(createSupabase([
+      createQuery({ maybeSingleData: { ...webhookFailure(), intake_id: AUDIT_ID } }),
+      createQuery({ maybeSingleData: null }),
+    ]))
+    const { retryParchmentWebhookFailureAction } = await import("@/app/actions/parchment-ops")
+    expect((await retryParchmentWebhookFailureAction(AUDIT_ID)).success).toBe(false)
+    expect(mocks.syncParchmentPrescriptionToPms).not.toHaveBeenCalled()
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+  })
+
+  it("rejects a linked retry when its current prescriber did not review the request", async () => {
+    mocks.createServiceRoleClient.mockReturnValue(createSupabase([
+      createQuery({ maybeSingleData: { ...webhookFailure(), intake_id: AUDIT_ID } }),
+      createQuery({ maybeSingleData: { patient_id: PATIENT_ID, claimed_by: ADMIN_ID } }),
+      createQuery({ maybeSingleData: { id: CURRENT_PRESCRIBER_ID } }),
+    ]))
+    const { retryParchmentWebhookFailureAction } = await import("@/app/actions/parchment-ops")
+    const result = await retryParchmentWebhookFailureAction(AUDIT_ID)
+    expect(result.success).toBe(false)
+    expect(result.error).toContain("reviewing doctor")
+    expect(mocks.syncParchmentPrescriptionToPms).not.toHaveBeenCalled()
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
   })
 
   it("rejects stale prescriber metadata and uses the single current Parchment link", async () => {

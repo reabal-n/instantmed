@@ -7,6 +7,7 @@ import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import { syncParchmentPrescriptionToPms } from "@/lib/parchment/sync-prescription"
+import { type ParchmentWebhookIntakeCandidate,selectParchmentWebhookPrescriberId } from "@/lib/parchment/webhook-matching"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -28,45 +29,37 @@ function getMetadataString(metadata: Record<string, unknown> | null | undefined,
   return typeof value === "string" && value.trim() ? value.trim() : null
 }
 
-async function resolveActivePatientProfileFromId({
-  supabase,
-  profileId,
-}: {
-  supabase: ReturnType<typeof createServiceRoleClient>
-  profileId: string
-}): Promise<string | null> {
-  let candidateId = profileId
-  const visited = new Set<string>()
-
-  for (let depth = 0; depth < 4; depth += 1) {
-    if (!UUID_RE.test(candidateId) || visited.has(candidateId)) return null
-    visited.add(candidateId)
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, merged_into_profile_id")
-      .eq("id", candidateId)
-      .eq("role", "patient")
-      .maybeSingle()
-
-    if (!profile?.id) return null
-    if (!profile.merged_into_profile_id) return profile.id
-    candidateId = profile.merged_into_profile_id
-  }
-
-  return null
-}
-
 async function resolvePatientProfileId({
   supabase,
-  metadata,
   parchmentPatientId,
+  intakeId,
+  scid,
 }: {
   supabase: ReturnType<typeof createServiceRoleClient>
-  metadata: Record<string, unknown>
   parchmentPatientId: string
-}): Promise<string | null> {
-  const { data: byParchmentId } = await supabase
+  intakeId: string | null
+  scid: string
+}): Promise<{
+  patientProfileId: string
+  intake: ParchmentWebhookIntakeCandidate | null
+} | null> {
+  if (intakeId) {
+    // A retry must retain the exact request/SCID association and its current
+    // patient's external link, even when an older partner profile also exists.
+    const { data: intake, error } = await supabase
+      .from("intakes")
+      .select("id, created_at, patient_id, claimed_by, reviewing_doctor_id, reviewed_by, patient:profiles!patient_id!inner(id)")
+      .eq("id", intakeId)
+      .eq("parchment_reference", scid)
+      .eq("patient.parchment_patient_id", parchmentPatientId)
+      .eq("patient.role", "patient")
+      .is("patient.merged_into_profile_id", null)
+      .maybeSingle()
+
+    return !error && intake ? { patientProfileId: intake.patient_id, intake } : null
+  }
+
+  const { data: byParchmentId, error } = await supabase
     .from("profiles")
     .select("id")
     .eq("parchment_patient_id", parchmentPatientId)
@@ -74,24 +67,9 @@ async function resolvePatientProfileId({
     .is("merged_into_profile_id", null)
     .limit(2)
 
-  if (byParchmentId?.length === 1) return byParchmentId[0].id
-
-  const partnerPatientId = getMetadataString(metadata, "partner_patient_id")
-  if (partnerPatientId && UUID_RE.test(partnerPatientId)) {
-    const resolvedPartnerProfileId = await resolveActivePatientProfileFromId({
-      supabase,
-      profileId: partnerPatientId,
-    })
-    if (resolvedPartnerProfileId) return resolvedPartnerProfileId
-  }
-
-  const metadataPatientProfileId = getMetadataString(metadata, "patient_profile_id")
-  if (!metadataPatientProfileId || !UUID_RE.test(metadataPatientProfileId)) return null
-
-  return resolveActivePatientProfileFromId({
-    supabase,
-    profileId: metadataPatientProfileId,
-  })
+  // Historical partner IDs cannot disambiguate duplicate active links or
+  // replace a missing current link. Stop for identity recovery in that case.
+  return !error && byParchmentId?.length === 1 ? { patientProfileId: byParchmentId[0].id, intake: null } : null
 }
 
 async function resolvePrescriberProfileId({
@@ -178,14 +156,23 @@ export async function retryParchmentWebhookFailureAction(
       }
     }
 
-    const patientProfileId = await resolvePatientProfileId({ supabase, metadata, parchmentPatientId })
-    if (!patientProfileId) {
-      return { success: false, error: "Could not match the Parchment patient to an InstantMed patient profile." }
+    const patient = await resolvePatientProfileId({
+      supabase,
+      parchmentPatientId,
+      intakeId: failure.intake_id,
+      scid,
+    })
+    if (!patient) {
+      return { success: false, error: "Could not verify one patient for this prescription. Check the request and Parchment patient links before retrying." }
     }
+    const patientProfileId = patient.patientProfileId
 
     const prescriberProfileId = await resolvePrescriberProfileId({ supabase, metadata, prescriberUserId })
     if (!prescriberProfileId) {
       return { success: false, error: "Could not match the Parchment prescriber to a linked InstantMed doctor." }
+    }
+    if (patient.intake && !selectParchmentWebhookPrescriberId(patient.intake, [prescriberProfileId])) {
+      return { success: false, error: "The Parchment prescriber does not match this request's reviewing doctor. Verify the request before retrying." }
     }
 
     const result = await syncParchmentPrescriptionToPms({

@@ -20,26 +20,40 @@ import {
 } from "@/lib/stripe/fulfilment-entitlement"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
-// Short-lived Redis dedup key - 60s window catches rapid duplicate deliveries
-// before the DB claim write completes. Fails open if Redis is unavailable.
+// Serialize concurrent deliveries; database evidence owns idempotency.
+// A busy lock is not proof that the first delivery succeeded.
 const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
   ? Redis.fromEnv()
   : null
 
-async function acquireWebhookLock(scid: string): Promise<boolean> {
+async function acquireWebhookLock(scid: string): Promise<{ acquired: boolean; token: string | null }> {
   if (!redis) {
     log.warn("Redis unavailable for webhook dedup - failing open")
-    return true
+    return { acquired: true, token: null }
   }
   try {
-    // SET NX EX 60 - returns "OK" if set, null if key already exists
-    const result = await redis.set(`parchment:lock:${scid}`, "1", { nx: true, ex: 60 })
-    return result === "OK"
+    const token = crypto.randomUUID()
+    const result = await redis.set(`parchment:lock:${scid}`, token, { nx: true, ex: 60 })
+    return { acquired: result === "OK", token: result === "OK" ? token : null }
   } catch (error) {
     log.warn("Redis lock error for webhook dedup - failing open", {
       error: error instanceof Error ? error.message : String(error),
     })
-    return true
+    return { acquired: true, token: null }
+  }
+}
+
+async function releaseWebhookLock(scid: string, token: string | null): Promise<void> {
+  if (!redis || !token) return
+  try {
+    // An expired lease may belong to a newer delivery. Never delete its lock.
+    await redis.eval(
+      'if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end',
+      [`parchment:lock:${scid}`],
+      [token],
+    )
+  } catch {
+    log.warn("Could not release Parchment webhook lock; lease will expire")
   }
 }
 
@@ -162,12 +176,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true })
   }
 
-  // Fast-path dedup: Redis lock prevents duplicate processing within 60s.
-  // Falls through to DB-level idempotency check on cache miss or Redis error.
-  const lockAcquired = await acquireWebhookLock(scid)
-  if (!lockAcquired) {
-    log.info("Webhook deduplicated via Redis lock", { eventId: payload.event_id })
-    return NextResponse.json({ received: true, deduplicated: true })
+  const lock = await acquireWebhookLock(scid)
+  if (!lock.acquired) {
+    return NextResponse.json(
+      { error: "Prescription callback is still processing. Retry shortly." },
+      { status: 503, headers: { "Retry-After": "5" } },
+    )
   }
 
   log.info("Processing prescription.created webhook", {
@@ -216,25 +230,32 @@ export async function POST(request: Request) {
     }
 
     if (!patientProfileId) {
-      const { data: byParchmentId } = await supabase
+      const { data: byParchmentId, error: patientError } = await supabase
         .from("profiles")
         .select("id")
         .eq("parchment_patient_id", patient_id)
-        .single()
+        .eq("role", "patient")
+        .is("merged_into_profile_id", null)
+        .limit(2)
 
-      if (byParchmentId) {
-        patientProfileId = byParchmentId.id
-      } else {
-        const { data: byPartnerId } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("id", partner_patient_id)
-          .single()
-
-        if (byPartnerId) {
-          patientProfileId = byPartnerId.id
-        }
+      if (patientError) {
+        return NextResponse.json({ error: "Failed to resolve patient" }, { status: 500 })
       }
+      if (byParchmentId && byParchmentId.length > 1) {
+        await recordParchmentWebhookMismatch(
+          "patient_identity_ambiguous",
+          payload.event_id,
+          buildParchmentWebhookFailureMetadata({
+            scid,
+            parchmentPatientId: patient_id,
+            partnerPatientId: partner_patient_id,
+            prescriberUserId: user_id,
+          }),
+        )
+        return NextResponse.json({ received: true, warning: "Multiple patient links require review" })
+      }
+
+      patientProfileId = byParchmentId?.[0]?.id ?? null
     }
 
     if (!patientProfileId) {
@@ -758,6 +779,8 @@ export async function POST(request: Request) {
     log.error("Webhook processing error", {}, error instanceof Error ? error : new Error(String(error)))
     Sentry.captureException(error, { extra: { eventId: payload.event_id, context: "parchment_webhook_unhandled" } })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
+  } finally {
+    await releaseWebhookLock(scid, lock.token)
   }
 }
 

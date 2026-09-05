@@ -691,12 +691,15 @@ function MarkSentManuallyButton({
     startTransition(async () => {
       const result = await markScriptSentAction(
         intakeId,
-        reasonNote ? `Sent outside Parchment: ${reasonNote}` : undefined,
+        reasonNote ? `Manually confirmed sent: ${reasonNote}` : undefined,
         externalReference || undefined,
       )
       if (result.success) {
         setManualPanelOpen(false)
         reset()
+        if (result.emailNotification === "failed" || result.emailNotification === "skipped_no_patient") {
+          toast.warning("Script marked sent, but the patient could not be emailed. Contact them directly.")
+        }
         const refreshed = await reloadReviewData({ background: true })
         if (!refreshed) {
           toast.success("Prescription recorded. Retry the status refresh to unlock completion.")
@@ -721,11 +724,11 @@ function MarkSentManuallyButton({
           <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
             <div className="min-w-0 space-y-1.5">
               <h2 id={titleId} className="text-base font-semibold leading-tight">
-                Confirm sent outside Parchment
+                Record sent prescription
               </h2>
               <p id={descriptionId} className="text-sm leading-relaxed text-muted-foreground">
-                Record this only after the script was sent through another channel.
-                The patient is notified after you complete the request.
+                Confirm only after issuing the prescription in Parchment or another channel.
+                This notifies the patient and unlocks Complete request.
               </p>
             </div>
             <Button
@@ -797,7 +800,7 @@ function MarkSentManuallyButton({
         className="min-h-11 w-full sm:min-h-0 sm:w-auto"
       >
         <ClipboardCheck className="h-4 w-4 mr-1.5" />
-        {open ? "Recording outside Parchment" : "Sent outside Parchment"}
+        {open ? "Recording sent script" : "Record sent script"}
       </Button>
     </div>
   )

@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { AlertTriangle, CheckCircle, ChevronDown, Clipboard, ExternalLink, Loader2, RefreshCw, X } from "lucide-react"
 import Link from "next/link"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { getPatientParchmentPrescribeUrlAction } from "@/app/actions/manual-patient"
@@ -234,11 +234,15 @@ export function ParchmentPrescribePanel({
   }, [intakeId, patientId])
 
   const openInNewTab = useCallback(async () => {
-    const freshResult = await loadFreshParchmentUrl()
-    if (freshResult.success && freshResult.ssoUrl) {
-      window.open(freshResult.ssoUrl, "_blank", "noopener,noreferrer")
-    } else {
-      toast.error(freshResult.error || "Failed to generate new Parchment session")
+    try {
+      const freshResult = await loadFreshParchmentUrl()
+      if (freshResult.success && freshResult.ssoUrl) {
+        window.open(freshResult.ssoUrl, "_blank", "noopener,noreferrer")
+      } else {
+        toast.error(freshResult.error || "Failed to generate new Parchment session")
+      }
+    } catch {
+      toast.error("Could not connect to Parchment. Check your connection and try again.")
     }
   }, [loadFreshParchmentUrl])
 
@@ -263,22 +267,30 @@ export function ParchmentPrescribePanel({
     }
   }, [prescriptionContext?.patientReportedFrequency])
 
+  const prescribingAttempt = useRef(0)
   const loadPrescribingUrl = useCallback(async () => {
+    const attempt = ++prescribingAttempt.current
     setLoading(true)
     setError(null)
 
-    const result = await loadFreshParchmentUrl()
+    try {
+      const result = await loadFreshParchmentUrl()
+      if (attempt !== prescribingAttempt.current) return
 
-    if (result.success && result.ssoUrl) {
-      setSsoUrl(result.ssoUrl)
-      setIframeLoaded(false)
-      setIframeSlowToLoad(false)
-    } else {
-      setError(result.error || "Failed to load prescribing portal")
-      toast.error(result.error || "Failed to load Parchment")
+      if (result.success && result.ssoUrl) {
+        setSsoUrl(result.ssoUrl)
+        setIframeLoaded(false)
+        setIframeSlowToLoad(false)
+      } else {
+        setError(result.error || "Failed to load prescribing portal")
+        toast.error(result.error || "Failed to load Parchment")
+      }
+    } catch {
+      if (attempt !== prescribingAttempt.current) return
+      setError("Could not connect to Parchment. Check your connection and try again.")
+    } finally {
+      if (attempt === prescribingAttempt.current) setLoading(false)
     }
-
-    setLoading(false)
   }, [loadFreshParchmentUrl])
 
   // Mint one fresh SSO attempt when the panel opens. Once Parchment establishes
@@ -286,6 +298,7 @@ export function ParchmentPrescribePanel({
   // can explicitly retry or open a newly minted session in another tab.
   useEffect(() => {
     void loadPrescribingUrl()
+    return () => { prescribingAttempt.current += 1 }
   }, [loadPrescribingUrl])
 
   useEffect(() => {
@@ -683,9 +696,9 @@ export function ParchmentPrescribePanel({
                 size="sm"
                 className="min-h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:min-h-9 sm:self-auto"
                 onClick={onScriptSent}
-                title="Use when the script was sent through a different channel and Parchment won't notify us"
+                title="Record a prescription already issued in Parchment or another channel"
               >
-                Sent outside Parchment
+                Record sent script
               </Button>
             )}
             {patientId && onPrescriptionsRefresh && (

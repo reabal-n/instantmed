@@ -139,7 +139,7 @@ describe("doctor review prescribing controls", () => {
     expect(queueSheetActionsSource).toContain("aria-labelledby={titleId}")
     expect(queueSheetActionsSource).toContain("MANUAL_SCRIPT_PANEL_STORAGE_KEY")
     expect(queueSheetActionsSource).toContain("sessionStorage.setItem")
-    expect(queueSheetActionsSource).toContain("Confirm sent outside Parchment")
+    expect(queueSheetActionsSource).toContain("Record sent prescription")
     expect(queueSheetActionsSource).toContain('event.key === "Escape"')
   })
 
