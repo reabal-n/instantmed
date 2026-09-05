@@ -52,16 +52,23 @@ export async function verifyGuestRequestAccess({ page, browser, evidence, otherO
     await expect(otherPage).toHaveURL(`${ORIGIN}/track/request`)
     const forbidden = await other.request.get(`/api/patient/documents/${evidence.intakeId}/download`)
     expect(forbidden.status()).toBe(403)
-    const csrf = await (await other.request.get("/api/csrf")).json()
-    const reply = await other.request.post("/api/patient/messages", {
-      headers: { "x-csrf-token": csrf.token },
-      data: { intakeId: evidence.intakeId, content: "Synthetic ownership denial check" },
-    })
-    expect(reply.status()).toBe(404)
+    const replyStatus = await otherPage.evaluate(async (intakeId) => {
+      const { token: csrf } = await (await fetch("/api/csrf")).json()
+      const response = await fetch("/api/patient/messages", {
+        method: "POST",
+        headers: { "x-csrf-token": csrf, "content-type": "application/json" },
+        body: JSON.stringify({ intakeId, content: "Synthetic ownership denial check" }),
+      })
+      return response.status
+    }, evidence.intakeId)
+    expect(replyStatus).toBe(404)
   } finally { await other.close() }
 
   const post = page.waitForRequest((request) => request.url() === `${ORIGIN}/track/request/access-link`)
-  await button.click()
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await button.focus()
+  await expect(button).toBeFocused()
+  await button.press("Enter")
   const submitted = await post
   expect(submitted.method()).toBe("POST")
   expect(submitted.postData()).toBe(null)
