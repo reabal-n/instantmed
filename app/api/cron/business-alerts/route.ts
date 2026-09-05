@@ -439,6 +439,9 @@ export async function GET(request: NextRequest) {
           .select("id", { count: "exact", head: true })
           .eq("status", "pending")
           .lt("created_at", thirtyMinAgo.toISOString())
+          // Deferred sends (including patient review cooldowns) are healthy
+          // until their scheduled send time is itself more than 30 minutes late.
+          .or(`scheduled_for.is.null,scheduled_for.lt.${thirtyMinAgo.toISOString()}`)
           .lt("retry_count", 10)
         if (error) throw new Error(`Stuck-pending email count failed: ${error.message}`)
         stuckPending = count ?? 0

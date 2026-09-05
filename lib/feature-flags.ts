@@ -103,17 +103,29 @@ function isValidFlagValue(key: FlagKey, value: boolean | string | string[] | num
 /**
  * Fetch feature flags from database (uncached - internal use)
  */
-async function fetchFlagsFromDB(): Promise<FeatureFlags> {
+async function fetchFlagsFromDB(retried = false): Promise<FeatureFlags> {
   const supabase = getServiceClient()
   if (!supabase) {
     throw new Error("Feature flag database client is unavailable")
   }
 
-  const { data, error } = await supabase
+  const query = supabase
     .from("feature_flags")
     .select("key, value")
+  // A fresh signal bypasses Next's memoized rejected GET and bounds the retry.
+  const { data, error } = await (retried
+    ? query.abortSignal(AbortSignal.timeout(5_000))
+    : query)
 
   if (error) {
+    // PostgREST reports a dropped fetch with an empty service error code.
+    // Retry this read once before a healthy request loses embedded prescribing
+    // or other confirmed controls. Never retry writes, auth/schema failures,
+    // cancellation, or cache request-scoped defaults after a sustained outage.
+    if (!retried && !error.code && error.message === "TypeError: fetch failed") {
+      await new Promise((resolve) => setTimeout(resolve, 150))
+      return fetchFlagsFromDB(true)
+    }
     throw new Error(error.message)
   }
 

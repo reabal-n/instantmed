@@ -13,7 +13,8 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 - `pnpm release:check` (Node, stack pins, route conflicts, orphaned files, audit, lint, typecheck, unit tests, production build, bundle budget)
 - `pnpm check:staff-roles` (read-only Supabase gate: exactly one auth-linked human admin, owner-admin doctor identity complete, future doctors scoped as doctors)
 - If the staff-role gate fails only because of extra human admin rows, dry-run first: `DEMOTE_ADMIN_EMAILS='old-admin@example.com' DEMOTE_ADMIN_ROLE=patient pnpm fix:staff-roles`, then apply with `-- --apply` after reviewing the target list.
-- `pnpm check:sentry` (verifies the configured Sentry org/project token before relying on release/error telemetry)
+- `pnpm check:sentry` (verifies project/release API access for the configured Sentry org/project; does not prove issue/event read access)
+- For incident inspection, `pnpm check:sentry --issues` verifies production issue-list read permission separately. A release-only token is insufficient.
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/payment-smoke.spec.ts e2e/stripe-webhook.spec.ts e2e/parchment-webhook.spec.ts --project=chromium --workers=1 --reporter=list`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/operator.viewport.spec.ts e2e/operator.visual.spec.ts --project=chromium --workers=1 --reporter=list`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/medical-certificate.spec.ts --project=chromium --workers=1 --reporter=list`
