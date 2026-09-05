@@ -914,6 +914,13 @@ export async function followMagicLinkAndExpectOwnedIntake(
   await page.waitForURL((url) => (
     url.origin === APP_ORIGIN && url.pathname.startsWith("/patient")
   ), { timeout: PAYMENT_TIMEOUT_MS })
+  await expect(page).toHaveURL((url) =>
+    url.origin === APP_ORIGIN && url.pathname === "/patient/intakes/success" &&
+    url.searchParams.get("intake_id") === evidence.intakeId,
+  )
+  await expect(page.getByRole("heading", { name: "Request submitted", exact: true })).toBeVisible()
+  await expect(page.locator("input:visible, select:visible, textarea:visible")).toHaveCount(0)
+  await page.getByRole("link", { name: "Go to dashboard", exact: true }).click()
   await expect(page).toHaveURL(`${APP_ORIGIN}/patient`)
   await expect(page.locator(`a[href="/patient/intakes/${evidence.intakeId}"]`).first()).toBeVisible({
     timeout: PAYMENT_TIMEOUT_MS,
@@ -921,17 +928,16 @@ export async function followMagicLinkAndExpectOwnedIntake(
   const dashboardReadyAt = performance.now()
 
   const supabase = serviceClient(coordinates)
+  const users = await listRunAuthUsers(supabase, [evidence.email])
+  if (users.length !== 1) throw safeFailure("magic-link journey did not create one Auth user")
   await expect.poll(async () => {
     const { data } = await supabase
       .from("profiles")
       .select("auth_user_id, email_verified_at")
       .eq("id", evidence.patientId)
       .maybeSingle()
-    return Boolean(data?.auth_user_id && data.email_verified_at)
-  }, { timeout: PAYMENT_TIMEOUT_MS }).toBe(true)
-
-  const users = await listRunAuthUsers(supabase, [evidence.email])
-  if (users.length !== 1) throw safeFailure("magic-link journey did not create one Auth user")
+    return data?.email_verified_at ? data.auth_user_id : null
+  }, { timeout: PAYMENT_TIMEOUT_MS }).toBe(users[0].id)
 
   return dashboardReadyAt
 }

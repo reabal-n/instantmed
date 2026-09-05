@@ -37,7 +37,7 @@ import {
 const root = process.cwd()
 const accountMeasurement = {
   skip: { actions: 1, repeatedProfileFields: 0, elapsedMs: 150 },
-  link: { actions: 2, repeatedProfileFields: 0, elapsedMs: 800 },
+  link: { actions: 3, repeatedProfileFields: 0, elapsedMs: 800 },
 }
 const TEST_KEY = "sk_test_dedicated_hosted_e2e"
 const localUrls = {

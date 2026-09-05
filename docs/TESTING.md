@@ -247,7 +247,10 @@ PHI-free receipt under `.artifacts/hosted-stripe-e2e/` only after both branches
 and cleanup pass. The receipt includes account-skip and magic-link action counts,
 zero repeated profile fields, and elapsed milliseconds from the confirmed offer
 to its outcome (including local Mailpit wait for linking). These are harness
-measurements, not patient performance promises. The GitHub workflow is manual `workflow_dispatch` only.
+measurements, not patient performance promises. Skipping takes one action; the
+linked-dashboard branch takes three: request the email, open its real magic
+link, then choose Go to dashboard from the authenticated request confirmation.
+The GitHub workflow is manual `workflow_dispatch` only.
 
 The local production bundle's startup exception requires the explicit test flags,
 a test key, loopback app origins on 3060, matching loopback database origins on

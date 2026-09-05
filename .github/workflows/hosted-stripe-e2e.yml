@@ -50,6 +50,8 @@ jobs:
 
       - name: Run the isolated hosted Stripe journey
         env:
+          # Operator chose the public test card after the optional Link CLI offer.
+          HOSTED_STRIPE_E2E_PUBLIC_TEST_CARD_CONFIRMED: "1"
           HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY: ${{ secrets.HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY }}
           HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT: ${{ secrets.HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT }}
           HOSTED_STRIPE_E2E_STRIPE_PRICE_REPEAT_SCRIPT: ${{ secrets.HOSTED_STRIPE_E2E_STRIPE_PRICE_REPEAT_SCRIPT }}

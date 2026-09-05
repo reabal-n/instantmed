@@ -92,7 +92,7 @@ interface BuildHostedStripeChildEnvironmentInput {
 
 export interface HostedStripeAccountMeasurement {
   skip: { actions: 1; repeatedProfileFields: 0; elapsedMs: number }
-  link: { actions: 2; repeatedProfileFields: 0; elapsedMs: number }
+  link: { actions: 3; repeatedProfileFields: 0; elapsedMs: number }
 }
 
 export interface HostedStripeReceipt {
@@ -720,7 +720,7 @@ function isCanonicalTimestamp(value: unknown): value is string {
 function validateAccountMeasurement(value: unknown): void {
   if (!isRecord(value)) throw new Error("Hosted Stripe receipt contains a forbidden account measurement")
   validateExactKeys(value, ["skip", "link"], "account")
-  for (const [journey, actions] of [["skip", 1], ["link", 2]] as const) {
+  for (const [journey, actions] of [["skip", 1], ["link", 3]] as const) {
     const measurement = value[journey]
     if (!isRecord(measurement)) throw new Error("Hosted Stripe receipt contains a forbidden account measurement")
     validateExactKeys(measurement, ["actions", "repeatedProfileFields", "elapsedMs"], `account.${journey}`)

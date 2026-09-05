@@ -107,7 +107,7 @@ test.describe.serial("real hosted Stripe guest checkout", () => {
     await page.getByRole("button", { name: "Email me a sign-in link" }).click()
     await expect(page.getByRole("status").filter({ hasText: "Check your inbox" })).toBeVisible()
     const dashboardReadyAt = await followMagicLinkAndExpectOwnedIntake(page, evidence)
-    account.link = { actions: 2, repeatedProfileFields: 0, elapsedMs: Math.round(dashboardReadyAt - started) }
+    account.link = { actions: 3, repeatedProfileFields: 0, elapsedMs: Math.round(dashboardReadyAt - started) }
     linkOutcome = true
   })
 })
