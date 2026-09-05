@@ -629,16 +629,20 @@ async function findStripeField(
 }
 
 async function fillHostedStripeCard(page: Page): Promise<void> {
-  // Stripe's payment-method accordion can start collapsed when alternatives
-  // are available. Open its visible button before looking inside card frames.
-  const cardOption = page.getByRole("button", { name: "Pay with card", exact: true })
-  const hasCardOption = await cardOption.waitFor({ state: "visible", timeout: 10_000 })
-    .then(() => true).catch(() => false)
-  if (hasCardOption) await cardOption.click()
-  const cardNumber = await findStripeField(
-    page,
-    'input[name="cardNumber"], input[autocomplete="cc-number"], input[placeholder*="1234"]',
-  )
+  const cardSelector = 'input[name="cardNumber"], input[autocomplete="cc-number"], input[placeholder*="1234"]'
+  let cardNumber = await findStripeField(page, cardSelector, false)
+  if (!cardNumber) {
+    // Stripe covers the visible label with a zero-size button's expanded
+    // pseudo-element. Click the rendered label's center as a user would;
+    // locator clicks reject that legitimate same-control pointer interception.
+    const cardLabel = page.locator("#payment-method-label-card")
+    await expect(cardLabel).toBeVisible({ timeout: 15_000 })
+    await cardLabel.scrollIntoViewIfNeeded()
+    const bounds = await cardLabel.boundingBox()
+    if (!bounds) throw safeFailure("hosted card choice has no visible bounds")
+    await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
+    cardNumber = await findStripeField(page, cardSelector)
+  }
   const expiry = await findStripeField(
     page,
     'input[name="cardExpiry"], input[autocomplete="cc-exp"], input[placeholder*="MM"]',
