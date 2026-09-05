@@ -42,12 +42,15 @@ describe("patient dashboard and certificate delivery contracts", () => {
   it("keeps public request access actionable without exposing the bearer to React", () => {
     const tokenExchange = readProjectFile("app/track/[intakeId]/route.ts")
     const trackingPage = readProjectFile("app/track/request/page.tsx")
+    const accessButton = readProjectFile("components/track/request-access-sign-in.tsx")
 
     expect(tokenExchange).toContain("PATIENT_REQUEST_ACCESS_COOKIE")
     expect(tokenExchange).toContain('httpOnly: true')
-    expect(tokenExchange).toContain('new URL("/track/request", request.url)')
+    expect(tokenExchange).toContain('new URL("/track/request", APP_URL)')
     expect(trackingPage).toContain('case "approved"')
-    expect(trackingPage).toContain("Create account and open request")
+    expect(trackingPage).toContain("<RequestAccessSignIn />")
+    expect(accessButton).toContain("Email me a secure access link")
+    expect(accessButton).not.toContain("requestAccessToken")
     expect(trackingPage).toContain("buildPatientIntakeHref(intake.id)")
     expect(trackingPage).not.toContain("requestAccessToken")
   })
