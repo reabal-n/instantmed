@@ -1,30 +1,5 @@
 {
   "asOf": "2026-09-05T08:43:00Z",
-  "followUp": {
-    "asOf": "2026-09-05T09:08:00Z",
-    "fourClosedWeeks": [
-      { "period": "2026-08-08 to 2026-08-14", "orders": 59, "certificateOrders": 22, "chatgptCertificateOrders": 10 },
-      { "period": "2026-08-15 to 2026-08-21", "orders": 69, "certificateOrders": 28, "chatgptCertificateOrders": 10 },
-      { "period": "2026-08-22 to 2026-08-28", "orders": 82, "certificateOrders": 35, "chatgptCertificateOrders": 17 },
-      { "period": "2026-08-29 to 2026-09-04", "orders": 63, "certificateOrders": 21, "chatgptCertificateOrders": 5 }
-    ],
-    "searchConsole": [
-      { "path": "/online-prescriptions", "liveTest": "URL is available to Google", "testedAtSydney": "2026-09-05 19:04", "indexingRequest": "Existing request confirmed; not resubmitted", "indexed": false },
-      { "path": "/prescriptions", "liveTest": "URL is available to Google", "testedAtSydney": "2026-09-05 19:06", "indexingRequest": "Submitted and confirmed by 19:08 Sydney", "indexed": false }
-    ],
-    "checkoutFailure": {
-      "dateSydney": "2026-09-04",
-      "hourSydney": 19,
-      "service": "repeat-script",
-      "category": "unknown",
-      "stage": "session_creation",
-      "affectedFlows": 1,
-      "subsequentPaidEvents": 0,
-      "specificFailureCode": null,
-      "sentryIssueAccessHttpStatus": 403,
-      "cause": "unresolved"
-    }
-  },
   "timezone": "Australia/Sydney",
   "periods": {
     "oneDay": "2026-09-04",
