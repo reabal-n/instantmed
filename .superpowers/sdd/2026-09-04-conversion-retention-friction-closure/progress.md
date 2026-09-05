@@ -29,7 +29,7 @@ The attached operator request authorises sequential local implementation and sup
 ## Plan task state (original task numbers)
 
 - Schema convergence: locally verified; deployment application remains unverified.
-- Tasks 1–2: test-webhook policy and hosted runner verified locally. Real provider acceptance is blocked only by the dedicated Stripe test key and two test Price IDs.
+- Tasks 1–2: test-webhook policy and hosted runner verified locally. Test credentials and two Prices are now available; completed hosted payment/account acceptance remains pending (see 2026-09-05 follow-up).
 - Tasks 3–4: current certificate recovery and persistence/delivery fixes are independently testable. The original historical render defect remains unexplained; it does not block readiness of the current recovery paths. Historical sends are not authorised by this implementation request.
 - Tasks 5–7: conversion, failure, and minimal refill read models are implemented. Cohort counts, scheduler evidence, and retained cash availability remain separate.
 - Task 8: D+7/D+14 outcome observations remain open, with matched windows, minimum sample, safety and settlement requirements. They are not code-release gates.
@@ -184,3 +184,11 @@ These records preserve earlier reviews; the current closure and state above supe
 - Implementer commit: `7c96d4835`.
 - Independent final task review: APPROVED; 8 files / 158 tests, doc audit 10 files / 124 tests, lint, typecheck, and diff check passed.
 - Outcome: the two-hour queue target is a watch signal, the six-hour threshold blocks only new scale, and 20-hour/24-hour, clinical, fulfilment, support, and QA evidence can create a hard hold with at most an approval-ready Ads pause proposal. No Ads mutation or ED/W1 activation occurred.
+
+## 2026-09-05 hosted provider execution follow-up
+
+- Resolved credential blocker: operator refreshed existing Stripe CLI test authentication; two active AUD test Prices created and dedicated values injected only into the runner process. Vercel variable-name inventory confirms all six integration groups exist, without claiming healthy production values.
+- Runtime/harness fixes committed from `1b65b999f` through `01ccdc703`: narrow loopback-only startup exception and deployed restricted-test-key rejection; Playwright-compatible runner imports; scoped intake/Stripe selectors; isolated real Redis with quota proof; early cleanup-schema validation and removal of a retired cleanup table.
+- Latest verification: 104 focused tests, TypeScript, scoped ESLint, doc audit (124 tests). Production bundles start; genuine test Checkout Sessions are created and card entry reaches Submit. Latest Stripe read-back is open/unpaid with no PaymentIntent. Paid webhook, both account branches, and timing acceptance are still unproven.
+- Stripe sandbox enables Link saving by default. Its AI-agent declaration exposes an optional Link CLI offer and follow-instructions acknowledgment. Link CLI is absent. Operator choice (public test card or Link CLI) is pending; do not falsely attest to the acknowledgment.
+- Latest row/Docker cleanup passes after removing the retired table. Full details and current blocker are in `docs/superpowers/receipts/2026-09-05-friction-release-readiness.md`. No production change or patient send.

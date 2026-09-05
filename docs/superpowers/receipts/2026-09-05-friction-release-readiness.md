@@ -20,7 +20,7 @@ These are final-state review boundaries. The earlier commits are provenance anch
 | Packet | Scope and anchors | Dependency / remaining proof |
 |---|---|---|
 | Growth | Original `7c96d4835` corrected by `c3d804897`; policy, snapshot, operational health reader, canonical growth docs | Local policy proof complete. Actual Ads mutations remain separately authorised. |
-| Hosted checkout | `26358c0bc`, `055bd9331`, `8e5daae1f`, hosted harness follow-ups, `80bdc0a95` | Real provider acceptance is blocked by the dedicated test key and two test Price IDs. Does not block unrelated packets. |
+| Hosted checkout | `26358c0bc`, `055bd9331`, `8e5daae1f`, hosted harness follow-ups, `80bdc0a95` | Test credentials and the two Prices are available. Hosted payment acceptance remains incomplete; see the provider follow-up below. Does not block unrelated packets. |
 | Certificate, preferences, shared delivery | `670a7d805`, `b4e2baf6e`, `b71c2d4fd`, schema convergence `9021ed807`/`c6091f9b2`, shared receipt follow-ups, `1df3139e1`, `209f1f35f`, `8a7682ddf` | Apply preference migration `1100` before shared receipt migration `1150`, then matching runtime consumers. Current recovery proof is independent of the unexplained historical render error. |
 | Conversion and checkout-failure measurement | `fb3390d40`, `500ea85ae`, `e3f8a00a2`, `d2ff162fc` and quality follow-ups | Immutable release SHA/time and live source credentials enable outcome reads. Unknown/legacy failures and unavailable cash stay visible. |
 | Minimal refill reporting | `dc76db6bf` final aggregate/read model plus `0698637af`; shared callback work belongs to the preceding delivery packet | Migration `1200` contains only indexes and the aggregate. New durable callbacks use packet 3; reporting itself requires no preference, identity, or historical repair. Scheduler proof is a separate heartbeat. |
@@ -57,8 +57,44 @@ After each authorised send, verify the resend reservation/outbox result, provide
 
 ## Remaining external proof
 
-- Hosted provider run: configure `HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY`, `HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT`, and `HOSTED_STRIPE_E2E_STRIPE_PRICE_REPEAT_SCRIPT` for the same dedicated Stripe **test** account, then run `corepack pnpm e2e:stripe-hosted` from a clean candidate. Generic available keys were live and were not substituted. No account timing result is claimed yet.
+- Hosted provider run: the operator refreshed Stripe CLI authentication and the test key now authenticates. Two active AUD one-time test Prices were created and injected through the dedicated runner environment. No key values were written into the repository. Completed payment, signed-webhook, guest-account, and timing acceptance remain unproven; see the follow-up below.
 - `corepack pnpm release:check` stopped at strict integration validation: Stripe, Google Ads conversion, Resend, Anthropic, OpenAI review, and Parchment configuration were absent in this isolated worktree. Local checks can pass independently; the full release gate must run in the intended credentialled release environment before deployment is labelled ready.
 - Production deployment SHA/health, live browser behavior, live heartbeat, Resend acceptance/delivery, GSC inspection/indexing, and dated conversion/cash outcomes remain unverified here.
 - Original Task 9 may proceed when its specified manually verified account-friction evidence exists; it no longer waits for D+14. Task 10 keeps the real magic-link ownership dependency. Neither imposes a new required account step.
 - Preserve the minimum sample, matched measurement windows, 21-day refill observation, women's-health experiment conditions, and ED E1 settlement. Calendar checkpoints alone do not delay proven fixes.
+
+## Hosted provider follow-up — 2026-09-05
+
+Credential discovery found an expired Stripe CLI test key; the operator refreshed
+it using `stripe login`. Read-only authentication then succeeded. The runner now
+has the two required test Prices: one-day certificate A$24.95 and repeat
+prescription A$29.95. Existing Vercel variable names cover all six previously
+reported integration groups; that inventory does not verify their values or live
+health. The isolated worktree's missing integration settings were not evidence
+that production lacked them.
+
+Provider execution exposed and corrected these harness gaps in commits
+`1b65b999f` through `01ccdc703`: startup rejected the local test-key production
+bundle; Playwright could not import the runner; heading and Stripe button
+selectors were ambiguous; production rate limiting needed real disposable Redis;
+and cleanup referenced the retired `payment_reconciliation` table. The runner
+now checks the actual cleanup schema before building and verifies real Redis
+quota enforcement. The deployed startup guard also rejects restricted test keys.
+
+Latest candidate checks: 104 focused tests, TypeScript, scoped ESLint, and
+documentation audit (124 tests) pass. Real test Checkout Sessions were created,
+and card entry plus the final submit interaction were reached. Stripe still
+reported the latest session as open/unpaid with no PaymentIntent. No signed
+paid-webhook, account outcome, or account timing receipt is claimed.
+
+Direct inspection found sandbox Link saving selected by default and an AI-agent
+declaration. Selecting the truthful agent declaration exposes instructions to
+offer optional Link CLI plus an acknowledgment that those instructions were
+followed. Link CLI is not installed; the operator has been asked whether to
+continue using Stripe's public test card or use Link CLI. That choice is pending.
+Do not attest to the latter acknowledgment before the operator responds.
+
+Latest failed runs passed row/Docker cleanup after the stale-table correction.
+No real payment, patient email, production data repair, Ads/GSC change, or
+production deployment occurred. Test-mode catalog/session creation is external
+test setup, not production payment evidence.
