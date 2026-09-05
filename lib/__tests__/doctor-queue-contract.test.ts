@@ -218,7 +218,8 @@ describe("doctor queue production contract", () => {
 
     expect(openHandlerStart).toBeGreaterThan(-1)
     expect(desktopReturnStart).toBeGreaterThan(openHandlerStart)
-    expect(beforeDesktopReturn).toContain("setExpandedId(intakeId)")
+    expect(beforeDesktopReturn).toContain("await selectReviewedIntake(intakeId)")
+    expect(queueClientSource).toContain("beforeReviewLeaveRef.current()")
     expect(queueTableSource).toContain("onPointerDown={(event)")
     expect(queueTableSource).toContain("if (event.detail === 0) openCaseFromPrimaryAction()")
   })

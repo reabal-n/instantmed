@@ -11,6 +11,7 @@ import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-c
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { buildPrescribingIdentityBlockerReport } from "@/lib/doctor/prescribing-identity-blockers"
 import { filterNonActionableEmailFailures } from "@/lib/email/quiet-failures"
+import { getParchmentAuditPatientId } from "@/lib/parchment/audit-patient-link"
 import {
   filterRecoveredStandaloneParchmentFailures,
   filterUnresolvedParchmentFailures,
@@ -113,8 +114,7 @@ function toStandaloneFailureCandidate(row: AuditRow): ParchmentStandaloneFailure
     intakeId: row.intake_id,
     reason: metadataString(row.metadata, "error") || "unknown_error",
     scid: metadataString(row.metadata, "scid"),
-    patientProfileId: metadataString(row.metadata, "patient_profile_id")
-      || metadataString(row.metadata, "patient_id"),
+    patientProfileId: getParchmentAuditPatientId(row.metadata),
     partnerPatientId: metadataString(row.metadata, "partner_patient_id"),
   }
 }

@@ -28,7 +28,7 @@ export function RetryParchmentWebhookButton({
         startTransition(async () => {
           const result = await retryParchmentWebhookFailureAction(auditLogId)
           if (result.success) {
-            toast.success(result.markedScriptSent ? "Prescription synced and intake completed" : "Prescription synced")
+            toast.success(result.markedScriptSent ? "Script recorded. Complete the request when ready." : "Prescription synced")
             router.refresh()
             return
           }

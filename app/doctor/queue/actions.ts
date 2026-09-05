@@ -43,6 +43,7 @@ import {
 } from "@/lib/doctor/parchment-claim"
 import { isPrescribingServiceRequest, isPrescribingServiceType } from "@/lib/doctor/service-types"
 import { buildPatientRequestAccessUrl } from "@/lib/email/request-access-url"
+import { ensureScriptSentNotification, type ScriptNotificationResult } from "@/lib/email/script-sent-notification"
 import {
   editPaidRequestTelegramMessageToApproved,
   editPaidRequestTelegramMessageToDeclined,
@@ -187,49 +188,38 @@ async function ensureClinicalDecisionNoteForApproval(
 async function sendScriptSentEmailIfNeeded(
   supabase: ReturnType<typeof createServiceRoleClient>,
   intakeId: string,
-): Promise<"sent" | "already_sent" | "skipped_no_patient"> {
+): Promise<ScriptNotificationResult> {
   const React = await import("react")
   const { sendEmail } = await import("@/lib/email/send-email")
   const { ScriptSentEmail, scriptSentEmailSubject } = await import("@/lib/email/components/templates/script-sent")
   const { getIntakeWithDetails } = await import("@/lib/data/intakes")
 
-  const { data: existingEmail } = await supabase
-    .from("email_outbox")
-    .select("id")
-    .eq("intake_id", intakeId)
-    .eq("email_type", "script_sent")
-    .limit(1)
-    .maybeSingle()
+  return ensureScriptSentNotification(supabase, intakeId, async () => {
+    const intake = await getIntakeWithDetails(intakeId)
+    if (!intake?.patient?.email) return null
 
-  if (existingEmail) {
-    logger.info("Skipping script_sent email - already sent", { intakeId })
-    return "already_sent"
-  }
-
-  const intake = await getIntakeWithDetails(intakeId)
-  if (!intake?.patient?.email) return "skipped_no_patient"
-
-  const patientName = intake.patient.full_name || "Patient"
-  await sendEmail({
-    to: intake.patient.email,
-    toName: patientName,
-    subject: scriptSentEmailSubject(patientName.split(" ")[0]),
-    template: React.createElement(ScriptSentEmail, {
-      patientName,
-      requestId: intakeId,
-      requestAccessUrl: buildPatientRequestAccessUrl({
-        appUrl: env.appUrl,
-        intakeId,
+    const patientName = intake.patient.full_name || "Patient"
+    return sendEmail({
+      to: intake.patient.email,
+      toName: patientName,
+      subject: scriptSentEmailSubject(patientName.split(" ")[0]),
+      template: React.createElement(ScriptSentEmail, {
+        patientName,
+        requestId: intakeId,
+        requestAccessUrl: buildPatientRequestAccessUrl({
+          appUrl: env.appUrl,
+          intakeId,
+        }),
+        escriptReference: intake.parchment_reference ?? undefined,
+        priorityFeeRefunded: Boolean(intake.is_priority && intake.priority_fee_refunded_at),
       }),
-      escriptReference: intake.parchment_reference ?? undefined,
-      priorityFeeRefunded: Boolean(intake.is_priority && intake.priority_fee_refunded_at),
-    }),
-    emailType: "script_sent",
-    intakeId,
-    patientId: intake.patient.id,
-    metadata: intake.parchment_reference ? { parchmentReference: intake.parchment_reference } : {},
+      emailType: "script_sent",
+      idempotencyKey: `script-sent:${intakeId}`,
+      intakeId,
+      patientId: intake.patient.id,
+      metadata: intake.parchment_reference ? { parchmentReference: intake.parchment_reference } : {},
+    })
   })
-  return "sent"
 }
 
 async function ensureDoctorCaseActionAllowed(
@@ -660,7 +650,7 @@ export async function markScriptSentAction(
   success: boolean
   error?: string
   code?: string
-  emailNotification?: "sent" | "already_sent" | "skipped_no_patient" | "failed"
+  emailNotification?: ScriptNotificationResult
 }> {
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
@@ -842,7 +832,7 @@ export async function markScriptSentAction(
   // review-request email about a fulfilment they were never notified of.
   // sendScriptSentEmailIfNeeded checks the outbox first, so a later approval
   // cannot double-send.
-  let emailNotification: "sent" | "already_sent" | "skipped_no_patient" | "failed" = "failed"
+  let emailNotification: ScriptNotificationResult = "failed"
   try {
     emailNotification = await sendScriptSentEmailIfNeeded(supabase, intakeId)
   } catch (emailErr) {
@@ -864,7 +854,7 @@ export async function markScriptSentAction(
 
 export async function approvePrescribedScriptAction(
   intakeId: string,
-): Promise<{ success: boolean; error?: string; code?: string; emailNotification?: "sent" | "already_sent" | "skipped_no_patient" | "failed" }> {
+): Promise<{ success: boolean; error?: string; code?: string; emailNotification?: ScriptNotificationResult }> {
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
@@ -930,7 +920,7 @@ export async function approvePrescribedScriptAction(
   }
 
   if (intake.script_sent === true && intake.status === "completed") {
-    let emailNotification: "sent" | "already_sent" | "skipped_no_patient" | "failed" = "failed"
+    let emailNotification: ScriptNotificationResult = "failed"
     try {
       emailNotification = await sendScriptSentEmailIfNeeded(supabase, intakeId)
     } catch (emailErr) {
@@ -987,7 +977,7 @@ export async function approvePrescribedScriptAction(
   // Send email notification to patient via the centralized sendEmail pipeline.
   // This happens only after the doctor explicitly approves the already-sent
   // script, preserving the two-step prescribing workflow.
-  let emailNotification: "sent" | "already_sent" | "skipped_no_patient" | "failed" = "failed"
+  let emailNotification: ScriptNotificationResult = "failed"
   try {
     emailNotification = await sendScriptSentEmailIfNeeded(supabase, intakeId)
   } catch (emailErr) {

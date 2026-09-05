@@ -78,6 +78,7 @@ interface LazyIntakeReviewPanelProps {
   inline?: boolean
   previewIntake?: IntakeWithPatient
   reviewRevision?: string | null
+  onBeforeLeaveChange?: (guard: (() => Promise<boolean>) | null) => void
 }
 
 function IntakeReviewPanelLoading() {
@@ -265,6 +266,15 @@ export function QueueClient({
   }, [intakes])
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const beforeReviewLeaveRef = useRef<(() => Promise<boolean>) | null>(null)
+  const registerBeforeReviewLeave = useCallback((guard: (() => Promise<boolean>) | null) => {
+    beforeReviewLeaveRef.current = guard
+  }, [])
+  const selectReviewedIntake = useCallback(async (intakeId: string | null) => {
+    if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return false
+    setExpandedId(intakeId)
+    return true
+  }, [])
   const [lastOpenedIntakeId, setLastOpenedIntakeId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null
     try {
@@ -712,8 +722,8 @@ export function QueueClient({
   // inline right pane. On mobile (`!isDesktop`) compactShell falls back
   // to the slide-over so the detail doesn't stack below the queue. In
   // legacy non-compact mode it always opens the slide-over.
-  const openReviewPanel = useCallback((intakeId: string) => {
-    setExpandedId(intakeId)
+  const openReviewPanel = useCallback(async (intakeId: string): Promise<void> => {
+    if (!await selectReviewedIntake(intakeId)) return
 
     if (compactShell && isDesktop) {
       // Desktop two-pane mode. Detail renders inline; no slide-over.
@@ -746,6 +756,7 @@ export function QueueClient({
       component: (
         <IntakeReviewPanel
           intakeId={intakeId}
+          onBeforeLeaveChange={registerBeforeReviewLeave}
           previewIntake={previewIntake}
           reviewRevision={previewIntake?.updated_at ?? null}
           caseIndex={caseIndex >= 0 ? caseIndex : undefined}
@@ -768,7 +779,7 @@ export function QueueClient({
         />
       ),
     })
-  }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete])
+  }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete, registerBeforeReviewLeave, selectReviewedIntake])
 
   const primeReviewPanelCode = useCallback(() => {
     void loadIntakeReviewPanel()
@@ -953,16 +964,16 @@ export function QueueClient({
         case "ArrowDown": // Same as j, for discoverability
           e.preventDefault()
           if (currentIndex < filteredIntakes.length - 1) {
-            setExpandedId(filteredIntakes[currentIndex + 1].id)
+            void selectReviewedIntake(filteredIntakes[currentIndex + 1].id)
           } else if (filteredIntakes.length > 0 && currentIndex === -1) {
-            setExpandedId(filteredIntakes[0].id)
+            void selectReviewedIntake(filteredIntakes[0].id)
           }
           break
         case "k": // Previous case (vim-style)
         case "ArrowUp": // Same as k, for discoverability
           e.preventDefault()
           if (currentIndex > 0) {
-            setExpandedId(filteredIntakes[currentIndex - 1].id)
+            void selectReviewedIntake(filteredIntakes[currentIndex - 1].id)
           }
           break
         case "Enter": // Open review panel
@@ -974,7 +985,7 @@ export function QueueClient({
         case "Escape": // Collapse
           if (expandedId) {
             e.preventDefault()
-            setExpandedId(null)
+            void selectReviewedIntake(null)
           }
           break
         case "a": // Approve (or open review for med certs)
@@ -998,7 +1009,7 @@ export function QueueClient({
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [expandedId, filteredIntakes, openReviewPanel, handleApprove, dialogs])
+  }, [expandedId, filteredIntakes, openReviewPanel, handleApprove, dialogs, selectReviewedIntake])
 
   // Auto-scroll the keyboard-focused row into view. Uses the row's
   // `data-testid` attribute (set by QueueTable) to locate the element
@@ -1227,6 +1238,7 @@ export function QueueClient({
                 <div className="min-h-0 flex-1">
                   <IntakeReviewPanel
                     inline
+                    onBeforeLeaveChange={registerBeforeReviewLeave}
                     intakeId={expandedId}
                     previewIntake={filteredIntakes.find((intake) => intake.id === expandedId)}
                     reviewRevision={

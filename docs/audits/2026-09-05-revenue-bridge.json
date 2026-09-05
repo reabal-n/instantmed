@@ -1,0 +1,464 @@
+{
+  "asOf": "2026-09-05T08:43:00Z",
+  "timezone": "Australia/Sydney",
+  "periods": {
+    "oneDay": "2026-09-04",
+    "sevenDays": "2026-08-29 to 2026-09-04",
+    "previousSeven": "2026-08-22 to 2026-08-28",
+    "thirtyDays": "2026-08-06 to 2026-09-04",
+    "weekToDate": "2026-08-31 to 2026-09-04",
+    "previousWeekdays": "2026-08-24 to 2026-08-28"
+  },
+  "amounts": "AUD cents",
+  "totals": {
+    "1d": {
+      "orders": 17,
+      "gross": 52900,
+      "refunds": 8985,
+      "net": 43915,
+      "fees": 1409,
+      "ad_spend": 16995,
+      "blended_return": 2.58,
+      "contribution": 25511
+    },
+    "30d": {
+      "orders": 292,
+      "gross": 954810,
+      "refunds": 39410,
+      "net": 915400,
+      "fees": 25665,
+      "ad_spend": 327203,
+      "blended_return": 2.8,
+      "contribution": 562532
+    },
+    "7d": {
+      "orders": 63,
+      "gross": 203635,
+      "refunds": 13470,
+      "net": 190165,
+      "fees": 5347,
+      "ad_spend": 90715,
+      "blended_return": 2.1,
+      "contribution": 94103
+    },
+    "prior7d": {
+      "orders": 82,
+      "gross": 277500,
+      "refunds": 14965,
+      "net": 262535,
+      "fees": 7412,
+      "ad_spend": 96177,
+      "blended_return": 2.73,
+      "contribution": 158946
+    },
+    "priorWtd": {
+      "orders": 62,
+      "gross": 211630,
+      "refunds": 6985,
+      "net": 204645,
+      "fees": 5691
+    },
+    "wtd": {
+      "orders": 52,
+      "gross": 163200,
+      "refunds": 12475,
+      "net": 150725,
+      "fees": 4330
+    }
+  },
+  "services": [
+    {
+      "period": "1d",
+      "service": "medical_certificate",
+      "orders": 6,
+      "gross_cents": 17965,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 17965,
+      "fee_cents": "484"
+    },
+    {
+      "period": "1d",
+      "service": "prescription",
+      "orders": 11,
+      "gross_cents": 34935,
+      "refund_cents": 8985,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 25950,
+      "fee_cents": "925"
+    },
+    {
+      "period": "30d",
+      "service": "ed",
+      "orders": 17,
+      "gross_cents": 90885,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 90885,
+      "fee_cents": "2048"
+    },
+    {
+      "period": "30d",
+      "service": "hair_loss",
+      "orders": 1,
+      "gross_cents": 4995,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 4995,
+      "fee_cents": "115"
+    },
+    {
+      "period": "30d",
+      "service": "medical_certificate",
+      "orders": 115,
+      "gross_cents": 327890,
+      "refund_cents": 5490,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 322400,
+      "fee_cents": "9011"
+    },
+    {
+      "period": "30d",
+      "service": "prescription",
+      "orders": 148,
+      "gross_cents": 474105,
+      "refund_cents": 32925,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 441180,
+      "fee_cents": "13109"
+    },
+    {
+      "period": "30d",
+      "service": "womens_health",
+      "orders": 11,
+      "gross_cents": 56935,
+      "refund_cents": 995,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 55940,
+      "fee_cents": "1382"
+    },
+    {
+      "period": "7d",
+      "service": "ed",
+      "orders": 2,
+      "gross_cents": 10985,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 10985,
+      "fee_cents": "246"
+    },
+    {
+      "period": "7d",
+      "service": "medical_certificate",
+      "orders": 21,
+      "gross_cents": 56890,
+      "refund_cents": 2495,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 54395,
+      "fee_cents": "1592"
+    },
+    {
+      "period": "7d",
+      "service": "prescription",
+      "orders": 36,
+      "gross_cents": 115780,
+      "refund_cents": 9980,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 105800,
+      "fee_cents": "3052"
+    },
+    {
+      "period": "7d",
+      "service": "womens_health",
+      "orders": 4,
+      "gross_cents": 19980,
+      "refund_cents": 995,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 18985,
+      "fee_cents": "457"
+    },
+    {
+      "period": "prior7d",
+      "service": "ed",
+      "orders": 4,
+      "gross_cents": 22965,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 22965,
+      "fee_cents": "510"
+    },
+    {
+      "period": "prior7d",
+      "service": "medical_certificate",
+      "orders": 35,
+      "gross_cents": 99820,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 99820,
+      "fee_cents": "2743"
+    },
+    {
+      "period": "prior7d",
+      "service": "prescription",
+      "orders": 37,
+      "gross_cents": 122755,
+      "refund_cents": 14965,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 107790,
+      "fee_cents": "3439"
+    },
+    {
+      "period": "prior7d",
+      "service": "womens_health",
+      "orders": 6,
+      "gross_cents": 31960,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 31960,
+      "fee_cents": "720"
+    },
+    {
+      "period": "priorWtd",
+      "service": "ed",
+      "orders": 3,
+      "gross_cents": 17970,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 17970,
+      "fee_cents": "396"
+    },
+    {
+      "period": "priorWtd",
+      "service": "medical_certificate",
+      "orders": 26,
+      "gross_cents": 74865,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 74865,
+      "fee_cents": "2048"
+    },
+    {
+      "period": "priorWtd",
+      "service": "prescription",
+      "orders": 27,
+      "gross_cents": 86835,
+      "refund_cents": 6985,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 79850,
+      "fee_cents": "2527"
+    },
+    {
+      "period": "priorWtd",
+      "service": "womens_health",
+      "orders": 6,
+      "gross_cents": 31960,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 31960,
+      "fee_cents": "720"
+    },
+    {
+      "period": "wtd",
+      "service": "ed",
+      "orders": 1,
+      "gross_cents": 4995,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 4995,
+      "fee_cents": "114"
+    },
+    {
+      "period": "wtd",
+      "service": "medical_certificate",
+      "orders": 20,
+      "gross_cents": 54395,
+      "refund_cents": 2495,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 51900,
+      "fee_cents": "1520"
+    },
+    {
+      "period": "wtd",
+      "service": "prescription",
+      "orders": 29,
+      "gross_cents": 93820,
+      "refund_cents": 9980,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 83840,
+      "fee_cents": "2468"
+    },
+    {
+      "period": "wtd",
+      "service": "womens_health",
+      "orders": 2,
+      "gross_cents": 9990,
+      "refund_cents": 0,
+      "refund_reversal_cents": 0,
+      "retained_before_disputes_cents": 9990,
+      "fee_cents": "228"
+    }
+  ],
+  "method": "Aggregate reportable intakes at paid_at; exact live AUD refund cash movements; no disputes; payment fees from stored Stripe receipt with 1.7% + 30c estimate only if missing; ad spend from delivered daily snapshots cross-checked to fresh Google Ads aggregate reads. Blended return includes all channels and is not paid ROAS.",
+  "paid_campaign_weeks": [
+    {
+      "range": {
+        "startDate": "2026-08-22",
+        "endDate": "2026-08-28",
+        "startUtc": "2026-08-21T14:00:00.000Z",
+        "endUtcExclusive": "2026-08-28T14:00:00.000Z"
+      },
+      "summary": {
+        "grossRevenueAud": 1532.35,
+        "netRevenueAud": 1412.65,
+        "orders": 41,
+        "refundedAud": 119.7
+      },
+      "campaigns": [
+        {
+          "campaignId": "23870042807",
+          "grossRevenueAud": 888.25,
+          "netRevenueAud": 768.55,
+          "orders": 26,
+          "refundedAud": 119.7,
+          "services": {
+            "prescription:repeat": 25,
+            "consult:ed": 1
+          }
+        },
+        {
+          "campaignId": "23651537255",
+          "grossRevenueAud": 214.65,
+          "netRevenueAud": 214.65,
+          "orders": 7,
+          "refundedAud": 0,
+          "services": {
+            "medical_certificate:work": 6,
+            "medical_certificate:carer": 1
+          }
+        },
+        {
+          "campaignId": "24144825264",
+          "grossRevenueAud": 319.6,
+          "netRevenueAud": 319.6,
+          "orders": 6,
+          "refundedAud": 0,
+          "services": {
+            "consult:womens_health": 6
+          }
+        },
+        {
+          "campaignId": "24040886787",
+          "grossRevenueAud": 109.85,
+          "netRevenueAud": 109.85,
+          "orders": 2,
+          "refundedAud": 0,
+          "services": {
+            "consult:ed": 2
+          }
+        }
+      ],
+      "spend": {
+        "JDM | Search | Scripts": {
+          "clicks": 102,
+          "spend_micros": 557007449
+        },
+        "IM | Search | Women's Health | AU": {
+          "clicks": 40,
+          "spend_micros": 116980000
+        },
+        "JDM | Search | Med Certs": {
+          "clicks": 21,
+          "spend_micros": 116356491
+        },
+        "IM | Search | ED | Pilot": {
+          "clicks": 33,
+          "spend_micros": 97640000
+        },
+        "IM | Search | Hair Loss | Pilot": {
+          "clicks": 25,
+          "spend_micros": 73785185
+        }
+      }
+    },
+    {
+      "range": {
+        "startDate": "2026-08-29",
+        "endDate": "2026-09-04",
+        "startUtc": "2026-08-28T14:00:00.000Z",
+        "endUtcExclusive": "2026-09-04T14:00:00.000Z"
+      },
+      "summary": {
+        "grossRevenueAud": 1232.9,
+        "netRevenueAud": 1163.05,
+        "orders": 36,
+        "refundedAud": 69.85
+      },
+      "campaigns": [
+        {
+          "campaignId": "23870042807",
+          "grossRevenueAud": 858.4,
+          "netRevenueAud": 798.5,
+          "orders": 27,
+          "refundedAud": 59.9,
+          "services": {
+            "prescription:repeat": 27
+          }
+        },
+        {
+          "campaignId": "24144825264",
+          "grossRevenueAud": 209.75,
+          "netRevenueAud": 199.8,
+          "orders": 5,
+          "refundedAud": 9.95,
+          "services": {
+            "consult:womens_health": 3,
+            "prescription:repeat": 2
+          }
+        },
+        {
+          "campaignId": "23651537255",
+          "grossRevenueAud": 54.9,
+          "netRevenueAud": 54.9,
+          "orders": 2,
+          "refundedAud": 0,
+          "services": {
+            "medical_certificate:work": 2
+          }
+        },
+        {
+          "campaignId": "24040886787",
+          "grossRevenueAud": 109.85,
+          "netRevenueAud": 109.85,
+          "orders": 2,
+          "refundedAud": 0,
+          "services": {
+            "consult:ed": 2
+          }
+        }
+      ],
+      "spend": {
+        "JDM | Search | Scripts": {
+          "clicks": 114,
+          "spend_micros": 558961052
+        },
+        "IM | Search | Women's Health | AU": {
+          "clicks": 37,
+          "spend_micros": 108700000
+        },
+        "JDM | Search | Med Certs": {
+          "clicks": 23,
+          "spend_micros": 117694357
+        },
+        "IM | Search | ED | Pilot": {
+          "clicks": 22,
+          "spend_micros": 65300000
+        },
+        "IM | Search | Hair Loss | Pilot": {
+          "clicks": 19,
+          "spend_micros": 56490000
+        }
+      }
+    }
+  ],
+  "paid_campaign_method": "Current InstantMed Ads reader with Google click-ID/UTM classifier and campaign IDs; refund attribution uses its intake refunded_at read. Keep distinct from the business cash ledger."
+}

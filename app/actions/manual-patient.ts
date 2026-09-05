@@ -587,7 +587,9 @@ export async function refreshPatientParchmentPrescriptionsAction(
       userId: callerParchmentUserId,
       parchmentPatientId,
       patientProfileId: patientId,
-      prescriberProfileId: authResult.profile.id,
+      // Access to history does not establish who issued each prescription.
+      // The signed callback supplies verified prescriber attribution.
+      prescriberProfileId: null,
       intakeId: null,
       limit: 50,
       overwriteNullableLinks: false,

@@ -122,11 +122,9 @@ describe("Parchment ops dashboard and retry contract", () => {
     )
     expect(body).toContain("syncParchmentPrescriptionToPms(")
     expect(body).toContain('action_type: "parchment_webhook_retry"')
-    expect(actionSource).toContain("resolveActivePatientProfileFromId")
     expect(actionSource).toContain('.is("merged_into_profile_id", null)')
-    expect(actionSource.indexOf('.eq("parchment_patient_id", parchmentPatientId)')).toBeLessThan(
-      actionSource.indexOf('getMetadataString(metadata, "patient_profile_id")'),
-    )
+    expect(actionSource).toContain('.eq("patient.parchment_patient_id", parchmentPatientId)')
+    expect(actionSource).not.toContain('getMetadataString(metadata, "patient_profile_id")')
     // Phase 1.3 of dashboard remaster (2026-05-11): hardcoded revalidatePath
     // calls were migrated to the central revalidateStaff helper. Ops surfaces
     // (including /admin/ops/parchment) are invalidated via { ops: true }.

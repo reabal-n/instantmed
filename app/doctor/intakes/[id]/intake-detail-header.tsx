@@ -433,7 +433,7 @@ export function IntakeDetailHeader({
                     variant="outline"
                     onClick={dialogs.openScriptDialog}
                   >
-                    Sent outside Parchment
+                    Record sent script
                   </Button>
                 ) : null}
               </>
@@ -575,7 +575,7 @@ export function IntakeDetailHeader({
           <AlertDialogHeader>
             <AlertDialogTitle>Record script sent</AlertDialogTitle>
             <AlertDialogDescription>
-              Confirm the prescription was sent outside the embedded Parchment flow. This records fulfilment; the patient is notified only after you complete the request.
+              Confirm only after issuing the prescription in Parchment or another channel. This notifies the patient and unlocks Complete request.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">

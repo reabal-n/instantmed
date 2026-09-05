@@ -156,7 +156,7 @@ describe("script sent mutation production contract", () => {
     expect(body).toContain("requireExistingNote: Boolean(regimenBlocker)")
     expect(body).toContain("sendScriptSentEmailIfNeeded(supabase, intakeId)")
     expect(body).toContain("emailNotification")
-    expect(body).toContain('emailNotification: "sent"')
+    expect(body).toContain("emailNotification?: ScriptNotificationResult")
     expect(body).toContain('emailNotification = "failed"')
     expect(queueActionSource).toContain("sendEmail")
     expect(queueActionSource).toContain("ScriptSentEmail")
@@ -242,10 +242,10 @@ describe("manual script-sent patient notification", () => {
     expect(helperStart).toBeGreaterThanOrEqual(0)
     const helper = queueActionSource.slice(helperStart, helperStart + 1200)
 
-    // Both the manual mark and a later approval call this helper; the outbox
-    // lookup is the only thing stopping the patient getting two emails.
-    expect(helper).toContain('.eq("email_type", "script_sent")')
-    expect(helper).toContain("already_sent")
+    // Both entry points use one durable delivery owner. Behavior is covered
+    // by script-sent-notification.test.ts, including failed and pending rows.
+    expect(helper).toContain("ensureScriptSentNotification(supabase, intakeId")
+    expect(queueActionSource).toContain('idempotencyKey: `script-sent:${intakeId}`')
   })
 
   it("leaves the webhook path notifying only via explicit approval", () => {

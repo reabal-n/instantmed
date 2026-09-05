@@ -38,6 +38,7 @@ const PARCHMENT_PARTNER_ID = process.env.PARCHMENT_PARTNER_ID || "test-partner-i
 const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
 const E2E_DOCTOR_ID = "e2e00000-0000-0000-0000-000000000003"
 const E2E_PARCHMENT_USER_ID = "e2e-parchment-user"
+const E2E_PARCHMENT_PATIENT_ID = "e2e-parchment-webhook-patient"
 
 // These are synthetic signed callbacks. They may only reach the local test app.
 if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(BASE_URL).hostname)) {
@@ -195,11 +196,17 @@ test.describe("Parchment Webhook: Event Routing", () => {
 // when run in parallel (one test's seeded intake gets claimed by another's webhook).
 test.describe.serial("Parchment Webhook: prescription.created", () => {
   const testIntakeIds: string[] = []
+  let originalParchmentPatientId: string | null = null
 
   test.beforeAll(async () => {
     if (!isDbAvailable()) return
 
     const supabase = getSupabaseClient()
+    const { data: patient } = await supabase.from("profiles").select("parchment_patient_id").eq("id", E2E_PATIENT_ID).single()
+    originalParchmentPatientId = patient?.parchment_patient_id ?? null
+    const { error: patientError } = await supabase.from("profiles")
+      .update({ parchment_patient_id: E2E_PARCHMENT_PATIENT_ID }).eq("id", E2E_PATIENT_ID)
+    expect(patientError).toBeNull()
     await supabase
       .from("profiles")
       .update({
@@ -215,6 +222,10 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     }
     if (isDbAvailable()) {
       const supabase = getSupabaseClient()
+      const { error: patientError } = await supabase.from("profiles")
+        .update({ parchment_patient_id: originalParchmentPatientId })
+        .eq("id", E2E_PATIENT_ID).eq("parchment_patient_id", E2E_PARCHMENT_PATIENT_ID)
+      expect(patientError).toBeNull()
       await supabase
         .from("profiles")
         .update({
@@ -262,6 +273,7 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
 
     const scid = `SCID-E2E-${Date.now().toString(36).toUpperCase()}`
     const payload = buildPrescriptionCreatedEvent({
+      patientId: E2E_PARCHMENT_PATIENT_ID,
       partnerPatientId: E2E_PATIENT_ID,
       userId: E2E_PARCHMENT_USER_ID,
       scid,
@@ -296,6 +308,7 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     testIntakeIds.push(seed.intakeId!)
 
     const payload = buildPrescriptionCreatedEvent({
+      patientId: E2E_PARCHMENT_PATIENT_ID,
       partnerPatientId: E2E_PATIENT_ID,
       userId: E2E_PARCHMENT_USER_ID,
       scid: `SCID-NOMATCH-${randomUUID().slice(0, 8)}`,
@@ -314,10 +327,11 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
   })
 
   for (const scenario of [
-    { name: "records the exact request across duplicate Parchment patient links", merged: false, patientMatches: true, prescriberMatches: true },
-    { name: "records the current request when Parchment echoes a merged partner profile", merged: true, patientMatches: true, prescriberMatches: true },
-    { name: "rejects an exact request reference when the external patient does not match", merged: false, patientMatches: false, prescriberMatches: true },
-    { name: "rejects a duplicate-profile callback from an unlinked prescriber", merged: false, patientMatches: true, prescriberMatches: false },
+    { name: "records the exact request across duplicate Parchment patient links", merged: false, patientMatches: true, prescriberMatches: true, correlated: true },
+    { name: "records the current request when Parchment echoes a merged partner profile", merged: true, patientMatches: true, prescriberMatches: true, correlated: true },
+    { name: "rejects an exact request reference when the external patient does not match", merged: false, patientMatches: false, prescriberMatches: true, correlated: true },
+    { name: "rejects a duplicate-profile callback from an unlinked prescriber", merged: false, patientMatches: true, prescriberMatches: false, correlated: true },
+    { name: "requires identity review for duplicate patient links without request correlation", merged: false, patientMatches: true, prescriberMatches: true, correlated: false },
   ]) {
     test(scenario.name, async ({ request }) => {
       test.skip(!PARCHMENT_WEBHOOK_SECRET, "PARCHMENT_WEBHOOK_SECRET required")
@@ -375,12 +389,12 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
           // Even a current partner ID cannot override a conflicting external link.
           partnerPatientId: scenario.patientMatches ? olderProfileId : currentProfileId,
           userId: scenario.prescriberMatches ? E2E_PARCHMENT_USER_ID : `e2e-unlinked-${randomUUID()}`,
-          intakeReference: reference,
+          intakeReference: scenario.correlated ? reference : undefined,
           scid,
         }))
         expect(response.status()).toBe(200)
         const body = await response.json()
-        const shouldRecord = scenario.patientMatches && scenario.prescriberMatches
+        const shouldRecord = scenario.patientMatches && scenario.prescriberMatches && scenario.correlated
         if (shouldRecord) expect(body.warning).toBeUndefined()
         else expect(body.warning).toBeTruthy()
 
@@ -419,6 +433,7 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
 
     const scid = `SCID-DEDUP-${Date.now().toString(36).toUpperCase()}`
     const payload = buildPrescriptionCreatedEvent({
+      patientId: E2E_PARCHMENT_PATIENT_ID,
       partnerPatientId: E2E_PATIENT_ID,
       userId: E2E_PARCHMENT_USER_ID,
       scid,

@@ -37,7 +37,7 @@ describe("mobile staff action contracts", () => {
     expect(actionRailSource).toContain('restoreOnMount={false}')
     expect(actionRailSource).toContain('instance="desktop"')
     expect(actionRailSource).toContain("const instanceId = `${intakeId}-${instance}`")
-    expect(parchmentPanelSource).toContain("Sent outside Parchment")
+    expect(parchmentPanelSource).toContain("Record sent script")
   })
 
   it("keeps completion locked to durable script evidence", () => {

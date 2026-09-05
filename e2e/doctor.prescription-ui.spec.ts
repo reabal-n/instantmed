@@ -151,7 +151,7 @@ async function recordDurableScriptEvidence(intakeId: string): Promise<void> {
       status: "awaiting_script",
       script_sent: true,
       script_sent_at: now,
-      script_notes: "Sent outside Parchment: E2E manual script evidence",
+      script_notes: "Record sent script: E2E manual script evidence",
       parchment_reference: "E2E-MANUAL-SCRIPT",
       updated_at: now,
     })
@@ -615,6 +615,38 @@ test.describe("Doctor prescription UI flow", () => {
     })
   }
 
+  test("offers a retry after the prescribing portal connection fails", async ({ page }) => {
+    const intakeId = await seedRepeatPrescriptionCase()
+    testIntakeIds.push(intakeId)
+    await page.goto(`/doctor/intakes/${intakeId}`)
+    await waitForPageLoad(page)
+
+    let interruptedActions = 0
+    // Fail only browser-to-local-app server actions. No provider session or
+    // prescription is created by this connection-recovery check.
+    await page.route("**/*", async (route) => {
+      if (route.request().method() === "POST" && route.request().headers()["next-action"]) {
+        interruptedActions += 1
+        await route.abort("failed")
+      } else {
+        await route.continue()
+      }
+    })
+    const actionRail = page.locator('[data-review-action-rail="true"]').first()
+    await actionRail.getByRole("button", { name: "Prescribe", exact: true }).click()
+    const portal = page.getByRole("dialog", { name: /^Prescribe for / })
+    await expect(portal).toBeVisible()
+    await expect(portal.getByText("Could not connect to Parchment. Check your connection and try again.")).toBeVisible()
+    await expect(portal.getByText("Loading prescribing portal...")).toBeHidden()
+    const beforeRetry = interruptedActions
+    await portal.getByRole("button", { name: "Try Again" }).click()
+    await expect.poll(() => interruptedActions).toBeGreaterThan(beforeRetry)
+    await expect(portal.getByRole("button", { name: "Try Again" })).toBeVisible()
+    await expect(actionRail.getByRole("button", { name: "Complete request" })).toBeDisabled()
+    const intake = await getIntakeById(intakeId)
+    expect(intake?.script_sent).toBe(false)
+  })
+
   test("auto-unlocks Complete request after durable script evidence is recorded", async ({ page, isMobile }) => {
     const intakeId = await seedRepeatPrescriptionCase()
     testIntakeIds.push(intakeId)
@@ -632,11 +664,12 @@ test.describe("Doctor prescription UI flow", () => {
     if (isMobile) {
       await actionRail.locator('[data-mobile-fulfilment-options="true"] summary').click()
     }
-    await actionRail.getByRole("button", { name: "Sent outside Parchment" }).click()
-    const manualSentPanel = page.getByRole("dialog", { name: "Confirm sent outside Parchment" })
+    await actionRail.getByRole("button", { name: "Record sent script" }).click()
+    const manualSentPanel = page.getByRole("dialog", { name: "Record sent prescription" })
     await expect(manualSentPanel).toBeVisible()
     await expect(manualSentPanel.getByLabel("Parchment or external reference")).toBeVisible()
     await expect(manualSentPanel.getByLabel("Channel used (recorded in the audit log)")).toBeVisible()
+    await expect(manualSentPanel.getByText("This notifies the patient and unlocks Complete request.", { exact: false })).toBeVisible()
     await expect(manualSentPanel.getByRole("button", { name: "Confirm sent" })).toBeEnabled()
     await page.keyboard.press("Escape")
     await expect(manualSentPanel).toBeHidden()
@@ -667,7 +700,7 @@ test.describe("Doctor prescription UI flow", () => {
 
     const actionRail = page.locator('[data-review-action-rail="true"]').first()
     await expect(actionRail.getByRole("button", { name: "Prescribe" })).toHaveCount(0)
-    await expect(actionRail.getByRole("button", { name: "Sent outside Parchment" })).toHaveCount(0)
+    await expect(actionRail.getByRole("button", { name: "Record sent script" })).toHaveCount(0)
     await expect(actionRail.locator("[data-action-readiness]")).toHaveCount(0)
     await expect(actionRail.locator("[data-decision-wait-signal]")).toHaveCount(0)
     await expect(actionRail.locator("[data-decline-lane]")).toHaveCount(0)

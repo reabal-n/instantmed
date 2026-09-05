@@ -94,7 +94,7 @@ async function upsertParchmentPrescriptionToPms(
   const repeats = parseInteger(prescription.number_of_repeats_authorised)
   const issuedDate = toDateOnly(prescription.created_date) ?? new Date().toISOString().slice(0, 10)
   const expiryDate = toDateOnly(getStringField(record, ["expiry_date", "expires_at", "valid_until"]))
-  const overwriteNullableLinks = input.overwriteNullableLinks !== false
+  const overwriteNullableLinks = input.overwriteNullableLinks === true
 
   const payload: Record<string, unknown> = {
     patient_id: input.patientProfileId,
@@ -120,17 +120,61 @@ async function upsertParchmentPrescriptionToPms(
     payload.intake_id = input.intakeId ?? null
   }
 
-  const { data, error } = await input.supabase
+  const { data: inserted, error: insertError } = await input.supabase
     .from("prescriptions")
-    .upsert(payload, { onConflict: "parchment_reference" })
+    .upsert({
+      ...payload,
+      prescriber_id: input.prescriberProfileId ?? null,
+      intake_id: input.intakeId ?? null,
+    }, { onConflict: "parchment_reference", ignoreDuplicates: true })
     .select("id")
     .maybeSingle()
 
-  if (error) {
-    return { success: false, reason: error.message || "prescription_upsert_failed" }
+  if (insertError) {
+    return { success: false, reason: insertError.message || "prescription_upsert_failed" }
+  }
+  if (inserted) return { success: true, prescriptionId: inserted.id as string }
+
+  // Refreshes and retries must not move a prescription between local profiles
+  // sharing one external patient, or erase its verified request/prescriber.
+  const { data: existing, error: lookupError } = await input.supabase
+    .from("prescriptions")
+    .select("id, patient_id, intake_id, prescriber_id")
+    .eq("parchment_reference", scid)
+    .maybeSingle()
+
+  if (lookupError || !existing) return { success: false, reason: "prescription_lookup_failed" }
+  if (existing.patient_id !== input.patientProfileId) {
+    return { success: false, reason: "prescription_patient_mismatch" }
+  }
+  if (input.intakeId && existing.intake_id && existing.intake_id !== input.intakeId) {
+    return { success: false, reason: "prescription_request_mismatch" }
+  }
+  if (input.prescriberProfileId && existing.prescriber_id && existing.prescriber_id !== input.prescriberProfileId) {
+    return { success: false, reason: "prescription_prescriber_mismatch" }
   }
 
-  return { success: true, prescriptionId: data?.id as string | undefined }
+  delete payload.patient_id
+  delete payload.parchment_reference
+  if (!overwriteNullableLinks && existing.prescriber_id) delete payload.prescriber_id
+  if (!overwriteNullableLinks && existing.intake_id) delete payload.intake_id
+
+  let update = input.supabase.from("prescriptions").update(payload)
+    .eq("id", existing.id)
+    .eq("patient_id", input.patientProfileId)
+  // Compare the links as well, so a simultaneous webhook/refresh cannot
+  // overwrite an association recorded after the read above.
+  update = existing.intake_id
+    ? update.eq("intake_id", existing.intake_id)
+    : update.is("intake_id", null)
+  update = existing.prescriber_id
+    ? update.eq("prescriber_id", existing.prescriber_id)
+    : update.is("prescriber_id", null)
+  const { data, error } = await update.select("id").maybeSingle()
+
+  return error || !data
+    ? { success: false, reason: "prescription_update_failed" }
+    : { success: true, prescriptionId: data.id as string }
 }
 
 export async function syncParchmentPrescriptionToPms(
@@ -140,18 +184,29 @@ export async function syncParchmentPrescriptionToPms(
     return { success: false, reason: "e2e_prescription_sync_skipped" }
   }
 
-  const response = await getPatientPrescriptions({
-    userId: input.userId,
-    patientId: input.parchmentPatientId,
-    limit: 20,
-  })
-
-  const prescription = response.prescriptions.find((candidate) => candidate.scid === input.scid)
-  if (!prescription) {
-    return { success: false, reason: "prescription_not_found" }
+  const seenCursors = new Set<string>()
+  let lastKey: string | undefined
+  // Bound provider work while allowing recovery of older prescriptions.
+  for (let page = 0; page < 10; page++) {
+    const response = await getPatientPrescriptions({
+      userId: input.userId,
+      patientId: input.parchmentPatientId,
+      limit: 50,
+      ...(lastKey ? { lastKey } : {}),
+    })
+    const prescription = response.prescriptions.find((candidate) => candidate.scid === input.scid)
+    if (prescription) return upsertParchmentPrescriptionToPms(input, prescription)
+    if (!response.pagination?.hasNext) {
+      return { success: false, reason: "prescription_not_found" }
+    }
+    const nextKey = response.pagination.lastKey
+    if (!nextKey || seenCursors.has(nextKey)) {
+      return { success: false, reason: "prescription_pagination_failed" }
+    }
+    seenCursors.add(nextKey)
+    lastKey = nextKey
   }
-
-  return upsertParchmentPrescriptionToPms(input, prescription)
+  return { success: false, reason: "prescription_search_limit_reached" }
 }
 
 export async function syncParchmentPrescriptionListToPms(
