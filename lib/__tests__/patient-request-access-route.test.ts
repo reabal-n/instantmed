@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+vi.mock("@/lib/constants", () => ({ APP_URL: "http://127.0.0.1:3060" }))
+
 const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
   getOptionalAuth: vi.fn(),
@@ -58,7 +60,7 @@ describe("GET /track/[request-access-token]", () => {
     const response = await GET(request(), params())
 
     expect(response.status).toBe(303)
-    expect(response.headers.get("location")).toBe("http://localhost:3060/track/request")
+    expect(response.headers.get("location")).toBe("http://127.0.0.1:3060/track/request")
     expect(response.headers.get("cache-control")).toBe("private, no-store, max-age=0")
     expect(response.headers.get("referrer-policy")).toBe("no-referrer")
     expect(response.headers.get("set-cookie")).toContain(
@@ -76,7 +78,7 @@ describe("GET /track/[request-access-token]", () => {
     const response = await GET(request(), params("not-a-token"))
 
     expect(response.status).toBe(303)
-    expect(response.headers.get("location")).toBe("http://localhost:3060/track/request")
+    expect(response.headers.get("location")).toBe("http://127.0.0.1:3060/track/request")
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
   })
 
@@ -91,7 +93,7 @@ describe("GET /track/[request-access-token]", () => {
 
     expect(response.status).toBe(303)
     expect(response.headers.get("location")).toBe(
-      `http://localhost:3060/patient/intakes/${INTAKE_ID}`,
+      `http://127.0.0.1:3060/patient/intakes/${INTAKE_ID}`,
     )
   })
 
@@ -104,6 +106,6 @@ describe("GET /track/[request-access-token]", () => {
 
     const response = await GET(request(), params(INTAKE_ID))
 
-    expect(response.headers.get("location")).toBe("http://localhost:3060/track/request")
+    expect(response.headers.get("location")).toBe("http://127.0.0.1:3060/track/request")
   })
 })

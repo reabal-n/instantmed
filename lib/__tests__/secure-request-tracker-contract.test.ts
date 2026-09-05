@@ -67,7 +67,7 @@ describe("secure request tracker contract", () => {
     expect(exchange).toContain("PATIENT_REQUEST_ACCESS_COOKIE")
     expect(exchange).toContain("httpOnly: true")
     expect(exchange).toContain('path: "/track"')
-    expect(exchange).toContain('new URL("/track/request", request.url)')
+    expect(exchange).toContain('new URL("/track/request", APP_URL)')
   })
 
   it("keeps auth returns fixed and free of request ids and bearer tokens", () => {
