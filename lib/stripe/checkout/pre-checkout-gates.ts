@@ -24,7 +24,7 @@ export async function runPreCheckoutGates(input: CreateCheckoutInput): Promise<S
   // Env-var kill switch (no DB round-trip).
   const envKillSwitch = checkCheckoutBlocked(input.category, input.subtype)
   if (envKillSwitch.blocked) {
-    return stepFail(envKillSwitch.userMessage)
+    return stepFail("availability", envKillSwitch.userMessage)
   }
 
   // DB-backed service-disabled kill switch.
@@ -37,6 +37,7 @@ export async function runPreCheckoutGates(input: CreateCheckoutInput): Promise<S
           ? SERVICE_DISABLED_ERRORS.REPEAT_SCRIPTS_DISABLED
           : SERVICE_DISABLED_ERRORS.CONSULTS_DISABLED
     return stepFail(
+      "availability",
       `This service is temporarily unavailable. Please try again later. [${errorCode}]`,
     )
   }
@@ -45,7 +46,10 @@ export async function runPreCheckoutGates(input: CreateCheckoutInput): Promise<S
   // operational-controls invariant) so this returns true on count-RPC failure.
   if (await isAtCapacity()) {
     trackOperationalBlock({ blockType: "capacity_limit", source: "checkout" })
-    return stepFail("We're experiencing high demand today. Please try again tomorrow.")
+    return stepFail(
+      "availability",
+      "We're experiencing high demand today. Please try again tomorrow.",
+    )
   }
 
   return stepOk(undefined)

@@ -1,6 +1,7 @@
 "use server"
 
 import { verifyUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import { buildExplicitEmailPreferenceUpdate } from "@/lib/email/preference-updates"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -46,14 +47,11 @@ export async function updateEmailPreferencesWithToken(
   const isUnsubscribeAll =
     !preferences.marketing_emails && !preferences.abandoned_checkout_emails
 
-  const updatePayload: Record<string, boolean | string> = {
-    marketing_emails: preferences.marketing_emails,
-    abandoned_checkout_emails: preferences.abandoned_checkout_emails,
-    updated_at: new Date().toISOString(),
-  }
+  const updatedAt = new Date().toISOString()
+  const updatePayload = buildExplicitEmailPreferenceUpdate(preferences, updatedAt)
 
   if (isUnsubscribeAll) {
-    updatePayload.unsubscribed_at = new Date().toISOString()
+    updatePayload.unsubscribed_at = updatedAt
     updatePayload.unsubscribe_reason = "preference_center"
   }
 

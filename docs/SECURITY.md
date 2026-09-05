@@ -54,7 +54,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 
 **Phase 1 (profiles — shipped):** `profiles.medicare_number_encrypted`, `profiles.date_of_birth_encrypted`, `profiles.phone_encrypted`.
 
-**Phase 2 (data layer — shipped, migration `20260311000002`):**
+**Phase 2 (data layer — runtime shipped; fresh-replay schema repaired by migration `20260904160000`, applied and metadata-verified in production on 2026-09-05):**
 
 | Table | Plaintext Column | Encrypted Column | Data Layer File | Status |
 |-------|-----------------|------------------|-----------------|--------|
@@ -89,9 +89,11 @@ The Phase 2 PHI fields (added March 2026) are in dual-write mode — plaintext a
 
 **Payment-safety exception:** retry and signed-resume clinical revalidation use `getIntakeAnswersForPaymentSafety()`. Once `intake_answers.answers_encrypted` exists, that envelope is authoritative: disabled encrypted reads, malformed ciphertext, missing keys, decrypt failure, or a non-object payload fail closed before Stripe. Plaintext fallback is permitted only for a legacy row with no encrypted envelope.
 
+The forward-only schema repair adds nullable `intake_answers.answers_encrypted`, `intake_answers.encryption_metadata`, and `patient_notes.created_by_name` without copying the retained `answers_enc` legacy envelope or backfilling historical note names. `created_by` remains authoritative for note authorship. The migration is verified only by local fresh replay in this change; its production application remains unverified.
+
 **Guest payment completion proof:** public account-completion pages and guest account email CTAs require the high-entropy Checkout Session ID to exactly match the intake's current `payment_id`. A bare intake UUID never exposes paid order details or renders payment-success UI.
 
-**Guest request-access proof:** lifecycle email links use a purpose-scoped, seven-day HMAC capability that is exchanged server-side for an HttpOnly cookie scoped to `/track`, followed by a redirect to a clean URL. The cookie authorizes only a read-only request-status projection and service label for an open patient profile. Clinical questions, replies, documents, payment actions, and general patient access remain behind authenticated ownership. Sign-in and sign-up receive only the fixed `/track/request` return path, never the request UUID or access bearer. Bare request UUIDs are identifiers, not authorization; retired query-string certificate/account-completion access modes fail closed.
+**Guest request-access proof:** lifecycle email links use a purpose-scoped, seven-day HMAC capability that is exchanged server-side for an HttpOnly cookie scoped to `/track`, followed by a redirect to the configured app origin and clean URL (preserving the cookie host even when Next normalizes loopback request URLs). The cookie authorizes only a read-only request-status projection and service label for an open patient profile, plus the explicit optional request to email a sign-in link to the server-resolved owner mailbox. Clinical questions, replies, documents, payment actions, and general patient access remain behind authenticated ownership. Sign-in and sign-up receive only the fixed `/track/request` return path, never the request UUID or access bearer. Bare request UUIDs are identifiers, not authorization; retired query-string certificate/account-completion access modes fail closed.
 
 ### Dual-Write Pattern
 
@@ -277,6 +279,8 @@ upgrade-insecure-requests;
 
 **Why `blob:` frames:** Authenticated staff certificate previews return PDF bytes from a doctor/admin-only Server Action, convert them to a short-lived browser object URL, and render that object URL before approval. `frame-src blob:` permits that local PDF preview without making the certificate public or weakening `object-src 'none'`; the client revokes the object URL when the confirmation dialog closes.
 
+**Isolated hosted-payment testing:** The local production-bundle runner may connect to Auth at `http://127.0.0.1:55321` only with explicit payment-test flags, a test key, exact local app/database origins, and no Vercel markers. Both CSP policies enforce this narrow exception; it does not enable `unsafe-eval` or wildcard loopback access.
+
 **CSP violation reporting:** Production sends both the enforced policy and a separate `Content-Security-Policy-Report-Only` policy to `/api/csp-report` via `report-uri`. The report-only policy keeps the inline allowances required by the current Next.js App Router so it does not flood the endpoint with known framework violations. Development omits the report-only header and reporting directives to avoid HMR noise.
 
 ---
@@ -305,6 +309,8 @@ upgrade-insecure-requests;
 Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`.
 
 ---
+
+Email preference ordering uses the existing profile-owned preferences table plus one nullable explicit-change timestamp. The narrowly scoped choice triggers may mirror only communication flags for active patient profiles at the same normalized address; they never link Auth accounts or transfer clinical records. The complaint RPC is service-role-only. Default rows cannot grant re-enablement, and patient action payloads accept only the two preference flags.
 
 ## Webhook Security
 
@@ -354,6 +360,9 @@ Production Telegram is an operator pager, not a clinical record or general monit
 | `/api/webhooks/*` | Signature verification |
 | `/track/[token]` | Purpose-scoped signed capability exchange; legacy UUID accepted only for the signed-in exact owner |
 | `/track/request` | Valid request-access HttpOnly cookie or canonical authenticated patient ownership |
+| `POST /track/request/access-link` | CSRF plus verified tracker cookie, open owner profile, hashed IP/capability limits; email dispatch only |
+
+**Optional tracker account access:** `POST /track/request/access-link` requires the standard CSRF header and an empty body. Keeping it beneath `/track` preserves the existing HttpOnly cookie scope. The server verifies the capability, rejects closed/merged/non-patient profiles and linked Auth mailbox mismatches, and applies separate hashed IP (`auth`) and capability (`sensitive`) rate-limit buckets. All capability, rate-limit, and provider outcomes return only `{ accepted: true }`; CSRF failures use the standard 403 retry protocol. The request-local Supabase SSR client sends a PKCE magic link to the server-resolved email with account creation enabled only after the patient chooses the button. Its callback returns through `/auth/post-signin?redirect=%2Ftrack%2Frequest`; identifiers and capabilities never enter that return URL or browser payload. Single-use provider code exchange and existing authenticated ownership still protect documents and replies. Provider/database errors are not logged at this boundary.
 
 ### Staff Roles (Phase 1 of dashboard remaster, 2026-05-11)
 
@@ -409,6 +418,15 @@ None of these routes expose real PHI — all use hardcoded mock data. The middle
 ### E2E Test Auth Bypass
 
 Only local/CI execution with `NODE_ENV=test` or `PLAYWRIGHT=1` may use the E2E auth bypass. Middleware always blocks `/api/test/*` and `/(dev)/*` in Vercel production and preview deployments, even if `PLAYWRIGHT=1` is accidentally configured there. Every active local/CI `/api/test/*` route must also pass the shared `X-E2E-SECRET` check from `lib/dev-only-route-auth.ts` plus the allowed-host check from `lib/dev-only-routes.ts`. The active test API surface is limited to auth bypass and the med-cert auto-approval trigger used by focused E2E flows.
+
+Stripe's signed-event test seam is separate from the auth bypass. A
+production-built local server processes a `livemode=false` event only with the
+exact `ALLOW_STRIPE_TEST_WEBHOOKS=true` opt-in plus Playwright, loopback,
+test-key, non-Vercel, and matching local Supabase evidence. Every hosted
+Supabase project, including the known production project, is rejected, and self-declared
+`E2E_ISOLATED_SUPABASE` never substitutes for URL-derived ownership. Rejected
+events are acknowledged without constructing the service-role client or
+calling a handler. Signature verification still happens first.
 
 ---
 
@@ -487,6 +505,12 @@ Payment recovery does not weaken that route exclusion. A domain-separated, seven
 | **Public** | `NEXT_PUBLIC_*` (Supabase URL, anon key, Stripe publishable key) | Safe for client |
 
 **Production validation** (`lib/config/env.ts`, Zod): requires `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `INTERNAL_API_SECRET`, `ENCRYPTION_KEY` (min 32 bytes), all `STRIPE_PRICE_*` IDs.
+
+`SUPABASE_URL` is an optional server-side endpoint override and is not a
+credential; when used by the Stripe production-bundle test seam it must resolve
+to the same local target as `NEXT_PUBLIC_SUPABASE_URL`. `ALLOW_STRIPE_TEST_WEBHOOKS`
+is a local test opt-in, not a production feature flag, and must not be
+configured in Vercel.
 
 **Access:** Service role client (`lib/supabase/service-role.ts`) is marked `"server-only"`, uses singleton pattern, never leaks secrets in error messages.
 

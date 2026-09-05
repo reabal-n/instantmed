@@ -9,6 +9,7 @@ import {
   buildIntakeStepViewedProperties,
   captureIntakeEvent,
   INTAKE_ANALYTICS_EVENTS,
+  normalizeIntakeEntryRef,
 } from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
@@ -16,6 +17,7 @@ import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
 
 import { useRequestStore } from "../store"
+import { completeIntentionalNavigationAtFlowDestination } from "./use-unsaved-changes"
 
 function trackStepEventDeferred(input: {
   stepName: string
@@ -80,9 +82,9 @@ export function useFlowAnalytics({
   const posthog = usePostHog()
   const { email: storeEmail, flowInstanceId } = useRequestStore()
   const searchParams = useSearchParams()
-  // Allowlisted origin marker: only the known repeat-steer value ever reaches
-  // analytics — never arbitrary query-string text.
-  const entryRef = searchParams.get("from") === "repeat-steer" ? "repeat-steer" : null
+  // Allowlisted origin markers only. Arbitrary query-string text never reaches
+  // analytics.
+  const entryRef = normalizeIntakeEntryRef(searchParams.get("from"))
 
   const trackedFunnelEventsRef = useRef<Set<string>>(new Set())
   // Latches intake_started to once per flow so back-navigation to step 1 does
@@ -96,6 +98,17 @@ export function useFlowAnalytics({
     () => canonicalizeServiceType(serviceType) || serviceType || "unknown",
     [serviceType],
   )
+
+  // A same-route service handoff uses client navigation, so the old flow's
+  // unload-suppression latch must be cleared only after the exact destination
+  // marker and service have mounted. Source-flow hydration must retain it.
+  useEffect(() => {
+    completeIntentionalNavigationAtFlowDestination({
+      entryRef,
+      flowInstanceId,
+      serviceType,
+    })
+  }, [entryRef, flowInstanceId, serviceType])
 
   // Reset funnel event de-duplication state when changing flows.
   useEffect(() => {

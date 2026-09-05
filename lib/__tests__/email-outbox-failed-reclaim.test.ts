@@ -11,6 +11,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
  */
 
 interface FakeRow {
+  delivery_status?: string | null
   id: string
   status: string
   metadata: Record<string, unknown> | null
@@ -18,12 +19,18 @@ interface FakeRow {
 
 const state: {
   existingRow: FakeRow | null
+  refreshedRow: FakeRow | null
+  refreshUnavailable: boolean
+  selectReads: number
   reclaimSucceeds: boolean
   updatePayload: Record<string, unknown> | null
   updateFilters: Array<{ column: string; value: unknown }>
   insertCalled: boolean
 } = {
   existingRow: null,
+  refreshedRow: null,
+  refreshUnavailable: false,
+  selectReads: 0,
   reclaimSucceeds: true,
   updatePayload: null,
   updateFilters: [],
@@ -37,7 +44,15 @@ function buildSelectChain() {
     in: vi.fn(() => chain),
     is: vi.fn(() => chain),
     limit: vi.fn(() => chain),
-    maybeSingle: vi.fn(async () => ({ data: state.existingRow, error: null })),
+    maybeSingle: vi.fn(async () => {
+      const data = state.selectReads === 0
+        ? state.existingRow
+        : state.refreshedRow ?? state.existingRow
+      state.selectReads += 1
+      return state.selectReads > 1 && state.refreshUnavailable
+        ? { data: null, error: { message: "database unavailable" } }
+        : { data, error: null }
+    }),
   }
   return chain
 }
@@ -46,6 +61,10 @@ function buildUpdateChain(payload: Record<string, unknown>) {
   state.updatePayload = payload
   const chain = {
     eq: vi.fn((column: string, value: unknown) => {
+      state.updateFilters.push({ column, value })
+      return chain
+    }),
+    is: vi.fn((column: string, value: unknown) => {
       state.updateFilters.push({ column, value })
       return chain
     }),
@@ -94,14 +113,31 @@ const RECOVERY_ENTRY = {
 describe("createPendingOutbox failed-row reclaim", () => {
   beforeEach(() => {
     state.existingRow = null
+    state.refreshedRow = null
+    state.selectReads = 0
+    state.refreshUnavailable = false
     state.reclaimSucceeds = true
     state.updatePayload = null
     state.updateFilters = []
     state.insertCalled = false
   })
 
+  it("does not invent terminal provider failure when reclaim read-back is unavailable", async () => {
+    state.existingRow = { id: "row-1", status: "failed", delivery_status: null, metadata: {} }
+    state.reclaimSucceeds = false
+    state.refreshUnavailable = true
+    expect(await createPendingOutbox(RECOVERY_ENTRY)).toEqual({
+      id: "row-1", duplicate: true, persistenceUnavailable: true,
+    })
+  })
+
   it("reclaims a failed idempotent row instead of phantom-deduping the retry", async () => {
-    state.existingRow = { id: "row-1", status: "failed", metadata: { reclaim_count: 1 } }
+    state.existingRow = {
+      id: "row-1",
+      status: "failed",
+      delivery_status: null,
+      metadata: { reclaim_count: 1 },
+    }
 
     const result = await createPendingOutbox(RECOVERY_ENTRY)
 
@@ -111,7 +147,10 @@ describe("createPendingOutbox failed-row reclaim", () => {
     // Atomic reclaim: the update must re-assert status=failed so a concurrent
     // sender cannot be stomped.
     expect(state.updateFilters).toEqual(
-      expect.arrayContaining([{ column: "status", value: "failed" }]),
+      expect.arrayContaining([
+        { column: "status", value: "failed" },
+        { column: "delivery_status", value: null },
+      ]),
     )
     expect(state.insertCalled).toBe(false)
   })
@@ -222,6 +261,28 @@ describe("createPendingOutbox failed-row reclaim", () => {
     expect(state.updatePayload).toBeNull()
   })
 
+  it.each(["failed", "suppressed", "bounced", "complained"])(
+    "never reclaims a provider-terminal %s attempt under the same idempotency key",
+    async (deliveryStatus) => {
+      state.existingRow = {
+        id: "row-provider-terminal",
+        status: "failed",
+        delivery_status: deliveryStatus,
+        metadata: { reclaim_count: 1 },
+      }
+
+      const result = await createPendingOutbox(RECOVERY_ENTRY)
+
+      expect(result).toEqual({
+        id: "row-provider-terminal",
+        duplicate: true,
+        providerTerminal: true,
+      })
+      expect(state.updatePayload).toBeNull()
+      expect(state.insertCalled).toBe(false)
+    },
+  )
+
   it("treats a failed row as terminal-duplicate once the reclaim cap is reached", async () => {
     state.existingRow = { id: "row-3", status: "failed", metadata: { reclaim_count: 5 } }
 
@@ -238,5 +299,30 @@ describe("createPendingOutbox failed-row reclaim", () => {
     const result = await createPendingOutbox(RECOVERY_ENTRY)
 
     expect(result).toEqual({ id: "row-4", duplicate: true })
+  })
+
+  it("re-reads terminal evidence when a webhook wins the reclaim CAS", async () => {
+    state.existingRow = {
+      id: "row-race",
+      status: "failed",
+      delivery_status: null,
+      metadata: {},
+    }
+    state.refreshedRow = {
+      id: "row-race",
+      status: "failed",
+      delivery_status: "bounced",
+      metadata: { processed_events: ["provider:email.bounced"] },
+    }
+    state.reclaimSucceeds = false
+
+    const result = await createPendingOutbox(RECOVERY_ENTRY)
+
+    expect(result).toMatchObject({
+      id: "row-race",
+      duplicate: true,
+      providerTerminal: true,
+    })
+    expect(state.selectReads).toBe(2)
   })
 })

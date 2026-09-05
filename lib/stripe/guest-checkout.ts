@@ -57,7 +57,9 @@ import { runClinicalValidation } from "./checkout/clinical-validation"
 import { holdCheckoutForMissingSafetyInformation } from "./checkout/missing-safety-payment-hold"
 import { preflightPriorityPriceForRecovery } from "./checkout/priority-price-recovery"
 import { reconcileChangedCheckoutSessionForReturn } from "./checkout/return-payment-reconciliation"
+import type { CheckoutResult } from "./checkout/types"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
+import { checkoutFailure } from "./checkout-failure"
 import { buildGuestCheckoutCancelUrl } from "./checkout-recovery-link"
 import { buildGuestCheckoutSubmissionKey } from "./checkout-submission-key"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "./client"
@@ -146,13 +148,6 @@ interface GuestCheckoutInput {
   growthExperienceVersion?: string
   serverDraftSessionId?: string
   checkoutSubmissionKey?: string
-}
-
-interface CheckoutResult {
-  success: boolean
-  checkoutUrl?: string
-  intakeId?: string
-  error?: string
 }
 
 interface ExistingGuestProfile {
@@ -423,10 +418,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       logger.error("Guest checkout blocked: profile encryption key is not configured", {
         category: input.category,
       })
-      return {
-        success: false,
-        error: `Server configuration error. Please contact support at ${CONTACT_EMAIL}`,
-      }
+      return checkoutFailure(
+        "pricing_or_configuration",
+        `Server configuration error. Please contact support at ${CONTACT_EMAIL}`,
+      )
     }
 
     const resolvedAttribution = await resolveCheckoutAttribution(input.attribution)
@@ -438,10 +433,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     // KILL SWITCH (ENV): Fast env-var based kill switch (no DB round-trip)
     const envKillSwitch = checkCheckoutBlocked(input.category, input.subtype)
     if (envKillSwitch.blocked) {
-      return {
-        success: false,
-        error: envKillSwitch.userMessage,
-      }
+      return checkoutFailure("availability", envKillSwitch.userMessage)
     }
 
     // KILL SWITCH (DB): Check if service category is disabled in database
@@ -458,10 +450,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         : serviceCategory === "prescription"
         ? SERVICE_DISABLED_ERRORS.REPEAT_SCRIPTS_DISABLED
         : SERVICE_DISABLED_ERRORS.CONSULTS_DISABLED
-      return {
-        success: false,
-        error: `This service is temporarily unavailable. Please try again later. [${errorCode}]`,
-      }
+      return checkoutFailure(
+        "availability",
+        `This service is temporarily unavailable. Please try again later. [${errorCode}]`,
+      )
     }
 
     // Capacity limit must be enforced at the server action layer, not just the request page.
@@ -471,48 +463,42 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         metadata: { checkout_type: "guest" },
         source: "checkout",
       })
-      return {
-        success: false,
-        error: "We're experiencing high demand today. Please try again tomorrow.",
-      }
+      return checkoutFailure(
+        "availability",
+        "We're experiencing high demand today. Please try again tomorrow.",
+      )
     }
 
     // CLINICAL AUDIT: Enforce 18+ age requirement (CLAUDE.md eligibility constraint)
     if (!input.guestDateOfBirth?.trim()) {
       logger.warn("Guest checkout blocked: missing date of birth", { category: input.category })
-      return {
-        success: false,
-        error: AGE_REQUIREMENT_ERROR,
-      }
+      return checkoutFailure("clinical_or_input_validation", AGE_REQUIREMENT_ERROR)
     }
 
     const guestAge = ageFromDateOfBirth(input.guestDateOfBirth)
     if (guestAge === null) {
-      return {
-        success: false,
-        error: "Please provide a valid date of birth before payment.",
-      }
+      return checkoutFailure(
+        "clinical_or_input_validation",
+        "Please provide a valid date of birth before payment.",
+      )
     }
     if (guestAge < 18) {
       logger.warn("Guest checkout blocked: patient under 18", { category: input.category })
-      return {
-        success: false,
-        error: UNDER_18_ERROR,
-      }
+      return checkoutFailure("clinical_or_input_validation", UNDER_18_ERROR)
     }
 
     // P1 FIX: Require phone for prescription category (eScript SMS delivery)
     if (input.category === "prescription" && !input.guestPhone) {
-      return {
-        success: false,
-        error: "Phone number is required for prescription requests to receive your eScript via SMS.",
-      }
+      return checkoutFailure(
+        "clinical_or_input_validation",
+        "Phone number is required for prescription requests to receive your eScript via SMS.",
+      )
     }
 
     if (requiresPrescribingIdentityForRequest({ category: input.category, subtype: input.subtype })) {
       const prescribingIdentityError = validateRequiredPrescribingProfileAnswers(input.answers)
       if (prescribingIdentityError) {
-        return { success: false, error: prescribingIdentityError }
+        return checkoutFailure("clinical_or_input_validation", prescribingIdentityError)
       }
     }
 
@@ -526,14 +512,17 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       idempotencyKey: "",
     })
     if (!clinicalResult.ok) {
-      return { success: false, error: clinicalResult.error }
+      return checkoutFailure(clinicalResult.failureCode, clinicalResult.error)
     }
     const { serviceSlugForSafety, safetyCheck, intakeFlags } = clinicalResult.data
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(input.guestEmail)) {
-      return { success: false, error: "Please provide a valid email address." }
+      return checkoutFailure(
+        "clinical_or_input_validation",
+        "Please provide a valid email address.",
+      )
     }
 
     // CLINICAL AUDIT: Validate consent fields are present (CLINICAL.md §Consent Requirements)
@@ -545,10 +534,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         hasAccuracyConsent,
         category: input.category,
       })
-      return {
-        success: false,
-        error: "Please agree to the terms of service and confirm your information is accurate before proceeding.",
-      }
+      return checkoutFailure(
+        "clinical_or_input_validation",
+        "Please agree to the terms of service and confirm your information is accurate before proceeding.",
+      )
     }
 
     const supabase = createServiceRoleClient()
@@ -568,10 +557,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     if (!isValidUrl(baseUrl)) {
       logger.error("Invalid base URL", { baseUrl })
-      return { 
-        success: false, 
-        error: `Server configuration error. Please contact support at ${CONTACT_EMAIL}`
-      }
+      return checkoutFailure(
+        "pricing_or_configuration",
+        `Server configuration error. Please contact support at ${CONTACT_EMAIL}`,
+      )
     }
 
     // 1. Check if a profile already exists for this email
@@ -582,10 +571,11 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     const rateLimitResult = await checkServerActionRateLimit(`guest:${normalizedEmail}`, "sensitive")
     if (!rateLimitResult.success) {
       logger.warn("Guest checkout rate limited", { category: input.category })
-      return {
-        success: false,
-        error: rateLimitResult.error || "Too many checkout attempts. Please wait a moment before trying again.",
-      }
+      return checkoutFailure(
+        "rate_limit",
+        rateLimitResult.error ||
+          "Too many checkout attempts. Please wait a moment before trying again.",
+      )
     }
 
     // First check if an authenticated profile exists (user already has account)
@@ -597,10 +587,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       .single()
 
     if (existingAuthProfile) {
-      return { 
-        success: false, 
-        error: "An account already exists with this email. Please sign in to continue." 
-      }
+      return checkoutFailure(
+        "auth_or_session",
+        "An account already exists with this email. Please sign in to continue.",
+      )
     }
 
     // Check for existing guest profiles. Verified guest profiles are safe to
@@ -634,7 +624,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (Object.keys(profileUpdates).length > 0) {
         const updatedProfile = await updateProfile(guestProfileId, profileUpdates)
         if (!updatedProfile) {
-          return { success: false, error: "Failed to save patient details. Please try again." }
+          return checkoutFailure(
+            "persistence",
+            "Failed to save patient details. Please try again.",
+          )
         }
       }
     } else if ((existingGuestProfiles || []).length > 0) {
@@ -662,14 +655,17 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         const pgError = profileError as { code?: string; message?: string } | null
         
         if (pgError?.code === '23505') {
-          return { 
-            success: false, 
-            error: "An account already exists with this email. Please sign in to continue." 
-          }
+          return checkoutFailure(
+            "auth_or_session",
+            "An account already exists with this email. Please sign in to continue.",
+          )
         }
         
         logger.error("Failed to create guest profile", { error: profileError })
-        return { success: false, error: "Failed to create guest profile. Please try again." }
+        return checkoutFailure(
+          "persistence",
+          "Failed to create guest profile. Please try again.",
+        )
       }
 
       guestProfileId = newProfile.id
@@ -678,7 +674,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     // Ensure we have a valid profile ID
     if (!guestProfileId) {
       logger.error("Guest profile ID missing after creation logic")
-      return { success: false, error: "Failed to create guest profile. Please try again." }
+      return checkoutFailure(
+        "persistence",
+        "Failed to create guest profile. Please try again.",
+      )
     }
 
     if (requiresPrescribingIdentityForRequest({ category: input.category, subtype: input.subtype })) {
@@ -686,7 +685,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (Object.keys(prescribingUpdates).length > 0) {
         const updatedProfile = await updateProfile(guestProfileId, prescribingUpdates)
         if (!updatedProfile) {
-          return { success: false, error: "Failed to save prescribing details. Please try again." }
+          return checkoutFailure(
+            "persistence",
+            "Failed to save prescribing details. Please try again.",
+          )
         }
       }
     }
@@ -702,7 +704,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     if (serviceError || !service) {
       logger.error("Service not found", { serviceSlug, error: serviceError })
-      return { success: false, error: "Service not available. Please contact support." }
+      return checkoutFailure(
+        "availability",
+        "Service not available. Please contact support.",
+      )
     }
 
     // 3. Resolve the price ID early so we can store it on the intake. If price
@@ -803,11 +808,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           )
 
           if (!existingAnswers) {
-            return {
-              success: false,
-              error:
-                "This request is still being prepared. Please wait a moment and try again.",
-            }
+            return checkoutFailure(
+              "persistence",
+              "This request is still being prepared. Please wait a moment and try again.",
+            )
           }
 
           const storedServiceRelation = existingIntake.service as
@@ -866,13 +870,12 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
               supabase,
             })
             if (hold === "held") {
-              return {
-                success: false,
-                error:
-                  repeatDoseMissingFields.length > 0
+              return checkoutFailure(
+                "clinical_or_input_validation",
+                repeatDoseMissingFields.length > 0
                     ? "Some required medical information is missing. Please start the request again and complete the required dose questions before continuing."
                     : "Some required medical information is missing. Please start the request again and complete all required questions before continuing.",
-              }
+              )
             }
             if (hold === "payment_in_flight") {
               const completionUrl =
@@ -894,11 +897,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
                 }
               }
             }
-            return {
-              success: false,
-              error:
-                "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
-            }
+            return checkoutFailure(
+              "auth_or_session",
+              "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
+            )
           }
 
           const storedSafetyCheck = checkSafetyForServer(
@@ -919,12 +921,11 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
               result: storedSafetyCheck,
               serviceSlug: storedServiceSlugForSafety,
             })
-            return {
-              success: false,
-              error:
-                storedSafetyCheck.blockReason ||
+            return checkoutFailure(
+              "clinical_or_input_validation",
+              storedSafetyCheck.blockReason ||
                 "This request cannot be processed online. Please see your regular doctor.",
-            }
+            )
           }
 
           if (isPaymentSafetyLock(existingIntake.checkout_error)) {
@@ -946,11 +947,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
                 intakeId: existingIntake.id,
               }
             }
-            return {
-              success: false,
-              error:
-                "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
-            }
+            return checkoutFailure(
+              "auth_or_session",
+              "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
+            )
           }
 
           let checkoutUrl: string | null = null
@@ -996,11 +996,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
                     intakeId: existingIntake.id,
                   }
                 }
-                return {
-                  success: false,
-                  error:
-                    "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
-                }
+                return checkoutFailure(
+                  "auth_or_session",
+                  "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
+                )
               }
             } else if (inspection.state === "paid") {
               const accountUrl = `${baseUrl}/auth/complete-account?intake_id=${encodeURIComponent(existingIntake.id)}&session_id=${encodeURIComponent(existingIntake.payment_id)}`
@@ -1069,26 +1068,34 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
             paymentStatus: existingIntake.payment_status,
             hasStoredPaymentId: !!existingIntake.payment_id,
           })
-          return { success: false, error: recovery.error }
+          return checkoutFailure("payment_provider", recovery.error)
         }
       }
 
       if (intakeError?.code === "23505") {
-        return {
-          success: false,
-          error:
-            "This request is already being submitted. Please wait a moment and try again.",
-        }
+        return checkoutFailure(
+          "persistence",
+          "This request is already being submitted. Please wait a moment and try again.",
+        )
       }
 
       logger.error("Failed to create intake", { error: intakeError, code: intakeError?.code, message: intakeError?.message, details: intakeError?.details })
       if (intakeError?.code === "23503") {
-        return { success: false, error: "Your profile could not be found. Please try again." }
+        return checkoutFailure(
+          "auth_or_session",
+          "Your profile could not be found. Please try again.",
+        )
       }
       if (intakeError?.code === "42501") {
-        return { success: false, error: "Permission denied. Please try again or contact support." }
+        return checkoutFailure(
+          "auth_or_session",
+          "Permission denied. Please try again or contact support.",
+        )
       }
-      return { success: false, error: `Failed to create your request. ${intakeError?.message ? `(${intakeError.message})` : "Please try again."}` }
+      return checkoutFailure(
+        "persistence",
+        "Failed to create your request. Please try again.",
+      )
     }
 
     trackIntakeFunnelStep({
@@ -1119,7 +1126,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         encryptionError instanceof Error ? encryptionError : new Error(String(encryptionError)),
       )
       await supabase.from("intakes").delete().eq("id", intake.id)
-      return { success: false, error: "Failed to save your clinical information. Please try again." }
+      return checkoutFailure(
+        "persistence",
+        "Failed to save your clinical information. Please try again.",
+      )
     }
 
     const { error: answersError } = await supabase.from("intake_answers").insert(answersInsert)
@@ -1127,7 +1137,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     if (answersError) {
       logger.error("Failed to save answers, rolling back intake", { intakeId: intake.id }, new Error(answersError.message))
       await supabase.from("intakes").delete().eq("id", intake.id)
-      return { success: false, error: "Failed to save your clinical information. Please try again." }
+      return checkoutFailure(
+        "persistence",
+        "Failed to save your clinical information. Please try again.",
+      )
     }
 
     await markGuestDraftConvertedIfPresent(supabase, input, intake.id)
@@ -1182,7 +1195,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         category: input.category,
         failedPriceRole: "base",
       })
-      return { success: false, error: "Unable to determine pricing. Please contact support." }
+      return checkoutFailure(
+        "pricing_or_configuration",
+        "Unable to determine pricing. Please contact support.",
+      )
     }
 
     // The insert attempt above must resolve an idempotency collision first so
@@ -1199,10 +1215,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         category: input.category,
         failedPriceRole: "priority_fee",
       })
-      return {
-        success: false,
-        error: "Priority review is temporarily unavailable. Please try again without it or contact support.",
-      }
+      return checkoutFailure(
+        "pricing_or_configuration",
+        "Priority review is temporarily unavailable. Please try again without it or contact support.",
+      )
     }
 
     // 6. Build success and cancel URLs
@@ -1292,21 +1308,24 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       })
 
       if (isMisconfiguredPrice) {
-        return {
-          success: false,
-          error: stripePriceErrorUserMessage(failedPriceRole),
-        }
+        return checkoutFailure(
+          "pricing_or_configuration",
+          stripePriceErrorUserMessage(failedPriceRole),
+        )
       }
-      return {
-        success: false,
-        error: "Payment system error. Please try again or contact support if the issue persists.",
-      }
+      return checkoutFailure(
+        "payment_provider",
+        "Payment system error. Please try again or contact support if the issue persists.",
+      )
     }
 
     if (!session.url) {
       logger.error("Stripe session created but no URL returned", { sessionId: session.id })
       await markGuestCheckoutFailed(supabase, intake.id, "No checkout URL returned from Stripe")
-      return { success: false, error: "Failed to create checkout session. Please try again." }
+      return checkoutFailure(
+        "payment_provider",
+        "Failed to create checkout session. Please try again.",
+      )
     }
 
     // 8. Bind the current exact-CAS winner before handing out a payable URL.
@@ -1329,7 +1348,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         sessionId: session.id,
         outcome: attachResult.outcome,
       })
-      return { success: false, error: "Payment system error. Please try again." }
+      return checkoutFailure(
+        "payment_provider",
+        "Payment system error. Please try again.",
+      )
     }
 
     logger.info("Guest checkout session created successfully", {
@@ -1358,9 +1380,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined 
     })
-    return {
-      success: false,
-      error: "Something went wrong. Please try again or contact support if the problem persists.",
-    }
+    return checkoutFailure(
+      "unexpected",
+      "Something went wrong. Please try again or contact support if the problem persists.",
+    )
   }
 }

@@ -7,6 +7,7 @@ import type { ReactNode } from "react"
 
 import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
+import { RequestAccessSignIn } from "@/components/track/request-access-sign-in"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { getOptionalAuth } from "@/lib/auth/helpers"
@@ -193,27 +194,7 @@ export default async function SecureRequestPage() {
         <Heading as="h1" className="mt-5" level="h2">{safeStatus.title}</Heading>
         <p className="mt-3 text-base leading-relaxed text-muted-foreground">{safeStatus.description}</p>
 
-        <div className="mt-6 space-y-3">
-          <Button asChild className="min-h-12 w-full rounded-xl" size="lg">
-            <Link href={patient?.auth_user_id
-              ? "/sign-in?redirect=%2Ftrack%2Frequest"
-              : "/sign-up?redirect=%2Ftrack%2Frequest"}
-            >
-              {patient?.auth_user_id ? "Sign in to open request" : "Create account and open request"}
-            </Link>
-          </Button>
-          {!patient?.auth_user_id ? (
-            <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link
-                className="font-medium text-primary underline underline-offset-4"
-                href="/sign-in?redirect=%2Ftrack%2Frequest"
-              >
-                Sign in
-              </Link>
-            </p>
-          ) : null}
-        </div>
+        <RequestAccessSignIn />
 
         <p className="mt-5 text-base leading-relaxed text-muted-foreground">
           Need help?{" "}

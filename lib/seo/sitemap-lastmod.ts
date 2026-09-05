@@ -35,7 +35,7 @@ export const ROUTE_LAST_MODIFIED: Record<string, string> = {
   "/medical-certificate/back-pain": "2026-06-30",
   "/medical-certificate/covid": "2026-06-30",
   "/medical-certificate/employer-acceptance": "2026-06-30",
-  "/prescriptions": "2026-07-09",
+  "/prescriptions": "2026-08-28",
   "/online-prescriptions": "2026-07-13",
   "/mens-health": "2026-06-25",
   "/hair-loss": "2026-06-10",

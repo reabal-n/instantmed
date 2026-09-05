@@ -18,7 +18,6 @@ import { type AttributionData, getAttribution } from "@/lib/analytics/attributio
 import { capture } from "@/lib/analytics/capture"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
-import { classifyCheckoutFailure } from "@/lib/analytics/posthog-privacy"
 import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/lib/analytics/priority-review-events"
 import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
@@ -32,6 +31,7 @@ import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } fro
 import { isPriorityReviewOffered } from "@/lib/request/priority-review-window"
 import { getActiveServerDraftSessionId } from "@/lib/request/server-draft"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { CHECKOUT_FAILURE_TAXONOMY_VERSION } from "@/lib/stripe/checkout-failure"
 
 import { markIntentionalNavigation } from "../hooks/use-unsaved-changes"
 import { useRequestStore } from "../store"
@@ -373,29 +373,18 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
       })
 
       if (!result.success) {
-        posthog?.capture("checkout_failed", {
+        capture("checkout_failed", {
           service_type: serviceType,
           flow_instance_id: flowInstanceId,
           growth_experience_version: growthExperienceVersion,
           consult_subtype: answers.consultSubtype,
           stage: "session_creation",
-          failure_category: classifyCheckoutFailure(result.error),
+          failure_category: result.failureCategory,
+          failure_code: result.failureCode,
+          failure_taxonomy_version: result.failureTaxonomyVersion,
         })
         setRequiresFreshRequest(Boolean(result.requiresFreshRequest))
         setError(result.error || "Unable to create payment session. Please try again.")
-        return
-      }
-
-      if (!result.checkoutUrl) {
-        posthog?.capture("checkout_failed", {
-          service_type: serviceType,
-          flow_instance_id: flowInstanceId,
-          growth_experience_version: growthExperienceVersion,
-          consult_subtype: answers.consultSubtype,
-          stage: "missing_checkout_url",
-          failure_category: classifyCheckoutFailure("Missing checkout session URL"),
-        })
-        setError("Unable to create payment session. Please try again.")
         return
       }
 
@@ -411,15 +400,17 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         // The Stripe redirect is a page unload at the pay step — without this
         // every paying customer fired intake_abandoned_passive.
         markIntentionalNavigation()
-        window.location.href = result.checkoutUrl!
+        window.location.href = result.checkoutUrl
       }, 500)
-    } catch (e) {
-      posthog?.capture("checkout_failed", {
+    } catch {
+      capture("checkout_failed", {
         service_type: serviceType,
         flow_instance_id: flowInstanceId,
         consult_subtype: answers.consultSubtype,
         stage: "exception",
-        failure_category: classifyCheckoutFailure(e instanceof Error ? e.message : undefined),
+        failure_category: "unknown",
+        failure_code: "unexpected",
+        failure_taxonomy_version: CHECKOUT_FAILURE_TAXONOMY_VERSION,
       })
       setError("Something went wrong. Please try again or contact support.")
     } finally {

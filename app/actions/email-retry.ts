@@ -7,6 +7,7 @@ import {
   getCertificateForIntake,
   logCertificateEvent,
 } from "@/lib/data/issued-certificates"
+import { isProviderTerminalDeliveryStatus } from "@/lib/email/delivery-status"
 import { isNonActionableEmailFailure } from "@/lib/email/quiet-failures"
 import { claimOutboxRow } from "@/lib/email/send/outbox"
 import { type OutboxRow, sendFromOutboxRow } from "@/lib/email/send-email"
@@ -121,7 +122,7 @@ export async function retryOutboxEmail(
     // Fetch the outbox row to validate before claiming
     const { data: row, error: fetchError } = await supabase
       .from("email_outbox")
-      .select("id, email_type, status, retry_count, certificate_id, error_message")
+      .select("id, email_type, status, delivery_status, retry_count, certificate_id, error_message")
       .eq("id", outboxId)
       .single()
 
@@ -133,6 +134,13 @@ export async function retryOutboxEmail(
       return {
         success: false,
         error: "This email is terminal and is not retryable from the delivery ledger",
+      }
+    }
+
+    if (isProviderTerminalDeliveryStatus(row.delivery_status)) {
+      return {
+        success: false,
+        error: "This provider attempt is terminal; start a new audited send attempt",
       }
     }
 

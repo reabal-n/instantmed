@@ -23,6 +23,7 @@ import {
   getSentryRuntime,
   isSentryEnabled,
 } from "@/lib/observability/sentry-config";
+import { classifyStripeKeyMode, mayStartLocalStripeTestBundle } from "@/lib/stripe/test-webhook-policy";
 
 export async function register() {
   // P0 FIX: Verify encryption is properly configured at startup
@@ -71,7 +72,7 @@ export async function register() {
 
     const testKeyVars: string[] = []
 
-    if (stripeSecretKey.startsWith("sk_test_")) {
+    if (classifyStripeKeyMode(stripeSecretKey) === "test") {
       testKeyVars.push("STRIPE_SECRET_KEY (test mode key in production)")
     }
 
@@ -82,7 +83,7 @@ export async function register() {
       }
     }
 
-    if (testKeyVars.length > 0) {
+    if (testKeyVars.length > 0 && !mayStartLocalStripeTestBundle(process.env)) {
       // eslint-disable-next-line no-console
       console.error("[CRITICAL] Stripe test keys detected in production:", testKeyVars)
       throw new Error(
@@ -90,7 +91,7 @@ export async function register() {
       )
     } else {
       // eslint-disable-next-line no-console
-      console.log("[Startup] Stripe live key check passed")
+      console.log("[Startup] Stripe environment check passed")
     }
   }
 

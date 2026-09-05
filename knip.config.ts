@@ -9,6 +9,8 @@ const config: KnipConfig = {
     "scripts/google-ads-agent.ts",
     // Aggregate customer-growth evidence runs through this standalone audit CLI.
     "scripts/customer-growth-baseline.ts!",
+    // Release-friction evidence runs through this standalone audit CLI.
+    "scripts/release-friction-readout.ts!",
     // Refund-ledger reconciliation runs through this standalone operator CLI.
     "scripts/backfill-stripe-refund-events.ts!",
     // Preview and fixture tooling belongs to the comprehensive scan only.

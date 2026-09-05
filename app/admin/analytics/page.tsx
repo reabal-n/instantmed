@@ -7,6 +7,14 @@ import {
   getRecordedAttributionBreakdown,
 } from "@/lib/admin/recorded-attribution-breakdown"
 import {
+  buildUnavailableRefillReminderFunnelSnapshot,
+  getRefillReminderFunnelSnapshot,
+} from "@/lib/admin/refill-reminder-funnel"
+import {
+  buildUnavailableReleaseFrictionDashboardSnapshot,
+  getReleaseFrictionDashboardSnapshot,
+} from "@/lib/admin/release-friction-readout"
+import {
   buildDegradedReviewRequestFunnelSnapshot,
   getReviewRequestFunnelSnapshot,
 } from "@/lib/admin/review-request-funnel"
@@ -18,6 +26,10 @@ import {
   buildUnavailablePostHogCanonicalIntakeFunnelSnapshot,
   getPostHogCanonicalIntakeFunnelSnapshot,
 } from "@/lib/analytics/posthog-canonical-intake-funnel"
+import {
+  buildUnavailablePostHogCheckoutRecoveryDashboardSnapshot,
+  getPostHogCheckoutRecoveryDashboardSnapshot,
+} from "@/lib/analytics/posthog-checkout-recovery"
 import { requireRole } from "@/lib/auth/helpers"
 import { getRevenueDashboard } from "@/lib/data/revenue-dashboard"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -40,6 +52,9 @@ export default async function AnalyticsDashboardPage() {
     getHeardAboutUsBreakdown(supabase, { days: 30 }),
     getReviewRequestFunnelSnapshot(supabase, now),
     getRecentDeliveredAdsAgentRunDailySpend(supabase),
+    getReleaseFrictionDashboardSnapshot(supabase, { now }),
+    getPostHogCheckoutRecoveryDashboardSnapshot({ now }),
+    getRefillReminderFunnelSnapshot(supabase, now),
   ])
 
   const revenueDashboard = reads[0].status === "fulfilled" ? reads[0].value : null
@@ -88,6 +103,12 @@ export default async function AnalyticsDashboardPage() {
 
   const data: BusinessPageData = {
     business,
+    checkoutRecovery: reads[8].status === "fulfilled"
+      ? reads[8].value
+      : buildUnavailablePostHogCheckoutRecoveryDashboardSnapshot(
+          now,
+          "posthog_request_failed",
+        ),
     generatedAt: now.toISOString(),
     intakeFunnel: reads[2].status === "fulfilled"
       ? reads[2].value
@@ -99,6 +120,9 @@ export default async function AnalyticsDashboardPage() {
     recordedAttribution: reads[3].status === "fulfilled"
       ? reads[3].value
       : buildUnavailableRecordedAttributionBreakdown(now, 30),
+    refillReminderFunnel: reads[9].status === "fulfilled"
+      ? reads[9].value
+      : buildUnavailableRefillReminderFunnelSnapshot(now),
     heardAboutUs: reads[4].status === "fulfilled"
       ? reads[4].value
       : {
@@ -110,6 +134,12 @@ export default async function AnalyticsDashboardPage() {
     reviewRequestFunnel: reads[5].status === "fulfilled"
       ? reads[5].value
       : buildDegradedReviewRequestFunnelSnapshot(now),
+    releaseFriction: reads[7].status === "fulfilled"
+      ? reads[7].value
+      : buildUnavailableReleaseFrictionDashboardSnapshot(
+          now,
+          "release_measurement_read_failed",
+        ),
     trends,
   }
 

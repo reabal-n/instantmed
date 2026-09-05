@@ -339,6 +339,27 @@ describe("review request provider gate", () => {
     })
   })
 
+  it("reports an exact provider-terminal duplicate instead of false pending success", async () => {
+    mocks.createPendingOutbox.mockResolvedValueOnce({
+      id: "outbox-review",
+      duplicate: true,
+      providerTerminal: true,
+    })
+
+    const result = await sendReviewRequest()
+
+    expect(result).toMatchObject({
+      success: false,
+      retryable: false,
+      outcome: {
+        kind: "provider_failed",
+        retryable: false,
+        outboxId: "outbox-review",
+      },
+    })
+    expect(mocks.fetch).not.toHaveBeenCalled()
+  })
+
   it("terminally suppresses a frozen payload for a stale recipient", async () => {
     mocks.createPendingOutbox.mockResolvedValueOnce({
       id: "outbox-review",

@@ -40,4 +40,22 @@ describe("schema validation", () => {
     expect(profileSelect).toContain("parchment_user_id")
     expect(profileSelect).toContain("parchment_patient_id")
   })
+
+  it("checks encrypted intake answers and patient-note attribution needed by runtime reads", async () => {
+    selectCalls.length = 0
+    const { validateSchema } = await import("@/lib/validation/schema-validation")
+
+    const result = await validateSchema()
+
+    expect(result.valid).toBe(true)
+
+    const answersSelect = selectCalls.find((call) => call.startsWith("intake_answers:"))
+    expect(answersSelect).toBeDefined()
+    expect(answersSelect).toContain("answers_encrypted")
+    expect(answersSelect).toContain("encryption_metadata")
+
+    const patientNotesSelect = selectCalls.find((call) => call.startsWith("patient_notes:"))
+    expect(patientNotesSelect).toBeDefined()
+    expect(patientNotesSelect).toContain("created_by_name")
+  })
 })

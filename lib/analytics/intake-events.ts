@@ -1,3 +1,4 @@
+import { capture as captureWithRetry } from "@/lib/analytics/capture"
 import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 
@@ -28,12 +29,33 @@ export const INTAKE_ANALYTICS_EVENTS = {
   medicationSteerContextSelected: "medication_steer_context_selected",
 } as const
 
+const INTAKE_ENTRY_REF_VALUES = [
+  "repeat-steer",
+  "womens-health-repeat-handoff",
+] as const
+
+export type IntakeEntryRef = (typeof INTAKE_ENTRY_REF_VALUES)[number]
+
+const INTAKE_ENTRY_REFS: ReadonlySet<string> = new Set(INTAKE_ENTRY_REF_VALUES)
+
+/** Keep arbitrary query-string text out of analytics event properties. */
+export function normalizeIntakeEntryRef(value: unknown): IntakeEntryRef | null {
+  return typeof value === "string" && INTAKE_ENTRY_REFS.has(value)
+    ? value as IntakeEntryRef
+    : null
+}
+
 type IntakeAnalyticsEventName =
   (typeof INTAKE_ANALYTICS_EVENTS)[keyof typeof INTAKE_ANALYTICS_EVENTS]
 
 export interface PostHogCaptureLike {
   capture: (event: string, properties?: Record<string, unknown>) => void
 }
+
+type IntakeCaptureFallback = (
+  event: string,
+  properties?: Record<string, unknown>,
+) => void
 
 interface StepPropertiesInput {
   flowInstanceId?: string | null
@@ -234,6 +256,39 @@ export function captureIntakeEvent(
   properties?: Record<string, unknown>,
 ) {
   posthog?.capture(event, properties)
+}
+
+/**
+ * Record the fixed women's-health current-pill handoff without accepting any
+ * clinical answers or patient identity. Action events cannot rely on the React
+ * PostHog context being ready, so a null client uses the existing retrying
+ * singleton capture path rather than delaying patient navigation.
+ */
+export function captureWomensHealthRepeatHandoff({
+  fallbackCapture = captureWithRetry,
+  flowInstanceId,
+  posthog,
+}: {
+  fallbackCapture?: IntakeCaptureFallback
+  flowInstanceId?: string | null
+  posthog: PostHogCaptureLike | null | undefined
+}): void {
+  const properties = buildIntakeValidationBlockedProperties({
+    blockType: "service_steer",
+    blockers: ["current_pill_repeat_handoff"],
+    flowInstanceId,
+    resolution: "redirected",
+    serviceType: "consult",
+    stepId: "womens-health-type",
+    subtype: "womens_health",
+  })
+
+  if (posthog) {
+    captureIntakeEvent(posthog, INTAKE_ANALYTICS_EVENTS.validationBlocked, properties)
+    return
+  }
+
+  fallbackCapture(INTAKE_ANALYTICS_EVENTS.validationBlocked, properties)
 }
 
 export function buildPassiveAbandonmentBeacon({

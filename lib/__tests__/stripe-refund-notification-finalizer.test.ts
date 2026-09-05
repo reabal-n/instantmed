@@ -299,4 +299,27 @@ describe("finalizeRefundNotifications", () => {
 
     expect(result).toEqual({ error: "outbox unavailable" })
   })
+
+  it("does not replay Stripe cash evidence when the exact provider attempt is terminal", async () => {
+    mocks.reserveRefundEmail.mockResolvedValue({
+      emailId: "outbox-terminal-refund",
+      error: "The refund notice provider attempt failed and requires audited resend",
+      success: false,
+      terminalExisting: true,
+    })
+    const { supabase } = createSupabaseMock()
+
+    const result = await finalizeRefundNotifications({
+      evidence: [evidence({
+        refund_cash_at: "2026-08-16T01:11:00.000Z",
+        refund_status: "succeeded",
+      })],
+      intakeId: "intake-1",
+      livemode: true,
+      supabase: supabase as never,
+    })
+
+    expect(result).toEqual({ error: null })
+    expect(mocks.reserveRefundEmail).toHaveBeenCalledOnce()
+  })
 })

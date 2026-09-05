@@ -12,13 +12,105 @@ import { buildPassiveAbandonmentBeacon } from "@/lib/analytics/intake-events"
 // emit the ACTIVE `intake_abandoned` event and must not double-count.
 let intentionalNavigationInProgress = false
 
+interface IntentionalFlowDestination {
+  entryRef: "womens-health-repeat-handoff"
+  serviceType: "repeat-script"
+}
+
+const WOMENS_HEALTH_REPEAT_HANDOFF_DESTINATION: IntentionalFlowDestination = {
+  entryRef: "womens-health-repeat-handoff",
+  serviceType: "repeat-script",
+}
+
+let pendingIntentionalFlowDestination: IntentionalFlowDestination | null = null
+
 export function markIntentionalNavigation(): void {
   intentionalNavigationInProgress = true
+  pendingIntentionalFlowDestination = null
+}
+
+function markIntentionalNavigationToFlowDestination(
+  destination: IntentionalFlowDestination,
+): void {
+  intentionalNavigationInProgress = true
+  pendingIntentionalFlowDestination = destination
+}
+
+/** Clear the transition latch after the destination flow has mounted. */
+function clearIntentionalNavigation(): void {
+  intentionalNavigationInProgress = false
+  pendingIntentionalFlowDestination = null
+}
+
+export interface WomensHealthRepeatHandoffAttemptGate {
+  current: string | null
+}
+
+/**
+ * Claim the current-pill handoff synchronously before navigation starts.
+ * Desktop and mobile actions share the same ref-backed gate, so rapid repeat
+ * activation cannot duplicate either the durable steer event or navigation.
+ * A synchronous navigation failure releases both latches for a real retry.
+ */
+export function runWomensHealthRepeatHandoffOnce({
+  attemptKey,
+  capture,
+  gate,
+  navigate,
+}: {
+  attemptKey: string
+  capture: () => void
+  gate: WomensHealthRepeatHandoffAttemptGate
+  navigate: () => void
+}): boolean {
+  // Hydration can replace the initial `unscoped` key with a real flow ID while
+  // the same navigation is still in flight. Any active claim belongs to this
+  // mounted source step, irrespective of that key refinement.
+  if (gate.current !== null) return false
+
+  gate.current = attemptKey
+  markIntentionalNavigationToFlowDestination(
+    WOMENS_HEALTH_REPEAT_HANDOFF_DESTINATION,
+  )
+
+  try {
+    navigate()
+  } catch {
+    gate.current = null
+    clearIntentionalNavigation()
+    return false
+  }
+
+  capture()
+  return true
+}
+
+/**
+ * Complete a same-route handoff only once a real destination flow exists. This
+ * keeps the source protected during navigation while ensuring a later exit
+ * from the destination is measured normally.
+ */
+export function completeIntentionalNavigationAtFlowDestination({
+  entryRef,
+  serviceType,
+}: {
+  entryRef: string | null
+  flowInstanceId: string | null
+  serviceType: string | null
+}): void {
+  const pendingDestination = pendingIntentionalFlowDestination
+  if (!pendingDestination) return
+  if (
+    serviceType !== pendingDestination.serviceType
+    || entryRef !== pendingDestination.entryRef
+  ) return
+
+  clearIntentionalNavigation()
 }
 
 /** Test seam — the module flag would otherwise leak between vitest cases. */
 export function resetIntentionalNavigationForTests(): void {
-  intentionalNavigationInProgress = false
+  clearIntentionalNavigation()
 }
 
 export function isIntentionalNavigationInProgress(): boolean {

@@ -153,7 +153,7 @@ export default async function OpsDashboardPage() {
     readRows<EmailFailureRow>("email delivery", supabase
       .from("email_outbox")
       .select("id, email_type, status, error_message, delivery_status, created_at", { count: "exact" })
-      .or("status.eq.failed,delivery_status.eq.bounced,delivery_status.eq.complained")
+      .or("status.eq.failed,delivery_status.in.(failed,suppressed,bounced,complained)")
       .gte("created_at", weekAgo.toISOString())
       .order("created_at", { ascending: false })
       .limit(50)),

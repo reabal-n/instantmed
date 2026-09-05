@@ -2,6 +2,10 @@ import { normalizeFlowInstanceId } from "@/lib/analytics/flow-instance"
 import { redactExternalAnalyticsPathname } from "@/lib/browser/sensitive-capability-path"
 import { normalizeOpaqueGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
 import { scrubPHI } from "@/lib/observability/scrub-phi"
+import {
+  CHECKOUT_FAILURE_CODES,
+  CHECKOUT_FAILURE_TAXONOMY_VERSION,
+} from "@/lib/stripe/checkout-failure"
 
 const DIRECT_IDENTIFIER_RE =
   /(?:[\w.+-]+@[\w.-]+\.\w+|\b(?:\+?61|0)[2-9]\d{8}\b)/i
@@ -86,6 +90,18 @@ export type CheckoutFailureCategory =
   | "validation"
   | "unknown"
 
+const CHECKOUT_FAILURE_CATEGORIES = new Set<CheckoutFailureCategory>([
+  "availability_or_capacity",
+  "identity_or_session",
+  "payment_provider",
+  "persistence",
+  "pricing_or_configuration",
+  "rate_limit",
+  "validation",
+  "unknown",
+])
+const CHECKOUT_FAILURE_CODE_SET = new Set<string>(CHECKOUT_FAILURE_CODES)
+
 function normalizePropertyKey(key: string): string {
   return key.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()
 }
@@ -167,6 +183,25 @@ function sanitizePostHogObject(
     if (normalizePropertyKey(key) === "growthexperienceversion") {
       const growthExperienceVersion = normalizeOpaqueGrowthExperienceVersion(value)
       if (growthExperienceVersion) sanitized[key] = growthExperienceVersion
+      continue
+    }
+    if (normalizePropertyKey(key) === "failurecategory") {
+      if (
+        typeof value === "string" &&
+        CHECKOUT_FAILURE_CATEGORIES.has(value as CheckoutFailureCategory)
+      ) {
+        sanitized[key] = value
+      }
+      continue
+    }
+    if (normalizePropertyKey(key) === "failurecode") {
+      if (typeof value === "string" && CHECKOUT_FAILURE_CODE_SET.has(value)) {
+        sanitized[key] = value
+      }
+      continue
+    }
+    if (normalizePropertyKey(key) === "failuretaxonomyversion") {
+      if (value === CHECKOUT_FAILURE_TAXONOMY_VERSION) sanitized[key] = value
       continue
     }
     sanitized[key] = sanitizeValue(value, key)

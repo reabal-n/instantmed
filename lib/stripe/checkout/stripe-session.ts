@@ -211,9 +211,15 @@ export async function createStripeSessionWithRollback(args: {
     })
 
     if (isMisconfiguredPrice) {
-      return stepFail(stripePriceErrorUserMessage(failedPriceRole))
+      return stepFail(
+        "pricing_or_configuration",
+        stripePriceErrorUserMessage(failedPriceRole),
+      )
     }
-    return stepFail("Payment system error. Please try again or contact support if the issue persists.")
+    return stepFail(
+      "payment_provider",
+      "Payment system error. Please try again or contact support if the issue persists.",
+    )
   }
 
   if (!session.url) {
@@ -226,7 +232,10 @@ export async function createStripeSessionWithRollback(args: {
         updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
-    return stepFail("Failed to create checkout session. Please try again.")
+    return stepFail(
+      "payment_provider",
+      "Failed to create checkout session. Please try again.",
+    )
   }
 
   return stepOk({ sessionId: session.id, url: session.url })

@@ -96,7 +96,7 @@ Review these metrics by service before increasing paid demand:
 | Chargeback rate | Stripe disputes divided by paid orders. | Stay below 0.5%; any cluster gets same-week review. |
 | Support tickets per 100 orders | Patient support contacts per 100 paid orders. | Stay below 5 per 100; above target means fix friction before adding demand. |
 | Paid-to-decision elapsed time | Time from payment to approval or decline, including queue and waiting time. | Track operational responsiveness only; this is not an active-labour input. |
-| Queue P95 | Paid-to-review wait by service. | Keep below 2 hours and below the 24-hour hard ceiling. |
+| Queue P95 | Paid-to-first-clinician-open wait for reportable manual-review requests, by service. | Two hours is the operating target. Above 2 but below 6 hours is watch; 6 hours is the new-scale hard stop. Any 24-hour breach is a service hold. |
 | Clinical/fulfilment health | Safety escalations, unsuitable cases, Parchment completion, delivery failures. | Any unsafe or unreliable pattern blocks scaling. |
 | Capacity review state | Section 8 thresholds. | A triggered state requires an operating decision before further ramp. |
 
@@ -113,6 +113,10 @@ Material budget increases require:
 - `GREEN` deterministic tracking health; an attribution, spend, revenue, refund, or fee failure fails closed and blocks scaling
 - separately reviewed refund, chargeback, clinical, queue, fulfilment, and support metrics; a recorded service-specific breach is an explicit hold, not a hidden portfolio-wide cap
 - explicit operator approval for the exact change
+
+The operational evidence gate is deliberately proportionate. The **two-hour operating target** is the day-to-day goal; a trailing-seven-day P95 above two but below six hours is advisory `watch`, remains visible, and does not suppress an otherwise valid operator-approval scale proposal or cancel an already-approved bounded test. The **six-hour new-scale gate** blocks a new campaign, bid/budget increase, or next product variable when P95 reaches six hours. A 24-hour breach, an oldest unreviewed request at 20 hours, an active clinical incident, broken fulfilment, an explicit service hold, verified support above **5 per 100 paid orders**, or fresh **completed clinical-QA evidence** marked behind creates a hard hold and a pause proposal for approval.
+
+Manual support and completed-QA inputs are optional and fresh for **seven days**. Missing rows remain visible as `null` evidence. Missing or stale inputs do not manufacture harm or block an otherwise evidence-backed scale packet; malformed or future-dated values are ignored. Fresh verified support above 5 per 100 paid orders and fresh completed QA marked behind remain hard holds. Service-level incident, explicit-hold, and fulfilment controls work the same way: an explicitly evidenced harmful state is a hard hold, while an absent optional control is not. The selection-only `qa_sampled` stamp is never completed-QA evidence. Queue evidence is different and mandatory: a missing, malformed, or unavailable queue read blocks the next growth variable. Operational precedence is `hold > unavailable > watch > clear`; no state mutates Ads without the exact operator approval workflow.
 
 Every budget, keyword, negative keyword, asset, sitelink, targeting, bid-strategy, pause, or enable recommendation follows the approval workflow in `docs/OPERATIONS.md`. No routine Google Ads mutation is autonomous.
 
@@ -165,8 +169,9 @@ Revenue alone does not decide staffing. The `$10,000` rung triggers a capacity r
 | `$10k/month` rolling net-retained run-rate | Formal capacity and staffing review only; no automatic hire. |
 | Sustained 20+ prescription requests/hour | Add verified doctor coverage before further ramp. This is the only automatic extra-doctor trigger. |
 | Support contacts above 5 per 100 orders | Fix product friction or add bounded support capacity before scaling. |
-| Queue P95 above 2 hours or any work approaching the 24-hour ceiling | Pause the growth that worsens the queue and diagnose workflow, service mix, and coverage; this is not an automatic hire. |
-| Clinical QA sampling falls behind | Pause growth that worsens the gap and restore QA capacity before resuming. |
+| Queue P95 above 2 but below 6 hours | Advisory watch only: diagnose workflow, service mix, and coverage without suppressing an otherwise valid operator-approval scale proposal. |
+| Queue P95 at or above 6 hours, oldest unresolved work at or above 20 hours, or any 24-hour breach | Produce an approval-ready pause proposal and diagnose the affected service; this is not an automatic hire. |
+| Fresh completed clinical QA is behind | Produce an approval-ready pause proposal and restore QA capacity before resuming. Selection alone is not completed QA. |
 | Weight-management scaling is considered | The 2026-08-10 launch is one-off review only (D-E): continuation is a new consult, so no standing monitoring capacity is assumed. Any move beyond that model needs its own capacity decision. |
 
 Future clinicians use `doctor` accounts with verified capability flags. Future non-clinical operators use `support`. The owner remains the sole human admin.
