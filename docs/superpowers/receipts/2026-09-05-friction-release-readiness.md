@@ -21,6 +21,7 @@ These are final-state review boundaries. The earlier commits are provenance anch
 |---|---|---|
 | Growth | Original `7c96d4835` corrected by `c3d804897`; policy, snapshot, operational health reader, canonical growth docs | Local policy proof complete. Actual Ads mutations remain separately authorised. |
 | Hosted checkout | `26358c0bc`, `055bd9331`, `8e5daae1f`, hosted harness follow-ups, `80bdc0a95` | Both real hosted test-payment/account journeys pass on `0d548749c`, with signed webhooks and zero cleanup survivors. See the test-mode receipt below. Production and GitHub CI execution remain separate. |
+| Optional tracker access | `66e1454a2` through `6699a5ac1`; capability-scoped email, canonical redirect host, ownership/browser contracts | Depends on the existing tracker and hosted checkout/Auth packet. All three hosted browser cases pass on `6699a5ac1`; no mandatory account step. |
 | Certificate, preferences, shared delivery | `670a7d805`, `b4e2baf6e`, `b71c2d4fd`, schema convergence `9021ed807`/`c6091f9b2`, shared receipt follow-ups, `1df3139e1`, `209f1f35f`, `8a7682ddf` | Apply preference migration `1100` before shared receipt migration `1150`, then matching runtime consumers. Current recovery proof is independent of the unexplained historical render error. |
 | Conversion and checkout-failure measurement | `fb3390d40`, `500ea85ae`, `e3f8a00a2`, `d2ff162fc` and quality follow-ups | Immutable release SHA/time and live source credentials enable outcome reads. Unknown/legacy failures and unavailable cash stay visible. |
 | Minimal refill reporting | `dc76db6bf` final aggregate/read model plus `0698637af`; shared callback work belongs to the preceding delivery packet | Migration `1200` contains only indexes and the aggregate. New durable callbacks use packet 3; reporting itself requires no preference, identity, or historical repair. Scheduler proof is a separate heartbeat. |
@@ -60,7 +61,7 @@ After each authorised send, verify the resend reservation/outbox result, provide
 - Hosted Stripe test-mode acceptance is complete; the exact SHA, measured account actions, and zero-survivor receipt are recorded below. Production payments and hosted GitHub execution were not exercised.
 - `corepack pnpm release:check` stopped at strict integration validation: Stripe, Google Ads conversion, Resend, Anthropic, OpenAI review, and Parchment configuration were absent in this isolated worktree. Local checks can pass independently; the full release gate must run in the intended credentialled release environment before deployment is labelled ready.
 - Production deployment SHA/health, live browser behavior, live heartbeat, Resend acceptance/delivery, GSC inspection/indexing, and dated conversion/cash outcomes remain unverified here.
-- Original Task 9 may proceed when its specified manually verified account-friction evidence exists; it no longer waits for D+14. Task 10 keeps the real magic-link ownership dependency. Neither imposes a new required account step.
+- Original Task 9 may proceed when its specified manually verified account-friction evidence exists; it no longer waits for D+14. Task 10 is now locally complete after real magic-link ownership proof, as recorded below. Neither imposes a new required account step.
 - Preserve the minimum sample, matched measurement windows, 21-day refill observation, women's-health experiment conditions, and ED E1 settlement. Calendar checkpoints alone do not delay proven fixes.
 
 ## Hosted provider acceptance — 2026-09-05
@@ -109,3 +110,30 @@ does not verify values or live health. The full credentialled release check,
 production deployment/browser proof, live provider acceptance, scheduler evidence,
 and dated business outcomes remain outstanding. No real payment, patient email,
 production data repair, Ads/GSC change, or production deployment occurred.
+
+## Optional tracker access — 2026-09-05
+
+Implemented and verified on `6699a5ac1eb2b468da4e8710d3a9e40527b36776`
+(`66e1454a2`, `00b8df2a2`, `1df488906`, `230df691a`, `6699a5ac1`).
+The tracker offers **Email me a secure access link**, with no form fields.
+The empty CSRF-protected POST stays under `/track/request/access-link` so the
+HttpOnly capability cookie remains restricted to `/track`. Server-only email
+resolution, separate IP/capability rate limits, uniform provider/capability
+responses, and a fixed clean callback preserve ownership boundaries.
+
+All three hosted browser cases passed in 32.6 seconds. The PHI-free run receipt
+`.artifacts/hosted-stripe-e2e/run-7c25fe1107a374db.json` completed at
+`2026-09-05T01:09:34.578Z`, recording two signed test-payment events and zero
+cleanup survivors. The third case in the committed hosted suite proves keyboard
+activation, a real local email/PKCE exchange, the exact owned intake, rejection
+of another owner's document/reply access, and rejection of a consumed link in a
+fresh browser. These tracker assertions are suite evidence, not additional
+fields in the payment receipt.
+
+Supporting checks: 88 focused tests, TypeScript, scoped ESLint, documentation
+audit (124 tests), and the hosted runner's fresh production Webpack build.
+375px and 1440px light/dark screenshots were inspected; the suite checks no
+horizontal overflow and a minimum 48px button, and exercises keyboard activation
+with reduced motion. Artifacts remain under ignored `test-results/hosted-stripe/`.
+Earlier whole-suite evidence does not claim a rerun of this final candidate.
+No production Auth acceptance, patient send, live payment, or deployment is claimed.

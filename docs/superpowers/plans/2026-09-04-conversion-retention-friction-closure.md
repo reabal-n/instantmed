@@ -691,13 +691,15 @@ git commit -m "feat(checkout): offer non-enumerating account handoff"
 
 **Ownership dependency:** start after Task 2 proves real magic-link/Auth-account linking. There is no D+14 wait. This task is optional UI for a patient who already holds a valid tracker capability; it must not expand that capability into document access.
 
+**Completed locally:** `6699a5ac1`, with three passing hosted browser cases; see the progress ledger for the exact receipt. The endpoint stays under `/track` so the existing capability cookie retains its narrow path. Browser coverage lives in the hosted suite and helper. CSRF protocol failures remain 403; capability/provider outcomes are uniform.
+
 **Files:**
 
 - Create: `lib/auth/request-access-magic-link.ts`
-- Create: `app/api/auth/request-access-link/route.ts`
+- Create: `app/track/request/access-link/route.ts`
 - Create: `components/track/request-access-sign-in.tsx`
 - Create: `lib/__tests__/request-access-magic-link.test.ts`
-- Create: `e2e/guest-request-access.spec.ts`
+- Create: `e2e/helpers/guest-request-access.ts`
 - Modify: `app/track/request/page.tsx`
 - Modify: `lib/__tests__/patient-request-access-route.test.ts`
 - Modify: `lib/__tests__/secure-request-tracker-contract.test.ts`
@@ -713,25 +715,25 @@ export async function requestAccessMagicLink(input: {
 }): Promise<RequestAccessLinkResult>
 ```
 
-- [ ] The browser sends an empty POST body with the standard CSRF header. Server code verifies the HttpOnly tracker cookie, resolves the matching email server-side, applies capability-hash plus IP rate limits, and sends a Supabase magic link to the fixed `/auth/post-signin?redirect=%2Ftrack%2Frequest` destination.
-- [ ] The button copy is **Email me a secure access link**. Clicking it is the explicit choice to create or connect lightweight Auth-account access; no additional patient-facing profile questions are added and the internal intake-owning profile already exists.
-- [ ] Valid, invalid, expired, closed, merged, replayed, and rate-limited cases all return the same `{ accepted: true }` body. The tracker capability, email, intake/profile IDs, and existence state never enter a URL, response, analytics, referrer, or log context. Supabase's single-use verification token/code may appear only in its provider-generated verification URL; the callback must exchange it immediately and redirect to the fixed clean destination without persisting or logging it.
-- [ ] Authentication and ownership remain required for documents and replies. The tracker token alone continues to expose only the bounded status projection.
+- [x] The browser sends an empty POST body with the standard CSRF header. Server code verifies the HttpOnly tracker cookie, resolves the matching email server-side, applies capability-hash plus IP rate limits, and sends a Supabase magic link to the fixed `/auth/post-signin?redirect=%2Ftrack%2Frequest` destination.
+- [x] The button copy is **Email me a secure access link**. Clicking it is the explicit choice to create or connect lightweight Auth-account access; no additional patient-facing profile questions are added and the internal intake-owning profile already exists.
+- [x] Valid, invalid, expired, closed, merged, replayed, and rate-limited cases all return the same `{ accepted: true }` body. The tracker capability, email, intake/profile IDs, and existence state never enter a URL, response, analytics, referrer, or log context. Supabase's single-use verification token/code may appear only in its provider-generated verification URL; the callback must exchange it immediately and redirect to the fixed clean destination without persisting or logging it.
+- [x] Authentication and ownership remain required for documents and replies. The tracker token alone continues to expose only the bounded status projection.
 
 ```bash
 corepack pnpm exec vitest run \
   lib/__tests__/request-access-magic-link.test.ts \
   lib/__tests__/patient-request-access-route.test.ts \
   lib/__tests__/secure-request-tracker-contract.test.ts
-corepack pnpm e2e -- e2e/guest-request-access.spec.ts
+corepack pnpm e2e:stripe-hosted
 ```
 
 Expected: valid one-button link flow succeeds; tampered/wrong-owner cases expose nothing and gain no document/reply access.
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
-git add lib/auth/request-access-magic-link.ts app/api/auth/request-access-link/route.ts components/track/request-access-sign-in.tsx lib/__tests__/request-access-magic-link.test.ts e2e/guest-request-access.spec.ts app/track/request/page.tsx lib/__tests__/patient-request-access-route.test.ts lib/__tests__/secure-request-tracker-contract.test.ts
+git add lib/auth/request-access-magic-link.ts app/track/request/access-link/route.ts components/track/request-access-sign-in.tsx lib/__tests__/request-access-magic-link.test.ts e2e/helpers/guest-request-access.ts app/track/request/page.tsx lib/__tests__/patient-request-access-route.test.ts lib/__tests__/secure-request-tracker-contract.test.ts
 git commit -m "feat(auth): add token-scoped request access link"
 ```
 
