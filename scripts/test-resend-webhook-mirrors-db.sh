@@ -240,6 +240,34 @@ insert into public.email_outbox (
 );
 SQL
 
+# Reproduce the deployed table shape, including its legacy NOT NULL field and
+# lack of the runtime message ID / opened state. The full suite must work here.
+if [[ "${1:-}" == "--legacy-delivery" ]]; then
+  run_psql <<'SQL' >/dev/null
+drop table public.delivery_tracking;
+create table public.delivery_tracking (
+  id uuid primary key default gen_random_uuid(),
+  intake_id uuid references public.intakes(id) on delete set null,
+  recipient_id uuid references public.profiles(id) on delete set null,
+  channel text not null check (channel in ('email', 'sms', 'push')),
+  message_type text not null,
+  status text not null default 'pending'
+    constraint delivery_tracking_status_check check (status in ('pending', 'sent', 'delivered', 'failed', 'bounced')),
+  provider_message_id text,
+  sent_at timestamptz,
+  delivered_at timestamptz,
+  failed_at timestamptz,
+  failure_reason text,
+  metadata jsonb default '{}',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  template_type text
+);
+insert into public.delivery_tracking (id,channel,message_type,provider_message_id)
+values ('90000000-0000-4000-8000-000000000001','push','legacy','legacy-unmapped');
+SQL
+fi
+
 if [[ "${1:-}" == "--refill-only" ]]; then
   run_psql < "$MIGRATION" >/dev/null
   run_psql < "$REPO_ROOT/scripts/sql/refill-reminder-funnel-db.test.sql" >/dev/null
@@ -253,6 +281,23 @@ if [[ "${1:-}" == "--preferences-only" ]]; then
   exit 0
 fi
 run_psql < "$REPO_ROOT/supabase/migrations/20260905115000_resend_delivery_receipts.sql" >/dev/null
+run_psql < "$REPO_ROOT/supabase/migrations/20260905120001_converge_delivery_tracking_runtime.sql" >/dev/null
+# A repeated application is safe and never promotes legacy rows into receipts.
+run_psql < "$REPO_ROOT/supabase/migrations/20260905120001_converge_delivery_tracking_runtime.sql" >/dev/null
+if [[ "${1:-}" == "--legacy-delivery" ]]; then
+  run_psql <<'SQL' >/dev/null
+do $check$
+begin
+  if not exists (select 1 from public.delivery_tracking
+    where id='90000000-0000-4000-8000-000000000001'
+      and message_id is null and provider_id is null and patient_id is null
+      and provider_message_id='legacy-unmapped' and status='pending') then
+    raise exception 'schema convergence rewrote legacy delivery evidence';
+  end if;
+end;
+$check$;
+SQL
+fi
 run_psql < "$MIGRATION" >/dev/null
 run_psql < "$REPO_ROOT/scripts/sql/resend-delivery-order-db.test.sql" >/dev/null
 if [[ "${1:-}" == "--repair-proposal" ]]; then
