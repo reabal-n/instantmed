@@ -39,7 +39,7 @@ export async function verifyGuestRequestAccess({ page, browser, evidence, otherO
       const bounds = await button.boundingBox()
       expect(bounds?.height).toBeGreaterThanOrEqual(48)
       // Explicit visual artifacts only on this clean, anonymous status page.
-      await page.screenshot({ path: `test-results/hosted-stripe/tracker-${width}-${dark ? "dark" : "light"}.png` })
+      await page.screenshot({ animations: "disabled", path: `test-results/hosted-stripe/tracker-${width}-${dark ? "dark" : "light"}.png` })
     }
   }
   const anonymousDownload = await page.request.get(`/api/patient/documents/${evidence.intakeId}/download`)
