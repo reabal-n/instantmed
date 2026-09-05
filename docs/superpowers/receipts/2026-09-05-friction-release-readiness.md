@@ -1,6 +1,6 @@
 # InstantMed friction closure — release readiness, 2026-09-05
 
-This receipt covers local work on `codex/conversion-retention-friction-closure`, based on `c0bfbc4e0ea535ab24eabdcb7d9e1b54f3d89dfe`. It does not claim a production deployment, patient send, provider acceptance, live scheduler recovery, or business outcome. The current progress ledger owns the final verification results.
+This receipt covers local work on `codex/conversion-retention-friction-closure`, based on `c0bfbc4e0ea535ab24eabdcb7d9e1b54f3d89dfe`. It does not claim a production deployment, patient send, live provider acceptance, live scheduler recovery, or business outcome. The current progress ledger owns the final verification results.
 
 ## Completed closure commits
 
@@ -20,7 +20,7 @@ These are final-state review boundaries. The earlier commits are provenance anch
 | Packet | Scope and anchors | Dependency / remaining proof |
 |---|---|---|
 | Growth | Original `7c96d4835` corrected by `c3d804897`; policy, snapshot, operational health reader, canonical growth docs | Local policy proof complete. Actual Ads mutations remain separately authorised. |
-| Hosted checkout | `26358c0bc`, `055bd9331`, `8e5daae1f`, hosted harness follow-ups, `80bdc0a95` | Test credentials and the two Prices are available. Hosted payment acceptance remains incomplete; see the provider follow-up below. Does not block unrelated packets. |
+| Hosted checkout | `26358c0bc`, `055bd9331`, `8e5daae1f`, hosted harness follow-ups, `80bdc0a95` | Both real hosted test-payment/account journeys pass on `0d548749c`, with signed webhooks and zero cleanup survivors. See the test-mode receipt below. Production and GitHub CI execution remain separate. |
 | Certificate, preferences, shared delivery | `670a7d805`, `b4e2baf6e`, `b71c2d4fd`, schema convergence `9021ed807`/`c6091f9b2`, shared receipt follow-ups, `1df3139e1`, `209f1f35f`, `8a7682ddf` | Apply preference migration `1100` before shared receipt migration `1150`, then matching runtime consumers. Current recovery proof is independent of the unexplained historical render error. |
 | Conversion and checkout-failure measurement | `fb3390d40`, `500ea85ae`, `e3f8a00a2`, `d2ff162fc` and quality follow-ups | Immutable release SHA/time and live source credentials enable outcome reads. Unknown/legacy failures and unavailable cash stay visible. |
 | Minimal refill reporting | `dc76db6bf` final aggregate/read model plus `0698637af`; shared callback work belongs to the preceding delivery packet | Migration `1200` contains only indexes and the aggregate. New durable callbacks use packet 3; reporting itself requires no preference, identity, or historical repair. Scheduler proof is a separate heartbeat. |
@@ -57,44 +57,55 @@ After each authorised send, verify the resend reservation/outbox result, provide
 
 ## Remaining external proof
 
-- Hosted provider run: the operator refreshed Stripe CLI authentication and the test key now authenticates. Two active AUD one-time test Prices were created and injected through the dedicated runner environment. No key values were written into the repository. Completed payment, signed-webhook, guest-account, and timing acceptance remain unproven; see the follow-up below.
+- Hosted Stripe test-mode acceptance is complete; the exact SHA, measured account actions, and zero-survivor receipt are recorded below. Production payments and hosted GitHub execution were not exercised.
 - `corepack pnpm release:check` stopped at strict integration validation: Stripe, Google Ads conversion, Resend, Anthropic, OpenAI review, and Parchment configuration were absent in this isolated worktree. Local checks can pass independently; the full release gate must run in the intended credentialled release environment before deployment is labelled ready.
 - Production deployment SHA/health, live browser behavior, live heartbeat, Resend acceptance/delivery, GSC inspection/indexing, and dated conversion/cash outcomes remain unverified here.
 - Original Task 9 may proceed when its specified manually verified account-friction evidence exists; it no longer waits for D+14. Task 10 keeps the real magic-link ownership dependency. Neither imposes a new required account step.
 - Preserve the minimum sample, matched measurement windows, 21-day refill observation, women's-health experiment conditions, and ED E1 settlement. Calendar checkpoints alone do not delay proven fixes.
 
-## Hosted provider follow-up — 2026-09-05
+## Hosted provider acceptance — 2026-09-05
 
-Credential discovery found an expired Stripe CLI test key; the operator refreshed
-it using `stripe login`. Read-only authentication then succeeded. The runner now
-has the two required test Prices: one-day certificate A$24.95 and repeat
-prescription A$29.95. Existing Vercel variable names cover all six previously
-reported integration groups; that inventory does not verify their values or live
-health. The isolated worktree's missing integration settings were not evidence
-that production lacked them.
+Both real hosted Stripe journeys passed on `0d548749c1be85faa63dec8e5538bd90784e78e7`.
+The PHI-free receipt is `.artifacts/hosted-stripe-e2e/run-01149f6672c238a1.json`;
+the run finished at `2026-09-05T00:44:38.076Z`. The fresh production Webpack
+bundle used isolated Supabase, real disposable Redis, local Mailpit, and the
+actual Stripe test-mode Checkout and signed-webhook delivery.
 
-Provider execution exposed and corrected these harness gaps in commits
-`1b65b999f` through `01ccdc703`: startup rejected the local test-key production
-bundle; Playwright could not import the runner; heading and Stripe button
-selectors were ambiguous; production rate limiting needed real disposable Redis;
-and cleanup referenced the retired `payment_reconciliation` table. The runner
-now checks the actual cleanup schema before building and verifies real Redis
-quota enforcement. The deployed startup guard also rejects restricted test keys.
+| Journey | Proven outcome | Account actions / local elapsed time |
+|---|---|---|
+| Repeat prescription, A$29.95 test payment | Succeeded PaymentIntent, current paid intake, genuine signed webhook, confirmed request, no Auth user | Continue without an account: 1 action, 98 ms |
+| One-day certificate, A$24.95 test payment | Succeeded PaymentIntent, signed webhook, real emailed magic link, authenticated request confirmation, linked dashboard, exact matching Auth owner | Request email, open link, Go to dashboard: 3 actions, 1,532 ms |
 
-Latest candidate checks: 104 focused tests, TypeScript, scoped ESLint, and
-documentation audit (124 tests) pass. Real test Checkout Sessions were created,
-and card entry plus the final submit interaction were reached. Stripe still
-reported the latest session as open/unpaid with no PaymentIntent. No signed
-paid-webhook, account outcome, or account timing receipt is claimed.
+Both branches repeated zero profile fields. Timing starts at the optional-account
+offer and includes automated local Mailpit retrieval for linking; it is not a
+patient timing promise. Both webhook events were processed, and cleanup verified
+zero surviving test rows/Auth users plus removal of the owned local Docker stack.
 
-Direct inspection found sandbox Link saving selected by default and an AI-agent
-declaration. Selecting the truthful agent declaration exposes instructions to
-offer optional Link CLI plus an acknowledgment that those instructions were
-followed. Link CLI is not installed; the operator has been asked whether to
-continue using Stripe's public test card or use Link CLI. That choice is pending.
-Do not attest to the latter acknowledgment before the operator responds.
+The operator chose Stripe's public test card after the optional Link CLI offer.
+`0e77b463a` handles the sandbox's default Link-wallet selection and truthful agent
+acknowledgment. `af742a09c` / `42d1362dc` allow only the exact runner-owned local
+Auth connection in both CSP policies, reject deployed/mismatched settings, and
+bind the contract to the actual runner environment. `0d548749c` follows the
+existing authenticated confirmation-to-dashboard link and records all three
+actions instead of assuming a direct dashboard redirect. Earlier startup,
+selector, Redis, and cleanup-schema corrections remain in the same release slice.
 
-Latest failed runs passed row/Docker cleanup after the stale-table correction.
-No real payment, patient email, production data repair, Ads/GSC change, or
-production deployment occurred. Test-mode catalog/session creation is external
-test setup, not production payment evidence.
+Credential discovery first refreshed the expired CLI key. The later dashboard
+check found an existing standard test key with no scheduled expiry; it
+authenticated to the expected InstantMed account and supplied the successful run.
+It and the two test Price IDs are stored outside Git in an owner-only local file.
+The reusable local launcher is `/Users/rey/.config/instantmed/run-hosted-stripe-test.sh`;
+run it from the candidate checkout. The CLI login's 90-day key is no longer needed
+by this launcher. Revoking or rotating the standard key would still require an
+update. No secret value was placed in the repository or tool output.
+
+Latest focused verification: 49 runner/preflight/CSP tests, the other three CSP
+contracts, TypeScript, scoped ESLint, and documentation audit (124 tests) pass.
+The two real hosted browser cases passed in 29.8 seconds. Earlier whole-suite
+results above are separate evidence, not a rerun of the final checkout candidate.
+
+Vercel variable names cover all six reported integration groups; that inventory
+does not verify values or live health. The full credentialled release check,
+production deployment/browser proof, live provider acceptance, scheduler evidence,
+and dated business outcomes remain outstanding. No real payment, patient email,
+production data repair, Ads/GSC change, or production deployment occurred.
