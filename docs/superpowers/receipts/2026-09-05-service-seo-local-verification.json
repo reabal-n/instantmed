@@ -35,6 +35,17 @@
     {
       "command": "git diff --check",
       "result": "passed"
+    },
+    {
+      "command": "corepack pnpm exec vitest run lib/__tests__/money-page-narrative-compression-contract.test.ts lib/__tests__/womens-health-child-narrative-contract.test.ts lib/__tests__/womens-health-intent-pages-contract.test.ts lib/__tests__/commercial-seo-contract.test.ts lib/__tests__/seo-indexing-contract.test.ts lib/__tests__/approved-claims-contract.test.ts lib/__tests__/voice-guard.test.ts",
+      "result": "passed",
+      "tests": 62,
+      "files": 7,
+      "note": "Final focused rerun after CI exposed stale text expectations in two pre-existing narrative contracts."
+    },
+    {
+      "command": "corepack pnpm exec eslint lib/__tests__/money-page-narrative-compression-contract.test.ts lib/__tests__/womens-health-child-narrative-contract.test.ts --max-warnings 0",
+      "result": "passed"
     }
   ],
   "browser": {
@@ -151,10 +162,17 @@
     "noClinicalOrPaymentSubmission": true,
     "limitations": "Landing-to-confirmation checks only; this batch does not claim full clinical-intake or hosted-checkout E2E proof."
   },
-  "review": "Coordinating release task independently reviewed the two component diffs against marketing/voice/clinical scope: KEEP, no material finding. Final branch/data review is recorded at PR handoff.",
+  "review": "Independent final branch review KEEP after d6424e1a1 replaced 53 unsupported grouped GSC means with null. Reviewer verified 600 aggregate/date/privacy assertions and no public-copy regression. Coordinating release task also independently reviewed the public-copy diff and selected screenshots: KEEP.",
   "remainingEvidence": [
     "Exact-head GitHub CI for PR #518",
     "Release task production SHA/time and public smoke after this copy batch ships",
     "Authenticated Search Console Live Tests and actual indexing request receipts"
-  ]
+  ],
+  "ciFollowup": {
+    "observedRun": "https://github.com/reabal-n/instantmed/actions/runs/33942262987",
+    "head": "fe3558fac3013e698738daafb5276b28957e5a04",
+    "failure": "Three tests in two existing narrative contracts expected retired choose-next wording. The CI run otherwise passed 7068 tests; that is not a full-suite pass.",
+    "correction": "Updated four expected wording strings to Start assessment/Confirm wording and renamed the helper argument; preserved all safety, scope, pricing and intent assertions.",
+    "verification": "62 tests across seven focused files and lint of both changed test files pass. Final-head full CI remains the release gate."
+  }
 }
