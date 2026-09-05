@@ -195,3 +195,19 @@ dispatcher, refill-reminder, and Parchment smoke heartbeats had successful lates
 outcomes. These are baseline reads, not post-deployment proof. Final PR CI,
 production runtime deployment/read-back, and branch cleanup remain pending at
 this receipt commit; the final operator report must state their actual outcome.
+
+## Delivery schema compatibility correction — 2026-09-05
+
+Post-migration linked lint exposed a real production-only schema mismatch:
+`delivery_tracking` had the older recipient/message/provider column names, a
+required `message_type`, and no opened state. The previously idealized fixture
+did not cover that shape. Production had zero tracking rows at inspection.
+
+Commit `e0ba8ed01` adds forward convergence `20260905120001` without rewriting
+legacy rows. The full database harness passes both modern and legacy schemas,
+including repeated migration application and untouched legacy evidence. Both
+variants are now required CI steps. The correction was applied in production;
+linked public/extensions schema lint exits zero with no errors. Metadata confirms
+the valid unique message key, nullable legacy message type, opened-state support,
+migration history through `20260905120001`, and zero ACL violations. The final
+runtime deployment remains gated on the updated PR's build and E2E checks.

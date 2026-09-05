@@ -218,3 +218,19 @@ These records preserve earlier reviews; the current closure and state above supe
 - Isolated database ordering/receipt/refill tests pass. Two certificate browser cases pass (20.7s); all three hosted Stripe/account/tracker cases pass (31.2s), receipt run-112a4e8ad7f4b6f4, zero survivors. Evidence archived privately outside the worktrees before cleanup.
 - Four reviewed migrations were applied to production in timestamp order and metadata/ACL-verified through `20260905120000`; historical repair and patient sends were not executed. Canonical migration docs now distinguish the separate shared-receipt and refill migrations.
 - Baseline authenticated production health and latest email/refill/Parchment heartbeats are healthy. PR CI, exact runtime deployment, post-deploy verification, and branch cleanup are still pending at this commit.
+
+## Delivery schema compatibility correction — 2026-09-05
+
+Post-migration linked lint exposed a real production-only schema mismatch:
+`delivery_tracking` had the older recipient/message/provider column names, a
+required `message_type`, and no opened state. The previously idealized fixture
+did not cover that shape. Production had zero tracking rows at inspection.
+
+Commit `e0ba8ed01` adds forward convergence `20260905120001` without rewriting
+legacy rows. The full database harness passes both modern and legacy schemas,
+including repeated migration application and untouched legacy evidence. Both
+variants are now required CI steps. The correction was applied in production;
+linked public/extensions schema lint exits zero with no errors. Metadata confirms
+the valid unique message key, nullable legacy message type, opened-state support,
+migration history through `20260905120001`, and zero ACL violations. The final
+runtime deployment remains gated on the updated PR's build and E2E checks.

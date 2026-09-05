@@ -372,3 +372,13 @@ steps:
 3. Check `email_outbox` table for `skipped_e2e` status if email-related
 4. Check if `PLAYWRIGHT=1` is set — auth bypass won't work without it
 5. Check for leftover test data from a previous failed run — teardown may not have completed
+
+### Delivery schema compatibility release gate
+
+The required CI build runs `scripts/test-resend-webhook-mirrors-db.sh` both normally
+and with `--legacy-delivery`. The latter reproduces the deployed legacy table
+without `message_id` and with a required `message_type`; it applies convergence
+migration `20260905120001` twice, proves existing rows stay untouched, and runs
+the full receipt, preference, ordering, and concurrency suite. This prevents a
+fresh baseline alone from masking a production schema mismatch. Linked schema
+lint remains a separate live release gate.
