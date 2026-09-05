@@ -52,6 +52,7 @@
     },
     "html": "Current public HTML was fetched for the nine pages and seven support routes. Title, meta description, H1, robots, canonical, JSON-LD types and internal anchors were parsed from rendered response HTML.",
     "intent": "Visible queries were classified as service-relevant commercial, service-relevant explanatory, brand or irrelevant from query text. Landing pathname alone was not used to infer brand.",
+    "groupedAveragePositionAvailability": "Unavailable. The grouped safeVisibleAggregate, byIntent and byRankBand average positions were not correctly computed in the export and cannot be recovered from the retained top query rows; their averagePosition values are null. Page, safeTopRows, country/device and privacy-omission positions remain valid.",
     "rankBands": [
       "1-3",
       "4-10",
@@ -298,7 +299,7 @@
               "clicks": 5,
               "impressions": 7180,
               "ctr": 0.0006963788300835655,
-              "averagePosition": 0
+              "averagePosition": null
             },
             "byIntent": {
               "brand": {
@@ -306,28 +307,28 @@
                 "clicks": 4,
                 "impressions": 132,
                 "ctr": 0.030303030303030304,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "service_relevant_explanatory": {
                 "rowCount": 125,
                 "clicks": 1,
                 "impressions": 1649,
                 "ctr": 0.0006064281382656155,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "service_relevant_commercial": {
                 "rowCount": 294,
                 "clicks": 0,
                 "impressions": 4958,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "irrelevant": {
                 "rowCount": 72,
                 "clicks": 0,
                 "impressions": 441,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "byRankBand": {
@@ -336,35 +337,35 @@
                 "clicks": 4,
                 "impressions": 139,
                 "ctr": 0.02877697841726619,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "51-100": {
                 "rowCount": 393,
                 "clicks": 1,
                 "impressions": 6034,
                 "ctr": 0.00016572754391779913,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "21-50": {
                 "rowCount": 89,
                 "clicks": 0,
                 "impressions": 1005,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "11-20": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 1,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "4-10": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 1,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "privacyOmittedByReason": [
@@ -724,7 +725,7 @@
               "clicks": 4,
               "impressions": 3621,
               "ctr": 0.0011046672190002762,
-              "averagePosition": 0
+              "averagePosition": null
             },
             "byIntent": {
               "brand": {
@@ -732,28 +733,28 @@
                 "clicks": 1,
                 "impressions": 59,
                 "ctr": 0.01694915254237288,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "service_relevant_commercial": {
                 "rowCount": 233,
                 "clicks": 2,
                 "impressions": 2561,
                 "ctr": 0.0007809449433814916,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "service_relevant_explanatory": {
                 "rowCount": 107,
                 "clicks": 1,
                 "impressions": 772,
                 "ctr": 0.0012953367875647669,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "irrelevant": {
                 "rowCount": 51,
                 "clicks": 0,
                 "impressions": 229,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "byRankBand": {
@@ -762,35 +763,35 @@
                 "clicks": 2,
                 "impressions": 75,
                 "ctr": 0.02666666666666667,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "21-50": {
                 "rowCount": 226,
                 "clicks": 2,
                 "impressions": 2041,
                 "ctr": 0.0009799118079372856,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "51-100": {
                 "rowCount": 136,
                 "clicks": 0,
                 "impressions": 1455,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "11-20": {
                 "rowCount": 16,
                 "clicks": 0,
                 "impressions": 35,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "4-10": {
                 "rowCount": 6,
                 "clicks": 0,
                 "impressions": 15,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "privacyOmittedByReason": [
@@ -1581,7 +1582,7 @@
               "clicks": 0,
               "impressions": 245,
               "ctr": 0,
-              "averagePosition": 0
+              "averagePosition": null
             },
             "byIntent": {
               "service_relevant_commercial": {
@@ -1589,21 +1590,21 @@
                 "clicks": 0,
                 "impressions": 239,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "irrelevant": {
                 "rowCount": 4,
                 "clicks": 0,
                 "impressions": 5,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "brand": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 1,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "byRankBand": {
@@ -1612,28 +1613,28 @@
                 "clicks": 0,
                 "impressions": 239,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "4-10": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 2,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "1-3": {
                 "rowCount": 2,
                 "clicks": 0,
                 "impressions": 2,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "11-20": {
                 "rowCount": 2,
                 "clicks": 0,
                 "impressions": 2,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "privacyOmittedByReason": [],
@@ -1793,7 +1794,7 @@
               "clicks": 0,
               "impressions": 64,
               "ctr": 0,
-              "averagePosition": 0
+              "averagePosition": null
             },
             "byIntent": {
               "service_relevant_commercial": {
@@ -1801,7 +1802,7 @@
                 "clicks": 0,
                 "impressions": 64,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "byRankBand": {
@@ -1810,21 +1811,21 @@
                 "clicks": 0,
                 "impressions": 58,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "11-20": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 3,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "51-100": {
                 "rowCount": 3,
                 "clicks": 0,
                 "impressions": 3,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "privacyOmittedByReason": [],
@@ -1971,7 +1972,7 @@
               "clicks": 0,
               "impressions": 30,
               "ctr": 0,
-              "averagePosition": 0
+              "averagePosition": null
             },
             "byIntent": {
               "service_relevant_commercial": {
@@ -1979,7 +1980,7 @@
                 "clicks": 0,
                 "impressions": 30,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "byRankBand": {
@@ -1988,14 +1989,14 @@
                 "clicks": 0,
                 "impressions": 28,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "21-50": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 2,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "privacyOmittedByReason": [],
@@ -2047,7 +2048,7 @@
               "clicks": 0,
               "impressions": 11,
               "ctr": 0,
-              "averagePosition": 0
+              "averagePosition": null
             },
             "byIntent": {
               "service_relevant_commercial": {
@@ -2055,7 +2056,7 @@
                 "clicks": 0,
                 "impressions": 11,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "byRankBand": {
@@ -2064,7 +2065,7 @@
                 "clicks": 0,
                 "impressions": 11,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "privacyOmittedByReason": [],
@@ -2187,7 +2188,7 @@
               "clicks": 0,
               "impressions": 13,
               "ctr": 0,
-              "averagePosition": 0
+              "averagePosition": null
             },
             "byIntent": {
               "irrelevant": {
@@ -2195,14 +2196,14 @@
                 "clicks": 0,
                 "impressions": 12,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "brand": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 1,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "byRankBand": {
@@ -2211,14 +2212,14 @@
                 "clicks": 0,
                 "impressions": 12,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "1-3": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 1,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "privacyOmittedByReason": [],
@@ -2387,7 +2388,7 @@
               "clicks": 0,
               "impressions": 34,
               "ctr": 0,
-              "averagePosition": 0
+              "averagePosition": null
             },
             "byIntent": {
               "service_relevant_commercial": {
@@ -2395,21 +2396,21 @@
                 "clicks": 0,
                 "impressions": 29,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "irrelevant": {
                 "rowCount": 4,
                 "clicks": 0,
                 "impressions": 4,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "brand": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 1,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "byRankBand": {
@@ -2418,28 +2419,28 @@
                 "clicks": 0,
                 "impressions": 28,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "1-3": {
                 "rowCount": 4,
                 "clicks": 0,
                 "impressions": 4,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "4-10": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 1,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               },
               "21-50": {
                 "rowCount": 1,
                 "clicks": 0,
                 "impressions": 1,
                 "ctr": 0,
-                "averagePosition": 0
+                "averagePosition": null
               }
             },
             "privacyOmittedByReason": [],
