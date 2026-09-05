@@ -668,9 +668,7 @@ async function fillHostedStripeCard(page: Page): Promise<void> {
   )
   if (postalCode) await postalCode.fill("2000")
 
-  const submit = page.locator('[data-testid="hosted-payment-submit-button"]').or(
-    page.getByRole("button", { name: /^Pay(?:\s|$)/i }),
-  ).first()
+  const submit = page.locator('button[type="submit"][data-testid="hosted-payment-submit-button"]')
   await expect(submit).toBeEnabled({ timeout: 30_000 })
   await submit.click()
 }
