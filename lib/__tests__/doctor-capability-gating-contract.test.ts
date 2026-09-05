@@ -190,7 +190,8 @@ describe("doctor capability gating contract", () => {
     expect(dateCorrectionSource).toContain("hasDoctorAccess(authResult.profile)")
     expect(dateCorrectionSource).not.toContain('authResult.profile.role !== "doctor"')
 
-    expect(manualPatientSource).toContain("prescriberProfileId: authResult.profile.id")
+    // Viewing history must not assign the viewer as its original prescriber.
+    expect(manualPatientSource).toContain("prescriberProfileId: null")
     expect(manualPatientSource).not.toContain('authResult.profile.role === "doctor" ? authResult.profile.id : null')
 
     expect(doctorIdentitySource).toContain("hasDoctorAccess(authUser.profile)")

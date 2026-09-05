@@ -357,6 +357,7 @@ export async function updateScriptSent(
 ): Promise<boolean> {
   const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
+  let expectedReference: string | null = null
 
   if (!scriptSent) {
     logger.warn("[updateScriptSent] Script sent reversal blocked; use the audited prescription reversal workflow", { intakeId })
@@ -367,7 +368,7 @@ export async function updateScriptSent(
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .select(`
-        status, payment_status, category, subtype, script_sent,
+        status, payment_status, category, subtype, script_sent, parchment_reference,
         answers:intake_answers(answers, answers_encrypted),
         service:services!service_id(type)
       `)
@@ -376,6 +377,12 @@ export async function updateScriptSent(
 
     if (intakeError || !intake) {
       logger.warn("[updateScriptSent] Failed to fetch intake before script completion", { intakeId })
+      return false
+    }
+
+    expectedReference = intake.parchment_reference ?? null
+    if (parchmentReference && expectedReference && parchmentReference !== expectedReference) {
+      logger.warn("[updateScriptSent] Conflicting prescription reference blocked", { intakeId })
       return false
     }
 
@@ -437,13 +444,19 @@ export async function updateScriptSent(
     scriptUpdate.parchment_reference = parchmentReference
   }
 
-  const { data: scriptRow, error: scriptError } = await supabase
+  let scriptQuery = supabase
     .from("intakes")
     .update(scriptUpdate)
     .eq("id", intakeId)
     .eq("status", "awaiting_script")
     .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
     .eq("script_sent", false)
+
+  scriptQuery = expectedReference
+    ? scriptQuery.eq("parchment_reference", expectedReference)
+    : scriptQuery.is("parchment_reference", null)
+
+  const { data: scriptRow, error: scriptError } = await scriptQuery
     .select("id")
     .maybeSingle()
 

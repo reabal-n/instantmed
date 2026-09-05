@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
+import { getParchmentAuditPatientId } from "@/lib/parchment/audit-patient-link"
 import {
   filterRecoveredStandaloneParchmentFailures,
   filterUnresolvedParchmentFailures,
@@ -20,6 +21,8 @@ const SYSTEM_ADMIN_EMAILS = new Set(["system@instantmed.com.au"])
 const RETRYABLE_REASONS = new Set([
   "prescription_sync_failed",
   "prescription_not_found",
+  "prescription_pagination_failed",
+  "prescription_search_limit_reached",
   "prescription_upsert_failed",
   "prescription_lookup_failed",
   "prescription_update_failed",
@@ -261,7 +264,7 @@ export function mapParchmentFailedWebhook(row: AuditFailureRow): ParchmentFailed
     parchmentPatientId: getString(row.metadata, "parchment_patient_id"),
     partnerPatientId: getString(row.metadata, "partner_patient_id"),
     prescriberUserId: getString(row.metadata, "prescriber_user_id"),
-    patientProfileId: getString(row.metadata, "patient_profile_id"),
+    patientProfileId: getParchmentAuditPatientId(row.metadata),
     prescriberProfileId: getString(row.metadata, "prescriber_profile_id"),
     retryable: false,
   }
@@ -279,7 +282,7 @@ function mapParchmentOpsEvent(
   const actionType = getString(row.metadata, "action_type")
   const eventId = getString(row.metadata, "event_id") || getString(row.metadata, "eventId")
   const scid = getString(row.metadata, "scid") || getString(row.metadata, "parchmentReference")
-  const patientProfileId = getString(row.metadata, "patient_profile_id") || getString(row.metadata, "partner_patient_id")
+  const patientProfileId = getParchmentAuditPatientId(row.metadata)
   const prescriberProfileId = getString(row.metadata, "prescriber_profile_id")
 
   if (row.action === "webhook_failed" && isParchmentPrescriptionFailure(row.metadata)) {
@@ -308,7 +311,9 @@ function mapParchmentOpsEvent(
       id: row.id,
       status: "success",
       label: "Webhook confirmed script sent",
-      detail: "Parchment fired prescription.created, InstantMed synced the script, and the PMS marked it sent.",
+      detail: row.metadata?.prescription_synced === true
+        ? "Script recorded and prescription history synced. Request completion is a separate doctor action."
+        : "Script recorded. Prescription history sync still needs confirmation.",
       createdAt: row.created_at,
       eventId,
       scid,
@@ -338,7 +343,9 @@ function mapParchmentOpsEvent(
       id: row.id,
       status: "info",
       label: "Duplicate webhook ignored",
-      detail: "InstantMed received a duplicate Parchment event and kept the existing synced record.",
+      detail: row.metadata?.prescription_synced === true
+        ? "Duplicate event received. Script evidence and prescription history are recorded."
+        : "Duplicate event received. Script evidence is recorded; prescription history sync still needs confirmation.",
       createdAt: row.created_at,
       eventId,
       scid,

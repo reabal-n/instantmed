@@ -137,6 +137,30 @@ describe("syncParchmentPrescriptionListToPms", () => {
     patientProfileId: "patient-profile-1", prescriberProfileId: null, scid: "SCID-1",
   }
 
+  it("finds an exact reference beyond the first page", async () => {
+    mocks.getPatientPrescriptions
+      .mockResolvedValueOnce({ prescriptions: [], pagination: { hasNext: true, lastKey: "page-2" } })
+      .mockResolvedValueOnce({ prescriptions: [{ scid: "SCID-1", item_name: "Test medicine" }] })
+    const db = makeSupabase()
+    expect(await syncParchmentPrescriptionToPms({ ...baseInput, supabase: db.client as never }))
+      .toMatchObject({ success: true })
+    expect(mocks.getPatientPrescriptions).toHaveBeenNthCalledWith(2, {
+      userId: baseInput.userId, patientId: baseInput.parchmentPatientId, limit: 50, lastKey: "page-2",
+    })
+    expect(db.rows).toHaveLength(1)
+  })
+
+  it("stops a repeated pagination cursor without writing an unrelated prescription", async () => {
+    mocks.getPatientPrescriptions.mockResolvedValue({
+      prescriptions: [{ scid: "unrelated" }], pagination: { hasNext: true, lastKey: "same-page" },
+    })
+    const db = makeSupabase()
+    expect(await syncParchmentPrescriptionToPms({ ...baseInput, supabase: db.client as never }))
+      .toEqual({ success: false, reason: "prescription_pagination_failed" })
+    expect(mocks.getPatientPrescriptions).toHaveBeenCalledTimes(2)
+    expect(db.rows).toHaveLength(0)
+  })
+
   it("refreshes medicine details without erasing the original doctor or request", async () => {
     const db = makeSupabase([verifiedRow])
     const result = await syncParchmentPrescriptionToPms({ ...baseInput, supabase: db.client as never })

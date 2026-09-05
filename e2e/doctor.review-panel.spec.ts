@@ -10,11 +10,13 @@ import { expect, type Page, test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import {
+  cleanupTestIntake,
   getIntakeById,
   getSupabaseClient,
   INTAKE_ID,
   isDbAvailable,
   resetIntakeForRetest,
+  seedTestIntake,
 } from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
@@ -186,6 +188,42 @@ test.describe("Doctor review cockpit", () => {
     await expect(cockpit.getByRole("region", { name: "Latest requests and notes" })).toBeVisible()
   })
 
+  test("saves notes while awaiting a script and before changing cases", async ({ page }) => {
+    const seed = await seedTestIntake({ status: "awaiting_script", category: "prescription" })
+    expect(seed.success, seed.error).toBe(true)
+    const intakeId = seed.intakeId!
+    const firstNote = "Synthetic review note saved while prescribing."
+    const finalNote = "Synthetic updated note saved before leaving this case."
+    try {
+      await page.goto("/dashboard")
+      await waitForPageLoad(page)
+      await page.getByTestId(`queue-row-${intakeId}`).getByRole("button", { name: /Open case for/i }).click()
+      const cockpit = page.getByTestId("intake-review-panel")
+      await expect(cockpit).toBeVisible({ timeout: E2E_DATA_TIMEOUT_MS })
+      await cockpit.getByRole("button", { name: /Draft note/ }).click()
+      const editor = cockpit.getByRole("textbox", { name: /^Draft clinical note/ }).first()
+      await editor.fill(firstNote)
+      const persistedNote = async () => {
+        const response = await page.request.get(`/api/doctor/intakes/${intakeId}/review-data`)
+        const data = await response.json()
+        return data.intake?.doctor_notes
+      }
+      await expect.poll(persistedNote).toContain(firstNote)
+      await editor.fill(finalNote)
+      // Leave before the debounce expires. Desktop switches inline; mobile
+      // closes with Escape through the sheet's current save guard.
+      if ((page.viewportSize()?.width ?? 0) < 1280) {
+        await page.keyboard.press("Escape")
+      } else {
+        await page.getByTestId(`queue-row-${INTAKE_ID}`).getByRole("button", { name: /Open case for/i }).click()
+      }
+      await expect.poll(persistedNote).toContain(finalNote)
+      expect((await getIntakeById(intakeId))?.status).toBe("awaiting_script")
+    } finally {
+      await cleanupTestIntake(intakeId)
+    }
+  })
+
   test("quick profile adds saved clinical context without repeating the active request", async ({ page }) => {
     const cockpit = await openSeededReviewCockpit(page)
     const activeIntake = await getIntakeById(INTAKE_ID)
@@ -200,7 +238,7 @@ test.describe("Doctor review cockpit", () => {
     })
     await expect(drawer.getByText("Asthma", { exact: true })).toBeVisible()
     await expect(drawer.getByText("Salbutamol", { exact: true })).toBeVisible()
-    await expect(drawer.getByText(/requests total · \d+ notes total/)).toBeVisible()
+    await expect(drawer.getByText(/requests? total · \d+ notes? total/)).toBeVisible()
     await expect(drawer.getByText("Recent activity", { exact: true })).toBeVisible()
     if (activeIntake?.reference_number) {
       await expect(drawer.getByText(activeIntake.reference_number, { exact: true })).toHaveCount(0)

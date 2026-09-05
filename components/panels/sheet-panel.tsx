@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode, useCallback, useEffect } from 'react'
 
 import { useReducedMotion } from '@/components/ui/motion'
 import { backdropVariants,sheetVariants } from '@/lib/motion/panel-variants'
@@ -28,7 +28,7 @@ import { usePanel } from './panel-provider'
 
 interface SheetPanelProps {
   children: ReactNode
-  onClose?: () => void
+  onClose?: () => void | boolean | Promise<void | boolean>
   side?: 'left' | 'right'
   width?: number | string
   title?: string
@@ -48,10 +48,10 @@ export function SheetPanel({
   const { closePanel } = usePanel()
   const prefersReducedMotion = useReducedMotion()
 
-  const handleClose = () => {
-    onClose?.()
+  const handleClose = useCallback(async () => {
+    if (await onClose?.() === false) return
     closePanel()
-  }
+  }, [closePanel, onClose])
 
   // Prevent body scroll when sheet is open — only on smaller screens where the sheet overlays content
   useEffect(() => {
@@ -73,7 +73,7 @@ export function SheetPanel({
     }
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [handleClose])
 
   const widthStyle = typeof width === 'number' ? `${width}px` : width
 

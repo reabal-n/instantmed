@@ -267,3 +267,49 @@ Contribution stays near 55–60% of net at every stage if CPA holds at $20–22 
 3. Scripts step cadence: +20% weekly under the gates, or the policy's +50% once?
 4. Priority review: honour or re-word?
 5. Weight management on 9 September: bounded organic program or shelve?
+## 2026-09-05 revenue leak investigation
+
+Fresh aggregate reads on 5 September, 18:20–18:45 Sydney time. This section supersedes earlier numeric snapshots in this audit for the current decision. Strategy, milestones and experiment gates remain owned by BUSINESS_PLAN, REVENUE_MODEL and ROADMAP; historical suggestions below are not additional approvals.
+
+### The revenue bridge
+
+All amounts are AUD. Complete Sydney days exclude 5 September's partial sales. Purchases enter at `paid_at`; refunds use the live AUD cash-movement ledger. Reporting exclusions and synthetic fixtures are excluded. Refund-ledger health is clear and there are no live disputes. The [aggregate evidence](2026-09-05-revenue-bridge.json) contains service rows and period boundaries without patient data.
+
+| Period ending 4 September | Orders | Gross | Refund cash | Retained revenue | Ads spend | Blended revenue/spend | Contribution after fees and Ads |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 1 day | 17 | $529.00 | $89.85 | $439.15 | $169.95 | 2.58x | $255.11 |
+| 7 days, 29 Aug–4 Sep | 63 | $2,036.35 | $134.70 | $1,901.65 | $907.15 | 2.10x | $941.03 |
+| Previous 7 days, 22–28 Aug | 82 | $2,775.00 | $149.65 | $2,625.35 | $961.77 | 2.73x | $1,589.46 |
+| 30 days, 6 Aug–4 Sep | 292 | $9,548.10 | $394.10 | $9,154.00 | $3,272.03 | 2.80x | $5,625.32 |
+
+Contribution excludes fixed overhead and an invented owner-doctor wage; this is not net profit. Fee receipts are used where present, with the existing 1.7% + 30c fallback for missing receipts. Blended revenue/spend includes organic, direct, referral and returning orders and must not be labelled paid ROAS. The separate paid-channel reader reports 7-day retained ROAS **1.28x versus 1.47x**, and 30-day **1.57x**, with 30-day paid contribution **$1,719.45**. That reader uses its existing campaign attribution and intake refund timing; the business cash ledger owns the top-line bridge above.
+
+For the alternative Monday–Friday comparison: 31 Aug–4 Sep retained **$1,507.25 on 52 orders**, versus **$2,046.45 on 62 orders** for 24–28 Aug, down 26.3%. The drop is not an incomplete-week comparison artefact.
+
+| Service | Previous 7-day orders | Latest orders | Previous retained | Latest retained | Revenue change |
+|---|---:|---:|---:|---:|---:|
+| Medical certificates | 35 | 21 | $998.20 | $543.95 | **−$454.25** |
+| Repeat prescriptions | 37 | 36 | $1,077.90 | $1,058.00 | −$19.90 |
+| ED | 4 | 2 | $229.65 | $109.85 | −$119.80 |
+| Women's health | 6 | 4 | $319.60 | $189.85 | −$129.75 |
+| Total | 82 | 63 | $2,625.35 | $1,901.65 | **−$723.70 (−27.6%)** |
+
+Certificates explain 62.8% of the decline. Orders fell 23.2%; gross average order value fell from $33.84 to $32.32. Refund cash fell $14.95 and softened the revenue decline rather than causing it. Prescription sales were broadly stable, so the post-prescribing completion incident is not established as the cause of this week's lost sales.
+
+### Where the loss sits
+
+- **Certificate referral purchases weakened.** Orders carrying `utm_source=chatgpt.com` fell 17 to 5, with gross revenue $474.15 to $124.75. This is observed attribution, not proof that ChatGPT reduced recommendations. Tracked ChatGPT certificate starts were 10 versus 11; this subset is too small and has different coverage from database purchases to assert a referral traffic collapse.
+- **Paid certificates converted less efficiently.** The complete click-ID plus UTM campaign join gives 7 to 2 orders and $214.65 to $54.90 retained revenue, while clicks increased 21 to 23 and spend stayed approximately $116–118. The narrower UTM-only read gives 6 to 2; use the complete campaign join for Ads decisions. Latest retained ROAS is **0.47x** before payment fees. This requires a focused query/landing/checkout review before more certificate spend; 23 clicks is not enough to diagnose a specific creative or keyword as the cause.
+- **Fewer people started certificate requests overall.** Exact-flow PostHog start cohorts were 53 to 37, with checkout progression 32/53 (60.4%) versus 23/37 (62.2%). The pre-checkout form did not show a new overall conversion collapse. Mobile event counts show the same lower volume; no single device failure is established. PostHog cohorts exclude `is_e2e` and are a tracked subset, not the accounting order total.
+- **Recorded checkout failures are smaller than last week.** Certificate failures affected 5 flows previously and 1 on 31 August. Repeat-prescription failures affected 4 flows in the latest week, including one `unknown` failure on 4 September. Keep that event category open for diagnosis; do not claim every checkout problem is fixed or assign the whole revenue gap to technical errors. No customer session replay or clinical payload was accessed.
+- **Specialty volume fell.** ED campaign clicks fell 33 to 22 but its campaign-attributed orders stayed 2; the service-level reduction includes non-ED-campaign sales. Women's health campaign clicks fell 40 to 37; service orders fell 6 to 4. Two recent Women's campaign purchases are repeat scripts, so its attribution-purity/graduation gate remains material.
+- **Hair remains a bounded losing pilot.** Fresh 30-day campaign evidence: $191.79 spent, 64 clicks, zero campaign-attributed orders. One total hair-loss order exists outside this campaign. Keep the existing 11 September checkpoint; prepare the pause proposal then if no retained campaign orders arrive.
+
+### Applied work and next gates
+
+1. **Fulfilment:** PR #520 includes retryable callback read errors, reference conflict protection, paginated exact-prescription recovery, valid audit patient links, truthful email outcomes with durable retry ownership, and draft saves while prescribing/before case navigation. Clinical completion remains explicit. Local unit verification: 7,111 tests passed; desktop/mobile integration verification and release receipts belong to the PR. No real prescription, patient status, email or refund was mutated during the investigation.
+2. **Commercial measurement:** refreshed the 1/7/30-day scorecard, matched weekday comparison, service bridge, campaign attribution and fee-aware contribution. Fresh operational reads show no unresolved prescribing queue; P95 review times remain watch-level for scripts (5.04h) and women's health (5.92h), with zero recorded 24h breaches in the evaluated cohort. Missing support/QA evidence is not declared green.
+3. **Scripts:** retain the approved $95/day step. Its 3 September change has not yet accumulated three complete post-change days. Do not stack another variable or treat `snapshot`'s unclassified tracking placeholder as the daily classified result; the latest delivered brief is GREEN, and new mutations still require the full fresh gate.
+4. **Search:** read-only GSC inspection completed. `/medical-certificate`, `/medical-certificate-online` and `/erectile-dysfunction` are indexed. `/prescriptions` and `/online-prescriptions` are discovered but not indexed. Both prescription pages return 200, self-canonicalise and allow indexing today. GSC Live Tests and indexing requests remain separate browser work; no request for indexing was submitted by the audit script. This is a growth constraint, not evidence for the certificate revenue decline.
+5. **Retention:** 5 refill reminders delivered and no `refill_reminder`-attributed paid reorder yet; 46 certificate reactivation emails delivered and one attributed order ($29.95). Recovery emails already account for 20 paid orders and $638.70 gross in the closed 30 days. Measure completed reorders and retained revenue; a delivered email is not retention success.
+6. **Pilot decisions:** retain the existing 9 September weight and 11 September hair review dates and Women's health's 20-order, margin, refund and attribution gates. Outreach remains deferred. No Ads changes or customer messages were sent.

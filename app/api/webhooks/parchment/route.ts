@@ -472,12 +472,17 @@ export async function POST(request: Request) {
     // Check if already processed (idempotency) or no intake found
     if (!claimed) {
       // Could be: (a) parchment_reference already set for this SCID, (b) manually marked sent, (c) no active prescribing intake
-      const { data: existingRow } = await supabase
+      const { data: existingRow, error: existingLookupError } = await supabase
         .from("intakes")
         .select("id, reference_number, status, payment_status, parchment_reference, script_sent, claimed_by, reviewing_doctor_id, reviewed_by, created_at")
         .eq("patient_id", patientProfileId)
         .eq("parchment_reference", scid)
         .maybeSingle()
+
+      if (existingLookupError) {
+        log.error("Parchment existing request lookup failed", { eventId: payload.event_id })
+        return NextResponse.json({ error: "Request lookup failed" }, { status: 503 })
+      }
 
       const existing = existingRow && (
         intakeCorrelation === undefined || existingRow.reference_number === intakeCorrelation

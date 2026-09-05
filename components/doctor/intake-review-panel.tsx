@@ -57,7 +57,7 @@ function SheetShell({
 }: {
   title: string
   description?: string
-  onClose?: () => void
+  onClose?: () => void | boolean | Promise<void | boolean>
   children: React.ReactNode
 }) {
   return (
@@ -72,7 +72,7 @@ function InlineShell({
 }: {
   title: string
   description?: string
-  onClose?: () => void
+  onClose?: () => void | boolean | Promise<void | boolean>
   children: React.ReactNode
 }) {
   // No chrome — the queue's split-pane already supplies the right-side
@@ -117,6 +117,7 @@ interface IntakeReviewPanelProps {
   inline?: boolean
   /** Updated queue-row revision used to refresh only the open review payload. */
   reviewRevision?: string | null
+  onBeforeLeaveChange?: (guard: (() => Promise<boolean>) | null) => void
 }
 
 type PreviewPatient = NonNullable<IntakeReviewPanelProps["previewIntake"]>["patient"]
@@ -171,6 +172,7 @@ export function IntakeReviewPanel({
   profileMode = "doctor",
   inline = false,
   reviewRevision,
+  onBeforeLeaveChange,
 }: IntakeReviewPanelProps) {
   useAuth()
   const { closePanel, openPanel } = usePanel()
@@ -256,6 +258,12 @@ export function IntakeReviewPanel({
     redFlagsAcknowledged,
     onActionComplete,
   })
+  const { flushNotes } = actions
+
+  useEffect(() => {
+    onBeforeLeaveChange?.(flushNotes)
+    return () => onBeforeLeaveChange?.(null)
+  }, [flushNotes, onBeforeLeaveChange])
 
   // Pre-fill clinical notes when data first loads.
   // setInitialNotes(notes, dbNotes) sets the baseline so auto-save only fires
@@ -321,12 +329,14 @@ export function IntakeReviewPanel({
   }, [reloadReviewData, shouldRefreshPendingFulfilment])
 
   // Handle panel close - release lock + log view duration
-  const handlePanelClose = useCallback(() => {
+  const handlePanelClose = useCallback(async () => {
+    if (!await flushNotes()) return false
     if (data) {
       logIntakeViewDuration(data.intake.id, viewStartTime.current)
       releaseLock()
     }
-  }, [data, releaseLock])
+    return true
+  }, [flushNotes, data, releaseLock])
 
   // --- Render ---
 

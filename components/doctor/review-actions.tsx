@@ -33,6 +33,7 @@ import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
+import { createNoteSaveQueue } from "@/lib/doctor/note-save-queue"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
@@ -89,6 +90,7 @@ export interface ReviewActionsState {
   handleStatusChange: (status: IntakeStatus) => Promise<void>
   handleDecline: () => Promise<void>
   handleSaveNotes: (nextNotes?: string) => Promise<void>
+  flushNotes: () => Promise<boolean>
   handleGenerateOrRegenerateNote: () => Promise<void>
   handleOpenParchmentPrescribe: () => void
   handleApprovePrescribedScript: () => Promise<void>
@@ -131,6 +133,17 @@ export function useReviewActions({
   // Tracks the last content successfully persisted to DB so we only auto-save diffs.
   const lastSavedNotesRef = useRef<string>("")
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const noteSaveQueueRef = useRef(createNoteSaveQueue(saveDoctorNotesAction))
+  const pendingNoteSavesRef = useRef(0)
+  const persistNotes = useCallback(async (id: string, notes: string) => {
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+    pendingNoteSavesRef.current++
+    try {
+      return await noteSaveQueueRef.current(id, notes)
+    } finally {
+      pendingNoteSavesRef.current--
+    }
+  }, [])
 
   // Load notes from server without triggering auto-save for unchanged content.
   // Generated drafts should stay draft-only until a doctor edits, saves, or approves.
@@ -165,7 +178,7 @@ export function useReviewActions({
 
   useEffect(() => {
     if (!intakeId) return
-    if (intakeStatus && ["approved", "completed", "awaiting_script"].includes(intakeStatus)) return
+    if (intakeStatus && ["approved", "completed"].includes(intakeStatus)) return
     if (doctorNotes === lastSavedNotesRef.current) return
 
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
@@ -174,7 +187,7 @@ export function useReviewActions({
       if (snapshot === lastSavedNotesRef.current) return
       setIsAutoSaving(true)
       try {
-        const result = await saveDoctorNotesAction(intakeId, snapshot)
+        const result = await persistNotes(intakeId, snapshot)
         if (result.success) {
           lastSavedNotesRef.current = snapshot
           setNoteSaved(true)
@@ -193,7 +206,33 @@ export function useReviewActions({
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
     }
-  }, [doctorNotes, intakeId, intakeStatus])
+  }, [doctorNotes, intakeId, intakeStatus, persistNotes])
+
+  const flushNotes = useCallback(async () => {
+    if (!intakeId || (doctorNotes === lastSavedNotesRef.current && pendingNoteSavesRef.current === 0)) return true
+    const result = await persistNotes(intakeId, doctorNotes)
+    if (!result.success) {
+      setAutoSaveError(true)
+      toast.error("Notes could not be saved. Keep this request open and retry.")
+      return false
+    }
+    lastSavedNotesRef.current = doctorNotes
+    setNoteSaved(true)
+    setSavedAt(new Date())
+    setAutoSaveError(false)
+    return true
+  }, [doctorNotes, intakeId, persistNotes])
+
+  useEffect(() => {
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (doctorNotes !== lastSavedNotesRef.current || isAutoSaving) {
+        event.preventDefault()
+        event.returnValue = ""
+      }
+    }
+    window.addEventListener("beforeunload", beforeUnload)
+    return () => window.removeEventListener("beforeunload", beforeUnload)
+  }, [doctorNotes, isAutoSaving])
 
   // ---- Helpers ----
 
@@ -297,7 +336,11 @@ export function useReviewActions({
         notesRef.current?.focus()
         return
       }
-      await saveDoctorNotesAction(intake.id, decisionNote)
+      const noteResult = await persistNotes(intake.id, decisionNote)
+      if (!noteResult.success) {
+        toast.error(noteResult.error || "Failed to save clinical notes")
+        return
+      }
       const result = await approveWithPreviewDataAction(intake.id, {
         startDate: editedData.startDate,
         endDate: editedData.endDate,
@@ -355,7 +398,7 @@ export function useReviewActions({
 
     startTransition(async () => {
       if ((status === "approved" || status === "awaiting_script") && decisionNote) {
-        const saveResult = await saveDoctorNotesAction(intake.id, decisionNote)
+        const saveResult = await persistNotes(intake.id, decisionNote)
         if (!saveResult.success) {
           toast.error(saveResult.error || "Failed to save clinical notes")
           return
@@ -400,7 +443,7 @@ export function useReviewActions({
     }
 
     startTransition(async () => {
-      const saveResult = await saveDoctorNotesAction(intake.id, decisionNote)
+      const saveResult = await persistNotes(intake.id, decisionNote)
       if (!saveResult.success) {
         toast.error(saveResult.error || "Failed to save clinical notes")
         return
@@ -419,6 +462,8 @@ export function useReviewActions({
         toast.success(
           result.emailNotification === "sent"
             ? "Prescription approved and patient notified"
+            : result.emailNotification === "queued"
+              ? "Prescription approved. Patient notification is queued."
             : result.emailNotification === "failed"
               ? "Prescription approved. Patient notification needs follow-up."
               : "Prescription approved",
@@ -486,7 +531,7 @@ export function useReviewActions({
       setDoctorNotes(nextNotes)
     }
     startTransition(async () => {
-      const result = await saveDoctorNotesAction(intake.id, notesToSave)
+      const result = await persistNotes(intake.id, notesToSave)
       if (result.success) {
         lastSavedNotesRef.current = notesToSave
         setNoteSaved(true)
@@ -603,6 +648,7 @@ export function useReviewActions({
     handleStatusChange,
     handleDecline,
     handleSaveNotes,
+    flushNotes,
     handleGenerateOrRegenerateNote,
     handleOpenParchmentPrescribe,
     handleApprovePrescribedScript,

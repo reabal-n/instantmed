@@ -184,18 +184,29 @@ export async function syncParchmentPrescriptionToPms(
     return { success: false, reason: "e2e_prescription_sync_skipped" }
   }
 
-  const response = await getPatientPrescriptions({
-    userId: input.userId,
-    patientId: input.parchmentPatientId,
-    limit: 20,
-  })
-
-  const prescription = response.prescriptions.find((candidate) => candidate.scid === input.scid)
-  if (!prescription) {
-    return { success: false, reason: "prescription_not_found" }
+  const seenCursors = new Set<string>()
+  let lastKey: string | undefined
+  // Bound provider work while allowing recovery of older prescriptions.
+  for (let page = 0; page < 10; page++) {
+    const response = await getPatientPrescriptions({
+      userId: input.userId,
+      patientId: input.parchmentPatientId,
+      limit: 50,
+      ...(lastKey ? { lastKey } : {}),
+    })
+    const prescription = response.prescriptions.find((candidate) => candidate.scid === input.scid)
+    if (prescription) return upsertParchmentPrescriptionToPms(input, prescription)
+    if (!response.pagination?.hasNext) {
+      return { success: false, reason: "prescription_not_found" }
+    }
+    const nextKey = response.pagination.lastKey
+    if (!nextKey || seenCursors.has(nextKey)) {
+      return { success: false, reason: "prescription_pagination_failed" }
+    }
+    seenCursors.add(nextKey)
+    lastKey = nextKey
   }
-
-  return upsertParchmentPrescriptionToPms(input, prescription)
+  return { success: false, reason: "prescription_search_limit_reached" }
 }
 
 export async function syncParchmentPrescriptionListToPms(

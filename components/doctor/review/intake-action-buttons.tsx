@@ -699,6 +699,8 @@ function MarkSentManuallyButton({
         reset()
         if (result.emailNotification === "failed" || result.emailNotification === "skipped_no_patient") {
           toast.warning("Script marked sent, but the patient could not be emailed. Contact them directly.")
+        } else if (result.emailNotification === "queued") {
+          toast.info("Script recorded. Patient notification is queued.")
         }
         const refreshed = await reloadReviewData({ background: true })
         if (!refreshed) {
