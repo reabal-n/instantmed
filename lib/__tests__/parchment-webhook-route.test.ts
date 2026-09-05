@@ -16,6 +16,9 @@ const mocks = vi.hoisted(() => ({
   getPatientPrescriptions: vi.fn(),
   state: {
     candidateRows: [] as Array<Record<string, unknown>>,
+    correlatedPatientProfileId: null as string | null,
+    correlatedPatientLookupError: false,
+    partnerPatientProfileId: "",
     patientProfileFound: true,
     prescriptionUpserts: [] as Array<Record<string, unknown>>,
     prescriberRows: [] as Array<{ id: string }>,
@@ -104,11 +107,24 @@ function createQuery(table: string, operation: "select" | "update") {
     },
     limit() {
       return Promise.resolve({
-        data: mocks.state.candidateRows,
+        data: filters.patient_id && filters.patient_id !== PATIENT_PROFILE_ID
+          ? []
+          : mocks.state.candidateRows,
         error: null,
       })
     },
     maybeSingle() {
+      if (table === "intakes" && operation === "select" && filters["patient.parchment_patient_id"]) {
+        return Promise.resolve({
+          data: mocks.state.correlatedPatientProfileId && mocks.state.candidateRows.some(
+            (row) => row.reference_number === filters.reference_number,
+          )
+            ? { patient_id: mocks.state.correlatedPatientProfileId }
+            : null,
+          error: mocks.state.correlatedPatientLookupError ? { message: "Database unavailable" } : null,
+        })
+      }
+
       if (table === "intakes" && operation === "update") {
         return Promise.resolve({ data: { id: INTAKE_ID, parchment_reference: SCID }, error: null })
       }
@@ -126,8 +142,8 @@ function createQuery(table: string, operation: "select" | "update") {
         return Promise.resolve({ data: null, error: { message: "not found" } })
       }
 
-      if (table === "profiles" && filters.id === PATIENT_PROFILE_ID && mocks.state.patientProfileFound) {
-        return Promise.resolve({ data: { id: PATIENT_PROFILE_ID }, error: null })
+      if (table === "profiles" && filters.id === mocks.state.partnerPatientProfileId && mocks.state.patientProfileFound) {
+        return Promise.resolve({ data: { id: mocks.state.partnerPatientProfileId }, error: null })
       }
 
       return Promise.resolve({ data: null, error: { message: "not found" } })
@@ -161,7 +177,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
 function makeWebhookRequest(metadata?: Record<string, unknown> | null) {
   const payload = {
     data: {
-      partner_patient_id: PATIENT_PROFILE_ID,
+      partner_patient_id: mocks.state.partnerPatientProfileId,
       patient_id: "parchment-patient-1",
       scid: SCID,
       user_id: "parchment-user-1",
@@ -211,6 +227,9 @@ describe("Parchment webhook route", () => {
     })
     mocks.getIntakeWithDetails.mockResolvedValue(null)
     mocks.state.patientProfileFound = true
+    mocks.state.correlatedPatientProfileId = PATIENT_PROFILE_ID
+    mocks.state.correlatedPatientLookupError = false
+    mocks.state.partnerPatientProfileId = PATIENT_PROFILE_ID
     mocks.state.prescriptionUpserts = []
     mocks.state.prescriberRows = [{ id: PRESCRIBER_PROFILE_ID }]
     mocks.state.candidateRows = [
@@ -311,6 +330,51 @@ describe("Parchment webhook route", () => {
       "intake_correlation_mismatch",
       expect.any(Object),
     )
+  })
+
+  it("records the exact request when a shared Parchment link echoes an older partner profile", async () => {
+    // The external ID lookup is ambiguous, and partner_patient_id still names
+    // the older guest profile. The request belongs to the other linked profile.
+    mocks.state.partnerPatientProfileId = "55555555-5555-4555-8555-555555555555"
+    mocks.state.correlatedPatientProfileId = PATIENT_PROFILE_ID
+
+    const response = await POST(makeWebhookRequest({ reserved_1: "IM-20260501-ABC123" }))
+
+    expect(await response.json()).toEqual({ received: true })
+    expect(mocks.updateScriptSent).toHaveBeenCalledWith(
+      INTAKE_ID,
+      true,
+      "Webhook event: evt_route_1",
+      SCID,
+      PRESCRIBER_PROFILE_ID,
+      { externalEvidenceAlreadyIssued: true },
+    )
+    expect(mocks.state.prescriptionUpserts[0]).toMatchObject({
+      patient_id: PATIENT_PROFILE_ID,
+      intake_id: INTAKE_ID,
+    })
+    expect(mocks.logWebhookFailure).not.toHaveBeenCalled()
+  })
+
+  it("returns a retryable error when the correlated patient lookup fails", async () => {
+    mocks.state.correlatedPatientLookupError = true
+
+    const response = await POST(makeWebhookRequest({ reserved_1: "IM-20260501-ABC123" }))
+
+    expect(response.status).toBe(500)
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+    expect(mocks.getPatientPrescriptions).not.toHaveBeenCalled()
+    expect(mocks.state.prescriptionUpserts).toHaveLength(0)
+  })
+
+  it("does not fall back to the partner profile when the correlated patient's external link does not match", async () => {
+    mocks.state.correlatedPatientProfileId = null
+
+    const response = await POST(makeWebhookRequest({ reserved_1: "IM-20260501-ABC123" }))
+
+    expect(await response.json()).toEqual({ received: true, warning: "No matching request correlation found" })
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+    expect(mocks.getPatientPrescriptions).not.toHaveBeenCalled()
   })
 
   it("syncs an explicitly standalone patient-profile prescription without claiming an intake", async () => {
