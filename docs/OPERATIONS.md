@@ -558,6 +558,12 @@ For every job in `CRITICAL_CRONS`, a heartbeat is a **terminal outcome**, not pr
 
 ---
 
+## Google Ads adjustment reconciliation
+
+`google_ads_conversion_adjustment_claim_health` separates actionable discrepancies from historical reporting differences. A succeeded zero adjustment is historical-only when the exact cash ledger still says zero and the sole difference is today's A$0.01 Ads floor. Any reinstated cash, even one cent, or missing exact-cash evidence remains blocking. An older `resolved_not_counted` zero claim also satisfies that floor-only difference when its known completion follows the latest successful upload; unresolved newer generations do not inherit it.
+
+For legacy targets without claims, a latest production adjustment `CONVERSION_NOT_FOUND` can establish non-counting only when it was observed more than 72 hours after the latest successful production upload and its exact zero target still matches current cash. A later successful upload invalidates the older absence evidence. An expired conversion window, an early miss, or a missing claim alone never proves resolution. Historical-only counts remain in the cron response as `adjustment_historical_*`; actionable expiry is `adjustment_expired_targets`. These read-time classifications do not create claims, change cash, or send conversions to Google. Verify with `bash scripts/test-google-ads-adjustment-health-db.sh`.
+
 ## Google Ads Data Manager Rollout — Proof Chain + Hardening (2026-06-30)
 
 The Google Data Manager API purchase-upload path ([apps#234](https://github.com/reabal-n/instantmed/pull/234), merged `bac7865f26e48ae5612de07d1fb8ee45d6626400`) is **proven live in production**. Canonical proof for the rollout gate (see Production Launch Checklist §4):

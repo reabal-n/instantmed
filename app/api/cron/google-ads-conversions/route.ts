@@ -278,7 +278,9 @@ export async function GET(request: NextRequest) {
       .from("google_ads_conversion_adjustment_claim_health")
       .select(
         "unknown_outcome_count, expired_reservation_count, irreversible_zero_count, " +
-        "stale_pending_count, expired_conversion_target_count, oldest_uncertain_at",
+        "stale_pending_count, expired_conversion_target_count, oldest_uncertain_at, " +
+        "legacy_zero_floor_only_count, legacy_not_counted_floor_only_count, " +
+        "legacy_post_grace_not_counted_count",
       )
       .single()
     if (claimHealth.error) {
@@ -290,6 +292,9 @@ export async function GET(request: NextRequest) {
       stale_pending_count: number | string | null
       expired_conversion_target_count: number | string | null
       unknown_outcome_count: number | string | null
+      legacy_zero_floor_only_count: number | string | null
+      legacy_not_counted_floor_only_count: number | string | null
+      legacy_post_grace_not_counted_count: number | string | null
     } | null
     const uncertainAdjustmentCount = Number(adjustmentHealth?.unknown_outcome_count ?? 0) +
       Number(adjustmentHealth?.expired_reservation_count ?? 0)
@@ -298,11 +303,21 @@ export async function GET(request: NextRequest) {
     const expiredConversionTargetCount = Number(
       adjustmentHealth?.expired_conversion_target_count ?? 0,
     )
+    const historicalZeroFloorOnlyCount = Number(adjustmentHealth?.legacy_zero_floor_only_count ?? 0)
+    const historicalNotCountedFloorOnlyCount = Number(
+      adjustmentHealth?.legacy_not_counted_floor_only_count ?? 0,
+    )
+    const historicalPostGraceNotCountedCount = Number(
+      adjustmentHealth?.legacy_post_grace_not_counted_count ?? 0,
+    )
     if (
       !Number.isFinite(uncertainAdjustmentCount) ||
       !Number.isFinite(blockedLegacyZeroCount) ||
       !Number.isFinite(stalePendingAdjustmentCount) ||
-      !Number.isFinite(expiredConversionTargetCount)
+      !Number.isFinite(expiredConversionTargetCount) ||
+      !Number.isFinite(historicalZeroFloorOnlyCount) ||
+      !Number.isFinite(historicalNotCountedFloorOnlyCount) ||
+      !Number.isFinite(historicalPostGraceNotCountedCount)
     ) {
       throw new Error("Google Ads adjustment claim health returned invalid counts")
     }
@@ -413,6 +428,10 @@ export async function GET(request: NextRequest) {
       adjustment_failed: adjustmentFailed.length,
       adjustment_uncertain: uncertainAdjustmentCount,
       adjustment_blocked_legacy_zero: blockedLegacyZeroCount,
+      adjustment_expired_targets: expiredConversionTargetCount,
+      adjustment_historical_zero_floor_only: historicalZeroFloorOnlyCount,
+      adjustment_historical_not_counted_floor_only: historicalNotCountedFloorOnlyCount,
+      adjustment_historical_post_grace_not_counted: historicalPostGraceNotCountedCount,
       adjustment_stale_pending: stalePendingAdjustmentCount,
       upload_job_ids: uploadJobIds,
       batch_limit: BATCH_LIMIT,
