@@ -26,16 +26,18 @@ docker run --detach --rm \
   postgres:15-alpine >/dev/null
 DB_CONTAINER_STARTED=true
 
+# The initialization server listens on a Unix socket only. TCP readiness waits
+# for the final server, avoiding a false positive just before init shutdown.
 for _attempt in $(seq 1 80); do
-  if docker exec "$DB_CONTAINER" pg_isready -U postgres -d postgres >/dev/null 2>&1; then
+  if docker exec "$DB_CONTAINER" pg_isready -h 127.0.0.1 -U postgres -d postgres >/dev/null 2>&1; then
     break
   fi
   sleep 0.25
 done
-docker exec "$DB_CONTAINER" pg_isready -U postgres -d postgres >/dev/null
+docker exec "$DB_CONTAINER" pg_isready -h 127.0.0.1 -U postgres -d postgres >/dev/null
 
 run_psql() {
-  docker exec -i "$DB_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres "$@"
+  docker exec -i "$DB_CONTAINER" psql -h 127.0.0.1 -v ON_ERROR_STOP=1 -U postgres -d postgres "$@"
 }
 
 run_psql <<'SQL'
