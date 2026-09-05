@@ -143,6 +143,11 @@ jobs:
       - name: Run unit tests with coverage
         run: pnpm test --run --coverage
 
+      - name: Resend database ordering and schema compatibility
+        run: |
+          bash scripts/test-resend-webhook-mirrors-db.sh
+          bash scripts/test-resend-webhook-mirrors-db.sh --legacy-delivery
+
       - name: Check design token compliance
         run: bash scripts/verify-tokens.sh
 

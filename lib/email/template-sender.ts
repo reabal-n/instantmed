@@ -68,6 +68,8 @@ interface SendResult {
   success: boolean
   emailId?: string
   error?: string
+  /** The exact durable attempt failed at the provider and needs audited rescue. */
+  terminalExisting?: boolean
 }
 
 type RefundEmailParams = {
@@ -276,6 +278,19 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
           initialStatus: "sending",
         })
 
+        if (pending.persistenceUnavailable) {
+          return { success: false, error: "Unable to confirm the existing email attempt" }
+        }
+
+        if (pending.providerTerminal) {
+          return {
+            success: false,
+            emailId: pending.id ?? undefined,
+            error: "The existing provider attempt failed and requires a new audited send",
+            terminalExisting: true,
+          }
+        }
+
         if (pending.duplicate) {
           log.info("Template email suppressed by idempotency guard", {
             templateSlug,
@@ -418,8 +433,31 @@ export async function reserveRefundEmail(params: RefundEmailParams): Promise<Sen
     to_email: params.to,
     to_name: params.patientName,
   })
-  if (!pending.id) {
+  if (!pending.id || pending.persistenceUnavailable) {
     return { success: false, error: "Unable to reserve a durable refund email" }
+  }
+  if (pending.providerTerminal) {
+    const error = "The refund notice provider attempt failed and requires audited resend"
+    log.error("Refund notice has a provider-terminal outbox attempt", {
+      intakeId: params.intakeId,
+      outboxId: pending.id,
+    })
+    try {
+      const Sentry = await import("@sentry/nextjs")
+      Sentry.captureMessage("Refund notice requires audited resend", {
+        level: "error",
+        tags: { subsystem: "refund-notification" },
+        extra: { intakeId: params.intakeId, outboxId: pending.id },
+      })
+    } catch {
+      // The durable terminal row remains visible to operations.
+    }
+    return {
+      success: false,
+      emailId: pending.id,
+      error,
+      terminalExisting: true,
+    }
   }
   return { success: true, emailId: pending.id }
 }

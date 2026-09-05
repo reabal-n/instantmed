@@ -35,7 +35,14 @@ const REQUIRED_SCHEMA = {
     "parchment_patient_id",
   ],
   intakes: ["id", "patient_id", "service_id", "status", "claimed_by", "claimed_at"],
-  intake_answers: ["id", "intake_id", "answers"],
+  intake_answers: [
+    "id",
+    "intake_id",
+    "answers",
+    "answers_encrypted",
+    "encryption_metadata",
+  ],
+  patient_notes: ["id", "patient_id", "created_by", "created_by_name"],
   audit_logs: ["id", "action", "actor_id", "created_at"],
 } as const
 

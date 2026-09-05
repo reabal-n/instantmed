@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
+import { isProviderUndeliveredStatus } from "@/lib/email/delivery-status"
 import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
 
 const DEFAULT_LOOKBACK_DAYS = 180
@@ -240,6 +241,8 @@ function successfulScriptEmailAt(emails: ScriptSentEmailRow[]): string | null {
     const deliveryStatus = email.delivery_status?.toLowerCase()
     const status = email.status?.toLowerCase()
 
+    if (isProviderUndeliveredStatus(deliveryStatus)) return false
+
     return Boolean(
       email.sent_at ||
         status === "sent" ||
@@ -262,7 +265,8 @@ function scriptEmailNotificationStatus(emails: ScriptSentEmailRow[]): ScriptSent
   const hasFailed = emails.some((email) => {
     const deliveryStatus = email.delivery_status?.toLowerCase()
     const status = email.status?.toLowerCase()
-    return status === "failed" || deliveryStatus === "bounced" || deliveryStatus === "complained"
+    if (deliveryStatus === "complained") return false
+    return status === "failed" || isProviderUndeliveredStatus(deliveryStatus)
   })
   if (hasFailed) return "failed"
 

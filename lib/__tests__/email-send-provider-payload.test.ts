@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   createPendingOutbox: vi.fn(),
   createServiceRoleClient: vi.fn(),
   fetch: vi.fn(),
+  outboxRead: vi.fn(),
   isEmailSuppressed: vi.fn(),
   renderEmailToHtml: vi.fn(),
   updateOutboxStatus: vi.fn(),
@@ -47,7 +48,7 @@ vi.mock("@/lib/email/warmup", () => ({
 }))
 
 vi.mock("@/lib/monitoring/delivery-tracking", () => ({
-  recordDeliverySent: vi.fn(),
+  recordDeliverySent: vi.fn().mockResolvedValue(undefined),
 }))
 
 import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
@@ -60,7 +61,8 @@ describe("email provider payload replay", () => {
     vi.stubGlobal("fetch", mocks.fetch)
     mocks.isEmailSuppressed.mockResolvedValue(false)
     mocks.renderEmailToHtml.mockResolvedValue("<p>Private certificate email</p>")
-    mocks.updateOutboxStatus.mockResolvedValue(undefined)
+    mocks.updateOutboxStatus.mockResolvedValue(true)
+    mocks.outboxRead.mockResolvedValue({ data: null, error: { message: "database unavailable" } })
     mocks.createPendingOutbox.mockImplementation(async (entry: {
       metadata?: Record<string, unknown>
     }) => ({
@@ -71,7 +73,12 @@ describe("email provider payload replay", () => {
     }))
     let certificateQuery = 0
     mocks.createServiceRoleClient.mockReturnValue({
-      from: vi.fn(() => {
+      from: vi.fn((table: string) => {
+        if (table === "email_outbox") {
+          const chain: Record<string, unknown> = { maybeSingle: mocks.outboxRead }
+          for (const method of ["select", "eq"]) chain[method] = vi.fn(() => chain)
+          return chain
+        }
         const queryIndex = certificateQuery++
         const chain: Record<string, unknown> = {}
         for (const method of ["select", "eq", "order", "limit"]) {
@@ -94,6 +101,36 @@ describe("email provider payload replay", () => {
         return chain
       }),
     })
+  })
+
+  it("keeps an unavailable reclaim read-back retryable without another provider call", async () => {
+    mocks.createPendingOutbox.mockResolvedValue({ id: "outbox-1", duplicate: true, persistenceUnavailable: true })
+    expect(await sendEmail({
+      to: "patient@example.test", subject: "Your certificate", template: {} as React.ReactElement,
+      emailType: "med_cert_patient", certificateId: "33333333-3333-4333-8333-333333333333",
+    })).toMatchObject({ success: false, retryable: true, outboxId: "outbox-1" })
+    expect(mocks.fetch).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ["unavailable persistence", null, false, true],
+    ["already sent matching attempt", { status: "sent", provider_message_id: "provider-message-1" }, true, undefined],
+    ["confirmed terminal attempt", { status: "failed", delivery_status: "bounced", provider_message_id: "provider-message-1" }, false, false],
+    ["different provider attempt", { status: "sent", provider_message_id: "other-message" }, false, true],
+  ])("classifies provider acceptance after %s", async (_label, persisted, success, retryable) => {
+    mocks.fetch.mockResolvedValue(new Response(JSON.stringify({ id: "provider-message-1" }), { status: 200 }))
+    mocks.updateOutboxStatus.mockResolvedValue(false)
+    mocks.outboxRead.mockResolvedValue({ data: persisted, error: persisted ? null : { message: "database unavailable" } })
+    const result = await sendEmail({
+      to: "patient@example.test", subject: "Your certificate",
+      template: {} as React.ReactElement, emailType: "med_cert_patient",
+      certificateId: "33333333-3333-4333-8333-333333333333",
+      metadata: { resend_attempt_id: "44444444-4444-4444-8444-444444444444" },
+    })
+    expect(result.success).toBe(success)
+    expect(result.retryable).toBe(retryable)
+    expect(mocks.fetch).toHaveBeenCalledTimes(1)
+    expect(mocks.updateOutboxStatus).not.toHaveBeenCalledWith("outbox-1", "failed", expect.anything())
   })
 
   it("sends the exact encrypted outbox payload and marks a 4xx rejection terminal", async () => {
@@ -156,5 +193,24 @@ describe("email provider payload replay", () => {
       error_message: "Certificate email belongs to an older document version",
       attempts: 10,
     })
+  })
+
+  it("does not report a direct certificate send when provider success loses the sent-state CAS", async () => {
+    mocks.fetch.mockResolvedValue(new Response(JSON.stringify({ id: "provider-message-1" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }))
+    mocks.updateOutboxStatus.mockResolvedValueOnce(false)
+
+    const result = await sendEmail({
+      to: "patient@example.test",
+      subject: "Your certificate",
+      template: {} as React.ReactElement,
+      emailType: "med_cert_patient",
+      certificateId: "33333333-3333-4333-8333-333333333333",
+      metadata: { certificate_storage_version: getEmployerCertificateStorageVersion("certificates/current.pdf") },
+    })
+
+    expect(result).toMatchObject({ success: false, retryable: true })
   })
 })

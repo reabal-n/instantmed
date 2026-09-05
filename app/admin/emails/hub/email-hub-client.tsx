@@ -36,6 +36,7 @@ import {
   STAFF_EMAILS_HREF,
   STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
+import { isProviderTerminalDeliveryStatus } from "@/lib/email/delivery-status"
 import { isNonActionableEmailFailure } from "@/lib/email/quiet-failures"
 import { EMAIL_SEQUENCES } from "@/lib/email/sequence-registry"
 import { formatTimeAgo } from "@/lib/format"
@@ -109,7 +110,7 @@ function EmailStatusPill({
   status: EmailOutboxLedgerRow["status"] | string
   deliveryStatus?: string | null
 }) {
-  const resolvedStatus = deliveryStatus === "bounced" || deliveryStatus === "complained"
+  const resolvedStatus = isProviderTerminalDeliveryStatus(deliveryStatus)
     ? deliveryStatus
     : status
 
@@ -118,7 +119,7 @@ function EmailStatusPill({
     dotColor = "bg-emerald-500"
   } else if (["pending", "sending"].includes(resolvedStatus)) {
     dotColor = "bg-amber-500"
-  } else if (["failed", "bounced", "complained"].includes(resolvedStatus)) {
+  } else if (["failed", "suppressed", "bounced", "complained"].includes(resolvedStatus)) {
     dotColor = "bg-red-500"
   }
 
@@ -154,11 +155,16 @@ function canRetryEmailActivity(item: RecentEmailActivity): boolean {
   return (
     hasRetryableEmailStatus(item.status) &&
     item.retryCount < MAX_OUTBOX_RETRY_COUNT &&
+    !isProviderTerminalDeliveryStatus(item.deliveryStatus) &&
     !isNonActionableEmailFailure(getQuietFailureActivityRow(item))
   )
 }
 
 function getNonRetryableEmailActivityLabel(item: RecentEmailActivity): string | null {
+  if (isProviderTerminalDeliveryStatus(item.deliveryStatus)) {
+    return "New attempt required"
+  }
+
   if (isNonActionableEmailFailure(getQuietFailureActivityRow(item))) {
     return "Terminal"
   }
@@ -174,11 +180,16 @@ function canRetryOutboxLedgerRow(row: EmailOutboxLedgerRow): boolean {
   return (
     hasRetryableEmailStatus(row.status) &&
     row.retry_count < MAX_OUTBOX_RETRY_COUNT &&
+    !isProviderTerminalDeliveryStatus(row.delivery_status) &&
     !isNonActionableEmailFailure(row)
   )
 }
 
 function getNonRetryableOutboxLedgerLabel(row: EmailOutboxLedgerRow): string | null {
+  if (isProviderTerminalDeliveryStatus(row.delivery_status)) {
+    return "New attempt required"
+  }
+
   if (isNonActionableEmailFailure(row)) {
     return "Terminal"
   }

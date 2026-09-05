@@ -293,6 +293,21 @@ describe("Google Ads Agent daily brief", () => {
     ].join("\n"))
   })
 
+  it("makes an operational pause proposal specific without exposing case detail", () => {
+    const { snapshot } = briefFixture()
+    const message = formatDailyAdsBrief(snapshot, [{
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_status",
+      reasonCodes: ["QUEUE_P95_AT_OR_OVER_6H"],
+      service: "ed",
+    }])
+
+    expect(message).toContain(
+      "Action: ED · campaign pause/enable · Manual-review P95 is at least 6 hours",
+    )
+    expect(message).not.toMatch(/patient|request id|doctor/i)
+  })
+
   it.each([
     {
       copy: "Zero retained orders after the specialty click checkpoint",

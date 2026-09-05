@@ -21,6 +21,7 @@ import { env } from "@/lib/config/env"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { getEmployerCertificateStorageVersion } from "@/lib/crypto/employer-certificate-token"
 import { signEmailUnsubscribeToken, signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import { isProviderTerminalDeliveryStatus } from "@/lib/email/delivery-status"
 import { finalizeOutboxSequenceDisposition } from "@/lib/email/outbox-disposition"
 import {
   evaluatePartialIntakeRecoveryPolicy,
@@ -119,6 +120,33 @@ function lifecycleTransientRetryAt(emailType: EmailType): string {
 // ============================================
 // MAIN SEND FUNCTION
 // ============================================
+
+/** A missed compare-and-set is not evidence that the provider failed. */
+async function persistAcceptedOutboxSend(
+  outboxId: string,
+  providerMessageId: string | undefined,
+  attempts: number,
+): Promise<"sent" | "unavailable" | "provider_terminal"> {
+  try {
+    if (await updateOutboxStatus(outboxId, "sent", {
+      provider_message_id: providerMessageId,
+      attempts,
+    })) return "sent"
+
+    const { data, error } = await createServiceRoleClient()
+      .from("email_outbox")
+      .select("status, provider_message_id, delivery_status")
+      .eq("id", outboxId)
+      .maybeSingle()
+    if (error || !data || !providerMessageId || data.provider_message_id !== providerMessageId) {
+      return "unavailable"
+    }
+    if (isProviderTerminalDeliveryStatus(data.delivery_status)) return "provider_terminal"
+    return data.status === "sent" ? "sent" : "unavailable"
+  } catch {
+    return "unavailable"
+  }
+}
 
 export async function sendEmail(params: SendEmailParams): Promise<SendEmailResult> {
   const {
@@ -478,6 +506,42 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   })
   const outboxId = outboxResult.id
 
+  if (outboxResult.persistenceUnavailable) {
+    return {
+      success: false,
+      error: "Outbox attempt state is temporarily unavailable",
+      outboxId: outboxId || undefined,
+      retryable: true,
+      ...(isLifecyclePolicyEmailType(emailType)
+        ? { outcome: { kind: "transiently_blocked" as const, reason: "outbox_sent_persistence_failed" } }
+        : {}),
+    }
+  }
+
+  if (outboxResult.providerTerminal) {
+    const error = "Provider-terminal email attempt requires a new send attempt"
+    logger.error("[Email] Exact outbox attempt is provider-terminal", {
+      emailType,
+      outboxId,
+    })
+    return {
+      success: false,
+      error,
+      outboxId: outboxId || undefined,
+      retryable: false,
+      ...(isLifecyclePolicyEmailType(emailType)
+        ? {
+            outcome: {
+              kind: "provider_failed" as const,
+              error,
+              retryable: false,
+              ...(outboxId ? { outboxId } : {}),
+            },
+          }
+        : {}),
+    }
+  }
+
   // Short-circuit on deferred send: we leave the row in pending state with
   // scheduled_for set; the dispatcher will pick it up on the next tick after
   // the schedule lapses. Returns success so the caller's UX flow continues.
@@ -815,11 +879,8 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       // TWO-PHASE WRITE: update the durable delivery record. Lifecycle-policy
       // emails refuse to finalize their source marker unless this write
       // succeeds; provider idempotency can heal an ambiguous attempt.
-      const sentPersisted = await updateOutboxStatus(outboxId, "sent", {
-        provider_message_id: data.id,
-        attempts: attempt + 1,
-      })
-      if (isLifecyclePolicyEmailType(emailType) && !sentPersisted) {
+      const sentPersistence = await persistAcceptedOutboxSend(outboxId, data.id, attempt + 1)
+      if (sentPersistence !== "sent") {
         logger.error("[Email] Provider accepted email but sent status was not persisted", {
           outboxId,
           emailType,
@@ -833,11 +894,19 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
           success: false,
           error: "Provider accepted delivery but outbox sent status was not persisted",
           outboxId,
-          retryable: true,
-          outcome: {
-            kind: "transiently_blocked",
-            reason: "outbox_sent_persistence_failed",
-          },
+          retryable: sentPersistence === "unavailable",
+          ...(isLifecyclePolicyEmailType(emailType)
+            ? {
+                outcome: sentPersistence === "unavailable"
+                ? { kind: "transiently_blocked" as const, reason: "outbox_sent_persistence_failed" }
+                : {
+                  kind: "provider_failed" as const,
+                  error: "Provider accepted delivery but the provider-terminal outbox state won",
+                  retryable: false,
+                  outboxId,
+                },
+              }
+            : {}),
         }
       }
 
@@ -1503,6 +1572,15 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
   retryable?: boolean
   outcome?: CommunicationOutcome
 }> {
+  if (isProviderTerminalDeliveryStatus(row.delivery_status)) {
+    const error = "Provider-terminal email attempt requires a new send attempt"
+    await updateOutboxStatus(row.id, "failed", {
+      error_message: error,
+      attempts: EMAIL_DISPATCHER_MAX_RETRIES,
+    })
+    return { success: false, error, retryable: false }
+  }
+
   const apiKey = env.resendApiKey
   if (!apiKey) {
     logger.warn("[Email Dispatcher] No API key, skipping", { outboxId: row.id })
@@ -1886,11 +1964,8 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       messageId: data.id,
     })
 
-    const sentPersisted = await updateOutboxStatus(row.id, "sent", {
-      provider_message_id: data.id,
-      attempts: row.retry_count + 1,
-    })
-    if (isLifecyclePolicyEmailType(row.email_type) && !sentPersisted) {
+    const sentPersistence = await persistAcceptedOutboxSend(row.id, data.id, row.retry_count + 1)
+    if (sentPersistence !== "sent") {
       logger.error("[Email Dispatcher] Provider success was not persisted", {
         outboxId: row.id,
         emailType: row.email_type,
@@ -1906,11 +1981,19 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{
       return {
         success: false,
         error: "Provider accepted delivery but outbox sent status was not persisted",
-        retryable: true,
-        outcome: {
-          kind: "transiently_blocked",
-          reason: "outbox_sent_persistence_failed",
-        },
+        retryable: sentPersistence === "unavailable",
+        ...(isLifecyclePolicyEmailType(row.email_type)
+          ? {
+              outcome: sentPersistence === "unavailable"
+                ? { kind: "transiently_blocked" as const, reason: "outbox_sent_persistence_failed" }
+                : {
+                kind: "provider_failed" as const,
+                error: "Provider accepted delivery but the provider-terminal outbox state won",
+                retryable: false,
+                outboxId: row.id,
+              },
+            }
+          : {}),
       }
     }
 

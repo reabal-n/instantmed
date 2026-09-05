@@ -252,24 +252,55 @@ describe("personless PostHog analytics", () => {
 
     const reviewStep = readSource("components/request/steps/review-step.tsx")
     const checkoutFailurePayloads = Array.from(
-      reviewStep.matchAll(/posthog\?\.capture\("checkout_failed", \{([\s\S]*?)\n\s*\}\)/g),
+      reviewStep.matchAll(/capture\("checkout_failed", \{([\s\S]*?)\n\s*\}\)/g),
       (match) => match[1],
     )
 
-    expect(checkoutFailurePayloads).toHaveLength(3)
+    expect(checkoutFailurePayloads).toHaveLength(2)
     for (const payload of checkoutFailurePayloads) {
       expect(payload).toContain("failure_category:")
+      expect(payload).toContain("failure_code:")
+      expect(payload).toContain("failure_taxonomy_version:")
       expect(payload).not.toMatch(/\breason:/)
+      expect(payload).not.toMatch(/failure_(?:category|code):[^,]*(?:error|message)/i)
     }
-    expect(reviewStep).toContain("failure_category: classifyCheckoutFailure(result.error)")
+    expect(reviewStep).toContain("failure_category: result.failureCategory")
+    expect(reviewStep).toContain("failure_code: result.failureCode")
     expect(reviewStep).toContain(
-      'failure_category: classifyCheckoutFailure("Missing checkout session URL")',
+      "failure_taxonomy_version: result.failureTaxonomyVersion",
     )
+    expect(reviewStep).toContain('failure_category: "unknown"')
+    expect(reviewStep).toContain('failure_code: "unexpected"')
     expect(reviewStep).toContain(
-      "failure_category: classifyCheckoutFailure(e instanceof Error ? e.message : undefined)",
+      "failure_taxonomy_version: CHECKOUT_FAILURE_TAXONOMY_VERSION",
     )
+    expect(reviewStep).not.toContain("classifyCheckoutFailure")
+    expect(reviewStep).not.toContain('posthog?.capture("checkout_failed"')
     expect(reviewStep).not.toContain("reason: result.error")
     expect(reviewStep).not.toContain("e.message.slice")
+  })
+
+  it("preserves only fixed checkout failure dimensions", () => {
+    expect(sanitizePostHogProperties({
+      failure_category: "payment_provider",
+      failure_code: "payment_provider",
+      failure_taxonomy_version: "checkout_v2_20260905",
+    })).toMatchObject({
+      failure_category: "payment_provider",
+      failure_code: "payment_provider",
+      failure_taxonomy_version: "checkout_v2_20260905",
+    })
+
+    const rejected = sanitizePostHogProperties({
+      failure_category: "Stripe said patient@example.com",
+      failure_code: "card_declined raw provider detail",
+      failure_taxonomy_version: "future-or-free-text",
+      error: "raw provider message",
+    })
+    expect(rejected).not.toHaveProperty("failure_category")
+    expect(rejected).not.toHaveProperty("failure_code")
+    expect(rejected).not.toHaveProperty("failure_taxonomy_version")
+    expect(rejected).not.toHaveProperty("error")
   })
 
   it("keeps Google enhanced conversions while removing PostHog identify and alias calls", () => {

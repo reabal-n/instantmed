@@ -263,6 +263,10 @@ export interface IntakeAnswers {
   id: string
   intake_id: string
   answers: Record<string, unknown>
+  answers_encrypted: Record<string, unknown> | null
+  encryption_metadata: Record<string, unknown> | null
+  /** Retained legacy envelope; current payment-safety reads do not promote it. */
+  answers_enc: Record<string, unknown> | null
   // Normalized fields
   has_allergies: boolean | null
   allergy_details: string | null

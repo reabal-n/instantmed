@@ -156,6 +156,33 @@ describe("prescription fulfilment dashboard", () => {
     expect(webhookStage?.manualConfirmedCount).toBe(1)
   })
 
+  it.each(["failed", "suppressed"])(
+    "does not report a script notification as successful after provider %s evidence",
+    (deliveryStatus) => {
+      const dashboard = buildPrescriptionFulfilmentDashboard({
+        auditEvents: [],
+        complianceEvents: [],
+        emails: [{
+          created_at: "2026-05-19T08:50:00.000Z",
+          delivery_status: deliveryStatus,
+          intake_id: "provider-terminal",
+          sent_at: "2026-05-19T08:47:00.000Z",
+          status: "sent",
+        }],
+        intakes: [intake({
+          id: "provider-terminal",
+          reference_number: "IM-TERMINAL",
+          script_sent: true,
+        })],
+        now,
+      })
+
+      expect(dashboard.notificationFailedCount).toBe(1)
+      expect(dashboard.stages.find((stage) => stage.key === "patient_notified")?.count).toBe(0)
+      expect(dashboard.stages.find((stage) => stage.key === "webhook_received")?.count).toBe(1)
+    },
+  )
+
   it("uses human service labels for prescription consult subtypes", () => {
     const dashboard = buildPrescriptionFulfilmentDashboard({
       auditEvents: [],

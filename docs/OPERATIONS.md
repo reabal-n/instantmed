@@ -61,6 +61,10 @@ The two paid webhook handlers and `/api/stripe/verify-payment` share the same ex
 5. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron; stale `sending` claims are recovered back to retryable `failed` rows.
 6. For a legacy certificate the operator independently confirms was delivered outside the provider-tracked path, do **not** resend it or backfill `email_sent_at` / `document_sent_at`. Use the service-role-only `record_manual_certificate_delivery_reconciliation(certificate_id, recorded_by)` RPC. It records append-only evidence against the exact current valid storage version and leaves the unknown historical delivery time `NULL`. A superseded/revoked certificate, or an intake with no current valid certificate, remains an integrity escalation and cannot be reconciled through this RPC.
 
+Provider acceptance followed by an unavailable outbox write or read-back leaves the exact certificate resend reservation open for recovery. The dispatcher reuses its encrypted provider body and idempotency key. A matching already-sent provider message is successful reconciliation; only confirmed terminal evidence for that message is non-retryable. A failed compare-and-set or database error alone must never finalize a resend as failed.
+
+Resend lifecycle receipts and shared delivery mirrors are deployed by `20260905115000_resend_delivery_receipts.sql`, separately from aggregate refill reporting. Delayed sent events cannot downgrade delivered/opened tracking. A complaint preserves delivery evidence, applies the event-time preference removal, and closes only its exact provider attempt; it is not an undelivered certificate. Failed/bounced/suppressed attempts require a new audited send rather than replaying their cached provider acceptance. The local database harness covers reversed callbacks, concurrency, current certificate ownership, and the production preference timestamp trigger. The proposed address-trigger/historical cleanup is preserved in `scripts/sql/proposed-email-address-state-repair.sql`, defaults to rollback, and is excluded from deploy migrations. Its synthetic-only check is `bash scripts/test-resend-webhook-mirrors-db.sh --repair-proposal`.
+
 ### Database Connection Issues
 
 **Symptoms:** 500 errors across multiple endpoints, slow page loads, connection timeout errors.
@@ -246,6 +250,29 @@ Operational rules:
 1. Generate new keys in Stripe dashboard
 2. Update `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in Vercel
 3. Deploy, then verify webhook delivery in Stripe dashboard
+
+#### Manual hosted-checkout test credential
+
+The real guest-checkout acceptance gate runs only with a fresh, dedicated
+Stripe test-mode secret or restricted key and matching test-mode Price IDs. It
+does not read the primary deployment environment, repo `.env*` files, or a
+cached Stripe CLI login. Configure these secret names in the manual GitHub
+environment (values stay outside the repository):
+
+- `HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT`
+- `HOSTED_STRIPE_E2E_STRIPE_PRICE_REPEAT_SCRIPT`
+
+Run `corepack pnpm e2e:stripe-hosted` or manually dispatch **Hosted Stripe Guest
+Checkout E2E**. The preflight retrieves every Price and rejects live, missing,
+inactive, recurring, wrong-currency, or wrong-amount configuration before any
+checkout. If the Stripe listener reports expired authentication, refresh access
+with `stripe login` as an operator and provide a new dedicated test credential;
+do not substitute the primary live key. The runner owns loopback app port 3060
+and Supabase ports 55320-55329, refuses occupied ports, never stops an unknown
+owner, and retains its temporary recovery directory if cleanup cannot prove
+zero run-owned database/Auth/Docker survivors. The resulting receipt contains
+only run/commit/timestamp, event-mode, boolean, and count evidence.
 
 ---
 
@@ -489,7 +516,7 @@ For every job in `CRITICAL_CRONS`, a heartbeat is a **terminal outcome**, not pr
 | Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Every 20 min (:00/:20/:40) | Payment-stage recovery for submitted intakes stuck at checkout; first nudge eligible after 20 min, follow-up 24h after first nudge |
 | Partial Intake Recovery | `/api/cron/recover-partial-intakes` | Hourly (:15) | Pre-checkout draft recovery only; excludes review/checkout drafts so it does not overlap abandoned-checkout recovery. The service-role candidate RPC excludes every durable outbox owner before its oldest-first 50-row limit. Initial sends and retries re-check conversion, expiry, recipient, latest activity, resumability, bounce/complaint, and account-less suppression. The resume bearer remains only in the encrypted frozen provider payload; metadata carries the non-bearer tracking ID. Confirmed send and terminal suppression use separate mutually exclusive markers, and only confirmed `sent` outbox proof is reconciled. |
 | Cleanup Intake Drafts | `/api/cron/cleanup-intake-drafts` | Daily (4 AM UTC) | Delete stale saved intake drafts so anonymous draft storage does not grow unbounded |
-| Refill Reminders | `/api/cron/refill-reminders` | Daily (11 PM UTC / 9 AM AEST) | One-off reactivation: nudges patients to reorder a repeatable script ~week 10-11 after issue (before a script + 2 repeats supply runs out; window in `lib/clinical/repeats-policy.ts`). Ships OFF; no-ops until `REFILL_REMINDER_EMAILS_ENABLED=true`. Marketing-consent gated per patient. NOT the retired subscription nudge — creates no order |
+| Refill Reminders | `/api/cron/refill-reminders` | Daily (11 PM UTC / 9 AM AEST / 10 AM AEDT) | One-off reactivation: nudges patients to reorder a repeatable script ~week 10-11 after issue (before a script + 2 repeats supply runs out; window in `lib/clinical/repeats-policy.ts`). Ships OFF; no-ops until `REFILL_REMINDER_EMAILS_ENABLED=true`. Marketing-consent gated per patient. NOT the retired subscription nudge — creates no order |
 | Cert Reactivation | `/api/cron/cert-reactivation` | Daily (10 PM UTC / 8 AM AEST) | One reactivation nudge per past med-cert patient whose most recent certificate is 35-120 days old (`lib/email/cert-reactivation.ts`). Ships OFF; no-ops until `CERT_REACTIVATION_EMAILS_ENABLED=true`. Marketing-consent gated; `intakes.reactivation_email_sent_at` dedups; reorder link carries `utm_source=cert_reactivation`. NOT a subscription — creates no order. Pre-flight: `?testEmail=you@x.com` |
 | Emergency Flags | `/api/cron/emergency-flags` | Hourly | Sentry-logs red-flag abandoned intakes for clinical monitoring. Does NOT send outbound SMS/email (the route is logging-only; corrected 2026-06-11). |
 | Telegram Notifications | `/api/cron/telegram-notifications` | Every 5 min | Retry missed paid-request and PHI-free Medical Director voice-message alerts, then send at most one hourly count-only reminder while voice messages remain unresolved. Voice alerts contain category, received time, and a secure admin link; patient identity and message content stay encrypted in the database record. |
@@ -580,6 +607,14 @@ An exact Codex-task approval atomically consumes the validated proposal directly
 Keep `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=false` and `TELEGRAM_ADS_APPROVALS_ENABLED=false` until the reporting, tracking, proposal-security, and guarded mutation path have completed shadow proof. No implementation-plan approval or broad instruction to manage Ads enables live changes.
 
 Google Ads API user access is included in the account read. As of 2026-07-31 the sole direct Ads user has `passkey_enabled=true`, so the August 2026 passkey requirement does not interrupt the existing OAuth refresh token. If that refresh token must be regenerated after rollout, authenticate with the existing passkey and allow for Google's stated trust delay; never rotate a working token during a live Ads change merely to test this requirement.
+
+### Operational growth evidence
+
+The **two-hour operating target** and **six-hour new-scale gate** have different jobs. A trailing-seven-day manual-review P95 above two but below six hours is advisory `watch`: keep it visible and investigate the queue, but do not suppress an otherwise valid operator-approval scale proposal or cancel an already-approved bounded test. P95 at or above six hours, the oldest unreviewed request at or above 20 hours, any 24-hour wait breach, an affected-service clinical incident, unhealthy fulfilment, or an explicit service hold is `hold` and produces only an approval-ready campaign-pause proposal.
+
+Support evidence is accepted only as a non-negative Gmail-verified aggregate contacts-per-100-paid figure. Clinical QA is accepted only as a Medical Director attestation over completed review evidence; `qa_sampled` is selection, not completion. Both optional manual inputs expire after **seven days**; future-dated or malformed values are ignored. Fresh support above 5 per 100 paid orders or fresh completed QA marked behind is a hard hold. Missing support/QA rows stay visible as `null` evidence, while missing or stale optional evidence does not manufacture harm or block an otherwise evidence-backed scale proposal. Service-level incident, explicit-hold, and fulfilment controls are also optional inputs: when an explicit harmful fact is present it is a hard hold; absence alone is not a hold. The exact operator-approval workflow still gates every proposal.
+
+The deterministic precedence is **`hold > unavailable > watch > clear`**. Queue evidence is mandatory for new scale: a missing, malformed, or unavailable queue read remains `unavailable` and blocks the next variable. Queue reads use reportable paid manual-review requests and the first later `clinician_opened_request`, aggregate by service, and return no patient, staff, or request identifiers. Clean medical certificates still awaiting the protocol decision are not manual-review backlog. No operational state mutates Google Ads autonomously; the existing immutable proposal and operator-approval controls remain mandatory.
 
 ### Daily loop
 
@@ -702,6 +737,24 @@ Before treating a production deploy or paid-traffic ramp as clean:
 **Required:** `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY` (live), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `SUPABASE_AUTH_WEBHOOK_HOOK_SECRET`, `INTERNAL_API_SECRET`
 
 **Recommended:** `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `SENTRY_DSN`
+
+### Release conversion measurement boundary
+
+Configure release measurement only after the intended production deployment is READY. The boundary is the deployment's ready time, not its commit time, build start, merge time, or the time an operator happens to run the report.
+
+1. Deploy or promote the release through the normal release gate.
+2. From the READY production deployment, capture the exact 40-character Git SHA and canonical UTC ready timestamp including milliseconds.
+3. Set `INSTANTMED_RELEASE_MEASUREMENT_SHA` and `INSTANTMED_RELEASE_MEASUREMENT_AT` for the Vercel Production environment.
+4. Redeploy that release so the new environment values are present in the running deployment.
+5. Verify the production alias serves the captured SHA, `/api/health` is healthy, and `/admin/analytics` shows the same release boundary. A missing, malformed, or future boundary stays unavailable.
+
+Run a receipt with both immutable arguments; `--release-at` is required:
+
+```bash
+pnpm analytics:release-friction --release-sha="$INSTANTMED_RELEASE_MEASUREMENT_SHA" --release-at="$INSTANTMED_RELEASE_MEASUREMENT_AT" --window=7d
+```
+
+The Baseline and release cohorts are equal-length and receive the same post-cohort follow-up exposure. PostHog flow-ID coverage is an event-time `[from,to)` instrumentation measure; downstream conversion events are observed only through the matched cutoff. Guest-link rates use only paid guest orders whose full 24-hour, 7-day, or 14-day horizon has matured, with the denominator shown while the tail is still maturing. Current profile linkage is current state observed at read time, not an `ever linked` claim. Refunds and disputes use the canonical cash ledger through the same matched cutoff; missing ledger completeness remains unavailable rather than zero. Receipts are aggregate-only and must pass the existing privacy assertion before being committed.
 
 ### Database Migrations
 
@@ -1142,8 +1195,8 @@ All previously identified gaps have been resolved:
 
 Required env vars validated at startup via Zod in `lib/config/env.ts`:
 
-- **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, active one-off `STRIPE_PRICE_*` IDs, and `STRIPE_PRICE_PRIORITY_FEE`. Repeat Rx subscription acquisition is inactive and has no production price env requirement.
+- **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`; optional server-only endpoint override `SUPABASE_URL` must identify the same local target as the public URL for production-bundle Stripe testing.
+- **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, active one-off `STRIPE_PRICE_*` IDs, and `STRIPE_PRICE_PRIORITY_FEE`. `ALLOW_STRIPE_TEST_WEBHOOKS=true` is reserved for an isolated loopback production-bundle E2E run and must never be configured in Vercel; it grants nothing without Playwright, a test key, and matching local Supabase URL evidence. Repeat Rx subscription acquisition is inactive and has no production price env requirement.
 - **Email**: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET`
 - **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`, `PHI_ENCRYPTION_WRITE_ENABLED`, `PHI_ENCRYPTION_READ_ENABLED`, `INTERNAL_API_SECRET`
 - **Redis**: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
@@ -1643,30 +1696,15 @@ ORDER BY paid_at DESC;
 
 ### Q5 — Reactivation reminder funnel (refill reminders → reorders)
 
-Measures whether the one-off refill reminder (`/api/cron/refill-reminders`, fires ~week 10-11 post-issue) actually drives reorders. The first real wave lands ~2026-07-13 (the May-issued scripts maturing into the window). The reorder link carries `utm_source=refill_reminder`, so a paid reorder is attributable. `test=true` outbox rows (operator pre-flight `?testEmail=`) have a NULL `patient_id` and are excluded.
+`/admin/analytics` owns this aggregate. `get_refill_reminder_funnel` groups real `email_outbox` sends into Sydney calendar weeks and excludes operator preflights, local/E2E sends, seeded patients, null-patient rows, owner-written scripts, and non-reportable source or reorder intakes. Provider delivery and click evidence comes from the atomic, deduplicated `metadata.processed_events` receipts written by `record_resend_outbox_event`; mutable `delivery_status` is not the click source of truth. **Observed provider click** is directional because a link scanner may traverse the email.
 
-```sql
-WITH sent AS (
-  SELECT patient_id, MIN(created_at) AS reminded_at
-  FROM email_outbox
-  WHERE email_type = 'refill_reminder' AND patient_id IS NOT NULL
-  GROUP BY patient_id
-),
-reorders AS (
-  SELECT DISTINCT s.patient_id
-  FROM sent s
-  JOIN intakes i ON i.patient_id = s.patient_id
-  WHERE i.utm_source = 'refill_reminder'
-    AND i.status IN ('paid', 'approved', 'completed', 'awaiting_script')
-    AND i.created_at >= s.reminded_at
-)
-SELECT
-  (SELECT COUNT(*) FROM sent) AS patients_reminded,
-  (SELECT COUNT(*) FROM reorders) AS patients_reordered,
-  ROUND(100.0 * (SELECT COUNT(*) FROM reorders) / NULLIF((SELECT COUNT(*) FROM sent), 0), 1) AS conversion_pct;
-```
+Each gross paid repeat-script reorder is assigned once to the latest eligible reminder sent to the same patient in the preceding 21 days. The dashboard keeps two outcomes separate: exact `utm_source=refill_reminder` paid orders are strict attribution, while a paid same-patient reorder without that UTM is association only. Mature-wave conversion uses distinct reminder sends that produced at least one matching order; gross order count remains separately visible. A send week stays **Maturing** until every send in it has had the full 21-day observation window, and no rate is shown before then. Net-retained revenue remains unavailable here until the canonical Stripe refund and dispute cash ledgers can be joined with their completeness gate; intake status or refund columns are not a cash substitute.
 
-Run after each weekly wave. If conversion is healthy, the reactivation lever works → consider widening (e.g. a second nudge, or backfilling lapsed scripts once a back-catalog exists). If ~0 after a few waves with good deliverability, the email/offer needs rework before scaling.
+Cron invocation is separate evidence. The Business surface reads only the `cron_heartbeats` row for `refill-reminders`, using the critical-cron 1,500-minute freshness and unrecovered-failure rules. Delivered emails never prove the daily scheduler is healthy. Missing, stale, failed, and unreadable heartbeat states remain visibly distinct from cohort availability.
+
+The reporting migration contains only the three cohort indexes and the aggregate RPC; it does not change profiles, preferences, identity normalization, or historical delivery rows. `bash scripts/test-resend-webhook-mirrors-db.sh --refill-only` applies only that migration to an isolated database and verifies exclusions, durable receipt counts, latest-reminder assignment, strict UTM versus same-patient outcomes, Sydney boundaries, and incomplete windows.
+
+Do not add a second reminder yet. A separate day-84 experiment may be proposed only after exactly three fully mature weekly waves each reach at least 10% strict UTM conversion, without worsening complaints, unsubscribes, refunds, or support contacts. It requires a new durable send marker and a separate approval; `refill_reminder_sent_at` remains the one-off first-nudge marker and the product remains transactional, not a subscription.
 
 ### Q6 — Certificate sent but intake timestamp missing (14d)
 

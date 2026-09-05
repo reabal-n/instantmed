@@ -37,6 +37,7 @@ const log = createLogger("env")
 const serverEnvSchema = z.object({
   // Required in all environments
   NEXT_PUBLIC_SUPABASE_URL: z.string().url("Invalid Supabase URL"),
+  SUPABASE_URL: z.string().url("Invalid server Supabase URL").optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "Supabase anon key required"),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "Supabase service role key required"),
 
@@ -44,6 +45,7 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  ALLOW_STRIPE_TEST_WEBHOOKS: z.enum(["true", "false"]).optional(),
   INTERNAL_API_SECRET: z.string().optional(),
 
   // Stripe price IDs (required for checkout functionality)

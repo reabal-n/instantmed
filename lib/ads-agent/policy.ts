@@ -1,8 +1,13 @@
 import type {
   AdsAgentSnapshot,
+  AdsOperationalHold,
+  AdsOperationalHoldReason,
+  AdsOperationalQueueEvidence,
+  AdsOperationalService,
   AdsRecommendation,
   AdsService,
   CampaignEconomics,
+  ManualGrowthHealthEvidence,
 } from "@/lib/ads-agent/types"
 
 const SPECIALTY_SERVICES = [
@@ -60,6 +65,13 @@ export const POLICY = {
     broadMatchPositivesAllowed: false,
     medicineNamesAllowed: false,
   },
+  operations: {
+    manualEvidenceFreshDays: 7,
+    queueHardHoldHours: 6,
+    queueOldestHardHoldHours: 20,
+    queueTargetHours: 2,
+    supportContactsPer100HardHold: 5,
+  },
   medCerts: {
     dailyBudgetCents: 2_000,
     targetCpaCents: 2_200,
@@ -109,6 +121,135 @@ export const POLICY = {
     },
   },
 } as const
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+interface ResolveAdsOperationalHoldInput {
+  affectedService: AdsOperationalService
+  clinicalIncident: boolean
+  explicitServiceHold: boolean
+  fulfilmentHealthy: boolean
+  manualEvidence: ManualGrowthHealthEvidence
+  now: Date
+  queue: AdsOperationalQueueEvidence
+}
+
+function isFreshManualEvidence(
+  asOf: string | undefined,
+  now: Date,
+): boolean {
+  const asOfMs = Date.parse(asOf ?? "")
+  const nowMs = now.getTime()
+  const ageMs = nowMs - asOfMs
+  return (
+    Number.isFinite(nowMs)
+    && Number.isFinite(asOfMs)
+    && ageMs >= 0
+    && ageMs <= POLICY.operations.manualEvidenceFreshDays * DAY_MS
+  )
+}
+
+function isNonNegativeFinite(value: number | null): boolean {
+  return value === null || Number.isFinite(value) && value >= 0
+}
+
+/**
+ * Converts aggregate queue and manually verified operating facts into one
+ * service-level gate. Optional manual facts create a hold only when fresh,
+ * verified evidence crosses a stop boundary. Missing optional facts are not
+ * evidence of harm; queue evidence remains mandatory for a new growth step.
+ */
+export function resolveAdsOperationalHold(
+  input: ResolveAdsOperationalHoldInput,
+): AdsOperationalHold {
+  const reasons: AdsOperationalHoldReason[] = []
+  let hasHardHold = false
+  let hasUnavailableEvidence = input.queue.availability === "unavailable"
+  let hasWatch = false
+
+  const addHardHold = (reason: AdsOperationalHoldReason) => {
+    hasHardHold = true
+    reasons.push(reason)
+  }
+
+  if (input.clinicalIncident) addHardHold("clinical_incident")
+  if (input.explicitServiceHold) addHardHold("explicit_service_hold")
+  if (!input.fulfilmentHealthy) addHardHold("fulfilment_unhealthy")
+
+  const queueValuesValid = [
+    input.queue.oldestUnresolvedHours,
+    input.queue.p95ReviewHours,
+    input.queue.review24hBreaches,
+  ].every(isNonNegativeFinite)
+  if (!queueValuesValid) hasUnavailableEvidence = true
+
+  if (
+    queueValuesValid
+    && input.queue.p95ReviewHours !== null
+    && input.queue.p95ReviewHours >= POLICY.operations.queueHardHoldHours
+  ) {
+    addHardHold("queue_p95_at_or_over_6h")
+  }
+  if (
+    queueValuesValid
+    && input.queue.oldestUnresolvedHours !== null
+    && input.queue.oldestUnresolvedHours
+      >= POLICY.operations.queueOldestHardHoldHours
+  ) {
+    addHardHold("queue_oldest_at_or_over_20h")
+  }
+  if (
+    queueValuesValid
+    && input.queue.review24hBreaches !== null
+    && input.queue.review24hBreaches > 0
+  ) {
+    addHardHold("queue_24h_breach")
+  }
+
+  const support = input.manualEvidence.support
+  const supportFresh = support !== null
+    && support.source === "verified_gmail_aggregate"
+    && Number.isFinite(support.contactsPer100Paid)
+    && support.contactsPer100Paid >= 0
+    && isFreshManualEvidence(support.asOf, input.now)
+  if (
+    supportFresh
+    && support.contactsPer100Paid
+      > POLICY.operations.supportContactsPer100HardHold
+  ) {
+    addHardHold("support_over_5_per_100")
+  }
+
+  const clinicalQa = input.manualEvidence.clinicalQa
+  const clinicalQaFresh = clinicalQa !== null
+    && clinicalQa.source === "medical_director_completed_review"
+    && isFreshManualEvidence(clinicalQa.asOf, input.now)
+  if (clinicalQaFresh && clinicalQa.state === "behind") {
+    addHardHold("clinical_qa_lag")
+  }
+
+  if (
+    queueValuesValid
+    && input.queue.p95ReviewHours !== null
+    && input.queue.p95ReviewHours > POLICY.operations.queueTargetHours
+    && input.queue.p95ReviewHours < POLICY.operations.queueHardHoldHours
+  ) {
+    hasWatch = true
+    reasons.push("queue_p95_over_2h_watch")
+  }
+
+  return {
+    affectedService: input.affectedService,
+    reasons,
+    state: hasHardHold
+      ? "hold"
+      : hasUnavailableEvidence
+        ? "unavailable"
+        : hasWatch
+          ? "watch"
+          : "clear",
+  }
+}
 
 export type ScriptsScaleTier =
   (typeof POLICY.scripts.scale.budgetStepTiers)[number]
@@ -359,6 +500,22 @@ function groupedCampaigns(
   return campaigns
 }
 
+function operationalReasonCodes(hold: AdsOperationalHold): string[] {
+  const reasonCodes = hold.reasons.map((reason) => reason.toUpperCase())
+  return reasonCodes.length > 0
+    ? reasonCodes
+    : ["OPERATIONAL_EVIDENCE_UNAVAILABLE"]
+}
+
+function operationalHoldForService(
+  snapshot: AdsAgentSnapshot,
+  service: AdsOperationalService,
+): AdsOperationalHold | null {
+  return snapshot.operational?.holds.find(
+    (candidate) => candidate.affectedService === service,
+  ) ?? null
+}
+
 function campaignHasMaterialCrossServiceOrders(
   campaign: CampaignEconomics,
   expectedService: AdsService,
@@ -587,6 +744,28 @@ export function evaluateAdsPolicy(
   const campaigns = groupedCampaigns(snapshot)
 
   for (const service of SERVICE_ORDER) {
+    const serviceCampaigns = campaigns.get(service) ?? []
+    const operational = operationalHoldForService(snapshot, service)
+
+    // Concrete harm wins over attribution or other evidence investigations.
+    // This still emits only an approval-ready proposal; it never mutates Ads.
+    if (operational?.state === "hold") {
+      const enabledCampaigns = serviceCampaigns.filter(
+        (campaign) => campaign.campaignStatus === "ENABLED",
+      )
+      recommendations.push(
+        enabledCampaigns.length === 1
+          ? {
+              kind: "APPROVAL_NEEDED",
+              proposedMutationFamily: "campaign_status",
+              reasonCodes: operationalReasonCodes(operational),
+              service,
+            }
+          : hold(service, ...operationalReasonCodes(operational)),
+      )
+      continue
+    }
+
     // Durable hold wins over EVERYTHING for the service — including a missing
     // or multiple campaign mapping and a recovered daily share — so it stays
     // visible until an explicit recorded resolution removes it.
@@ -595,7 +774,6 @@ export function evaluateAdsPolicy(
       continue
     }
 
-    const serviceCampaigns = campaigns.get(service) ?? []
     if (serviceCampaigns.length === 0) continue
     if (serviceCampaigns.length > 1) {
       recommendations.push(
@@ -616,12 +794,28 @@ export function evaluateAdsPolicy(
       continue
     }
 
-    if (service === "scripts") {
-      recommendations.push(evaluateScripts(campaign))
-    } else if (service === "med_certs") {
-      recommendations.push(evaluateMedCerts(campaign))
+    const recommendation = service === "scripts"
+      ? evaluateScripts(campaign)
+      : service === "med_certs"
+        ? evaluateMedCerts(campaign)
+        : evaluateSpecialty(service, campaign)
+
+    // A queue watch stays visible in the snapshot/brief but is advisory: the
+    // explicit six-hour boundary owns the scale gate. Unavailable queue
+    // evidence still blocks a new growth variable without manufacturing a
+    // pause for a bounded campaign that is already live. A reached economic
+    // stop still wins because pausing reduces exposure.
+    if (
+      operational
+      && operational.state === "unavailable"
+      && recommendation.kind === "APPROVAL_NEEDED"
+      && recommendation.proposedMutationFamily !== "campaign_status"
+    ) {
+      recommendations.push(
+        investigate(service, ...operationalReasonCodes(operational)),
+      )
     } else {
-      recommendations.push(evaluateSpecialty(service, campaign))
+      recommendations.push(recommendation)
     }
   }
 

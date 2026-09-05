@@ -72,6 +72,7 @@ export type CustomerGrowthRevenueEvidence = {
 
 type CustomerGrowthPaidRevenueRow = NetRetainedPurchaseRow & {
   category: string | null
+  declined_at?: string | null
   payment_status: string | null
   status: string | null
   subtype: string | null
@@ -221,7 +222,7 @@ export async function readCustomerGrowthRevenueEvidence(
       filterReportableIntakes(
         supabase
           .from("intakes")
-          .select("id, amount_cents, category, subtype, paid_at, payment_status, status", { count: "exact" })
+          .select("id, amount_cents, category, subtype, paid_at, payment_status, status, declined_at", { count: "exact" })
           .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
           .not("paid_at", "is", null)
           .gte("paid_at", sinceIso)

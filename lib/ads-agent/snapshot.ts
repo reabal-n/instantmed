@@ -8,6 +8,12 @@ import {
   hashGoogleAdsAccountState,
 } from "@/lib/ads-agent/account-state"
 import {
+  ADS_OPERATIONAL_SERVICES,
+  readAdsOperationalQueueEvidence,
+  readManualGrowthHealthEvidence,
+} from "@/lib/ads-agent/operational-health"
+import { resolveAdsOperationalHold } from "@/lib/ads-agent/policy"
+import {
   getStripeFeeMap,
   type StripeFeeResult,
 } from "@/lib/ads-agent/stripe-fees"
@@ -19,11 +25,13 @@ import type {
   AdsAccountState,
   AdsAgentSnapshot,
   AdsEconomicsTotals,
+  AdsOperationalService,
   AdsSnapshotInput,
   AdsSnapshotWindow,
   CampaignAvailabilityReason,
   CampaignEconomics,
   CampaignPortfolioEconomics,
+  ManualGrowthHealthEvidence,
 } from "@/lib/ads-agent/types"
 import { isLikelyGoogleAttributed } from "@/lib/analytics/google-ads-post-payment"
 import {
@@ -621,7 +629,18 @@ function allFeesAvailable(
 }
 
 export async function buildAdsAgentSnapshot(args: {
+  manualGrowthHealthEvidence?: ManualGrowthHealthEvidence
+  manualGrowthHealthReader?: typeof readManualGrowthHealthEvidence
   now?: Date
+  operationalQueueReader?: typeof readAdsOperationalQueueEvidence
+  serviceOperationalControls?: Partial<Record<
+    AdsOperationalService,
+    {
+      clinicalIncident: boolean
+      explicitServiceHold: boolean
+      fulfilmentHealthy: boolean
+    }
+  >>
   supabase: SupabaseClient
 }): Promise<AdsAgentSnapshot> {
   const now = args.now ?? new Date()
@@ -643,12 +662,23 @@ export async function buildAdsAgentSnapshot(args: {
     rollingSpendResult,
     dailyLocalResult,
     rollingLocalResult,
+    operationalQueueResult,
+    manualGrowthHealthResult,
   ] = await Promise.allSettled([
     getAdsAccountState({ now }),
     getGoogleAdsCampaignRowsForRange(dailyWindow),
     getGoogleAdsCampaignRowsForRange(rolling30Window),
     getLocalGoogleAdsPurchasesForRange(args.supabase, dailyWindow),
     getLocalGoogleAdsPurchasesForRange(args.supabase, rolling30Window),
+    (args.operationalQueueReader ?? readAdsOperationalQueueEvidence)(
+      args.supabase,
+      { now },
+    ),
+    args.manualGrowthHealthEvidence
+      ? Promise.resolve(args.manualGrowthHealthEvidence)
+      : (args.manualGrowthHealthReader ?? readManualGrowthHealthEvidence)(
+          args.supabase,
+        ),
   ])
 
   const accountState = fulfilledValue(accountResult)
@@ -656,6 +686,16 @@ export async function buildAdsAgentSnapshot(args: {
   const rollingSpendRows = fulfilledValue(rollingSpendResult)
   const dailyLocalRows = fulfilledValue(dailyLocalResult)
   const rollingLocalRows = fulfilledValue(rollingLocalResult)
+  const operationalQueue = fulfilledValue(operationalQueueResult) ?? {
+    availability: "unavailable" as const,
+    services: ADS_OPERATIONAL_SERVICES.map((affectedService) => ({
+      affectedService,
+      availability: "unavailable" as const,
+      oldestUnresolvedHours: null,
+      p95ReviewHours: null,
+      review24hBreaches: null,
+    })),
+  }
   const knownLocalRows = [
     ...(dailyLocalRows ?? []),
     ...(rollingLocalRows ?? []),
@@ -694,12 +734,45 @@ export async function buildAdsAgentSnapshot(args: {
   const feeTruthComplete =
     feeResult.status === "fulfilled" &&
     allFeesAvailable(knownLocalRows, feeMap, rolling30Window)
+  const queueByService = new Map(
+    operationalQueue.services.map((service) => [service.affectedService, service]),
+  )
+  const manualGrowthHealthEvidence = fulfilledValue(
+    manualGrowthHealthResult,
+  ) ?? {
+    support: null,
+    clinicalQa: null,
+  }
+  const operationalHolds = ADS_OPERATIONAL_SERVICES.map((affectedService) => {
+    const controls = args.serviceOperationalControls?.[affectedService]
+    const queue = queueByService.get(affectedService) ?? {
+      availability: "unavailable" as const,
+      oldestUnresolvedHours: null,
+      p95ReviewHours: null,
+      review24hBreaches: null,
+    }
+    return resolveAdsOperationalHold({
+      affectedService,
+      clinicalIncident: controls?.clinicalIncident === true,
+      explicitServiceHold: controls?.explicitServiceHold === true,
+      fulfilmentHealthy: controls?.fulfilmentHealthy !== false,
+      manualEvidence: manualGrowthHealthEvidence,
+      now,
+      queue,
+    })
+  })
 
   return {
     reportDate,
     generatedAt,
     daily,
     rolling30,
+    operational: {
+      asOf: generatedAt,
+      holds: operationalHolds,
+      manualEvidence: manualGrowthHealthEvidence,
+      queue: operationalQueue,
+    },
     tracking: {
       evidenceAsOf: generatedAt,
       reasonCodes: ["TRACKING_HEALTH_NOT_CLASSIFIED"],

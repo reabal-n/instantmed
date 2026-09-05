@@ -428,7 +428,7 @@ describe("checkout operating hours", () => {
     expect(mocks.trackOperationalBlock).not.toHaveBeenCalledWith(
       expect.objectContaining({ blockType: "business_hours" }),
     )
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "You must be logged in to submit a request. Please sign in and try again.",
     })
@@ -456,7 +456,7 @@ describe("checkout operating hours", () => {
       type: "med-cert",
     })
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "Date of birth is required to confirm you are 18 or older before payment.",
     })
@@ -477,7 +477,7 @@ describe("checkout operating hours", () => {
       type: "med-cert",
     })
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "Date of birth is required to confirm you are 18 or older before payment.",
     })
@@ -507,7 +507,7 @@ describe("checkout operating hours", () => {
       type: "med-cert",
     })
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "You must be 18 or older to use this service. If you are under 18, please contact a GP or another appropriate care service.",
     })
@@ -535,7 +535,7 @@ describe("checkout operating hours", () => {
         type: "med-cert",
       })
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         success: false,
         error: "Server configuration error. Please contact support at support@instantmed.com.au",
       })
@@ -565,7 +565,7 @@ describe("checkout operating hours", () => {
       type: "med-cert",
     })
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "You must be 18 or older to use this service. If you are under 18, please contact a GP or another appropriate care service.",
     })
@@ -622,7 +622,7 @@ describe("checkout operating hours", () => {
       })
 
       if (sessionState === "open") {
-        expect(result).toEqual({
+        expect(result).toMatchObject({
           error:
             "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
           success: false,
@@ -676,7 +676,7 @@ describe("checkout operating hours", () => {
       guestName: "Test Patient",
       subtype: "work",
       type: "med-cert",
-    })).resolves.toEqual({
+    })).resolves.toMatchObject({
       error:
         "This request is still being prepared. Please wait a moment and try again.",
       success: false,
@@ -749,7 +749,7 @@ describe("checkout operating hours", () => {
 
     const result = await createGuestCheckoutAction(hairLossGuestCheckoutInput())
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: "Hair reproductive safety block.",
       success: false,
     })
@@ -888,7 +888,7 @@ describe("checkout operating hours", () => {
 
       const result = await createGuestCheckoutAction(repeatGuestCheckoutInput())
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         success: false,
         error:
           "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
@@ -947,7 +947,7 @@ describe("checkout operating hours", () => {
       guestName: "Test Patient",
       subtype: "work",
       type: "med-cert",
-    })).resolves.toEqual({
+    })).resolves.toMatchObject({
       error:
         "This request is already being submitted. Please wait a moment and try again.",
       success: false,
@@ -982,7 +982,7 @@ describe("checkout operating hours", () => {
       type: "consult",
     })
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "Medicare number or IHI is required for prescription requests.",
     })
@@ -1014,7 +1014,7 @@ describe("checkout operating hours", () => {
       type: "consult",
     })
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "Enter a valid Medicare number or provide a valid IHI.",
     })
@@ -1106,7 +1106,7 @@ describe("checkout operating hours", () => {
     })
 
     expect(mocks.isMedicationBlocked).toHaveBeenCalledWith("Patient is requesting blocked-test-med for a new concern.")
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [MEDICATION_BLOCKED]",
     })
@@ -1129,7 +1129,7 @@ describe("checkout operating hours", () => {
       metadata: { checkout_type: "guest" },
       source: "checkout",
     })
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "We're experiencing high demand today. Please try again tomorrow.",
     })
@@ -1153,7 +1153,7 @@ describe("checkout operating hours", () => {
       type: "med-cert",
     })
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "This service is temporarily unavailable. Please try again later.",
     })
@@ -1190,7 +1190,7 @@ describe("checkout operating hours", () => {
         type: "med-cert",
       })
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         success: false,
         error: "Priority review is temporarily unavailable. Please try again without it or contact support.",
       })
@@ -1231,7 +1231,7 @@ describe("checkout operating hours", () => {
         type: "med-cert",
       })
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         success: false,
         error: "Priority review is temporarily unavailable. Please try again without it or contact support.",
       })

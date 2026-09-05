@@ -89,7 +89,10 @@ export async function runClinicalValidation(
   if (input.category === "medical_certificate") {
     const validation = validateMedCertPayload(input.answers)
     if (!validation.valid) {
-      return stepFail(validation.error || "Invalid medical certificate request.")
+      return stepFail(
+        "clinical_or_input_validation",
+        validation.error || "Invalid medical certificate request.",
+      )
     }
 
     // Server-side high-stakes block (exam deferral, court, fitness-to-X,
@@ -108,7 +111,7 @@ export async function runClinicalValidation(
         result: highStakesBlock.safetyCheck,
         serviceSlug: input.serviceSlug || getServiceSlug(input.category, input.subtype),
       })
-      return stepFail(highStakesBlock.initialCheckoutError)
+      return stepFail("clinical_or_input_validation", highStakesBlock.initialCheckoutError)
     }
   }
 
@@ -117,7 +120,9 @@ export async function runClinicalValidation(
       serviceSlugForSafety,
       input.answers,
     )
-    if (completenessError) return stepFail(completenessError)
+    if (completenessError) {
+      return stepFail("clinical_or_input_validation", completenessError)
+    }
 
     const validation = validateRepeatScriptPayload(input.answers)
     if (!validation.valid) {
@@ -144,13 +149,17 @@ export async function runClinicalValidation(
           serviceSlug: serviceSlugForSafety,
         })
       }
-      return stepFail(validation.error || "Invalid repeat script request.")
+      return stepFail(
+        "clinical_or_input_validation",
+        validation.error || "Invalid repeat script request.",
+      )
     }
 
     const medicationBlocklistCandidate = getMedicationBlocklistCandidate(input.answers)
     const medCheck = await isMedicationBlocked(medicationBlocklistCandidate)
     if (medCheck.blocked) {
       return stepFail(
+        "clinical_or_input_validation",
         `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
       )
     }
@@ -158,6 +167,7 @@ export async function runClinicalValidation(
     if (hasControlledMedicationAnswer(input.answers)) {
       logger.warn("Controlled substance blocked at checkout", { category: input.category })
       return stepFail(
+        "clinical_or_input_validation",
         "This medication cannot be prescribed through our online service. Controlled substances require an in-person consultation with your regular GP.",
       )
     }
@@ -168,6 +178,7 @@ export async function runClinicalValidation(
     const medCheck = await isMedicationBlocked(medicationBlocklistCandidate)
     if (medCheck.blocked) {
       return stepFail(
+        "clinical_or_input_validation",
         `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
       )
     }
@@ -178,6 +189,7 @@ export async function runClinicalValidation(
     if (hasControlledMedicationAnswer(input.answers)) {
       logger.warn("Controlled substance blocked at checkout", { category: input.category })
       return stepFail(
+        "clinical_or_input_validation",
         "This medication cannot be prescribed through our online service. Controlled substances require an in-person consultation with your regular GP.",
       )
     }
@@ -188,7 +200,9 @@ export async function runClinicalValidation(
       serviceSlugForSafety,
       input.answers,
     )
-    if (completenessError) return stepFail(completenessError)
+    if (completenessError) {
+      return stepFail("clinical_or_input_validation", completenessError)
+    }
   }
 
   const safetyCheck = checkSafetyForServer(serviceSlugForSafety, input.answers)
@@ -224,6 +238,7 @@ export async function runClinicalValidation(
 
     if (safetyCheck.outcome === "DECLINE") {
       return stepFail(
+        "clinical_or_input_validation",
         safetyCheck.blockReason ||
           "This request cannot be processed online. Please see your regular doctor.",
       )
@@ -231,6 +246,7 @@ export async function runClinicalValidation(
 
     if (safetyCheck.outcome === "REQUIRES_CALL") {
       return stepFail(
+        "clinical_or_input_validation",
         safetyCheck.blockReason ||
           "This request requires a phone consultation. Please contact us to proceed.",
       )
@@ -238,6 +254,7 @@ export async function runClinicalValidation(
 
     // REQUEST_MORE_INFO — should not reach checkout, but handle gracefully.
     return stepFail(
+      "clinical_or_input_validation",
       safetyCheck.blockReason ||
         "Additional information is required. Please go back and complete all questions.",
     )

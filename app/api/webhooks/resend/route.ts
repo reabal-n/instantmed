@@ -2,8 +2,8 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { Webhook } from "svix"
 
+import { hashAuthEmailRecipient } from "@/lib/data/auth-email-events"
 import { sanitizeEmailForLog } from "@/lib/email/send/helpers"
-import { updateDeliveryStatus } from "@/lib/monitoring/delivery-tracking"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -11,6 +11,12 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 const log = createLogger("resend-webhook")
+const CRITICAL_FULFILMENT_EMAIL_TYPES = new Set([
+  "cert_ready",
+  "med_cert_patient",
+  "script_sent",
+])
+const UNMATCHED_OUTBOX_RETRY_WINDOW_MS = 35 * 60_000
 
 // ---------------------------------------------------------------------------
 // Types
@@ -20,23 +26,34 @@ type ResendEventType =
   | "email.sent"
   | "email.delivered"
   | "email.delivery_delayed"
+  | "email.failed"
+  | "email.suppressed"
   | "email.bounced"
   | "email.complained"
   | "email.opened"
   | "email.clicked"
 
+const TRACKED_RESEND_EVENT_TYPES = new Set<string>([
+  "email.sent",
+  "email.delivered",
+  "email.delivery_delayed",
+  "email.failed",
+  "email.suppressed",
+  "email.bounced",
+  "email.complained",
+  "email.opened",
+  "email.clicked",
+])
+const AUTH_EMAIL_TERMINAL_FAILURE_TYPES = new Set<ResendEventType>([
+  "email.failed",
+  "email.suppressed",
+  "email.bounced",
+])
+
 interface ResendWebhookPayload {
-  type: ResendEventType
-  created_at: string
-  data: {
-    email_id: string
-    from: string
-    to: string[]
-    subject: string
-    created_at: string
-    bounce?: { message: string; type: string }
-    click?: { link: string; timestamp: string; user_agent: string }
-  }
+  type: unknown
+  created_at?: unknown
+  data?: unknown
 }
 
 // ---------------------------------------------------------------------------
@@ -90,6 +107,10 @@ function mapEventToDeliveryStatus(eventType: ResendEventType): string | null {
       return "complained"
     case "email.delivery_delayed":
       return "delayed"
+    case "email.failed":
+      return "failed"
+    case "email.suppressed":
+      return "suppressed"
     case "email.opened":
       return "opened"
     case "email.clicked":
@@ -99,130 +120,61 @@ function mapEventToDeliveryStatus(eventType: ResendEventType): string | null {
   }
 }
 
-/** Map Resend event → email_outbox.status (the CHECK-constrained column) */
-function mapEventToEmailStatus(eventType: ResendEventType): string | null {
-  switch (eventType) {
-    case "email.sent":
-      return "sent"
-    case "email.delivered":
-      // Keep as "sent" - the CHECK constraint only allows pending|sent|failed|skipped_e2e.
-      // Fine-grained tracking lives in delivery_status.
-      return "sent"
-    case "email.bounced":
-      return "failed"
-    case "email.complained":
-      return "failed"
-    default:
-      return null
-  }
+function isTrackedResendEventType(value: unknown): value is ResendEventType {
+  return typeof value === "string" && TRACKED_RESEND_EVENT_TYPES.has(value)
 }
 
-// ---------------------------------------------------------------------------
-// Patient bounce helpers
-// ---------------------------------------------------------------------------
-
-async function flagPatientEmailBounce(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  email: string | undefined,
-  bounceReason: string,
-  bounceType: string,
-): Promise<void> {
-  if (!email) return
-
-  try {
-    const { data: patient } = await supabase
-      .from("profiles")
-      .select("id, email_delivery_failures")
-      .eq("email", email)
-      .eq("role", "patient")
-      .maybeSingle()
-
-    if (!patient) return
-
-    const failures = (patient.email_delivery_failures || 0) + 1
-
-    await supabase
-      .from("profiles")
-      .update({
-        email_bounced: true,
-        email_bounce_reason: `${bounceType}: ${bounceReason}`,
-        email_bounced_at: new Date().toISOString(),
-        email_delivery_failures: failures,
-      })
-      .eq("id", patient.id)
-
-    log.info("Flagged patient email bounce", { patientId: patient.id, bounceType, failures })
-  } catch (error) {
-    log.error("Error flagging patient bounce", {}, error)
-  }
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value)
 }
 
-async function resetPatientEmailBounce(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  email: string | undefined,
-): Promise<void> {
-  if (!email) return
-
-  try {
-    const { data: patient } = await supabase
-      .from("profiles")
-      .select("id, email_bounced")
-      .eq("email", email)
-      .eq("role", "patient")
-      .eq("email_bounced", true)
-      .maybeSingle()
-
-    if (!patient) return
-
-    await supabase
-      .from("profiles")
-      .update({
-        email_bounced: false,
-        email_bounce_reason: null,
-        email_delivery_failures: 0,
-      })
-      .eq("id", patient.id)
-
-    log.info("Reset patient email bounce flag", { patientId: patient.id })
-  } catch (error) {
-    log.error("Error resetting patient bounce", {}, error)
-  }
+function boundedProviderField(
+  value: unknown,
+  maxLength: number,
+): string | undefined {
+  if (typeof value !== "string") return undefined
+  const normalized = value.trim()
+  return normalized.length > 0 ? normalized.slice(0, maxLength) : undefined
 }
 
-// ---------------------------------------------------------------------------
-// Complaint auto-unsubscribe
-// ---------------------------------------------------------------------------
+function normalizeBounceType(value: string | undefined): "hard" | "soft" {
+  const normalized = value?.trim().toLowerCase()
+  if (normalized === "permanent" || normalized === "hard") return "hard"
 
-async function autoUnsubscribeOnComplaint(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  email: string | undefined,
-): Promise<void> {
-  if (!email) return
+  // Resend currently emits Transient or Undetermined; Temporary is retained
+  // as a provider/legacy soft-bounce alias. Unknown values fail conservative
+  // to soft instead of inventing permanent-address evidence.
+  return "soft"
+}
 
-  try {
-    const { data: patient } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("email", email)
-      .eq("role", "patient")
-      .maybeSingle()
+interface RecordedOutboxEvent {
+  duplicate: boolean
+  emailIsTest: boolean
+  emailType: string | null
+  matched: boolean
+  outboxId: string | null
+}
 
-    if (!patient) return
+function parseRecordedOutboxEvent(value: unknown): RecordedOutboxEvent | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null
+  const row = value as Record<string, unknown>
+  if (typeof row.matched !== "boolean" || typeof row.duplicate !== "boolean") return null
+  if (typeof row.email_is_test !== "boolean") return null
 
-    await supabase
-      .from("email_preferences")
-      .upsert({
-        profile_id: patient.id,
-        marketing_emails: false,
-        abandoned_checkout_emails: false,
-        unsubscribed_at: new Date().toISOString(),
-        unsubscribe_reason: "spam_complaint",
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "profile_id" })
+  const outboxId = typeof row.outbox_id === "string" && row.outbox_id.length > 0
+    ? row.outbox_id
+    : null
+  const emailType = typeof row.email_type === "string" && row.email_type.length > 0
+    ? row.email_type
+    : null
+  if (row.matched && (!outboxId || !emailType)) return null
 
-    log.info("Auto-unsubscribed patient after spam complaint", { patientId: patient.id })
-  } catch (error) {
-    log.error("Error auto-unsubscribing after complaint", {}, error)
+  return {
+    duplicate: row.duplicate,
+    emailIsTest: row.email_is_test,
+    emailType,
+    matched: row.matched,
+    outboxId,
   }
 }
 
@@ -259,93 +211,203 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
     }
 
-    const { type: eventType, data } = event
+    const eventType = event.type
+    if (typeof eventType !== "string" || eventType.length === 0) {
+      log.warn("Invalid Resend event type")
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
+    }
 
-    const recipientForLog = sanitizeEmailForLog(data.to?.[0] ?? "")
+    // Resend can add event types independently of this route. A validly signed
+    // event outside the explicitly tracked lifecycle must be acknowledged so a
+    // provider expansion cannot create an endless retry loop.
+    if (!isTrackedResendEventType(eventType)) {
+      log.info("Ignoring untracked Resend event", { type: eventType.slice(0, 80) })
+      return NextResponse.json({ received: true, tracked: false })
+    }
+
+    const data = event.data
+    const eventCreatedAtMs = typeof event.created_at === "string"
+      ? Date.parse(event.created_at)
+      : Number.NaN
+    if (
+      !isRecord(data)
+      || typeof data.email_id !== "string"
+      || data.email_id.length === 0
+      || data.email_id.length > 255
+      || !Number.isFinite(eventCreatedAtMs)
+    ) {
+      log.warn("Invalid tracked Resend event payload")
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
+    }
+    const eventCreatedAt = new Date(eventCreatedAtMs).toISOString()
+    const providerId = data.email_id
+    const recipients = Array.isArray(data.to) ? data.to : []
+    const recipient = typeof recipients[0] === "string" ? recipients[0] : ""
+    const bounce = isRecord(data.bounce) ? data.bounce : null
+    const failed = isRecord(data.failed) ? data.failed : null
+    const suppressed = isRecord(data.suppressed) ? data.suppressed : null
+    const rawBounceType = boundedProviderField(bounce?.type, 100)
+    const bounceMessage = boundedProviderField(bounce?.message, 500)
+    const failedReason = boundedProviderField(failed?.reason, 500)
+    const suppressionType = boundedProviderField(suppressed?.type, 100)
+    const suppressionMessage = boundedProviderField(suppressed?.message, 500)
+
+    const recipientForLog = sanitizeEmailForLog(recipient)
 
     log.info("Received event", {
       type: eventType,
-      providerId: data.email_id,
+      providerId,
       to: recipientForLog,
     })
 
     const supabase = createServiceRoleClient()
 
-    // 3. Idempotency: skip if this exact event was already processed
-    const eventKey = `${data.email_id}:${eventType}`
-    const { data: existingRow } = await supabase
-      .from("email_outbox")
-      .select("metadata, patient_id")
-      .eq("provider_message_id", data.email_id)
-      .maybeSingle()
+    // 3. Atomically own this provider event before any side effects. The RPC
+    // locks the outbox row, set-unions metadata.processed_events, and applies a
+    // monotonic delivery state so concurrent click/open/delivery callbacks
+    // cannot overwrite one another's durable receipt.
+    const bounceType = eventType === "email.bounced"
+      ? normalizeBounceType(rawBounceType)
+      : null
+    const providerErrorMessage = eventType === "email.bounced"
+      ? bounceMessage ?? null
+      : eventType === "email.failed"
+        ? failedReason ?? null
+        : eventType === "email.suppressed"
+          ? suppressionMessage ?? null
+          : null
+    const { data: recordedData, error: recordError } = await supabase
+      .rpc("record_resend_outbox_event", {
+        p_bounce_type: bounceType,
+        p_error_message: providerErrorMessage,
+        p_event_created_at: eventCreatedAt,
+        p_event_type: eventType,
+        p_provider_detail_type: eventType === "email.suppressed"
+          ? suppressionType ?? null
+          : null,
+        p_provider_message_id: providerId,
+      })
+      .single()
 
-    if (existingRow?.metadata?.processed_events?.includes(eventKey)) {
-      log.info("Duplicate event, skipping", { eventKey })
-      return NextResponse.json({ received: true, duplicate: true })
-    }
-
-    // 4. Find the email_outbox row by provider_message_id
-    const { data: emailLog, error: findError } = await supabase
-      .from("email_outbox")
-      .select("id, status, delivery_status, certificate_id, email_type")
-      .eq("provider_message_id", data.email_id)
-      .maybeSingle()
-
-    if (findError) {
-      log.error("Error finding email log", { error: findError.message })
+    if (recordError) {
+      log.error("Error recording email lifecycle event", { error: recordError.message })
       return NextResponse.json({ error: "Database error" }, { status: 500 })
     }
 
-    if (!emailLog) {
-      // Email may have been sent before outbox logging was enabled
-      log.warn("Email log not found for provider_message_id", { providerId: data.email_id })
-      return NextResponse.json({ received: true, matched: false })
+    const recorded = parseRecordedOutboxEvent(recordedData)
+    if (!recorded) {
+      log.error("Email lifecycle receipt returned an invalid result")
+      return NextResponse.json({ error: "Database error" }, { status: 500 })
     }
 
-    // 5. Build update payload
+    if (!recorded.matched) {
+      const { data: authEmailEvent, error: authEmailError } = await supabase
+        .from("auth_email_events")
+        .select("id, recipient_hash")
+        .eq("provider_message_id", providerId)
+        .limit(1)
+        .maybeSingle()
+
+      if (authEmailError) {
+        log.error("Error checking auth email lifecycle ownership", {
+          error: authEmailError.message,
+        })
+        return NextResponse.json({ error: "Database error" }, { status: 500 })
+      }
+
+      if (authEmailEvent) {
+        if (eventType === "email.complained") {
+          const normalizedRecipient = recipient.trim().toLowerCase()
+          if (
+            normalizedRecipient.length === 0
+            || hashAuthEmailRecipient(normalizedRecipient) !== authEmailEvent.recipient_hash
+          ) {
+            log.error("Auth email complaint recipient did not match durable ownership")
+            return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
+          }
+
+          const { error: complaintPreferenceError } = await supabase.rpc(
+            "record_email_spam_complaint",
+            {
+              p_event_created_at: eventCreatedAt,
+              p_normalized_email: normalizedRecipient,
+            },
+          )
+
+          if (complaintPreferenceError) {
+            log.error("Error recording auth email complaint preference", {
+              error: complaintPreferenceError.message,
+            })
+            return NextResponse.json({ error: "Database error" }, { status: 500 })
+          }
+        }
+
+        if (AUTH_EMAIL_TERMINAL_FAILURE_TYPES.has(eventType)) {
+          // Auth sends do not use email_outbox. Persist provider-terminal
+          // evidence on their PHI-free operational row so the existing
+          // critical auth-email health check can see it. The guarded
+          // assignment is idempotent under Resend's at-least-once delivery.
+          const { error: authEmailUpdateError } = await supabase
+            .from("auth_email_events")
+            .update({
+              error_message: `Resend ${eventType}`,
+              status: "failed",
+            })
+            .eq("id", authEmailEvent.id)
+            .neq("status", "failed")
+
+          if (authEmailUpdateError) {
+            log.error("Error recording auth email terminal failure", {
+              error: authEmailUpdateError.message,
+              type: eventType,
+            })
+            return NextResponse.json({ error: "Database error" }, { status: 500 })
+          }
+        }
+
+        log.info("Managed auth email lifecycle callback acknowledged", {
+          type: eventType,
+          providerId,
+        })
+        return NextResponse.json({ received: true, matched: true, tracked: false })
+      }
+
+      // Resend delivers at least once and can outrun the provider-id write that
+      // follows a successful send. Retry only inside that bounded race window;
+      // direct unmanaged and legacy sends must not churn through every provider
+      // retry after it is impossible for normal outbox finalization to catch up.
+      const eventAgeMs = Date.now() - eventCreatedAtMs
+      if (Math.abs(eventAgeMs) <= UNMATCHED_OUTBOX_RETRY_WINDOW_MS) {
+        log.warn("Email lifecycle record not ready for provider_message_id", {
+          providerId,
+        })
+        return NextResponse.json(
+          { error: "Email lifecycle record not ready", retryable: true },
+          { status: 503, headers: { "Retry-After": "5" } },
+        )
+      }
+
+      log.info("Unmanaged email lifecycle callback acknowledged", {
+        type: eventType,
+        providerId,
+      })
+      return NextResponse.json({ received: true, matched: false, tracked: false })
+    }
+
+    if (recorded.duplicate) {
+      log.info("Duplicate event, skipping", { type: eventType })
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+
+    // 4. The receipt and every critical database mirror are durable. Continue
+    // only with best-effort logs and telemetry.
     const deliveryStatus = mapEventToDeliveryStatus(eventType)
-    const emailStatus = mapEventToEmailStatus(eventType)
-
-    const updates: Record<string, unknown> = {
-      delivery_status_updated_at: new Date().toISOString(),
-    }
-
-    if (deliveryStatus) {
-      updates.delivery_status = deliveryStatus
-    }
-
-    if (emailStatus) {
-      updates.status = emailStatus
-    }
-
-    // Merge metadata (preserve existing, append processed event key)
-    const { data: currentLog } = await supabase
-      .from("email_outbox")
-      .select("metadata")
-      .eq("id", emailLog.id)
-      .single()
-
-    const existingMetadata = (currentLog?.metadata || {}) as Record<string, unknown>
-    const processedEvents = (existingMetadata.processed_events || []) as string[]
-
-    updates.metadata = {
-      ...existingMetadata,
-      processed_events: [...processedEvents, eventKey],
-    }
-
-    // 6. Event-specific side effects
 
     // --- Bounced ---
-    if (eventType === "email.bounced" && data.bounce) {
-      ;(updates.metadata as Record<string, unknown>).bounce = data.bounce
-      ;(updates.metadata as Record<string, unknown>).bounce_type = data.bounce.type === "hard" ? "hard" : "soft"
-      updates.error_message = data.bounce.message
-
-      await flagPatientEmailBounce(supabase, data.to?.[0], data.bounce.message, data.bounce.type)
-
+    if (eventType === "email.bounced") {
       log.error("Email bounced", {
-        providerId: data.email_id,
-        bounceType: data.bounce.type,
+        providerId,
+        bounceType,
       })
 
       Sentry.captureMessage("Email bounced", {
@@ -353,75 +415,87 @@ export async function POST(request: NextRequest) {
         tags: {
           source: "resend-webhook",
           event_type: "email.bounced",
-          bounce_type: data.bounce.type,
+          bounce_type: bounceType,
         },
         extra: {
-          emailId: data.email_id,
+          emailId: providerId,
           recipient: recipientForLog,
-          bounceType: data.bounce.type,
+          bounceType,
         },
       })
+
+      if (
+        bounceType === "hard"
+        && recorded.emailType
+        && CRITICAL_FULFILMENT_EMAIL_TYPES.has(recorded.emailType)
+      ) {
+        Sentry.captureMessage("Critical fulfilment email bounced", {
+          level: "error",
+          tags: {
+            source: "resend-webhook",
+            event_type: "email.bounced",
+            email_type: recorded.emailType,
+            bounce_type: "hard",
+          },
+          extra: {
+            emailId: providerId,
+            bounceType: "hard",
+          },
+        })
+      }
+    }
+
+    if (eventType === "email.failed" || eventType === "email.suppressed") {
+      log.error("Email provider terminal failure", {
+        providerId,
+        eventType,
+      })
+      Sentry.captureMessage("Email provider terminal failure", {
+        level: "warning",
+        tags: {
+          source: "resend-webhook",
+          event_type: eventType,
+        },
+        extra: { emailId: providerId },
+      })
+
+      if (recorded.emailType && CRITICAL_FULFILMENT_EMAIL_TYPES.has(recorded.emailType)) {
+        Sentry.captureMessage("Critical fulfilment email failed", {
+          level: "error",
+          tags: {
+            source: "resend-webhook",
+            event_type: eventType,
+            email_type: recorded.emailType,
+          },
+          extra: { emailId: providerId },
+        })
+      }
     }
 
     // --- Complained ---
     if (eventType === "email.complained") {
       log.warn("Email complaint received", {
-        providerId: data.email_id,
+        providerId,
         to: recipientForLog,
       })
 
-      // Treat complaints the same as bounces for suppression
-      await flagPatientEmailBounce(
-        supabase,
-        data.to?.[0],
-        "Spam complaint",
-        "complaint",
-      )
-
-      // Auto-opt-out from marketing emails (Australian Spam Act compliance)
-      await autoUnsubscribeOnComplaint(supabase, data.to?.[0])
-    }
-
-    // --- Delivered ---
-    if (eventType === "email.delivered") {
-      await resetPatientEmailBounce(supabase, data.to?.[0])
     }
 
     // --- Delivery delayed ---
     if (eventType === "email.delivery_delayed") {
       log.warn("Email delivery delayed", {
-        providerId: data.email_id,
+        providerId,
         to: recipientForLog,
       })
     }
 
-    // --- Opened (certificate tracking) ---
-    if (eventType === "email.opened" && emailLog.certificate_id) {
-      supabase
-        .from("issued_certificates")
-        .update({ email_opened_at: new Date().toISOString() })
-        .eq("id", emailLog.certificate_id)
-        .is("email_opened_at", null) // Only set once
-        .then(() => {}, () => {})
-    }
-
-    // 7. Feed the delivery-tracking monitoring subsystem (fire-and-forget)
-    if (eventType === "email.delivered") {
-      updateDeliveryStatus(data.email_id, "delivered").catch(() => {})
-    } else if (eventType === "email.bounced") {
-      const bType = data.bounce?.type === "hard" ? "hard" : "soft" as const
-      updateDeliveryStatus(data.email_id, "bounced", { bounceType: bType }).catch(() => {})
-    } else if (eventType === "email.complained") {
-      updateDeliveryStatus(data.email_id, "failed", { errorMessage: "Complaint received" }).catch(() => {})
-    } else if (eventType === "email.opened") {
-      updateDeliveryStatus(data.email_id, "opened").catch(() => {})
-    }
-
-    // 7b. PostHog email lifecycle events (fire-and-forget)
+    // 5. PostHog email lifecycle events (fire-and-forget)
     try {
       const { capturePersonlessPostHogEvent } = await import("@/lib/analytics/posthog-server")
       const posthogEvent = eventType === "email.delivered" ? "email_delivered"
         : eventType === "email.bounced" ? "email_bounced"
+        : eventType === "email.failed" ? "email_failed"
+        : eventType === "email.suppressed" ? "email_suppressed"
         : eventType === "email.complained" ? "email_complained"
         : eventType === "email.opened" ? "email_opened"
         : eventType === "email.clicked" ? "email_clicked"
@@ -430,10 +504,11 @@ export async function POST(request: NextRequest) {
       if (posthogEvent) {
         capturePersonlessPostHogEvent({
           event: posthogEvent,
-          requestId: data.email_id,
+          requestId: providerId,
           properties: {
-            email_type: emailLog ? (emailLog as Record<string, unknown>).email_type : undefined,
-            ...(eventType === "email.bounced" && data.bounce ? { bounce_type: data.bounce.type } : {}),
+            email_is_test: recorded.emailIsTest,
+            email_type: recorded.emailType,
+            ...(eventType === "email.bounced" ? { bounce_type: bounceType } : {}),
           },
         })
       }
@@ -441,20 +516,9 @@ export async function POST(request: NextRequest) {
       // Non-blocking - PostHog failure shouldn't affect webhook processing
     }
 
-    // 8. Write updates to email_outbox
-    const { error: updateError } = await supabase
-      .from("email_outbox")
-      .update(updates)
-      .eq("id", emailLog.id)
-
-    if (updateError) {
-      log.error("Error updating email log", { emailLogId: emailLog.id, error: updateError.message })
-      return NextResponse.json({ error: "Update failed" }, { status: 500 })
-    }
-
     const duration = Date.now() - startTime
     log.info("Webhook processed successfully", {
-      emailLogId: emailLog.id,
+      emailLogId: recorded.outboxId,
       eventType,
       deliveryStatus,
       durationMs: duration,

@@ -159,6 +159,23 @@ When `PLAYWRIGHT=1` is set:
 - **Intake status reset:** use `e2e_reset_intake_status()` RPC (see below) — direct status updates are blocked by the state machine trigger
 - **Seeded queue data:** the fixed `E2E Test Patient` seed is hidden from live operational queue reads unless an E2E/test env flag is set
 
+Signed Stripe test events have two explicit local lanes. Development/test
+servers require exact `NODE_ENV=development|test`, `PLAYWRIGHT=1`, a loopback
+request host, and no `VERCEL` or `VERCEL_ENV`. A production-built local server
+additionally requires exact `ALLOW_STRIPE_TEST_WEBHOOKS=true`, a test-mode
+Stripe secret key, and matching local `SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_URL` identities. Every hosted project, custom or malformed
+URL, URL mismatch, non-loopback request, unknown/live key, and every Vercel
+runtime is acknowledged and discarded before a service-role client or event
+handler is created. `E2E_ISOLATED_SUPABASE` is never authority.
+Live signed events and authenticated admin replays retain their normal paths.
+
+#### Production-bundle certificate resend seam
+
+`corepack pnpm e2e:production -- --spec=e2e/certificate-resend-render.spec.ts` is the narrow production-Webpack certificate-render check. Its runner fails closed unless port `3060` and the isolated Supabase ports `55320`–`55329` are free, creates a uniquely named run-scoped local Supabase project, and copies the application into a temporary build root that excludes every Next-loadable `.env*` file. Both `next build` and `next start` run from that sanitized copy, with repository dependencies linked from the checkout; neither command can auto-load credentials from the working checkout. Sentry/runtime credentials are explicitly blank, source-map upload is disabled, external mutating fetches are blocked, and Resend is always intercepted locally. The synthetic intake is excluded from reporting. Signal-aware cleanup terminates only tracked child process groups, verifies the resend-attempt/outbox/intake teardown, and stops only the run-owned Supabase project. Cleanup also checks the exact per-run Docker ownership label: if any owned container, volume, or network remains, the command fails and retains the temporary workdir for recovery; a nonzero stop after partial startup is accepted only when that exact-label check proves nothing remains.
+
+The certificate browser case owns the server-action/production-bundle/outbox integration and proves a confirmed terminal email-hub attempt has no Retry action. A second browser case opens Business measurement checkpoints and the email-hub Queue at 1440px and 375px in light and dark modes with reduced motion, checks for horizontal overflow and JavaScript page exceptions, and captures synthetic screenshots. These checks cover empty/unavailable analytics and a populated terminal email attempt; mature populated refill counts are proved separately by the reporting-only PostgreSQL harness. The fixtures intentionally have no working external Redis/provider integrations. The companion unmocked Vitest contract runs `executeCertApproval`, patient self-resend, staff resend, and no-frozen email-hub reconstruction with real certificate email components and renderer while mocking their DB/PDF/storage/provider boundaries; it is supporting render coverage, not proof of the Webpack seam.
+
 ### E2E Intake Reset RPC
 
 The `validate_intake_status_transition` trigger blocks terminal-state resets (e.g. `approved → paid`), which breaks E2E test cleanup that needs to reuse intakes across test runs.
@@ -199,6 +216,62 @@ Critical paths only — every flow that touches money, auth, or clinical data:
 The med-cert auto-approval E2E contract uses `/api/test/medcert-immediate-auto-approve` to bypass the production retry-cron delay. That route is test-only, requires `PLAYWRIGHT=1` + `E2E_SECRET`, and must not be treated as the production approval timing path.
 
 **Parchment proof boundary:** local and mocked browser checks can prove InstantMed's responsive sheet, same-page restoration, action sizing, and disabled-state contract. They cannot prove the real third-party iframe. Release proof for the vendor interaction requires an explicitly approved Parchment sandbox/test request at a 375px-class viewport, including launch, prescribe/issue, return, durable `script_sent` refresh, and completion unlock. Never use a production patient or create vendor state merely to obtain visual proof.
+
+### Hosted Stripe guest-checkout proof
+
+`corepack pnpm e2e:stripe-hosted` is the manual, production-bundle acceptance
+gate for guest payment and optional account linking. It is intentionally
+separate from the normal seeded Playwright suite: the runner creates a
+dotenv-free temporary app copy, starts its own Supabase project on ports
+55320-55329 (API 55321 and Mailpit 55324), retrieves and verifies the two exercised Stripe
+test Prices (one-day med-cert and repeat prescription), starts `stripe listen`, builds and serves Next.js on loopback port
+3060, and uses one Chromium worker with no shared global setup or `webServer`.
+
+The two payment browser cases use fabricated data only. The repeat-prescription case
+fills the current prescribing identity, medication strength, dose/directions,
+and clinical safety fields, pays on `checkout.stripe.com`, then chooses
+`Continue without an account`; the med-cert case pays the same way, requests a
+passwordless link, reads only its run-specific local Mailpit recipient, and
+links the request to the patient dashboard. Both cases require the current
+Checkout Session, succeeded PaymentIntent, exact stored session/amount/currency,
+paid intake state, and a processed genuine signed webhook. They never use the
+Playwright auth-bypass cookie or fabricated provider responses.
+
+The command fails before startup unless dedicated `HOSTED_STRIPE_E2E_*` test
+credentials and matching test-mode Price IDs are present. It never loads repo
+dotenv files or accepts primary `STRIPE_*`, Supabase, app-domain, Vercel, or
+`E2E_ISOLATED_SUPABASE` values from the shell. Teardown deletes the two
+run-scoped recipients and their intake/payment/auth side effects, asserts zero
+survivors, stops only its labelled Supabase project, and writes a restricted
+PHI-free receipt under `.artifacts/hosted-stripe-e2e/` only after both branches
+and cleanup pass. The receipt includes account-skip and magic-link action counts,
+zero repeated profile fields, and elapsed milliseconds from the confirmed offer
+to its outcome (including local Mailpit wait for linking). These are harness
+measurements, not patient performance promises. Skipping takes one action; the
+linked-dashboard branch takes three: request the email, open its real magic
+link, then choose Go to dashboard from the authenticated request confirmation.
+The GitHub workflow is manual `workflow_dispatch` only.
+
+The local production bundle's startup exception requires the explicit test flags,
+a test key, loopback app origins on 3060, matching loopback database origins on
+55321, and no Vercel markers. Deployed test keys, including restricted keys,
+remain rejected. The enforced and report-only CSPs admit only the exact local
+Auth connection (`http://127.0.0.1:55321`) when the owned runner settings match;
+Vercel markers, live keys, or mismatched origins close this exception. The runner also owns port 55330 for a disposable Redis HTTP
+proxy backed by real Redis. Both container images are digest-pinned; their
+network is run-scoped, Redis has no published port, and the HTTP proxy binds only
+to loopback. Before checkout, the installed rate-limit SDK must prove an allowed
+request followed by a rejected request. Cleanup removes only containers and
+networks with both the exact run label and Redis label, including partial starts.
+
+The same runner now adds a tracker-access case using the paid guest who already
+proved account skip. It exchanges the signed URL for the `/track` HttpOnly
+cookie, exercises the empty CSRF POST and real Mailpit/PKCE callback, and verifies
+the exact Auth owner. A different authenticated patient cannot download or
+reply; a fresh browser cannot reuse the consumed magic link. Only explicit
+screenshots of the clean anonymous tracker surface are captured at 375px/1440px
+in light/dark mode. Auth and bearer URLs retain no screenshot, video, or trace.
+All three cases must pass before the existing payment receipt is archived.
 
 ### What NOT to E2E Test
 
@@ -299,3 +372,13 @@ steps:
 3. Check `email_outbox` table for `skipped_e2e` status if email-related
 4. Check if `PLAYWRIGHT=1` is set — auth bypass won't work without it
 5. Check for leftover test data from a previous failed run — teardown may not have completed
+
+### Delivery schema compatibility release gate
+
+The required CI build runs `scripts/test-resend-webhook-mirrors-db.sh` both normally
+and with `--legacy-delivery`. The latter reproduces the deployed legacy table
+without `message_id` and with a required `message_type`; it applies convergence
+migration `20260905120001` twice, proves existing rows stay untouched, and runs
+the full receipt, preference, ordering, and concurrency suite. This prevents a
+fresh baseline alone from masking a production schema mismatch. Linked schema
+lint remains a separate live release gate.

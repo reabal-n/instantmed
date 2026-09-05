@@ -400,6 +400,8 @@ Recording fulfilment evidence and completing the request are deliberately separa
 
 ## Consent Requirements
 
+Communication preferences remain on by default. `email_preferences.preferences_changed_at` records deliberate preference changes and provider complaints; generic row creation and `updated_at` are not re-enablement. Explicit removals persist across settings reads and duplicate/default preference rows until deliberately changed. Hard-bounce/provider suppression stays separate. These communication rules do not alter per-episode clinical consent.
+
 ### Per-Episode Consent
 
 - Explicit consent checkbox required at each intake submission (not implied by signup)

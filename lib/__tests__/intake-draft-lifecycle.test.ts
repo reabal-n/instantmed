@@ -22,9 +22,11 @@ const localStorageMock = {
 Object.defineProperty(globalThis, "localStorage", { value: localStorageMock })
 
 import {
+  completeIntentionalNavigationAtFlowDestination,
   isIntentionalNavigationInProgress,
   markIntentionalNavigation,
   resetIntentionalNavigationForTests,
+  runWomensHealthRepeatHandoffOnce,
 } from "@/components/request/hooks/use-unsaved-changes"
 import { useRequestStore } from "@/components/request/store"
 import { buildPassiveAbandonmentBeacon } from "@/lib/analytics/intake-events"
@@ -282,6 +284,107 @@ describe("intake draft lifecycle", () => {
       expect(isIntentionalNavigationInProgress()).toBe(false)
     })
 
+    it("keeps the current-pill handoff latched through source hydration and clears only at its exact destination", () => {
+      const gate = { current: null as string | null }
+      expect(runWomensHealthRepeatHandoffOnce({
+        attemptKey: "womens-health-repeat-handoff:unscoped",
+        capture: vi.fn(),
+        gate,
+        navigate: vi.fn(),
+      })).toBe(true)
+
+      completeIntentionalNavigationAtFlowDestination({
+        entryRef: null,
+        flowInstanceId: FRESH_FLOW_INSTANCE_ID,
+        serviceType: "consult",
+      })
+      expect(isIntentionalNavigationInProgress()).toBe(true)
+
+      completeIntentionalNavigationAtFlowDestination({
+        entryRef: null,
+        flowInstanceId: FRESH_FLOW_INSTANCE_ID,
+        serviceType: "repeat-script",
+      })
+      expect(isIntentionalNavigationInProgress()).toBe(true)
+
+      completeIntentionalNavigationAtFlowDestination({
+        entryRef: "womens-health-repeat-handoff",
+        flowInstanceId: FRESH_FLOW_INSTANCE_ID,
+        serviceType: "repeat-script",
+      })
+      expect(isIntentionalNavigationInProgress()).toBe(false)
+    })
+
+    it("runs one current-pill handoff for repeated activation of the same flow", () => {
+      const gate = { current: null as string | null }
+      const navigate = vi.fn()
+      const capture = vi.fn()
+      const options = {
+        attemptKey: `womens-health-repeat-handoff:${FRESH_FLOW_INSTANCE_ID}`,
+        capture,
+        gate,
+        navigate,
+      }
+
+      expect(runWomensHealthRepeatHandoffOnce(options)).toBe(true)
+      expect(runWomensHealthRepeatHandoffOnce(options)).toBe(false)
+
+      expect(navigate).toHaveBeenCalledTimes(1)
+      expect(capture).toHaveBeenCalledTimes(1)
+      expect(isIntentionalNavigationInProgress()).toBe(true)
+    })
+
+    it("keeps one current-pill handoff claim across unscoped to scoped flow hydration", () => {
+      const gate = { current: null as string | null }
+      const navigate = vi.fn()
+      const capture = vi.fn()
+
+      expect(runWomensHealthRepeatHandoffOnce({
+        attemptKey: "womens-health-repeat-handoff:unscoped",
+        capture,
+        gate,
+        navigate,
+      })).toBe(true)
+      expect(runWomensHealthRepeatHandoffOnce({
+        attemptKey: `womens-health-repeat-handoff:${FRESH_FLOW_INSTANCE_ID}`,
+        capture,
+        gate,
+        navigate,
+      })).toBe(false)
+
+      expect(navigate).toHaveBeenCalledTimes(1)
+      expect(capture).toHaveBeenCalledTimes(1)
+      expect(isIntentionalNavigationInProgress()).toBe(true)
+    })
+
+    it("releases a failed current-pill navigation so the same flow can retry", () => {
+      const gate = { current: null as string | null }
+      const capture = vi.fn()
+      let shouldFail = true
+      const navigate = vi.fn(() => {
+        if (shouldFail) {
+          shouldFail = false
+          throw new Error("navigation unavailable")
+        }
+      })
+      const options = {
+        attemptKey: `womens-health-repeat-handoff:${FRESH_FLOW_INSTANCE_ID}`,
+        capture,
+        gate,
+        navigate,
+      }
+
+      expect(runWomensHealthRepeatHandoffOnce(options)).toBe(false)
+      expect(gate.current).toBeNull()
+      expect(capture).not.toHaveBeenCalled()
+      expect(isIntentionalNavigationInProgress()).toBe(false)
+
+      expect(runWomensHealthRepeatHandoffOnce(options)).toBe(true)
+      expect(navigate).toHaveBeenCalledTimes(2)
+      expect(capture).toHaveBeenCalledTimes(1)
+      expect(isIntentionalNavigationInProgress()).toBe(true)
+    })
+
     it("review-step and exit path actually call the suppressor before navigating", () => {
       // Source-level pin: the two known unload-triggering navigations must
       // suppress the passive beacon.
@@ -289,7 +392,7 @@ describe("intake draft lifecycle", () => {
       const flowNav = readFileSync("components/request/hooks/use-flow-navigation.ts", "utf8")
       expect(reviewStep).toContain("markIntentionalNavigation()")
       expect(reviewStep.indexOf("markIntentionalNavigation()")).toBeLessThan(
-        reviewStep.indexOf("window.location.href = result.checkoutUrl!"),
+        reviewStep.indexOf("window.location.href = result.checkoutUrl"),
       )
       expect(flowNav).toContain("markIntentionalNavigation()")
     })
