@@ -511,7 +511,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: "Hair reproductive safety block.",
       success: false,
     })
@@ -539,7 +539,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       success: false,
       error: "A newer saved request exists for this service. Open your latest request to finish payment.",
     })
@@ -592,7 +592,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error:
         "Priority review is temporarily unavailable. Your request was not changed and no new checkout was opened. Please try again later or contact support.",
       success: false,
@@ -619,7 +619,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error:
         "Priority review is temporarily unavailable. Your request was not changed and no new checkout was opened. Please try again later or contact support.",
       success: false,
@@ -735,7 +735,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
@@ -764,7 +764,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/refresh.*completed payment.*support/i),
       success: false,
     })
@@ -802,8 +802,9 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toMatchObject({
+    expect(result).toEqual({
       checkoutUrl: "https://checkout.stripe.test/pay/cs_retry",
+      intakeId: "intake-1",
       success: true,
     })
     expect(updateRecords).toHaveLength(1)
@@ -866,7 +867,7 @@ describe("retryPaymentForIntakeAction", () => {
       "signed-recovery-proof",
     )
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
@@ -903,7 +904,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
@@ -937,7 +938,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
@@ -959,7 +960,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
@@ -1126,7 +1127,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: "This repeat request needs a different pathway.",
       success: false,
     })
@@ -1150,7 +1151,7 @@ describe("retryPaymentForIntakeAction", () => {
       },
     )
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error:
         "Required medical information is missing. Please start a new request before trying payment again.",
       paymentRecoveryReason: "more_information_required",
@@ -1221,7 +1222,7 @@ describe("retryPaymentForIntakeAction", () => {
     const result = await retryPaymentForIntakeAction("intake-1")
     const [lockRecord, cancellationRecord] = updateRecords
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
@@ -1281,7 +1282,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: "Unable to determine pricing. Please contact support.",
       success: false,
     })
@@ -1309,7 +1310,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
@@ -1345,7 +1346,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/refresh.*completed payment.*support/i),
       success: false,
     })
@@ -1390,7 +1391,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
@@ -1424,7 +1425,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
@@ -1446,7 +1447,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: expect.stringMatching(/no new payment session/i),
       success: false,
     })
@@ -1488,7 +1489,7 @@ describe("retryPaymentForIntakeAction", () => {
 
     const result = await retryPaymentForIntakeAction("intake-1")
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       error: "Unable to determine pricing. Please contact support.",
       success: false,
     })

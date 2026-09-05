@@ -299,6 +299,24 @@ describe("SEO indexing contracts", () => {
     expect(locationSitemap).toContain('new Date("2026-09-03")')
   })
 
+  it("lists the prescription service once with its latest material release date", async () => {
+    const { default: sitemap } = await import("../../app/sitemap")
+    const { ROUTE_LAST_MODIFIED } = await import("@/lib/seo/sitemap-lastmod")
+
+    expect(ROUTE_LAST_MODIFIED["/prescriptions"]).toBe("2026-08-28")
+
+    const prescriptionEntries = (await sitemap()).filter(
+      (entry) => new URL(entry.url).pathname === "/prescriptions",
+    )
+
+    expect(prescriptionEntries).toHaveLength(1)
+    expect(prescriptionEntries[0]).toMatchObject({
+      changeFrequency: "weekly",
+      lastModified: new Date("2026-08-28"),
+      priority: 0.9,
+    })
+  })
+
   it("keeps live money and high-yield SEO pages discoverable in the root sitemap", () => {
     const sitemap = read("app/sitemap.ts")
     const lastmod = read("lib/seo/sitemap-lastmod.ts")

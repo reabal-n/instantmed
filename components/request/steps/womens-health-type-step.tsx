@@ -2,15 +2,17 @@
 
 import { ArrowRight, HeartPulse } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback } from "react"
+import { useCallback, useRef } from "react"
 
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { captureWomensHealthRepeatHandoff } from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
+import { runWomensHealthRepeatHandoffOnce } from "../hooks/use-unsaved-changes"
 import { useRequestStore } from "../store"
 
 interface WomensHealthTypeStepProps {
@@ -49,6 +51,7 @@ export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHeal
   const router = useRouter()
   const searchParams = useSearchParams()
   const posthog = usePostHog()
+  const repeatHandoffAttemptRef = useRef<string | null>(null)
 
   const womensHealthOption = answers.womensHealthOption as string | undefined
   const hasSelection = Boolean(womensHealthOption)
@@ -75,7 +78,18 @@ export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHeal
         if (value) params.set(key, value)
       }
       params.set("service", "repeat-script")
-      router.push(`/request?${params.toString()}`)
+      params.set("from", "womens-health-repeat-handoff")
+      const destination = `/request?${params.toString()}`
+
+      runWomensHealthRepeatHandoffOnce({
+        attemptKey: `womens-health-repeat-handoff:${flowInstanceId ?? "unscoped"}`,
+        capture: () => captureWomensHealthRepeatHandoff({
+          flowInstanceId,
+          posthog,
+        }),
+        gate: repeatHandoffAttemptRef,
+        navigate: () => router.push(destination),
+      })
       return
     }
     onNext()

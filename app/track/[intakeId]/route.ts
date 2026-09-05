@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getOptionalAuth } from "@/lib/auth/helpers"
+import { APP_URL } from "@/lib/constants"
 import {
   PATIENT_REQUEST_ACCESS_COOKIE,
   PATIENT_REQUEST_ACCESS_MAX_AGE_SECONDS,
@@ -26,7 +27,7 @@ export async function GET(
   const verified = verifyPatientRequestAccessToken(tokenOrLegacyId)
 
   if (verified) {
-    const response = privateRedirect(new URL("/track/request", request.url))
+    const response = privateRedirect(new URL("/track/request", APP_URL))
     response.cookies.set(PATIENT_REQUEST_ACCESS_COOKIE, tokenOrLegacyId, {
       httpOnly: true,
       maxAge: PATIENT_REQUEST_ACCESS_MAX_AGE_SECONDS,
@@ -53,13 +54,13 @@ export async function GET(
 
       if (ownedIntake) {
         return privateRedirect(
-          new URL(buildPatientIntakeHref(tokenOrLegacyId), request.url),
+          new URL(buildPatientIntakeHref(tokenOrLegacyId), APP_URL),
         )
       }
     }
   }
 
-  const response = privateRedirect(new URL("/track/request", request.url))
+  const response = privateRedirect(new URL("/track/request", APP_URL))
   response.cookies.set(PATIENT_REQUEST_ACCESS_COOKIE, "", {
     expires: new Date(0),
     httpOnly: true,

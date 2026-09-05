@@ -1168,15 +1168,6 @@ export function RequestFlow({
       })
     }
 
-    const isMobileViewport =
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(max-width: 640px)").matches
-    if (!isMobileViewport) {
-      syncPrimaryAction()
-      return
-    }
-
     let frameId: number | null = null
     const schedulePrimaryActionSync = () => {
       if (frameId !== null) return
@@ -1190,6 +1181,8 @@ export function RequestFlow({
     // and it showed up directly in the /request mobile Lighthouse TBT gate. The
     // step's primary RequestButton now announces mount/disabled/ready changes,
     // so the mobile sticky CTA can mirror it without watching the whole step DOM.
+    // Keep the mirror current on desktop too: resizing must never expose an
+    // action left behind by a terminal safety state or a lazy-loaded step.
     window.addEventListener(INTAKE_PRIMARY_ACTION_CHANGE_EVENT, schedulePrimaryActionSync)
     syncPrimaryAction()
 

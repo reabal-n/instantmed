@@ -58,6 +58,7 @@ import {
 } from "./checkout/stripe-session"
 import type { CheckoutResult, CreateCheckoutInput } from "./checkout/types"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
+import { checkoutFailure } from "./checkout-failure"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest } from "./client"
 import { createReferralCouponIfEligible } from "./referral-coupon"
 
@@ -80,16 +81,22 @@ export async function createIntakeAndCheckoutAction(
 
     // 1. Pre-checkout gates: env + DB kill switches, capacity.
     const gatesResult = await runPreCheckoutGates(input)
-    if (!gatesResult.ok) return { success: false, error: gatesResult.error }
+    if (!gatesResult.ok) {
+      return checkoutFailure(gatesResult.failureCode, gatesResult.error)
+    }
 
     // 2. Clinical validation: payload Zod, blocklist, Sched 8, safety rules.
     const clinicalResult = await runClinicalValidation(input)
-    if (!clinicalResult.ok) return { success: false, error: clinicalResult.error }
+    if (!clinicalResult.ok) {
+      return checkoutFailure(clinicalResult.failureCode, clinicalResult.error)
+    }
     const { serviceSlugForSafety, safetyCheck, intakeFlags } = clinicalResult.data
 
     // 3. Auth, profile, age, baseUrl, consent.
     const authResult = await runAuthAndProfile(input)
-    if (!authResult.ok) return { success: false, error: authResult.error }
+    if (!authResult.ok) {
+      return checkoutFailure(authResult.failureCode, authResult.error)
+    }
     const { patientId, patientEmail, stripeCustomerId, baseUrl } = authResult.data
 
     const supabase = createServiceRoleClient()
@@ -121,7 +128,10 @@ export async function createIntakeAndCheckoutAction(
 
     if (serviceError || !service) {
       logger.error("Service not found", { serviceSlug, error: serviceError })
-      return { success: false, error: "Service not available. Please contact support." }
+      return checkoutFailure(
+        "availability",
+        "Service not available. Please contact support.",
+      )
     }
 
     // 5. Fraud detection (non-blocking; flags persisted later).
@@ -152,17 +162,19 @@ export async function createIntakeAndCheckoutAction(
         hasKey: !!input.idempotencyKey,
         keyLength: input.idempotencyKey?.length,
       })
-      return { success: false, error: "Invalid request. Please refresh the page and try again." }
+      return checkoutFailure(
+        "clinical_or_input_validation",
+        "Invalid request. Please refresh the page and try again.",
+      )
     }
     const rateLimitResult = await checkServerActionRateLimit(patientId, "sensitive")
     if (!rateLimitResult.success) {
       logger.warn("Checkout rate limited", { patientId })
-      return {
-        success: false,
-        error:
-          rateLimitResult.error ||
+      return checkoutFailure(
+        "rate_limit",
+        rateLimitResult.error ||
           "Too many checkout attempts. Please wait a moment before trying again.",
-      }
+      )
     }
 
     // 7. Resolve pricing (price ID + amount + priority add-on). A broken
@@ -184,7 +196,10 @@ export async function createIntakeAndCheckoutAction(
         category: input.category,
         failedPriceRole: "base",
       })
-      return { success: false, error: "Unable to determine pricing. Please contact support." }
+      return checkoutFailure(
+        "pricing_or_configuration",
+        "Unable to determine pricing. Please contact support.",
+      )
     }
     const amountCents = getAmountCentsForRequest({
       category: input.category as ServiceCategory,
@@ -192,7 +207,10 @@ export async function createIntakeAndCheckoutAction(
       answers: input.answers,
     })
     if (!priceId) {
-      return { success: false, error: "Unable to determine pricing. Please contact support." }
+      return checkoutFailure(
+        "pricing_or_configuration",
+        "Unable to determine pricing. Please contact support.",
+      )
     }
     const isPriority = input.answers.is_priority === true
     const priorityPriceId = isPriority ? getOptionalStripePriceEnv("STRIPE_PRICE_PRIORITY_FEE") : null
@@ -201,7 +219,10 @@ export async function createIntakeAndCheckoutAction(
         category: input.category,
         subtype: input.subtype,
       })
-      return { success: false, error: "Priority review is temporarily unavailable. Please try again without it or contact support." }
+      return checkoutFailure(
+        "pricing_or_configuration",
+        "Priority review is temporarily unavailable. Please try again without it or contact support.",
+      )
     }
     const attribution = normalizeAttributionForStorage(resolvedAttribution)
 
@@ -218,7 +239,9 @@ export async function createIntakeAndCheckoutAction(
       attribution,
       baseUrl,
     })
-    if (!persistResult.ok) return { success: false, error: persistResult.error }
+    if (!persistResult.ok) {
+      return checkoutFailure(persistResult.failureCode, persistResult.error)
+    }
 
     if (persistResult.data.kind === "already_paid") {
       return {
@@ -285,7 +308,9 @@ export async function createIntakeAndCheckoutAction(
       idempotencyKey: input.idempotencyKey,
       sessionParams,
     })
-    if (!sessionResult.ok) return { success: false, error: sessionResult.error }
+    if (!sessionResult.ok) {
+      return checkoutFailure(sessionResult.failureCode, sessionResult.error)
+    }
     const { sessionId, url } = sessionResult.data
 
     // 11. Bind the exact current winner before handing out a payable URL. The
@@ -308,7 +333,10 @@ export async function createIntakeAndCheckoutAction(
         sessionId,
         outcome: attachResult.outcome,
       })
-      return { success: false, error: "Payment system error. Please try again." }
+      return checkoutFailure(
+        "payment_provider",
+        "Payment system error. Please try again.",
+      )
     }
 
     const latencyMs = Date.now() - startTime
@@ -371,9 +399,9 @@ export async function createIntakeAndCheckoutAction(
       },
     })
 
-    return {
-      success: false,
-      error: "Something went wrong. Please try again or contact support if the issue persists.",
-    }
+    return checkoutFailure(
+      "unexpected",
+      "Something went wrong. Please try again or contact support if the issue persists.",
+    )
   }
 }

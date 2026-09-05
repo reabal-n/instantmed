@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
+        // Keep public /_next/ scripts, styles and image assets crawlable for rendering.
         allow: "/",
         disallow: [
           "/patient/",      // Patient dashboard
@@ -31,7 +32,6 @@ export default function robots(): MetadataRoute.Robots {
           "/auth/callback",   // OAuth callback — no content, pure redirect
           "/auth/confirm",    // Email confirm — no content, pure redirect
           AUTH_POST_SIGNIN_HREF, // Post-signin redirect — no content
-          "/_next/",        // Next.js build output (JS/CSS chunks)
           "/search",        // Internal search
           "/*/search",      // Category search pages
         ],

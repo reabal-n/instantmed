@@ -67,14 +67,14 @@ describe("secure request tracker contract", () => {
     expect(exchange).toContain("PATIENT_REQUEST_ACCESS_COOKIE")
     expect(exchange).toContain("httpOnly: true")
     expect(exchange).toContain('path: "/track"')
-    expect(exchange).toContain('new URL("/track/request", request.url)')
+    expect(exchange).toContain('new URL("/track/request", APP_URL)')
   })
 
   it("keeps auth returns fixed and free of request ids and bearer tokens", () => {
     const page = projectFile("app/track/request/page.tsx")
 
-    expect(page).toContain('"/sign-up?redirect=%2Ftrack%2Frequest"')
-    expect(page).toContain('"/sign-in?redirect=%2Ftrack%2Frequest"')
+    expect(page).toContain("<RequestAccessSignIn />")
+    expect(projectFile("components/track/request-access-sign-in.tsx")).toContain('"/sign-in?redirect=%2Ftrack%2Frequest"')
     expect(page).not.toContain("buildPostSignInHref")
     expect(page).not.toContain("encodeURIComponent(intakeHref)")
     expect(page).not.toContain("intake_id=")
@@ -149,12 +149,22 @@ describe("secure request tracker contract", () => {
 
   it("keeps guest account completion off browser telemetry and merged profiles off auth", () => {
     const completeAccount = projectFile("app/auth/complete-account/complete-account-form.tsx")
+    const tracker = projectFile("app/track/request/page.tsx")
     const postConversionPaths = projectFile("lib/browser/post-conversion-path.ts")
     const authHelpers = projectFile("lib/auth/helpers.ts")
     const config = projectFile("next.config.mjs")
 
-    expect(completeAccount).not.toContain("trackPurchase")
-    expect(completeAccount).not.toContain("usePostHog")
+    for (const [path, source] of [
+      ["complete-account", completeAccount],
+      ["secure tracker", tracker],
+    ] as const) {
+      expect(source, path).not.toMatch(
+        /from\s+["'](?:posthog-js|@\/lib\/(?:analytics|gtag)|@\/components\/providers\/posthog)/,
+      )
+      expect(source, path).not.toMatch(
+        /\b(?:capture|captureIntakeEvent|trackPurchase|trackEvent|trackFunnelStep|usePostHog)\s*\(/,
+      )
+    }
     expect(postConversionPaths).not.toContain('"/auth/complete-account"')
     expect(config).toContain('source: "/auth/complete-account"')
     expect(authHelpers).toContain("account_closure_reason, merged_into_profile_id")

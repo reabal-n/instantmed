@@ -33,6 +33,7 @@ import type { ServiceCategory } from "@/types/services"
 
 import { resolvePaymentRecoveryCanonicality } from "../canonical-payment-recovery"
 import { reportCheckoutSessionFailure } from "../checkout-error-alarm"
+import { checkoutFailure } from "../checkout-failure"
 import { getPriceIdForRequest, normalizeStripePriceId, stripe } from "../client"
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "../payment-integrity"
 import {
@@ -75,15 +76,15 @@ export async function retryPaymentForIntakeAction(
   try {
     const authUser = await getAuthenticatedUserWithProfile()
     if (!authUser) {
-      return { success: false, error: "You must be logged in" }
+      return checkoutFailure("auth_or_session", "You must be logged in")
     }
 
     const rateLimitResult = await checkServerActionRateLimit(authUser.user.id, "sensitive")
     if (!rateLimitResult.success) {
-      return {
-        success: false,
-        error: rateLimitResult.error || "Too many payment attempts. Please try again later.",
-      }
+      return checkoutFailure(
+        "rate_limit",
+        rateLimitResult.error || "Too many payment attempts. Please try again later.",
+      )
     }
 
     const patientId = authUser.profile.id
@@ -98,11 +99,14 @@ export async function retryPaymentForIntakeAction(
       .single()
 
     if (intakeError || !intake) {
-      return { success: false, error: "Request not found" }
+      return checkoutFailure("auth_or_session", "Request not found")
     }
 
     if (!canRetryPaymentForIntake(intake.status, intake.payment_status)) {
-      return { success: false, error: "This request has already been paid or is not awaiting payment" }
+      return checkoutFailure(
+        "auth_or_session",
+        "This request has already been paid or is not awaiting payment",
+      )
     }
 
     const canonicality = await resolvePaymentRecoveryCanonicality(supabase, {
@@ -114,13 +118,13 @@ export async function retryPaymentForIntakeAction(
       subtype: intake.subtype,
     })
     if (canonicality.kind === "unresolved") {
-      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+      return checkoutFailure("auth_or_session", RETRY_PAYMENT_STATE_ERROR)
     }
     if (canonicality.kind === "superseded") {
-      return {
-        success: false,
-        error: "A newer saved request exists for this service. Open your latest request to finish payment.",
-      }
+      return checkoutFailure(
+        "auth_or_session",
+        "A newer saved request exists for this service. Open your latest request to finish payment.",
+      )
     }
 
     // Re-evaluate safety so a saved-then-retried intake cannot bypass new
@@ -147,16 +151,15 @@ export async function retryPaymentForIntakeAction(
         revalidatePatient({ intakeId: intake.id, patientId })
         revalidateStaff({ intakeId: intake.id, patientId })
       }
-      return {
-        success: false,
-        error:
+      return checkoutFailure(
+        "clinical_or_input_validation",
           hold === "held"
             ? "Required medical information is missing. Please start a new request before trying payment again."
             : RETRY_PAYMENT_STATE_ERROR,
-        ...(isKnownMissingInformationHold(hold)
-          ? { paymentRecoveryReason: "more_information_required" as const }
-          : {}),
-      }
+        isKnownMissingInformationHold(hold)
+          ? { paymentRecoveryReason: "more_information_required" }
+          : {},
+      )
     }
 
     const intakeAnswers = await getIntakeAnswersForPaymentSafety(intake.id)
@@ -166,7 +169,7 @@ export async function retryPaymentForIntakeAction(
         { intakeId: intake.id },
         new Error("Authoritative intake answer read failed"),
       )
-      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+      return checkoutFailure("persistence", RETRY_PAYMENT_STATE_ERROR)
     }
 
     const isMedicalCertificate = isMedicalCertificateIntake(categoryForSafety, serviceForSafety)
@@ -204,14 +207,17 @@ export async function retryPaymentForIntakeAction(
       if (cancellation === "cancelled") {
         revalidatePatient({ intakeId })
         revalidateStaff({ intakeId })
-        return { success: false, error: highStakesBlock.retryPaymentError }
+        return checkoutFailure(
+          "clinical_or_input_validation",
+          highStakesBlock.retryPaymentError,
+        )
       }
 
-      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+      return checkoutFailure("auth_or_session", RETRY_PAYMENT_STATE_ERROR)
     }
 
     if (isHighStakesPaymentLock(intake.checkout_error)) {
-      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+      return checkoutFailure("auth_or_session", RETRY_PAYMENT_STATE_ERROR)
     }
 
     const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, intakeAnswers)
@@ -254,16 +260,15 @@ export async function retryPaymentForIntakeAction(
         revalidatePatient({ intakeId: intake.id, patientId })
         revalidateStaff({ intakeId: intake.id, patientId })
       }
-      return {
-        success: false,
-        error:
+      return checkoutFailure(
+        "clinical_or_input_validation",
           hold === "held"
             ? "Required medical information is missing. Please start a new request before trying payment again."
             : RETRY_PAYMENT_STATE_ERROR,
-        ...(isKnownMissingInformationHold(hold)
-          ? { paymentRecoveryReason: "more_information_required" as const }
-          : {}),
-      }
+        isKnownMissingInformationHold(hold)
+          ? { paymentRecoveryReason: "more_information_required" }
+          : {},
+      )
     }
 
     // Repeat scripts must clear the same payload rules as a first attempt.
@@ -294,10 +299,10 @@ export async function retryPaymentForIntakeAction(
           },
           serviceSlug: serviceSlugForSafety,
         })
-        return {
-          success: false,
-          error: repeatValidation.error || "This request cannot be processed online.",
-        }
+        return checkoutFailure(
+          "clinical_or_input_validation",
+          repeatValidation.error || "This request cannot be processed online.",
+        )
       }
     }
 
@@ -318,12 +323,11 @@ export async function retryPaymentForIntakeAction(
         serviceSlug: serviceSlugForSafety,
       })
 
-      return {
-        success: false,
-        error:
+      return checkoutFailure(
+        "clinical_or_input_validation",
           safetyCheck.blockReason ||
           "This request cannot be processed online. Please see your regular doctor.",
-      }
+      )
     }
 
     const service = intake.service as { slug: string; price_cents: number } | null
@@ -350,12 +354,18 @@ export async function retryPaymentForIntakeAction(
         subtype: intake.subtype,
         serviceSlug: service?.slug,
       })
-      return { success: false, error: "Unable to determine pricing. Please contact support." }
+      return checkoutFailure(
+        "pricing_or_configuration",
+        "Unable to determine pricing. Please contact support.",
+      )
     }
 
     const baseUrl = getBaseUrl()
     if (!isValidUrl(baseUrl)) {
-      return { success: false, error: "Server configuration error. Please contact support." }
+      return checkoutFailure(
+        "pricing_or_configuration",
+        "Server configuration error. Please contact support.",
+      )
     }
 
     const isPriority = (intake as { is_priority?: boolean | null }).is_priority === true
@@ -365,7 +375,7 @@ export async function retryPaymentForIntakeAction(
       isPriority,
     })
     if (!priorityPreflight.ok) {
-      return { success: false, error: PRIORITY_RECOVERY_ERROR }
+      return checkoutFailure("pricing_or_configuration", PRIORITY_RECOVERY_ERROR)
     }
 
     const cookieStore = await cookies()
@@ -436,7 +446,7 @@ export async function retryPaymentForIntakeAction(
       replacementClaim.outcome === "state_changed" ||
       replacementClaim.outcome === "unresolved"
     ) {
-      return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+      return checkoutFailure("auth_or_session", RETRY_PAYMENT_STATE_ERROR)
     }
     // Claim pending rows before expiring their current Session so the expiry
     // webhook cannot strand the intake between Stripe expiry and replacement
@@ -452,7 +462,7 @@ export async function retryPaymentForIntakeAction(
         },
       )
       if (invalidation !== "invalidated") {
-        return { success: false, error: RETRY_PAYMENT_STATE_ERROR }
+        return checkoutFailure("auth_or_session", RETRY_PAYMENT_STATE_ERROR)
       }
     }
 
@@ -477,14 +487,23 @@ export async function retryPaymentForIntakeAction(
         failedPriceRole: "base",
       })
       if (isMisconfiguredPrice) {
-        return { success: false, error: "This service is temporarily unavailable. Please try again later." }
+        return checkoutFailure(
+          "pricing_or_configuration",
+          "This service is temporarily unavailable. Please try again later.",
+        )
       }
-      return { success: false, error: "Payment system error. Please try again." }
+      return checkoutFailure(
+        "payment_provider",
+        "Payment system error. Please try again.",
+      )
     }
 
     if (!session.url) {
       await invalidateCheckoutSessionForSafety(session.id, intake.id)
-      return { success: false, error: "Failed to create checkout session. Please try again." }
+      return checkoutFailure(
+        "payment_provider",
+        "Failed to create checkout session. Please try again.",
+      )
     }
 
     const attachResult = await attachCheckoutSession({
@@ -497,13 +516,14 @@ export async function retryPaymentForIntakeAction(
     })
 
     if (attachResult.outcome !== "attached" && attachResult.outcome !== "already_attached") {
-      return {
-        success: false,
-        error: attachResult.outcome === "state_changed" &&
+      const alreadyPaid = attachResult.outcome === "state_changed" &&
           attachResult.currentState?.payment_status === "paid"
+      return checkoutFailure(
+        alreadyPaid ? "auth_or_session" : "payment_provider",
+        alreadyPaid
           ? "This request has already been paid — no further payment is needed. Please refresh to see its status."
           : RETRY_PAYMENT_STATE_ERROR,
-      }
+      )
     }
 
     const recoveryResult = recoveryProof
@@ -531,9 +551,9 @@ export async function retryPaymentForIntakeAction(
 
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }
   } catch {
-    return {
-      success: false,
-      error: "Something went wrong. Please try again or contact support.",
-    }
+    return checkoutFailure(
+      "unexpected",
+      "Something went wrong. Please try again or contact support.",
+    )
   }
 }

@@ -23,6 +23,8 @@ import {
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
 import { createIntakeAndCheckoutAction, retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
+import type { CheckoutResult } from "@/lib/stripe/checkout/types"
+import { checkoutFailure } from "@/lib/stripe/checkout-failure"
 import { buildAuthenticatedCheckoutSubmissionKey, buildGuestCheckoutSubmissionKey } from "@/lib/stripe/checkout-submission-key"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
@@ -66,14 +68,6 @@ interface UnifiedCheckoutInput {
   serverDraftSessionId?: string
 }
 
-interface CheckoutResult {
-  success: boolean
-  checkoutUrl?: string
-  intakeId?: string
-  error?: string
-  requiresFreshRequest?: boolean
-}
-
 /**
  * Map unified service type to Stripe category and subtype.
  *
@@ -110,7 +104,7 @@ function mapServiceToCategory(serviceType: UnifiedServiceType): { category: Serv
 /**
  * Create checkout session from unified flow data
  */
-export async function createCheckoutFromUnifiedFlow(
+async function createCheckoutFromUnifiedFlowInternal(
   input: UnifiedCheckoutInput
 ): Promise<CheckoutResult> {
   const {
@@ -142,7 +136,7 @@ export async function createCheckoutFromUnifiedFlow(
   // Server-side validation before proceeding to checkout
   const validationError = validateAnswersServerSide(serviceType, answers, identity)
   if (validationError) {
-    return { success: false, error: validationError }
+    return checkoutFailure("clinical_or_input_validation", validationError)
   }
 
   const transformedAnswers = transformAnswersForUnifiedCheckout(serviceType, answers)
@@ -172,10 +166,10 @@ export async function createCheckoutFromUnifiedFlow(
       request_mismatch:
         "This saved request does not match the service you are trying to pay for. Please start again.",
     } as const
-    return {
-      success: false,
-      error: blockedMessages[convertedDraft.reason],
-    }
+    return checkoutFailure(
+      convertedDraft.reason === "query_error" ? "persistence" : "auth_or_session",
+      blockedMessages[convertedDraft.reason],
+    )
   }
 
   // A draft bearer is useful for submission identity only after the service
@@ -227,11 +221,11 @@ export async function createCheckoutFromUnifiedFlow(
     // The realized flow is unique in PostgreSQL. Rotating only in this server
     // action would strand the browser/local draft on the old flow and defeat
     // paid-success cleanup, so require an explicit client lifecycle reset.
-    return {
-      success: false,
-      error: "This saved request has already been used. Start this request over to continue.",
-      requiresFreshRequest: true,
-    }
+    return checkoutFailure(
+      "auth_or_session",
+      "This saved request has already been used. Start this request over to continue.",
+      { requiresFreshRequest: true },
+    )
   }
   
   if (authResult?.user && authResult?.profile) {
@@ -239,7 +233,10 @@ export async function createCheckoutFromUnifiedFlow(
     if (Object.keys(identityUpdates).length > 0) {
       const updatedProfile = await updateProfile(authResult.profile.id, identityUpdates)
       if (!updatedProfile) {
-        return { success: false, error: "Failed to save patient details. Please try again." }
+        return checkoutFailure(
+          "persistence",
+          "Failed to save patient details. Please try again.",
+        )
       }
     }
 
@@ -269,20 +266,20 @@ export async function createCheckoutFromUnifiedFlow(
   } else {
     // Guest checkout - requires identity info
     if (!identity.email) {
-      return {
-        success: false,
-        error: 'Email is required for guest checkout',
-      }
+      return checkoutFailure(
+        "clinical_or_input_validation",
+        "Email is required for guest checkout",
+      )
     }
     
     // Phone required for prescriptions (eScript SMS delivery) and consult callbacks.
     if ((serviceType === 'prescription' || serviceType === 'repeat-script' || serviceType === 'consult') && !identity.phone) {
-      return {
-        success: false,
-        error: serviceType === 'consult'
+      return checkoutFailure(
+        "clinical_or_input_validation",
+        serviceType === 'consult'
           ? 'Phone number is required so the doctor can contact you about your consultation.'
           : 'Phone number is required for prescription requests to receive your eScript via SMS.',
-      }
+      )
     }
     
     return createGuestCheckoutAction({
@@ -307,5 +304,18 @@ export async function createCheckoutFromUnifiedFlow(
       }),
       serverDraftSessionId: activeServerDraftSessionId,
     })
+  }
+}
+
+export async function createCheckoutFromUnifiedFlow(
+  input: UnifiedCheckoutInput,
+): Promise<CheckoutResult> {
+  try {
+    return await createCheckoutFromUnifiedFlowInternal(input)
+  } catch {
+    return checkoutFailure(
+      "unexpected",
+      "Something went wrong. Please try again or contact support if the issue persists.",
+    )
   }
 }

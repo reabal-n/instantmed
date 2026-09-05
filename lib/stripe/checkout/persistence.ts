@@ -205,6 +205,7 @@ export async function createIntakeWithAnswers(
 
         if (existingAnswersError || !existingAnswers) {
           return stepFail(
+            "persistence",
             "This request is still being prepared. Please wait a moment and try again.",
           )
         }
@@ -223,6 +224,7 @@ export async function createIntakeWithAnswers(
         }
         if (!canRetryPaymentForIntake(existingIntake.status, existingIntake.payment_status)) {
           return stepFail(
+            "auth_or_session",
             "This request is not awaiting payment. Please refresh and check your request status.",
           )
         }
@@ -232,6 +234,7 @@ export async function createIntakeWithAnswers(
 
     if (intakeError?.code === "23505") {
       return stepFail(
+        "persistence",
         "This request is already being submitted. Please wait a moment and try again.",
       )
     }
@@ -243,12 +246,19 @@ export async function createIntakeWithAnswers(
       details: intakeError?.details,
     })
     if (intakeError?.code === "23503") {
-      return stepFail("Your profile could not be found. Please sign out and sign in again.")
+      return stepFail(
+        "auth_or_session",
+        "Your profile could not be found. Please sign out and sign in again.",
+      )
     }
     if (intakeError?.code === "42501") {
-      return stepFail("Permission denied. Please sign out and sign in again, or try as a guest.")
+      return stepFail(
+        "auth_or_session",
+        "Permission denied. Please sign out and sign in again, or try as a guest.",
+      )
     }
     return stepFail(
+      "persistence",
       `Failed to create your request. ${intakeError?.message ? `(${intakeError.message})` : "Please try again."}`,
     )
   }
@@ -268,7 +278,10 @@ export async function createIntakeWithAnswers(
       encryptionError instanceof Error ? encryptionError : new Error(String(encryptionError)),
     )
     await supabase.from("intakes").delete().eq("id", intake.id)
-    return stepFail("Failed to save your clinical information. Please try again.")
+    return stepFail(
+      "persistence",
+      "Failed to save your clinical information. Please try again.",
+    )
   }
 
   const { error: answersError } = await supabase.from("intake_answers").insert(answersInsert)
@@ -280,7 +293,10 @@ export async function createIntakeWithAnswers(
       new Error(answersError.message),
     )
     await supabase.from("intakes").delete().eq("id", intake.id)
-    return stepFail("Failed to save your clinical information. Please try again.")
+    return stepFail(
+      "persistence",
+      "Failed to save your clinical information. Please try again.",
+    )
   }
 
   await markDraftConvertedIfPresent(supabase, input, intake.id)

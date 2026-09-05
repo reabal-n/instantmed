@@ -3,11 +3,13 @@
 > Canonical policy for organic educational content, prescription information pages, condition pages, symptom pages, and high-intent SEO pages.
 > Read this before creating or editing public SEO content.
 
-**Last updated:** 2026-08-25
+**Last updated:** 2026-09-05
 
 ---
 
 ## 1. Strategic Decision
+
+Prioritise organic growth around active services, starting with medical certificates and repeat prescriptions. Select existing service pages and directly relevant supporting resources using service fit, qualified demand, and attributable paid orders. Search impressions or clicks alone do not justify an article expansion; general medicine education such as antibiotics access is not a growth priority merely because it receives traffic. `docs/ROADMAP.md` remains the active queue and existing page experiments retain their measurement windows.
 
 Keep educational prescription SEO pages. Do not delete the organic education moat.
 
@@ -21,7 +23,7 @@ Organic SEO pages do not share one template. Pick the page type first, then appl
 
 | Page type | Routes | Primary job | CTA/link boundary |
 |---|---|---|---|
-| Health guide | `/blog/[slug]` from `content/blog/*.mdx` | Reviewed education and source-backed explanation | No service CTAs, no `/request`, no service sales panels, no location SEO blocks. Related reading should stay guide-to-guide unless a narrower policy below explicitly allows otherwise. |
+| Health guide | `/blog/[slug]` from `content/blog/*.mdx` | Reviewed education and source-backed explanation | No service CTAs, no `/request`, no service sales panels, no location SEO blocks. Related reading may link neutrally to `/blog/*`, `/conditions/*`, and `/symptoms/*`; the service-linking permission below does not apply. |
 | Condition page | `/conditions/[slug]` | Education-first condition explainer | May explain telehealth fit and limits, but must not behave like a treatment landing page. No above-fold treatment promises, no platform stats as clinical proof, no drug-specific CTAs. |
 | Symptom page | `/symptoms/[slug]` | Non-diagnostic symptom education | Must avoid "symptom + X = diagnosis" framing. Use uncertainty, red flags, and what a doctor may ask. |
 | Medication guide | usually `/blog/[slug]` | Medicine education: uses, risks, contraindications, interactions, monitoring | Medicine names may appear in education. No "get/buy/start [medicine] online", no prescription-only medicine prices, no medicine-specific request URLs, no paid destination use. |
@@ -96,7 +98,7 @@ Do not add:
 - "How InstantMed can help" sales sections
 - related-service acquisition panels
 - location SEO blocks such as "Available in Sydney"
-- request, prescription, consult, or medical-certificate links in the guide body, except neutral related-reading links to other `/blog/*` guides
+- service or acquisition links in the guide body, including request, prescription, consult, or medical-certificate destinations; neutral educational and ordinary trust/legal links are governed by §5
 
 Allowed inside guide articles:
 
@@ -213,7 +215,11 @@ Baseline guide quality:
 
 ## 5. Internal Linking Rules
 
-Educational medicine pages may link to generic service pages:
+Medicine, condition, symptom, and other non-guide educational surfaces may link neutrally to an active generic service or pathway from the list below when it is relevant. The link must describe the service or review pathway without promising a medicine, prescription, or outcome.
+
+Health guide bodies in `content/blog/*.mdx` do not inherit the service-linking permission. They remain education-only: neutral related-reading links to `/blog/*`, `/conditions/*`, and `/symptoms/*` are allowed, but `/prescriptions`, `/request`, and other service or acquisition destinations are not.
+
+Neutral links from guides to ordinary trust or legal pages remain allowed when they support the explanation rather than act as a conversion device.
 
 Only active services may be used as acquisition links. Weight management launched on 2026-08-10, so organic and onsite content may link to its service page without implying a prescription outcome or ongoing treatment program.
 
@@ -258,6 +264,8 @@ Weight management is live for organic and onsite acquisition, but `/weight-loss`
 Those paid destinations should avoid prescription drug names and follow `docs/ADVERTISING_COMPLIANCE.md`.
 
 ## 7. Schema And Metadata
+
+`app/robots.ts` must allow crawling of public Next.js scripts, styles, and image assets under `/_next/` so search engines can render public pages. Keep private patient, staff, and API route exclusions intact. Auth pages intentionally remain crawlable for Google to read their `noindex` metadata; authentication and authorisation own access control. Verify the generated robots rules after changes. Crawl access does not guarantee indexing or rankings.
 
 Educational pages may use neutral article/FAQ metadata.
 

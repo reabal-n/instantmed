@@ -32,7 +32,7 @@ function normalizeAddress(value: string): string {
   return value.trim().toLowerCase()
 }
 
-function hashRecipient(value: string): string {
+export function hashAuthEmailRecipient(value: string): string {
   return createHash("sha256").update(normalizeAddress(value)).digest("hex")
 }
 
@@ -52,7 +52,7 @@ export async function recordAuthEmailEvent(input: AuthEmailEventInput): Promise<
     const { error } = await supabase.from("auth_email_events").insert({
       action_type: input.actionType,
       status: input.status,
-      recipient_hash: hashRecipient(input.to),
+      recipient_hash: hashAuthEmailRecipient(input.to),
       recipient_domain: getRecipientDomain(input.to),
       provider: "resend",
       provider_message_id: input.providerMessageId ?? null,

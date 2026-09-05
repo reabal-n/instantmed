@@ -42,6 +42,7 @@ import type {
   BusinessTrendsViewModel,
   RevenueTrendPeriod,
 } from "@/lib/admin/business-trends"
+import type { CheckoutFailureCategory } from "@/lib/analytics/posthog-privacy"
 import { STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
@@ -51,6 +52,22 @@ const AUD = new Intl.NumberFormat("en-AU", {
   currency: "AUD",
   maximumFractionDigits: 0,
   style: "currency",
+})
+
+const COHORT_DATE = new Intl.DateTimeFormat("en-AU", {
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  month: "short",
+  timeZone: "Australia/Sydney",
+  timeZoneName: "short",
+})
+
+const WAVE_DATE = new Intl.DateTimeFormat("en-AU", {
+  day: "numeric",
+  month: "short",
+  timeZone: "Australia/Sydney",
+  year: "numeric",
 })
 
 const REASON_COPY: Record<string, string> = {
@@ -75,6 +92,24 @@ const SERVICE_GATE_REASON_CODES = new Set([
   "PILOT_WITHIN_LOSS_CAP",
 ])
 
+const CHECKOUT_FAILURE_CATEGORY_LABELS: Record<CheckoutFailureCategory, string> = {
+  availability_or_capacity: "Availability / capacity",
+  identity_or_session: "Identity / session",
+  payment_provider: "Payment provider",
+  persistence: "Persistence",
+  pricing_or_configuration: "Pricing / configuration",
+  rate_limit: "Rate limit",
+  unknown: "Unknown",
+  validation: "Validation",
+}
+
+const CHECKOUT_RECOVERY_REASON_LABELS: Record<string, string> = {
+  flow_id_coverage_below_90_percent: "Flow ID coverage below 90%",
+  post_release_sample_below_20: "Building typed sample (fewer than 20 failures)",
+  taxonomy_coverage_below_95_percent: "Taxonomy coverage below 95%",
+  unknown_share_not_below_5_percent: "Unknown share must fall below 5%",
+}
+
 function formatAud(cents: number | null): string {
   return cents === null ? "Unavailable" : AUD.format(cents / 100)
 }
@@ -85,6 +120,27 @@ function formatPercent(value: number | null): string {
 
 function formatRatio(value: number | null): string {
   return value === null ? "Unavailable" : `${value.toFixed(2)}x`
+}
+
+function formatCohortRange(from: string, to: string): string {
+  return `${COHORT_DATE.format(new Date(from))} → ${COHORT_DATE.format(new Date(to))}`
+}
+
+function formatCohortRatio(input: {
+  denominator: number | null
+  inProgress: boolean
+  numerator: number | null
+  percent?: number | null
+}): string {
+  if (input.numerator === null || input.denominator === null) {
+    return input.inProgress ? "Pending" : "Unavailable"
+  }
+  const percent = input.percent ?? (
+    input.denominator > 0
+      ? Math.round((input.numerator / input.denominator) * 1_000) / 10
+      : null
+  )
+  return `${input.numerator.toLocaleString("en-AU")}/${input.denominator.toLocaleString("en-AU")} (${percent === null ? "—" : `${percent}%`})`
 }
 
 function formatDailyBudget(cents: number): string {
@@ -171,6 +227,144 @@ function metricTone(value: number | null, negativeIsBad = false): string {
   if (value === null) return "text-muted-foreground"
   if (negativeIsBad && value < 0) return "text-destructive"
   return "text-foreground"
+}
+
+function schedulerBadge(
+  evidence: BusinessPageData["refillReminderFunnel"]["schedulerEvidence"],
+): { label: string; status: StatusBadgeStatus } {
+  if (evidence === "healthy") return { label: "Scheduler healthy", status: "success" }
+  if (evidence === "missing") return { label: "Scheduler evidence missing", status: "warning" }
+  return { label: "Scheduler unavailable", status: "neutral" }
+}
+
+function RefillReminderFunnel({
+  snapshot,
+}: {
+  snapshot: BusinessPageData["refillReminderFunnel"]
+}) {
+  const scheduler = schedulerBadge(snapshot.schedulerEvidence)
+
+  return (
+    <section aria-labelledby="refill-reminder-funnel-heading" className="mt-3 border-t border-border/60 pt-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 id="refill-reminder-funnel-heading" className="text-sm font-semibold text-foreground">
+            Refill reminder cohorts
+          </h3>
+          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+            Sydney send weeks · 21-day outcomes · gross paid repeat-script orders.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge status={scheduler.status} size="sm">{scheduler.label}</StatusBadge>
+          <StatusBadge
+            status={snapshot.availability === "available" ? "info" : snapshot.availability === "degraded" ? "warning" : "neutral"}
+            size="sm"
+          >
+            {snapshot.availability === "available" ? "Cohorts available" : "Cohorts unavailable"}
+          </StatusBadge>
+        </div>
+      </div>
+
+      {snapshot.availability === "available" ? (
+        <>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-lg border border-border/60 bg-background/70 px-3 py-2.5">
+              <p className="text-[11px] text-muted-foreground">Real sends</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">{snapshot.sent}</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-background/70 px-3 py-2.5">
+              <p className="text-[11px] text-muted-foreground">Delivered receipts</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">{snapshot.delivered}</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-background/70 px-3 py-2.5">
+              <p className="text-[11px] text-muted-foreground">Observed provider clicks</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">{snapshot.observedProviderClicks}</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-background/70 px-3 py-2.5">
+              <p className="text-[11px] text-muted-foreground">Mature strict conversion</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                {formatPercent(snapshot.utmConversionWithin21dPercent)}
+              </p>
+            </div>
+          </div>
+
+          {snapshot.waves.length > 0 ? (
+            <div className="mt-3 overflow-x-auto rounded-lg border border-border/60">
+              <table className="w-full min-w-[880px] text-left text-[11px]">
+                <caption className="sr-only">
+                  Aggregate refill reminder sends, provider receipts, and matched paid reorder outcomes by Sydney week
+                </caption>
+                <thead className="bg-muted/35 text-muted-foreground">
+                  <tr>
+                    <th scope="col" className="px-3 py-2 font-medium">Send week</th>
+                    <th scope="col" className="px-3 py-2 font-medium">Cohort</th>
+                    <th scope="col" className="px-3 py-2 font-medium">Send evidence</th>
+                    <th scope="col" className="px-3 py-2 font-medium">Strict UTM paid orders</th>
+                    <th scope="col" className="px-3 py-2 font-medium">Broader same-patient orders</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {snapshot.waves.map((wave) => (
+                    <tr key={wave.weekStart} className="align-top">
+                      <th scope="row" className="px-3 py-2.5 font-medium text-foreground">
+                        {WAVE_DATE.format(new Date(wave.weekStart))}
+                        <span className="mt-0.5 block font-normal text-muted-foreground">
+                          to {WAVE_DATE.format(new Date(wave.weekEndExclusive))} · end excluded
+                        </span>
+                      </th>
+                      <td className="px-3 py-2.5">
+                        <StatusBadge status={wave.cohortStatus === "mature" ? "success" : "neutral"} size="sm">
+                          {wave.cohortStatus === "mature" ? "Mature" : "Maturing"}
+                        </StatusBadge>
+                        <span className="mt-1 block text-muted-foreground">
+                          complete {WAVE_DATE.format(new Date(wave.maturityAt))}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 tabular-nums text-foreground">
+                        {wave.sent} sent · {wave.delivered} delivered
+                        <span className="mt-0.5 block text-muted-foreground">
+                          {wave.observedProviderClicks} provider clicks
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 tabular-nums text-foreground">
+                        {wave.utmAttributedPaidRenewalsWithin21d} paid orders
+                        <span className="mt-0.5 block text-muted-foreground">
+                          {wave.cohortStatus === "mature"
+                            ? `${wave.utmConvertedSendsWithin21d}/${wave.eligibleSentCohort} sends · ${formatPercent(wave.utmConversionWithin21dPercent)}`
+                            : "Rate withheld while maturing"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 tabular-nums text-foreground">
+                        {wave.samePatientPaidReordersWithin21d} associated orders
+                        <span className="mt-0.5 block text-muted-foreground">
+                          {wave.cohortStatus === "mature"
+                            ? `${wave.samePatientConvertedSendsWithin21d}/${wave.eligibleSentCohort} sends · ${formatPercent(wave.samePatientReorderWithin21dPercent)}`
+                            : "Rate withheld while maturing"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="mt-3 rounded-lg border border-dashed border-border/70 bg-background/60 px-3 py-3 text-xs text-muted-foreground">
+              No real refill-reminder sends in this 90-day window.
+            </p>
+          )}
+
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Observed provider clicks can include link scanners. Broader same-patient orders are association, not attributed revenue. Net retained unavailable until exact refund and dispute cash evidence is joined.
+          </p>
+        </>
+      ) : (
+        <p className="mt-3 rounded-lg border border-dashed border-border/70 bg-background/60 px-3 py-3 text-xs text-muted-foreground">
+          Refill cohort evidence could not be read. Counts and rates remain unavailable rather than falling back to zero.
+        </p>
+      )}
+    </section>
+  )
 }
 
 function Metric({
@@ -451,7 +645,17 @@ function ProfitCell({ row }: { row: BusinessProfitRow }) {
 }
 
 export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
-  const { business, intakeFunnel, recordedAttribution, heardAboutUs, reviewRequestFunnel, trends } = data
+  const {
+    business,
+    checkoutRecovery,
+    heardAboutUs,
+    intakeFunnel,
+    recordedAttribution,
+    refillReminderFunnel,
+    releaseFriction,
+    reviewRequestFunnel,
+    trends,
+  } = data
   const decision = decisionCopy(business)
   const summary = intakeFunnel.summary
   const serviceGatesStillApply = business.reasonCodes.some((reason) => (
@@ -727,6 +931,288 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
               Current instrumentation meets the coverage gate; rates remain withheld until older incomplete events leave the rolling 30-day window.
             </p>
           ) : null}
+
+          <section aria-labelledby="payment-failure-recovery-heading" className="mt-4 border-t border-border/60 pt-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 id="payment-failure-recovery-heading" className="text-sm font-semibold text-foreground">
+                  Payment failure recovery
+                </h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  First failure per flow joined only to a strictly later server purchase. Recovery rates use horizon-mature eligible flows; younger outcomes remain in flight.
+                </p>
+              </div>
+              <StatusBadge
+                status={checkoutRecovery.availability === "available" ? "success" : checkoutRecovery.availability === "degraded" ? "warning" : "neutral"}
+                size="sm"
+              >
+                {checkoutRecovery.availability === "available"
+                  ? "Available"
+                  : checkoutRecovery.availability === "degraded"
+                    ? "Degraded"
+                    : "Unavailable"}
+              </StatusBadge>
+            </div>
+
+            {checkoutRecovery.windows.length > 0 ? (
+              <>
+                <div className="mt-3 overflow-x-auto rounded-lg border border-border/60">
+                  <table className="w-full min-w-[1080px] text-left text-[11px]">
+                    <caption className="sr-only">
+                      Aggregate checkout failure categories and later paid recovery
+                    </caption>
+                    <thead className="bg-muted/35 text-muted-foreground">
+                      <tr>
+                        <th scope="col" className="px-3 py-2 font-medium">Window / category</th>
+                        <th scope="col" className="px-3 py-2 font-medium">First failure per flow</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Eligible / in flight</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Recovered ≤24h</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Recovered ≤7d</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Flow ID coverage</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Taxonomy coverage</th>
+                        <th scope="col" className="px-3 py-2 font-medium">Unknown share</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/60">
+                      {checkoutRecovery.windows.flatMap((window) => [
+                        <tr key={`${window.days}d-summary`} className="bg-muted/15 align-top">
+                          <th scope="row" className="px-3 py-2.5 font-semibold text-foreground">
+                            {window.days}-day view
+                            <span className="mt-0.5 block font-normal text-muted-foreground">
+                              {CHECKOUT_RECOVERY_REASON_LABELS[window.reason ?? ""] ?? "Typed evidence gate met"}
+                            </span>
+                          </th>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {window.failedFlows.toLocaleString("en-AU")}
+                            <span className="mt-0.5 block text-muted-foreground">
+                              Legacy unclassified {window.legacyUnclassifiedEvents} · unjoinable {window.unjoinableEvents}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            24h {window.eligible24hFlows}/{window.inFlight24hFlows}
+                            <span className="mt-0.5 block text-muted-foreground">
+                              7d {window.eligible7dFlows}/{window.inFlight7dFlows}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: window.eligible24hFlows,
+                              inProgress: false,
+                              numerator: window.paidWithin24h,
+                              percent: window.recovery24hPercent,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: window.eligible7dFlows,
+                              inProgress: false,
+                              numerator: window.paidWithin7d,
+                              percent: window.recovery7dPercent,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">{formatPercent(window.flowIdCoveragePercent)}</td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">{formatPercent(window.taxonomyCoveragePercent)}</td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">{formatPercent(window.unknownSharePercent)}</td>
+                        </tr>,
+                        ...window.rows.map((row) => (
+                          <tr key={`${window.days}d-${row.taxonomyVersion}-${row.category}`} className="align-top">
+                            <th scope="row" className="px-3 py-2.5 pl-6 font-medium text-foreground">
+                              {CHECKOUT_FAILURE_CATEGORY_LABELS[row.category] ?? row.category}
+                              <span className="mt-0.5 block font-normal text-muted-foreground">
+                                {row.taxonomyVersion === "legacy" ? "Legacy taxonomy" : "Typed taxonomy"}
+                              </span>
+                            </th>
+                            <td className="px-3 py-2.5 tabular-nums text-foreground">{row.failedFlows}</td>
+                            <td className="px-3 py-2.5 tabular-nums text-foreground">
+                              24h {row.eligible24hFlows}/{row.inFlight24hFlows}
+                              <span className="mt-0.5 block text-muted-foreground">
+                                7d {row.eligible7dFlows}/{row.inFlight7dFlows}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2.5 tabular-nums text-foreground">
+                              {formatCohortRatio({
+                                denominator: row.eligible24hFlows,
+                                inProgress: false,
+                                numerator: row.paidWithin24h,
+                                percent: row.recovery24hPercent,
+                              })}
+                            </td>
+                            <td className="px-3 py-2.5 tabular-nums text-foreground">
+                              {formatCohortRatio({
+                                denominator: row.eligible7dFlows,
+                                inProgress: false,
+                                numerator: row.paidWithin7d,
+                                percent: row.recovery7dPercent,
+                              })}
+                            </td>
+                            <td className="px-3 py-2.5 text-muted-foreground" colSpan={3}>Covered by the window aggregate</td>
+                          </tr>
+                        )),
+                      ])}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  No patient drill-down is collected here. Use Operations for live case recovery; legacy unclassified failures remain visible instead of being folded into typed outcomes.
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 rounded-lg border border-dashed border-border/70 bg-muted/20 px-3 py-3 text-xs text-muted-foreground">
+                Recovery evidence is unavailable. Counts and rates remain withheld rather than falling back to zero.
+              </p>
+            )}
+          </section>
+
+          <section aria-labelledby="release-conversion-heading" className="mt-4 border-t border-border/60 pt-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 id="release-conversion-heading" className="text-sm font-semibold text-foreground">
+                  Release conversion &amp; retention
+                </h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  Paired Baseline windows keep D+7 and D+14 comparisons equal-length with matched follow-up. Counts stay withheld while a cohort is still forming.
+                </p>
+              </div>
+              <StatusBadge
+                status={releaseFriction.availability === "available" ? "success" : releaseFriction.availability === "degraded" ? "warning" : "neutral"}
+                size="sm"
+              >
+                {releaseFriction.availability === "available"
+                  ? "Available"
+                  : releaseFriction.availability === "degraded"
+                    ? "Partial evidence"
+                    : releaseFriction.reason === "release_boundary_not_configured"
+                      ? "Not configured"
+                      : "Unavailable"}
+              </StatusBadge>
+            </div>
+
+            {releaseFriction.periods.length > 0 ? (
+              <>
+                <div className="mt-3 overflow-x-auto rounded-lg border border-border/60">
+                  <table className="w-full min-w-[1120px] text-left text-[11px]">
+                  <caption className="sr-only">
+                    Equal-window release conversion, guest account linkage, and refund cohorts
+                  </caption>
+                  <thead className="bg-muted/35 text-muted-foreground">
+                    <tr>
+                      <th scope="col" className="px-3 py-2 font-medium">Cohort</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Starts → checkout</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Starts → paid</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Mobile medication complete</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Guest links ≤24h</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Refunded orders</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Repeat Rx decline/refund</th>
+                      <th scope="col" className="px-3 py-2 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {releaseFriction.periods.map((period) => {
+                      const inProgress = [
+                        period.cash.cohortStatus,
+                        period.guestLinkage.cohortStatus,
+                        period.posthog.cohortStatus,
+                      ].includes("in_progress")
+                      const linkage = period.guestLinkage.within24h
+                      return (
+                        <tr key={period.label} className="align-top">
+                          <th scope="row" className="px-3 py-2.5 font-medium text-foreground">
+                            {period.label}
+                            <span className="mt-0.5 block font-normal text-muted-foreground">
+                              {formatCohortRange(period.cash.from, period.cash.to)} · end excluded
+                            </span>
+                          </th>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: period.posthog.intakeStartedFlows,
+                              inProgress,
+                              numerator: period.posthog.checkoutInitiatedFlows,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: period.posthog.intakeStartedFlows,
+                              inProgress,
+                              numerator: period.posthog.purchaseCompletedFlows,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: period.posthog.repeatRx.mobileMedicationViewedFlows,
+                              inProgress,
+                              numerator: period.posthog.repeatRx.mobileMedicationCompletedFlows,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {linkage.status === "pending"
+                              ? "Pending"
+                              : `${formatCohortRatio({
+                                  denominator: linkage.eligibleOrders,
+                                  inProgress,
+                                  numerator: linkage.linkedOrders,
+                                  percent: linkage.percent,
+                                })}${linkage.status === "maturing" ? " · maturing" : ""}`}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            {formatCohortRatio({
+                              denominator: period.cash.paidOrders,
+                              inProgress,
+                              numerator: period.cash.refundedOrders,
+                              percent: period.cash.refundsPer100Paid,
+                            })}
+                          </td>
+                          <td className="px-3 py-2.5 tabular-nums text-foreground">
+                            <span className="block">
+                              Declined {formatCohortRatio({
+                                denominator: period.cash.prescription.paidOrders,
+                                inProgress,
+                                numerator: period.cash.prescription.declinedOrders,
+                                percent: period.cash.prescription.declinesPer100Paid,
+                              })}
+                            </span>
+                            <span className="mt-0.5 block text-muted-foreground">
+                              Refunded {formatCohortRatio({
+                                denominator: period.cash.prescription.paidOrders,
+                                inProgress,
+                                numerator: period.cash.prescription.refundedOrders,
+                                percent: period.cash.prescription.refundsPer100Paid,
+                              })}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 text-muted-foreground">
+                            <span className="font-medium text-foreground">
+                              {inProgress
+                                ? "In progress"
+                                : period.availability === "available"
+                                  ? "Available"
+                                  : period.availability === "degraded"
+                                    ? "Degraded"
+                                    : "Unavailable"}
+                            </span>
+                            <span className="mt-0.5 block">
+                              {period.cash.observationFollowUpHours === null
+                                ? "Matched follow-up pending"
+                                : `Matched follow-up ${period.cash.observationFollowUpHours}h · cutoff ${COHORT_DATE.format(new Date(period.cash.asOf))}`}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                  </table>
+                </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  Guest-link rates use only paid orders whose full horizon has matured. Current profile link state is observed at read time, not treated as durable history.
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 rounded-lg border border-dashed border-border/70 bg-muted/20 px-3 py-3 text-xs text-muted-foreground">
+                {releaseFriction.reason === "release_boundary_not_configured"
+                  ? "Add the immutable release SHA and ready timestamp to enable aggregate Baseline, D+7, and D+14 measurement. No patient drill-down is collected."
+                  : "Release measurement could not be read. Source values remain unavailable rather than falling back to zero."}
+              </p>
+            )}
+          </section>
         </DashboardCard>
 
         <DashboardCard padding="none">
@@ -781,13 +1267,14 @@ export function AnalyticsDashboardClient({ data }: { data: BusinessPageData }) {
               <span className="flex items-center gap-2">
                 <MailCheck className="h-4 w-4 text-muted-foreground" aria-hidden />
                 Measurement checkpoints
-                <span className="hidden text-xs font-normal text-muted-foreground sm:inline">Review requests, external reviews, and self-report coverage</span>
+                <span className="hidden text-xs font-normal text-muted-foreground sm:inline">Review requests, refill reminders, and acquisition coverage</span>
               </span>
               <span className="text-xs text-muted-foreground group-open:hidden">Open</span>
               <span className="hidden text-xs text-muted-foreground group-open:inline">Close</span>
             </summary>
             <div className="border-t border-border/60 bg-muted/15 p-3">
               <ReviewRequestFunnelCard snapshot={reviewRequestFunnel} />
+              <RefillReminderFunnel snapshot={refillReminderFunnel} />
             </div>
           </details>
         </DashboardCard>

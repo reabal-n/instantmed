@@ -149,6 +149,7 @@ export interface OutboxRow {
   to_name: string | null
   subject: string
   status: string
+  delivery_status?: string | null
   retry_count: number
   last_attempt_at: string | null
   intake_id: string | null
