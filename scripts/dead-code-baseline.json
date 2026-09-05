@@ -1194,6 +1194,8 @@
     "production|exports|lib/ads-agent/mutations.ts|validateAdsMutationPolicy",
     "production|exports|lib/ads-agent/mutations.ts|validateProposal",
     "production|exports|lib/ads-agent/mutations.ts|verifyProposal",
+    "production|exports|lib/ads-agent/operational-health.ts|aggregateAdsOperationalQueueEvidence",
+    "production|exports|lib/ads-agent/operational-health.ts|buildManualGrowthHealthEvidence",
     "production|exports|lib/ads-agent/proposals.ts|canTransitionAdsProposal",
     "production|exports|lib/ads-agent/proposals.ts|recordCodexProposalDecision",
     "production|exports|lib/ads-agent/runs.ts|getExistingRunClaimDisposition",
