@@ -9,7 +9,7 @@
 
 ## 1. Strategic Decision
 
-Prioritise organic growth around active services, starting with medical certificates and repeat prescriptions. Select existing service pages and directly relevant supporting resources using service fit, qualified demand, and attributable paid orders. Search impressions or clicks alone do not justify an article expansion; general medicine education such as antibiotics access is not a growth priority merely because it receives traffic. `docs/ROADMAP.md` remains the active queue and existing page experiments retain their measurement windows.
+Prioritise organic growth around medical certificates, repeat prescriptions, ED, hair loss, and women's health (UTI and new/switch contraceptive pill). Select existing service pages and directly relevant supporting resources using service fit, qualified demand, and attributable paid orders. Search impressions or clicks alone do not justify an article expansion; general medicine education such as antibiotics access is not a growth priority merely because it receives traffic. `docs/ROADMAP.md` remains the active queue and existing page experiments retain their measurement windows.
 
 Keep educational prescription SEO pages. Do not delete the organic education moat.
 
