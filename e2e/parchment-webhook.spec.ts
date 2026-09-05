@@ -39,6 +39,11 @@ const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
 const E2E_DOCTOR_ID = "e2e00000-0000-0000-0000-000000000003"
 const E2E_PARCHMENT_USER_ID = "e2e-parchment-user"
 
+// These are synthetic signed callbacks. They may only reach the local test app.
+if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(BASE_URL).hostname)) {
+  throw new Error("Parchment webhook tests require a localhost target")
+}
+
 // ============================================================================
 // PARCHMENT SIGNATURE HELPERS
 // ============================================================================
@@ -73,6 +78,7 @@ function buildPrescriptionCreatedEvent(overrides: {
   scid?: string
   organizationId?: string
   partnerId?: string
+  intakeReference?: string
 }) {
   return {
     event_type: overrides.eventType || "prescription.created",
@@ -80,6 +86,7 @@ function buildPrescriptionCreatedEvent(overrides: {
     timestamp: new Date().toISOString(),
     partner_id: overrides.partnerId || PARCHMENT_PARTNER_ID,
     organization_id: overrides.organizationId || PARCHMENT_ORGANIZATION_ID,
+    ...(overrides.intakeReference ? { metadata: { reserved_1: overrides.intakeReference } } : {}),
     data: {
       patient_id: overrides.patientId || `parch_pat_${randomUUID()}`,
       partner_patient_id: overrides.partnerPatientId || randomUUID(),
@@ -305,6 +312,96 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     expect(intake!.parchment_reference).toBeFalsy()
     expect(intake!.status).toBe("in_review")
   })
+
+  for (const scenario of [
+    { name: "records the exact request across duplicate Parchment patient links", merged: false, patientMatches: true, prescriberMatches: true },
+    { name: "records the current request when Parchment echoes a merged partner profile", merged: true, patientMatches: true, prescriberMatches: true },
+    { name: "rejects an exact request reference when the external patient does not match", merged: false, patientMatches: false, prescriberMatches: true },
+    { name: "rejects a duplicate-profile callback from an unlinked prescriber", merged: false, patientMatches: true, prescriberMatches: false },
+  ]) {
+    test(scenario.name, async ({ request }) => {
+      test.skip(!PARCHMENT_WEBHOOK_SECRET, "PARCHMENT_WEBHOOK_SECRET required")
+      test.skip(!isDbAvailable(), "Supabase credentials required")
+
+      const supabase = getSupabaseClient()
+      const currentProfileId = `e2e${randomUUID().slice(3)}`
+      const olderProfileId = `e2e${randomUUID().slice(3)}`
+      const parchmentPatientId = `e2e-shared-${randomUUID()}`
+      const intakeIds: string[] = []
+
+      try {
+        const { error: profileError } = await supabase.from("profiles").insert([
+          {
+            id: currentProfileId,
+            full_name: "E2E Parchment Current",
+            email: `${currentProfileId}@test.instantmed.com.au`,
+            role: "patient",
+            parchment_patient_id: parchmentPatientId,
+          },
+          {
+            id: olderProfileId,
+            full_name: "E2E Parchment Older",
+            email: `${olderProfileId}@test.instantmed.com.au`,
+            role: "patient",
+            parchment_patient_id: parchmentPatientId,
+            merged_into_profile_id: scenario.merged ? currentProfileId : null,
+          },
+        ])
+        expect(profileError).toBeNull()
+
+        // Two awaiting requests prevent a newest/only-request heuristic from
+        // accidentally passing. Only the signed reference may select one.
+        for (let index = 0; index < 2; index += 1) {
+          const seed = await seedTestIntake({
+            status: "awaiting_script",
+            payment_status: "paid",
+            category: "common_scripts",
+            claimed_by: E2E_DOCTOR_ID,
+            patient_id: currentProfileId,
+          })
+          expect(seed.success, seed.error).toBe(true)
+          intakeIds.push(seed.intakeId!)
+        }
+
+        const reference = `IM-20260905-${randomUUID().slice(-6).toUpperCase()}`
+        const { error: referenceError } = await supabase.from("intakes")
+          .update({ reference_number: reference })
+          .eq("id", intakeIds[0])
+        expect(referenceError).toBeNull()
+
+        const scid = `SCID-E2E-${randomUUID()}`
+        const response = await postWebhook(request, buildPrescriptionCreatedEvent({
+          patientId: scenario.patientMatches ? parchmentPatientId : `e2e-other-${randomUUID()}`,
+          // Even a current partner ID cannot override a conflicting external link.
+          partnerPatientId: scenario.patientMatches ? olderProfileId : currentProfileId,
+          userId: scenario.prescriberMatches ? E2E_PARCHMENT_USER_ID : `e2e-unlinked-${randomUUID()}`,
+          intakeReference: reference,
+          scid,
+        }))
+        expect(response.status()).toBe(200)
+        const body = await response.json()
+        const shouldRecord = scenario.patientMatches && scenario.prescriberMatches
+        if (shouldRecord) expect(body.warning).toBeUndefined()
+        else expect(body.warning).toBeTruthy()
+
+        const target = await getIntakeById(intakeIds[0])
+        const sibling = await getIntakeById(intakeIds[1])
+        expect(target?.script_sent).toBe(shouldRecord)
+        expect(target?.parchment_reference).toBe(shouldRecord ? scid : null)
+        expect(target?.status).toBe("awaiting_script")
+        expect(sibling?.script_sent).toBe(false)
+        expect(sibling?.parchment_reference).toBeNull()
+        expect(sibling?.status).toBe("awaiting_script")
+      } finally {
+        for (const intakeId of intakeIds) await cleanupTestIntake(intakeId)
+        // Delete the referring merged record before its current profile.
+        for (const profileId of [olderProfileId, currentProfileId]) {
+          const { error } = await supabase.from("profiles").delete().eq("id", profileId)
+          expect(error).toBeNull()
+        }
+      }
+    })
+  }
 
   test("handles duplicate SCID idempotently", async ({ request }) => {
     test.skip(!PARCHMENT_WEBHOOK_SECRET, "PARCHMENT_WEBHOOK_SECRET required")

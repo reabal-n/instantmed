@@ -177,28 +177,63 @@ export async function POST(request: Request) {
   try {
     const supabase = createServiceRoleClient()
 
-    // Find the patient profile by parchment_patient_id or by profile.id (partner_patient_id)
     let patientProfileId: string | null = null
 
-    // First try parchment_patient_id
-    const { data: byParchmentId } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("parchment_patient_id", patient_id)
-      .single()
+    // Guest/repeat profiles can share a Parchment patient, whose original
+    // partner_patient_id then points at an older local record. Resolve the exact
+    // request first, but only through its current patient's verified external
+    // link. A request reference alone must never establish patient identity.
+    if (intakeCorrelation) {
+      const { data: correlatedIntake, error: correlationError } = await supabase
+        .from("intakes")
+        .select("patient_id, patient:profiles!patient_id!inner(id)")
+        .eq("reference_number", intakeCorrelation)
+        .eq("patient.parchment_patient_id", patient_id)
+        .eq("patient.role", "patient")
+        .is("patient.merged_into_profile_id", null)
+        .maybeSingle()
 
-    if (byParchmentId) {
-      patientProfileId = byParchmentId.id
-    } else {
-      // Fall back to partner_patient_id (which is our profile.id)
-      const { data: byPartnerId } = await supabase
+      if (correlationError) {
+        log.error("Failed to resolve correlated webhook patient", { eventId: payload.event_id })
+        return NextResponse.json({ error: "Failed to resolve request patient" }, { status: 500 })
+      }
+
+      if (!correlatedIntake) {
+        await recordParchmentWebhookMismatch(
+          "intake_correlation_mismatch",
+          payload.event_id,
+          buildParchmentWebhookFailureMetadata({
+            scid,
+            parchmentPatientId: patient_id,
+            partnerPatientId: partner_patient_id,
+            prescriberUserId: user_id,
+          }),
+        )
+        return NextResponse.json({ received: true, warning: "No matching request correlation found" })
+      }
+
+      patientProfileId = correlatedIntake.patient_id
+    }
+
+    if (!patientProfileId) {
+      const { data: byParchmentId } = await supabase
         .from("profiles")
         .select("id")
-        .eq("id", partner_patient_id)
+        .eq("parchment_patient_id", patient_id)
         .single()
 
-      if (byPartnerId) {
-        patientProfileId = byPartnerId.id
+      if (byParchmentId) {
+        patientProfileId = byParchmentId.id
+      } else {
+        const { data: byPartnerId } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", partner_patient_id)
+          .single()
+
+        if (byPartnerId) {
+          patientProfileId = byPartnerId.id
+        }
       }
     }
 

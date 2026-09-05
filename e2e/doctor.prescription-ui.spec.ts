@@ -615,7 +615,7 @@ test.describe("Doctor prescription UI flow", () => {
     })
   }
 
-  test("auto-unlocks Complete request after durable script evidence is recorded", async ({ page }) => {
+  test("auto-unlocks Complete request after durable script evidence is recorded", async ({ page, isMobile }) => {
     const intakeId = await seedRepeatPrescriptionCase()
     testIntakeIds.push(intakeId)
 
@@ -629,6 +629,9 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(completeButton).toBeDisabled()
     await expect(actionRail.getByText("Complete or record the prescription in Parchment first.")).toBeVisible()
 
+    if (isMobile) {
+      await actionRail.locator('[data-mobile-fulfilment-options="true"] summary').click()
+    }
     await actionRail.getByRole("button", { name: "Sent outside Parchment" }).click()
     const manualSentPanel = page.getByRole("dialog", { name: "Confirm sent outside Parchment" })
     await expect(manualSentPanel).toBeVisible()
