@@ -1,7 +1,8 @@
+import { createHmac } from "node:crypto"
+
 import { type Browser, type BrowserContext, expect, type Page } from "@playwright/test"
 import { createClient } from "@supabase/supabase-js"
 
-import { PATIENT_REQUEST_ACCESS_COOKIE, signPatientRequestAccessToken } from "../../lib/crypto/patient-request-access-token"
 import type { PaidIntakeEvidence } from "./hosted-stripe"
 import { readLatestMailpitLink } from "./mailpit"
 
@@ -14,10 +15,16 @@ export async function verifyGuestRequestAccess({ page, browser, evidence, otherO
   evidence: PaidIntakeEvidence
   otherOwnerState: Awaited<ReturnType<BrowserContext["storageState"]>>
 }) {
-  const token = signPatientRequestAccessToken(evidence.intakeId)
+  // Mint a fixture capability with this runner's ephemeral secret. The actual
+  // route verifies it; do not weaken the production module's server-only guard.
+  const secret = process.env.INTERNAL_API_SECRET
+  if (!secret || !process.env.HOSTED_STRIPE_E2E_RUN_ID) throw new Error("Owned token fixture is required")
+  const payload = `patient-request-access-v1.${evidence.intakeId}.${Date.now()}`
+  const signature = createHmac("sha256", secret).update(payload).digest("hex")
+  const token = Buffer.from(`${payload}.${signature}`).toString("base64url")
   await page.goto(`/track/${token}`)
   await expect(page).toHaveURL(`${ORIGIN}/track/request`)
-  const cookie = (await page.context().cookies()).find((entry) => entry.name === PATIENT_REQUEST_ACCESS_COOKIE)
+  const cookie = (await page.context().cookies()).find((entry) => entry.name === "instantmed_patient_request_access")
   expect(cookie?.httpOnly).toBe(true)
   expect(cookie?.path).toBe("/track")
   expect(await page.locator("input:visible, select:visible, textarea:visible").count()).toBe(0)
