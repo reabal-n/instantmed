@@ -38,7 +38,7 @@ The attached operator request authorises sequential local implementation and sup
 - Task 11: SEO candidate retained; GSC actions and Google indexing are unperformed external outcomes.
 - Task 12: women's-health handoff instrumentation retained; W1 remains inactive until its prespecified flow/sample/coverage evidence is met.
 - Task 13: growth correction is locally verified; ED E1 keeps its active experiment and 24-hour settlement conditions.
-- Task 14: local release preparation is authorised. The current release receipt lists independent slices and exact unresolved deployment checks.
+- Task 14: independent growth candidate `15e5a2a8a` is draft PR #515 against current main; its 254 Ads tests, full lint, TypeScript, and doc audit pass locally. Initial GitHub CI is running. Other packets retain closure-candidate proof pending independent assembly. Exact merge/deploy and credentialled release validation remain separate.
 
 ## Historical preflight and implementation records
 
@@ -203,3 +203,10 @@ These records preserve earlier reviews; the current closure and state above supe
 - 88 focused tests across six files, TypeScript, scoped ESLint, and doc audit (124 tests) pass. The redirect correction also passed 32 focused tests. The hosted runner builds the production Webpack bundle. Earlier whole-suite results are separate candidate evidence.
 - Visually inspected 375px/1440px light/dark tracker screenshots under ignored `test-results/hosted-stripe/`; no horizontal overflow, button at least 48px high, no visible profile fields. Keyboard activation and reduced-motion setting pass. No tracker telemetry was added.
 - No production payment, patient send, deployed Auth proof, Ads/GSC mutation, or deployment occurred. Task 9 still requires verified account-friction evidence; no new account gate was introduced.
+
+## 2026-09-05 first independent release slice
+
+- Draft https://github.com/reabal-n/instantmed/pull/515, branch `codex/release-growth-operational-policy`, exact SHA `15e5a2a8aeff1deb09302d794b24c857c5bc1d02`, based on fresh main `99e25c8f9`.
+- 13-file growth-only slice, preserving the queue-watch/optional-evidence correction, bounded aggregate reader, explicit harm holds, and operator approval. No unrelated closure docs or email/checkout changes were copied.
+- Assembled-candidate verification: 254 Ads Agent tests across 18 files, full ESLint, TypeScript, and doc audit (124 tests). No env, migration, or dependency changes. Clean working tree; draft/head read-back verified. CI initially running, so no CI completion claim.
+- No merge, production deployment, or Ads mutation. Remaining release packets still require their own candidate assembly/checks; see the release receipt.

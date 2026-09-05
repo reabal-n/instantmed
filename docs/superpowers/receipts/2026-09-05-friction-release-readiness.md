@@ -15,11 +15,11 @@ This receipt covers local work on `codex/conversion-retention-friction-closure`,
 
 ## Release packets
 
-These are final-state review boundaries. The earlier commits are provenance anchors, not a blind cherry-pick recipe: several touched shared analytics, email, and documentation files. Assemble draft PRs from the final file state, carry the stated dependencies, and run the relevant checks on each assembled candidate. No PR was pushed or production change made in this closure.
+These are final-state review boundaries. The earlier commits are provenance anchors, not a blind cherry-pick recipe: several touched shared analytics, email, and documentation files. Assemble draft PRs from the final file state, carry the stated dependencies, and run the relevant checks on each assembled candidate. Growth was subsequently assembled into draft PR #515 as recorded below. No production change was made in this closure.
 
 | Packet | Scope and anchors | Dependency / remaining proof |
 |---|---|---|
-| Growth | Original `7c96d4835` corrected by `c3d804897`; policy, snapshot, operational health reader, canonical growth docs | Local policy proof complete. Actual Ads mutations remain separately authorised. |
+| Growth | Original `7c96d4835` corrected by `c3d804897`; policy, snapshot, operational health reader, canonical growth docs | Independent candidate `15e5a2a8a` is draft PR #515 against current main; 254 Ads tests, full lint, typecheck, and doc audit pass locally. Actual Ads mutations remain separately authorised. |
 | Hosted checkout | `26358c0bc`, `055bd9331`, `8e5daae1f`, hosted harness follow-ups, `80bdc0a95` | Both real hosted test-payment/account journeys pass on `0d548749c`, with signed webhooks and zero cleanup survivors. See the test-mode receipt below. Production and GitHub CI execution remain separate. |
 | Optional tracker access | `66e1454a2` through `6699a5ac1`; capability-scoped email, canonical redirect host, ownership/browser contracts | Depends on the existing tracker and hosted checkout/Auth packet. All three hosted browser cases pass on `6699a5ac1`; no mandatory account step. |
 | Certificate, preferences, shared delivery | `670a7d805`, `b4e2baf6e`, `b71c2d4fd`, schema convergence `9021ed807`/`c6091f9b2`, shared receipt follow-ups, `1df3139e1`, `209f1f35f`, `8a7682ddf` | Apply preference migration `1100` before shared receipt migration `1150`, then matching runtime consumers. Current recovery proof is independent of the unexplained historical render error. |
@@ -137,3 +137,22 @@ horizontal overflow and a minimum 48px button, and exercises keyboard activation
 with reduced motion. Artifacts remain under ignored `test-results/hosted-stripe/`.
 Earlier whole-suite evidence does not claim a rerun of this final candidate.
 No production Auth acceptance, patient send, live payment, or deployment is claimed.
+
+## Growth release candidate — draft PR #515
+
+[Draft PR #515](https://github.com/reabal-n/instantmed/pull/515) contains the
+independent growth slice on `15e5a2a8aeff1deb09302d794b24c857c5bc1d02`, based on
+`99e25c8f9`. Worktree: `.worktrees/release-growth-operational-policy`; branch:
+`codex/release-growth-operational-policy`. Its 13 files include only the growth
+implementation/tests, canonical growth docs, and this base's inventory correction.
+Provenance includes `7c96d4835`, `821539161`, `60f21eddd`, and `c3d804897`.
+
+On this assembled candidate, 18 Ads Agent files / 254 tests, full ESLint,
+TypeScript, and documentation audit (124 tests; 126 Markdown files) pass.
+Frozen-lockfile offline install and diff checks pass; no dependencies,
+environment variables, or migrations change. The Git worktree is clean.
+At the initial GitHub read-back, the PR was draft, its head matched exactly,
+and CI was running. That is not a passing CI or production-release claim.
+The PR includes the exact scope, rollback, privacy, environment, and verification
+boundaries. The remaining packets retain their local closure-candidate proof
+until each is independently assembled and checked.
