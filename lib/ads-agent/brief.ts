@@ -16,18 +16,35 @@ const guardrailCopy: Record<string, string> = {
   BUDGET_ENVELOPE_EXCEEDED: "Daily budget envelope exceeded",
   CROSS_SERVICE_ATTRIBUTION:
     "Material cross-service attribution needs investigation",
+  CLINICAL_INCIDENT: "A clinical incident is open for this service",
+  CLINICAL_QA_LAG: "Completed clinical QA is behind",
+  CLINICAL_QA_EVIDENCE_UNAVAILABLE:
+    "Fresh completed clinical-QA evidence is unavailable",
   ECONOMICS_UNAVAILABLE: "Fee-aware economics unavailable",
   ENABLED_CAMPAIGN_SPEND_UNAVAILABLE: "Enabled campaign spend unavailable",
+  EXPLICIT_SERVICE_HOLD: "The service has an explicit operating hold",
+  FULFILMENT_UNHEALTHY: "Fulfilment is unhealthy for this service",
   MEDCERT_NEGATIVE_CONTRIBUTION:
     "Medical certificates remain below first-order break-even",
   MULTIPLE_SERVICE_CAMPAIGNS: "More than one campaign owns a service",
   POST_CHANGE_SAMPLE_IMMATURE: "Scripts refund data still immature",
   SCRIPTS_REFUND_GATE: "Scripts refund data still immature",
+  QUEUE_24H_BREACH: "At least one manual-review wait breached 24 hours",
+  OPERATIONAL_EVIDENCE_UNAVAILABLE:
+    "Fresh operating evidence is unavailable",
+  QUEUE_OLDEST_AT_OR_OVER_20H:
+    "The oldest unreviewed manual request is at least 20 hours old",
+  QUEUE_P95_AT_OR_OVER_6H: "Manual-review P95 is at least 6 hours",
+  QUEUE_P95_OVER_2H_WATCH:
+    "Manual-review P95 is above the 2-hour operating target",
   SPECIALTY_CLICK_EVIDENCE_UNAVAILABLE:
     "Paid click evidence is unavailable for a zero-order specialty",
   SPECIALTY_LOSS_CAP: "Specialty pilot reached its approved loss cap",
   SPECIALTY_ZERO_ORDER_CLICK_INVESTIGATION:
     "Zero retained orders after the specialty click checkpoint",
+  SUPPORT_EVIDENCE_UNAVAILABLE:
+    "Fresh verified support-rate evidence is unavailable",
+  SUPPORT_OVER_5_PER_100: "Support contacts exceed 5 per 100 paid orders",
   UNMAPPED_ENABLED_SEARCH_CAMPAIGN:
     "An enabled Search campaign is outside the service constitution",
 }
@@ -149,7 +166,10 @@ function recommendationLines(
       const action = recommendation.proposedMutationFamily
         ? mutationFamilyCopy[recommendation.proposedMutationFamily]
         : "exact proposal review"
-      return [`Action: ${service} · ${action}`]
+      const reason = recommendation.reasonCodes
+        .map((reasonCode) => guardrailCopy[reasonCode])
+        .find(Boolean)
+      return [`Action: ${service} · ${action}${reason ? ` · ${reason}` : ""}`]
     }
     if (recommendation.kind === "INVESTIGATE") {
       return [`Check: ${service} · ${recommendationReason(recommendation)}`]

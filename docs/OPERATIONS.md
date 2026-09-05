@@ -581,6 +581,14 @@ Keep `GOOGLE_ADS_AGENT_MUTATIONS_ENABLED=false` and `TELEGRAM_ADS_APPROVALS_ENAB
 
 Google Ads API user access is included in the account read. As of 2026-07-31 the sole direct Ads user has `passkey_enabled=true`, so the August 2026 passkey requirement does not interrupt the existing OAuth refresh token. If that refresh token must be regenerated after rollout, authenticate with the existing passkey and allow for Google's stated trust delay; never rotate a working token during a live Ads change merely to test this requirement.
 
+### Operational growth evidence
+
+The **two-hour operating target** and **six-hour new-scale gate** have different jobs. A trailing-seven-day manual-review P95 above two but below six hours is advisory `watch`: keep it visible and investigate the queue, but do not suppress an otherwise valid operator-approval scale proposal or cancel an already-approved bounded test. P95 at or above six hours, the oldest unreviewed request at or above 20 hours, any 24-hour wait breach, an affected-service clinical incident, unhealthy fulfilment, or an explicit service hold is `hold` and produces only an approval-ready campaign-pause proposal.
+
+Support evidence is accepted only as a non-negative Gmail-verified aggregate contacts-per-100-paid figure. Clinical QA is accepted only as a Medical Director attestation over completed review evidence; `qa_sampled` is selection, not completion. Both optional manual inputs expire after **seven days**; future-dated or malformed values are ignored. Fresh support above 5 per 100 paid orders or fresh completed QA marked behind is a hard hold. Missing support/QA rows stay visible as `null` evidence, while missing or stale optional evidence does not manufacture harm or block an otherwise evidence-backed scale proposal. Service-level incident, explicit-hold, and fulfilment controls are also optional inputs: when an explicit harmful fact is present it is a hard hold; absence alone is not a hold. The exact operator-approval workflow still gates every proposal.
+
+The deterministic precedence is **`hold > unavailable > watch > clear`**. Queue evidence is mandatory for new scale: a missing, malformed, or unavailable queue read remains `unavailable` and blocks the next variable. Queue reads use reportable paid manual-review requests and the first later `clinician_opened_request`, aggregate by service, and return no patient, staff, or request identifiers. Clean medical certificates still awaiting the protocol decision are not manual-review backlog. No operational state mutates Google Ads autonomously; the existing immutable proposal and operator-approval controls remain mandatory.
+
 ### Daily loop
 
 1. Read the live account through the Google Ads API and use the authenticated browser only when the API cannot prove or perform the required operation.
