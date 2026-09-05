@@ -668,6 +668,32 @@ async function fillHostedStripeCard(page: Page): Promise<void> {
   )
   if (postalCode) await postalCode.fill("2000")
 
+  // This guest journey uses Stripe's public test card, without creating a Link
+  // wallet or supplying a real phone number for wallet registration.
+  const saveToLink = page.locator("#enableStripePass")
+  if (await saveToLink.isVisible().catch(() => false)) await saveToLink.uncheck()
+
+  const agentDeclaration = page.getByRole("checkbox", {
+    name: "I am an AI agent acting on behalf of someone else", exact: true,
+  })
+  if (await agentDeclaration.count()) {
+    if (process.env.HOSTED_STRIPE_E2E_PUBLIC_TEST_CARD_CONFIRMED !== "1") {
+      throw safeFailure("operator must choose the public test card after the optional Link CLI offer")
+    }
+    // Stripe puts these semantic controls outside the pointer viewport. Use
+    // their keyboard interaction and verify the actual checked state.
+    for (const checkbox of [agentDeclaration, page.getByRole("checkbox", {
+      name: "I am an AI agent and have followed the instructions above", exact: true,
+    })]) {
+      await checkbox.waitFor({ state: "attached" })
+      if (!(await checkbox.isChecked())) {
+        await checkbox.focus()
+        await checkbox.press("Space")
+      }
+      await expect(checkbox).toBeChecked()
+    }
+  }
+
   const submit = page.locator('button[type="submit"][data-testid="hosted-payment-submit-button"]')
   await expect(submit).toBeEnabled({ timeout: 30_000 })
   await submit.click()
