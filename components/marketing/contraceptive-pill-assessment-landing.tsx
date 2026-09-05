@@ -27,7 +27,7 @@ import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { PILL_LANDING_FAQ } from "@/lib/data/womens-health-faq"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
-import { GUARANTEE } from "@/lib/marketing/voice"
+import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
 const ASSESSMENT_HREF = "/request?service=consult&subtype=womens_health&intent=ocp_new"
@@ -38,7 +38,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "womens-health",
   analyticsId: "contraceptive-pill-assessment",
   sticky: {
-    ctaText: `Start · choose pill next · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
+    ctaText: `Start pill assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
     ctaHref: ASSESSMENT_HREF,
     mobileSummary: "Start or switch pill",
     responseTime: "Doctor review 24/7",
@@ -60,7 +60,7 @@ const HERO_FACTS = [
   },
   {
     icon: HeartPulse,
-    label: "Safety gate",
+    label: "Safety checks",
     value: "Before payment",
     body: "Possible pregnancy and specified pill-safety risks stop this paid pathway before checkout.",
   },
@@ -103,13 +103,13 @@ const OUTSIDE_SCOPE_ITEMS = [
 const REVIEW_COST_OUTCOMES = [
   {
     icon: ShieldCheck,
-    title: "1 · Choose and pass the safety gate",
-    body: "The link opens the shared women's-health form. Choose start or switch pill next. Terminal safety answers stop the pathway before payment and explain another care route.",
+    title: "1 · Complete the safety questions",
+    body: "Confirm start or switch pill in the form, then answer the health questions. Answers that rule out this pathway direct you to in-person care before payment.",
   },
   {
     icon: Stethoscope,
     title: "2 · Doctor review",
-    body: "Only a request that passes the terminal screen proceeds to paid review by an AHPRA-registered doctor. A non-terminal detail such as an incomplete blood-pressure history may still need clarification.",
+    body: "If the initial safety checks allow you to continue, an AHPRA-registered doctor reviews your request. They may need more information, such as a current blood pressure reading, before deciding whether to prescribe.",
   },
   {
     icon: WalletCards,
@@ -301,7 +301,7 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
     if (visual.id === "pill-suitability-map") {
       return {
         ...visual,
-        summary: "The pre-checkout form checks terminal pill-safety risks before any paid doctor review. Blood pressure and other non-terminal details inform review only if the pathway continues.",
+        summary: "The form checks pill-safety risks before payment. If you can continue, the doctor also considers blood pressure and other relevant health information.",
         items: visual.items.map((item) => {
           if (item.label === "Pregnancy context") {
             return { ...item, detail: "Pregnant or not sure stops the paid pathway" }
@@ -351,7 +351,10 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
                   Contraceptive pill assessment online
                 </Heading>
                 <p data-speakable className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-                  Complete a secure start-or-switch safety screen. An AHPRA-registered doctor reviews a request only after it passes the pre-checkout terminal checks, then decides whether online prescribing is appropriate.
+                  An online doctor assessment for starting or switching the contraceptive pill. For adults in Australia. One-off doctor review: {PRICING_DISPLAY.WOMENS_HEALTH}. Pharmacy costs are separate if a prescription is approved.
+                </p>
+                <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
+                  {FORM_FIRST_WEDGE}
                 </p>
 
                 <div ref={heroCTARef} className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -363,17 +366,17 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
                     onClick={handleHeroCTA}
                   >
                     <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                      {isDisabled ? "Contact us" : "Start · choose pill next"}
+                      {isDisabled ? "Contact us" : "Start pill assessment"}
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                   </Button>
                   <Button asChild size="lg" variant="outline" className="h-auto min-h-12 w-full whitespace-normal py-3 text-center sm:w-auto">
-                    <Link href="#safety">Check safety exits first</Link>
+                    <Link href="#safety">Check if this is suitable</Link>
                   </Button>
                 </div>
 
                 <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-                  On the next screen, choose start or switch pill. {GUARANTEE} Prescription is not guaranteed.
+                  Safety checks come before payment. {GUARANTEE} Prescription is not guaranteed.
                 </p>
               </Reveal>
 
@@ -406,7 +409,7 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
             id="safety"
             pill="Safety first"
             title="Four answers can stop this paid pathway before checkout"
-            intro="Possible pregnancy, migraine with aura, blood clot history, and smoking change contraceptive safety. They are terminal intake checks here, not paid requests waiting for a doctor call."
+            intro="If you report possible pregnancy, migraine with aura, blood clot history, or smoking, the form directs you to a GP or sexual health clinic before payment."
           >
             <div className="grid gap-4 sm:grid-cols-2">
               {SAFETY_CHECKS.map((item) => (
@@ -461,8 +464,8 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
           <SectionShell
             id="review-cost-and-outcomes"
             pill="Process, cost, and outcome"
-            title="Safety gate first, then doctor review"
-            intro="The doctor decides whether any prescription is clinically appropriate. The public page does not offer a pill or brand menu."
+            title="Safety questions first, then doctor review"
+            intro="The doctor decides whether a prescription is appropriate for you. You can share your current contraception and relevant history in the form."
           >
             <div className="grid gap-4 lg:grid-cols-3">
               {REVIEW_COST_OUTCOMES.map((item) => (
@@ -537,12 +540,12 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
                   Request a contraceptive pill assessment
                 </Heading>
                 <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-                  The link opens the shared women's-health form. Choose start or switch pill on the next screen; the terminal safety check happens before checkout.
+                  Confirm start or switch pill and complete the secure health questions. Safety checks happen before payment. A doctor reviews suitable requests and decides whether prescribing is appropriate.
                 </p>
                 <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <Button asChild size="lg" className="w-full sm:w-auto" disabled={isDisabled} onClick={handleFinalCTA}>
                     <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                      {isDisabled ? "Contact us" : `Start · choose pill next · ${PRICING_DISPLAY.WOMENS_HEALTH}`}
+                      {isDisabled ? "Contact us" : `Start pill assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`}
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                   </Button>

@@ -1,0 +1,178 @@
+{
+  "checkedOn": "2026-09-05",
+  "environment": "Isolated local Next.js development server at http://localhost:3060 in codex/seo-service-priorities; this is not preview or production proof.",
+  "baseMainCommit": "8b869ac54c274922cea245071b1f632b54ab71f0",
+  "scope": "Two existing women's-health child landing components and their sitemap last-modified dates. No layout, motion, FAQ/schema, H1/metadata, clinical policy, intake logic, CTA href or clinical review date changed.",
+  "checks": [
+    {
+      "command": "corepack pnpm lint",
+      "result": "passed",
+      "note": "An earlier run found disposable research scratch-script lint errors; those scripts were removed and the final run passed."
+    },
+    {
+      "command": "corepack pnpm typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "corepack pnpm exec vitest run lib/__tests__/womens-health-intent-pages-contract.test.ts lib/__tests__/commercial-seo-contract.test.ts lib/__tests__/seo-indexing-contract.test.ts lib/__tests__/approved-claims-contract.test.ts lib/__tests__/voice-guard.test.ts",
+      "result": "passed",
+      "tests": 52,
+      "files": 5
+    },
+    {
+      "command": "corepack pnpm content:audit",
+      "result": "passed",
+      "articles": 107,
+      "issues": 0
+    },
+    {
+      "command": "corepack pnpm doc:audit",
+      "result": "passed",
+      "tests": 124,
+      "files": 10,
+      "markdownCount": 129
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "corepack pnpm exec vitest run lib/__tests__/money-page-narrative-compression-contract.test.ts lib/__tests__/womens-health-child-narrative-contract.test.ts lib/__tests__/womens-health-intent-pages-contract.test.ts lib/__tests__/commercial-seo-contract.test.ts lib/__tests__/seo-indexing-contract.test.ts lib/__tests__/approved-claims-contract.test.ts lib/__tests__/voice-guard.test.ts",
+      "result": "passed",
+      "tests": 62,
+      "files": 7,
+      "note": "Final focused rerun after CI exposed stale text expectations in two pre-existing narrative contracts."
+    },
+    {
+      "command": "corepack pnpm exec eslint lib/__tests__/money-page-narrative-compression-contract.test.ts lib/__tests__/womens-health-child-narrative-contract.test.ts --max-warnings 0",
+      "result": "passed"
+    }
+  ],
+  "browser": {
+    "session": "instantmed-seo-local",
+    "matrix": [
+      {
+        "page": "/uti-assessment-online",
+        "viewport": [
+          375,
+          812
+        ],
+        "theme": "light",
+        "screenshotLocalPath": "/Users/rey/.codex/visualizations/2026/09/05/01a06f1e-48aa-7ac1-821a-4e867050197e/seo/uti-mobile-light.png",
+        "sha256": "8d5dcc02e580ab1ce46a8d5e596eb291affd387b35c5eed8c06ef54305c19e8a",
+        "visuallyInspected": true
+      },
+      {
+        "page": "/uti-assessment-online",
+        "viewport": [
+          375,
+          812
+        ],
+        "theme": "dark",
+        "screenshotLocalPath": "/Users/rey/.codex/visualizations/2026/09/05/01a06f1e-48aa-7ac1-821a-4e867050197e/seo/uti-mobile-dark.png",
+        "sha256": "73bb712394cc139a97a86a2286e74356decdc6905e2bbafae9c27629c758632b",
+        "visuallyInspected": true
+      },
+      {
+        "page": "/uti-assessment-online",
+        "viewport": [
+          1440,
+          1000
+        ],
+        "theme": "light",
+        "screenshotLocalPath": "/Users/rey/.codex/visualizations/2026/09/05/01a06f1e-48aa-7ac1-821a-4e867050197e/seo/uti-desktop-light.png",
+        "sha256": "6b09dd1931d6edc8c563b100a826557e5e58be8806e7a0af27cf87996d3f3cba",
+        "visuallyInspected": true
+      },
+      {
+        "page": "/uti-assessment-online",
+        "viewport": [
+          1440,
+          1000
+        ],
+        "theme": "dark",
+        "screenshotLocalPath": "/Users/rey/.codex/visualizations/2026/09/05/01a06f1e-48aa-7ac1-821a-4e867050197e/seo/uti-desktop-dark.png",
+        "sha256": "4a1e4e28a3a0cf80d650a45729ce9ea86b5be8049ed125b7f878a2267e38a67a",
+        "visuallyInspected": true
+      },
+      {
+        "page": "/contraceptive-pill-assessment-online",
+        "viewport": [
+          375,
+          812
+        ],
+        "theme": "light",
+        "screenshotLocalPath": "/Users/rey/.codex/visualizations/2026/09/05/01a06f1e-48aa-7ac1-821a-4e867050197e/seo/pill-mobile-light.png",
+        "sha256": "0fd4f1fac317b649eb90c632d3917d68221bcddc7f32ee8f808702f8c34bf55b",
+        "visuallyInspected": true
+      },
+      {
+        "page": "/contraceptive-pill-assessment-online",
+        "viewport": [
+          375,
+          812
+        ],
+        "theme": "dark",
+        "screenshotLocalPath": "/Users/rey/.codex/visualizations/2026/09/05/01a06f1e-48aa-7ac1-821a-4e867050197e/seo/pill-mobile-dark.png",
+        "sha256": "e9fa1011b07b82a72e4dd6440d69eba8010753242d76934e11aadaef9b0d24db",
+        "visuallyInspected": true
+      },
+      {
+        "page": "/contraceptive-pill-assessment-online",
+        "viewport": [
+          1440,
+          1000
+        ],
+        "theme": "light",
+        "screenshotLocalPath": "/Users/rey/.codex/visualizations/2026/09/05/01a06f1e-48aa-7ac1-821a-4e867050197e/seo/pill-desktop-light.png",
+        "sha256": "757b15a1508356fe52856c69bb758affef24f8a84d3d9140e8772c88e77df428",
+        "visuallyInspected": true
+      },
+      {
+        "page": "/contraceptive-pill-assessment-online",
+        "viewport": [
+          1440,
+          1000
+        ],
+        "theme": "dark",
+        "screenshotLocalPath": "/Users/rey/.codex/visualizations/2026/09/05/01a06f1e-48aa-7ac1-821a-4e867050197e/seo/pill-desktop-dark.png",
+        "sha256": "fbc3436a90191cf5f9c8a48d18a235193a8590fef6835ade89f799cd1c4ec6e1",
+        "visuallyInspected": true
+      }
+    ],
+    "oneH1AndCorrectCanonical": true,
+    "horizontalOverflow": false,
+    "primaryCtas": [
+      {
+        "from": "/uti-assessment-online",
+        "destination": "/request?service=consult&subtype=womens_health&intent=uti",
+        "selectedOption": "UTI symptoms",
+        "confirmationStepRetained": true
+      },
+      {
+        "from": "/contraceptive-pill-assessment-online",
+        "destination": "/request?service=consult&subtype=womens_health&intent=ocp_new",
+        "selectedOption": "Start or switch pill",
+        "confirmationStepRetained": true
+      }
+    ],
+    "pillCostFaq": "Expanded; visible flat review fee $49.95, separate pharmacy costs and no subscription match existing FAQ content.",
+    "keyboardFocus": "Tab from primary pill CTA to suitability link showed :focus-visible and solid outline.",
+    "browserErrors": [],
+    "noClinicalOrPaymentSubmission": true,
+    "limitations": "Landing-to-confirmation checks only; this batch does not claim full clinical-intake or hosted-checkout E2E proof."
+  },
+  "review": "Independent final branch review KEEP after d6424e1a1 replaced 53 unsupported grouped GSC means with null. Reviewer verified 600 aggregate/date/privacy assertions and no public-copy regression. Coordinating release task also independently reviewed the public-copy diff and selected screenshots: KEEP.",
+  "remainingEvidence": [
+    "Exact-head GitHub CI for PR #518",
+    "Release task production SHA/time and public smoke after this copy batch ships",
+    "Authenticated Search Console Live Tests and actual indexing request receipts"
+  ],
+  "ciFollowup": {
+    "observedRun": "https://github.com/reabal-n/instantmed/actions/runs/33942262987",
+    "head": "fe3558fac3013e698738daafb5276b28957e5a04",
+    "failure": "Three tests in two existing narrative contracts expected retired choose-next wording. The CI run otherwise passed 7068 tests; that is not a full-suite pass.",
+    "correction": "Updated four expected wording strings to Start assessment/Confirm wording and renamed the helper argument; preserved all safety, scope, pricing and intent assertions.",
+    "verification": "62 tests across seven focused files and lint of both changed test files pass. Final-head full CI remains the release gate."
+  }
+}

@@ -25,7 +25,7 @@ function expectOrdered(source: string, markers: string[]) {
   }
 }
 
-function expectFirstFoldContract(source: string, firstSectionId: string, nextChoice: string) {
+function expectFirstFoldContract(source: string, firstSectionId: string, confirmationCopy: string) {
   const firstFold = source.slice(source.indexOf("const HERO_FACTS"), source.indexOf(firstSectionId))
 
   expect(firstFold).toContain("Australia only")
@@ -34,7 +34,7 @@ function expectFirstFoldContract(source: string, firstSectionId: string, nextCho
   expect(firstFold).toContain("PRICING_DISPLAY.WOMENS_HEALTH")
   expect(firstFold).toContain("AHPRA-registered doctor")
   expect(firstFold).toContain("GUARANTEE")
-  expect(firstFold).toContain(nextChoice)
+  expect(firstFold).toContain(confirmationCopy)
 }
 
 describe("women's-health child-page narrative compression", () => {
@@ -49,7 +49,7 @@ describe("women's-health child-page narrative compression", () => {
       "Start a UTI symptom assessment",
     ])
 
-    expectFirstFoldContract(uti, 'id="symptoms-and-red-flags"', "choose UTI symptoms")
+    expectFirstFoldContract(uti, 'id="symptoms-and-red-flags"', "Confirm UTI symptoms")
 
     const education = uti.slice(
       uti.indexOf('id="symptoms-and-red-flags"'),
@@ -76,7 +76,7 @@ describe("women's-health child-page narrative compression", () => {
       "Request a contraceptive pill assessment",
     ])
 
-    expectFirstFoldContract(pill, 'id="safety"', "choose start or switch pill")
+    expectFirstFoldContract(pill, 'id="safety"', "Confirm start or switch pill")
 
     const safety = pill.slice(
       pill.indexOf('id="safety"'),

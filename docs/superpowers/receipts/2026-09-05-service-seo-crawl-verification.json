@@ -1,0 +1,827 @@
+{
+  "checkedAtUtc": "2026-09-05T03:26:09.606688+00:00",
+  "scope": "Read-only production HTTP/HTML and robots-policy verification after the separately owned crawler release; this is not Google Live Test, real crawler-IP evidence, Search Console settings proof or deployment-provider proof.",
+  "releaseContext": {
+    "reportedCurrentMainCommit": "8b869ac54c274922cea245071b1f632b54ab71f0",
+    "source": "The coordinating task owns provider deployment proof; this task independently observed production HTTP/HTML and robots. This receipt does not deploy the selected UTI/pill copy.",
+    "selectedCopyDeployedByThisReceipt": false,
+    "productionCommit": "8183ae5799864551ea0a74ab28caec44cc21a649",
+    "deploymentId": "dpl_EEd1bkkyB9q2fBJZ9BZrd8f5gWTy",
+    "readyAtUtc": "2026-09-05T03:08:42.101Z",
+    "deploymentEvidence": "Coordinating release task Vercel readback; local durable release receipt /Users/rey/.config/instantmed/release-evidence/2026-09-05/final-release.json inspected by this task. Current main 8b869ac54 adds only docs and its deployment was skipped.",
+    "postDeploySmokeRun": "https://github.com/reabal-n/instantmed/actions/runs/33941037469",
+    "postDeploySmokeResult": "passed"
+  },
+  "robots": {
+    "httpStatus": 200,
+    "nextAssetsNoLongerDisallowed": true,
+    "trainingPolicyChanged": false,
+    "observedRules": [
+      {
+        "agent": "*",
+        "rules": [
+          {
+            "directive": "allow",
+            "path": "/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/patient/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/doctor/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/admin/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/api/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/callback"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/confirm"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/post-signin"
+          },
+          {
+            "directive": "disallow",
+            "path": "/search"
+          },
+          {
+            "directive": "disallow",
+            "path": "/*/search"
+          }
+        ]
+      },
+      {
+        "agent": "OAI-SearchBot",
+        "rules": [
+          {
+            "directive": "allow",
+            "path": "/"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms.txt"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms-full.txt"
+          },
+          {
+            "directive": "disallow",
+            "path": "/patient/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/doctor/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/admin/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/api/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/"
+          }
+        ]
+      },
+      {
+        "agent": "GPTBot",
+        "rules": [
+          {
+            "directive": "allow",
+            "path": "/"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms.txt"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms-full.txt"
+          },
+          {
+            "directive": "disallow",
+            "path": "/patient/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/doctor/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/admin/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/api/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/"
+          }
+        ]
+      },
+      {
+        "agent": "ChatGPT-User",
+        "rules": [
+          {
+            "directive": "allow",
+            "path": "/"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms.txt"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms-full.txt"
+          },
+          {
+            "directive": "disallow",
+            "path": "/patient/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/doctor/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/admin/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/api/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/"
+          }
+        ]
+      },
+      {
+        "agent": "PerplexityBot",
+        "rules": [
+          {
+            "directive": "allow",
+            "path": "/"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms.txt"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms-full.txt"
+          },
+          {
+            "directive": "disallow",
+            "path": "/patient/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/doctor/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/admin/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/api/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/"
+          }
+        ]
+      },
+      {
+        "agent": "Google-Extended",
+        "rules": [
+          {
+            "directive": "allow",
+            "path": "/"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms.txt"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms-full.txt"
+          },
+          {
+            "directive": "disallow",
+            "path": "/patient/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/doctor/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/admin/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/api/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/"
+          }
+        ]
+      },
+      {
+        "agent": "anthropic-ai",
+        "rules": [
+          {
+            "directive": "allow",
+            "path": "/"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms.txt"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms-full.txt"
+          },
+          {
+            "directive": "disallow",
+            "path": "/patient/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/doctor/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/admin/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/api/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/"
+          }
+        ]
+      },
+      {
+        "agent": "ClaudeBot",
+        "rules": [
+          {
+            "directive": "allow",
+            "path": "/"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms.txt"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms-full.txt"
+          },
+          {
+            "directive": "disallow",
+            "path": "/patient/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/doctor/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/admin/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/api/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/"
+          }
+        ]
+      },
+      {
+        "agent": "Claude-SearchBot",
+        "rules": [
+          {
+            "directive": "allow",
+            "path": "/"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms.txt"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms-full.txt"
+          },
+          {
+            "directive": "disallow",
+            "path": "/patient/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/doctor/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/admin/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/api/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/"
+          }
+        ]
+      },
+      {
+        "agent": "Perplexity-User",
+        "rules": [
+          {
+            "directive": "allow",
+            "path": "/"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms.txt"
+          },
+          {
+            "directive": "allow",
+            "path": "/llms-full.txt"
+          },
+          {
+            "directive": "disallow",
+            "path": "/patient/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/doctor/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/admin/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/api/"
+          },
+          {
+            "directive": "disallow",
+            "path": "/auth/"
+          }
+        ]
+      }
+    ],
+    "evaluationMethod": "Exact named group or wildcard fallback, longest matching prefix with Allow on equal length. Probed paths do not match the search-wildcard rules. Python urllib.robotparser first-match behaviour was not used for the final verdict.",
+    "verifiedAgainAtUtc": "2026-09-05T03:27:50.012352+00:00"
+  },
+  "sitemapHttpStatus": 200,
+  "pages": [
+    {
+      "path": "/medical-certificate",
+      "httpStatus": 200,
+      "canonical": "https://instantmed.com.au/medical-certificate",
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        },
+        {
+          "name": "googlebot",
+          "content": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+        }
+      ],
+      "xRobotsTag": null,
+      "title": "Medical Certificates Online | From $24.95 | InstantMed",
+      "h1": [
+        "Medical certificate. From your bed."
+      ],
+      "schemaTypes": [
+        "Answer",
+        "BreadcrumbList",
+        "ContactPoint",
+        "Country",
+        "EducationalOccupationalCredential",
+        "FAQPage",
+        "HowTo",
+        "HowToStep",
+        "HowToTool",
+        "ListItem",
+        "MedicalOrganization",
+        "MedicalService",
+        "MedicalWebPage",
+        "MonetaryAmount",
+        "Offer",
+        "OfferCatalog",
+        "Organization",
+        "PostalAddress",
+        "Question",
+        "Service",
+        "SpeakableSpecification",
+        "WebPage",
+        "WebSite"
+      ],
+      "listedInRootSitemap": true
+    },
+    {
+      "path": "/medical-certificate-online",
+      "httpStatus": 200,
+      "canonical": "https://instantmed.com.au/medical-certificate-online",
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        }
+      ],
+      "xRobotsTag": null,
+      "title": "Online Medical Certificates: Costs, Rules & Safety | InstantMed",
+      "h1": [
+        "Medical certificate online Australia"
+      ],
+      "schemaTypes": [
+        "Answer",
+        "BreadcrumbList",
+        "ContactPoint",
+        "Country",
+        "EducationalOccupationalCredential",
+        "FAQPage",
+        "HowTo",
+        "HowToStep",
+        "HowToTool",
+        "ListItem",
+        "MedicalOrganization",
+        "MedicalWebPage",
+        "MonetaryAmount",
+        "Offer",
+        "OfferCatalog",
+        "Organization",
+        "PostalAddress",
+        "Question",
+        "Service",
+        "SpeakableSpecification",
+        "WebPage",
+        "WebSite"
+      ],
+      "listedInRootSitemap": true
+    },
+    {
+      "path": "/prescriptions",
+      "httpStatus": 200,
+      "canonical": "https://instantmed.com.au/prescriptions",
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        }
+      ],
+      "xRobotsTag": null,
+      "title": "Repeat Prescription Online | Doctor Review | InstantMed",
+      "h1": [
+        "Repeat prescription, reviewed from home."
+      ],
+      "schemaTypes": [
+        "Answer",
+        "BreadcrumbList",
+        "ContactPoint",
+        "Country",
+        "EducationalOccupationalCredential",
+        "FAQPage",
+        "HowTo",
+        "HowToStep",
+        "HowToTool",
+        "ListItem",
+        "MedicalOrganization",
+        "MedicalService",
+        "MedicalWebPage",
+        "MonetaryAmount",
+        "Offer",
+        "OfferCatalog",
+        "Organization",
+        "PostalAddress",
+        "Question",
+        "Service",
+        "SpeakableSpecification",
+        "WebPage",
+        "WebSite"
+      ],
+      "listedInRootSitemap": true
+    },
+    {
+      "path": "/online-prescriptions",
+      "httpStatus": 200,
+      "canonical": "https://instantmed.com.au/online-prescriptions",
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        }
+      ],
+      "xRobotsTag": null,
+      "title": "How Online Prescriptions Work in Australia | InstantMed",
+      "h1": [
+        "How online prescriptions work in Australia"
+      ],
+      "schemaTypes": [
+        "Answer",
+        "BreadcrumbList",
+        "ContactPoint",
+        "Country",
+        "EducationalOccupationalCredential",
+        "FAQPage",
+        "ListItem",
+        "MedicalOrganization",
+        "MedicalWebPage",
+        "Offer",
+        "OfferCatalog",
+        "Organization",
+        "PostalAddress",
+        "Question",
+        "Service",
+        "SpeakableSpecification",
+        "WebPage",
+        "WebSite"
+      ],
+      "listedInRootSitemap": true
+    },
+    {
+      "path": "/erectile-dysfunction",
+      "httpStatus": 200,
+      "canonical": "https://instantmed.com.au/erectile-dysfunction",
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        }
+      ],
+      "xRobotsTag": null,
+      "title": "Erectile Dysfunction Assessment Online Australia | InstantMed",
+      "h1": [
+        "Private ED assessment, from home."
+      ],
+      "schemaTypes": [
+        "Answer",
+        "BreadcrumbList",
+        "ContactPoint",
+        "Country",
+        "EducationalOccupationalCredential",
+        "FAQPage",
+        "ListItem",
+        "MedicalOrganization",
+        "MedicalWebPage",
+        "Offer",
+        "OfferCatalog",
+        "Organization",
+        "PostalAddress",
+        "Question",
+        "Service",
+        "SpeakableSpecification",
+        "WebPage",
+        "WebSite"
+      ],
+      "listedInRootSitemap": true
+    },
+    {
+      "path": "/hair-loss",
+      "httpStatus": 200,
+      "canonical": "https://instantmed.com.au/hair-loss",
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        },
+        {
+          "name": "googlebot",
+          "content": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+        }
+      ],
+      "xRobotsTag": null,
+      "title": "Private Hair Loss Assessment | Doctor Review | InstantMed",
+      "h1": [
+        "Private hair loss assessment, from home."
+      ],
+      "schemaTypes": [
+        "Answer",
+        "BreadcrumbList",
+        "ContactPoint",
+        "Country",
+        "EducationalOccupationalCredential",
+        "FAQPage",
+        "ListItem",
+        "MedicalOrganization",
+        "MedicalService",
+        "MedicalWebPage",
+        "Offer",
+        "OfferCatalog",
+        "Organization",
+        "PostalAddress",
+        "Question",
+        "Service",
+        "SpeakableSpecification",
+        "WebPage",
+        "WebSite"
+      ],
+      "listedInRootSitemap": true
+    },
+    {
+      "path": "/womens-health",
+      "httpStatus": 200,
+      "canonical": "https://instantmed.com.au/womens-health",
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        },
+        {
+          "name": "googlebot",
+          "content": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+        }
+      ],
+      "xRobotsTag": null,
+      "title": "Women's Health Assessment | UTI + Pill Online | InstantMed",
+      "h1": [
+        "Women's health: choose the right online assessment."
+      ],
+      "schemaTypes": [
+        "Answer",
+        "BreadcrumbList",
+        "ContactPoint",
+        "Country",
+        "EducationalOccupationalCredential",
+        "FAQPage",
+        "ListItem",
+        "MedicalOrganization",
+        "MedicalService",
+        "MedicalWebPage",
+        "Offer",
+        "OfferCatalog",
+        "Organization",
+        "PostalAddress",
+        "Question",
+        "Service",
+        "SpeakableSpecification",
+        "WebPage",
+        "WebSite"
+      ],
+      "listedInRootSitemap": true
+    },
+    {
+      "path": "/uti-assessment-online",
+      "httpStatus": 200,
+      "canonical": "https://instantmed.com.au/uti-assessment-online",
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        }
+      ],
+      "xRobotsTag": null,
+      "title": "UTI Assessment Online Australia | Doctor Review | InstantMed",
+      "h1": [
+        "UTI assessment online Australia"
+      ],
+      "schemaTypes": [
+        "Answer",
+        "BreadcrumbList",
+        "ContactPoint",
+        "Country",
+        "EducationalOccupationalCredential",
+        "FAQPage",
+        "ListItem",
+        "MedicalOrganization",
+        "MedicalWebPage",
+        "Offer",
+        "OfferCatalog",
+        "Organization",
+        "PostalAddress",
+        "Question",
+        "Service",
+        "SpeakableSpecification",
+        "WebPage",
+        "WebSite"
+      ],
+      "listedInRootSitemap": true
+    },
+    {
+      "path": "/contraceptive-pill-assessment-online",
+      "httpStatus": 200,
+      "canonical": "https://instantmed.com.au/contraceptive-pill-assessment-online",
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        }
+      ],
+      "xRobotsTag": null,
+      "title": "Contraceptive Pill Assessment Online | InstantMed",
+      "h1": [
+        "Contraceptive pill assessment online"
+      ],
+      "schemaTypes": [
+        "Answer",
+        "BreadcrumbList",
+        "ContactPoint",
+        "Country",
+        "EducationalOccupationalCredential",
+        "FAQPage",
+        "ListItem",
+        "MedicalOrganization",
+        "MedicalWebPage",
+        "Offer",
+        "OfferCatalog",
+        "Organization",
+        "PostalAddress",
+        "Question",
+        "Service",
+        "SpeakableSpecification",
+        "WebPage",
+        "WebSite"
+      ],
+      "listedInRootSitemap": true
+    }
+  ],
+  "representativeAssets": [
+    {
+      "path": "/_next/static/chunks/35a4443d-fc44b0c61eeab3fa.js?dpl=dpl_EEd1bkkyB9q2fBJZ9BZrd8f5gWTy",
+      "httpStatus": 200,
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "/_next/static/css/8bbb10215e5d5ffb.css?dpl=dpl_EEd1bkkyB9q2fBJZ9BZrd8f5gWTy",
+      "httpStatus": 200,
+      "contentType": "text/css; charset=utf-8"
+    }
+  ],
+  "crawlerPolicy": [
+    {
+      "userAgent": "Googlebot",
+      "publicPageAllowedByRobots": true,
+      "assetsAllowedByRobots": true,
+      "privatePathsRemainDisallowed": true,
+      "publicPageHttpStatusWithSimulatedUserAgent": 200
+    },
+    {
+      "userAgent": "bingbot",
+      "publicPageAllowedByRobots": true,
+      "assetsAllowedByRobots": true,
+      "privatePathsRemainDisallowed": true,
+      "publicPageHttpStatusWithSimulatedUserAgent": 200
+    },
+    {
+      "userAgent": "OAI-SearchBot",
+      "publicPageAllowedByRobots": true,
+      "assetsAllowedByRobots": true,
+      "privatePathsRemainDisallowed": true,
+      "publicPageHttpStatusWithSimulatedUserAgent": 200
+    },
+    {
+      "userAgent": "ChatGPT-User",
+      "publicPageAllowedByRobots": true,
+      "assetsAllowedByRobots": true,
+      "privatePathsRemainDisallowed": true,
+      "publicPageHttpStatusWithSimulatedUserAgent": 200
+    },
+    {
+      "userAgent": "PerplexityBot",
+      "publicPageAllowedByRobots": true,
+      "assetsAllowedByRobots": true,
+      "privatePathsRemainDisallowed": true,
+      "publicPageHttpStatusWithSimulatedUserAgent": 200
+    },
+    {
+      "userAgent": "Claude-SearchBot",
+      "publicPageAllowedByRobots": true,
+      "assetsAllowedByRobots": true,
+      "privatePathsRemainDisallowed": true,
+      "publicPageHttpStatusWithSimulatedUserAgent": 200
+    }
+  ],
+  "remainingHumanEvidence": [
+    "Authenticated Search Console Live Test and any actual indexing requests",
+    "Search Console AI inclusion settings/report availability; no authenticated UI access observed"
+  ],
+  "externalVisibility": "Deferred by operator, including prospect research and drafts."
+}

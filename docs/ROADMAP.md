@@ -70,6 +70,12 @@ Two hours remains the clinical-queue operating target; a trailing-seven-day manu
 
 ED E1 remains open under its predeclared window. Its earliest settled close is `2026-09-19T05:13:53.870Z`; no ED E2 presentation or registry change is authorised before the PHI-free retained-order, clinical, fulfilment, and settlement receipt is complete.
 
+### Service SEO priority checkpoint — 2026-09-05
+
+The operator selected **medical certificates, repeat prescriptions, ED, hair loss, and women's health (UTI and new/switch pill)** for the next organic-search and AI-referral work package. Service fit and qualified paid demand select the work; high-click antibiotics-access or unrelated medicine articles do not. This refines ranks 3 and 6 without changing the overall queue. All five service families receive discovery and intent research, including specialties with little historical search volume; further page investment still needs evidence and must respect active experiments.
+
+The [service SEO priorities plan](superpowers/plans/2026-09-05-service-seo-priorities.md) is executing as a bounded on-site batch in PR #518. The nine-page query/link inventory and five service briefs are complete. Production robots and representative JS/CSS now pass an independent crawl check; authenticated Search Console Live Tests and actual request receipts remain separate outstanding work. The selected public change clarifies only the UTI and new/switch pill child-page assessment summaries and process wording. Existing certificate/prescription measurement windows and ED/Hair experience cohorts remain intact; their briefs are prepared while material changes stay held. External visibility, including prospect research and drafts, is deferred by the operator's latest direction. The conversion-fix task owns merge/deploy/cleanup, and local checks do not assert that the new copy is live. See the plan's dated execution ledger for evidence and the release handoff.
+
 ### Google Ads attribution-hold clearance
 
 An open **Attribution Investigation Hold** blocks scaling for that service even when tracking returns to GREEN. It clears only after the cause is recorded, any required correction is complete, a fresh rolling 30-day reconciliation shows at least 90% expected-service attribution across at least 10 recognised orders, and the Operator records an explicit **Attribution Investigation Resolution**. An unknown cause cannot be cleared. The ordinary seven-consecutive-GREEN-days scaling gate remains separate and still applies afterward.

@@ -39,10 +39,10 @@ describe("money-page narrative compression", () => {
     }
 
     expect(read("components/marketing/uti-assessment-landing.tsx")).toContain(
-      "Start · choose UTI next",
+      "Start UTI assessment",
     )
     expect(read("components/marketing/contraceptive-pill-assessment-landing.tsx")).toContain(
-      "Start · choose pill next",
+      "Start pill assessment",
     )
   })
 
