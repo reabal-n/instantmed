@@ -227,7 +227,7 @@ dotenv-free temporary app copy, starts its own Supabase project on ports
 test Prices (one-day med-cert and repeat prescription), starts `stripe listen`, builds and serves Next.js on loopback port
 3060, and uses one Chromium worker with no shared global setup or `webServer`.
 
-The two browser cases use fabricated data only. The repeat-prescription case
+The two payment browser cases use fabricated data only. The repeat-prescription case
 fills the current prescribing identity, medication strength, dose/directions,
 and clinical safety fields, pays on `checkout.stripe.com`, then chooses
 `Continue without an account`; the med-cert case pays the same way, requests a
@@ -263,6 +263,15 @@ network is run-scoped, Redis has no published port, and the HTTP proxy binds onl
 to loopback. Before checkout, the installed rate-limit SDK must prove an allowed
 request followed by a rejected request. Cleanup removes only containers and
 networks with both the exact run label and Redis label, including partial starts.
+
+The same runner now adds a tracker-access case using the paid guest who already
+proved account skip. It exchanges the signed URL for the `/track` HttpOnly
+cookie, exercises the empty CSRF POST and real Mailpit/PKCE callback, and verifies
+the exact Auth owner. A different authenticated patient cannot download or
+reply; a fresh browser cannot reuse the consumed magic link. Only explicit
+screenshots of the clean anonymous tracker surface are captured at 375px/1440px
+in light/dark mode. Auth and bearer URLs retain no screenshot, video, or trace.
+All three cases must pass before the existing payment receipt is archived.
 
 ### What NOT to E2E Test
 

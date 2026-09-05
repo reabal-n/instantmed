@@ -73,8 +73,8 @@ describe("secure request tracker contract", () => {
   it("keeps auth returns fixed and free of request ids and bearer tokens", () => {
     const page = projectFile("app/track/request/page.tsx")
 
-    expect(page).toContain('"/sign-up?redirect=%2Ftrack%2Frequest"')
-    expect(page).toContain('"/sign-in?redirect=%2Ftrack%2Frequest"')
+    expect(page).toContain("<RequestAccessSignIn />")
+    expect(projectFile("components/track/request-access-sign-in.tsx")).toContain('"/sign-in?redirect=%2Ftrack%2Frequest"')
     expect(page).not.toContain("buildPostSignInHref")
     expect(page).not.toContain("encodeURIComponent(intakeHref)")
     expect(page).not.toContain("intake_id=")

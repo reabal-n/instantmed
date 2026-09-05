@@ -1,6 +1,7 @@
-import { expect, test } from "@playwright/test"
+import { type BrowserContext,expect, test } from "@playwright/test"
 
 import { type HostedStripeAccountMeasurement, writeHostedStripeBrowserEvidenceAtomic } from "../scripts/run-hosted-stripe-e2e"
+import { verifyGuestRequestAccess } from "./helpers/guest-request-access"
 import {
   completeRealHostedGuestPayment,
   expectNoAuthAccountForPaidGuest,
@@ -21,6 +22,8 @@ test.describe.serial("real hosted Stripe guest checkout", () => {
 
   let skippedAccount: PaidIntakeEvidence | null = null
   let linkedAccount: PaidIntakeEvidence | null = null
+  let trackerOutcome = false
+  let otherOwnerState: Awaited<ReturnType<BrowserContext["storageState"]>> | undefined
   let skipOutcome = false
   let linkOutcome = false
   const account: Partial<HostedStripeAccountMeasurement> = {}
@@ -30,6 +33,7 @@ test.describe.serial("real hosted Stripe guest checkout", () => {
       [skippedAccount?.eventId, linkedAccount?.eventId].filter(Boolean),
     ).size
     if (
+      !trackerOutcome ||
       !skipOutcome ||
       !linkOutcome ||
       !account.skip ||
@@ -108,6 +112,14 @@ test.describe.serial("real hosted Stripe guest checkout", () => {
     await expect(page.getByRole("status").filter({ hasText: "Check your inbox" })).toBeVisible()
     const dashboardReadyAt = await followMagicLinkAndExpectOwnedIntake(page, evidence)
     account.link = { actions: 3, repeatedProfileFields: 0, elapsedMs: Math.round(dashboardReadyAt - started) }
+    otherOwnerState = await page.context().storageState()
     linkOutcome = true
   })
+
+  test("tracker offers a real secure email link while documents and replies require ownership", async ({ page, browser }) => {
+    if (!skippedAccount || !otherOwnerState) throw new Error("Owned payment fixtures are required")
+    await verifyGuestRequestAccess({ page, browser, evidence: skippedAccount, otherOwnerState })
+    trackerOutcome = true
+  })
+
 })

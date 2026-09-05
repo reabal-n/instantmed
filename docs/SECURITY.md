@@ -93,7 +93,7 @@ The forward-only schema repair adds nullable `intake_answers.answers_encrypted`,
 
 **Guest payment completion proof:** public account-completion pages and guest account email CTAs require the high-entropy Checkout Session ID to exactly match the intake's current `payment_id`. A bare intake UUID never exposes paid order details or renders payment-success UI.
 
-**Guest request-access proof:** lifecycle email links use a purpose-scoped, seven-day HMAC capability that is exchanged server-side for an HttpOnly cookie scoped to `/track`, followed by a redirect to a clean URL. The cookie authorizes only a read-only request-status projection and service label for an open patient profile. Clinical questions, replies, documents, payment actions, and general patient access remain behind authenticated ownership. Sign-in and sign-up receive only the fixed `/track/request` return path, never the request UUID or access bearer. Bare request UUIDs are identifiers, not authorization; retired query-string certificate/account-completion access modes fail closed.
+**Guest request-access proof:** lifecycle email links use a purpose-scoped, seven-day HMAC capability that is exchanged server-side for an HttpOnly cookie scoped to `/track`, followed by a redirect to a clean URL. The cookie authorizes only a read-only request-status projection and service label for an open patient profile, plus the explicit optional request to email a sign-in link to the server-resolved owner mailbox. Clinical questions, replies, documents, payment actions, and general patient access remain behind authenticated ownership. Sign-in and sign-up receive only the fixed `/track/request` return path, never the request UUID or access bearer. Bare request UUIDs are identifiers, not authorization; retired query-string certificate/account-completion access modes fail closed.
 
 ### Dual-Write Pattern
 
@@ -360,6 +360,9 @@ Production Telegram is an operator pager, not a clinical record or general monit
 | `/api/webhooks/*` | Signature verification |
 | `/track/[token]` | Purpose-scoped signed capability exchange; legacy UUID accepted only for the signed-in exact owner |
 | `/track/request` | Valid request-access HttpOnly cookie or canonical authenticated patient ownership |
+| `POST /track/request/access-link` | CSRF plus verified tracker cookie, open owner profile, hashed IP/capability limits; email dispatch only |
+
+**Optional tracker account access:** `POST /track/request/access-link` requires the standard CSRF header and an empty body. Keeping it beneath `/track` preserves the existing HttpOnly cookie scope. The server verifies the capability, rejects closed/merged/non-patient profiles and linked Auth mailbox mismatches, and applies separate hashed IP (`auth`) and capability (`sensitive`) rate-limit buckets. All capability, rate-limit, and provider outcomes return only `{ accepted: true }`; CSRF failures use the standard 403 retry protocol. The request-local Supabase SSR client sends a PKCE magic link to the server-resolved email with account creation enabled only after the patient chooses the button. Its callback returns through `/auth/post-signin?redirect=%2Ftrack%2Frequest`; identifiers and capabilities never enter that return URL or browser payload. Single-use provider code exchange and existing authenticated ownership still protect documents and replies. Provider/database errors are not logged at this boundary.
 
 ### Staff Roles (Phase 1 of dashboard remaster, 2026-05-11)
 
