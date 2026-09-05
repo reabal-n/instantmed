@@ -1,18 +1,26 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
+import { buildHostedStripeChildEnvironment } from "../../scripts/run-hosted-stripe-e2e"
+
 type HeaderRoute = { headers: { key: string; value: string }[] }
 const localOrigin = "http://127.0.0.1:55321"
 const ownedEnvironment = {
-  NODE_ENV: "production",
-  PLAYWRIGHT: "1",
-  ALLOW_STRIPE_TEST_WEBHOOKS: "true",
+  ...buildHostedStripeChildEnvironment({
+    bootstrapEnv: {
+      HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY: "sk_test_fixture",
+      HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT: "price_test_medcert",
+      HOSTED_STRIPE_E2E_STRIPE_PRICE_REPEAT_SCRIPT: "price_test_repeat",
+    },
+    localSupabase: {
+      apiUrl: localOrigin,
+      anonKey: "local-anon",
+      serviceRoleKey: "local-service-role",
+    },
+    runId: "stripe-run-csp-contract",
+    webhookSecret: `whsec_${"b".repeat(32)}`,
+  }),
   VERCEL: undefined,
   VERCEL_ENV: undefined,
-  STRIPE_SECRET_KEY: "sk_test_fixture",
-  NEXT_PUBLIC_APP_URL: "http://localhost:3060",
-  NEXT_PUBLIC_SITE_URL: "http://localhost:3060",
-  SUPABASE_URL: localOrigin,
-  NEXT_PUBLIC_SUPABASE_URL: localOrigin,
 }
 
 async function policies(overrides: Record<string, string | undefined> = {}) {

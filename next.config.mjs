@@ -564,8 +564,8 @@ const nextConfig = {
       process.env.ALLOW_STRIPE_TEST_WEBHOOKS === 'true' &&
       process.env.VERCEL === undefined && process.env.VERCEL_ENV === undefined &&
       /^(sk|rk)_test_/.test(process.env.STRIPE_SECRET_KEY ?? '') &&
-      process.env.NEXT_PUBLIC_APP_URL === 'http://localhost:3060' &&
-      process.env.NEXT_PUBLIC_SITE_URL === 'http://localhost:3060' &&
+      process.env.NEXT_PUBLIC_APP_URL === 'http://127.0.0.1:3060' &&
+      process.env.NEXT_PUBLIC_SITE_URL === 'http://127.0.0.1:3060' &&
       process.env.SUPABASE_URL === 'http://127.0.0.1:55321' &&
       process.env.NEXT_PUBLIC_SUPABASE_URL === 'http://127.0.0.1:55321';
     const localAuthSource = localHostedAuth ? ' http://127.0.0.1:55321' : '';
