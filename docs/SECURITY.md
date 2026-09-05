@@ -279,6 +279,8 @@ upgrade-insecure-requests;
 
 **Why `blob:` frames:** Authenticated staff certificate previews return PDF bytes from a doctor/admin-only Server Action, convert them to a short-lived browser object URL, and render that object URL before approval. `frame-src blob:` permits that local PDF preview without making the certificate public or weakening `object-src 'none'`; the client revokes the object URL when the confirmation dialog closes.
 
+**Isolated hosted-payment testing:** The local production-bundle runner may connect to Auth at `http://127.0.0.1:55321` only with explicit payment-test flags, a test key, exact local app/database origins, and no Vercel markers. Both CSP policies enforce this narrow exception; it does not enable `unsafe-eval` or wildcard loopback access.
+
 **CSP violation reporting:** Production sends both the enforced policy and a separate `Content-Security-Policy-Report-Only` policy to `/api/csp-report` via `report-uri`. The report-only policy keeps the inline allowances required by the current Next.js App Router so it does not flood the endpoint with known framework violations. Development omits the report-only header and reporting directives to avoid HMR noise.
 
 ---

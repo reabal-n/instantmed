@@ -558,6 +558,18 @@ const nextConfig = {
     // through a short-lived browser object URL before approval.
     // NOTE: 'unsafe-eval' is required in dev/test for Next.js HMR and React hydration
     const isDev = process.env.NODE_ENV !== 'production';
+    // The owned hosted-Stripe runner uses a production bundle with local Auth.
+    // Permit only its exact loopback endpoint; deployed builds never opt in.
+    const localHostedAuth = !isDev && process.env.PLAYWRIGHT === '1' &&
+      process.env.ALLOW_STRIPE_TEST_WEBHOOKS === 'true' &&
+      process.env.VERCEL === undefined && process.env.VERCEL_ENV === undefined &&
+      /^(sk|rk)_test_/.test(process.env.STRIPE_SECRET_KEY ?? '') &&
+      process.env.NEXT_PUBLIC_APP_URL === 'http://localhost:3060' &&
+      process.env.NEXT_PUBLIC_SITE_URL === 'http://localhost:3060' &&
+      process.env.SUPABASE_URL === 'http://127.0.0.1:55321' &&
+      process.env.NEXT_PUBLIC_SUPABASE_URL === 'http://127.0.0.1:55321';
+    const localAuthSource = localHostedAuth ? ' http://127.0.0.1:55321' : '';
+
     const parchmentFrameSources = `https://portal.parchment.health${isDev ? ' https://portal.sandbox.parchment.health' : ''}`;
     const standardCSP = [
       "default-src 'self'",
@@ -567,7 +579,7 @@ const nextConfig = {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://raw.githubusercontent.com https://svgl.app https://api.dicebear.com https://*.googleusercontent.com https://*.gravatar.com https://*.stripe.com https://pagead2.googlesyndication.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.googleadservices.com https://www.google.com https://google.com https://www.google.com.au",
-      `connect-src 'self'${isDev ? ' ws://localhost:* http://localhost:*' : ''} https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.google.com https://google.com https://*.google.com.au https://www.googletagmanager.com https://*.googletagmanager.com https://www.googleadservices.com https://*.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com`,
+      `connect-src 'self'${isDev ? ' ws://localhost:* http://localhost:*' : ''}${localAuthSource} https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.google.com https://google.com https://*.google.com.au https://www.googletagmanager.com https://*.googletagmanager.com https://www.googleadservices.com https://*.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com`,
       `frame-src 'self' blob: https://js.stripe.com https://www.googletagmanager.com https://challenges.cloudflare.com ${parchmentFrameSources}`,
       "object-src 'none'",
       "base-uri 'self'",
@@ -602,7 +614,7 @@ const nextConfig = {
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://api.dicebear.com https://*.googleusercontent.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.googleadservices.com https://www.google.com https://google.com https://www.google.com.au",
-            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.google.com https://google.com https://*.google.com.au https://www.googletagmanager.com https://*.googletagmanager.com https://www.googleadservices.com https://*.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.sentry.io https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com",
+            `connect-src 'self'${localAuthSource} https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.google.com https://google.com https://*.google.com.au https://www.googletagmanager.com https://*.googletagmanager.com https://www.googleadservices.com https://*.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.sentry.io https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com`,
             `frame-src 'self' blob: https://js.stripe.com https://www.googletagmanager.com https://challenges.cloudflare.com ${parchmentFrameSources}`,
             "object-src 'none'",
             "report-uri /api/csp-report",

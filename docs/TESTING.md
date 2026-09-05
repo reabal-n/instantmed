@@ -252,7 +252,9 @@ measurements, not patient performance promises. The GitHub workflow is manual `w
 The local production bundle's startup exception requires the explicit test flags,
 a test key, loopback app origins on 3060, matching loopback database origins on
 55321, and no Vercel markers. Deployed test keys, including restricted keys,
-remain rejected. The runner also owns port 55330 for a disposable Redis HTTP
+remain rejected. The enforced and report-only CSPs admit only the exact local
+Auth connection (`http://127.0.0.1:55321`) when the owned runner settings match;
+Vercel markers, live keys, or mismatched origins close this exception. The runner also owns port 55330 for a disposable Redis HTTP
 proxy backed by real Redis. Both container images are digest-pinned; their
 network is run-scoped, Redis has no published port, and the HTTP proxy binds only
 to loopback. Before checkout, the installed rate-limit SDK must prove an allowed
