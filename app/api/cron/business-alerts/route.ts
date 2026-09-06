@@ -31,7 +31,7 @@ import {
   buildGoogleAdsUploadPartialFailureAlert,
   buildGoogleAdsUploadStreamStalledAlert,
 } from "@/lib/monitoring/google-ads-purchase-import-health"
-import { dispatchBusinessIncidents, INCIDENT_METRICS } from "@/lib/monitoring/incident-state"
+import { dispatchBusinessIncidents, INCIDENT_METRICS, knownGooglePurchaseIncidentMetrics } from "@/lib/monitoring/incident-state"
 import {
   buildNoPurchaseRevenueAlert,
   CHECKOUT_DEMAND_PAYMENT_STATUSES,
@@ -671,9 +671,7 @@ export async function GET(request: NextRequest) {
     const knownMetrics = [...completedSections].flatMap(section => [
       `business_alert_section_failed_${section}`, ...(sectionMetrics[section] ?? []),
     ])
-    if (googleAdsPurchaseImportHealth && googleAdsPurchaseImportHealth.queryErrors.length === 0) {
-      knownMetrics.push(...INCIDENT_METRICS.filter(metric => metric.startsWith("google_ads_purchase_") || metric === "google_ads_upload_audit_source_anomaly"))
-    }
+    knownMetrics.push(...knownGooglePurchaseIncidentMetrics(googleAdsPurchaseImportHealth))
     if (googleAdsUploadStreamHealth && !googleAdsUploadStreamHealth.queryFailed) {
       knownMetrics.push("google_ads_conversion_uploads_stalled", "google_ads_conversion_upload_partial_failures")
     }

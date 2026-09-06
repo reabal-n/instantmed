@@ -14,15 +14,20 @@ for _attempt in $(seq 1 80); do
   sleep 0.25
 done
 run_psql() { docker exec -i "$DB_CONTAINER" psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 "$@"; }
+# Filter only the expected notices from these deliberately repeated migration
+# statements. Unexpected notices and every error retain their original stderr.
+run_migration() {
+  run_psql < "$1" >/dev/null 2> >(sed -E '/^NOTICE:  (column "(dimensions|recorded_at)" of relation "operational_metrics" already exists, skipping|policy "operational_metrics_admin" for relation "public.operational_metrics" does not exist, skipping|relation "operational_metrics_monitor_version_unique" already exists, skipping)$/d' >&2)
+}
 run_psql <<'SQL' >/dev/null
 create role anon nologin;
 create role authenticated nologin;
 create role service_role nologin bypassrls;
 SQL
-run_psql < "$REPO_ROOT/supabase/migrations/20260723170000_create_operational_metrics.sql" >/dev/null
+run_migration "$REPO_ROOT/supabase/migrations/20260723170000_create_operational_metrics.sql"
 if [[ "${1:-}" != "--baseline" ]]; then
-  run_psql < "$REPO_ROOT/supabase/migrations/20260906100000_monitor_observation_state.sql" >/dev/null
-  run_psql < "$REPO_ROOT/supabase/migrations/20260906100000_monitor_observation_state.sql" >/dev/null
+  run_migration "$REPO_ROOT/supabase/migrations/20260906100000_monitor_observation_state.sql"
+  run_migration "$REPO_ROOT/supabase/migrations/20260906100000_monitor_observation_state.sql"
 fi
 run_psql < "$REPO_ROOT/scripts/sql/monitor-observation-state-db.test.sql" >/dev/null
 # A held transaction owns version 1. A competing identical CAS blocks and then

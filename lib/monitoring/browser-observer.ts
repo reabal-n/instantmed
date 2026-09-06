@@ -133,11 +133,16 @@ export async function checkBrowserObserver() {
         if (current.state[field]) state[field] = mergeCompletion(state[field], current.state[field]!)
       }
       const events = []
-      // Preserve intermediate failure -> success transitions observed in one poll.
+      // The immutable cache also receipts notification processing. Outcome
+      // ordering alone cannot receipt older failures fetched on a later poll
+      // while draining the two-job cap. Report each newly verified failure,
+      // then classify recovery against the newest outcome below.
       let latest = current.state.latest
       for (const evidence of collected.completions) {
-        if (latest && compare(evidence, latest) <= 0) continue
-        latest = evidence
+        if (current.state.cache.some(cached => cached.id === evidence.id && cached.attempt === evidence.attempt)) continue
+        const advancesOutcome = !latest || compare(evidence, latest) > 0
+        if (!advancesOutcome && evidence.outcome !== 2) continue
+        if (advancesOutcome) latest = evidence
         const transition = advanceIncidents(state.incidents, evidence.outcome === 2 ? [{ metric: 0, severity: 2, count: 1 }] : [], [0], now)
         state.incidents = transition.incidents
         events.push(...transition.events)

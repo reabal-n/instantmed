@@ -20,6 +20,11 @@ export const INCIDENT_METRICS = [
   ...["failed_payments", "no_purchase_revenue", "email_delivery_failed", "auth_email_delivery_failed", "email_bounced", "email_stuck_pending", "high_risk_intake", "email_delivery_sla_breach", "ops_invariants", "stale_human_queue", "prescription_fulfilment", "ads_contribution"].map(s => `business_alert_section_failed_${s}`),
 ] as const
 
+export function knownGooglePurchaseIncidentMetrics(snapshot: { preflightOk: boolean; queryErrors: readonly unknown[] } | null): string[] {
+  if (!snapshot?.preflightOk || snapshot.queryErrors.length > 0) return []
+  return INCIDENT_METRICS.filter(metric => metric.startsWith("google_ads_purchase_") || metric === "google_ads_upload_audit_source_anomaly")
+}
+
 type Observation = Pick<Incident, "metric" | "severity" | "count">
 export function advanceIncidents(previous: Incident[], observed: Observation[], known: number[], at: number) {
   const incidents = previous.map(item => ({ ...item }))

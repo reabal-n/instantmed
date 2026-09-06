@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { dispatchBusinessIncidents } from "@/lib/monitoring/incident-state"
+import { dispatchBusinessIncidents, INCIDENT_METRICS, knownGooglePurchaseIncidentMetrics } from "@/lib/monitoring/incident-state"
 
 const mocks = vi.hoisted(() => ({ capture: vi.fn(), read: vi.fn(), append: vi.fn() }))
 vi.mock("@sentry/nextjs", () => ({ captureMessage: mocks.capture }))
@@ -28,6 +28,20 @@ describe("business Sentry dispatch", () => {
     await dispatchBusinessIncidents([], [], 10)
     expect(mocks.capture).not.toHaveBeenCalled()
     expect(mocks.append.mock.calls[0][2].incidents[0].active).toBe(true)
+  })
+  it("failed Google preflight preserves purchase risk while independent categories recover", async () => {
+    const purchaseMetric = INCIDENT_METRICS.indexOf("google_ads_purchase_imports_zero")
+    mocks.read.mockResolvedValue({ version: 2, state: { enabledAt: 1, checkedAt: 2, incidents: [
+      { metric: purchaseMetric, severity: 2, count: 5, active: true, at: 2 },
+      { metric: 0, severity: 1, count: 5, active: true, at: 2 },
+    ] } })
+    const known = [...knownGooglePurchaseIncidentMetrics({ preflightOk: false, queryErrors: [] }), "payment_failed"]
+    await dispatchBusinessIncidents([{ metric: "google_ads_purchase_import_health_unavailable", severity: "critical", count: 5, detail: "unavailable" }], known, 10)
+    const incidents = mocks.append.mock.calls[0][2].incidents
+    expect(incidents.find((item: { metric: number }) => item.metric === purchaseMetric).active).toBe(true)
+    expect(incidents.find((item: { metric: number }) => item.metric === 0).active).toBe(false)
+    expect(mocks.capture).not.toHaveBeenCalledWith("business-alert: google_ads_purchase_imports_zero recovered", expect.anything())
+    expect(mocks.capture).toHaveBeenCalledWith("business-alert: google_ads_purchase_import_health_unavailable active", expect.anything())
   })
   it("read/write/claim failures fail open", async () => {
     mocks.append.mockRejectedValue(new Error("private provider detail"))
