@@ -36,8 +36,9 @@ import type { ServerSafetyCheck } from "@/lib/safety/evaluate"
 import { type FraudCheckResult, saveFraudFlags } from "@/lib/security/fraud-detector"
 
 import type { CheckoutResult } from "../checkout"
-import { canRetryPaymentForIntake } from "../payment-integrity"
+import { canRetryPaymentForIntake, isTerminalPaidPaymentStatus } from "../payment-integrity"
 import { mapCategoryToRequestType } from "./helpers"
+import { reconcileCancelledDraftCheckout, reportCheckoutPersistenceFailure, type RestoredCheckoutIntake } from "./restored-draft-recovery"
 import type { CreateCheckoutInput, StepResult } from "./types"
 import { stepFail, stepOk } from "./types"
 
@@ -100,15 +101,14 @@ export interface IntakeRow {
  * Insert the intake row plus answers, with rollback on answers-insert failure
  * and idempotency-key duplicate handling. Returns the live intake row.
  *
- * If the idempotency key collides with a row that is already paid, returns
- * a `redirect` result the orchestrator should turn into a successful
- * CheckoutResult pointing at the patient intake page. If it collides with a
- * still-retryable pending row, the caller should redirect to retry.
+ * Resolve collisions by owned submission key, then owned flow ID. Paid and
+ * cancelled obligations return their typed recovery outcome; retryable pending
+ * obligations continue through the existing guarded retry action.
  */
 export type IntakeInsertOutcome =
   | { kind: "created"; intake: IntakeRow }
-  | { kind: "already_paid"; redirectUrl: string; intakeId: string }
   | { kind: "retry_existing"; intakeId: string }
+  | { kind: "resolved_existing"; result: CheckoutResult }
 
 export async function createIntakeWithAnswers(
   supabase: SupabaseClient,
@@ -188,14 +188,30 @@ export async function createIntakeWithAnswers(
   }
 
   if (intakeError || !intake) {
-    if (intakeError?.code === "23505" && input.idempotencyKey) {
-      const { data: existingIntake } = await supabase
+    if (intakeError?.code === "23505") {
+      const lookup = (column: "idempotency_key" | "flow_instance_id", value: string) => supabase
         .from("intakes")
-        .select("id, status, payment_status")
-        .eq("idempotency_key", input.idempotencyKey)
-        .single<{ id: string; status: string; payment_status: string }>()
-
+        .select("id, status, payment_status, payment_id, checkout_error")
+        .eq("patient_id", patientId)
+        .eq("category", input.category).eq("subtype", input.subtype)
+        .eq(column, value)
+        .maybeSingle<RestoredCheckoutIntake>()
+      let duplicate = await lookup("idempotency_key", input.idempotencyKey)
+      if (!duplicate.error && !duplicate.data && input.flowInstanceId) {
+        duplicate = await lookup("flow_instance_id", input.flowInstanceId)
+      }
+      if (duplicate.error) {
+        reportCheckoutPersistenceFailure("owned_duplicate_lookup", duplicate.error.code)
+        return stepFail("persistence", "We couldn't verify your previous request. Please contact support before trying again.")
+      }
+      const existingIntake = duplicate.data
       if (existingIntake) {
+        if (existingIntake.status === "cancelled" || isTerminalPaidPaymentStatus(existingIntake.payment_status)) {
+          return stepOk({ kind: "resolved_existing", result: await reconcileCancelledDraftCheckout({
+            supabase, intake: existingIntake, patientId,
+            existingUrl: `${baseUrl}/patient/intakes/${existingIntake.id}`,
+          }) })
+        }
         const { data: existingAnswers, error: existingAnswersError } =
           await supabase
             .from("intake_answers")
@@ -204,6 +220,7 @@ export async function createIntakeWithAnswers(
             .maybeSingle<{ intake_id: string }>()
 
         if (existingAnswersError || !existingAnswers) {
+          if (existingAnswersError) reportCheckoutPersistenceFailure("duplicate_answers_lookup", existingAnswersError.code)
           return stepFail(
             "persistence",
             "This request is still being prepared. Please wait a moment and try again.",
@@ -211,17 +228,7 @@ export async function createIntakeWithAnswers(
         }
 
         await markDraftConvertedIfPresent(supabase, input, existingIntake.id)
-        logger.info("Returning existing intake for idempotency key", {
-          intakeId: existingIntake.id,
-          idempotencyKey: input.idempotencyKey,
-        })
-        if (existingIntake.payment_status === "paid") {
-          return stepOk({
-            kind: "already_paid",
-            intakeId: existingIntake.id,
-            redirectUrl: `${baseUrl}/patient/intakes/${existingIntake.id}`,
-          })
-        }
+        logger.info("Returning owned pending checkout", { reason: "owned_duplicate" })
         if (!canRetryPaymentForIntake(existingIntake.status, existingIntake.payment_status)) {
           return stepFail(
             "auth_or_session",
@@ -239,12 +246,7 @@ export async function createIntakeWithAnswers(
       )
     }
 
-    logger.error("Failed to create intake", {
-      error: intakeError,
-      code: intakeError?.code,
-      message: intakeError?.message,
-      details: intakeError?.details,
-    })
+    reportCheckoutPersistenceFailure("intake_insert", intakeError?.code)
     if (intakeError?.code === "23503") {
       return stepFail(
         "auth_or_session",
@@ -259,7 +261,7 @@ export async function createIntakeWithAnswers(
     }
     return stepFail(
       "persistence",
-      `Failed to create your request. ${intakeError?.message ? `(${intakeError.message})` : "Please try again."}`,
+      "Failed to create your request. Please try again.",
     )
   }
 
@@ -271,12 +273,8 @@ export async function createIntakeWithAnswers(
   let answersInsert: Record<string, unknown>
   try {
     answersInsert = await buildAnswersInsertColumns(intake.id, input.answers)
-  } catch (encryptionError) {
-    logger.error(
-      "[Stripe Checkout] Failed to encrypt answers, rolling back intake",
-      { intakeId: intake.id },
-      encryptionError instanceof Error ? encryptionError : new Error(String(encryptionError)),
-    )
+  } catch {
+    reportCheckoutPersistenceFailure("answers_encryption")
     await supabase.from("intakes").delete().eq("id", intake.id)
     return stepFail(
       "persistence",
@@ -287,11 +285,7 @@ export async function createIntakeWithAnswers(
   const { error: answersError } = await supabase.from("intake_answers").insert(answersInsert)
 
   if (answersError) {
-    logger.error(
-      "[Stripe Checkout] Failed to save answers, rolling back intake",
-      { intakeId: intake.id },
-      new Error(answersError.message),
-    )
+    reportCheckoutPersistenceFailure("answers_insert", answersError.code)
     await supabase.from("intakes").delete().eq("id", intake.id)
     return stepFail(
       "persistence",
@@ -393,7 +387,6 @@ export async function persistFraudFlags(args: {
   }
 }
 
-// Re-exported for orchestrator convenience: the `already_paid` and
-// `retry_existing` outcomes both terminate the create flow with specific
-// CheckoutResult shapes the orchestrator builds inline.
+// Re-exported for orchestrator convenience. Existing obligations terminate
+// creation through a typed CheckoutResult or the guarded retry path.
 export type { CheckoutResult }

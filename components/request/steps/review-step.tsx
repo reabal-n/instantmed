@@ -1129,13 +1129,13 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         <Button
           data-intake-primary-action="true"
           data-intake-primary-label={`Pay $${totalDue.toFixed(2)}`}
-          data-intake-primary-ready={safetyConfirmed ? "true" : "false"}
-          onClick={safetyConfirmed ? handlePayment : handleDisabledClick}
+          data-intake-primary-ready={safetyConfirmed && !requiresFreshRequest ? "true" : "false"}
+          onClick={requiresFreshRequest ? undefined : safetyConfirmed ? handlePayment : handleDisabledClick}
           variant={safetyConfirmed ? "default" : "secondary"}
           className="w-full h-12 max-sm:hidden"
-          aria-disabled={!safetyConfirmed || isProcessing}
+          aria-disabled={!safetyConfirmed || isProcessing || requiresFreshRequest}
           aria-describedby={!safetyConfirmed ? 'safety-consent-warning' : undefined}
-          disabled={isProcessing}
+          disabled={isProcessing || requiresFreshRequest}
         >
           {isProcessing ? (
             <>

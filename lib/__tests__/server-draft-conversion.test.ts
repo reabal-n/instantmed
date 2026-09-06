@@ -201,6 +201,7 @@ describe("converted server draft checkout reuse", () => {
       kind: "reusable",
       intake: {
         category: "prescription",
+        checkoutError: null,
         guestEmail: "patient@example.com",
         id: INTAKE_ID,
         patientId: "patient-1",

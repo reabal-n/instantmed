@@ -264,6 +264,7 @@ function createGuestCheckoutSupabaseMock({
   duplicateIntake,
   existingGuestProfiles = [],
   forceDuplicate = false,
+  restoredFlow = false,
 }: {
   boundDraftGrowthRead?: {
     data: { growth_experience_version: string | null } | null
@@ -274,6 +275,7 @@ function createGuestCheckoutSupabaseMock({
   duplicateIntake?: DuplicateGuestIntake
   existingGuestProfiles?: Array<Record<string, unknown>>
   forceDuplicate?: boolean
+  restoredFlow?: boolean
 } = {}) {
   if (duplicateIntake) {
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(
@@ -289,8 +291,13 @@ function createGuestCheckoutSupabaseMock({
   const makeBuilder = (table: string) => {
     let operation: "select" | "insert" | "update" | "delete" | null = null
     let selectCount = 0
+    const filters: Record<string, unknown> = {}
+    const matchesRestored = () => !restoredFlow || (
+      filters.flow_instance_id === SPECIALTY_FLOW_INSTANCE_ID
+      && filters.patient_id === "guest-profile-1"
+    ) || (restoredFlow && filters.id === duplicateIntake?.id && filters.patient_id === "guest-profile-1")
     const builder = {
-      eq: vi.fn(() => builder),
+      eq: vi.fn((column: string, value: unknown) => { filters[column] = value; return builder }),
       in: vi.fn(() => builder),
       is: vi.fn(() => builder),
       not: vi.fn(() => builder),
@@ -339,7 +346,7 @@ function createGuestCheckoutSupabaseMock({
           table === "partial_intakes" && operation === "select"
             ? boundDraftGrowthRead?.data ?? null
             : table === "intakes" && operation === "select"
-            ? duplicateIntake || null
+            ? matchesRestored() ? duplicateIntake || null : null
             : table === "intake_answers" &&
                 operation === "select" &&
                 duplicateIntake &&
@@ -379,6 +386,9 @@ function createGuestCheckoutSupabaseMock({
 describe("checkout operating hours", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.getIntakeAnswersForPaymentSafety.mockReset()
+    mocks.stripeSessionRetrieve.mockReset()
+    mocks.stripeSessionExpire.mockReset()
     mocks.checkCheckoutBlocked.mockReturnValue({ blocked: false })
     mocks.checkSafetyForServer.mockReturnValue({
       blockReason: null,
@@ -930,6 +940,33 @@ describe("checkout operating hours", () => {
       intakeId: "intake-existing",
     })
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+
+  it.each(["guest", "authenticated"])("recovers a cancelled restored flow with a new submission key through %s checkout", async (actor) => {
+    const duplicateIntake = makeDuplicateHairIntake({
+      flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID,
+      status: "cancelled",
+      payment_status: "unpaid",
+    })
+    const { supabase, inserts } = createGuestCheckoutSupabaseMock({ duplicateIntake, restoredFlow: true })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripeSessionRetrieve.mockResolvedValue({
+      id: "cs_current", metadata: { intake_id: "intake-existing" }, payment_intent: null,
+      status: "expired", payment_status: "unpaid", url: null,
+    })
+    if (actor === "authenticated") {
+      mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
+        user: { id: "user-1", email: "patient@example.test" },
+        profile: { id: "guest-profile-1", date_of_birth: "1985-04-01", full_name: "Test Patient", stripe_customer_id: null },
+      })
+    }
+    const result = actor === "guest"
+      ? await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID })
+      : await createIntakeAndCheckoutAction({ ...hairLossAuthenticatedCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID })
+    expect(result).toMatchObject({ success: false, requiresFreshRequest: true, failureCode: "auth_or_session" })
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(inserts.filter(({ table }) => table === "intake_answers")).toHaveLength(0)
   })
 
   it("fails safely when the unique flow guard wins outside the old idempotency key", async () => {

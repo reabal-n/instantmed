@@ -222,6 +222,8 @@ review-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
 
 **Checkout failure visibility:** Authenticated and guest checkout both preserve failed Stripe session creation as `intakes.status = checkout_failed` with `checkout_error` rather than deleting the request. Operators can see and recover failed payment setup attempts; only answer-save failures roll back the just-created intake because no usable clinical record exists yet.
 
+**Restored cancelled drafts:** Both insert paths resolve unique-key collisions by the owned submission key, then the owned flow ID, without changing the one-intake-per-flow index. The converted-draft shortcut uses the same cancelled-request reconciliation. A database cancellation alone never authorises another payment: the exact Stripe Session and expanded PaymentIntent must prove terminal unpaid (expired Session, null or cancelled intent). An open session is invalidated through the existing safety helper and independently read back; paid proof routes to the existing request, while processing, missing, foreign, unknown, or changed state blocks fresh recovery. A final owner/session/status/payment-state/error compare-and-set preserves the cancelled row. Only then does the review surface offer its deliberate **Start this request over** action, which retires the old draft, clears answers and consent, and creates a fresh flow/bearer through the normal entry path. Stale tabs remain bound to the old obligation; safety-blocked high-stakes requests retain their no-restart boundary. Database diagnostics identify the failing operation and bounded SQLSTATE, never raw payloads or identifiers.
+
 ### Idempotency & Duplicate Protection
 
 | Layer | Mechanism |

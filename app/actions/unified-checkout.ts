@@ -23,11 +23,12 @@ import {
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
 import { createIntakeAndCheckoutAction, retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
+import { reconcileCancelledDraftCheckout } from "@/lib/stripe/checkout/restored-draft-recovery"
 import type { CheckoutResult } from "@/lib/stripe/checkout/types"
 import { checkoutFailure } from "@/lib/stripe/checkout-failure"
 import { buildAuthenticatedCheckoutSubmissionKey, buildGuestCheckoutSubmissionKey } from "@/lib/stripe/checkout-submission-key"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
-import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
+import { canRetryPaymentForIntake, isTerminalPaidPaymentStatus } from "@/lib/stripe/payment-integrity"
 import { buildCheckoutIdentityProfileUpdates } from "@/lib/stripe/prescribing-profile-fields"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory, UnifiedServiceType } from "@/types/services"
@@ -143,11 +144,15 @@ async function createCheckoutFromUnifiedFlowInternal(
 
   // Check if user is authenticated
   const authResult = await getAuthenticatedUserWithProfile()
+  if (authResult?.user && !authResult.profile) {
+    return checkoutFailure("auth_or_session", "We couldn't verify your profile. Please sign in again.")
+  }
   const convertedDraft = await findConvertedPartialIntakeForCheckout(
     createServiceRoleClient(),
     {
       category,
       email: authResult?.user.email ?? identity.email,
+      patientId: authResult?.profile?.id,
       flowInstanceId,
       serviceType: draftServiceType,
       sessionId: serverDraftSessionId,
@@ -197,7 +202,16 @@ async function createCheckoutFromUnifiedFlowInternal(
       authResult?.profile && intake.patientId === authResult.profile.id,
     )
 
-    if (intake.paymentStatus === "paid") {
+    // A signed-in browser cannot use a foreign draft bearer as a profile
+    // switch. Guests need the verified bearer plus the matching captured email.
+    if ((authResult?.user && !isOwnedByAuthenticatedPatient) || (!authResult?.user && (
+      !intake.patientId || !identity.email || !intake.guestEmail ||
+      identity.email.trim().toLowerCase() !== intake.guestEmail.trim().toLowerCase()
+    ))) {
+      return checkoutFailure("auth_or_session", "We couldn't verify ownership of this saved request. Sign in to the matching account or contact support.")
+    }
+
+    if (isTerminalPaidPaymentStatus(intake.paymentStatus)) {
       return {
         success: true,
         intakeId: intake.id,
@@ -218,14 +232,19 @@ async function createCheckoutFromUnifiedFlowInternal(
       }
     }
 
-    // The realized flow is unique in PostgreSQL. Rotating only in this server
-    // action would strand the browser/local draft on the old flow and defeat
-    // paid-success cleanup, so require an explicit client lifecycle reset.
-    return checkoutFailure(
-      "auth_or_session",
-      "This saved request has already been used. Start this request over to continue.",
-      { requiresFreshRequest: true },
-    )
+    if (intake.status === "cancelled" && intake.patientId) {
+      return reconcileCancelledDraftCheckout({
+        supabase: createServiceRoleClient(), patientId: intake.patientId,
+        intake: {
+          id: intake.id, status: intake.status, payment_status: intake.paymentStatus,
+          payment_id: intake.paymentId, checkout_error: intake.checkoutError,
+        },
+        existingUrl: isOwnedByAuthenticatedPatient
+          ? `${getAppUrl().replace(/\/$/, "")}/patient/intakes/${intake.id}`
+          : buildSignedCheckoutResumeUrl({ appUrl: getAppUrl(), intakeId: intake.id }),
+      })
+    }
+    return checkoutFailure("auth_or_session", "This request is not awaiting payment. Please check its status or contact support.")
   }
   
   if (authResult?.user && authResult?.profile) {

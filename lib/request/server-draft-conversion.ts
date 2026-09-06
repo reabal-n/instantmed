@@ -13,6 +13,7 @@ export type DraftConversionResult = {
 
 interface ConvertedDraftCheckoutIntake {
   category: string | null
+  checkoutError: string | null
   guestEmail: string | null
   id: string
   patientId: string | null
@@ -95,6 +96,7 @@ export async function findConvertedPartialIntakeForCheckout(
     category,
     email,
     flowInstanceId,
+    patientId,
     serviceType,
     sessionId,
     subtype,
@@ -102,6 +104,7 @@ export async function findConvertedPartialIntakeForCheckout(
     category: string
     email?: string | null
     flowInstanceId: string | null | undefined
+    patientId?: string
     serviceType: "med-cert" | "prescription" | "consult"
     sessionId: string | null | undefined
     subtype: string
@@ -182,12 +185,14 @@ export async function findConvertedPartialIntakeForCheckout(
     }
   }
 
-  const { data: intake, error: intakeError } = await supabase
+  let intakeQuery = supabase
     .from("intakes")
-    .select("id, patient_id, status, payment_status, payment_id, guest_email, category, subtype, flow_instance_id, growth_experience_version")
+    .select("id, patient_id, status, payment_status, payment_id, checkout_error, guest_email, category, subtype, flow_instance_id, growth_experience_version")
     .eq("id", draft.converted_to_intake_id)
-    .maybeSingle<{
+  if (patientId) intakeQuery = intakeQuery.eq("patient_id", patientId)
+  const { data: intake, error: intakeError } = await intakeQuery.maybeSingle<{
       category: string | null
+      checkout_error: string | null
       guest_email: string | null
       id: string
       flow_instance_id: string | null
@@ -221,6 +226,7 @@ export async function findConvertedPartialIntakeForCheckout(
     kind: "reusable",
     intake: {
       category: intake.category,
+      checkoutError: intake.checkout_error ?? null,
       guestEmail: intake.guest_email,
       id: intake.id,
       patientId: intake.patient_id,
