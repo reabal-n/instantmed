@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { browserHealth, mergeCompletion } from "@/lib/monitoring/browser-observer"
+import { browserHealth, mergeCompletion } from "@/lib/monitoring/browser-evidence"
 import { advanceIncidents } from "@/lib/monitoring/incident-state"
 
 const now = Date.parse("2026-09-06T12:00:00Z")

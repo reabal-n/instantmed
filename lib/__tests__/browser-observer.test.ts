@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-import { browserHealth, checkBrowserObserver, collectBrowserEvidence } from "@/lib/monitoring/browser-observer"
+import { browserHealth, collectBrowserEvidence } from "@/lib/monitoring/browser-evidence"
+import { checkBrowserObserver } from "@/lib/monitoring/browser-observer"
 import type { BrowserState } from "@/lib/monitoring/monitor-state"
 
 const mocks = vi.hoisted(() => ({ capture: vi.fn(), client: vi.fn(), cron: vi.fn(), heartbeat: vi.fn() }))

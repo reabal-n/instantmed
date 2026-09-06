@@ -3,6 +3,7 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 
 import type { BusinessAlert } from "@/lib/monitoring/alert-sections"
+import { buildGoogleAdsPurchaseImportAlert, type GoogleAdsPurchaseImportHealthSnapshot } from "@/lib/monitoring/google-ads-purchase-import-health"
 import { appendMonitorState, businessStateSchema, type Incident, readMonitorState } from "@/lib/monitoring/monitor-state"
 
 // Stable append-only identifiers: never reorder existing entries (stored as numbers).
@@ -20,9 +21,19 @@ export const INCIDENT_METRICS = [
   ...["failed_payments", "no_purchase_revenue", "email_delivery_failed", "auth_email_delivery_failed", "email_bounced", "email_stuck_pending", "high_risk_intake", "email_delivery_sla_breach", "ops_invariants", "stale_human_queue", "prescription_fulfilment", "ads_contribution"].map(s => `business_alert_section_failed_${s}`),
 ] as const
 
-export function knownGooglePurchaseIncidentMetrics(snapshot: { preflightOk: boolean; queryErrors: readonly unknown[] } | null): string[] {
+export function knownGooglePurchaseIncidentMetrics(snapshot: GoogleAdsPurchaseImportHealthSnapshot | null): string[] {
   if (!snapshot?.preflightOk || snapshot.queryErrors.length > 0) return []
-  return INCIDENT_METRICS.filter(metric => metric.startsWith("google_ads_purchase_") || metric === "google_ads_upload_audit_source_anomaly")
+  // The alert builder short-circuits at its first fault. Only predicates up to
+  // that fault were evaluated; lower-priority absence is unknown, not recovery.
+  const predicates = [
+    "google_ads_purchase_import_health_unavailable",
+    "google_ads_purchase_enhanced_conversions_setup_incomplete",
+    "google_ads_purchase_imports_zero",
+    "google_ads_purchase_primary_conversions_zero",
+  ]
+  const selected = buildGoogleAdsPurchaseImportAlert(snapshot)
+  const evaluated = selected ? predicates.slice(0, predicates.indexOf(selected.metric) + 1) : predicates
+  return ["google_ads_purchase_import_health_failed", "google_ads_upload_audit_source_anomaly", ...evaluated]
 }
 
 type Observation = Pick<Incident, "metric" | "severity" | "count">
