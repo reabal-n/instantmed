@@ -2,377 +2,186 @@
 /* eslint-disable no-console */
 /**
  * INITIAL BACKFILL ONLY — NOT KEY ROTATION.
- * This script uses ENCRYPTION_KEY to populate missing encrypted profile fields.
- * It does not read PHI_MASTER_KEY and cannot re-encrypt existing ciphertext.
+ * This script uses ENCRYPTION_KEY and the existing AES-256-GCM format to
+ * populate missing profiles DOB/phone/Medicare ciphertext. Plaintext stays.
+ * It does not read PHI_MASTER_KEY or repair existing ciphertext/parity drift.
  *
- * PHI Encryption Backfill Script
- *
- * Encrypts existing plaintext PHI fields in multiple tables:
- * 
- * profiles table:
- * - medicare_number -> medicare_number_encrypted
- * - date_of_birth -> date_of_birth_encrypted
- * - phone -> phone_encrypted
- * 
- * intake_answers table (CRITICAL PHI):
- * - answers (JSONB) -> answers_encrypted
- * 
- * intake_drafts table:
- * - draft_data (JSONB) -> draft_data_encrypted
- *
- * Features:
- * - Batch processing (configurable batch size)
- * - Progress tracking in encryption_migration_status table
- * - Idempotent (skips already-encrypted records)
- * - Dry-run mode for testing
- * - Resume support (continues from where it left off)
- * - Envelope encryption (unique DEK per record)
- *
- * Required env vars:
- * - NEXT_PUBLIC_SUPABASE_URL
- * - SUPABASE_SERVICE_ROLE_KEY
- * - ENCRYPTION_KEY (base64-encoded key, at least 32 bytes)
- *
- * Usage:
- *   npm run encrypt:backfill                    # All tables
- *   npm run encrypt:backfill -- --table=intake_answers  # Specific table
- *   npm run encrypt:backfill -- --dry           # Dry run (no changes)
- *   npm run encrypt:backfill -- --batch=100     # Custom batch size
+ * Supply NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ENCRYPTION_KEY
+ * through the operator environment; no environment files are loaded.
+ * NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --dry
+ * NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --apply --batch=50
+ * No flags means dry run. --dry-run aliases --dry. Batch bounds: 1..500.
+ * Production apply requires a separately approved, exact reviewed dry-run packet.
  */
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
-import { createClient } from "@supabase/supabase-js"
+import { isLikelyTestPatientIdentity, SEEDED_E2E_PATIENT_PROFILE_IDS } from "../lib/data/seeded-e2e-data"
+import { decrypt, encrypt, verifyEncryptionSetup } from "../lib/security/encryption"
 
-import { SEEDED_E2E_PATIENT_PROFILE_IDS } from "../lib/data/seeded-e2e-data"
-import {
-  encrypt,
-  verifyEncryptionSetup,
-} from "../lib/security/encryption"
-
-// ============================================
-// Configuration
-// ============================================
-
-const DEFAULT_BATCH_SIZE = 50
-const TABLE_NAME = "profiles"
-const MISSING_ENCRYPTED_PROFILE_FIELDS_FILTER = [
-  "and(medicare_number.not.is.null,medicare_number_encrypted.is.null)",
-  "and(date_of_birth.not.is.null,date_of_birth_encrypted.is.null)",
-  "and(phone.not.is.null,phone_encrypted.is.null)",
-].join(",")
-const SEEDED_E2E_STAFF_PROFILE_IDS = [
+const FIELDS = ["date_of_birth", "phone", "medicare_number"] as const
+type Field = typeof FIELDS[number]
+type Profile = Record<Field | `${Field}_encrypted` | "email" | "full_name" | "phi_encrypted_at", string | null> & { id: string }
+const COLUMNS = ["id", "email", "full_name", "phi_encrypted_at", ...FIELDS.flatMap(field => [field, `${field}_encrypted`])].join(",")
+const FIXTURE_IDS = new Set<string>([
+  ...SEEDED_E2E_PATIENT_PROFILE_IDS,
   "e2e00000-0000-0000-0000-000000000001",
   "e2e00000-0000-0000-0000-000000000003",
   "e2e00000-0000-0000-0000-000000000004",
-] as const
-const SEEDED_E2E_PROFILE_FILTER = `(${[
-  ...SEEDED_E2E_STAFF_PROFILE_IDS,
-  ...SEEDED_E2E_PATIENT_PROFILE_IDS,
-].join(",")})`
+])
+const excluded = (row: Profile) => FIXTURE_IDS.has(row.id) || isLikelyTestPatientIdentity({ email: row.email, fullName: row.full_name })
+const missing = (row: Profile) => FIELDS.filter(field => !!row[field] && !row[`${field}_encrypted`])
+const emptyCounts = () => ({ date_of_birth: 0, phone: 0, medicare_number: 0 })
 
-interface Profile {
-  id: string
-  medicare_number: string | null
-  medicare_number_encrypted: string | null
-  date_of_birth: string | null
-  date_of_birth_encrypted: string | null
-  phone: string | null
-  phone_encrypted: string | null
-  phi_encrypted_at: string | null
+// Only these locally chosen codes may reach output/status. Never interpolate
+// DB errors, exceptions, values, ciphertext, URLs, or row identifiers.
+type ErrorCode = "INVALID_CLI" | "MISSING_ENV" | "INVALID_KEY" | "READ_FAILED" | "KEY_INCOMPATIBLE" | "KEY_EVIDENCE_MISSING" | "STATUS_WRITE_FAILED" | "PROFILE_WRITE_FAILED" | "WRITE_RECEIPT_INVALID" | "REREAD_FAILED" | "ENCRYPT_FAILED" | "UNEXPECTED_FAILURE"
+class BackfillError extends Error {
+  constructor(readonly code: ErrorCode) { super(code) }
 }
-
-interface _MigrationStatus {
-  id: string
-  table_name: string
-  total_records: number
-  encrypted_records: number
-  started_at: string
-  completed_at: string | null
-  error_count: number
-  last_error: string | null
+function fail(code: ErrorCode): never { throw new BackfillError(code) }
+function options(args: string[]) {
+  let apply = false
+  let modeSeen = false
+  let batchSeen = false
+  let batchSize = 50
+  for (const arg of args) {
+    if (["--apply", "--dry", "--dry-run"].includes(arg)) {
+      if (modeSeen) fail("INVALID_CLI")
+      modeSeen = true
+      apply = arg === "--apply"
+    } else if (/^--batch=[1-9]\d*$/.test(arg)) {
+      if (batchSeen) fail("INVALID_CLI")
+      batchSeen = true
+      batchSize = Number(arg.slice(8))
+      if (!Number.isSafeInteger(batchSize) || batchSize > 500) fail("INVALID_CLI")
+    } else fail("INVALID_CLI")
+  }
+  return { apply, batchSize }
 }
-
-// ============================================
-// CLI Arguments
-// ============================================
-
-const args = process.argv.slice(2)
-const isDryRun = args.includes("--dry") || args.includes("--dry-run")
-const batchArg = args.find((a) => a.startsWith("--batch="))
-const batchSize = batchArg
-  ? parseInt(batchArg.split("=")[1], 10)
-  : DEFAULT_BATCH_SIZE
-
-// ============================================
-// Utilities
-// ============================================
-
-function log(
-  message: string,
-  type: "info" | "success" | "warn" | "error" = "info"
-) {
-  const icons = { info: "  ", success: "✅", warn: "⚠️ ", error: "❌" }
-  const timestamp = new Date().toISOString().slice(11, 19)
-  console.log(`[${timestamp}] ${icons[type]} ${message}`)
+async function* pages(db: SupabaseClient, batchSize: number, upper: string) {
+  let cursor: string | null = null
+  while (true) {
+    const base = db.from("profiles").select(COLUMNS).lte("id", upper).order("id", { ascending: true }).limit(batchSize)
+    const { data, error } = await (cursor ? base.gt("id", cursor) : base)
+    if (error || !data) fail("READ_FAILED")
+    if (!data.length) return
+    const rows = data as unknown as Profile[]
+    const next = rows[rows.length - 1].id
+    if (cursor && next <= cursor) fail("READ_FAILED")
+    cursor = next
+    yield rows
+  }
 }
-
-function formatProgress(current: number, total: number): string {
-  const percent = total > 0 ? Math.round((current / total) * 100) : 0
-  const bar = "█".repeat(Math.floor(percent / 5)) + "░".repeat(20 - Math.floor(percent / 5))
-  return `[${bar}] ${percent}% (${current}/${total})`
+async function inspect(db: SupabaseClient, batchSize: number, upper: string) {
+  const result = {
+    scanned: 0, excluded: 0, eligible: 0, candidates: 0,
+    missing: emptyCounts(), existing: emptyCounts(), decryptable: emptyCounts(), parityMismatch: emptyCounts(), decryptFailures: emptyCounts(),
+    compatible: false,
+  }
+  for await (const rows of pages(db, batchSize, upper)) {
+    for (const row of rows) {
+      result.scanned++
+      if (excluded(row)) { result.excluded++; continue }
+      result.eligible++
+      if (missing(row).length) result.candidates++
+      for (const field of FIELDS) {
+        const ciphertext = row[`${field}_encrypted`]
+        if (!ciphertext) { if (row[field]) result.missing[field]++; continue }
+        result.existing[field]++
+        try {
+          const plaintext = decrypt(ciphertext)
+          result.decryptable[field]++
+          if (plaintext !== row[field]) result.parityMismatch[field]++
+        } catch { result.decryptFailures[field]++ }
+      }
+    }
+  }
+  result.compatible = Object.values(result.decryptable).some(count => count > 0) && Object.values(result.decryptFailures).every(count => count === 0)
+  return result
 }
-
-// ============================================
-// Main Script
-// ============================================
 
 async function main() {
-  console.log("\n" + "=".repeat(60))
-  console.log("🔐 PHI ENCRYPTION BACKFILL")
-  console.log("=".repeat(60))
-  console.log(`Mode: ${isDryRun ? "DRY RUN (no changes)" : "PRODUCTION"}`)
-  console.log(`Batch size: ${batchSize}`)
-  console.log("=".repeat(60) + "\n")
-
-  // Load environment variables
-  try {
-    const { config } = await import("dotenv")
-    config({ path: ".env.local" })
-    config({ path: ".env" })
-  } catch {
-    // dotenv not available
+  // Reject flags before environment validation, client creation, or any I/O.
+  const { apply, batchSize } = options(process.argv.slice(2))
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !serviceKey || !process.env.ENCRYPTION_KEY) fail("MISSING_ENV")
+  if (!verifyEncryptionSetup().valid) fail("INVALID_KEY")
+  const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const { data: upperRows, error: upperError } = await db.from("profiles").select("id").order("id", { ascending: false }).limit(1)
+  if (upperError || !upperRows) fail("READ_FAILED")
+  // A finite high-water mark excludes later IDs. This is a sequential scan,
+  // not a transaction snapshot; repeat the read-only run after an apply.
+  const upper = upperRows[0]?.id as string | undefined
+  if (!upper) fail("KEY_EVIDENCE_MISSING")
+  const before = await inspect(db, batchSize, upper)
+  console.log(JSON.stringify({ phase: "preflight", mode: apply ? "apply" : "dry", batchSize, ...before }))
+  if (!before.compatible) fail(Object.values(before.decryptFailures).some(Boolean) ? "KEY_INCOMPATIBLE" : "KEY_EVIDENCE_MISSING")
+  const result = { phase: "summary", mode: apply ? "apply" : "dry", processed: 0, updated: 0, updatedFields: emptyCounts(), skipped: 0, skips: { sourceChanged: 0, targetChanged: 0, otherChanged: 0, deleted: 0 }, errors: {} as Partial<Record<ErrorCode, number>> }
+  let statusId: string | null = null
+  let lastError: ErrorCode | null = null
+  const recordError = (code: ErrorCode) => { lastError = code; result.errors[code] = (result.errors[code] || 0) + 1 }
+  if (apply && before.candidates) {
+    const { data, error } = await db.from("encryption_migration_status").insert({ table_name: "profiles", total_records: before.candidates, encrypted_records: 0 }).select("id").single()
+    if (error || !data?.id) fail("STATUS_WRITE_FAILED")
+    statusId = data.id
   }
-
-  log("INITIAL BACKFILL ONLY — NOT KEY ROTATION", "info")
-  log("This script uses ENCRYPTION_KEY and skips existing ciphertext", "info")
-
-  // Verify required environment variables
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  const encryptionKey = process.env.ENCRYPTION_KEY
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    log(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
-      "error"
-    )
-    process.exit(1)
-  }
-
-  if (!encryptionKey) {
-    log("Missing ENCRYPTION_KEY environment variable", "error")
-    log(
-      "Generate one with: node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\"",
-      "info"
-    )
-    process.exit(1)
-  }
-
-  // Verify encryption setup
-  log("Verifying encryption setup...", "info")
-  const encryptionCheck = verifyEncryptionSetup()
-  if (!encryptionCheck.valid) {
-    log(`Encryption setup failed: ${encryptionCheck.error}`, "error")
-    process.exit(1)
-  }
-  log("Encryption setup verified", "success")
-
-  // Create Supabase client
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false },
-  })
-
-  // Get total count of profiles needing encryption
-  log("Counting profiles needing encryption...", "info")
-  const { count: totalCount, error: countError } = await supabase
-    .from(TABLE_NAME)
-    .select("id", { count: "exact", head: true })
-    .or(MISSING_ENCRYPTED_PROFILE_FIELDS_FILTER)
-    .not("id", "in", SEEDED_E2E_PROFILE_FILTER)
-
-  if (countError) {
-    log(`Failed to count profiles: ${countError.message}`, "error")
-    process.exit(1)
-  }
-
-  const total = totalCount || 0
-  log(`Found ${total} profiles needing encryption`, "info")
-
-  if (total === 0) {
-    log("No profiles need encryption. Migration complete!", "success")
-    process.exit(0)
-  }
-
-  // Initialize migration status
-  let migrationStatusId: string | null = null
-  if (!isDryRun) {
-    const { data: statusData, error: statusError } = await supabase
-      .from("encryption_migration_status")
-      .insert({
-        table_name: TABLE_NAME,
-        total_records: total,
-        encrypted_records: 0,
-      })
-      .select("id")
-      .single()
-
-    if (statusError) {
-      log(
-        `Warning: Could not create migration status record: ${statusError.message}`,
-        "warn"
-      )
-    } else {
-      migrationStatusId = statusData.id
-    }
-  }
-
-  // Process profiles in batches
-  let processed = 0
-  let encrypted = 0
-  let errors = 0
-  let lastError: string | null = null
-  let lastProfileId: string | null = null
-
-  while (processed < total) {
-    // Use a stable keyset cursor so a failed row that remains eligible cannot
-    // recur at offset zero and starve later candidates in this run.
-    const baseQuery = supabase
-      .from(TABLE_NAME)
-      .select(
-        "id, medicare_number, medicare_number_encrypted, date_of_birth, date_of_birth_encrypted, phone, phone_encrypted, phi_encrypted_at"
-      )
-      .or(MISSING_ENCRYPTED_PROFILE_FIELDS_FILTER)
-      .not("id", "in", SEEDED_E2E_PROFILE_FILTER)
-      .order("id", { ascending: true })
-      .limit(batchSize)
-    const pageQuery: typeof baseQuery = lastProfileId
-      ? baseQuery.gt("id", lastProfileId)
-      : baseQuery
-    const { data: profiles, error: fetchError } = await pageQuery
-
-    if (fetchError) {
-      log(`Failed to fetch profiles: ${fetchError.message}`, "error")
-      lastError = fetchError.message
-      errors++
-      break
-    }
-
-    if (!profiles || profiles.length === 0) {
-      break
-    }
-    lastProfileId = (profiles[profiles.length - 1] as Profile).id
-
-    // Process each profile in the batch
-    for (const profile of profiles as Profile[]) {
-      try {
-        const updates: Record<string, string | null> = {}
-        let needsUpdate = false
-
-        // Encrypt medicare_number if present and not already encrypted
-        if (
-          profile.medicare_number &&
-          !profile.medicare_number_encrypted
-        ) {
-          updates.medicare_number_encrypted = encrypt(profile.medicare_number)
-          needsUpdate = true
-        }
-
-        // Encrypt date_of_birth if present and not already encrypted
-        if (
-          profile.date_of_birth &&
-          !profile.date_of_birth_encrypted
-        ) {
-          updates.date_of_birth_encrypted = encrypt(profile.date_of_birth)
-          needsUpdate = true
-        }
-
-        // Encrypt phone if present and not already encrypted
-        if (profile.phone && !profile.phone_encrypted) {
-          updates.phone_encrypted = encrypt(profile.phone)
-          needsUpdate = true
-        }
-
-        if (needsUpdate) {
-          updates.phi_encrypted_at = new Date().toISOString()
-
-          if (!isDryRun) {
-            const { error: updateError } = await supabase
-              .from(TABLE_NAME)
-              .update(updates)
-              .eq("id", profile.id)
-
-            if (updateError) {
-              throw new Error(updateError.message)
+  if (apply && before.candidates) {
+    try {
+      for await (const rows of pages(db, batchSize, upper)) {
+        for (const row of rows) {
+          if (excluded(row)) continue
+          const fields = missing(row)
+          if (!fields.length) continue
+          result.processed++
+          // Recheck existing ciphertext seen after preflight before this write.
+          for (const field of FIELDS) {
+            if (row[`${field}_encrypted`]) {
+              try { decrypt(row[`${field}_encrypted`]!) } catch { fail("KEY_INCOMPATIBLE") }
             }
           }
-
-          encrypted++
+          const updates: Record<string, string> = { phi_encrypted_at: new Date().toISOString() }
+          try { for (const field of fields) updates[`${field}_encrypted`] = encrypt(row[field]!) } catch { fail("ENCRYPT_FAILED") }
+          let query = db.from("profiles").update(updates).eq("id", row.id)
+          // Atomic whole-row CAS: preserve all source/target snapshots, fixture
+          // classification inputs and timestamp. Empty targets match exactly;
+          // null targets use IS NULL. Never use an ID-only retry.
+          for (const column of ["email", "full_name", "phi_encrypted_at", ...FIELDS.flatMap(field => [field, `${field}_encrypted`])] as (keyof Profile)[]) {
+            query = row[column] === null ? query.is(column, null) : query.eq(column, row[column]!)
+          }
+          const { data: affected, error } = await query.select("id")
+          if (error) { recordError("PROFILE_WRITE_FAILED"); continue }
+          if (!affected || affected.length > 1 || (affected.length === 1 && affected[0].id !== row.id)) fail("WRITE_RECEIPT_INVALID")
+          if (affected.length === 1) {
+            result.updated++
+            for (const field of fields) result.updatedFields[field]++
+          } else {
+            result.skipped++
+            const { data: current, error: rereadError } = await db.from("profiles").select(COLUMNS).eq("id", row.id).maybeSingle()
+            if (rereadError) fail("REREAD_FAILED")
+            const fresh = current as Profile | null
+            if (!fresh) result.skips.deleted++
+            else if (FIELDS.some(field => fresh[field] !== row[field])) result.skips.sourceChanged++
+            else if (FIELDS.some(field => fresh[`${field}_encrypted`] !== row[`${field}_encrypted`])) result.skips.targetChanged++
+            else result.skips.otherChanged++
+          }
         }
-
-        processed++
-      } catch (error) {
-        errors++
-        lastError = error instanceof Error ? error.message : String(error)
-        log(`Error encrypting profile ${profile.id}: ${lastError}`, "error")
-        processed++
+        if (statusId) {
+          const { data: receipt, error } = await db.from("encryption_migration_status").update({ encrypted_records: result.updated, error_count: Object.values(result.errors).reduce((a, b) => a + b, 0), last_error: lastError, updated_at: new Date().toISOString() }).eq("id", statusId).select("id")
+          if (error || !receipt || receipt.length !== 1 || receipt[0].id !== statusId) fail("STATUS_WRITE_FAILED")
+        }
       }
-
-      // Update progress
-      if (processed % 10 === 0 || processed === total) {
-        process.stdout.write(`\r${formatProgress(processed, total)}`)
-      }
-    }
-
-    // Update migration status
-    if (!isDryRun && migrationStatusId) {
-      await supabase
-        .from("encryption_migration_status")
-        .update({
-          encrypted_records: encrypted,
-          error_count: errors,
-          last_error: lastError,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", migrationStatusId)
-    }
+    } catch (error) { recordError(error instanceof BackfillError ? error.code : "UNEXPECTED_FAILURE") }
   }
-
-  // Mark migration as complete
-  if (!isDryRun && migrationStatusId) {
-    await supabase
-      .from("encryption_migration_status")
-      .update({
-        encrypted_records: encrypted,
-        error_count: errors,
-        last_error: lastError,
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", migrationStatusId)
+  if (statusId) {
+    const { data: receipt, error } = await db.from("encryption_migration_status").update({ encrypted_records: result.updated, error_count: Object.values(result.errors).reduce((a, b) => a + b, 0), last_error: lastError, completed_at: Object.keys(result.errors).length || result.skipped ? null : new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", statusId).select("id")
+    if (error || !receipt || receipt.length !== 1 || receipt[0].id !== statusId) recordError("STATUS_WRITE_FAILED")
   }
-
-  // Summary
-  console.log("\n\n" + "=".repeat(60))
-  console.log("📊 MIGRATION SUMMARY")
-  console.log("=".repeat(60))
-  console.log(`Mode: ${isDryRun ? "DRY RUN" : "PRODUCTION"}`)
-  console.log(`Total profiles processed: ${processed}`)
-  console.log(`Successfully encrypted: ${encrypted}`)
-  console.log(`Errors: ${errors}`)
-  if (lastError) {
-    console.log(`Last error: ${lastError}`)
-  }
-  console.log("=".repeat(60))
-
-  if (errors > 0) {
-    log("Migration completed with errors", "warn")
-    process.exit(1)
-  } else {
-    log("Migration completed successfully!", "success")
-    process.exit(0)
-  }
+  console.log(JSON.stringify(result))
+  // Skips need a fresh reviewed run; a partial apply never reports success.
+  if (Object.keys(result.errors).length || result.skipped) process.exitCode = 1
 }
-
-main().catch((error) => {
-  console.error("\n💥 Unexpected error:", error)
-  process.exit(1)
+main().catch(error => {
+  console.log(JSON.stringify({ phase: "failure", code: error instanceof BackfillError ? error.code : "UNEXPECTED_FAILURE" }))
+  process.exitCode = 1
 })
