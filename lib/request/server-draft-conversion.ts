@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { reportCheckoutPersistenceFailure } from "@/lib/observability/checkout-persistence-diagnostics"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("server-draft-conversion")
@@ -13,6 +14,7 @@ export type DraftConversionResult = {
 
 interface ConvertedDraftCheckoutIntake {
   category: string | null
+  checkoutError: string | null
   guestEmail: string | null
   id: string
   patientId: string | null
@@ -74,9 +76,7 @@ export async function readBoundPartialIntakeGrowthExperienceVersion(
     .maybeSingle<{ growth_experience_version: string | null }>()
 
   if (error) {
-    logger.warn("Failed to load bound draft growth experience", {
-      error: error.message,
-    })
+    reportCheckoutPersistenceFailure("bound_draft_growth_lookup", error.code)
     return null
   }
 
@@ -95,6 +95,7 @@ export async function findConvertedPartialIntakeForCheckout(
     category,
     email,
     flowInstanceId,
+    patientId,
     serviceType,
     sessionId,
     subtype,
@@ -102,6 +103,7 @@ export async function findConvertedPartialIntakeForCheckout(
     category: string
     email?: string | null
     flowInstanceId: string | null | undefined
+    patientId?: string
     serviceType: "med-cert" | "prescription" | "consult"
     sessionId: string | null | undefined
     subtype: string
@@ -140,7 +142,7 @@ export async function findConvertedPartialIntakeForCheckout(
     ) {
       return { kind: "blocked", reason: "request_mismatch" }
     }
-    logger.warn("Failed to resolve converted partial intake", { error: draftError.message })
+    reportCheckoutPersistenceFailure("draft_checkout_claim", draftError.code)
     return { kind: "blocked", reason: "query_error" }
   }
   if (!draft) {
@@ -170,9 +172,7 @@ export async function findConvertedPartialIntakeForCheckout(
       .eq("session_id", sessionId)
       .maybeSingle<{ growth_experience_version: string | null }>()
     if (growthError) {
-      logger.warn("Failed to load partial intake growth experience", {
-        error: growthError.message,
-      })
+      reportCheckoutPersistenceFailure("draft_growth_lookup", growthError.code)
       return { kind: "blocked", reason: "query_error" }
     }
     return {
@@ -182,12 +182,14 @@ export async function findConvertedPartialIntakeForCheckout(
     }
   }
 
-  const { data: intake, error: intakeError } = await supabase
+  let intakeQuery = supabase
     .from("intakes")
-    .select("id, patient_id, status, payment_status, payment_id, guest_email, category, subtype, flow_instance_id, growth_experience_version")
+    .select("id, patient_id, status, payment_status, payment_id, checkout_error, guest_email, category, subtype, flow_instance_id, growth_experience_version")
     .eq("id", draft.converted_to_intake_id)
-    .maybeSingle<{
+  if (patientId) intakeQuery = intakeQuery.eq("patient_id", patientId)
+  const { data: intake, error: intakeError } = await intakeQuery.maybeSingle<{
       category: string | null
+      checkout_error: string | null
       guest_email: string | null
       id: string
       flow_instance_id: string | null
@@ -200,14 +202,13 @@ export async function findConvertedPartialIntakeForCheckout(
     }>()
 
   if (intakeError) {
-    logger.warn("Failed to load intake for converted partial intake", {
-      error: intakeError.message,
-      intakeId: draft.converted_to_intake_id,
-    })
+    reportCheckoutPersistenceFailure("converted_intake_lookup", intakeError.code)
     return { kind: "blocked", reason: "query_error" }
   }
   if (!intake) {
-    return { kind: "blocked", reason: "query_error" }
+    // A successful owner-scoped read with no matching request is an identity
+    // boundary, distinct from an unexpected database failure above.
+    return { kind: "blocked", reason: "request_mismatch" }
   }
   if (
     (intake.flow_instance_id && intake.flow_instance_id !== flowInstanceId) ||
@@ -221,6 +222,7 @@ export async function findConvertedPartialIntakeForCheckout(
     kind: "reusable",
     intake: {
       category: intake.category,
+      checkoutError: intake.checkout_error ?? null,
       guestEmail: intake.guest_email,
       id: intake.id,
       patientId: intake.patient_id,
@@ -264,7 +266,7 @@ export async function markPartialIntakeConverted(
     .maybeSingle()
 
   if (error) {
-    logger.warn("Failed to mark partial intake converted", { error: error.message })
+    reportCheckoutPersistenceFailure("draft_conversion_marker", error.code)
     return { marked: false, reason: "query_error" }
   }
 

@@ -243,13 +243,8 @@ export async function createIntakeAndCheckoutAction(
       return checkoutFailure(persistResult.failureCode, persistResult.error)
     }
 
-    if (persistResult.data.kind === "already_paid") {
-      return {
-        success: true,
-        intakeId: persistResult.data.intakeId,
-        checkoutUrl: persistResult.data.redirectUrl,
-      }
-    }
+    if (persistResult.data.kind === "resolved_existing") return persistResult.data.result
+
     if (persistResult.data.kind === "retry_existing") {
       logger.info("Retrying checkout for existing pending_payment intake", {
         intakeId: persistResult.data.intakeId,

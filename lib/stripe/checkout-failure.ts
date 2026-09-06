@@ -40,11 +40,12 @@ export interface CheckoutFailureResult {
   intakeId?: undefined
   paymentRecoveryReason?: "more_information_required"
   requiresFreshRequest?: boolean
+  requiresSignIn?: boolean
 }
 
 type CheckoutFailureOptions = Pick<
   CheckoutFailureResult,
-  "paymentRecoveryReason" | "requiresFreshRequest"
+  "paymentRecoveryReason" | "requiresFreshRequest" | "requiresSignIn"
 >
 
 export function getCheckoutFailureCategory(

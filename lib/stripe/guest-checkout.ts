@@ -29,12 +29,14 @@ import {
   normalizeIncomingGrowthExperienceVersion,
   selectGrowthExperienceVersion,
 } from "@/lib/growth/specialty-experience-attribution"
+import { reportCheckoutPersistenceFailure } from "@/lib/observability/checkout-persistence-diagnostics"
 import { createLogger } from "@/lib/observability/logger"
 import { isAtCapacity } from "@/lib/operational-controls/config"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import {
+  findConvertedPartialIntakeForCheckout,
   markPartialIntakeConverted,
   readBoundPartialIntakeGrowthExperienceVersion,
 } from "@/lib/request/server-draft-conversion"
@@ -56,6 +58,7 @@ import {
 import { runClinicalValidation } from "./checkout/clinical-validation"
 import { holdCheckoutForMissingSafetyInformation } from "./checkout/missing-safety-payment-hold"
 import { preflightPriorityPriceForRecovery } from "./checkout/priority-price-recovery"
+import { reconcileCancelledDraftCheckout } from "./checkout/restored-draft-recovery"
 import { reconcileChangedCheckoutSessionForReturn } from "./checkout/return-payment-reconciliation"
 import type { CheckoutResult } from "./checkout/types"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
@@ -65,7 +68,7 @@ import { buildGuestCheckoutSubmissionKey } from "./checkout-submission-key"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "./client"
 import { shouldReuseGuestProfileForCheckout } from "./guest-profile-dedupe"
 import { inferStripeLineItemFailureRole, stripePriceErrorUserMessage } from "./line-item-error"
-import { buildPaymentIntentMetadata, canRetryPaymentForIntake, resolveGuestDuplicateCheckoutRecovery } from "./payment-integrity"
+import { buildPaymentIntentMetadata, canRetryPaymentForIntake, isTerminalPaidPaymentStatus, resolveGuestDuplicateCheckoutRecovery } from "./payment-integrity"
 import { isPaymentSafetyLock } from "./payment-safety-lock"
 import {
   buildPrescribingProfileUpdates,
@@ -661,7 +664,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           )
         }
         
-        logger.error("Failed to create guest profile", { error: profileError })
+        reportCheckoutPersistenceFailure("guest_profile_insert", pgError?.code)
         return checkoutFailure(
           "persistence",
           "Failed to create guest profile. Please try again.",
@@ -673,7 +676,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // Ensure we have a valid profile ID
     if (!guestProfileId) {
-      logger.error("Guest profile ID missing after creation logic")
+      reportCheckoutPersistenceFailure("guest_profile_missing")
       return checkoutFailure(
         "persistence",
         "Failed to create guest profile. Please try again.",
@@ -795,14 +798,49 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     if (intakeError || !intake) {
       if (intakeError?.code === "23505") {
-        const { data: existingIntake } = await supabase
+        const lookup = (column: "idempotency_key" | "id", value: string) => supabase
           .from("intakes")
           .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id, growth_experience_version, service:services!service_id(slug)")
-          .eq("idempotency_key", guestIdempotencyKey)
           .eq("patient_id", guestProfileId)
+          .eq("category", input.category).eq("subtype", input.subtype)
+          .eq(column, value)
           .maybeSingle()
-
+        let duplicate = await lookup("idempotency_key", guestIdempotencyKey)
+        if (!duplicate.error && !duplicate.data && input.flowInstanceId) {
+          // Matching an unverified guest profile or a public flow ID is not
+          // ownership proof. A caller can manufacture a new unconverted draft
+          // with that flow, so require the validated bearer-to-intake link.
+          // Authenticated flow fallback lives in checkout/persistence.ts.
+          const draft = await findConvertedPartialIntakeForCheckout(supabase, {
+            category: input.category,
+            email: normalizedEmail,
+            patientId: guestProfileId,
+            flowInstanceId: input.flowInstanceId,
+            serviceType: input.category === "medical_certificate" ? "med-cert" : input.category === "prescription" ? "prescription" : "consult",
+            sessionId: input.serverDraftSessionId,
+            subtype: input.subtype,
+          })
+          if (draft.kind === "blocked" && draft.reason === "query_error") {
+            return checkoutFailure("persistence", "We couldn't verify this saved request. Please try again shortly or contact support.")
+          }
+          if (draft.kind !== "reusable" || draft.intake.patientId !== guestProfileId ||
+            draft.intake.guestEmail?.trim().toLowerCase() !== normalizedEmail) {
+            return checkoutFailure("auth_or_session", "We couldn't verify access to this saved request. Sign in with the email you used, or contact support for help.", { requiresSignIn: true })
+          }
+          duplicate = await lookup("id", draft.intake.id)
+        }
+        if (duplicate.error) {
+          reportCheckoutPersistenceFailure("owned_duplicate_lookup", duplicate.error.code)
+          return checkoutFailure("persistence", "We couldn't verify your previous request. Please contact support before trying again.")
+        }
+        const existingIntake = duplicate.data
         if (existingIntake) {
+          if (existingIntake.status === "cancelled" || isTerminalPaidPaymentStatus(existingIntake.payment_status)) {
+            return reconcileCancelledDraftCheckout({
+              supabase, intake: existingIntake, patientId: guestProfileId,
+              existingUrl: `${baseUrl}/auth/complete-account?intake_id=${encodeURIComponent(existingIntake.id)}${existingIntake.payment_id ? `&session_id=${encodeURIComponent(existingIntake.payment_id)}` : ""}`,
+            })
+          }
           const existingAnswers = await getIntakeAnswersForPaymentSafety(
             existingIntake.id,
           )
@@ -1079,7 +1117,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         )
       }
 
-      logger.error("Failed to create intake", { error: intakeError, code: intakeError?.code, message: intakeError?.message, details: intakeError?.details })
+      reportCheckoutPersistenceFailure("intake_insert", intakeError?.code)
       if (intakeError?.code === "23503") {
         return checkoutFailure(
           "auth_or_session",
@@ -1119,12 +1157,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     let answersInsert: Record<string, unknown>
     try {
       answersInsert = await buildAnswersInsertColumns(intake.id, input.answers)
-    } catch (encryptionError) {
-      logger.error(
-        "Failed to encrypt answers, rolling back intake",
-        { intakeId: intake.id },
-        encryptionError instanceof Error ? encryptionError : new Error(String(encryptionError)),
-      )
+    } catch {
+      reportCheckoutPersistenceFailure("answers_encryption")
       await supabase.from("intakes").delete().eq("id", intake.id)
       return checkoutFailure(
         "persistence",
@@ -1135,7 +1169,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     const { error: answersError } = await supabase.from("intake_answers").insert(answersInsert)
 
     if (answersError) {
-      logger.error("Failed to save answers, rolling back intake", { intakeId: intake.id }, new Error(answersError.message))
+      reportCheckoutPersistenceFailure("answers_insert", answersError.code)
       await supabase.from("intakes").delete().eq("id", intake.id)
       return checkoutFailure(
         "persistence",

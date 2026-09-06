@@ -1,4 +1,8 @@
-import { describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+const diagnostics = vi.hoisted(() => ({ error: vi.fn(), warn: vi.fn() }))
+vi.mock("@/lib/observability/logger", () => ({ createLogger: () => diagnostics }))
+beforeEach(() => vi.clearAllMocks())
 
 import {
   findConvertedPartialIntakeForCheckout,
@@ -201,6 +205,7 @@ describe("converted server draft checkout reuse", () => {
       kind: "reusable",
       intake: {
         category: "prescription",
+        checkoutError: null,
         guestEmail: "patient@example.com",
         id: INTAKE_ID,
         patientId: "patient-1",
@@ -426,5 +431,60 @@ describe("converted server draft checkout reuse", () => {
       },
     )).resolves.toEqual({ kind: "none", reason: "invalid_id" })
     expect(rpc).not.toHaveBeenCalled()
+  })
+})
+
+
+describe("draft checkout database diagnostics", () => {
+  const request = { category: "prescription", email: "fixture@example.test", flowInstanceId: FLOW_INSTANCE_ID, serviceType: "prescription" as const, sessionId: SESSION_ID, subtype: "repeat" }
+  const sentinel = `private-database-payload ${SESSION_ID} ${INTAKE_ID} fixture@example.test`
+
+  function failingDatabase(operation: string, code = "08006", message = sentinel) {
+    const error = { code, message, details: sentinel, hint: sentinel }
+    const query = {
+      eq: vi.fn(() => query), is: vi.fn(() => query), gt: vi.fn(() => query),
+      select: vi.fn(() => query), update: vi.fn(() => query),
+      maybeSingle: vi.fn(async () => ({ data: null, error })),
+    }
+    return {
+      from: vi.fn(() => query),
+      rpc: vi.fn(() => ({ maybeSingle: vi.fn(async () => operation === "draft_checkout_claim"
+        ? { data: null, error }
+        : { data: { converted_to_intake_id: operation === "converted_intake_lookup" ? INTAKE_ID : null, email: request.email, flow_instance_id: FLOW_INSTANCE_ID, service_type: "prescription" }, error: null }) })),
+    }
+  }
+
+  it.each(["draft_checkout_claim", "draft_growth_lookup", "converted_intake_lookup", "bound_draft_growth_lookup", "draft_conversion_marker"])("reports only fixed operation and SQLSTATE for %s", async (operation) => {
+    const db = failingDatabase(operation)
+    if (operation === "bound_draft_growth_lookup") {
+      await expect(readBoundPartialIntakeGrowthExperienceVersion(db as never, { flowInstanceId: FLOW_INSTANCE_ID, sessionId: SESSION_ID, serviceType: "consult" })).resolves.toBeNull()
+    } else if (operation === "draft_conversion_marker") {
+      await expect(markPartialIntakeConverted(db as never, { flowInstanceId: FLOW_INSTANCE_ID, sessionId: SESSION_ID, intakeId: INTAKE_ID })).resolves.toEqual({ marked: false, reason: "query_error" })
+    } else {
+      await expect(findConvertedPartialIntakeForCheckout(db as never, request)).resolves.toEqual({ kind: "blocked", reason: "query_error" })
+    }
+    expect(diagnostics.error).toHaveBeenCalledExactlyOnceWith("Checkout persistence operation failed", { operation, databaseCode: "08006" }, expect.any(Error))
+    const loggedError = diagnostics.error.mock.calls[0][2] as Error
+    expect(loggedError.message).toBe("Checkout persistence operation failed")
+    expect(JSON.stringify([diagnostics.error.mock.calls, diagnostics.warn.mock.calls])).not.toMatch(/private-database-payload|11111111|22222222|fixture@example.test/)
+    expect(diagnostics.warn).not.toHaveBeenCalled()
+  })
+
+  it.each(["malicious-code", "08006 raw-value", "abcde", ""])("normalizes invalid SQLSTATE %s without copying it", async (code) => {
+    const db = failingDatabase("draft_checkout_claim", code)
+    await findConvertedPartialIntakeForCheckout(db as never, request)
+    expect(diagnostics.error).toHaveBeenCalledWith("Checkout persistence operation failed", { operation: "draft_checkout_claim", databaseCode: "unknown" }, expect.any(Error))
+  })
+
+  it.each([
+    ["draft_checkout_tombstoned", "discarded"],
+    ["draft_session_flow_mismatch", "request_mismatch"],
+    ["draft_session_service_mismatch", "request_mismatch"],
+  ])("preserves expected %s recovery without logging database payloads", async (message, reason) => {
+    const db = failingDatabase("draft_checkout_claim", "23514", `${message} ${sentinel}`)
+    await expect(findConvertedPartialIntakeForCheckout(db as never, request)).resolves.toEqual({ kind: "blocked", reason })
+    expect(diagnostics.error).not.toHaveBeenCalled()
+    expect(diagnostics.warn).not.toHaveBeenCalled()
+    expect(db.from).not.toHaveBeenCalled()
   })
 })
