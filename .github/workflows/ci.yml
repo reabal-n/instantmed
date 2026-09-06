@@ -151,6 +151,9 @@ jobs:
       - name: Restored checkout database collision and recovery
         run: bash scripts/test-checkout-restored-draft-db.sh
 
+      - name: Profile encryption guarded backfill
+        run: bash scripts/test-profile-encryption-backfill-db.sh
+
       - name: Google Ads adjustment evidence and alert classification
         run: bash scripts/test-google-ads-adjustment-health-db.sh
 
