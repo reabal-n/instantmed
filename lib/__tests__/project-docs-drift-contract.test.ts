@@ -153,8 +153,9 @@ describe("project docs drift contract", () => {
         "`20260905120000_refill_reminder_funnel.sql`",
       )
       expect(source).toContain("were applied in order on 2026-09-05")
+      expect(source).toContain("Newest on-disk migration is `20260906100000_monitor_observation_state.sql` (additive monitoring CAS; not applied in production)")
       expect(source).toContain(
-        "Newest on-disk and applied/verified production migration is `20260905130000_google_ads_adjustment_health_reconciliation.sql`",
+        "Latest applied/verified production migration is `20260905130000_google_ads_adjustment_health_reconciliation.sql`",
       )
       expect(source).toContain(
         "`20260903120000_recovery_email_engagement.sql`",
@@ -202,7 +203,7 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Newest timestamp on disk: `20260905130000_google_ads_adjustment_health_reconciliation.sql`",
+      "Newest timestamp on disk: `20260906100000_monitor_observation_state.sql`",
     )
     expect(architecture).toContain(
       "All four pending migrations, including runtime-schema convergence `20260904160000`, were applied in order on 2026-09-05",
@@ -224,7 +225,7 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Newest on-disk and applied/verified production migration is `20260905130000_google_ads_adjustment_health_reconciliation.sql`",
+      "Latest applied/verified production migration is `20260905130000_google_ads_adjustment_health_reconciliation.sql`",
     )
     expect(wikiArchitecture).toContain(
       "were applied in order on 2026-09-05",

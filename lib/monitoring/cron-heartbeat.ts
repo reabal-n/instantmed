@@ -337,7 +337,15 @@ export async function checkCronHeartbeats(): Promise<{
       const sentryMessage = alertClaimFailed
         ? "Cron heartbeat alert claim failed; known outages require attention"
         : `${alertableOverdue.length} critical cron job(s) newly overdue`
-      Sentry.captureMessage(sentryMessage, {
+      if (!alertClaimFailed) {
+        for (const outage of alertableOverdue) {
+          Sentry.captureMessage("Critical cron job overdue", {
+            level: "error", fingerprint: ["cron-heartbeat", outage.jobName],
+            tags: { source: "cron-heartbeat-monitor", job_name: outage.jobName },
+            extra: { status: outage.status, minutes_overdue: outage.minutesOverdue },
+          })
+        }
+      } else Sentry.captureMessage(sentryMessage, {
         level: alertClaimFailed || alertableOverdue.length >= 3 ? "fatal" : "error",
         ...(alertClaimFailed
           ? { fingerprint: ["cron-heartbeat-alert-claim-failed"] }
