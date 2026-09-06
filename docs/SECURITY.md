@@ -52,7 +52,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 
 ### Encryption Status
 
-**Production repair approval is on hold.** The earlier aggregate-only packet below is superseded pending the frozen-scope approval guard, independent review, CI, and a newly reviewed live packet. No production apply is authorized or performed.
+**Production apply remains unauthorized and unperformed.** The frozen-scope guard and current read-only packet below have separate review/release gates; final main-based CI and applicable operator approval remain required. The earlier aggregate-only packet is superseded.
 
 **Phase 1 (profiles — runtime shipped; historical coverage requires backfill):** `profiles.medicare_number_encrypted`, `profiles.date_of_birth_encrypted`, `profiles.phone_encrypted` use the existing `ENCRYPTION_KEY` AES-256-GCM format. Runtime support is not proof that every historical nonempty plaintext value has an encrypted copy.
 
@@ -74,23 +74,39 @@ NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --dry --ba
 NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --apply --expect=/private/approved-profile-scope.json --batch=50
 ```
 
-### Superseded historical-profile repair packet — 2026-09-06
+### Prepared historical-profile repair packet — 2026-09-06
 
-**Superseded; historical preparation only. Production apply is not authorized or performed.** The earlier read-only run completed at `2026-09-06T09:12:44.736Z` against Supabase project `witzcrovsoumktyndqgz` (`instantmed`, `ap-southeast-2`, independently verified ACTIVE_HEALTHY). Reviewed code source: `ae12f09c129fcff62aa8f1f032ea770e07a9ced5`; backfill script Git blob: `118039e39037003a0c93e87e7e952421d062bc30`; imported fixture-classifier blob: `866e75ca1db588bbf0a47963a774ad3c4529f676`. Those reviews covered the then-current repair and fixture exclusion, before the later frozen-scope finding. They do not approve the new guard or authorize this historical packet. A refreshed packet, independent review, and final published-head CI remain required.
+**Candidate packet; no production apply authorization or execution.** The corrected guard was independently reviewed at `f7ef38a25f8427f60461a0780e623d0f0fd5aa61`; integration head `4d23c5118c45ff3d41a91eb9f2ae9194ec8b1092` retains the identical repair patch. Script blob: `33c3d84005130ad734ccc3187d1b678e73ada785`; fixture-classifier blob: `866e75ca1db588bbf0a47963a774ad3c4529f676`. Final main-based CI remains outstanding. The original two-scan race was reproduced in both HTTP and PostgreSQL: one preflight candidate became two updated rows. The frozen-scope correction passes 146 HTTP/PostgreSQL cases, including equal-count substitutions and refused zero-change reruns. No production backfill used the old CLI.
 
-The bounded scan read **592 profiles**, excluded **51** canonical seeded/machine fixtures, and found **541 eligible profiles**, of which **466** need at least one missing encrypted copy. This supersedes the earlier 469-profile / 782-copy proposal: three existing review fixtures, each missing all three copies, are now correctly excluded by their exact UUID-shaped machine email patterns. A separate aggregate database query confirmed those three fixtures. This historical repair scope remains wider than the reportable-patient analytics cohort. Field counts overlap across profiles.
+The reviewed CLI ran read-only at **2026-09-06 10:34:06.360–10:34:07.402 UTC** against Supabase project **`witzcrovsoumktyndqgz`** (`instantmed`, `ap-southeast-2`). The current Vercel production environment supplied the three required variables from an empty directory, with inherited repair variables removed and no local dotenv fallback. The key authenticated **319/319** existing ciphertexts. This verifies production control-plane key compatibility; running function memory was not introspected.
 
-| Field | Missing encrypted copies | Existing / authenticated | Preserved parity exceptions | Decrypt failures |
+The scan read **592 profiles**, excluded **51** canonical fixtures, and found **541 eligible profiles**, including **466 candidates** for **773 missing encrypted copies**. This historical cohort is wider than the reportable analytics cohort. The prior 469-profile proposal included three old exact review fixtures and was superseded when those exclusions were corrected. Counts overlap across fields.
+
+| Field | Missing copies | Existing / authenticated | Preserved parity differences | Decrypt failures |
 |---|---:|---:|---:|---:|
 | Date of birth | 452 | 61 / 61 | 0 | 0 |
 | Phone | 300 | 55 / 55 | 1 | 0 |
 | Medicare | 21 | 203 / 203 | 3 | 0 |
 
-In that historical run, the Vercel production `ENCRYPTION_KEY` authenticated **319/319** existing production ciphertexts. It was injected from an empty directory with inherited repair variables removed and no local dotenv fallback; only the three required repair variables reached the CLI. That established control-plane key compatibility at the recorded time, not current compatibility or running function memory. The four existing parity exceptions remain explicit and untouched: one phone country-format difference, one Medicare plaintext-absent case, and two Medicare content differences. Their private values were not retained in the receipt. Production column types, relevant profile triggers and required service-role privileges were inspected read-only. The dry run confirmed **zero writes**, with **zero migration-status rows before and after**. Local preparation proof includes 72 HTTP/PostgreSQL backfill cases after the fixture correction and positive/negative classifier tests; it does not substitute for an applied production receipt.
+The four known parity exceptions remain untouched: one phone country-format difference, one Medicare plaintext-absent case and two Medicare content differences. No private values are retained in this receipt. The dry run confirmed **zero writes**, with **zero migration-status rows before and after**. Production column/trigger metadata and required service-role privileges were checked read-only.
 
-**Proposal withdrawn pending refreshed scope proof.** The historical 773-copy / 466-profile aggregate proposal has no frozen-scope expectation and must not be used to authorize apply or a rerun. The controller owns a new live packet from the reviewed guard revision and the subsequent approval request. No production execution or post-apply verification is claimed here.
+The exact PHI-free [expectation artifact](superpowers/receipts/2026-09-06-profile-encryption-scope.json) contains the CLI's strict aggregate fields and keyed scope digest. It is a candidate for approval, not authorization. File SHA-256: `9d874a4e89b29cf5d13eef41c6a80923fe49ce774b0f910c18b649e14a308c48`. Scope fingerprint: `f6cfe31dac64eea7beb1d26c93e8c99903af849fb496bd8396ea652317313531`. It binds the target and exact candidate/field/CAS snapshots. The artifact was saved separately from subsequent dry-run output; it must not be overwritten or regenerated automatically before apply.
 
-**Rollback boundary:** preserve plaintext, existing ciphertext, confirmed new copies and current keys after any incomplete run. There is no bulk ciphertext deletion or key-rotation rollback. Follow the stop rules above before any subsequent command.
+**Exact proposed action:** after required CI, review a fresh read-only run against this preserved expectation and resolve operator authorization. The apply may then fill only these **773 missing copies across 466 profiles**, in batches of 50. Every aggregate, including scanned/excluded counts, and the opaque fingerprint must match before any status/profile write. Fixture churn or equal-count scope substitution causes refusal and a new reviewed packet; it is not permission to refresh the approved file silently. The same exact authorization may cover read-only post-verification and one conditional zero-change apply rerun:
+
+```sh
+# Private operator environment; this command itself is read-only:
+NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --dry --batch=50
+# Only with required CI, matching reviewed expectation and operator approval:
+NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --apply --expect=docs/superpowers/receipts/2026-09-06-profile-encryption-scope.json --batch=50
+# Only after a successful approved apply:
+NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --dry --batch=50
+# Only after zero-candidate verification and review of its separate expectation,
+# within the same explicit approval of this conditional verification step:
+NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --apply --expect=/private/verified-zero-profile-scope.json --batch=50
+```
+
+**Verification and stop/rollback:** after a successful apply, require zero remaining candidates/missing copies, authenticated decryptability, the same documented exception counts and exact affected-row receipts. With an unchanged cohort the expected existing/authenticated totals are 513 DOB, 355 phone and 224 Medicare copies (1092 total). The reviewed zero-candidate expectation must refuse new work and its apply rerun must write zero profiles and no additional status row. Any scope/key/count drift, CAS skip, ambiguous receipt or write/status error leaves the repair incomplete. Do not launch subsequent commands after a nonzero/partial run; preserve plaintext, existing ciphertext, confirmed new copies and current keys, then prepare a fresh reviewed recovery packet. There is no bulk ciphertext deletion, key rotation, plaintext retirement or historical-row deletion rollback. No post-apply production verification is claimed here.
 
 **Phase 2 (data layer — runtime shipped; fresh-replay schema repaired by migration `20260904160000`, applied and metadata-verified in production on 2026-09-05):**
 
