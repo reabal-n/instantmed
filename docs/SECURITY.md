@@ -64,19 +64,19 @@ Before production apply, review an exact packet containing project identity, cod
 
 ### Prepared historical-profile repair packet — 2026-09-06
 
-**Preparation only; production apply is not authorized or performed.** The read-only run completed at `2026-09-06T08:05:08.321Z` against Supabase project `witzcrovsoumktyndqgz` (`instantmed`, `ap-southeast-2`, independently verified ACTIVE_HEALTHY). Reviewed source commit: `4b7808fec52facc225b1fb246b029f8a175c67e1`; backfill script Git blob: `118039e39037003a0c93e87e7e952421d062bc30`. The unpublished implementation was rebased onto checkout release `ea57b0346358351cc514d0168204bcda1a5c6e55` with identical patch identity; no repair logic changed after its two independent reviews.
+**Preparation only; production apply is not authorized or performed.** The refreshed read-only run completed at `2026-09-06T09:12:44.736Z` against Supabase project `witzcrovsoumktyndqgz` (`instantmed`, `ap-southeast-2`, independently verified ACTIVE_HEALTHY). Reviewed code source: `ae12f09c129fcff62aa8f1f032ea770e07a9ced5`; backfill script Git blob: `118039e39037003a0c93e87e7e952421d062bc30`; imported fixture-classifier blob: `866e75ca1db588bbf0a47963a774ad3c4529f676`. Scoped and independent release reviews approved the repair and the later exact fixture-exclusion correction. Final published-head CI remains a separate release gate.
 
-The bounded scan read **592 profiles**, excluded **48** canonical seeded/machine fixtures, and found **544 eligible profiles**, of which **469** need at least one missing encrypted copy. This is the historical repair scope, wider than the reportable-patient analytics cohort. Field counts overlap across profiles.
+The bounded scan read **592 profiles**, excluded **51** canonical seeded/machine fixtures, and found **541 eligible profiles**, of which **466** need at least one missing encrypted copy. This supersedes the earlier 469-profile / 782-copy proposal: three existing review fixtures, each missing all three copies, are now correctly excluded by their exact UUID-shaped machine email patterns. A separate aggregate database query confirmed those three fixtures. This historical repair scope remains wider than the reportable-patient analytics cohort. Field counts overlap across profiles.
 
 | Field | Missing encrypted copies | Existing / authenticated | Preserved parity exceptions | Decrypt failures |
 |---|---:|---:|---:|---:|
-| Date of birth | 455 | 61 / 61 | 0 | 0 |
-| Phone | 303 | 55 / 55 | 1 | 0 |
-| Medicare | 24 | 203 / 203 | 3 | 0 |
+| Date of birth | 452 | 61 / 61 | 0 | 0 |
+| Phone | 300 | 55 / 55 | 1 | 0 |
+| Medicare | 21 | 203 / 203 | 3 | 0 |
 
-The existing supplied local `ENCRYPTION_KEY` authenticated **319/319** existing production ciphertexts; this establishes compatibility with those records, not inspection of the deployment secret value. The four existing parity exceptions remain explicit and untouched: one phone country-format difference, one Medicare plaintext-absent case, and two Medicare content differences. Their private values were not retained in the receipt. Production column types and relevant profile trigger definitions were inspected read-only. The dry run confirmed **zero writes**, with **zero migration-status rows before and after**. Local preparation proof is 68 passing HTTP/PostgreSQL cases; it does not substitute for an applied production receipt.
+The current Vercel production `ENCRYPTION_KEY` authenticated **319/319** existing production ciphertexts. It was injected from an empty directory with inherited repair variables removed and no local dotenv fallback; only the three required repair variables reached the CLI. This verifies current production control-plane key compatibility, not running function memory. The four existing parity exceptions remain explicit and untouched: one phone country-format difference, one Medicare plaintext-absent case, and two Medicare content differences. Their private values were not retained in the receipt. Production column types, relevant profile triggers and required service-role privileges were inspected read-only. The dry run confirmed **zero writes**, with **zero migration-status rows before and after**. Local preparation proof includes 72 HTTP/PostgreSQL backfill cases after the fixture correction and positive/negative classifier tests; it does not substitute for an applied production receipt.
 
-**Exact action proposed for separate operator approval:** on the reviewed source commit above, supply the existing three environment variables privately, rerun the read-only command, and require the same candidate/field counts, exclusions, compatibility and approved exceptions. Then fill only the **782 missing field copies across 469 profiles**, in batches of 50, using the source/target/classification/timestamp conditional updates described above:
+**Exact action proposed for separate operator approval:** on the reviewed code above, supply the existing three environment variables privately, rerun the read-only command, and require the same eligible/candidate/field counts, compatibility and approved exceptions. Record fixture counts again: known CI fixture creation/teardown may change scanned and excluded totals together, but cannot expand the approved eligible scope. Then fill only the **773 missing field copies across 466 profiles**, in batches of 50, using the source/target/classification/timestamp conditional updates described above. The same approval packet covers read-only verification and, only after it confirms zero missing candidates, one zero-change apply rerun:
 
 ```sh
 NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --dry --batch=50
@@ -84,9 +84,11 @@ NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --dry --ba
 NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --apply --batch=50
 # Read-only verification after the authorized run:
 NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --dry --batch=50
+# Only after matching zero-candidate verification, within the same approval:
+NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --apply --batch=50
 ```
 
-**Stop and rollback:** stop authorization on project/source/scope/count/exception drift or incomplete key evidence. Any decrypt failure, ambiguous receipt, CAS skip, or write/status error means incomplete repair; do not blindly rerun. Stop further execution, retain plaintext, existing ciphertext, confirmed new copies and current keys, and inspect only the aggregate receipt before preparing a fresh packet. There is no bulk ciphertext deletion or key rotation rollback. After an approved successful apply, require zero remaining missing candidates, authenticated decryptability and the same four approved exceptions. The plan also requires a separately authorized zero-change apply rerun before claiming the production repair complete. No such production verification is claimed here.
+**Stop and rollback:** stop authorization on project/code/eligible-scope/count/exception drift, unexpected exclusion changes or incomplete key evidence. Any decrypt failure, ambiguous receipt, CAS skip, or write/status error means incomplete repair; do not blindly rerun. Stop further execution, retain plaintext, existing ciphertext, confirmed new copies and current keys, and inspect only the aggregate receipt before preparing a fresh packet. There is no bulk ciphertext deletion or key rotation rollback. After an approved successful apply, require zero remaining missing candidates, authenticated decryptability and the same four approved exceptions, then confirm the approved rerun changes zero profiles. No such production verification is claimed here.
 
 **Phase 2 (data layer — runtime shipped; fresh-replay schema repaired by migration `20260904160000`, applied and metadata-verified in production on 2026-09-05):**
 
