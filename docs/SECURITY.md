@@ -626,3 +626,7 @@ Set env var in Vercel dashboard, then redeploy:
 | **P3** | Security improvement needed | 1 week | Document, schedule |
 
 **Process:** Detect -> Contain -> Investigate -> Remediate -> Notify (if required) -> Document.
+
+### Monitoring snapshot authority
+
+`append_monitor_state(text,bigint,jsonb)` is a service-role-only, fixed-empty-search-path SECURITY DEFINER function for two allowlisted state keys in `operational_metrics`. It accepts bounded numeric/boolean evidence and fixed schema keys; no patient/intake/contact identifiers, prose, credentials, URLs or logs. Run IDs are public GitHub operational evidence. The table retains SELECT/INSERT-only service-role grants and no browser grants. Transaction advisory lock plus version CAS prevents competing state claims from both winning. Missing state fails open to alerts, never a fresh healthy baseline. Applying the additive migration requires explicit production schema authorization; local fixture proof is not authorization.

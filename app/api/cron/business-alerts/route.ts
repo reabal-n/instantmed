@@ -31,6 +31,7 @@ import {
   buildGoogleAdsUploadPartialFailureAlert,
   buildGoogleAdsUploadStreamStalledAlert,
 } from "@/lib/monitoring/google-ads-purchase-import-health"
+import { dispatchBusinessIncidents, INCIDENT_METRICS } from "@/lib/monitoring/incident-state"
 import {
   buildNoPurchaseRevenueAlert,
   CHECKOUT_DEMAND_PAYMENT_STATUSES,
@@ -145,6 +146,10 @@ export async function GET(request: NextRequest) {
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
     const alerts: BusinessAlert[] = []
     let handledFailures = 0
+    const completedSections = new Set<string>()
+    const runSection = async (options: Parameters<typeof runAlertSection>[0]) => {
+      if (await runAlertSection(options)) completedSections.add(options.section)
+    }
 
     const onSectionFailure = (alert: BusinessAlert, error: Error) => {
       handledFailures++
@@ -172,7 +177,7 @@ export async function GET(request: NextRequest) {
     let adsContribution: AdsContributionHealth | null = null
 
     // 1. Failed payments in last hour
-    await runAlertSection({
+    await runSection({
       section: "failed_payments",
       alerts,
       onFailure: onSectionFailure,
@@ -188,6 +193,7 @@ export async function GET(request: NextRequest) {
         if (failedPayments >= 3) {
           alerts.push({
             metric: "payment_failed",
+            count: failedPayments,
             severity: failedPayments >= 10 ? "critical" : "warning",
             detail: `${failedPayments} payment failures in last hour`,
           })
@@ -202,7 +208,7 @@ export async function GET(request: NextRequest) {
 
     // 2. Revenue safety: page only when paid orders are silent while the
     // funnel still has demand. A quiet traffic day should not alert.
-    await runAlertSection({
+    await runSection({
       section: "no_purchase_revenue",
       alerts,
       onFailure: onSectionFailure,
@@ -347,7 +353,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Email delivery failures (certificates not delivered)
-    await runAlertSection({
+    await runSection({
       section: "email_delivery_failed",
       alerts,
       onFailure: onSectionFailure,
@@ -364,6 +370,7 @@ export async function GET(request: NextRequest) {
         if (emailFailures >= 2) {
           alerts.push({
             metric: "email_delivery_failed",
+            count: emailFailures,
             severity: emailFailures >= 5 ? "critical" : "warning",
             detail: `${emailFailures} certificate email failures in last hour`,
           })
@@ -379,7 +386,7 @@ export async function GET(request: NextRequest) {
     // 4b. Auth email failures can block sign-in and password recovery. Keep
     // this aggregate-only: recipient hashes, domains, and error text stay out
     // of Sentry, PostHog, Telegram, and the cron response.
-    await runAlertSection({
+    await runSection({
       section: "auth_email_delivery_failed",
       alerts,
       onFailure: onSectionFailure,
@@ -402,7 +409,7 @@ export async function GET(request: NextRequest) {
     // Email delivery and Resend's own dashboard flag the domain-level issue.
     // Spam-rate SLO is the
     // real concern; single-bounce spikes are almost always one bad address.
-    await runAlertSection({
+    await runSection({
       section: "email_bounced",
       alerts,
       onFailure: onSectionFailure,
@@ -428,7 +435,7 @@ export async function GET(request: NextRequest) {
     })
 
     // 6. Emails stuck in pending status for more than 30 minutes
-    await runAlertSection({
+    await runSection({
       section: "email_stuck_pending",
       alerts,
       onFailure: onSectionFailure,
@@ -449,6 +456,7 @@ export async function GET(request: NextRequest) {
         if (stuckPending >= 5) {
           alerts.push({
             metric: "email_stuck_pending",
+            count: stuckPending,
             severity: "warning",
             detail: `${stuckPending} emails stuck in pending for >30min`,
           })
@@ -462,7 +470,7 @@ export async function GET(request: NextRequest) {
     })
 
     // 7. High-risk intakes waiting in queue
-    await runAlertSection({
+    await runSection({
       section: "high_risk_intake",
       alerts,
       onFailure: onSectionFailure,
@@ -479,6 +487,7 @@ export async function GET(request: NextRequest) {
         if (highRiskWaiting > 0) {
           alerts.push({
             metric: "high_risk_intake",
+            count: highRiskWaiting,
             severity: highRiskWaiting >= 3 ? "critical" : "warning",
             detail: `${highRiskWaiting} high/critical risk intakes in queue`,
           })
@@ -492,7 +501,7 @@ export async function GET(request: NextRequest) {
     })
 
     // 8. Critical email delivery SLA - med_cert_patient and script_sent must be delivered within 10 min
-    await runAlertSection({
+    await runSection({
       section: "email_delivery_sla_breach",
       alerts,
       onFailure: onSectionFailure,
@@ -512,6 +521,7 @@ export async function GET(request: NextRequest) {
         if (slaBreaches > 0) {
           alerts.push({
             metric: "email_delivery_sla_breach",
+            count: slaBreaches,
             severity: slaBreaches >= 3 ? "critical" : "warning",
             detail: `${slaBreaches} critical emails (cert/script) not delivered within 10min`,
           })
@@ -525,7 +535,7 @@ export async function GET(request: NextRequest) {
     })
 
     // 9. Weekly ops invariants promoted from dashboard-only visibility to alerting.
-    await runAlertSection({
+    await runSection({
       section: "ops_invariants",
       alerts,
       onFailure: onSectionFailure,
@@ -549,7 +559,7 @@ export async function GET(request: NextRequest) {
     // specialty, and any certificate routed away from bounded protocol
     // issuance. We alert through Sentry; we do NOT auto-pause the service.
     // See lib/monitoring/stale-human-queue.ts.
-    await runAlertSection({
+    await runSection({
       section: "stale_human_queue",
       alerts,
       onFailure: onSectionFailure,
@@ -590,7 +600,7 @@ export async function GET(request: NextRequest) {
     // 11. Paid prescribing fulfilment is never allowed to disappear between
     // doctor approval, Parchment handoff, script evidence, and patient
     // notification. Alerts remain aggregate-only and contain no intake IDs.
-    await runAlertSection({
+    await runSection({
       section: "prescription_fulfilment",
       alerts,
       onFailure: onSectionFailure,
@@ -623,7 +633,7 @@ export async function GET(request: NextRequest) {
     // 13. Account-wide paid-acquisition loss. This consumes only the latest
     // fresh, delivered, GREEN Ads snapshot and includes enabled, paused, and
     // other campaigns. It never mutates Ads and never carries row-level data.
-    await runAlertSection({
+    await runSection({
       section: "ads_contribution",
       alerts,
       onFailure: onSectionFailure,
@@ -647,30 +657,37 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Fire Sentry alerts for critical items
+    // Only evaluated sections can prove recovery. Partially readable sections
+    // retain their prior incident state while their explicit failures still page.
+    const sectionMetrics: Record<string, string[]> = {
+      failed_payments: ["payment_failed"], no_purchase_revenue: ["no_purchase_window"],
+      email_delivery_failed: ["email_delivery_failed"], auth_email_delivery_failed: ["auth_email_delivery_failed"],
+      email_bounced: [], email_stuck_pending: ["email_stuck_pending"], high_risk_intake: ["high_risk_intake"],
+      email_delivery_sla_breach: ["email_delivery_sla_breach"], stale_human_queue: ["human_review_queue_stalled"],
+      prescription_fulfilment: INCIDENT_METRICS.filter(metric => metric.startsWith("prescription_fulfilment_")),
+      ops_invariants: (operationalInvariants as OperationalInvariants | null)?.queryFailures?.length ? [] : INCIDENT_METRICS.filter(metric => metric.startsWith("ops_")),
+      ads_contribution: (adsContribution as AdsContributionHealth | null)?.availability === "available" ? ["ads_contribution_negative"] : [],
+    }
+    const knownMetrics = [...completedSections].flatMap(section => [
+      `business_alert_section_failed_${section}`, ...(sectionMetrics[section] ?? []),
+    ])
+    if (googleAdsPurchaseImportHealth && googleAdsPurchaseImportHealth.queryErrors.length === 0) {
+      knownMetrics.push(...INCIDENT_METRICS.filter(metric => metric.startsWith("google_ads_purchase_") || metric === "google_ads_upload_audit_source_anomaly"))
+    }
+    if (googleAdsUploadStreamHealth && !googleAdsUploadStreamHealth.queryFailed) {
+      knownMetrics.push("google_ads_conversion_uploads_stalled", "google_ads_conversion_upload_partial_failures")
+    }
+    if (googleAdsAdjustmentHealth && !googleAdsAdjustmentHealth.queryFailed) knownMetrics.push("google_ads_adjustment_terminal_click_attributed_failures")
+    if (!await dispatchBusinessIncidents(alerts, knownMetrics, now.getTime())) handledFailures++
+
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")
     if (criticalAlerts.length > 0) {
-      Sentry.captureMessage(
-        `BUSINESS ALERT: ${criticalAlerts.map((a) => a.detail).join("; ")}`,
-        {
-          level: "error",
-          tags: {
-            source: "business-alerts",
-            alert_type: "critical",
-          },
-          extra: {
-            alerts,
-            checked_at: now.toISOString(),
-          },
-        }
-      )
-
       // Essential criticals also reach the operator's Telegram (operator
       // decision 2026-07-17). Criticals ONLY — warnings stay Sentry-side, so
       // Telegram never becomes a general second alerting channel. Detail
       // strings are the same aggregate PHI-free text the Sentry capture uses.
       //
-      // Sentry above always fires. Telegram cools each signal independently,
+      // Telegram cools each signal independently of Sentry incident claims,
       // so a new incident pages immediately without dragging an unchanged
       // historical signal back into every message.
       const pageableCriticalAlerts: BusinessAlert[] = []
@@ -702,23 +719,6 @@ export async function GET(request: NextRequest) {
     }
 
     const warningAlerts = alerts.filter((a) => a.severity === "warning")
-    if (warningAlerts.length > 0) {
-      Sentry.captureMessage(
-        `Business warning: ${warningAlerts.map((a) => a.detail).join("; ")}`,
-        {
-          level: "warning",
-          tags: {
-            source: "business-alerts",
-            alert_type: "warning",
-          },
-          extra: {
-            alerts,
-            checked_at: now.toISOString(),
-          },
-        }
-      )
-    }
-
     if (alerts.length > 0) {
       logger.warn("Business alerts triggered", {
         alert_count: alerts.length,
@@ -741,17 +741,18 @@ export async function GET(request: NextRequest) {
       status: handledFailures > 0 ? "partial_failure" : "ok",
     })
 
+    await Sentry.flush(2000)
     return NextResponse.json({
       success: true,
       alerts,
       metrics: {
-        failed_payments: failedPayments ?? 0,
-        email_failures: emailFailures ?? 0,
+        failed_payments: failedPayments,
+        email_failures: emailFailures,
         auth_email_failures: authEmailFailures,
-        bounced_emails: bouncedEmails ?? 0,
-        stuck_pending_emails: stuckPending ?? 0,
-        high_risk_waiting: highRiskWaiting ?? 0,
-        email_sla_breaches: slaBreaches ?? 0,
+        bounced_emails: bouncedEmails,
+        stuck_pending_emails: stuckPending,
+        high_risk_waiting: highRiskWaiting,
+        email_sla_breaches: slaBreaches,
         no_purchase_window: noPurchase
           ? {
               window_hours: noPurchase.windowHours,
@@ -765,7 +766,7 @@ export async function GET(request: NextRequest) {
         google_ads_upload_stream: googleAdsUploadStreamHealth,
         google_ads_adjustment_health: googleAdsAdjustmentHealth,
         ads_contribution: adsContribution,
-        human_review_queue_stalled: staleHumanCount ?? 0,
+        human_review_queue_stalled: staleHumanCount,
         prescription_fulfilment: fulfilment
           ? {
               total: fulfilment.total,
@@ -781,9 +782,9 @@ export async function GET(request: NextRequest) {
         ops_sla_breach_backlog: invariants?.slaBreachBacklog ?? null,
         ops_cert_refund_orphans: invariants?.certRefundOrphans ?? null,
         ops_refund_record_anomalies: invariants?.refundRecordAnomalies ?? null,
-        ops_paid_but_cancelled: invariants?.paidButCancelled ?? 0,
-        ops_approved_certificate_missing_record: invariants?.approvedCertificateMissingRecord ?? 0,
-        ops_certificate_sent_missing_timestamp: invariants?.certificateSentMissingTimestamp ?? 0,
+        ops_paid_but_cancelled: invariants?.paidButCancelled ?? null,
+        ops_approved_certificate_missing_record: invariants?.approvedCertificateMissingRecord ?? null,
+        ops_certificate_sent_missing_timestamp: invariants?.certificateSentMissingTimestamp ?? null,
       },
       checked_at: now.toISOString(),
     })

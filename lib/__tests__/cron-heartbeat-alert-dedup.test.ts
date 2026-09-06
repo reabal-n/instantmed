@@ -304,19 +304,11 @@ describe("cron heartbeat atomic alert claims", () => {
     expect(result.healthy).toBe(false)
     expect(result.overdue).toHaveLength(2)
     expect(mocks.captureMessage).toHaveBeenCalledWith(
-      "1 critical cron job(s) newly overdue",
+      "Critical cron job overdue",
       expect.objectContaining({
         level: "error",
-        tags: expect.objectContaining({
-          overdue_count: "1",
-          total_overdue_count: "2",
-        }),
-        extra: {
-          overdue: [expect.objectContaining({
-            jobName: "posthog-reconciliation",
-            status: "configuration_error",
-          })],
-        },
+        fingerprint: ["cron-heartbeat", "posthog-reconciliation"],
+        extra: { status: "configuration_error", minutes_overdue: 60 },
       }),
     )
     expect(harness.rpc).toHaveBeenCalledWith(

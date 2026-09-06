@@ -107,16 +107,12 @@ describe("critical alert Telegram cooldown wiring", () => {
     "utf8",
   )
 
-  it("never suppresses the Sentry capture, only the Telegram page", () => {
-    const criticalBlock = cronSource.slice(cronSource.indexOf("criticalAlerts.length > 0"))
-    const sentryIndex = criticalBlock.indexOf("Sentry.captureMessage")
-    const cooldownIndex = criticalBlock.indexOf("shouldSendCriticalAlert")
-
+  it("evaluates Sentry incidents independently before Telegram cooldowns", () => {
+    const sentryIndex = cronSource.indexOf("await dispatchBusinessIncidents(alerts")
+    const cooldownIndex = cronSource.indexOf("await shouldSendCriticalAlert")
     expect(sentryIndex).toBeGreaterThan(-1)
-    expect(cooldownIndex).toBeGreaterThan(-1)
-    // Sentry fires first and unconditionally; the gate sits only in front of
-    // the Telegram send.
-    expect(sentryIndex).toBeLessThan(cooldownIndex)
+    expect(cooldownIndex).toBeGreaterThan(sentryIndex)
+    expect(cronSource).toContain('const criticalAlerts = alerts.filter((a) => a.severity === "critical")')
   })
 
   it("cools each critical signal independently and receipts only delivered signals", () => {
