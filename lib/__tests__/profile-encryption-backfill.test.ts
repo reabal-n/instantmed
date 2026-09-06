@@ -260,6 +260,36 @@ for (const real of [false, true]) {
         for (const fixture of fixtures) expect(after.find(row => row.id === fixture.id)).toMatchObject(fixture)
       })
     })
+    it.each([null, "not-valid-ciphertext"])("excludes UUID review fixtures from all compatibility counts and writes with ciphertext %s", async ciphertext => {
+      const fixtures = ["doctor-review", "weight-review"].map((prefix, i) => candidate(10 + i, {
+        email: `${prefix}-${id(10 + i)}@test.instantmed.com.au`,
+        full_name: i ? "E2E Weight 00000000" : "E2E Profile 00000000",
+        date_of_birth: "1985-04-01",
+        medicare_number: "2123456701",
+        medicare_number_encrypted: ciphertext,
+      }))
+      await check([evidence(), candidate(2), ...fixtures], async h => {
+        const expected = {
+          scanned: 4, excluded: 2, eligible: 2, candidates: 1, compatible: true,
+          missing: { date_of_birth: 0, phone: 1, medicare_number: 0 },
+          existing: { date_of_birth: 0, phone: 1, medicare_number: 0 },
+          decryptable: { date_of_birth: 0, phone: 1, medicare_number: 0 },
+          parityMismatch: { date_of_birth: 0, phone: 0, medicare_number: 0 },
+          decryptFailures: { date_of_birth: 0, phone: 0, medicare_number: 0 },
+        }
+        const dry = await h.run(["--dry", "--batch=1"])
+        expect(dry.exitCode).toBe(0)
+        expect(dry.preflight).toMatchObject(expected)
+        expect(h.requests.every(request => request.method === "GET")).toBe(true)
+        const applied = await h.run(["--apply", "--batch=1"])
+        expect(applied.exitCode).toBe(0)
+        expect(applied.preflight).toMatchObject(expected)
+        expect(applied.summary).toMatchObject({ processed: 1, updated: 1, updatedFields: { date_of_birth: 0, phone: 1, medicare_number: 0 } })
+        expect(h.requests.filter(request => request.path === "profiles" && request.method === "PATCH").map(request => request.params.get("id"))).toEqual([`eq.${id(2)}`])
+        const after = await h.store.read()
+        for (const fixture of fixtures) expect(after.find(row => row.id === fixture.id)).toMatchObject(fixture)
+      })
+    })
     it("keeps read failures private and dry-run status untouched", async () => {
       await check([evidence(), candidate(2)], async h => {
         const result = await h.run(["--dry-run"])

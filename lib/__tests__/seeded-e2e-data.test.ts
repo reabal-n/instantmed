@@ -73,6 +73,9 @@ describe("isLikelyTestPatientIdentity", () => {
     "browser-1782377899885@instantmed.com.au",
     "test@instantmed.com.au",
     "e2e-guest@gmail.com",
+    "doctor-review-a1b2c3d4-1234-4abc-8def-0123456789ab@test.instantmed.com.au",
+    "weight-review-a1b2c3d4-1234-4abc-8def-0123456789ab@test.instantmed.com.au",
+    " DOCTOR-REVIEW-A1B2C3D4-1234-4ABC-8DEF-0123456789AB@TEST.INSTANTMED.COM.AU ",
   ])("classifies %s as a test identity", (email) => {
     expect(isLikelyTestPatientIdentity({ email })).toBe(true)
   })
@@ -82,6 +85,17 @@ describe("isLikelyTestPatientIdentity", () => {
     "beclamont@hotmail.con", // typo domain is a REAL patient, not a test
     "browser@instantmed.com.au", // no timestamp suffix - not the automation pattern
     "steste@bigpond.com", // contains 'test' mid-string but not e2e-prefixed
+    "doctor-review-sarah@test.instantmed.com.au",
+    "weight-review-sarah@test.instantmed.com.au",
+    "sarah@test.instantmed.com.au",
+    "doctor-review-a1b2c3d4-1234-4abc-8def-0123456789ab@gmail.com",
+    "weight-review-a1b2c3d4-1234-4abc-8def-0123456789ab@instantmed.com.au",
+    "doctor-review-a1b2c3d4-1234-4abc-8def-0123456789ab@test.instantmed.com.au.invalid",
+    "other-doctor-review-a1b2c3d4-1234-4abc-8def-0123456789ab@test.instantmed.com.au",
+    "weight-review-a1b2c3d4-1234-4abc-8def-0123456789ab-extra@test.instantmed.com.au",
+    "doctor-review-a1b2c3d4-1234-4abc-8def-0123456789ag@test.instantmed.com.au",
+    "weight-review-a1b2c3d4-1234-4abc-8def-0123456789a@test.instantmed.com.au",
+    "weight-review-a1b2c3d412344abc8def0123456789ab@test.instantmed.com.au",
   ])("keeps %s as a real identity", (email) => {
     expect(isLikelyTestPatientIdentity({ email })).toBe(false)
   })
@@ -91,6 +105,8 @@ describe("isLikelyTestPatientIdentity", () => {
     expect(isLikelyTestPatientIdentity({ fullName: "Test Patient" })).toBe(true)
     expect(isLikelyTestPatientIdentity({ fullName: "Sarah Jones" })).toBe(false)
     expect(isLikelyTestPatientIdentity({ fullName: "Testa Rossi" })).toBe(false)
+    expect(isLikelyTestPatientIdentity({ fullName: "E2E Profile a1b2c3d4" })).toBe(false)
+    expect(isLikelyTestPatientIdentity({ fullName: "E2E Weight a1b2c3d4" })).toBe(false)
   })
 
   it("returns false for empty input", () => {

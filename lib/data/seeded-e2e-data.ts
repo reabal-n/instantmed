@@ -91,6 +91,8 @@ const TEST_IDENTITY_EMAIL_PATTERNS: RegExp[] = [
   /@instantmed\.test$/i,
   /^browser-\d+@instantmed\.com\.au$/i,
   /^test@instantmed\.com\.au$/i,
+  // Direct profile fixtures in doctor.prescription-ui / doctor.weight-review.
+  /^(doctor-review|weight-review)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}@test\.instantmed\.com\.au$/i,
   /^e2e[-+._]/i,
 ]
 
