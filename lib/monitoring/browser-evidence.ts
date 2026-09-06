@@ -105,4 +105,3 @@ export async function collectBrowserEvidence(previous: BrowserState, now: number
   }
   return { state, completions }
 }
-
