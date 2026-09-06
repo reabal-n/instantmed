@@ -1152,6 +1152,8 @@ Business alerts group by fixed incident category; cron outages group by job. New
 
 **Feature flags:** controller evidence through 2026-09-06 07:46 UTC found one background cache-revalidation transport error after retry release `dc42a47be` reached READY SHA `56adfcc8b`, with no demonstrated new foreground failure. Existing retry/cache guarantees and `feature-flags-cache-resilience` regression remain unchanged. Sentry issue access returned 403, so issue-level verification is unavailable; this evidence does not justify another dashboard retry layer.
 
+**Cadence acceptance handoff (open):** Rey/operations owns a fresh 24-hour read at 2026-09-07 12:00 UTC (22:00 Sydney), after the planned release window. If READY occurs after 2026-09-06 12:00 UTC, move the read to at least 24 hours after READY. Record requested scheduled slots, actual scheduled invocations, named browser-step completions, min/median/max completion gaps, observer availability and any failure/recovery or freshness incident. Check deployed-state enablement survives release and manual runs remain distinguishable. One-off browser success does not close scheduled cadence acceptance. Sentry provider delivery remains unverified without restored issue access; flush/source receipts alone do not prove delivery. This is an explicit measurement handoff, not a new scheduled task.
+
 ### Golden Signals & Thresholds
 
 | Category | Signal | Threshold | Source |
