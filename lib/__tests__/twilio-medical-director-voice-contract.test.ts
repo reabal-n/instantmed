@@ -165,6 +165,7 @@ describe("Lena Medical Director voice-message contracts", () => {
     const constants = read("lib/constants/index.ts")
     const navbar = read("components/shared/navbar.tsx")
     const mobileMenu = read("components/shared/navbar/mobile-menu-content.tsx")
+    const footer = read("components/shared/footer.tsx")
     const contact = read("app/contact/contact-client.tsx")
     const privacy = read("app/privacy/page.tsx")
     const schemaPages = [
@@ -181,8 +182,10 @@ describe("Lena Medical Director voice-message contracts", () => {
 
     expect(constants).toContain('CONTACT_PHONE = "0495 049 555"')
     expect(constants).toContain('CONTACT_PHONE_TEL = "+61495049555"')
-    expect(navbar).toContain('href={`tel:${CONTACT_PHONE_TEL}`}')
-    expect(mobileMenu).toContain('label: `Call ${CONTACT_PHONE}`')
+    expect(navbar).not.toContain("CONTACT_PHONE")
+    expect(mobileMenu).not.toContain("CONTACT_PHONE")
+    expect(footer).toContain('href={`tel:${CONTACT_PHONE_TEL}`}')
+    expect(contact).toContain("CONTACT_PHONE_TEL")
     expect(contact).toContain("24/7 voice message support")
     expect(privacy).toContain("Lena, an automated voice assistant")
     expect(privacy).toContain("We do not retain the raw call audio or a full")

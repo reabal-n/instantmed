@@ -1267,6 +1267,8 @@ Required env vars validated at startup via Zod in `lib/config/env.ts`:
 
 The public InstantMed number `+61 495 049 555` is reserved for Lena. Once activated, the administrative voice secretary takes one confirmed patient message for the Medical Director. It is not a clinical consultation, triage service, patient-authentication channel, or autonomous correction workflow. Keep `TWILIO_AI_VOICE_ENABLED=false` until the deployment and controlled-call checklist is complete.
 
+The phone number is published in the footer and on `/contact`. Desktop and mobile navigation omit the phone CTA to keep the header focused on services and starting a request.
+
 ### Exact Twilio Console values
 
 On **Phone Numbers → Active numbers → +61 495 049 555 → Configure**, use full public URLs and POST for every HTTP callback:
