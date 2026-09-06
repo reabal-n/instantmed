@@ -3,13 +3,15 @@ set -euo pipefail
 readonly REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly FIXTURE_NAME="instantmed-checkout-fixture-$(date +%s)-$$"
 cleanup() {
-  docker rm -f "${FIXTURE_NAME}-rest" "$FIXTURE_NAME" >/dev/null 2>&1 || true
+  docker rm -fv "${FIXTURE_NAME}-rest" "$FIXTURE_NAME" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 # No env loader, Supabase project, or existing container is used.
 docker run -d --name "$FIXTURE_NAME" -e POSTGRES_PASSWORD=fixture-only -p 127.0.0.1::3000 postgres:15-alpine >/dev/null
+# The initialization postmaster accepts sockets before restarting; wait for
+# TCP, which is enabled only on the final server.
 for attempt in {1..50}; do
-  if docker exec "$FIXTURE_NAME" pg_isready -U postgres >/dev/null 2>&1; then break; fi
+  if docker exec "$FIXTURE_NAME" pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then break; fi
   sleep 0.2
 done
 docker exec -i "$FIXTURE_NAME" psql -v ON_ERROR_STOP=1 -U postgres < "$REPO_ROOT/scripts/fixtures/checkout-restored-draft.sql" >/dev/null

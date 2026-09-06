@@ -29,6 +29,7 @@ import {
   normalizeIncomingGrowthExperienceVersion,
   selectGrowthExperienceVersion,
 } from "@/lib/growth/specialty-experience-attribution"
+import { reportCheckoutPersistenceFailure } from "@/lib/observability/checkout-persistence-diagnostics"
 import { createLogger } from "@/lib/observability/logger"
 import { isAtCapacity } from "@/lib/operational-controls/config"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
@@ -56,7 +57,7 @@ import {
 import { runClinicalValidation } from "./checkout/clinical-validation"
 import { holdCheckoutForMissingSafetyInformation } from "./checkout/missing-safety-payment-hold"
 import { preflightPriorityPriceForRecovery } from "./checkout/priority-price-recovery"
-import { reconcileCancelledDraftCheckout, reportCheckoutPersistenceFailure } from "./checkout/restored-draft-recovery"
+import { reconcileCancelledDraftCheckout } from "./checkout/restored-draft-recovery"
 import { reconcileChangedCheckoutSessionForReturn } from "./checkout/return-payment-reconciliation"
 import type { CheckoutResult } from "./checkout/types"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"

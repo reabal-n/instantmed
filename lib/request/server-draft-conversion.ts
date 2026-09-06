@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { reportCheckoutPersistenceFailure } from "@/lib/observability/checkout-persistence-diagnostics"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("server-draft-conversion")
@@ -75,9 +76,7 @@ export async function readBoundPartialIntakeGrowthExperienceVersion(
     .maybeSingle<{ growth_experience_version: string | null }>()
 
   if (error) {
-    logger.warn("Failed to load bound draft growth experience", {
-      error: error.message,
-    })
+    reportCheckoutPersistenceFailure("bound_draft_growth_lookup", error.code)
     return null
   }
 
@@ -143,7 +142,7 @@ export async function findConvertedPartialIntakeForCheckout(
     ) {
       return { kind: "blocked", reason: "request_mismatch" }
     }
-    logger.warn("Failed to resolve converted partial intake", { error: draftError.message })
+    reportCheckoutPersistenceFailure("draft_checkout_claim", draftError.code)
     return { kind: "blocked", reason: "query_error" }
   }
   if (!draft) {
@@ -173,9 +172,7 @@ export async function findConvertedPartialIntakeForCheckout(
       .eq("session_id", sessionId)
       .maybeSingle<{ growth_experience_version: string | null }>()
     if (growthError) {
-      logger.warn("Failed to load partial intake growth experience", {
-        error: growthError.message,
-      })
+      reportCheckoutPersistenceFailure("draft_growth_lookup", growthError.code)
       return { kind: "blocked", reason: "query_error" }
     }
     return {
@@ -205,10 +202,7 @@ export async function findConvertedPartialIntakeForCheckout(
     }>()
 
   if (intakeError) {
-    logger.warn("Failed to load intake for converted partial intake", {
-      error: intakeError.message,
-      intakeId: draft.converted_to_intake_id,
-    })
+    reportCheckoutPersistenceFailure("converted_intake_lookup", intakeError.code)
     return { kind: "blocked", reason: "query_error" }
   }
   if (!intake) {
@@ -270,7 +264,7 @@ export async function markPartialIntakeConverted(
     .maybeSingle()
 
   if (error) {
-    logger.warn("Failed to mark partial intake converted", { error: error.message })
+    reportCheckoutPersistenceFailure("draft_conversion_marker", error.code)
     return { marked: false, reason: "query_error" }
   }
 

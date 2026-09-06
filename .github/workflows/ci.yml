@@ -148,6 +148,9 @@ jobs:
           bash scripts/test-resend-webhook-mirrors-db.sh
           bash scripts/test-resend-webhook-mirrors-db.sh --legacy-delivery
 
+      - name: Restored checkout database collision and recovery
+        run: bash scripts/test-checkout-restored-draft-db.sh
+
       - name: Google Ads adjustment evidence and alert classification
         run: bash scripts/test-google-ads-adjustment-health-db.sh
 

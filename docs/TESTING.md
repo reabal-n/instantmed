@@ -382,3 +382,37 @@ migration `20260905120001` twice, proves existing rows stay untouched, and runs
 the full receipt, preference, ordering, and concurrency suite. This prevents a
 fresh baseline alone from masking a production schema mismatch. Linked schema
 lint remains a separate live release gate.
+
+
+### Restored-checkout isolated fixtures
+
+Run with Node 24 and corepack pnpm 10.23.0:
+
+```sh
+bash scripts/test-checkout-restored-draft-db.sh
+node scripts/test-checkout-restored-browser.mjs
+```
+
+The required CI `build` job runs the database command beside the existing disposable
+DB checks. It creates uniquely named PostgreSQL 15 and PostgREST containers, binds
+PostgREST to a random loopback port, loads a synthetic minimal schema and the exact
+flow-uniqueness index from the canonical migration, then exercises the real
+checkout persistence and conditional-update paths. Its exit trap removes only the
+two run-owned containers and their anonymous volumes; it does not reuse a local Supabase project or load an
+environment file. The six DB tests intentionally skip during ordinary Vitest runs
+unless this harness supplies `CHECKOUT_FIXTURE_URL`, which rejects non-loopback
+endpoints. Passing this fixture proves uniqueness, ownership filtering, and CAS
+behavior, not a full migration replay or production RLS acceptance.
+
+The browser command requires Chromium from the existing Playwright installation
+and an unused port **3060**. It bundles the real review component, Zustand request
+store, draft retirement code, app CSS, and local payment logos in a temporary
+fixture server at `http://localhost:3060/request?service=prescription`. Server-action
+results and analytics are isolated local seams; it does not invoke the normal
+Playwright environment loader/global seeding or read the checkout's `.env*` files.
+It checks desktop/mobile light and dark layouts, keyboard focus, disabled stale
+Pay behavior, explicit fresh identity and consent reset, and unresolved payment
+copy. The browser/server close on exit; the printed temporary output directory
+retains logs/assets/screenshots for review and may be deleted afterward. This is
+component-and-store interaction proof, not the full Next request shell/SSR journey,
+a real provider Session, or a hosted Stripe payment acceptance run.

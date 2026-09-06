@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
 
+import { reportCheckoutPersistenceFailure } from "@/lib/observability/checkout-persistence-diagnostics"
 import { createLogger } from "@/lib/observability/logger"
 import { invalidateCheckoutSessionForSafety } from "@/lib/stripe/checkout/checkout-session-safety"
 import type { CheckoutResult } from "@/lib/stripe/checkout/types"
@@ -10,15 +11,6 @@ import { isTerminalPaidPaymentStatus, validateCheckoutSessionIntakeMatch } from 
 import { HIGH_STAKES_PAYMENT_LOCK } from "@/lib/stripe/payment-safety-lock"
 
 const logger = createLogger("restored-draft-checkout")
-
-export function reportCheckoutPersistenceFailure(operation: string, code?: string): void {
-  // Never forward database messages/details: they can contain clinical values,
-  // identity, or a bearer. An Error argument is required for the Sentry sink.
-  logger.error("Checkout persistence operation failed", {
-    operation,
-    databaseCode: code && /^[0-9A-Z]{5}$/.test(code) ? code : "unknown",
-  }, new Error("Checkout persistence operation failed"))
-}
 
 export interface RestoredCheckoutIntake {
   id: string

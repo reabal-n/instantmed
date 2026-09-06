@@ -16,6 +16,8 @@ const config: KnipConfig = {
     // Preview and fixture tooling belongs to the comprehensive scan only.
     "playwright.preview.config.ts",
     "scripts/e2e/{seed,teardown}.ts",
+    "scripts/test-checkout-restored-browser.mjs",
+    "scripts/fixtures/checkout-restored-browser.tsx",
   ],
   project: [
     "app/**/*.{ts,tsx}!",
