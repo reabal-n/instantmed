@@ -167,15 +167,15 @@ async function main() {
           }
         }
         if (statusId) {
-          const { error } = await db.from("encryption_migration_status").update({ encrypted_records: result.updated, error_count: Object.values(result.errors).reduce((a, b) => a + b, 0), last_error: lastError, updated_at: new Date().toISOString() }).eq("id", statusId)
-          if (error) fail("STATUS_WRITE_FAILED")
+          const { data: receipt, error } = await db.from("encryption_migration_status").update({ encrypted_records: result.updated, error_count: Object.values(result.errors).reduce((a, b) => a + b, 0), last_error: lastError, updated_at: new Date().toISOString() }).eq("id", statusId).select("id")
+          if (error || !receipt || receipt.length !== 1 || receipt[0].id !== statusId) fail("STATUS_WRITE_FAILED")
         }
       }
     } catch (error) { recordError(error instanceof BackfillError ? error.code : "UNEXPECTED_FAILURE") }
   }
   if (statusId) {
-    const { error } = await db.from("encryption_migration_status").update({ encrypted_records: result.updated, error_count: Object.values(result.errors).reduce((a, b) => a + b, 0), last_error: lastError, completed_at: Object.keys(result.errors).length || result.skipped ? null : new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", statusId)
-    if (error) recordError("STATUS_WRITE_FAILED")
+    const { data: receipt, error } = await db.from("encryption_migration_status").update({ encrypted_records: result.updated, error_count: Object.values(result.errors).reduce((a, b) => a + b, 0), last_error: lastError, completed_at: Object.keys(result.errors).length || result.skipped ? null : new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", statusId).select("id")
+    if (error || !receipt || receipt.length !== 1 || receipt[0].id !== statusId) recordError("STATUS_WRITE_FAILED")
   }
   console.log(JSON.stringify(result))
   // Skips need a fresh reviewed run; a partial apply never reports success.

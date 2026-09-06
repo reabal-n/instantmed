@@ -54,7 +54,7 @@ async function run(url: string, args: string[] = [], encryptionKey = key.toStrin
 }
 
 type Store = { read: () => Promise<Row[]>; patch: (rowId: string, update: Row) => Promise<void>; delete: (rowId: string) => Promise<void> }
-type Faults = { beforePatch?: (store: Store, rowId: string) => Promise<void>; failId?: string; failRead?: boolean; failReadAt?: number; failStatus?: boolean; emptyReceipt?: boolean }
+type Faults = { beforePatch?: (store: Store, rowId: string) => Promise<void>; failId?: string; failRead?: boolean; failReadAt?: number; failStatus?: boolean; emptyReceipt?: boolean; deleteStatusAt?: "progress" | "completion"; statusReceipt?: "wrong" | "multiple" | "absent" }
 async function harness(initial: Row[], real: boolean, faults: Faults = {}) {
   let rows = structuredClone(initial)
   const requests: { method: string; path: string; params: URLSearchParams; payload: Row | null }[] = []
@@ -94,6 +94,18 @@ async function harness(initial: Row[], real: boolean, faults: Faults = {}) {
         return
       }
       if (faults.emptyReceipt && path === "profiles" && method === "PATCH") { response.writeHead(204).end(); return }
+      if (path === "encryption_migration_status" && method === "PATCH") {
+        const phase = Object.hasOwn(payload, "completed_at") ? "completion" : "progress"
+        if (faults.deleteStatusAt === phase) {
+          if (real) await database(`encryption_migration_status?id=eq.${rowId}`, "DELETE")
+          else statusRows.splice(0)
+        }
+        if (faults.statusReceipt) {
+          const receipt = faults.statusReceipt === "absent" ? null : faults.statusReceipt === "wrong" ? [{ id: "private-wrong-receipt" }] : [{ id: rowId }, { id: "private-extra-receipt" }]
+          response.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify(receipt))
+          return
+        }
+      }
       if (real) {
         const headers = new Headers(request.headers as Record<string, string>)
         for (const name of ["authorization", "host", "content-length", "connection"]) headers.delete(name)
@@ -103,8 +115,18 @@ async function harness(initial: Row[], real: boolean, faults: Faults = {}) {
       }
       response.setHeader("Content-Type", "application/json")
       if (path === "encryption_migration_status") {
-        if (method === "POST") { statusRows.push({ id: id(999), ...payload }); response.end(JSON.stringify({ id: id(999) })); return }
-        if (method === "PATCH") { Object.assign(statusRows[0], payload); response.end(JSON.stringify([])); return }
+        if (method === "POST") {
+          const statusId = id(999 + statusRows.length)
+          statusRows.push({ id: statusId, ...payload })
+          response.end(JSON.stringify({ id: statusId }))
+          return
+        }
+        if (method === "PATCH") {
+          const matched = statusRows.filter(row => row.id === rowId)
+          for (const row of matched) Object.assign(row, payload)
+          response.end(JSON.stringify(matched.map(row => ({ id: row.id }))))
+          return
+        }
       }
       let matched = rows.filter(row => [...url.searchParams].every(([column, filter]) => {
         if (["select", "order", "limit"].includes(column)) return true
@@ -282,6 +304,27 @@ for (const real of [false, true]) {
         expect(result.summary).toMatchObject({ updated: 0, errors: { WRITE_RECEIPT_INVALID: 1 } })
         expect((await h.status())[0]).toMatchObject({ encrypted_records: 0, last_error: "WRITE_RECEIPT_INVALID", completed_at: null })
       }, { emptyReceipt: true })
+    })
+    it.each(["progress", "completion"] as const)("fails when the migration status row disappears before %s receipt", async phase => {
+      await check([evidence(), candidate(2), candidate(3)], async h => {
+        const result = await h.run(["--apply", "--batch=2"])
+        expect(result.exitCode).toBe(1)
+        expect(result.summary.errors.STATUS_WRITE_FAILED).toBeGreaterThan(0)
+        expect(result.summary.updated).toBe(phase === "progress" ? 1 : 2)
+        expect(await h.status()).toHaveLength(0)
+        if (phase === "progress") expect((await h.store.read()).find(row => row.id === id(3))!.phone_encrypted).toBeNull()
+        expect(result.stdout + result.stderr).not.toContain(id(999))
+      }, { deleteStatusAt: phase })
+    })
+    it.each(["wrong", "multiple", "absent"] as const)("rejects a %s migration-status receipt without exposing it", async statusReceipt => {
+      await check([evidence(), candidate(2), candidate(3)], async h => {
+        const result = await h.run(["--apply", "--batch=2"])
+        expect(result.exitCode).toBe(1)
+        expect(result.summary.errors.STATUS_WRITE_FAILED).toBeGreaterThan(0)
+        expect(result.summary.updated).toBe(1)
+        expect(result.stdout + result.stderr).not.toContain("private-")
+        expect((await h.store.read()).find(row => row.id === id(3))!.phone_encrypted).toBeNull()
+      }, { statusReceipt })
     })
   })
 }
