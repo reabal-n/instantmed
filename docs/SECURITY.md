@@ -62,6 +62,32 @@ Apply repeats the bounded keyset traversal and uses a single atomic PostgreSQL c
 
 Before production apply, review an exact packet containing project identity, code SHA, timestamp, scope/exclusions, per-field counts, compatibility and existing parity exceptions, guarded-write method, verification command, and stop conditions; obtain separate operator approval. Stop on a project/SHA/scope mismatch, incomplete reads, missing key evidence, any decrypt failure, ambiguous write receipt, CAS skip, or write/status error. After apply, repeat the same read-only command to verify decryptability, unchanged approved parity exceptions, and zero missing candidates; a separately authorized apply rerun should change zero rows. The scans are sequential reads, not a database-wide transaction snapshot, so new or changed profiles may require another reviewed run. Retain plaintext and both current keys until the separate reader audit and retirement decision. Local CLI and disposable PostgreSQL/PostgREST proof do not establish production execution or parity.
 
+### Prepared historical-profile repair packet — 2026-09-06
+
+**Preparation only; production apply is not authorized or performed.** The read-only run completed at `2026-09-06T08:05:08.321Z` against Supabase project `witzcrovsoumktyndqgz` (`instantmed`, `ap-southeast-2`, independently verified ACTIVE_HEALTHY). Reviewed source commit: `4b7808fec52facc225b1fb246b029f8a175c67e1`; backfill script Git blob: `118039e39037003a0c93e87e7e952421d062bc30`. The unpublished implementation was rebased onto checkout release `ea57b0346358351cc514d0168204bcda1a5c6e55` with identical patch identity; no repair logic changed after its two independent reviews.
+
+The bounded scan read **592 profiles**, excluded **48** canonical seeded/machine fixtures, and found **544 eligible profiles**, of which **469** need at least one missing encrypted copy. This is the historical repair scope, wider than the reportable-patient analytics cohort. Field counts overlap across profiles.
+
+| Field | Missing encrypted copies | Existing / authenticated | Preserved parity exceptions | Decrypt failures |
+|---|---:|---:|---:|---:|
+| Date of birth | 455 | 61 / 61 | 0 | 0 |
+| Phone | 303 | 55 / 55 | 1 | 0 |
+| Medicare | 24 | 203 / 203 | 3 | 0 |
+
+The existing supplied local `ENCRYPTION_KEY` authenticated **319/319** existing production ciphertexts; this establishes compatibility with those records, not inspection of the deployment secret value. The four existing parity exceptions remain explicit and untouched: one phone country-format difference, one Medicare plaintext-absent case, and two Medicare content differences. Their private values were not retained in the receipt. Production column types and relevant profile trigger definitions were inspected read-only. The dry run confirmed **zero writes**, with **zero migration-status rows before and after**. Local preparation proof is 68 passing HTTP/PostgreSQL cases; it does not substitute for an applied production receipt.
+
+**Exact action proposed for separate operator approval:** on the reviewed source commit above, supply the existing three environment variables privately, rerun the read-only command, and require the same candidate/field counts, exclusions, compatibility and approved exceptions. Then fill only the **782 missing field copies across 469 profiles**, in batches of 50, using the source/target/classification/timestamp conditional updates described above:
+
+```sh
+NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --dry --batch=50
+# Only after approval of this exact packet and matching fresh preflight:
+NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --apply --batch=50
+# Read-only verification after the authorized run:
+NODE_OPTIONS=--conditions=react-server corepack pnpm encrypt:backfill --dry --batch=50
+```
+
+**Stop and rollback:** stop authorization on project/source/scope/count/exception drift or incomplete key evidence. Any decrypt failure, ambiguous receipt, CAS skip, or write/status error means incomplete repair; do not blindly rerun. Stop further execution, retain plaintext, existing ciphertext, confirmed new copies and current keys, and inspect only the aggregate receipt before preparing a fresh packet. There is no bulk ciphertext deletion or key rotation rollback. After an approved successful apply, require zero remaining missing candidates, authenticated decryptability and the same four approved exceptions. The plan also requires a separately authorized zero-change apply rerun before claiming the production repair complete. No such production verification is claimed here.
+
 **Phase 2 (data layer — runtime shipped; fresh-replay schema repaired by migration `20260904160000`, applied and metadata-verified in production on 2026-09-05):**
 
 | Table | Plaintext Column | Encrypted Column | Data Layer File | Status |
