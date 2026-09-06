@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process"
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto"
-import { mkdtemp, rm } from "node:fs/promises"
+import { mkdtemp, rm, writeFile } from "node:fs/promises"
 import { createServer, type IncomingMessage } from "node:http"
 import { tmpdir } from "node:os"
 import { resolve } from "node:path"
@@ -38,9 +38,14 @@ async function body(request: IncomingMessage) {
   for await (const part of request) value += part
   return value ? JSON.parse(value) : null
 }
-async function run(url: string, args: string[] = [], encryptionKey = key.toString("base64")) {
+async function run(url: string, args: string[] = [], encryptionKey = key.toString("base64"), expectation?: unknown) {
   const cwd = await mkdtemp(resolve(tmpdir(), "profile-backfill-"))
   try {
+    if (expectation !== undefined) {
+      const path = resolve(cwd, "approved-scope.json")
+      await writeFile(path, typeof expectation === "string" ? expectation : JSON.stringify(expectation))
+      args = [...args, `--expect=${path}`]
+    }
     const opts = { cwd, timeout: 8000, encoding: "utf8" as const, env: { PATH: process.env.PATH, NODE_ENV: "test" as const, ENCRYPTION_KEY: encryptionKey, NEXT_PUBLIC_SUPABASE_URL: url, SUPABASE_SERVICE_ROLE_KEY: "fixture-only" } }
     let stdout = "", stderr = "", exitCode = 0
     try {
@@ -53,8 +58,8 @@ async function run(url: string, args: string[] = [], encryptionKey = key.toStrin
   } finally { await rm(cwd, { recursive: true, force: true }) }
 }
 
-type Store = { read: () => Promise<Row[]>; patch: (rowId: string, update: Row) => Promise<void>; delete: (rowId: string) => Promise<void> }
-type Faults = { beforePatch?: (store: Store, rowId: string) => Promise<void>; failId?: string; failRead?: boolean; failReadAt?: number; failStatus?: boolean; emptyReceipt?: boolean; deleteStatusAt?: "progress" | "completion"; statusReceipt?: "wrong" | "multiple" | "absent" }
+type Store = { insert: (row: Row) => Promise<void>; read: () => Promise<Row[]>; patch: (rowId: string, update: Row) => Promise<void>; delete: (rowId: string) => Promise<void> }
+type Faults = { beforeStatus?: (store: Store) => Promise<void>; beforePatch?: (store: Store, rowId: string) => Promise<void>; failId?: string; failRead?: boolean; failReadAt?: number; failStatus?: boolean; emptyReceipt?: boolean; deleteStatusAt?: "progress" | "completion"; statusReceipt?: "wrong" | "multiple" | "absent" }
 async function harness(initial: Row[], real: boolean, faults: Faults = {}) {
   let rows = structuredClone(initial)
   const requests: { method: string; path: string; params: URLSearchParams; payload: Row | null }[] = []
@@ -65,6 +70,7 @@ async function harness(initial: Row[], real: boolean, faults: Faults = {}) {
     return response.status === 204 ? null : response.json()
   }
   const store: Store = {
+    insert: async row => { if (real) await database("profiles", "POST", row); else rows.push(structuredClone(row)) },
     read: async () => real ? database("profiles?order=id.asc") : structuredClone(rows),
     patch: async (rowId, update) => { if (real) await database(`profiles?id=eq.${rowId}`, "PATCH", update); else Object.assign(rows.find(row => row.id === rowId)!, update) },
     delete: async rowId => { if (real) await database(`profiles?id=eq.${rowId}`, "DELETE"); else rows = rows.filter(row => row.id !== rowId) },
@@ -74,22 +80,28 @@ async function harness(initial: Row[], real: boolean, faults: Faults = {}) {
     await database("encryption_migration_status?id=not.is.null", "DELETE")
     if (initial.length) await database("profiles", "POST", initial)
   }
+  let beforeStatus = faults.beforeStatus
   let beforePatch = faults.beforePatch
   let reads = 0
+  let preparingApproval = false
   const server = createServer(async (request, response) => {
     try {
       const url = new URL(request.url || "/", "http://localhost")
       const method = request.method || "GET"
       const payload = await body(request)
       const path = url.pathname.replace("/rest/v1/", "")
-      requests.push({ method, path, params: url.searchParams, payload })
+      if (!preparingApproval) requests.push({ method, path, params: url.searchParams, payload })
       const rowId = url.searchParams.get("id")?.replace("eq.", "") || ""
-      if (path === "profiles" && method === "GET") reads++
+      if (!preparingApproval && path === "profiles" && method === "GET") reads++
+      if (path === "encryption_migration_status" && method === "POST" && beforeStatus) {
+        const hook = beforeStatus; beforeStatus = undefined
+        await hook(store)
+      }
       if (path === "profiles" && method === "PATCH" && beforePatch) {
         const hook = beforePatch; beforePatch = undefined
         await hook(store, rowId)
       }
-      if ((faults.failRead && method === "GET") || (faults.failReadAt === reads && method === "GET") || (path === "profiles" && method === "PATCH" && rowId === faults.failId) || (faults.failStatus && path === "encryption_migration_status")) {
+      if (!preparingApproval && ((faults.failRead && method === "GET") || (faults.failReadAt === reads && method === "GET") || (path === "profiles" && method === "PATCH" && rowId === faults.failId) || (faults.failStatus && path === "encryption_migration_status"))) {
         response.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ code: "RAW_PRIVATE_CODE", message: "private-patient-0400000001-raw-secret", details: "private-details", hint: "private-hint" }))
         return
       }
@@ -147,7 +159,14 @@ async function harness(initial: Row[], real: boolean, faults: Faults = {}) {
   })
   await new Promise<void>(done => server.listen(0, "127.0.0.1", done))
   const address = server.address() as { port: number }
-  return { store, requests, status: async () => real ? database("encryption_migration_status") : statusRows, run: (args?: string[], secret?: string) => run(`http://127.0.0.1:${address.port}`, args, secret), close: () => new Promise<void>((done, reject) => server.close(error => error ? reject(error) : done())) }
+  const runCli = (args?: string[], secret?: string, expectation?: unknown) => run(`http://127.0.0.1:${address.port}`, args, secret, expectation)
+  // Test-only reviewed packet preparation, separate from the measured apply.
+  // Ignore injected read faults while obtaining it; apply still sees every fault.
+  const approve = async () => {
+    preparingApproval = true
+    try { return (await runCli()).preflight.expectation } finally { preparingApproval = false }
+  }
+  return { store, requests, approve, apply: async (args: string[] = ["--apply"], secret?: string) => runCli(args, secret, await approve()), status: async () => real ? database("encryption_migration_status") : statusRows, run: runCli, close: () => new Promise<void>((done, reject) => server.close(error => error ? reject(error) : done())) }
 }
 
 for (const real of [false, true]) {
@@ -156,6 +175,155 @@ for (const real of [false, true]) {
       const h = await harness(initial, real, faults)
       try { await fn(h) } finally { await h.close() }
     }
+    it.each(["insert", "eligibility"])("freezes the approved candidate scope across a between-scan %s race", async kind => {
+      const unchanged = candidate(3, { phone: null })
+      const initial = [evidence(), candidate(2), candidate(9, { phone: null })]
+      if (kind === "eligibility") initial.push(unchanged)
+      await check(initial, async h => {
+        const result = await h.apply(["--apply", "--batch=1"])
+        expect(result.exitCode).toBe(0)
+        expect(result.preflight.candidates).toBe(1)
+        expect(result.summary).toMatchObject({ processed: 1, updated: 1 })
+        expect(h.requests.filter(request => request.path === "profiles" && request.method === "PATCH").map(request => request.params.get("id"))).toEqual([`eq.${id(2)}`])
+        expect((await h.store.read()).find(row => row.id === id(3))).toMatchObject({ phone: "0400000001", phone_encrypted: null })
+      }, { beforeStatus: async store => {
+        if (kind === "insert") await store.insert(candidate(3))
+        else await store.patch(id(3), { phone: "0400000001" })
+      } })
+    })
+    it("requires approval even for an unguarded zero-change apply", async () => {
+      await check([evidence()], async h => {
+        const result = await h.run(["--apply"])
+        expect(result.exitCode).toBe(1)
+        expect(result.events).toEqual([{ phase: "failure", code: "APPROVAL_REQUIRED" }])
+        expect(h.requests).toHaveLength(0)
+        expect(await h.status()).toHaveLength(0)
+      })
+    })
+    it.each(["json", "null", "array", "unknown", "missing", "version", "fingerprint", "negative", "fraction", "string-count", "extra-field", "missing-field", "oversized"])("rejects malformed %s approval before all data access", async kind => {
+      await check([evidence(), candidate(2)], async h => {
+        const approval = await h.approve()
+        let packet: unknown = approval
+        if (kind === "json") packet = "{private-invalid-json"
+        if (kind === "null") packet = null
+        if (kind === "array") packet = [approval]
+        if (kind === "unknown") approval.privateData = "private-extra"
+        if (kind === "missing") delete approval.candidates
+        if (kind === "version") approval.version = 2
+        if (kind === "fingerprint") approval.scopeFingerprint = "private-not-a-digest"
+        if (kind === "negative") approval.candidates = -1
+        if (kind === "fraction") approval.candidates = 0.5
+        if (kind === "string-count") approval.candidates = "1"
+        if (kind === "extra-field") approval.missing.other = 1
+        if (kind === "missing-field") delete approval.existing.phone
+        if (kind === "oversized") packet = " ".repeat(16385) + JSON.stringify(approval)
+        const result = await h.run(["--apply"], undefined, packet)
+        expect(result.exitCode).toBe(1)
+        expect(result.events).toEqual([{ phase: "failure", code: "APPROVAL_INVALID" }])
+        expect(result.stdout + result.stderr).not.toContain("private-")
+        expect(h.requests).toHaveLength(0)
+        expect(await h.status()).toHaveLength(0)
+      })
+    })
+    it.each(["--apply --expect=/private-not-present/packet.json", "--apply --expect=", "--apply --expect=a --expect=b", "--dry --expect=a"])("refuses invalid expectation file/flags without data access: %s", async flags => {
+      await check([evidence()], async h => {
+        const result = await h.run(flags.split(" "))
+        expect(result.exitCode).toBe(1)
+        expect(result.events).toEqual([{ phase: "failure", code: flags.includes("private-not-present") ? "APPROVAL_INVALID" : "INVALID_CLI" }])
+        expect(result.stdout + result.stderr).not.toContain("private-")
+        expect(h.requests).toHaveLength(0)
+      })
+    })
+    it.each(["candidates", "missing", "existing", "excluded", "parityMismatch", "scopeFingerprint"])("refuses changed approved %s before every status/profile write", async kind => {
+      await check([evidence(), candidate(2)], async h => {
+        const approval = await h.approve()
+        if (kind === "scopeFingerprint") approval.scopeFingerprint = "0".repeat(64)
+        else if (["candidates", "excluded"].includes(kind)) approval[kind]++
+        else approval[kind].phone++
+        const result = await h.run(["--apply"], undefined, approval)
+        expect(result.exitCode).toBe(1)
+        expect(result.events.at(-1)).toEqual({ phase: "failure", code: "APPROVAL_MISMATCH" })
+        expect(h.requests.every(request => request.method === "GET")).toBe(true)
+        expect(await h.status()).toHaveLength(0)
+      })
+    })
+    it.each(["substitution", "source", "empty-target", "existing-target", "email", "name", "timestamp"])("binds equal-count approved scope to the full snapshot: %s", async kind => {
+      await check([evidence(), candidate(2, { medicare_number: "2123456701", medicare_number_encrypted: cipher("2123456701") })], async h => {
+        const approval = await h.approve()
+        if (kind === "substitution") {
+          const original = (await h.store.read()).find(row => row.id === id(2))!
+          await h.store.delete(id(2))
+          await h.store.insert({ ...original, id: id(3) })
+        } else {
+          const changes: Record<string, Row> = {
+            source: { phone: "0499999999" },
+            "empty-target": { phone_encrypted: "" },
+            "existing-target": { medicare_number_encrypted: cipher("2123456701") },
+            email: { email: "someone@australia.invalid" },
+            name: { full_name: "Synthetic Ordinary Name" },
+            timestamp: { phi_encrypted_at: "2026-09-01T00:00:00Z" },
+          }
+          await h.store.patch(id(2), changes[kind])
+        }
+        const result = await h.run(["--apply"], undefined, approval)
+        expect(result.exitCode).toBe(1)
+        expect(result.events.at(-1)).toEqual({ phase: "failure", code: "APPROVAL_MISMATCH" })
+        const { scopeFingerprint: approvedFingerprint, ...approvedCounts } = approval
+        const { scopeFingerprint: actualFingerprint, ...actualCounts } = result.preflight.expectation
+        expect(actualCounts).toEqual(approvedCounts)
+        expect(actualFingerprint).not.toBe(approvedFingerprint)
+        expect(h.requests.every(request => request.method === "GET")).toBe(true)
+        expect(await h.status()).toHaveLength(0)
+      })
+    })
+    it("refuses new work under a zero-candidate expectation before status writes", async () => {
+      await check([evidence()], async h => {
+        const approval = await h.approve()
+        expect(approval.candidates).toBe(0)
+        await h.store.insert(candidate(2))
+        const result = await h.run(["--apply"], undefined, approval)
+        expect(result.exitCode).toBe(1)
+        expect(result.events.at(-1)).toEqual({ phase: "failure", code: "APPROVAL_MISMATCH" })
+        expect(h.requests.every(request => request.method === "GET")).toBe(true)
+        expect(await h.status()).toHaveLength(0)
+        expect((await h.store.read()).find(row => row.id === id(2))!.phone_encrypted).toBeNull()
+      })
+    })
+    it("accepts a reviewed zero-candidate expectation without any writes", async () => {
+      await check([evidence()], async h => {
+        const result = await h.apply()
+        expect(result.exitCode).toBe(0)
+        expect(result.summary).toMatchObject({ processed: 0, updated: 0 })
+        expect(h.requests.every(request => request.method === "GET")).toBe(true)
+        expect(await h.status()).toHaveLength(0)
+      })
+    })
+    it("keeps the opaque expectation deterministic across batch size and JSON key order", async () => {
+      await check([evidence(), candidate(2), candidate(3)], async h => {
+        const dry = await h.run(["--dry", "--batch=1"])
+        const otherBatch = await h.run(["--dry", "--batch=50"])
+        expect(dry.preflight.expectation).toEqual(otherBatch.preflight.expectation)
+        expect(dry.preflight.expectation.scopeFingerprint).toMatch(/^[0-9a-f]{64}$/)
+        expect(dry.stdout + dry.stderr).not.toMatch(/0400000001|00000000-0000|manifest|fixture-only/)
+        expect(dry.stdout + dry.stderr).not.toContain(key.toString("base64"))
+        const reordered = Object.fromEntries(Object.entries(dry.preflight.expectation).reverse().map(([k, v]) => [k, v && typeof v === "object" ? Object.fromEntries(Object.entries(v).reverse()) : v]))
+        const result = await h.run(["--apply", "--batch=2"], undefined, reordered)
+        expect(result.exitCode).toBe(0)
+        expect(result.summary.updated).toBe(2)
+      })
+    })
+    it("uses frozen preflight snapshots for CAS and rereads a later change", async () => {
+      await check([evidence(), candidate(2)], async h => {
+        const result = await h.apply()
+        expect(result.exitCode).toBe(1)
+        expect(result.summary).toMatchObject({ processed: 1, updated: 0, skipped: 1, skips: { sourceChanged: 1 } })
+        const patch = h.requests.find(request => request.path === "profiles" && request.method === "PATCH")!
+        expect(patch.params.get("phone")).toBe("eq.0400000001")
+        expect(h.requests.some(request => request.method === "GET" && request.params.get("id") === `eq.${id(2)}`)).toBe(true)
+        expect((await h.store.read()).find(row => row.id === id(2))).toMatchObject({ phone: "0499999999", phone_encrypted: null })
+        expect((await h.status())[0]).toMatchObject({ encrypted_records: 0, completed_at: null })
+      }, { beforeStatus: store => store.patch(id(2), { phone: "0499999999" }) })
+    })
     it("defaults to read-only and counts a missing twin despite an existing timestamp", async () => {
       await check([evidence(), candidate(2, { phi_encrypted_at: "2026-08-01T00:00:00Z", date_of_birth: "1985-04-01", date_of_birth_encrypted: cipher("1985-04-01") })], async h => {
         const result = await h.run()
@@ -178,7 +346,7 @@ for (const real of [false, true]) {
       const initial = kind === "none" ? [candidate(2)] : [candidate(1, { phone_encrypted: kind === "empty-target" ? "" : cipher("0400000001", wrongKey) }), candidate(2)]
       if (kind === "mixed") initial.push(candidate(3, { phone_encrypted: cipher("0400000001") }))
       await check(initial, async h => {
-        const result = await h.run(["--apply"])
+        const result = await h.apply(["--apply"])
         expect(result.exitCode).toBe(1)
         expect(result.events.at(-1).code).toBe(["none", "empty-target"].includes(kind) ? "KEY_EVIDENCE_MISSING" : "KEY_INCOMPATIBLE")
         expect(h.requests.every(request => request.method === "GET")).toBe(true)
@@ -189,7 +357,7 @@ for (const real of [false, true]) {
       const existing = candidate(1, { phone: "different-format", phone_encrypted: cipher("0400000001"), medicare_number: null, medicare_number_encrypted: cipher("2123456701") })
       const otherExceptions = [3, 4].map(n => candidate(n, { phone_encrypted: cipher("0400000001"), medicare_number: "different-content", medicare_number_encrypted: cipher("2123456701") }))
       await check([existing, candidate(2), ...otherExceptions], async h => {
-        const result = await h.run(["--apply"])
+        const result = await h.apply(["--apply"])
         expect(result.exitCode).toBe(0)
         expect(result.preflight).toMatchObject({ compatible: true, parityMismatch: { phone: 1, medicare_number: 3 } })
         const after = await h.store.read()
@@ -199,7 +367,7 @@ for (const real of [false, true]) {
     })
     it.each(["source", "target", "identity", "timestamp", "deleted"])("rereads and preserves a concurrent %s change without counting a write", async kind => {
       await check([evidence(), candidate(2)], async h => {
-        const result = await h.run(["--apply"])
+        const result = await h.apply(["--apply"])
         expect(result.exitCode).toBe(1)
         expect(result.summary).toMatchObject({ updated: 0, skipped: 1 })
         const patch = h.requests.find(request => request.path === "profiles" && request.method === "PATCH")!
@@ -219,11 +387,11 @@ for (const real of [false, true]) {
     })
     it("handles null/empty fields and targets, partial batches and idempotent reruns", async () => {
       await check([evidence(), candidate(2, { phone: "", medicare_number: null }), candidate(3, { phone_encrypted: "" }), candidate(4, { date_of_birth: "1985-04-01", medicare_number: "2123456701" }), candidate(5)], async h => {
-        const result = await h.run(["--apply", "--batch=2"])
+        const result = await h.apply(["--apply", "--batch=2"])
         expect(result.exitCode).toBe(0)
         expect(result.summary).toMatchObject({ updated: 3, updatedFields: { phone: 3, date_of_birth: 1, medicare_number: 1 } })
         for (const row of (await h.store.read()).filter(row => String(row.id) >= id(3))) expect(plain(row.phone_encrypted as string)).toBe(row.phone)
-        const rerun = await h.run(["--apply", "--batch=1"])
+        const rerun = await h.apply(["--apply", "--batch=1"])
         expect(rerun.exitCode).toBe(0)
         expect(rerun.preflight).toMatchObject({ candidates: 0, parityMismatch: { phone: 0, date_of_birth: 0, medicare_number: 0 } })
         expect(rerun.summary.updated).toBe(0)
@@ -233,13 +401,13 @@ for (const real of [false, true]) {
     it("continues after a failed row, records bounded errors and resumes only missing work", async () => {
       const faults: Faults = { failId: id(2) }
       await check([evidence(), candidate(2), candidate(3)], async h => {
-        const result = await h.run(["--apply", "--batch=1"])
+        const result = await h.apply(["--apply", "--batch=1"])
         expect(result.exitCode).toBe(1)
         expect(result.summary).toMatchObject({ updated: 1, errors: { PROFILE_WRITE_FAILED: 1 } })
         expect((await h.status())[0]).toMatchObject({ encrypted_records: 1, error_count: 1, last_error: "PROFILE_WRITE_FAILED", completed_at: null })
         expect(result.stdout + result.stderr + JSON.stringify(await h.status())).not.toMatch(/private-|0400000001|RAW_PRIVATE_CODE/)
         faults.failId = undefined
-        const resumed = await h.run(["--apply", "--batch=1"])
+        const resumed = await h.apply(["--apply", "--batch=1"])
         expect(resumed.exitCode).toBe(0)
         expect(resumed.summary.updated).toBe(1)
       }, faults)
@@ -252,7 +420,7 @@ for (const real of [false, true]) {
         candidate(30, { full_name: " Test Patient " }), candidate(31, { full_name: "E2E Test Patient" }),
       ].map(row => ({ ...row, medicare_number_encrypted: "not-valid-ciphertext" }))
       await check([evidence(), candidate(2), ...fixtures], async h => {
-        const result = await h.run(["--apply", "--batch=2"])
+        const result = await h.apply(["--apply", "--batch=2"])
         expect(result.exitCode).toBe(0)
         expect(result.preflight).toMatchObject({ excluded: fixtures.length, eligible: 2, candidates: 1 })
         expect(result.summary.updated).toBe(1)
@@ -281,7 +449,7 @@ for (const real of [false, true]) {
         expect(dry.exitCode).toBe(0)
         expect(dry.preflight).toMatchObject(expected)
         expect(h.requests.every(request => request.method === "GET")).toBe(true)
-        const applied = await h.run(["--apply", "--batch=1"])
+        const applied = await h.apply(["--apply", "--batch=1"])
         expect(applied.exitCode).toBe(0)
         expect(applied.preflight).toMatchObject(expected)
         expect(applied.summary).toMatchObject({ processed: 1, updated: 1, updatedFields: { date_of_birth: 0, phone: 1, medicare_number: 0 } })
@@ -300,7 +468,7 @@ for (const real of [false, true]) {
     })
     it("stops before profile writes if migration-status creation fails", async () => {
       await check([evidence(), candidate(2)], async h => {
-        const result = await h.run(["--apply"])
+        const result = await h.apply(["--apply"])
         expect(result.exitCode).toBe(1)
         expect(result.events.at(-1).code).toBe("STATUS_WRITE_FAILED")
         expect(h.requests.some(request => request.path === "profiles" && request.method === "PATCH")).toBe(false)
@@ -309,11 +477,11 @@ for (const real of [false, true]) {
     })
     it("rejects a wrong supplied key and an invalid key without revealing either", async () => {
       await check([evidence(), candidate(2)], async h => {
-        const wrong = await h.run(["--apply"], wrongKey.toString("base64"))
+        const wrong = await h.apply(["--apply"], wrongKey.toString("base64"))
         expect(wrong.events.at(-1).code).toBe("KEY_INCOMPATIBLE")
         expect(wrong.stdout + wrong.stderr).not.toContain(wrongKey.toString("base64"))
         const previousReads = h.requests.length
-        const invalid = await h.run(["--apply"], "too-short")
+        const invalid = await h.apply(["--apply"], "too-short")
         expect(invalid.events).toEqual([{ phase: "failure", code: "INVALID_KEY" }])
         expect(h.requests).toHaveLength(previousReads)
         expect(await h.status()).toHaveLength(0)
@@ -321,7 +489,7 @@ for (const real of [false, true]) {
     })
     it("fails closed when a later preflight page cannot be read", async () => {
       await check([evidence(), candidate(2)], async h => {
-        const result = await h.run(["--apply", "--batch=1"])
+        const result = await h.apply(["--apply", "--batch=1"])
         expect(result.exitCode).toBe(1)
         expect(result.events).toEqual([{ phase: "failure", code: "READ_FAILED" }])
         expect(h.requests.every(request => request.method === "GET")).toBe(true)
@@ -329,7 +497,7 @@ for (const real of [false, true]) {
     })
     it("never counts a write without an affected-row receipt", async () => {
       await check([evidence(), candidate(2)], async h => {
-        const result = await h.run(["--apply"])
+        const result = await h.apply(["--apply"])
         expect(result.exitCode).toBe(1)
         expect(result.summary).toMatchObject({ updated: 0, errors: { WRITE_RECEIPT_INVALID: 1 } })
         expect((await h.status())[0]).toMatchObject({ encrypted_records: 0, last_error: "WRITE_RECEIPT_INVALID", completed_at: null })
@@ -337,7 +505,7 @@ for (const real of [false, true]) {
     })
     it.each(["progress", "completion"] as const)("fails when the migration status row disappears before %s receipt", async phase => {
       await check([evidence(), candidate(2), candidate(3)], async h => {
-        const result = await h.run(["--apply", "--batch=2"])
+        const result = await h.apply(["--apply", "--batch=2"])
         expect(result.exitCode).toBe(1)
         expect(result.summary.errors.STATUS_WRITE_FAILED).toBeGreaterThan(0)
         expect(result.summary.updated).toBe(phase === "progress" ? 1 : 2)
@@ -348,7 +516,7 @@ for (const real of [false, true]) {
     })
     it.each(["wrong", "multiple", "absent"] as const)("rejects a %s migration-status receipt without exposing it", async statusReceipt => {
       await check([evidence(), candidate(2), candidate(3)], async h => {
-        const result = await h.run(["--apply", "--batch=2"])
+        const result = await h.apply(["--apply", "--batch=2"])
         expect(result.exitCode).toBe(1)
         expect(result.summary.errors.STATUS_WRITE_FAILED).toBeGreaterThan(0)
         expect(result.summary.updated).toBe(1)
