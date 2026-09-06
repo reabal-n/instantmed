@@ -10,7 +10,7 @@
 
 **Spec:** [ROADMAP](../../ROADMAP.md), rank 1; [reconciled audit](../../audits/2026-09-04-scaling-audit.md); [payment operations](../../OPERATIONS.md); [security](../../SECURITY.md). Operator selected reliability before certificate revenue on 6 September 2026.
 
-**Status:** In progress on 2026-09-06. Checkout recovery and the profile-repair tooling are released. Monitoring passed required CI, is released with its additive migration verified, and has recovered observer availability in production; its 24-hour cadence measurement is handed off. The approved-scope race is corrected and independently reviewed in a follow-up draft; the historical production repair awaits the reviewed follow-up release and operator approval of the new frozen-scope packet; its exact-head CI has passed. The earlier aggregate-only packet remains superseded. Plan 2 has not started; see the execution receipt below for separate source, CI and production evidence.
+**Status:** In progress on 2026-09-06. Checkout recovery and the profile-repair tooling are released. Monitoring passed required CI, is released with its additive migration verified, and has recovered observer availability in production; its 24-hour cadence measurement is handed off. The approved-scope race is corrected and independently reviewed in follow-up PR #528; the historical production repair awaits the reviewed follow-up release and operator approval of the new frozen-scope packet; its exact-head CI has passed. The earlier aggregate-only packet remains superseded. Plan 2 has not started; see the execution receipt below for separate source, CI and production evidence.
 
 ## Global constraints
 
@@ -66,7 +66,8 @@ Source review found three prerequisites in `scripts/encrypt-phi-backfill.ts`: it
 - [x] Make updates compare-and-set and make success counts reflect rows actually changed. Use keyset pagination or another scheme that cannot skip rows as the missing-field set shrinks.
 - [x] Test wrong key, changed plaintext, newly added ciphertext, null/empty fields, partial batches, resumability, fixture exclusions and idempotent reruns.
 - [x] Replace identifier/raw-error output with aggregate results and bounded error categories. Verify that both stdout and persisted migration-status errors are safe.
-- [ ] Produce the exact dry-run packet: project identity, code SHA, field counts, exclusions, key compatibility, guarded-write method, verification command and stop conditions. Resolve apply authorization against the current session before executing.
+- [x] Produce and independently review the exact dry-run packet: project identity, code SHA, field counts, exclusions, key compatibility, guarded-write method, verification command and stop conditions.
+- [ ] Resolve apply authorization against the current session before executing the reviewed packet.
 - [x] Freeze the preflight candidate/field/snapshot set and require a matching approved scope fingerprint and counts before any write. Prove insertion, newly eligible rows, equal-count substitutions and a nonzero zero-change rerun cannot expand the approved apply.
 - [ ] After an authorized apply, verify parity, decryptability, remaining exceptions and a zero-change rerun. Record the aggregate receipt in SECURITY.md. Retain plaintext until the separate reader audit and retirement decision; do not remove keys or historical rows.
 
@@ -147,7 +148,7 @@ Required monitoring CI, schema application, deployment/smoke and production obse
 
 ### Outstanding work and handoff boundary
 
-- Complete the final release/data receipts and the explicit monitoring cadence measurement handoff. Preserve the March certificate incident and pre-existing Google Ads/review-request cron failures; do not clear them as part of monitoring acceptance.
+- Finalize the remaining release/data receipts. The monitoring cadence measurement is handed off below. Preserve the March certificate incident and pre-existing Google Ads/review-request cron failures; do not clear them as part of monitoring acceptance.
 - Release the reviewed, exact-CI-passing scope correction, resolve applicable approval of its matching fresh production packet, then verify the authorized repair and conditional zero-change rerun. The earlier aggregate-only apply question remains superseded.
 - **Cadence measurement handoff:** Rey/operations should review the first complete post-release 24-hour window at 2026-09-07 12:00 UTC (22:00 Sydney), recording scheduled invocation and actual named browser-step completion separately, all completion gaps, observer availability, failure/recovery and freshness incidents. A manual run is not schedule acceptance; no new scheduled task is created. If release slips beyond 2026-09-06 12:00 UTC, move this read to at least 24 hours after READY.
 - This whole plan cannot be marked complete while the required production data repair is outstanding. The operator decides whether Plan 2 may proceed with a documented exception. The nine retrospective cases, March certificate and two April Ads discrepancies retain the boundaries above.

@@ -52,7 +52,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 
 ### Encryption Status
 
-**Production apply remains unauthorized and unperformed.** The frozen-scope guard and current read-only packet below have separate review/release gates; final main-based CI and applicable operator approval remain required. The earlier aggregate-only packet is superseded.
+**Production apply remains unauthorized and unperformed.** The frozen-scope guard and current read-only packet below have passed independent review, final main-based CI and a matching fresh dry run. Normal release and applicable operator approval remain pending. The earlier aggregate-only packet is superseded.
 
 **Phase 1 (profiles — runtime shipped; historical coverage requires backfill):** `profiles.medicare_number_encrypted`, `profiles.date_of_birth_encrypted`, `profiles.phone_encrypted` use the existing `ENCRYPTION_KEY` AES-256-GCM format. Runtime support is not proof that every historical nonempty plaintext value has an encrypted copy.
 
