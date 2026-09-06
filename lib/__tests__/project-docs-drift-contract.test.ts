@@ -153,9 +153,9 @@ describe("project docs drift contract", () => {
         "`20260905120000_refill_reminder_funnel.sql`",
       )
       expect(source).toContain("were applied in order on 2026-09-05")
-      expect(source).toContain("Newest on-disk migration is `20260906100000_monitor_observation_state.sql` (additive monitoring CAS; not applied in production)")
+      expect(source).toContain("Newest on-disk migration is `20260906100000_monitor_observation_state.sql` (additive monitoring CAS; applied and verified in production on 2026-09-06)")
       expect(source).toContain(
-        "Latest applied/verified production migration is `20260905130000_google_ads_adjustment_health_reconciliation.sql`",
+        "Latest applied/verified production migration is `20260906100000_monitor_observation_state.sql`",
       )
       expect(source).toContain(
         "`20260903120000_recovery_email_engagement.sql`",
@@ -209,13 +209,16 @@ describe("project docs drift contract", () => {
       "All four pending migrations, including runtime-schema convergence `20260904160000`, were applied in order on 2026-09-05",
     )
     expect(architecture).toContain(
-      "Latest applied/verified production timestamp is `20260905130000`",
+      "Latest applied/verified production timestamp is `20260906100000`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
     expect(architecture).toContain("Production receipt (2026-08-23)")
     expect(architecture).toContain("Production receipt (2026-08-28)")
     expect(architecture).toContain("Production receipt (2026-09-04)")
+    expect(architecture).toContain("Production receipt (2026-09-06)")
+    expect(architecture).toContain("`append_monitor_state(text,bigint,jsonb)` as SECURITY DEFINER with a fixed empty search path")
+    expect(architecture).toContain("service-role SELECT/INSERT with no UPDATE grant or browser SELECT")
     expect(architecture).toContain("`trg_intakes_preserve_recovery_email_engagement`")
     expect(architecture).toContain("The migration performed no backfill")
     expect(architecture).toContain("roles exactly `{authenticated}`")
@@ -225,7 +228,7 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Latest applied/verified production migration is `20260905130000_google_ads_adjustment_health_reconciliation.sql`",
+      "Latest applied/verified production migration is `20260906100000_monitor_observation_state.sql`",
     )
     expect(wikiArchitecture).toContain(
       "were applied in order on 2026-09-05",
@@ -235,7 +238,7 @@ describe("project docs drift contract", () => {
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
-      "Linked migration history is aligned through `20260905130000`",
+      "Linked migration history is aligned through `20260906100000`",
     )
     expect(wikiArchitecture).toContain(
       "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied",
