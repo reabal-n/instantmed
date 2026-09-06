@@ -206,7 +206,9 @@ export async function findConvertedPartialIntakeForCheckout(
     return { kind: "blocked", reason: "query_error" }
   }
   if (!intake) {
-    return { kind: "blocked", reason: "query_error" }
+    // A successful owner-scoped read with no matching request is an identity
+    // boundary, distinct from an unexpected database failure above.
+    return { kind: "blocked", reason: "request_mismatch" }
   }
   if (
     (intake.flow_instance_id && intake.flow_instance_id !== flowInstanceId) ||

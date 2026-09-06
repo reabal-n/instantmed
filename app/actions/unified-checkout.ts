@@ -165,15 +165,16 @@ async function createCheckoutFromUnifiedFlowInternal(
       discarded:
         "This saved request was discarded. Start a new request to continue.",
       identity_mismatch:
-        "This saved request belongs to a different email. Use the email from the request or contact support.",
+        "We couldn’t verify access to this saved request. Sign in with the email you used, or contact support for help.",
       query_error:
         "We couldn’t safely verify this saved request. Please try again shortly.",
       request_mismatch:
-        "This saved request does not match the service you are trying to pay for. Please start again.",
+        "We couldn’t verify access to this saved request. Sign in with the email you used, or contact support for help.",
     } as const
     return checkoutFailure(
       convertedDraft.reason === "query_error" ? "persistence" : "auth_or_session",
       blockedMessages[convertedDraft.reason],
+      convertedDraft.reason === "identity_mismatch" || convertedDraft.reason === "request_mismatch" ? { requiresSignIn: true } : {},
     )
   }
 
@@ -208,7 +209,7 @@ async function createCheckoutFromUnifiedFlowInternal(
       !intake.patientId || !identity.email || !intake.guestEmail ||
       identity.email.trim().toLowerCase() !== intake.guestEmail.trim().toLowerCase()
     ))) {
-      return checkoutFailure("auth_or_session", "We couldn't verify ownership of this saved request. Sign in to the matching account or contact support.")
+      return checkoutFailure("auth_or_session", "We couldn't verify ownership of this saved request. Sign in to the matching account or contact support.", { requiresSignIn: true })
     }
 
     if (isTerminalPaidPaymentStatus(intake.paymentStatus)) {

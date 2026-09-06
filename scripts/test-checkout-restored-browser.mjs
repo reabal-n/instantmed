@@ -36,9 +36,9 @@ const server = createServer(async (req, res) => {
   if (req.url === '/fixture-checkout') {
     checkoutCalls++
     res.setHeader('content-type', 'application/json')
-    res.end(JSON.stringify({ success: false, failureCategory: mode === 'fresh' ? 'identity_or_session' : 'payment_provider', failureCode: mode === 'fresh' ? 'auth_or_session' : 'payment_provider', failureTaxonomyVersion: 'checkout_v2_20260905',
-      error: mode === 'fresh' ? 'Your previous request was cancelled and its payment session is closed. Start this request over and complete the form again to continue.' : 'We need to confirm the payment status of your previous request. Contact support@instantmed.com.au before starting another payment.',
-      ...(mode === 'fresh' ? { requiresFreshRequest: true } : {}),
+    res.end(JSON.stringify({ success: false, failureCategory: mode !== 'blocked' ? 'identity_or_session' : 'payment_provider', failureCode: mode !== 'blocked' ? 'auth_or_session' : 'payment_provider', failureTaxonomyVersion: 'checkout_v2_20260905',
+      error: mode === 'sign_in' ? "We couldn't verify access to this saved request. Sign in with the email you used, or contact support for help." : mode === 'fresh' ? 'Your previous request was cancelled and its payment session is closed. Start this request over and complete the form again to continue.' : 'We need to confirm the payment status of your previous request. Contact support@instantmed.com.au before starting another payment.',
+      ...(mode === 'fresh' ? { requiresFreshRequest: true } : mode === 'sign_in' ? { requiresSignIn: true } : {}),
     }))
   } else if (req.url.startsWith('/api/')) { res.setHeader('content-type', 'application/json'); res.end('{}') }
   else if (/^\/logos\/payment\/[a-z-]+\.svg$/.test(req.url)) {
@@ -97,6 +97,30 @@ try {
       assert.equal(state.consent, false); assert.equal(state.terms, false); assert.equal(state.accuracy, false)
       assert.equal(state.email, '')
       assert.notEqual(state.bearer, '42424242-4242-4242-8242-424242424242')
+      mode = 'sign_in'
+      await page.evaluate(() => { localStorage.clear(); sessionStorage.clear() })
+      await page.reload()
+      if (dark) await page.locator('html').evaluate(element => element.classList.add('dark'))
+      await pay.evaluate(button => button.click())
+      const signIn = page.getByRole('link', { name: 'Sign in to continue' })
+      await signIn.waitFor({ state: 'visible' })
+      assert.equal(await pay.isDisabled(), true)
+      assert.equal(await pay.getAttribute('data-intake-primary-ready'), 'false')
+      assert.equal(await page.getByRole('button', { name: 'Start this request over' }).count(), 0)
+      assert.equal(await page.getByRole('link', { name: 'Contact support', exact: true }).getAttribute('href'), 'mailto:support@instantmed.com.au')
+      assert.equal(await signIn.getAttribute('href'), '/sign-in?redirect_url=%2Frequest%3Fservice%3Dprescription')
+      assert.equal(await page.getByText("Your card hasn't been charged.", { exact: false }).count(), 0)
+      const signInCalls = checkoutCalls
+      await pay.evaluate(button => button.click())
+      assert.equal(checkoutCalls, signInCalls)
+      await signIn.focus()
+      assert.equal(await signIn.evaluate(el => el === document.activeElement), true)
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+      await page.screenshot({ path: join(scratch, `sign-in-${viewport.width}-${dark ? 'dark' : 'light'}.png`), fullPage: true })
+      await signIn.click()
+      await page.waitForURL('**/sign-in?redirect_url=*')
+      // This checks navigation/handoff only. The fixture does not implement
+      // the real sign-in page or claim an authenticated service-provider flow.
       assert.deepEqual(errors, []); assert.deepEqual(external, [])
       await context.close()
     }
@@ -109,5 +133,5 @@ try {
   await page.getByText('We need to confirm the payment status', { exact: false }).waitFor()
   assert.equal(await page.getByRole('button', { name: 'Start this request over' }).count(), 0)
   await context.close()
-  process.stdout.write(`PASS: real ReviewStep/store; desktop/mobile light/dark, keyboard, disabled stale Pay, deliberate new identity, cleared answers/consent, unresolved provider state. Screenshots: ${scratch}\n`)
+  process.stdout.write(`PASS: real ReviewStep/store; desktop/mobile light/dark, keyboard, disabled stale Pay, deliberate new identity, cleared answers/consent, possession-blocked sign-in/support navigation, unresolved provider state. Screenshots: ${scratch}\n`)
 } finally { await browser.close(); await new Promise(ok => server.close(ok)) }

@@ -37,7 +37,7 @@ describe("unified converted draft checkout", () => {
   it("does not disclose a foreign request to a signed-in browser", async () => {
     mocks.auth.mockResolvedValue({ user: { email: "fixture@example.test" }, profile: { id: "different-owner" } })
     const result = await createCheckoutFromUnifiedFlow(input())
-    expect(result).toMatchObject({ success: false, failureCode: "auth_or_session" })
+    expect(result).toMatchObject({ success: false, failureCode: "auth_or_session", requiresSignIn: true })
     expect(JSON.stringify(result)).not.toContain("owned-intake")
     expect(mocks.reconcile).not.toHaveBeenCalled()
   })
@@ -45,6 +45,15 @@ describe("unified converted draft checkout", () => {
     mocks.draft.mockResolvedValue({ kind: "reusable", intake: { ...intake, guestEmail: null } })
     await expect(createCheckoutFromUnifiedFlow(input())).resolves.toMatchObject({ success: false, failureCode: "auth_or_session" })
     expect(mocks.reconcile).not.toHaveBeenCalled()
+  })
+  it.each(["identity_mismatch", "request_mismatch"])("provides sign-in recovery for %s without creating or disclosing a request", async (reason) => {
+    mocks.draft.mockResolvedValue({ kind: "blocked", reason })
+    const result = await createCheckoutFromUnifiedFlow(input())
+    expect(result).toMatchObject({ success: false, failureCode: "auth_or_session", requiresSignIn: true })
+    expect(JSON.stringify(result)).not.toMatch(/owned-intake|cs_original|requiresFreshRequest/)
+    expect(mocks.reconcile).not.toHaveBeenCalled()
+    expect(mocks.guest).not.toHaveBeenCalled()
+    expect(mocks.create).not.toHaveBeenCalled()
   })
   it("revalidates current clinical answers before looking up an old obligation", async () => {
     const request = input()

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({ retrieve: vi.fn(), expire: vi.fn() }))
 vi.mock("@/lib/stripe/client", () => ({ stripe: { checkout: { sessions: { retrieve: mocks.retrieve, expire: mocks.expire } } } }))
 vi.mock("@/lib/analytics/posthog-server", () => ({ trackIntakeFunnelStep: vi.fn() }))
+import { findConvertedPartialIntakeForCheckout } from "@/lib/request/server-draft-conversion"
 import { type CreateIntakeRowInput,createIntakeWithAnswers } from "@/lib/stripe/checkout/persistence"
 
 const fixtureUrl = process.env.CHECKOUT_FIXTURE_URL
@@ -22,15 +23,34 @@ const args = {
   patientId: "fixture-owner", serviceId: "fixture-service", serviceSlug: "med-cert-sick", isPriority: false,
   amountCents: 2495, priceId: "fixture-price", attribution: {}, baseUrl: "http://localhost:3060",
 } as CreateIntakeRowInput
-const original = { id: intakeId, patient_id: "fixture-owner", category: "medical_certificate", subtype: "work", status: "cancelled", payment_status: "unpaid", payment_id: "cs_fixture", checkout_error: null, flow_instance_id: flow, idempotency_key: "old-submission-key" }
+const original = { id: intakeId, guest_email: "fixture@example.test", patient_id: "fixture-owner", category: "medical_certificate", subtype: "work", status: "cancelled", payment_status: "unpaid", payment_id: "cs_fixture", checkout_error: null, flow_instance_id: flow, idempotency_key: "old-submission-key" }
 
 describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/PostgREST", () => {
   beforeEach(async () => {
     vi.clearAllMocks()
+    expect((await db.from("partial_intakes").delete().not("session_id", "is", null)).error).toBeNull()
     const deletion = await db.from("intakes").delete().eq("id", intakeId)
     expect(deletion.error).toBeNull()
     expect((await db.from("intakes").insert(original)).error).toBeNull()
     mocks.retrieve.mockResolvedValue({ id: "cs_fixture", metadata: { intake_id: intakeId }, status: "expired", payment_status: "unpaid", payment_intent: null })
+  })
+  it("validates an exact converted bearer and owner using the canonical claim RPC", async () => {
+    const sessionId = "43434343-4343-4343-8343-434343434343"
+    expect((await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email: "fixture@example.test", converted_to_intake_id: intakeId, expires_at: "2099-01-01T00:00:00Z" })).error).toBeNull()
+    const input = { sessionId, flowInstanceId: flow, serviceType: "med-cert" as const, category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: "fixture-owner" }
+    await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "reusable", intake: { id: intakeId, patientId: "fixture-owner" } })
+    await expect(findConvertedPartialIntakeForCheckout(db, { ...input, patientId: "foreign-owner" })).resolves.toMatchObject({ kind: "blocked" })
+    await expect(findConvertedPartialIntakeForCheckout(db, { ...input, flowInstanceId: "44444444-4444-4444-8444-444444444444" })).resolves.toMatchObject({ kind: "blocked", reason: "request_mismatch" })
+    await expect(findConvertedPartialIntakeForCheckout(db, { ...input, serviceType: "consult" })).resolves.toMatchObject({ kind: "blocked", reason: "request_mismatch" })
+    expect(mocks.retrieve).not.toHaveBeenCalled()
+  })
+  it("does not confer existing-request access on a manufactured same-flow unconverted bearer", async () => {
+    const sessionId = "45454545-4545-4545-8545-454545454545"
+    // The draft API permits this shape even after the intake exists. Neither
+    // the flow ID nor claimed email can substitute for its missing conversion.
+    expect((await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email: "fixture@example.test", expires_at: "2099-01-01T00:00:00Z" })).error).toBeNull()
+    await expect(findConvertedPartialIntakeForCheckout(db, { sessionId, flowInstanceId: flow, serviceType: "med-cert", category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: "fixture-owner" })).resolves.toMatchObject({ kind: "none", reason: "not_converted" })
+    expect(mocks.retrieve).not.toHaveBeenCalled()
   })
   it("reproduces the real 23505 flow collision independently of submission key", async () => {
     const collision = await db.from("intakes").insert({ ...original, id: undefined, idempotency_key: "new-submission-key" })

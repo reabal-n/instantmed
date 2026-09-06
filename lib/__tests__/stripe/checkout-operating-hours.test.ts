@@ -141,6 +141,7 @@ interface DuplicateGuestIntake {
     | null
   flow_instance_id?: string | null
   guest_email: string
+  patient_id?: string
   growth_experience_version?: string | null
   id: string
   is_priority: boolean
@@ -265,6 +266,7 @@ function createGuestCheckoutSupabaseMock({
   existingGuestProfiles = [],
   forceDuplicate = false,
   restoredFlow = false,
+  draftProof = "missing",
 }: {
   boundDraftGrowthRead?: {
     data: { growth_experience_version: string | null } | null
@@ -276,6 +278,7 @@ function createGuestCheckoutSupabaseMock({
   existingGuestProfiles?: Array<Record<string, unknown>>
   forceDuplicate?: boolean
   restoredFlow?: boolean
+  draftProof?: "valid" | "missing" | "expired" | "wrong_flow" | "wrong_service" | "foreign_email" | "unconverted"
 } = {}) {
   if (duplicateIntake) {
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(
@@ -287,6 +290,7 @@ function createGuestCheckoutSupabaseMock({
   const inserts: Array<{ table: string; payload: Record<string, unknown> }> = []
   const updates: Array<{ table: string; payload: Record<string, unknown> }> = []
   const deletes: string[] = []
+  const intakeLookups: Array<Record<string, unknown>> = []
 
   const makeBuilder = (table: string) => {
     let operation: "select" | "insert" | "update" | "delete" | null = null
@@ -295,7 +299,7 @@ function createGuestCheckoutSupabaseMock({
     const matchesRestored = () => !restoredFlow || (
       filters.flow_instance_id === SPECIALTY_FLOW_INSTANCE_ID
       && filters.patient_id === "guest-profile-1"
-    ) || (restoredFlow && filters.id === duplicateIntake?.id && filters.patient_id === "guest-profile-1")
+    ) || (restoredFlow && filters.id === duplicateIntake?.id && filters.patient_id === (duplicateIntake?.patient_id ?? "guest-profile-1"))
     const builder = {
       eq: vi.fn((column: string, value: unknown) => { filters[column] = value; return builder }),
       in: vi.fn(() => builder),
@@ -341,23 +345,23 @@ function createGuestCheckoutSupabaseMock({
         if (table === "intakes" && operation === "insert") return { data: { id: "intake-1" }, error: null }
         return { data: null, error: null }
       }),
-      maybeSingle: vi.fn(async () => ({
-        data:
-          table === "partial_intakes" && operation === "select"
-            ? boundDraftGrowthRead?.data ?? null
-            : table === "intakes" && operation === "select"
-            ? matchesRestored() ? duplicateIntake || null : null
-            : table === "intake_answers" &&
-                operation === "select" &&
-                duplicateIntake &&
-                duplicateAnswers
-              ? { intake_id: duplicateIntake.id }
+      maybeSingle: vi.fn(async () => {
+        if (table === "intakes" && operation === "select") intakeLookups.push({ ...filters })
+        return {
+          data:
+            table === "partial_intakes" && operation === "select"
+              ? boundDraftGrowthRead?.data ?? null
+              : table === "intakes" && operation === "select"
+                ? matchesRestored() && duplicateIntake ? { patient_id: "guest-profile-1", ...duplicateIntake } : null
+                : table === "intake_answers" && operation === "select" && duplicateIntake && duplicateAnswers
+                  ? { intake_id: duplicateIntake.id }
+                  : null,
+          error:
+            table === "partial_intakes" && operation === "select"
+              ? boundDraftGrowthRead?.error ?? null
               : null,
-        error:
-          table === "partial_intakes" && operation === "select"
-            ? boundDraftGrowthRead?.error ?? null
-            : null,
-      })),
+        }
+      }),
       gt: vi.fn(() => builder),
       then: (resolve: (value: { data?: unknown; error: null }) => void) => {
         if (table === "profiles" && operation === "select" && selectCount > 1) {
@@ -378,7 +382,21 @@ function createGuestCheckoutSupabaseMock({
   return {
     deletes,
     inserts,
-    supabase: { from: vi.fn((table: string) => makeBuilder(table)) },
+    intakeLookups,
+    supabase: {
+      from: vi.fn((table: string) => makeBuilder(table)),
+      rpc: vi.fn((_operation: string, args: Record<string, unknown>) => ({
+        maybeSingle: vi.fn(async () => ({
+          data: draftProof === "missing" || draftProof === "expired" || args.p_session_id !== SPECIALTY_DRAFT_SESSION_ID ? null : {
+            converted_to_intake_id: draftProof === "unconverted" ? null : duplicateIntake?.id,
+            email: draftProof === "foreign_email" ? "foreign@example.test" : "patient@example.test",
+            flow_instance_id: draftProof === "wrong_flow" ? "44444444-4444-4444-8444-444444444444" : SPECIALTY_FLOW_INSTANCE_ID,
+            service_type: draftProof === "wrong_service" ? "prescription" : "consult",
+          },
+          error: null,
+        })),
+      })),
+    },
     updates,
   }
 }
@@ -943,13 +961,98 @@ describe("checkout operating hours", () => {
   })
 
 
+  it("release review rejects flow-only guest recovery without possession proof", async () => {
+    const duplicateIntake = makeDuplicateHairIntake({ flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, status: "paid", payment_status: "paid" })
+    const { supabase } = createGuestCheckoutSupabaseMock({
+      duplicateIntake, restoredFlow: true,
+      existingGuestProfiles: [{ id: "guest-profile-1", email: "patient@example.test", email_verified: false, full_name: "Test Patient", date_of_birth: "1985-04-01", auth_user_id: null }],
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const result = await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID })
+    expect(result).toMatchObject({ success: false, failureCode: "auth_or_session" })
+    expect(JSON.stringify(result)).not.toContain("cs_current")
+  })
+
+  describe.each(["paid", "cancelled", "pending_payment"])("guest restored %s possession boundary", (status) => {
+    it.each(["missing", "invalid", "foreign_bearer", "expired", "wrong_flow", "wrong_service", "foreign_email", "unconverted"] as const)("blocks %s proof before private lookup or provider IO", async (proof) => {
+      const duplicateIntake = makeDuplicateHairIntake({ flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, status, payment_status: status === "paid" ? "paid" : "unpaid" })
+      const { supabase, intakeLookups } = createGuestCheckoutSupabaseMock({
+        duplicateIntake, restoredFlow: true,
+        draftProof: proof === "invalid" || proof === "foreign_bearer" ? "valid" : proof,
+        existingGuestProfiles: [{ id: "guest-profile-1", email: "patient@example.test", email_verified: false, full_name: "Test Patient", date_of_birth: "1985-04-01", auth_user_id: null }],
+      })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+      const result = await createGuestCheckoutAction({
+        ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID,
+        serverDraftSessionId: proof === "missing" ? undefined : proof === "invalid" ? "invalid" : proof === "foreign_bearer" ? "55555555-5555-4555-8555-555555555555" : SPECIALTY_DRAFT_SESSION_ID,
+      })
+      expect(result).toMatchObject({ success: false, failureCode: "auth_or_session", requiresSignIn: true })
+      expect(JSON.stringify(result)).not.toMatch(/intake-existing|cs_current|requiresFreshRequest/)
+      // The established exact submission-key lookup is preserved. No request
+      // lookup by flow or id may run when bearer possession is unproven.
+      expect(intakeLookups).toHaveLength(1)
+      expect(intakeLookups[0]).toHaveProperty("idempotency_key")
+      expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+    })
+  })
+
+  it("rejects a converted bearer bound to a foreign profile", async () => {
+    const duplicateIntake = makeDuplicateHairIntake({ flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, patient_id: "foreign-profile", status: "paid", payment_status: "paid" })
+    const { supabase, intakeLookups } = createGuestCheckoutSupabaseMock({ duplicateIntake, restoredFlow: true, draftProof: "valid" })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const result = await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID })
+    expect(result).toMatchObject({ success: false, failureCode: "auth_or_session", requiresSignIn: true })
+    expect(intakeLookups).toHaveLength(2)
+    expect(intakeLookups[1]).toMatchObject({ id: "intake-existing", patient_id: "guest-profile-1" })
+    expect(JSON.stringify(result)).not.toMatch(/intake-existing|cs_current/)
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+  })
+
+  it("preserves persistence taxonomy when the bearer database claim fails", async () => {
+    const { supabase, intakeLookups } = createGuestCheckoutSupabaseMock({ duplicateIntake: makeDuplicateHairIntake(), restoredFlow: true })
+    supabase.rpc.mockReturnValue({ maybeSingle: vi.fn(async () => ({ data: null, error: { code: "08006", message: "fixture connection failure" } })) } as never)
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const result = await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID })
+    expect(result).toMatchObject({ success: false, failureCode: "persistence" })
+    expect(intakeLookups).toHaveLength(1)
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+  })
+
+  it("validates current clinical answers before accepting even a converted bearer", async () => {
+    const duplicateIntake = makeDuplicateHairIntake({ flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, status: "cancelled", payment_status: "unpaid" })
+    const { supabase, intakeLookups } = createGuestCheckoutSupabaseMock({ duplicateIntake, restoredFlow: true, draftProof: "valid" })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const input = hairLossGuestCheckoutInput()
+    mocks.validateSafetyFieldsPresent.mockReturnValueOnce({ valid: false, missingFields: ["hairReproductive"] })
+    const result = await createGuestCheckoutAction({ ...input, answers: { ...input.answers, hairReproductive: undefined }, flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID })
+    expect(result).toMatchObject({ success: false, failureCode: "clinical_or_input_validation" })
+    expect(supabase.rpc).not.toHaveBeenCalled()
+    expect(intakeLookups).toHaveLength(0)
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+  })
+
+  it("returns the existing paid request only after exact converted bearer proof", async () => {
+    const duplicateIntake = makeDuplicateHairIntake({ flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, status: "paid", payment_status: "paid" })
+    const { supabase, intakeLookups } = createGuestCheckoutSupabaseMock({ duplicateIntake, restoredFlow: true, draftProof: "valid" })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const result = await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID })
+    expect(result).toMatchObject({ success: true, intakeId: "intake-existing" })
+    expect(supabase.rpc).toHaveBeenCalledWith("claim_partial_intake_draft_for_checkout", { p_flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, p_service_type: "consult", p_session_id: SPECIALTY_DRAFT_SESSION_ID })
+    expect(intakeLookups.slice(1)).toHaveLength(2)
+    expect(intakeLookups.slice(1).every((lookup) => lookup.id === "intake-existing" && lookup.patient_id === "guest-profile-1")).toBe(true)
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+  })
+
   it.each(["guest", "authenticated"])("recovers a cancelled restored flow with a new submission key through %s checkout", async (actor) => {
     const duplicateIntake = makeDuplicateHairIntake({
       flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID,
       status: "cancelled",
       payment_status: "unpaid",
     })
-    const { supabase, inserts } = createGuestCheckoutSupabaseMock({ duplicateIntake, restoredFlow: true })
+    const { supabase, inserts } = createGuestCheckoutSupabaseMock({ duplicateIntake, restoredFlow: true, draftProof: "valid" })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.stripeSessionRetrieve.mockResolvedValue({
       id: "cs_current", metadata: { intake_id: "intake-existing" }, payment_intent: null,
@@ -962,7 +1065,7 @@ describe("checkout operating hours", () => {
       })
     }
     const result = actor === "guest"
-      ? await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID })
+      ? await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID })
       : await createIntakeAndCheckoutAction({ ...hairLossAuthenticatedCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID })
     expect(result).toMatchObject({ success: false, requiresFreshRequest: true, failureCode: "auth_or_session" })
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()

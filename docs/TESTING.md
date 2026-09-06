@@ -396,13 +396,13 @@ node scripts/test-checkout-restored-browser.mjs
 The required CI `build` job runs the database command beside the existing disposable
 DB checks. It creates uniquely named PostgreSQL 15 and PostgREST containers, binds
 PostgREST to a random loopback port, loads a synthetic minimal schema and the exact
-flow-uniqueness index from the canonical migration, then exercises the real
+flow-uniqueness index and draft-claim function from canonical migrations, then exercises the real
 checkout persistence and conditional-update paths. Its exit trap removes only the
 two run-owned containers and their anonymous volumes; it does not reuse a local Supabase project or load an
-environment file. The six DB tests intentionally skip during ordinary Vitest runs
+environment file. The eight DB tests intentionally skip during ordinary Vitest runs
 unless this harness supplies `CHECKOUT_FIXTURE_URL`, which rejects non-loopback
 endpoints. Passing this fixture proves uniqueness, ownership filtering, and CAS
-behavior, not a full migration replay or production RLS acceptance.
+behavior, including exact converted-bearer binding and manufactured unconverted same-flow rejection, not a full migration replay or production RLS acceptance.
 
 The browser command requires Chromium from the existing Playwright installation
 and an unused port **3060**. It bundles the real review component, Zustand request
@@ -416,3 +416,17 @@ copy. The browser/server close on exit; the printed temporary output directory
 retains logs/assets/screenshots for review and may be deleted afterward. This is
 component-and-store interaction proof, not the full Next request shell/SSR journey,
 a real provider Session, or a hosted Stripe payment acceptance run.
+
+Guest restored-checkout possession regressions run with
+`corepack pnpm test run lib/__tests__/stripe/checkout-operating-hours.test.ts`.
+They cover missing, malformed, unknown/foreign, expired, wrong-flow/service/email,
+and manufactured unconverted bearers across paid, cancelled, and pending states,
+with no private existing-request lookup or provider IO after the preserved exact
+submission-key lookup. Positive recovery requires a validated converted bearer
+bound to the existing intake/profile; a missing conversion marker is sign-in/support
+recovery, even when email and flow match. Current clinical validation still runs
+before bearer recovery. Authenticated owner-scoped flow fallback remains separate.
+The browser fixture also checks this sign-in/support state in all four views:
+disabled Pay, no restart action or unsupported payment claim, keyboard focus,
+and the existing sign-in redirect. That redirect proves navigation only, not a
+real authenticated sign-in or hosted provider flow.

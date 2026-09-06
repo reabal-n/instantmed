@@ -18,6 +18,10 @@ docker exec -i "$FIXTURE_NAME" psql -v ON_ERROR_STOP=1 -U postgres < "$REPO_ROOT
 sed -n '/^create unique index if not exists idx_intakes_flow_instance_id/,/where flow_instance_id is not null;/p' \
   "$REPO_ROOT/supabase/migrations/20260723063000_suppress_recovery_after_intake_creation.sql" \
   | docker exec -i "$FIXTURE_NAME" psql -v ON_ERROR_STOP=1 -U postgres >/dev/null
+# Exercise the production bearer claim logic without copying/reimplementing it.
+sed -n '/^create or replace function public.claim_partial_intake_draft_for_checkout(/,/^\$\$;/p' \
+  "$REPO_ROOT/supabase/migrations/20260722231500_fence_discarded_partial_intake_drafts.sql" \
+  | docker exec -i "$FIXTURE_NAME" psql -v ON_ERROR_STOP=1 -U postgres >/dev/null
 docker run -d --name "${FIXTURE_NAME}-rest" --network "container:$FIXTURE_NAME" \
   -e PGRST_DB_URI=postgres://postgres:fixture-only@127.0.0.1:5432/postgres \
   -e PGRST_DB_ANON_ROLE=checkout_fixture -e PGRST_DB_SCHEMAS=public \

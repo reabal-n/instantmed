@@ -292,6 +292,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [requiresFreshRequest, setRequiresFreshRequest] = useState(false)
+  const [requiresSignIn, setRequiresSignIn] = useState(false)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [isPriority, setIsPriority] = useState(false)
   // Quiet hours (silent, no explanatory copy): the upsell simply does not
@@ -336,6 +337,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     setIsProcessing(true)
     setError(null)
     setRequiresFreshRequest(false)
+    setRequiresSignIn(false)
 
     const identity = getIdentity()
     const attribution = getAttribution()
@@ -384,6 +386,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
           failure_taxonomy_version: result.failureTaxonomyVersion,
         })
         setRequiresFreshRequest(Boolean(result.requiresFreshRequest))
+        setRequiresSignIn(Boolean(result.requiresSignIn))
         setError(result.error || "Unable to create payment session. Please try again.")
         return
       }
@@ -1129,13 +1132,13 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         <Button
           data-intake-primary-action="true"
           data-intake-primary-label={`Pay $${totalDue.toFixed(2)}`}
-          data-intake-primary-ready={safetyConfirmed && !requiresFreshRequest ? "true" : "false"}
-          onClick={requiresFreshRequest ? undefined : safetyConfirmed ? handlePayment : handleDisabledClick}
+          data-intake-primary-ready={safetyConfirmed && !requiresFreshRequest && !requiresSignIn ? "true" : "false"}
+          onClick={requiresFreshRequest || requiresSignIn ? undefined : safetyConfirmed ? handlePayment : handleDisabledClick}
           variant={safetyConfirmed ? "default" : "secondary"}
           className="w-full h-12 max-sm:hidden"
-          aria-disabled={!safetyConfirmed || isProcessing || requiresFreshRequest}
+          aria-disabled={!safetyConfirmed || isProcessing || requiresFreshRequest || requiresSignIn}
           aria-describedby={!safetyConfirmed ? 'safety-consent-warning' : undefined}
-          disabled={isProcessing || requiresFreshRequest}
+          disabled={isProcessing || requiresFreshRequest || requiresSignIn}
         >
           {isProcessing ? (
             <>
@@ -1166,13 +1169,13 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
                 </Button>
               </AlertDescription>
             </Alert>
-          ) : error.toLowerCase().includes("account already exists") ? (
+          ) : requiresSignIn || error.toLowerCase().includes("account already exists") ? (
             // Mirror checkout-step.tsx: an account-owning email is intentionally
             // bounced to sign-in; without the inline CTA this reads as
             // "nothing happened". Keep the matcher byte-identical to that surface.
             <Alert variant="destructive" role="alert">
               <AlertDescription className="space-y-2">
-                <p>An account already exists with this email address.</p>
+                <p>{requiresSignIn ? error : "An account already exists with this email address."}</p>
                 <p>
                   <a
                     href={`/sign-in?redirect_url=${encodeURIComponent('/request' + window.location.search)}`}
@@ -1192,6 +1195,9 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
                     Sign in to continue →
                   </a>
                 </p>
+                {requiresSignIn && (
+                  <p><a href="mailto:support@instantmed.com.au" className="underline font-medium hover:opacity-80">Contact support</a></p>
+                )}
               </AlertDescription>
             </Alert>
           ) : (

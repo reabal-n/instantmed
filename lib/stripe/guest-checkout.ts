@@ -36,6 +36,7 @@ import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import {
+  findConvertedPartialIntakeForCheckout,
   markPartialIntakeConverted,
   readBoundPartialIntakeGrowthExperienceVersion,
 } from "@/lib/request/server-draft-conversion"
@@ -797,7 +798,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     if (intakeError || !intake) {
       if (intakeError?.code === "23505") {
-        const lookup = (column: "idempotency_key" | "flow_instance_id", value: string) => supabase
+        const lookup = (column: "idempotency_key" | "id", value: string) => supabase
           .from("intakes")
           .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id, growth_experience_version, service:services!service_id(slug)")
           .eq("patient_id", guestProfileId)
@@ -806,7 +807,27 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           .maybeSingle()
         let duplicate = await lookup("idempotency_key", guestIdempotencyKey)
         if (!duplicate.error && !duplicate.data && input.flowInstanceId) {
-          duplicate = await lookup("flow_instance_id", input.flowInstanceId)
+          // Matching an unverified guest profile or a public flow ID is not
+          // ownership proof. A caller can manufacture a new unconverted draft
+          // with that flow, so require the validated bearer-to-intake link.
+          // Authenticated flow fallback lives in checkout/persistence.ts.
+          const draft = await findConvertedPartialIntakeForCheckout(supabase, {
+            category: input.category,
+            email: normalizedEmail,
+            patientId: guestProfileId,
+            flowInstanceId: input.flowInstanceId,
+            serviceType: input.category === "medical_certificate" ? "med-cert" : input.category === "prescription" ? "prescription" : "consult",
+            sessionId: input.serverDraftSessionId,
+            subtype: input.subtype,
+          })
+          if (draft.kind === "blocked" && draft.reason === "query_error") {
+            return checkoutFailure("persistence", "We couldn't verify this saved request. Please try again shortly or contact support.")
+          }
+          if (draft.kind !== "reusable" || draft.intake.patientId !== guestProfileId ||
+            draft.intake.guestEmail?.trim().toLowerCase() !== normalizedEmail) {
+            return checkoutFailure("auth_or_session", "We couldn't verify access to this saved request. Sign in with the email you used, or contact support for help.", { requiresSignIn: true })
+          }
+          duplicate = await lookup("id", draft.intake.id)
         }
         if (duplicate.error) {
           reportCheckoutPersistenceFailure("owned_duplicate_lookup", duplicate.error.code)

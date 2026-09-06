@@ -64,6 +64,7 @@ interface CheckoutSuccessResult {
   intakeId: string
   paymentRecoveryReason?: undefined
   requiresFreshRequest?: undefined
+  requiresSignIn?: undefined
 }
 
 export type CheckoutResult = CheckoutSuccessResult | CheckoutFailureResult
