@@ -97,7 +97,7 @@ If production repair awaits authorization or an external prerequisite, label it 
 
 ## Execution receipt
 
-**In progress — production profile repair remains outstanding.** This receipt separates implemented code, local/CI proof and production observations. The historical repair has not been applied. Plan 2 has not started.
+**Production profile repair complete; final monitoring follow-ups are in release checks.** The historical repair was applied and independently verified on 2026-09-07. This receipt separates implemented code, local/CI proof and production observations, including the remaining cadence window. Plan 2 has not started.
 
 ### Starting evidence
 
