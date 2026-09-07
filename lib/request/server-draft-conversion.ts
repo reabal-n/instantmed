@@ -96,7 +96,7 @@ export async function findConvertedPartialIntakeForCheckout(
     email,
     flowInstanceId,
     patientId,
-    requireGuestProof = false,
+    requireGuestProof,
     serviceType,
     sessionId,
     subtype,
@@ -107,7 +107,7 @@ export async function findConvertedPartialIntakeForCheckout(
     patientId?: string
     // Guest profile matching is claimed identity, so it cannot relax the
     // captured-email or exact request-flow proof as authenticated ownership can.
-    requireGuestProof?: boolean
+    requireGuestProof: boolean
     serviceType: "med-cert" | "prescription" | "consult"
     sessionId: string | null | undefined
     subtype: string
@@ -187,9 +187,6 @@ export async function findConvertedPartialIntakeForCheckout(
 
   const expectedEmail = normalizeEmail(email)
   const draftEmail = normalizeEmail(draft.email)
-  if (requireGuestProof && (!patientId || !expectedEmail || !draftEmail)) {
-    return { kind: "blocked", reason: "identity_mismatch" }
-  }
   if (expectedEmail && draftEmail && expectedEmail !== draftEmail) {
     return { kind: "blocked", reason: "identity_mismatch" }
   }
@@ -213,6 +210,11 @@ export async function findConvertedPartialIntakeForCheckout(
       reason: "not_converted",
       growthExperienceVersion: growthRow?.growth_experience_version ?? null,
     }
+  }
+  // Captured email is recovery proof for an existing obligation. A first
+  // checkout may still be waiting for the draft's identity capture to save.
+  if (requireGuestProof && (!expectedEmail || !draftEmail)) {
+    return { kind: "blocked", reason: "identity_mismatch" }
   }
 
   let intakeQuery = supabase

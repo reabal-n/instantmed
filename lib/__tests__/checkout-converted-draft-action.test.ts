@@ -26,7 +26,7 @@ describe("unified converted draft checkout", () => {
     if (authenticated) mocks.auth.mockResolvedValue({ user: { email: "fixture@example.test" }, profile: { id: "owner" } })
     await expect(createCheckoutFromUnifiedFlow(input())).resolves.toMatchObject({ success: false, failureCode: "payment_provider" })
     expect(mocks.reconcile).toHaveBeenCalledWith(expect.objectContaining({ patientId: "owner", intake: expect.objectContaining({ payment_id: "cs_original", status: "cancelled" }) }))
-    expect(mocks.draft).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ patientId: authenticated ? "owner" : undefined }))
+    expect(mocks.draft).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ patientId: authenticated ? "owner" : undefined, requireGuestProof: !authenticated }))
     expect(mocks.create).not.toHaveBeenCalled(); expect(mocks.guest).not.toHaveBeenCalled()
   })
   it.each([false, true])("reconciles expired webhook state for authenticated=%s", async (authenticated) => {

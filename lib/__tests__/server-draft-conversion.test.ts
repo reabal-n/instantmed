@@ -156,7 +156,7 @@ describe("converted server draft checkout reuse", () => {
     const intake = { id: INTAKE_ID, patient_id: "owner", guest_email: "patient@example.test", flow_instance_id: FLOW_INSTANCE_ID, category: "consult", subtype: "hair_loss", status: "pending_payment", payment_status: "pending", payment_id: "cs_original", checkout_error: null }
     const query = { select: () => query, eq: () => query, maybeSingle: async () => ({ data: intake, error: null }) }
     const db = { from: () => query, rpc: () => ({ maybeSingle: async () => ({ data: draft, error: null }) }) }
-    await expect(findConvertedPartialIntakeForCheckout(db as never, { sessionId: SESSION_ID, flowInstanceId: FLOW_INSTANCE_ID, serviceType: "consult", category: "consult", subtype: "ed", email: "patient@example.test", patientId })).resolves.toMatchObject({ kind: "service_changed", intake: { id: INTAKE_ID, subtype: "hair_loss" } })
+    await expect(findConvertedPartialIntakeForCheckout(db as never, { sessionId: SESSION_ID, flowInstanceId: FLOW_INSTANCE_ID, serviceType: "consult", category: "consult", subtype: "ed", email: "patient@example.test", patientId, requireGuestProof: !patientId })).resolves.toMatchObject({ kind: "service_changed", intake: { id: INTAKE_ID, subtype: "hair_loss" } })
   })
   it("loads the one intake already created from the same draft", async () => {
     const partialMaybeSingle = vi.fn(async () => ({
@@ -199,6 +199,7 @@ describe("converted server draft checkout reuse", () => {
     const result = await findConvertedPartialIntakeForCheckout(
       { from, rpc } as never,
       {
+        requireGuestProof: true,
         category: "prescription",
         email: " patient@example.com ",
         flowInstanceId: FLOW_INSTANCE_ID,
@@ -250,6 +251,7 @@ describe("converted server draft checkout reuse", () => {
     const result = await findConvertedPartialIntakeForCheckout(
       { from, rpc } as never,
       {
+        requireGuestProof: true,
         category: "prescription",
         email: "patient@example.com",
         flowInstanceId: FLOW_INSTANCE_ID,
@@ -300,6 +302,7 @@ describe("converted server draft checkout reuse", () => {
     await expect(findConvertedPartialIntakeForCheckout(
       { from, rpc } as never,
       {
+        requireGuestProof: true,
         category: "consult",
         email: "patient@example.com",
         flowInstanceId: FLOW_INSTANCE_ID,
@@ -316,6 +319,7 @@ describe("converted server draft checkout reuse", () => {
     await expect(findConvertedPartialIntakeForCheckout(
       { from, rpc } as never,
       {
+        requireGuestProof: true,
         category: "consult",
         email: "patient@example.com",
         flowInstanceId: OTHER_FLOW_INSTANCE_ID,
@@ -337,6 +341,7 @@ describe("converted server draft checkout reuse", () => {
     await expect(findConvertedPartialIntakeForCheckout(
       { from: vi.fn(() => query), rpc } as never,
       {
+        requireGuestProof: true,
         category: "consult",
         email: "patient@example.com",
         flowInstanceId: FLOW_INSTANCE_ID,
@@ -357,6 +362,7 @@ describe("converted server draft checkout reuse", () => {
     await expect(findConvertedPartialIntakeForCheckout(
       { from: vi.fn(), rpc } as never,
       {
+        requireGuestProof: true,
         category: "prescription",
         email: "patient@example.com",
         flowInstanceId: FLOW_INSTANCE_ID,
@@ -377,6 +383,7 @@ describe("converted server draft checkout reuse", () => {
     await expect(findConvertedPartialIntakeForCheckout(
       { from: vi.fn(), rpc } as never,
       {
+        requireGuestProof: true,
         category: "prescription",
         email: "patient@example.com",
         flowInstanceId: FLOW_INSTANCE_ID,
@@ -414,6 +421,7 @@ describe("converted server draft checkout reuse", () => {
     await expect(findConvertedPartialIntakeForCheckout(
       { from, rpc } as never,
       {
+        requireGuestProof: true,
         category: "prescription",
         email: "patient@example.com",
         flowInstanceId: FLOW_INSTANCE_ID,
@@ -430,6 +438,7 @@ describe("converted server draft checkout reuse", () => {
     await expect(findConvertedPartialIntakeForCheckout(
       { from: vi.fn(), rpc } as never,
       {
+        requireGuestProof: true,
         category: "prescription",
         email: "patient@example.com",
         flowInstanceId: FLOW_INSTANCE_ID,
@@ -444,7 +453,7 @@ describe("converted server draft checkout reuse", () => {
 
 
 describe("draft checkout database diagnostics", () => {
-  const request = { category: "prescription", email: "fixture@example.test", flowInstanceId: FLOW_INSTANCE_ID, serviceType: "prescription" as const, sessionId: SESSION_ID, subtype: "repeat" }
+  const request = { category: "prescription", email: "fixture@example.test", flowInstanceId: FLOW_INSTANCE_ID, serviceType: "prescription" as const, sessionId: SESSION_ID, subtype: "repeat", requireGuestProof: true }
   const sentinel = `private-database-payload ${SESSION_ID} ${INTAKE_ID} fixture@example.test`
 
   function failingDatabase(operation: string, code = "08006", message = sentinel) {

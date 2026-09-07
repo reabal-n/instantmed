@@ -153,6 +153,7 @@ async function createCheckoutFromUnifiedFlowInternal(
       category,
       email: authResult?.user.email ?? identity.email,
       patientId: authResult?.profile?.id,
+      requireGuestProof: !authResult?.user,
       flowInstanceId,
       serviceType: draftServiceType,
       sessionId: serverDraftSessionId,
