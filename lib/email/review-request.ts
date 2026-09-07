@@ -300,16 +300,23 @@ export async function processReviewRequests(): Promise<{
   requestSent: number
   requestPolicySuppressed: number
   requestTransientlyBlocked: number
+  requestExpectedDeferrals: number
   requestPending: number
   requestProviderFailed: number
 }> {
   const reconciliation = await reconcileSentReviewRequestMarkers()
   const candidates = await findReviewRequestCandidates()
   const counts = emptyCounts()
+  let expectedDeferrals = 0
 
   for (const intake of candidates) {
     const outcome = await sendReviewRequestEmail(intake)
     counts[outcome.kind] += 1
+    // The provider gate returns patient_cooldown only after persisting its retry;
+    // failed persistence becomes outbox_deferral_failed and stays unhealthy.
+    if (outcome.kind === "transiently_blocked" && outcome.reason === "patient_cooldown") {
+      expectedDeferrals += 1
+    }
     await new Promise((resolve) => setTimeout(resolve, 100))
   }
 
@@ -319,6 +326,7 @@ export async function processReviewRequests(): Promise<{
     requestSent: counts.sent,
     requestPolicySuppressed: counts.policy_suppressed,
     requestTransientlyBlocked: counts.transiently_blocked,
+    requestExpectedDeferrals: expectedDeferrals,
     requestPending: counts.pending,
     requestProviderFailed: counts.provider_failed,
   }

@@ -6,6 +6,8 @@ cleanup() {
   docker rm -fv "${FIXTURE_NAME}-rest" "$FIXTURE_NAME" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
+POSTGREST_IMAGE="$(bash "$REPO_ROOT/scripts/prepare-postgrest-fixture-image.sh")"
+readonly POSTGREST_IMAGE
 # No env loader, Supabase project, or existing container is used.
 docker run -d --name "$FIXTURE_NAME" -e POSTGRES_PASSWORD=fixture-only -p 127.0.0.1::3000 postgres:15-alpine >/dev/null
 # The initialization postmaster accepts sockets before restarting; wait for
@@ -25,7 +27,7 @@ sed -n '/^create or replace function public.claim_partial_intake_draft_for_check
 docker run -d --name "${FIXTURE_NAME}-rest" --network "container:$FIXTURE_NAME" \
   -e PGRST_DB_URI=postgres://postgres:fixture-only@127.0.0.1:5432/postgres \
   -e PGRST_DB_ANON_ROLE=checkout_fixture -e PGRST_DB_SCHEMAS=public \
-  public.ecr.aws/supabase/postgrest:v14.12 >/dev/null
+  "$POSTGREST_IMAGE" >/dev/null
 readonly FIXTURE_PORT="$(docker port "$FIXTURE_NAME" 3000/tcp | cut -d: -f2)"
 for attempt in {1..50}; do
   if curl --silent --fail "http://127.0.0.1:$FIXTURE_PORT/" >/dev/null; then break; fi

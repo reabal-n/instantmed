@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "scopeFingerprint": "36186a4f6ec3795d1efe5934e4ac36bb5f7714251ac83e62c718c53acdc264b4",
+  "scanned": 599,
+  "excluded": 51,
+  "eligible": 548,
+  "candidates": 0,
+  "missing": {
+    "date_of_birth": 0,
+    "phone": 0,
+    "medicare_number": 0
+  },
+  "existing": {
+    "date_of_birth": 520,
+    "phone": 359,
+    "medicare_number": 228
+  },
+  "decryptable": {
+    "date_of_birth": 520,
+    "phone": 359,
+    "medicare_number": 228
+  },
+  "parityMismatch": {
+    "date_of_birth": 0,
+    "phone": 1,
+    "medicare_number": 3
+  },
+  "decryptFailures": {
+    "date_of_birth": 0,
+    "phone": 0,
+    "medicare_number": 0
+  }
+}

@@ -3,8 +3,17 @@ import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 const read = (path: string) => readFileSync(path, "utf8")
 describe("production probe coverage and monitor contract", () => {
-  it("requests four-hour off-hour browser cadence", () => {
-    expect(read(".github/workflows/prod-request-flow-synthetic.yml")).toContain('cron: "17 */4 * * *"')
+  it("requests two-hour off-hour browser cadence", () => {
+    expect(read(".github/workflows/prod-request-flow-synthetic.yml")).toContain('cron: "17 */2 * * *"')
+  })
+  it("retains the independent five-minute observer and six-hour freshness threshold", () => {
+    const config = JSON.parse(read("vercel.json"))
+    expect(config.crons).toContainEqual({
+      path: "/api/cron/health-check",
+      schedule: "*/5 * * * *",
+    })
+    expect(read("lib/monitoring/browser-evidence.ts")).toContain("const FRESHNESS_MS = 360 * 60000")
+    expect(read(".github/workflows/prod-request-flow-synthetic.yml")).toContain("timeout-minutes: 8")
   })
   it("retains seven entry-flow cases and local draft/analytics isolation", () => {
     const spec = read("e2e/prod-request-flow-synthetic.spec.ts")

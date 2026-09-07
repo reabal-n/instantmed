@@ -1,0 +1,380 @@
+{
+  "schema_version": 1,
+  "operator_authorization": {
+    "date": "2026-09-07",
+    "scope": "Repair the remaining Plan 1 issues, including the production profile backfill and conditional zero-change verification; no patient contact."
+  },
+  "code_sha": "6b8d8eb6fd6f18dba41efba50aa3e335101a9023",
+  "script_blob_sha": "33c3d84005130ad734ccc3187d1b678e73ada785",
+  "fixture_classifier_blob_sha": "866e75ca1db588bbf0a47963a774ad3c4529f676",
+  "project_ref": "witzcrovsoumktyndqgz",
+  "source_ci": "https://github.com/reabal-n/instantmed/actions/runs/34029654838",
+  "reviewed_expectation_sha256": "987fa2aa33232ec96bac18e16803ce3d8a2254405387689cc55e34008d762831",
+  "reviewed_zero_expectation_sha256": "eb132e74badb45e7e857ebfd7d26b558078e1028e3cffad0a6ce87580e88f3ac",
+  "independent_packet_review": "KEEP before each apply",
+  "apply_process_exit_code": 0,
+  "zero_apply_process_exit_code": 0,
+  "zero_apply_started_at": "2026-09-07 04:13:01 UTC",
+  "zero_apply_verified_at": "2026-09-07 04:14:04 UTC",
+  "migration_status_after_zero_apply": {
+    "table_name": "profiles",
+    "total_records": 466,
+    "encrypted_records": 466,
+    "error_count": 0,
+    "last_error": null,
+    "started_at": "2026-09-07 04:09:10.937014+00",
+    "completed_at": "2026-09-07 04:09:28.312+00",
+    "updated_at": "2026-09-07 04:09:28.312+00",
+    "status_rows": 1
+  },
+  "privacy": {
+    "patient_contact_performed": false,
+    "patient_identifiers_or_values_retained": false,
+    "plaintext_changed": false,
+    "existing_ciphertext_overwritten": false,
+    "keys_rotated": false
+  },
+  "rollback": "Preserve plaintext, current keys, existing ciphertext and verified new copies. No destructive data rollback is needed; future unexpected results require a fresh reviewed repair.",
+  "pre_apply": {
+    "project_ref": "witzcrovsoumktyndqgz",
+    "project_identity": "instantmed",
+    "mode": "read_only_production_dry_run",
+    "started_at": "2026-09-07T04:06:13.936Z",
+    "completed_at": "2026-09-07T04:06:14.978Z",
+    "code_sha": "6b8d8eb6fd6f18dba41efba50aa3e335101a9023",
+    "script_blob_sha": "33c3d84005130ad734ccc3187d1b678e73ada785",
+    "classifier_blob_sha": "866e75ca1db588bbf0a47963a774ad3c4529f676",
+    "production_control_plane_key_authenticated_against_ciphertext": true,
+    "key_source": "Vercel production env run from empty directory with inherited repair variables removed",
+    "deployed_function_environment_not_introspected": true,
+    "scanned": 599,
+    "excluded": 51,
+    "eligible": 548,
+    "candidates": 466,
+    "batchSize": 50,
+    "missing": {
+      "date_of_birth": 452,
+      "phone": 300,
+      "medicare_number": 21
+    },
+    "existing": {
+      "date_of_birth": 68,
+      "phone": 59,
+      "medicare_number": 207
+    },
+    "decryptable": {
+      "date_of_birth": 68,
+      "phone": 59,
+      "medicare_number": 207
+    },
+    "parityMismatch": {
+      "date_of_birth": 0,
+      "phone": 1,
+      "medicare_number": 3
+    },
+    "decryptFailures": {
+      "date_of_birth": 0,
+      "phone": 0,
+      "medicare_number": 0
+    },
+    "expectation": {
+      "version": 1,
+      "scopeFingerprint": "36d1f632a392c6d227214395bb3e66fd667a58ff34cfe8e7cfd49b064b1f20b5",
+      "scanned": 599,
+      "excluded": 51,
+      "eligible": 548,
+      "candidates": 466,
+      "missing": {
+        "date_of_birth": 452,
+        "phone": 300,
+        "medicare_number": 21
+      },
+      "existing": {
+        "date_of_birth": 68,
+        "phone": 59,
+        "medicare_number": 207
+      },
+      "decryptable": {
+        "date_of_birth": 68,
+        "phone": 59,
+        "medicare_number": 207
+      },
+      "parityMismatch": {
+        "date_of_birth": 0,
+        "phone": 1,
+        "medicare_number": 3
+      },
+      "decryptFailures": {
+        "date_of_birth": 0,
+        "phone": 0,
+        "medicare_number": 0
+      }
+    },
+    "compatible": true,
+    "confirmed_writes": 0,
+    "migration_status_rows_before": 0,
+    "migration_status_rows_after": 0,
+    "status_count_unchanged": true,
+    "node": "v24.15.0"
+  },
+  "apply": [
+    {
+      "phase": "preflight",
+      "mode": "apply",
+      "batchSize": 50,
+      "scanned": 599,
+      "excluded": 51,
+      "eligible": 548,
+      "candidates": 466,
+      "missing": {
+        "date_of_birth": 452,
+        "phone": 300,
+        "medicare_number": 21
+      },
+      "existing": {
+        "date_of_birth": 68,
+        "phone": 59,
+        "medicare_number": 207
+      },
+      "decryptable": {
+        "date_of_birth": 68,
+        "phone": 59,
+        "medicare_number": 207
+      },
+      "parityMismatch": {
+        "date_of_birth": 0,
+        "phone": 1,
+        "medicare_number": 3
+      },
+      "decryptFailures": {
+        "date_of_birth": 0,
+        "phone": 0,
+        "medicare_number": 0
+      },
+      "compatible": true,
+      "expectation": {
+        "version": 1,
+        "scopeFingerprint": "36d1f632a392c6d227214395bb3e66fd667a58ff34cfe8e7cfd49b064b1f20b5",
+        "scanned": 599,
+        "excluded": 51,
+        "eligible": 548,
+        "candidates": 466,
+        "missing": {
+          "date_of_birth": 452,
+          "phone": 300,
+          "medicare_number": 21
+        },
+        "existing": {
+          "date_of_birth": 68,
+          "phone": 59,
+          "medicare_number": 207
+        },
+        "decryptable": {
+          "date_of_birth": 68,
+          "phone": 59,
+          "medicare_number": 207
+        },
+        "parityMismatch": {
+          "date_of_birth": 0,
+          "phone": 1,
+          "medicare_number": 3
+        },
+        "decryptFailures": {
+          "date_of_birth": 0,
+          "phone": 0,
+          "medicare_number": 0
+        }
+      }
+    },
+    {
+      "phase": "summary",
+      "mode": "apply",
+      "processed": 466,
+      "updated": 466,
+      "updatedFields": {
+        "date_of_birth": 452,
+        "phone": 300,
+        "medicare_number": 21
+      },
+      "skipped": 0,
+      "skips": {
+        "sourceChanged": 0,
+        "targetChanged": 0,
+        "otherChanged": 0,
+        "deleted": 0
+      },
+      "errors": {}
+    }
+  ],
+  "post_apply": {
+    "project_ref": "witzcrovsoumktyndqgz",
+    "project_identity": "instantmed",
+    "mode": "read_only_production_dry_run",
+    "started_at": "2026-09-07T04:11:01.856Z",
+    "completed_at": "2026-09-07T04:11:02.818Z",
+    "code_sha": "6b8d8eb6fd6f18dba41efba50aa3e335101a9023",
+    "script_blob_sha": "33c3d84005130ad734ccc3187d1b678e73ada785",
+    "classifier_blob_sha": "866e75ca1db588bbf0a47963a774ad3c4529f676",
+    "production_control_plane_key_authenticated_against_ciphertext": true,
+    "key_source": "Vercel production env run from empty directory with inherited repair variables removed",
+    "deployed_function_environment_not_introspected": true,
+    "scanned": 599,
+    "excluded": 51,
+    "eligible": 548,
+    "candidates": 0,
+    "batchSize": 50,
+    "missing": {
+      "date_of_birth": 0,
+      "phone": 0,
+      "medicare_number": 0
+    },
+    "existing": {
+      "date_of_birth": 520,
+      "phone": 359,
+      "medicare_number": 228
+    },
+    "decryptable": {
+      "date_of_birth": 520,
+      "phone": 359,
+      "medicare_number": 228
+    },
+    "parityMismatch": {
+      "date_of_birth": 0,
+      "phone": 1,
+      "medicare_number": 3
+    },
+    "decryptFailures": {
+      "date_of_birth": 0,
+      "phone": 0,
+      "medicare_number": 0
+    },
+    "expectation": {
+      "version": 1,
+      "scopeFingerprint": "36186a4f6ec3795d1efe5934e4ac36bb5f7714251ac83e62c718c53acdc264b4",
+      "scanned": 599,
+      "excluded": 51,
+      "eligible": 548,
+      "candidates": 0,
+      "missing": {
+        "date_of_birth": 0,
+        "phone": 0,
+        "medicare_number": 0
+      },
+      "existing": {
+        "date_of_birth": 520,
+        "phone": 359,
+        "medicare_number": 228
+      },
+      "decryptable": {
+        "date_of_birth": 520,
+        "phone": 359,
+        "medicare_number": 228
+      },
+      "parityMismatch": {
+        "date_of_birth": 0,
+        "phone": 1,
+        "medicare_number": 3
+      },
+      "decryptFailures": {
+        "date_of_birth": 0,
+        "phone": 0,
+        "medicare_number": 0
+      }
+    },
+    "compatible": true,
+    "confirmed_writes": 0,
+    "migration_status_rows_before": 1,
+    "migration_status_rows_after": 1,
+    "status_count_unchanged": true,
+    "node": "v24.15.0"
+  },
+  "zero_apply": [
+    {
+      "phase": "preflight",
+      "mode": "apply",
+      "batchSize": 50,
+      "scanned": 599,
+      "excluded": 51,
+      "eligible": 548,
+      "candidates": 0,
+      "missing": {
+        "date_of_birth": 0,
+        "phone": 0,
+        "medicare_number": 0
+      },
+      "existing": {
+        "date_of_birth": 520,
+        "phone": 359,
+        "medicare_number": 228
+      },
+      "decryptable": {
+        "date_of_birth": 520,
+        "phone": 359,
+        "medicare_number": 228
+      },
+      "parityMismatch": {
+        "date_of_birth": 0,
+        "phone": 1,
+        "medicare_number": 3
+      },
+      "decryptFailures": {
+        "date_of_birth": 0,
+        "phone": 0,
+        "medicare_number": 0
+      },
+      "compatible": true,
+      "expectation": {
+        "version": 1,
+        "scopeFingerprint": "36186a4f6ec3795d1efe5934e4ac36bb5f7714251ac83e62c718c53acdc264b4",
+        "scanned": 599,
+        "excluded": 51,
+        "eligible": 548,
+        "candidates": 0,
+        "missing": {
+          "date_of_birth": 0,
+          "phone": 0,
+          "medicare_number": 0
+        },
+        "existing": {
+          "date_of_birth": 520,
+          "phone": 359,
+          "medicare_number": 228
+        },
+        "decryptable": {
+          "date_of_birth": 520,
+          "phone": 359,
+          "medicare_number": 228
+        },
+        "parityMismatch": {
+          "date_of_birth": 0,
+          "phone": 1,
+          "medicare_number": 3
+        },
+        "decryptFailures": {
+          "date_of_birth": 0,
+          "phone": 0,
+          "medicare_number": 0
+        }
+      }
+    },
+    {
+      "phase": "summary",
+      "mode": "apply",
+      "processed": 0,
+      "updated": 0,
+      "updatedFields": {
+        "date_of_birth": 0,
+        "phone": 0,
+        "medicare_number": 0
+      },
+      "skipped": 0,
+      "skips": {
+        "sourceChanged": 0,
+        "targetChanged": 0,
+        "otherChanged": 0,
+        "deleted": 0
+      },
+      "errors": {}
+    }
+  ]
+}
