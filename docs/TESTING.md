@@ -389,6 +389,10 @@ lint remains a separate live release gate.
 
 ### Restored-checkout isolated fixtures
 
+The checkout and profile-backfill harnesses prepare PostgREST before creating containers via `scripts/prepare-postgrest-fixture-image.sh`. It reuses either registry's cached exact digest, otherwise tries ECR twice with one five-second delay, then the upstream Docker Hub source twice with the same bound. Both sources require the same v14.12 manifest-index digest `sha256:54000f24847d01a2c2302e0041cf0618b875c57fb48507d743cfa9aaa50bf43c`; no alternate version, unpinned fallback, credentials, or ignored failure is allowed. Failed retrieval or a missing local digest receipt exits nonzero before fixture creation. Test/database failures are never retried by this helper.
+
+The mirror is the upstream `postgrest/postgrest:v14.12` image used by [Supabase's official Compose configuration](https://github.com/supabase/supabase/blob/79964102d369991a3b3adda27dc1f528c3a77457/docker/docker-compose.yml). Both registry indexes and platform manifests were verified on 2026-09-07: Linux AMD64 `sha256:560895fc1f6cb78f36ae64682c85bfc923c73da2d3a473ae2f55755fd7991ad1`, Linux ARM64 `sha256:844785450d6b046ee97f1c67ea37e3ff6b4ed7ee3570b1b91c03f66f032c4805`. `lib/__tests__/postgrest-fixture-image.test.ts` proves cache use, bounded retry/fallback, exhaustion, missing receipts, override rejection, and both harnesses' failure-before-container behavior using fake Docker/sleep commands. Actual PostgreSQL/PostgREST fixture runs remain the separate database proof and required CI gate.
+
 Run with Node 24 and corepack pnpm 10.23.0:
 
 ```sh

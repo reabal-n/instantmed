@@ -6,6 +6,8 @@ cleanup() {
   docker rm -fv "${FIXTURE_NAME}-rest" "$FIXTURE_NAME" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
+POSTGREST_IMAGE="$(bash "$REPO_ROOT/scripts/prepare-postgrest-fixture-image.sh")"
+readonly POSTGREST_IMAGE
 # Follow the restored-checkout fixture: new disposable containers only, no env loader.
 docker run -d --name "$FIXTURE_NAME" -e POSTGRES_PASSWORD=fixture-only -p 127.0.0.1::3000 postgres:15-alpine >/dev/null
 for attempt in {1..50}; do
@@ -16,7 +18,7 @@ docker exec -i "$FIXTURE_NAME" psql -v ON_ERROR_STOP=1 -U postgres < "$REPO_ROOT
 docker run -d --name "${FIXTURE_NAME}-rest" --network "container:$FIXTURE_NAME" \
   -e PGRST_DB_URI=postgres://postgres:fixture-only@127.0.0.1:5432/postgres \
   -e PGRST_DB_ANON_ROLE=profile_backfill_fixture -e PGRST_DB_SCHEMAS=public \
-  public.ecr.aws/supabase/postgrest:v14.12 >/dev/null
+  "$POSTGREST_IMAGE" >/dev/null
 readonly FIXTURE_PORT="$(docker port "$FIXTURE_NAME" 3000/tcp | cut -d: -f2)"
 for attempt in {1..50}; do
   if curl --silent --fail "http://127.0.0.1:$FIXTURE_PORT/" >/dev/null; then break; fi
