@@ -799,6 +799,28 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     if (intakeError || !intake) {
       if (intakeError?.code === "23505") {
+        // Neither a submitted key nor matching an unverified guest profile
+        // authorizes an existing request. Every collision needs the live
+        // bearer-to-intake link, including a hit on the original key. An
+        // unconverted draft may belong to an in-progress first submission;
+        // leave that obligation untouched until its conversion is durable.
+        const draft = await findConvertedPartialIntakeForCheckout(supabase, {
+          category: input.category,
+          email: normalizedEmail,
+          patientId: guestProfileId,
+          requireGuestProof: true,
+          flowInstanceId: input.flowInstanceId,
+          serviceType: input.category === "medical_certificate" ? "med-cert" : input.category === "prescription" ? "prescription" : "consult",
+          sessionId: input.serverDraftSessionId,
+          subtype: input.subtype,
+        })
+        if (draft.kind === "blocked" && draft.reason === "query_error") {
+          return checkoutFailure("persistence", "We couldn't verify this saved request. Contact support before starting another payment.", { requiresSupport: true })
+        }
+        if ((draft.kind !== "reusable" && draft.kind !== "service_changed") || draft.intake.patientId !== guestProfileId ||
+          draft.intake.guestEmail?.trim().toLowerCase() !== normalizedEmail) {
+          return checkoutFailure("auth_or_session", "We couldn't verify access to the request linked to this browser. Contact support to recover access before starting another payment.", { requiresSupport: true })
+        }
         const lookup = (column: "idempotency_key" | "id", value: string) => {
           let query = supabase
             .from("intakes")
@@ -809,27 +831,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           return query.maybeSingle()
         }
         let duplicate = await lookup("idempotency_key", guestIdempotencyKey)
-        if (!duplicate.error && !duplicate.data && input.flowInstanceId) {
-          // Matching an unverified guest profile or a public flow ID is not
-          // ownership proof. A caller can manufacture a new unconverted draft
-          // with that flow, so require the validated bearer-to-intake link.
-          // Authenticated flow fallback lives in checkout/persistence.ts.
-          const draft = await findConvertedPartialIntakeForCheckout(supabase, {
-            category: input.category,
-            email: normalizedEmail,
-            patientId: guestProfileId,
-            flowInstanceId: input.flowInstanceId,
-            serviceType: input.category === "medical_certificate" ? "med-cert" : input.category === "prescription" ? "prescription" : "consult",
-            sessionId: input.serverDraftSessionId,
-            subtype: input.subtype,
-          })
-          if (draft.kind === "blocked" && draft.reason === "query_error") {
-            return checkoutFailure("persistence", "We couldn't verify this saved request. Contact support before starting another payment.", { requiresSupport: true })
-          }
-          if ((draft.kind !== "reusable" && draft.kind !== "service_changed") || draft.intake.patientId !== guestProfileId ||
-            draft.intake.guestEmail?.trim().toLowerCase() !== normalizedEmail) {
-            return checkoutFailure("auth_or_session", "We couldn't verify access to the request linked to this browser. Contact support to recover access before starting another payment.", { requiresSupport: true })
-          }
+        if (!duplicate.error && !duplicate.data) {
           duplicate = await lookup("id", draft.intake.id)
         }
         if (duplicate.error) {
@@ -838,6 +840,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         }
         const existingIntake = duplicate.data
         if (existingIntake) {
+          if (existingIntake.id !== draft.intake.id || existingIntake.flow_instance_id !== input.flowInstanceId ||
+            existingIntake.guest_email?.trim().toLowerCase() !== normalizedEmail) {
+            return checkoutFailure("auth_or_session", "We couldn't verify access to the request linked to this browser. Contact support to recover access before starting another payment.", { requiresSupport: true })
+          }
           if (existingIntake.category !== input.category || existingIntake.subtype !== input.subtype) {
             return checkoutFailure("auth_or_session", "Your saved request is for a different service. Return to it to check its payment status before starting another request.", {
               savedRequestUrl: buildSignedCheckoutResumeUrl({ appUrl: baseUrl, intakeId: existingIntake.id }),

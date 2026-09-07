@@ -96,6 +96,7 @@ export async function findConvertedPartialIntakeForCheckout(
     email,
     flowInstanceId,
     patientId,
+    requireGuestProof = false,
     serviceType,
     sessionId,
     subtype,
@@ -104,6 +105,9 @@ export async function findConvertedPartialIntakeForCheckout(
     email?: string | null
     flowInstanceId: string | null | undefined
     patientId?: string
+    // Guest profile matching is claimed identity, so it cannot relax the
+    // captured-email or exact request-flow proof as authenticated ownership can.
+    requireGuestProof?: boolean
     serviceType: "med-cert" | "prescription" | "consult"
     sessionId: string | null | undefined
     subtype: string
@@ -183,6 +187,9 @@ export async function findConvertedPartialIntakeForCheckout(
 
   const expectedEmail = normalizeEmail(email)
   const draftEmail = normalizeEmail(draft.email)
+  if (requireGuestProof && (!patientId || !expectedEmail || !draftEmail)) {
+    return { kind: "blocked", reason: "identity_mismatch" }
+  }
   if (expectedEmail && draftEmail && expectedEmail !== draftEmail) {
     return { kind: "blocked", reason: "identity_mismatch" }
   }
@@ -236,8 +243,11 @@ export async function findConvertedPartialIntakeForCheckout(
     // boundary, distinct from an unexpected database failure above.
     return { kind: "blocked", reason: "request_mismatch" }
   }
-  if (intake.flow_instance_id && intake.flow_instance_id !== flowInstanceId) {
+  if ((requireGuestProof || intake.flow_instance_id) && intake.flow_instance_id !== flowInstanceId) {
     return { kind: "blocked", reason: "request_mismatch" }
+  }
+  if (requireGuestProof && (!intake.patient_id || normalizeEmail(intake.guest_email) !== expectedEmail)) {
+    return { kind: "blocked", reason: "identity_mismatch" }
   }
   serviceChanged ||= intake.category !== category || (intake.subtype ?? "") !== subtype
   // A guest's captured email plus its converted bearer must match this exact
