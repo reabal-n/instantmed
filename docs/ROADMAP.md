@@ -3,7 +3,7 @@
 > **Authority:** the sole source of truth for the current operating phase, ordered active work, status, and checkpoints.
 > `docs/BUSINESS_PLAN.md` owns durable strategy. `docs/REVENUE_MODEL.md` owns milestones and economic gates. Implementation plans may elaborate one item but may not redefine this queue.
 >
-> **Last refreshed:** 2026-09-06. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
+> **Last refreshed:** 2026-09-07. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
 
 ---
 
@@ -65,7 +65,7 @@ Review channel/service contribution, refund and chargeback trends, queue/support
 | 4 | [Room to prescribe](superpowers/plans/2026-09-06-04-parchment-prescribing-workspace.md) | 2 | Larger usable Parchment workspace consuming Session 3's summary, with verified mobile and return-state behavior |
 | 5 | [Queue and Requests navigation](superpowers/plans/2026-09-06-05-queue-requests-navigation.md) | 2 | Clear rows, consolidated filters/actions and safe return navigation around the released workspace |
 
-Plan 1's engineering slices are released: checkout recovery, guarded profile-repair tooling and monitoring have their required checks and deployment receipts. Production observer execution/recovery is verified, and the full-day browser cadence measurement is explicitly handed off. The required historical profile repair remains unapplied pending operator approval of the reviewed frozen-scope packet; its matching fresh dry run and key compatibility are verified. The earlier aggregate-only packet is superseded. Its [execution receipt](superpowers/plans/2026-09-06-01-checkout-data-reliability.md#execution-receipt) owns completion evidence and blockers. Plans 2–5 remain unstarted. Execution receipts own task proof; Git/PR/deployment history owns releases. Due measurement reads remain part of the standing operating rhythm and are checked at each session start, so the build sequence does not postpone the Sep 9/11/19 checkpoints. Commercial observation may continue while independent internal UI builds proceed.
+Plan 1's engineering slices are released: checkout recovery, guarded profile-repair tooling and monitoring have their required checks and deployment receipts. Production observer execution/recovery is verified, and the full-day browser cadence measurement is explicitly handed off. The historical profile repair was explicitly approved, applied and verified on 2026-09-07: 773 missing copies filled across 466 profiles, 1,107/1,107 copies authenticated, zero missing, and a zero-write rerun confirmed. Fresh monitoring evidence identified a two-hour cadence adjustment and expected review-cooldown classification correction; those bounded follow-ups and their release checks are in progress. Its [execution receipt](superpowers/plans/2026-09-06-01-checkout-data-reliability.md#execution-receipt) owns completion evidence and blockers. Plans 2–5 remain unstarted. Execution receipts own task proof; Git/PR/deployment history owns releases. Due measurement reads remain part of the standing operating rhythm and are checked at each session start, so the build sequence does not postpone the Sep 9/11/19 checkpoints. Commercial observation may continue while independent internal UI builds proceed.
 
 ### Sequential build session protocol
 
