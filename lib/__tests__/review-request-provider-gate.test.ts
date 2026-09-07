@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
+  candidateRpc: vi.fn(),
+  reconcileSentReviewRequestMarkers: vi.fn(),
   checkDailySendLimit: vi.fn(),
   createPendingOutbox: vi.fn(),
   deferOutboxRow: vi.fn(),
@@ -16,12 +18,25 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock("@/lib/config/env", () => ({
+  getAppUrl: () => "https://instantmed.example",
   env: {
     appUrl: "https://instantmed.example",
     isDev: false,
     resendApiKey: "re_test_key",
     resendFromEmail: "InstantMed <support@instantmed.example>",
   },
+}))
+
+vi.mock("@/lib/supabase/service-role", () => ({
+  createServiceRoleClient: () => ({ rpc: mocks.candidateRpc }),
+}))
+
+vi.mock("@/lib/email/review-request-reconciliation", () => ({
+  reconcileSentReviewRequestMarkers: mocks.reconcileSentReviewRequestMarkers,
+}))
+
+vi.mock("@/lib/email/outbox-delivery", () => ({
+  isEmailSendDeliveryConfirmed: vi.fn().mockResolvedValue(false),
 }))
 
 vi.mock("@/lib/email/react-renderer-server", () => ({
@@ -70,6 +85,7 @@ vi.mock("@/lib/monitoring/delivery-tracking", () => ({
   recordDeliverySent: vi.fn().mockResolvedValue(undefined),
 }))
 
+import { processReviewRequests } from "@/lib/email/review-request"
 import { freezeResendProviderPayload } from "@/lib/email/send/provider-payload"
 import { sendEmail } from "@/lib/email/send-email"
 
@@ -104,6 +120,21 @@ describe("review request provider gate", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.stubGlobal("fetch", mocks.fetch)
+    mocks.reconcileSentReviewRequestMarkers.mockResolvedValue({ reconciled: 0, failed: 0 })
+    mocks.candidateRpc.mockResolvedValue({
+      data: [{
+        id: "intake-1",
+        patient_id: "patient-1",
+        category: "medical_certificate",
+        status: "completed",
+        payment_status: "paid",
+        document_sent_at: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
+        patient_email: "patient@example.com",
+        patient_first_name: "Patient",
+        patient_email_bounced: false,
+      }],
+      error: null,
+    })
     mocks.renderEmailToHtml.mockResolvedValue("<p>Review request</p>")
     mocks.checkDailySendLimit.mockResolvedValue({
       allowed: true,
@@ -137,6 +168,33 @@ describe("review request provider gate", () => {
         headers: { "Content-Type": "application/json" },
       },
     ))
+  })
+
+  it.each([
+    { reason: "patient_cooldown", persisted: true, expected: 1 },
+    { reason: "patient_cooldown", persisted: false, expected: 0 },
+    { reason: "policy_read_failed", persisted: true, expected: 0 },
+    { reason: "unknown_policy_failure", persisted: true, expected: 0 },
+    { reason: "outside_sydney_send_hour", persisted: true, expected: 0 },
+  ])("classifies $reason with persisted=$persisted without sending", async ({ reason, persisted, expected }) => {
+    const retryAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    mocks.evaluateReviewRequestPolicy.mockResolvedValueOnce({
+      kind: "transiently_blocked", reason, retryAt,
+    })
+    mocks.deferOutboxRow.mockResolvedValueOnce(persisted)
+
+    const result = await processReviewRequests()
+
+    expect(result).toMatchObject({
+      requestTransientlyBlocked: 1,
+      requestExpectedDeferrals: expected,
+      requestSent: 0,
+      requestProviderFailed: 0,
+    })
+    expect(mocks.deferOutboxRow).toHaveBeenCalledWith(
+      "outbox-review", retryAt, expect.stringContaining(reason),
+    )
+    expect(mocks.fetch).not.toHaveBeenCalled()
   })
 
   it("keeps a keyed review candidate-owned when template rendering fails before payload freeze", async () => {

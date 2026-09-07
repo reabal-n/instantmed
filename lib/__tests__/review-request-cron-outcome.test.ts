@@ -48,6 +48,7 @@ const SUCCESS_RESULT = {
   requestSent: 2,
   requestPolicySuppressed: 1,
   requestTransientlyBlocked: 0,
+  requestExpectedDeferrals: 0,
   requestPending: 1,
   requestProviderFailed: 0,
 }
@@ -97,6 +98,45 @@ describe("review request cron outcomes", () => {
         itemsProcessed: 8,
         status: "partial_failure",
       }),
+    )
+  })
+
+  it("counts persisted patient cooldowns once without failing the heartbeat", async () => {
+    mocks.processReviewRequests.mockResolvedValue({
+      ...SUCCESS_RESULT,
+      requestTransientlyBlocked: 2,
+      requestExpectedDeferrals: 2,
+    })
+
+    const response = await GET(request() as never)
+
+    expect(await response.json()).toMatchObject({
+      requestTransientlyBlocked: 2,
+      requestExpectedDeferrals: 2,
+    })
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "review-request",
+      expect.objectContaining({ itemsProcessed: 7, status: "ok" }),
+    )
+  })
+
+  it.each([
+    { name: "another transient block", extra: { requestTransientlyBlocked: 3 } },
+    { name: "a provider failure", extra: { requestProviderFailed: 1 } },
+    { name: "a reconciliation failure", extra: { requestReconciliationFailed: 1 } },
+  ])("does not let expected cooldowns hide $name", async ({ extra }) => {
+    mocks.processReviewRequests.mockResolvedValue({
+      ...SUCCESS_RESULT,
+      requestTransientlyBlocked: 2,
+      requestExpectedDeferrals: 2,
+      ...extra,
+    })
+
+    await GET(request() as never)
+
+    expect(mocks.recordCronHeartbeat).toHaveBeenCalledWith(
+      "review-request",
+      expect.objectContaining({ itemsProcessed: 8, status: "partial_failure" }),
     )
   })
 

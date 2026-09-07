@@ -43,8 +43,10 @@ export async function GET(request: NextRequest) {
       + result.requestTransientlyBlocked
       + result.requestPending
       + result.requestProviderFailed
+    // Expected deferrals are already included in the transient/item totals.
+    const operationalBlocks = result.requestTransientlyBlocked - result.requestExpectedDeferrals
     const failures = result.requestReconciliationFailed
-      + result.requestTransientlyBlocked
+      + operationalBlocks
       + result.requestProviderFailed
     await recordCronHeartbeat("review-request", {
       durationMs: Date.now() - startedAt,
