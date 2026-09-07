@@ -406,10 +406,23 @@ PostgREST to a random loopback port, loads a synthetic minimal schema and the ex
 flow-uniqueness index and draft-claim function from canonical migrations, then exercises the real
 checkout persistence and conditional-update paths. Its exit trap removes only the
 two run-owned containers and their anonymous volumes; it does not reuse a local Supabase project or load an
-environment file. The DB fixture tests intentionally skip during ordinary Vitest runs
-unless this harness supplies `CHECKOUT_FIXTURE_URL`, which rejects non-loopback
-endpoints. Passing this fixture proves uniqueness, ownership filtering, and CAS
-behavior, including cancelled/expired reconciliation, exact converted-bearer binding and manufactured unconverted same-flow rejection, not a full migration replay or production RLS acceptance.
+environment file. The runner also selects the real guest-action database cases in
+`checkout-operating-hours.test.ts`; file parallelism is disabled because both files
+share the disposable schema. Fixture cases intentionally skip during ordinary
+Vitest runs unless the harness supplies `CHECKOUT_FIXTURE_URL`, which rejects
+non-loopback endpoints. The database runner's name filter excludes ordinary unit
+cases, which retain their separate focused/CI gate. Passing this fixture proves
+uniqueness, ownership filtering and CAS behavior, including cancelled/expired
+reconciliation, same-key guest possession checks, key/proof disagreement, exact
+converted-bearer binding, incomplete first-conversion handling and manufactured
+unconverted same-flow rejection. It is not a full migration replay or production
+RLS acceptance.
+
+`checkout-unified-guest-proof.test.ts` exercises the actual unified action,
+conversion helper and terminal reconciler with isolated database/provider seams.
+It covers missing captured email/stored flow, forged client proof-mode inputs,
+valid guest recovery without an upstream profile, authenticated legacy fields
+and an unconverted draft whose email capture is still pending.
 
 The required CI `e2e` job runs the browser command immediately after installing
 Chromium, before provider-secret setup and the ordinary app E2E server. It requires
@@ -432,9 +445,9 @@ a real provider Session, or a hosted Stripe payment acceptance run.
 Guest restored-checkout possession regressions run with
 `corepack pnpm test run lib/__tests__/stripe/checkout-operating-hours.test.ts`.
 They cover missing, malformed, unknown/foreign, expired, wrong-flow/service/email,
-and manufactured unconverted bearers across paid, cancelled, and pending states,
-with no private existing-request lookup or provider IO after the preserved exact
-submission-key lookup. Positive recovery requires a validated converted bearer
+and manufactured unconverted bearers across paid, cancelled, and pending states.
+Original-key hits cannot skip the validated converted-bearer check. Invalid proof
+cannot disclose request details or call Stripe. Positive recovery requires a validated converted bearer
 bound to the existing intake/profile; a missing conversion marker is sign-in/support
 recovery, even when email and flow match. Current clinical validation still runs
 before bearer recovery. Authenticated owner-scoped flow fallback remains separate.
