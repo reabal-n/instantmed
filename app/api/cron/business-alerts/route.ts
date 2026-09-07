@@ -31,7 +31,8 @@ import {
   buildGoogleAdsUploadPartialFailureAlert,
   buildGoogleAdsUploadStreamStalledAlert,
 } from "@/lib/monitoring/google-ads-purchase-import-health"
-import { dispatchBusinessIncidents, INCIDENT_METRICS, knownGooglePurchaseIncidentMetrics } from "@/lib/monitoring/incident-state"
+import { type BusinessAlertSection, INCIDENT_METRICS, type IncidentMetric } from "@/lib/monitoring/incident-metrics"
+import { dispatchBusinessIncidents, knownGooglePurchaseIncidentMetrics } from "@/lib/monitoring/incident-state"
 import {
   buildNoPurchaseRevenueAlert,
   CHECKOUT_DEMAND_PAYMENT_STATUSES,
@@ -146,7 +147,7 @@ export async function GET(request: NextRequest) {
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
     const alerts: BusinessAlert[] = []
     let handledFailures = 0
-    const completedSections = new Set<string>()
+    const completedSections = new Set<BusinessAlertSection>()
     const runSection = async (options: Parameters<typeof runAlertSection>[0]) => {
       if (await runAlertSection(options)) completedSections.add(options.section)
     }
@@ -659,7 +660,7 @@ export async function GET(request: NextRequest) {
 
     // Only evaluated sections can prove recovery. Partially readable sections
     // retain their prior incident state while their explicit failures still page.
-    const sectionMetrics: Record<string, string[]> = {
+    const sectionMetrics: Record<BusinessAlertSection, IncidentMetric[]> = {
       failed_payments: ["payment_failed"], no_purchase_revenue: ["no_purchase_window"],
       email_delivery_failed: ["email_delivery_failed"], auth_email_delivery_failed: ["auth_email_delivery_failed"],
       email_bounced: [], email_stuck_pending: ["email_stuck_pending"], high_risk_intake: ["high_risk_intake"],
@@ -668,8 +669,8 @@ export async function GET(request: NextRequest) {
       ops_invariants: (operationalInvariants as OperationalInvariants | null)?.queryFailures?.length ? [] : INCIDENT_METRICS.filter(metric => metric.startsWith("ops_")),
       ads_contribution: (adsContribution as AdsContributionHealth | null)?.availability === "available" ? ["ads_contribution_negative"] : [],
     }
-    const knownMetrics = [...completedSections].flatMap(section => [
-      `business_alert_section_failed_${section}`, ...(sectionMetrics[section] ?? []),
+    const knownMetrics = [...completedSections].flatMap<IncidentMetric>(section => [
+      `business_alert_section_failed_${section}`, ...sectionMetrics[section],
     ])
     knownMetrics.push(...knownGooglePurchaseIncidentMetrics(googleAdsPurchaseImportHealth))
     if (googleAdsUploadStreamHealth && !googleAdsUploadStreamHealth.queryFailed) {
