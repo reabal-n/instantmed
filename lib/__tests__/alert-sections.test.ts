@@ -57,14 +57,14 @@ describe("business alert sections", () => {
     let laterSectionRan = false
 
     await runAlertSection({
-      section: "first",
+      section: "failed_payments",
       alerts,
       run: async () => {
         throw new Error("boom")
       },
     })
     await runAlertSection({
-      section: "second",
+      section: "no_purchase_revenue",
       alerts,
       run: async () => {
         laterSectionRan = true
@@ -72,7 +72,7 @@ describe("business alert sections", () => {
     })
 
     expect(laterSectionRan).toBe(true)
-    expect(alerts.map((a) => a.metric)).toEqual(["business_alert_section_failed_first"])
+    expect(alerts.map((a) => a.metric)).toEqual(["business_alert_section_failed_failed_payments"])
   })
 
   it("does not let a broken failure hook take the section runner down", async () => {

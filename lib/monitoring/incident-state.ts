@@ -4,28 +4,14 @@ import * as Sentry from "@sentry/nextjs"
 
 import type { BusinessAlert } from "@/lib/monitoring/alert-sections"
 import { buildGoogleAdsPurchaseImportAlert, type GoogleAdsPurchaseImportHealthSnapshot } from "@/lib/monitoring/google-ads-purchase-import-health"
+import { INCIDENT_METRICS, type IncidentMetric } from "@/lib/monitoring/incident-metrics"
 import { appendMonitorState, businessStateSchema, type Incident, readMonitorState } from "@/lib/monitoring/monitor-state"
 
-// Stable append-only identifiers: never reorder existing entries (stored as numbers).
-export const INCIDENT_METRICS = [
-  "payment_failed", "no_purchase_window", "email_delivery_failed", "auth_email_delivery_failed",
-  "email_stuck_pending", "high_risk_intake", "email_delivery_sla_breach", "human_review_queue_stalled",
-  "google_ads_upload_audit_source_anomaly", "google_ads_purchase_import_health_unavailable",
-  "google_ads_purchase_enhanced_conversions_setup_incomplete", "google_ads_purchase_imports_zero",
-  "google_ads_purchase_primary_conversions_zero", "google_ads_purchase_import_health_failed",
-  "google_ads_conversion_uploads_stalled", "google_ads_conversion_upload_partial_failures",
-  "google_ads_adjustment_terminal_click_attributed_failures", "ops_invariant_query_failed",
-  "ops_sla_breach_backlog", "ops_cert_refund_orphans", "ops_refund_record_anomalies", "ops_paid_but_cancelled",
-  "ops_approved_certificate_missing_record", "ops_certificate_sent_missing_timestamp", "ads_contribution_negative",
-  "prescription_fulfilment_approved_not_prescribed_sla_breach", "prescription_fulfilment_parchment_opened_sla_breach", "prescription_fulfilment_webhook_received_sla_breach",
-  ...["failed_payments", "no_purchase_revenue", "email_delivery_failed", "auth_email_delivery_failed", "email_bounced", "email_stuck_pending", "high_risk_intake", "email_delivery_sla_breach", "ops_invariants", "stale_human_queue", "prescription_fulfilment", "ads_contribution"].map(s => `business_alert_section_failed_${s}`),
-] as const
-
-export function knownGooglePurchaseIncidentMetrics(snapshot: GoogleAdsPurchaseImportHealthSnapshot | null): string[] {
+export function knownGooglePurchaseIncidentMetrics(snapshot: GoogleAdsPurchaseImportHealthSnapshot | null): IncidentMetric[] {
   if (!snapshot?.preflightOk || snapshot.queryErrors.length > 0) return []
   // The alert builder short-circuits at its first fault. Only predicates up to
   // that fault were evaluated; lower-priority absence is unknown, not recovery.
-  const predicates = [
+  const predicates: IncidentMetric[] = [
     "google_ads_purchase_import_health_unavailable",
     "google_ads_purchase_enhanced_conversions_setup_incomplete",
     "google_ads_purchase_imports_zero",
@@ -61,7 +47,7 @@ export function captureIncident(source: string, metric: string, incident: Pick<I
   })
 }
 
-export async function dispatchBusinessIncidents(alerts: BusinessAlert[], knownMetrics: string[], at: number): Promise<boolean> {
+export async function dispatchBusinessIncidents(alerts: BusinessAlert[], knownMetrics: IncidentMetric[], at: number): Promise<boolean> {
   const observed = alerts.filter(alert => alert.severity !== "info").map(alert => ({
     metric: INCIDENT_METRICS.indexOf(alert.metric), severity: alert.severity === "critical" ? 2 : 1, count: alert.count ?? 1,
   }))

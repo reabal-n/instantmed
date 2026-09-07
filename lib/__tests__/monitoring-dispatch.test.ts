@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { buildGoogleAdsPurchaseImportAlert, type GoogleAdsPurchaseImportHealthSnapshot } from "@/lib/monitoring/google-ads-purchase-import-health"
-import { dispatchBusinessIncidents, INCIDENT_METRICS, knownGooglePurchaseIncidentMetrics } from "@/lib/monitoring/incident-state"
+import { INCIDENT_METRICS, type IncidentMetric } from "@/lib/monitoring/incident-metrics"
+import { dispatchBusinessIncidents, knownGooglePurchaseIncidentMetrics } from "@/lib/monitoring/incident-state"
 
 const mocks = vi.hoisted(() => ({ capture: vi.fn(), read: vi.fn(), append: vi.fn() }))
 vi.mock("@sentry/nextjs", () => ({ captureMessage: mocks.capture }))
@@ -42,7 +43,7 @@ describe("business Sentry dispatch", () => {
       { metric: purchaseMetric, severity: 2, count: 5, active: true, at: 2 },
       { metric: 0, severity: 1, count: 5, active: true, at: 2 },
     ] } })
-    const known = [...knownGooglePurchaseIncidentMetrics(purchaseSnapshot({ preflightOk: false, queryErrors: [] })), "payment_failed"]
+    const known: IncidentMetric[] = [...knownGooglePurchaseIncidentMetrics(purchaseSnapshot({ preflightOk: false, queryErrors: [] })), "payment_failed"]
     await dispatchBusinessIncidents([{ metric: "google_ads_purchase_import_health_unavailable", severity: "critical", count: 5, detail: "unavailable" }], known, 10)
     const incidents = mocks.append.mock.calls[0][2].incidents
     expect(incidents.find((item: { metric: number }) => item.metric === purchaseMetric).active).toBe(true)
@@ -53,7 +54,7 @@ describe("business Sentry dispatch", () => {
   it.each([
     { prior: "google_ads_purchase_imports_zero", masked: { acceptedCustomerDataTerms: false, purchaseAllConversions: 0, purchaseConversions: 0 }, selected: "google_ads_purchase_enhanced_conversions_setup_incomplete", unmasked: { purchaseAllConversions: 0, purchaseConversions: 0 } },
     { prior: "google_ads_purchase_primary_conversions_zero", masked: { purchaseAllConversions: 0, purchaseConversions: 0 }, selected: "google_ads_purchase_imports_zero", unmasked: { purchaseAllConversions: 5, purchaseConversions: 0 } },
-  ])("preserves $prior when masked by $selected and recovers only after its predicate clears", async ({ prior, masked, selected, unmasked }) => {
+  ] as const)("preserves $prior when masked by $selected and recovers only after its predicate clears", async ({ prior, masked, selected, unmasked }) => {
     const priorId = INCIDENT_METRICS.indexOf(prior)
     let state = { enabledAt: 1, checkedAt: 2, incidents: [{ metric: priorId, severity: 2, count: 5, active: true, at: 2 }] }
     mocks.read.mockImplementation(async () => ({ version: 2, state }))

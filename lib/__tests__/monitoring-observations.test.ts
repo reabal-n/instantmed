@@ -4,7 +4,7 @@ import { browserHealth, mergeCompletion } from "@/lib/monitoring/browser-evidenc
 import { advanceIncidents } from "@/lib/monitoring/incident-state"
 
 const now = Date.parse("2026-09-06T12:00:00Z")
-const completion = (number: number, outcome: number, completed = now) => ({ id: number, number, attempt: 1, created: completed - 60000, started: completed - 30000, completed, outcome, status: 2 })
+const completion = (number: number, outcome: number, completed = now) => ({ event: 0, id: number, number, attempt: 1, created: completed - 60000, started: completed - 30000, completed, outcome, status: 2 })
 describe("ordered monitoring evidence", () => {
   it.each([359, 360, 365])("silence at %i minutes uses completed browser time", minutes => {
     const health = browserHealth({ enabledAt: now - 86400000, latest: completion(1, 1, now - minutes * 60000) }, now)
@@ -18,7 +18,7 @@ describe("ordered monitoring evidence", () => {
   })
   it("late older completion refreshes age without clearing newer failure", () => {
     const failed = completion(2, 2, now - 365 * 60000)
-    expect(browserHealth({ enabledAt: now - 86400000, latest: failed, completedAt: now }, now)).toEqual({ failed: true, stale: false })
+    expect(browserHealth({ enabledAt: now - 86400000, latest: failed, completedAt: now, cache: [completion(1, 1)] }, now)).toEqual({ failed: true, stale: false })
   })
   it("a rerun attempt can recover the same run", () => {
     expect(mergeCompletion(completion(2, 2), { ...completion(2, 1), attempt: 2 })).toMatchObject({ attempt: 2, outcome: 1 })

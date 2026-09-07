@@ -1,9 +1,10 @@
 import { toError } from "@/lib/errors"
+import type { BusinessAlertSection, IncidentMetric } from "@/lib/monitoring/incident-metrics"
 
 export type BusinessAlertSeverity = "critical" | "warning" | "info"
 
 export type BusinessAlert = {
-  metric: string
+  metric: IncidentMetric
   severity: BusinessAlertSeverity
   detail: string
   count?: number
@@ -16,7 +17,7 @@ export type BusinessAlert = {
  * cooldown window, not once per 30-minute cron run, and a second section
  * breaking later still pages immediately).
  */
-export function buildAlertSectionFailureAlert(section: string, error: unknown): BusinessAlert {
+export function buildAlertSectionFailureAlert(section: BusinessAlertSection, error: unknown): BusinessAlert {
   return {
     metric: `business_alert_section_failed_${section}`,
     severity: "critical",
@@ -41,7 +42,7 @@ export function buildAlertSectionFailureAlert(section: string, error: unknown): 
  * recorded instead.
  */
 export async function runAlertSection(options: {
-  section: string
+  section: BusinessAlertSection
   alerts: BusinessAlert[]
   onFailure?: (alert: BusinessAlert, error: Error) => void
   run: () => Promise<void>

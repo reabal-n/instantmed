@@ -1,5 +1,5 @@
 do $test$
-declare initial jsonb; browser jsonb; changed jsonb;
+declare initial jsonb; browser jsonb; changed jsonb; cache jsonb;
 begin
  if not has_function_privilege('service_role','public.append_monitor_state(text,bigint,jsonb)','EXECUTE')
  or has_function_privilege('anon','public.append_monitor_state(text,bigint,jsonb)','EXECUTE')
@@ -28,5 +28,23 @@ begin
  changed := jsonb_set(browser || '{"checkedAt":101}', '{cache,0,outcome}', '1');
  begin perform public.append_monitor_state('browser_observer_state',2,changed);
  raise exception 'immutable cache change accepted'; exception when others then if sqlerrm='immutable cache change accepted' then raise; end if; end;
+ -- Full-cache partial polling must trim before persistence, even when a later
+ -- provider read fails. SQL must reject the old overflow, then retain the
+ -- completed read and bounded backoff together in a valid append.
+ select jsonb_agg(jsonb_build_object('event',0,'id',n,'number',n,'attempt',1,
+   'created',10,'started',20,'completed',30,'outcome',1,'status',2) order by n desc)
+ into cache from generate_series(3,13) n;
+ changed := browser || jsonb_build_object('checkedAt',101,'cache',cache,
+   'latest',cache->0,'success',cache->0,'completedAt',30,
+   'backoffUntil',floor(extract(epoch from clock_timestamp()) * 1000) + 1200000,
+   'observerOk',false);
+ begin perform public.append_monitor_state('browser_observer_state',2,changed);
+ raise exception 'cache overflow accepted'; exception when others then if sqlerrm <> 'invalid browser snapshot' then raise; end if; end;
+ changed := jsonb_set(changed,'{cache}',cache - 10);
+ if not public.append_monitor_state('browser_observer_state',2,changed) then raise exception 'partial evidence/backoff claim failed'; end if;
+ select dimensions into browser from public.operational_metrics where metric_name='browser_observer_state' order by metric_value desc limit 1;
+ if jsonb_array_length(browser->'cache') <> 10 or browser->'latest'->>'number' <> '13'
+   or (browser->>'backoffUntil')::numeric <= floor(extract(epoch from clock_timestamp()) * 1000)
+   or browser->>'observerOk' <> 'false' then raise exception 'partial evidence/backoff not durable'; end if;
 end;
 $test$;
