@@ -41,7 +41,25 @@ describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/Po
     await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "reusable", intake: { id: intakeId, patientId: "fixture-owner" } })
     await expect(findConvertedPartialIntakeForCheckout(db, { ...input, patientId: "foreign-owner" })).resolves.toMatchObject({ kind: "blocked" })
     await expect(findConvertedPartialIntakeForCheckout(db, { ...input, flowInstanceId: "44444444-4444-4444-8444-444444444444" })).resolves.toMatchObject({ kind: "blocked", reason: "request_mismatch" })
-    await expect(findConvertedPartialIntakeForCheckout(db, { ...input, serviceType: "consult" })).resolves.toMatchObject({ kind: "blocked", reason: "request_mismatch" })
+    await expect(findConvertedPartialIntakeForCheckout(db, { ...input, serviceType: "consult" })).resolves.toMatchObject({ kind: "service_changed", intake: { id: intakeId } })
+    expect(mocks.retrieve).not.toHaveBeenCalled()
+  })
+  it.each([undefined, "fixture-owner"])("returns the original converted service only after exact bearer/flow/owner proof: %s", async (patientId) => {
+    const sessionId = "43434343-4343-4343-8343-434343434343"
+    await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email: "fixture@example.test", converted_to_intake_id: intakeId, expires_at: "2099-01-01T00:00:00Z" })
+    const input = { sessionId, flowInstanceId: flow, serviceType: "consult" as const, category: "consult", subtype: "ed", email: "fixture@example.test", patientId }
+    await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "service_changed", intake: { id: intakeId, category: "medical_certificate", subtype: "work" } })
+    for (const changed of [{ patientId: "foreign-owner" }, { email: "foreign@example.test" }, { flowInstanceId: "44444444-4444-4444-8444-444444444444" }]) {
+      const result = await findConvertedPartialIntakeForCheckout(db, { ...input, ...changed })
+      expect(result).toMatchObject({ kind: "blocked" })
+      expect(JSON.stringify(result)).not.toMatch(/medical_certificate|work|fixture@example|42424242|cs_fixture/)
+    }
+    expect(mocks.retrieve).not.toHaveBeenCalled()
+  })
+  it("routes a same-owner uniqueness collision with a changed subtype to the original request", async () => {
+    const result = await createIntakeWithAnswers(db, { ...args, input: { ...args.input, subtype: "study" } })
+    expect(result).toMatchObject({ ok: true, data: { result: { success: false, savedRequestUrl: `http://localhost:3060/patient/intakes/${intakeId}` } } })
+    expect((await db.from("intakes").select("*").eq("flow_instance_id", flow)).data).toMatchObject([original])
     expect(mocks.retrieve).not.toHaveBeenCalled()
   })
   it("does not confer existing-request access on a manufactured same-flow unconverted bearer", async () => {
@@ -63,9 +81,14 @@ describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/Po
     expect((await db.from("intakes").select("*").eq("flow_instance_id", flow)).data).toMatchObject([original])
     expect(mocks.expire).not.toHaveBeenCalled()
   })
+  it("reconciles the actual expired webhook pair and preserves its terminal state", async () => {
+    await db.from("intakes").update({ status: "expired", payment_status: "expired" }).eq("id", intakeId)
+    await expect(createIntakeWithAnswers(db, args)).resolves.toMatchObject({ ok: true, data: { result: { requiresFreshRequest: true } } })
+    expect((await db.from("intakes").select("status, payment_status").eq("id", intakeId)).data).toEqual([{ status: "expired", payment_status: "expired" }])
+  })
   it("does not disclose a flow owned by another patient", async () => {
     const result = await createIntakeWithAnswers(db, { ...args, patientId: "different-owner" })
-    expect(result).toMatchObject({ ok: false })
+    expect(result).toMatchObject({ ok: true, data: { result: { success: false, requiresSupport: true } } })
     expect(JSON.stringify(result)).not.toContain(intakeId)
     expect(mocks.retrieve).not.toHaveBeenCalled()
   })

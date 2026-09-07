@@ -22,7 +22,7 @@ import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/l
 import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
-import { PRICING as APP_PRICING } from "@/lib/constants"
+import { CONTACT_EMAIL,PRICING as APP_PRICING } from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { rememberSignInEmailHandoff } from "@/lib/navigation/auth-handoff"
 import { getAddressReviewSummary, getAddressStatusDisplay } from "@/lib/request/address-metadata"
@@ -293,6 +293,9 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const [error, setError] = useState<string | null>(null)
   const [requiresFreshRequest, setRequiresFreshRequest] = useState(false)
   const [requiresSignIn, setRequiresSignIn] = useState(false)
+  const [requiresSupport, setRequiresSupport] = useState(false)
+  const [savedRequestUrl, setSavedRequestUrl] = useState<string | null>(null)
+  const checkoutBlocked = requiresFreshRequest || requiresSignIn || requiresSupport || Boolean(savedRequestUrl)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [isPriority, setIsPriority] = useState(false)
   // Quiet hours (silent, no explanatory copy): the upsell simply does not
@@ -329,6 +332,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   }
 
   const handlePayment = async () => {
+    if (isProcessing || checkoutBlocked) return
     if (!safetyConfirmed) {
       handleDisabledClick()
       return
@@ -338,6 +342,8 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     setError(null)
     setRequiresFreshRequest(false)
     setRequiresSignIn(false)
+    setRequiresSupport(false)
+    setSavedRequestUrl(null)
 
     const identity = getIdentity()
     const attribution = getAttribution()
@@ -387,7 +393,12 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         })
         setRequiresFreshRequest(Boolean(result.requiresFreshRequest))
         setRequiresSignIn(Boolean(result.requiresSignIn))
-        setError(result.error || "Unable to create payment session. Please try again.")
+        const providerUncertain = result.failureCode === "payment_provider" || result.failureCode === "unexpected"
+        setRequiresSupport(Boolean(result.requiresSupport) || providerUncertain)
+        setSavedRequestUrl(result.savedRequestUrl ?? null)
+        setError(providerUncertain && !result.requiresSupport
+          ? "We couldn't confirm the payment status. Contact support before starting another payment."
+          : result.error || "Unable to create payment session. Please try again.")
         return
       }
 
@@ -415,7 +426,10 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         failure_code: "unexpected",
         failure_taxonomy_version: CHECKOUT_FAILURE_TAXONOMY_VERSION,
       })
-      setError("Something went wrong. Please try again or contact support.")
+      // A lost action response cannot establish whether a payment session was
+      // created. Keep the previous obligation and provide a bounded recovery.
+      setRequiresSupport(true)
+      setError("We couldn't confirm the checkout result. Contact support before starting another payment.")
     } finally {
       setIsProcessing(false)
     }
@@ -1132,13 +1146,13 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         <Button
           data-intake-primary-action="true"
           data-intake-primary-label={`Pay $${totalDue.toFixed(2)}`}
-          data-intake-primary-ready={safetyConfirmed && !requiresFreshRequest && !requiresSignIn ? "true" : "false"}
-          onClick={requiresFreshRequest || requiresSignIn ? undefined : safetyConfirmed ? handlePayment : handleDisabledClick}
+          data-intake-primary-ready={safetyConfirmed && !checkoutBlocked ? "true" : "false"}
+          onClick={checkoutBlocked ? undefined : safetyConfirmed ? handlePayment : handleDisabledClick}
           variant={safetyConfirmed ? "default" : "secondary"}
           className="w-full h-12 max-sm:hidden"
-          aria-disabled={!safetyConfirmed || isProcessing || requiresFreshRequest || requiresSignIn}
+          aria-disabled={!safetyConfirmed || isProcessing || checkoutBlocked}
           aria-describedby={!safetyConfirmed ? 'safety-consent-warning' : undefined}
-          disabled={isProcessing || requiresFreshRequest || requiresSignIn}
+          disabled={isProcessing || checkoutBlocked}
         >
           {isProcessing ? (
             <>
@@ -1169,6 +1183,18 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
                 </Button>
               </AlertDescription>
             </Alert>
+          ) : requiresSupport || savedRequestUrl ? (
+            <Alert variant="destructive" role="alert">
+              <AlertDescription className="space-y-3">
+                <p>{error}</p>
+                {savedRequestUrl && (
+                  <Button asChild variant="outline" className="min-h-11 w-full">
+                    <a href={savedRequestUrl} onClick={markIntentionalNavigation}>Return to saved request</a>
+                  </Button>
+                )}
+                <p><a href={`mailto:${CONTACT_EMAIL}`} className="underline font-medium hover:opacity-80">Contact support</a></p>
+              </AlertDescription>
+            </Alert>
           ) : requiresSignIn || error.toLowerCase().includes("account already exists") ? (
             // Mirror checkout-step.tsx: an account-owning email is intentionally
             // bounced to sign-in; without the inline CTA this reads as
@@ -1196,7 +1222,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
                   </a>
                 </p>
                 {requiresSignIn && (
-                  <p><a href="mailto:support@instantmed.com.au" className="underline font-medium hover:opacity-80">Contact support</a></p>
+                  <p><a href={`mailto:${CONTACT_EMAIL}`} className="underline font-medium hover:opacity-80">Contact support</a></p>
                 )}
               </AlertDescription>
             </Alert>
@@ -1205,11 +1231,10 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
               <AlertDescription className="space-y-1">
                 <p>{error}</p>
                 <p className="text-base opacity-90">
-                  Your card hasn&apos;t been charged. Try again, or email{" "}
-                  <a href="mailto:support@instantmed.com.au" className="font-medium underline">
-                    support@instantmed.com.au
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium underline">
+                    Contact support
                   </a>{" "}
-                  if this keeps happening.
+                  if you need help with this payment.
                 </p>
               </AlertDescription>
             </Alert>

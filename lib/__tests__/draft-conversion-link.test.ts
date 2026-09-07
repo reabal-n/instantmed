@@ -45,7 +45,7 @@ describe("draft conversion link contract", () => {
   it("requires a full client reset before reusing a terminal converted draft", () => {
     const unifiedCheckoutSource = read("app/actions/unified-checkout.ts")
     const reviewStepSource = read("components/request/steps/review-step.tsx")
-    expect(unifiedCheckoutSource).toContain("reconcileCancelledDraftCheckout")
+    expect(unifiedCheckoutSource).toContain("reconcileTerminalDraftCheckout")
     expect(unifiedCheckoutSource).not.toContain("requiresFreshRequest: true")
     expect(reviewStepSource).toContain("result.requiresFreshRequest")
     expect(reviewStepSource).toContain("discardCurrentDraft()")

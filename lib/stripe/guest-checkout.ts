@@ -24,6 +24,7 @@ import {
   getIntakeAnswersForPaymentSafety,
 } from "@/lib/data/intake-answers"
 import { decryptProfilePhi, encryptProfilePhi, updateProfile } from "@/lib/data/profiles"
+import { buildSignedCheckoutResumeUrl } from "@/lib/email/recovery-links"
 import { isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import {
   normalizeIncomingGrowthExperienceVersion,
@@ -58,7 +59,7 @@ import {
 import { runClinicalValidation } from "./checkout/clinical-validation"
 import { holdCheckoutForMissingSafetyInformation } from "./checkout/missing-safety-payment-hold"
 import { preflightPriorityPriceForRecovery } from "./checkout/priority-price-recovery"
-import { reconcileCancelledDraftCheckout } from "./checkout/restored-draft-recovery"
+import { reconcileTerminalDraftCheckout } from "./checkout/restored-draft-recovery"
 import { reconcileChangedCheckoutSessionForReturn } from "./checkout/return-payment-reconciliation"
 import type { CheckoutResult } from "./checkout/types"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
@@ -798,13 +799,15 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     if (intakeError || !intake) {
       if (intakeError?.code === "23505") {
-        const lookup = (column: "idempotency_key" | "id", value: string) => supabase
-          .from("intakes")
-          .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id, growth_experience_version, service:services!service_id(slug)")
-          .eq("patient_id", guestProfileId)
-          .eq("category", input.category).eq("subtype", input.subtype)
-          .eq(column, value)
-          .maybeSingle()
+        const lookup = (column: "idempotency_key" | "id", value: string) => {
+          let query = supabase
+            .from("intakes")
+            .select("id, status, payment_status, payment_id, checkout_error, category, subtype, stripe_price_id, is_priority, guest_email, flow_instance_id, growth_experience_version, service:services!service_id(slug)")
+            .eq("patient_id", guestProfileId)
+            .eq(column, value)
+          if (column === "idempotency_key") query = query.eq("category", input.category).eq("subtype", input.subtype)
+          return query.maybeSingle()
+        }
         let duplicate = await lookup("idempotency_key", guestIdempotencyKey)
         if (!duplicate.error && !duplicate.data && input.flowInstanceId) {
           // Matching an unverified guest profile or a public flow ID is not
@@ -821,22 +824,27 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
             subtype: input.subtype,
           })
           if (draft.kind === "blocked" && draft.reason === "query_error") {
-            return checkoutFailure("persistence", "We couldn't verify this saved request. Please try again shortly or contact support.")
+            return checkoutFailure("persistence", "We couldn't verify this saved request. Contact support before starting another payment.", { requiresSupport: true })
           }
-          if (draft.kind !== "reusable" || draft.intake.patientId !== guestProfileId ||
+          if ((draft.kind !== "reusable" && draft.kind !== "service_changed") || draft.intake.patientId !== guestProfileId ||
             draft.intake.guestEmail?.trim().toLowerCase() !== normalizedEmail) {
-            return checkoutFailure("auth_or_session", "We couldn't verify access to this saved request. Sign in with the email you used, or contact support for help.", { requiresSignIn: true })
+            return checkoutFailure("auth_or_session", "We couldn't verify access to the request linked to this browser. Contact support to recover access before starting another payment.", { requiresSupport: true })
           }
           duplicate = await lookup("id", draft.intake.id)
         }
         if (duplicate.error) {
           reportCheckoutPersistenceFailure("owned_duplicate_lookup", duplicate.error.code)
-          return checkoutFailure("persistence", "We couldn't verify your previous request. Please contact support before trying again.")
+          return checkoutFailure("persistence", "We couldn't verify your previous request. Contact support before starting another payment.", { requiresSupport: true })
         }
         const existingIntake = duplicate.data
         if (existingIntake) {
-          if (existingIntake.status === "cancelled" || isTerminalPaidPaymentStatus(existingIntake.payment_status)) {
-            return reconcileCancelledDraftCheckout({
+          if (existingIntake.category !== input.category || existingIntake.subtype !== input.subtype) {
+            return checkoutFailure("auth_or_session", "Your saved request is for a different service. Return to it to check its payment status before starting another request.", {
+              savedRequestUrl: buildSignedCheckoutResumeUrl({ appUrl: baseUrl, intakeId: existingIntake.id }),
+            })
+          }
+          if (existingIntake.status === "cancelled" || existingIntake.status === "expired" || isTerminalPaidPaymentStatus(existingIntake.payment_status)) {
+            return reconcileTerminalDraftCheckout({
               supabase, intake: existingIntake, patientId: guestProfileId,
               existingUrl: `${baseUrl}/auth/complete-account?intake_id=${encodeURIComponent(existingIntake.id)}${existingIntake.payment_id ? `&session_id=${encodeURIComponent(existingIntake.payment_id)}` : ""}`,
             })
@@ -1112,8 +1120,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
       if (intakeError?.code === "23505") {
         return checkoutFailure(
-          "persistence",
-          "This request is already being submitted. Please wait a moment and try again.",
+          "auth_or_session",
+          "We couldn't verify access to the request linked to this browser. Contact support to recover access before starting another payment.",
+          { requiresSupport: true },
         )
       }
 

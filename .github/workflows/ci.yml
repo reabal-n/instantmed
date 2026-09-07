@@ -420,6 +420,12 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
+      # Owns port 3060 briefly and closes it before any application E2E server.
+      # Bundles the real ReviewStep/store with local provider seams; no secrets.
+      - name: Restored checkout review and recovery browser regression
+        timeout-minutes: 5
+        run: node scripts/test-checkout-restored-browser.mjs
+
       - name: Verify required E2E secrets
         id: verify_e2e_secrets
         env:

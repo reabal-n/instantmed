@@ -151,6 +151,13 @@ describe("bound draft growth experience", () => {
 })
 
 describe("converted server draft checkout reuse", () => {
+  it.each([undefined, "owner"])("distinguishes a same-owner changed subtype from an access failure for patientId=%s", async (patientId) => {
+    const draft = { converted_to_intake_id: INTAKE_ID, email: "patient@example.test", flow_instance_id: FLOW_INSTANCE_ID, service_type: "consult" }
+    const intake = { id: INTAKE_ID, patient_id: "owner", guest_email: "patient@example.test", flow_instance_id: FLOW_INSTANCE_ID, category: "consult", subtype: "hair_loss", status: "pending_payment", payment_status: "pending", payment_id: "cs_original", checkout_error: null }
+    const query = { select: () => query, eq: () => query, maybeSingle: async () => ({ data: intake, error: null }) }
+    const db = { from: () => query, rpc: () => ({ maybeSingle: async () => ({ data: draft, error: null }) }) }
+    await expect(findConvertedPartialIntakeForCheckout(db as never, { sessionId: SESSION_ID, flowInstanceId: FLOW_INSTANCE_ID, serviceType: "consult", category: "consult", subtype: "ed", email: "patient@example.test", patientId })).resolves.toMatchObject({ kind: "service_changed", intake: { id: INTAKE_ID, subtype: "hair_loss" } })
+  })
   it("loads the one intake already created from the same draft", async () => {
     const partialMaybeSingle = vi.fn(async () => ({
       data: {
@@ -325,9 +332,10 @@ describe("converted server draft checkout reuse", () => {
       error: { code: "23514", message: "draft_session_service_mismatch" },
     }))
     const rpc = vi.fn(() => ({ maybeSingle }))
+    const query = { select: () => query, eq: () => query, gt: () => query, maybeSingle: async () => ({ data: null, error: null }) }
 
     await expect(findConvertedPartialIntakeForCheckout(
-      { from: vi.fn(), rpc } as never,
+      { from: vi.fn(() => query), rpc } as never,
       {
         category: "consult",
         email: "patient@example.com",
@@ -463,9 +471,7 @@ describe("draft checkout database diagnostics", () => {
     } else {
       await expect(findConvertedPartialIntakeForCheckout(db as never, request)).resolves.toEqual({ kind: "blocked", reason: "query_error" })
     }
-    expect(diagnostics.error).toHaveBeenCalledExactlyOnceWith("Checkout persistence operation failed", { operation, databaseCode: "08006" }, expect.any(Error))
-    const loggedError = diagnostics.error.mock.calls[0][2] as Error
-    expect(loggedError.message).toBe("Checkout persistence operation failed")
+    expect(diagnostics.error).toHaveBeenCalledExactlyOnceWith("Checkout persistence operation failed", { operation, databaseCode: "08006" })
     expect(JSON.stringify([diagnostics.error.mock.calls, diagnostics.warn.mock.calls])).not.toMatch(/private-database-payload|11111111|22222222|fixture@example.test/)
     expect(diagnostics.warn).not.toHaveBeenCalled()
   })
@@ -473,13 +479,12 @@ describe("draft checkout database diagnostics", () => {
   it.each(["malicious-code", "08006 raw-value", "abcde", ""])("normalizes invalid SQLSTATE %s without copying it", async (code) => {
     const db = failingDatabase("draft_checkout_claim", code)
     await findConvertedPartialIntakeForCheckout(db as never, request)
-    expect(diagnostics.error).toHaveBeenCalledWith("Checkout persistence operation failed", { operation: "draft_checkout_claim", databaseCode: "unknown" }, expect.any(Error))
+    expect(diagnostics.error).toHaveBeenCalledWith("Checkout persistence operation failed", { operation: "draft_checkout_claim", databaseCode: "unknown" })
   })
 
   it.each([
     ["draft_checkout_tombstoned", "discarded"],
     ["draft_session_flow_mismatch", "request_mismatch"],
-    ["draft_session_service_mismatch", "request_mismatch"],
   ])("preserves expected %s recovery without logging database payloads", async (message, reason) => {
     const db = failingDatabase("draft_checkout_claim", "23514", `${message} ${sentinel}`)
     await expect(findConvertedPartialIntakeForCheckout(db as never, request)).resolves.toEqual({ kind: "blocked", reason })

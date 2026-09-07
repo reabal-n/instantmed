@@ -26,10 +26,10 @@ interface ConvertedDraftCheckoutIntake {
 }
 
 export type ConvertedDraftCheckoutResult =
-  | { kind: "reusable"; intake: ConvertedDraftCheckoutIntake }
+  | { kind: "reusable" | "service_changed"; intake: ConvertedDraftCheckoutIntake }
   | {
       kind: "blocked"
-      reason: "discarded" | "identity_mismatch" | "query_error" | "request_mismatch"
+      reason: "discarded" | "identity_mismatch" | "query_error" | "request_mismatch" | "service_mismatch"
     }
   | {
       kind: "none"
@@ -116,10 +116,10 @@ export async function findConvertedPartialIntakeForCheckout(
   // This RPC is the checkout trust boundary. It serializes by session then
   // flow, validates the draft service, and atomically claims a legacy null
   // flow before the bearer can influence idempotency or intake reuse.
-  const { data: draft, error: draftError } = await supabase
+  const claimDraft = (claimedServiceType: string) => supabase
     .rpc("claim_partial_intake_draft_for_checkout", {
       p_flow_instance_id: flowInstanceId,
-      p_service_type: serviceType,
+      p_service_type: claimedServiceType,
       p_session_id: sessionId,
     })
     .maybeSingle<{
@@ -128,6 +128,30 @@ export async function findConvertedPartialIntakeForCheckout(
       flow_instance_id: string | null
       service_type: string
     }>()
+  let { data: draft, error: draftError } = await claimDraft(serviceType)
+  let serviceChanged = false
+
+  if (draftError?.code === "23514" && draftError.message.includes("draft_session_service_mismatch")) {
+    // A service change is not ownership proof. Read only the exact bearer AND
+    // flow, then re-run the canonical claim with its stored service so expiry,
+    // tombstones and concurrent changes still fail closed. Never search by email.
+    const { data: boundDraft, error } = await supabase.from("partial_intakes")
+      .select("service_type")
+      .eq("session_id", sessionId).eq("flow_instance_id", flowInstanceId)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle<{ service_type: string }>()
+    if (error) {
+      reportCheckoutPersistenceFailure("mismatched_draft_lookup", error.code)
+      return { kind: "blocked", reason: "query_error" }
+    }
+    if (!boundDraft || !["med-cert", "prescription", "consult"].includes(boundDraft.service_type)) {
+      return { kind: "blocked", reason: "request_mismatch" }
+    }
+    const originalClaim = await claimDraft(boundDraft.service_type)
+    draft = originalClaim.data
+    draftError = originalClaim.error
+    serviceChanged = true
+  }
 
   if (draftError) {
     if (
@@ -146,12 +170,13 @@ export async function findConvertedPartialIntakeForCheckout(
     return { kind: "blocked", reason: "query_error" }
   }
   if (!draft) {
+    if (serviceChanged) return { kind: "blocked", reason: "request_mismatch" }
     return { kind: "none", reason: "not_found" }
   }
 
   if (
     draft.flow_instance_id !== flowInstanceId ||
-    draft.service_type !== serviceType
+    (!serviceChanged && draft.service_type !== serviceType)
   ) {
     return { kind: "blocked", reason: "request_mismatch" }
   }
@@ -162,6 +187,7 @@ export async function findConvertedPartialIntakeForCheckout(
     return { kind: "blocked", reason: "identity_mismatch" }
   }
   if (!draft.converted_to_intake_id) {
+    if (serviceChanged) return { kind: "blocked", reason: "service_mismatch" }
     // The established checkout-claim RPC has an explicit return table, so the
     // additive column is read immediately after the claim. Set-once database
     // enforcement makes this value stable after the RPC transaction releases
@@ -210,16 +236,18 @@ export async function findConvertedPartialIntakeForCheckout(
     // boundary, distinct from an unexpected database failure above.
     return { kind: "blocked", reason: "request_mismatch" }
   }
-  if (
-    (intake.flow_instance_id && intake.flow_instance_id !== flowInstanceId) ||
-    intake.category !== category ||
-    (intake.subtype ?? "") !== subtype
-  ) {
+  if (intake.flow_instance_id && intake.flow_instance_id !== flowInstanceId) {
     return { kind: "blocked", reason: "request_mismatch" }
+  }
+  serviceChanged ||= intake.category !== category || (intake.subtype ?? "") !== subtype
+  // A guest's captured email plus its converted bearer must match this exact
+  // intake before even a service-change outcome may disclose its destination.
+  if (serviceChanged && !patientId && (!expectedEmail || !draftEmail || !intake.patient_id || normalizeEmail(intake.guest_email) !== expectedEmail)) {
+    return { kind: "blocked", reason: "identity_mismatch" }
   }
 
   return {
-    kind: "reusable",
+    kind: serviceChanged ? "service_changed" : "reusable",
     intake: {
       category: intake.category,
       checkoutError: intake.checkout_error ?? null,

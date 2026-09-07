@@ -35,11 +35,12 @@ import { markPartialIntakeConverted } from "@/lib/request/server-draft-conversio
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import type { ServerSafetyCheck } from "@/lib/safety/evaluate"
 import { type FraudCheckResult, saveFraudFlags } from "@/lib/security/fraud-detector"
+import { checkoutFailure } from "@/lib/stripe/checkout-failure"
 
 import type { CheckoutResult } from "../checkout"
 import { canRetryPaymentForIntake, isTerminalPaidPaymentStatus } from "../payment-integrity"
 import { mapCategoryToRequestType } from "./helpers"
-import { reconcileCancelledDraftCheckout, type RestoredCheckoutIntake } from "./restored-draft-recovery"
+import { reconcileTerminalDraftCheckout, type RestoredCheckoutIntake } from "./restored-draft-recovery"
 import type { CreateCheckoutInput, StepResult } from "./types"
 import { stepFail, stepOk } from "./types"
 
@@ -103,7 +104,7 @@ export interface IntakeRow {
  * and idempotency-key duplicate handling. Returns the live intake row.
  *
  * Resolve collisions by owned submission key, then owned flow ID. Paid and
- * cancelled obligations return their typed recovery outcome; retryable pending
+ * terminal obligations return their typed recovery outcome; retryable pending
  * obligations continue through the existing guarded retry action.
  */
 export type IntakeInsertOutcome =
@@ -192,23 +193,27 @@ export async function createIntakeWithAnswers(
     if (intakeError?.code === "23505") {
       const lookup = (column: "idempotency_key" | "flow_instance_id", value: string) => supabase
         .from("intakes")
-        .select("id, status, payment_status, payment_id, checkout_error")
+        .select("id, status, payment_status, payment_id, checkout_error, category, subtype")
         .eq("patient_id", patientId)
-        .eq("category", input.category).eq("subtype", input.subtype)
         .eq(column, value)
-        .maybeSingle<RestoredCheckoutIntake>()
+        .maybeSingle<RestoredCheckoutIntake & { category: string; subtype: string }>()
       let duplicate = await lookup("idempotency_key", input.idempotencyKey)
       if (!duplicate.error && !duplicate.data && input.flowInstanceId) {
         duplicate = await lookup("flow_instance_id", input.flowInstanceId)
       }
       if (duplicate.error) {
         reportCheckoutPersistenceFailure("owned_duplicate_lookup", duplicate.error.code)
-        return stepFail("persistence", "We couldn't verify your previous request. Please contact support before trying again.")
+        return stepOk({ kind: "resolved_existing", result: checkoutFailure("persistence", "We couldn't verify your previous request. Contact support before starting another payment.", { requiresSupport: true }) })
       }
       const existingIntake = duplicate.data
       if (existingIntake) {
-        if (existingIntake.status === "cancelled" || isTerminalPaidPaymentStatus(existingIntake.payment_status)) {
-          return stepOk({ kind: "resolved_existing", result: await reconcileCancelledDraftCheckout({
+        if (existingIntake.category !== input.category || existingIntake.subtype !== input.subtype) {
+          return stepOk({ kind: "resolved_existing", result: checkoutFailure("auth_or_session", "Your saved request is for a different service. Return to it to check its payment status before starting another request.", {
+            savedRequestUrl: `${baseUrl}/patient/intakes/${existingIntake.id}`,
+          }) })
+        }
+        if (existingIntake.status === "cancelled" || existingIntake.status === "expired" || isTerminalPaidPaymentStatus(existingIntake.payment_status)) {
+          return stepOk({ kind: "resolved_existing", result: await reconcileTerminalDraftCheckout({
             supabase, intake: existingIntake, patientId,
             existingUrl: `${baseUrl}/patient/intakes/${existingIntake.id}`,
           }) })
@@ -241,10 +246,7 @@ export async function createIntakeWithAnswers(
     }
 
     if (intakeError?.code === "23505") {
-      return stepFail(
-        "persistence",
-        "This request is already being submitted. Please wait a moment and try again.",
-      )
+      return stepOk({ kind: "resolved_existing", result: checkoutFailure("auth_or_session", "We couldn't verify access to the request linked to this browser. Contact support to recover access before starting another payment.", { requiresSupport: true }) })
     }
 
     reportCheckoutPersistenceFailure("intake_insert", intakeError?.code)
