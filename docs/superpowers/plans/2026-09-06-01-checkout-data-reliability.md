@@ -67,9 +67,9 @@ Source review found three prerequisites in `scripts/encrypt-phi-backfill.ts`: it
 - [x] Test wrong key, changed plaintext, newly added ciphertext, null/empty fields, partial batches, resumability, fixture exclusions and idempotent reruns.
 - [x] Replace identifier/raw-error output with aggregate results and bounded error categories. Verify that both stdout and persisted migration-status errors are safe.
 - [x] Produce and independently review the exact dry-run packet: project identity, code SHA, field counts, exclusions, key compatibility, guarded-write method, verification command and stop conditions.
-- [ ] Resolve apply authorization against the current session before executing the reviewed packet.
+- [x] Resolve apply authorization against the current session before executing the reviewed packet.
 - [x] Freeze the preflight candidate/field/snapshot set and require a matching approved scope fingerprint and counts before any write. Prove insertion, newly eligible rows, equal-count substitutions and a nonzero zero-change rerun cannot expand the approved apply.
-- [ ] After an authorized apply, verify parity, decryptability, remaining exceptions and a zero-change rerun. Record the aggregate receipt in SECURITY.md. Retain plaintext until the separate reader audit and retirement decision; do not remove keys or historical rows.
+- [x] After an authorized apply, verify parity, decryptability, remaining exceptions and a zero-change rerun. Record the aggregate receipt in SECURITY.md. Retain plaintext until the separate reader audit and retirement decision; do not remove keys or historical rows.
 
 ## Task 3 — Restore trustworthy monitoring
 
