@@ -41,7 +41,9 @@ export function mergeCompletion(old: Evidence | undefined, next: Evidence): Evid
 }
 export function browserHealth(state: Pick<BrowserState, "enabledAt" | "latest" | "completedAt"> & Partial<Pick<BrowserState, "cache" | "success" | "failure">>, now: number) {
   const evidence = [...(state.cache ?? []), state.latest, state.success, state.failure]
-  const scheduledAt = Math.max(0, ...evidence.map(item => item?.event === 0 ? item.completed : 0))
+  // GitHub reruns retain the original event. Their later completion proves
+  // browser execution, but only the first attempt proves scheduled cadence.
+  const scheduledAt = Math.max(0, ...evidence.map(item => item?.event === 0 && item.attempt === 1 ? item.completed : 0))
   const hasCompletion = !!state.completedAt || evidence.some(item => !!item?.completed)
   // Manual execution can prove browser availability, never scheduled cadence.
   // If its bounded window evicts all scheduled proof (or old evidence has no

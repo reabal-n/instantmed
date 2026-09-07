@@ -304,6 +304,71 @@ describe("bounded public GitHub observer", () => {
     expect(db.read().observerOk).toBe(true)
     expect(mocks.capture).toHaveBeenCalledWith("browser-monitor: browser_stale active", expect.anything())
   })
+  it.each([false, true])("a scheduled run's manual rerun cannot recover stale cadence (cached=%s)", async cached => {
+    const original = evidence(1, 2, now - 365 * 60000)
+    const rerun = { ...original, attempt: 2, started: now - 50000, completed: now - 10000, outcome: 1 }
+    const latest = cached ? rerun : original
+    const db = store({ ...state(), latest, failure: original, success: cached ? rerun : undefined,
+      invocation: latest, cache: cached ? [rerun, original] : [original], completedAt: latest.completed,
+      incidents: [{ metric: 1, severity: 2, count: 1, active: true, at: now - 60000 }] })
+    // GitHub retains the original schedule event/creation time on manual reruns.
+    const metadata = { ...run(1, "completed", 2), created_at: new Date(original.created).toISOString() }
+    const fetcher = replies({ total_count: 1, workflow_runs: [metadata] }, ...cached ? [] : [jobs(1, "success", 2)])
+    expect((await checkBrowserObserver()).healthy).toBe(false)
+    expect(fetcher).toHaveBeenCalledTimes(cached ? 1 : 2)
+    expect(db.read().latest).toMatchObject({ event: 0, attempt: 2, outcome: 1 })
+    expect(db.read().completedAt).toBe(rerun.completed)
+    expect(browserHealth(db.read(), now)).toEqual({ failed: false, stale: true })
+    expect(db.read().observerOk).toBe(true)
+    expect(db.read().incidents.find(item => item.metric === 1)?.active).toBe(true)
+    expect(mocks.capture).not.toHaveBeenCalledWith("browser-monitor: browser_stale recovered", expect.anything())
+  })
+  it("rerun-only cadence stays unknown and quiet until a new scheduled first attempt completes", async () => {
+    const rerun = { ...evidence(1), attempt: 2 }
+    const db = store({ ...state(), latest: rerun, success: rerun, invocation: rerun, cache: [rerun],
+      completedAt: rerun.completed, incidents: [{ metric: 1, severity: 2, count: 1, active: true, at: now - 60000 }] })
+    const source = { total_count: 1, workflow_runs: [run(1, "completed", 2)] }
+    for (let poll = 0; poll < 2; poll++) {
+      vi.setSystemTime(now + poll * 300000)
+      replies(source)
+      expect(await checkBrowserObserver()).toMatchObject({ healthy: false, observerOk: false, unavailableReason: "cadence_unknown" })
+      expect(browserHealth(db.read(), Date.now())).toEqual({ failed: false, stale: null })
+      expect(db.read().incidents.find(item => item.metric === 1)?.active).toBe(true)
+    }
+    expect(mocks.capture.mock.calls.map(call => call[0])).toEqual(["browser-monitor: observer_unavailable active"])
+    vi.setSystemTime(now + 600000)
+    const next = { ...run(2), created_at: iso(540000), run_started_at: iso(550000) }
+    const recoveredSource = { total_count: 2, workflow_runs: [next, ...source.workflow_runs] }
+    replies(recoveredSource, jobs(2, "success", 1, 590000))
+    expect((await checkBrowserObserver()).healthy).toBe(true)
+    expect(browserHealth(db.read(), Date.now())).toEqual({ failed: false, stale: false })
+    expect(db.read().completedAt).toBe(now + 590000)
+    vi.setSystemTime(now + 900000)
+    replies(recoveredSource)
+    expect((await checkBrowserObserver()).healthy).toBe(true)
+    expect(mocks.capture.mock.calls.map(call => call[0])).toEqual([
+      "browser-monitor: observer_unavailable active", "browser-monitor: browser_stale recovered",
+      "browser-monitor: observer_unavailable recovered",
+    ])
+  })
+  it("a competing legacy snapshot with only rerun proof cannot clear unknown cadence on CAS", async () => {
+    const manual = { ...evidence(1), event: 1 }
+    const initial = { ...state(), latest: manual, success: manual, invocation: manual, cache: [manual],
+      completedAt: manual.completed, incidents: [{ metric: 1, severity: 2, count: 1, active: true, at: now - 60000 }] }
+    const db = store(initial)
+    const rerun = { ...evidence(2, 1, now - 10000), attempt: 2 }
+    db.rpc.mockImplementationOnce(async () => {
+      expect(db.append({ ...initial, checkedAt: now - 1, latest: rerun, success: rerun, invocation: rerun,
+        cache: [rerun, manual], completedAt: rerun.completed, observerOk: true })).toEqual({ error: null, data: true })
+      return { error: null, data: false }
+    })
+    replies({ total_count: 1, workflow_runs: [{ ...run(1), event: "workflow_dispatch" }] })
+    expect(await checkBrowserObserver()).toMatchObject({ healthy: false, observerOk: false, unavailableReason: "cadence_unknown" })
+    expect(db.rpc).toHaveBeenCalledTimes(2)
+    expect(db.read().latest).toMatchObject({ number: 2, attempt: 2, outcome: 1 })
+    expect(db.read().incidents.find(item => item.metric === 1)?.active).toBe(true)
+    expect(mocks.capture).not.toHaveBeenCalledWith("browser-monitor: browser_stale recovered", expect.anything())
+  })
   it("manual or legacy-only completions leave cadence unknown without inventing a stale incident", async () => {
     const legacy = evidence(1)
     delete legacy.event
