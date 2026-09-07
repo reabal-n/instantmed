@@ -10,7 +10,7 @@
 
 **Spec:** [ROADMAP](../../ROADMAP.md), rank 1; [reconciled audit](../../audits/2026-09-04-scaling-audit.md); [payment operations](../../OPERATIONS.md); [security](../../SECURITY.md). Operator selected reliability before certificate revenue on 6 September 2026.
 
-**Status: Plan 1 build and release complete; operational observations remain open.** The approved review corrections are released in PRs #532–#534, with independent review, required CI, matching production deployments and scoped runtime verification below. The production profile repair and zero-change verification remain complete, and the navbar phone removal is released in [PR #530](https://github.com/reabal-n/instantmed/pull/530). Actual scheduled browser execution recovered at 12:45 UTC on September 7; the native observer cleared staleness at 12:50 and remained clear after the final release. The measured 8-hour 7-minute gap still prevents accepting the requested two-hour cadence as dependable. Retain the September 8 cadence and normal review-request observations and the unverified provider-delivery evidence. Plan 2 has not started.
+**Status: Plan 1 releases through PR #535 are complete; the September 8 Telegram repeat-alert follow-up is pending release.** The approved review corrections are released in PRs #532–#534, with independent review, required CI, matching production deployments and scoped runtime verification below. The production profile repair and zero-change verification remain complete, and the navbar phone removal is released in [PR #530](https://github.com/reabal-n/instantmed/pull/530). Actual scheduled browser execution recovered at 12:45 UTC on September 7; the native observer cleared staleness at 12:50 and remained clear after the final release. The measured 8-hour 7-minute gap still prevents accepting the requested two-hour cadence as dependable. Retain the September 8 cadence and normal review-request observations and the unverified provider-delivery evidence. Plan 2 has not started.
 
 ## Global constraints
 
@@ -73,7 +73,7 @@ Source review found three prerequisites in `scripts/encrypt-phi-backfill.ts`: it
 
 ## Task 3 — Restore trustworthy monitoring
 
-**Files:** `.github/workflows/prod-request-flow-synthetic.yml`, `e2e/prod-request-flow-synthetic.spec.ts`, `lib/monitoring/cron-heartbeat.ts`, `lib/monitoring/critical-alert-cooldown.ts`, `app/api/cron/business-alerts/route.ts`, the existing health-check route, `docs/OPERATIONS.md`.
+**Files:** `.github/workflows/prod-request-flow-synthetic.yml`, `e2e/prod-request-flow-synthetic.spec.ts`, `lib/monitoring/cron-heartbeat.ts`, `lib/monitoring/critical-alert-cooldown.ts`, `lib/monitoring/critical-alert-dispatch.ts`, `app/api/cron/business-alerts/route.ts`, the existing health-check route, `docs/OPERATIONS.md`.
 
 **Interface:** Distinguish scheduler invocation, completed browser checks, last success and last failure. Repeated health measurements remain available even when unchanged incidents stop paging.
 
@@ -97,7 +97,7 @@ If production repair awaits authorization or an external prerequisite, label it 
 
 ## Execution receipt
 
-**Bounded implementation, required PR checks and production releases are complete and receipted below.** The historical repair was applied and independently verified on 2026-09-07. The later approved checkout and monitoring review corrections are released in PRs #532–#534. Scheduled freshness has recovered; dependable cadence, the next normal review-request outcome and provider-delivery evidence retain their explicit observation handoff. Plan 2 has not started.
+**The original implementation and approved review corrections are released and receipted below. The additional September 8 Telegram repeat-alert correction is tracked separately at the end of this receipt.** The historical repair was applied and independently verified on 2026-09-07. The later approved checkout and monitoring review corrections are released in PRs #532–#534. Scheduled freshness has recovered; dependable cadence, the next normal review-request outcome and provider-delivery evidence retain their explicit observation handoff. Plan 2 has not started.
 
 ### Starting evidence
 
@@ -221,3 +221,11 @@ Native version 308 at 12:45:08.948488 retained the stale incident while the chec
 **Preserved boundaries:** historical profile repair and its zero-change verification remain complete, with no further repair authorization or rerun needed. Preserve plaintext, keys, existing ciphertext, concurrent edits, durable monitor history and the aggregate receipt. The March certificate remains unchanged and unsent; nine retrospective cases remain clinician-owned, two April Ads discrepancies remain historical uncertainty and the two expired Ads conversion targets remain actionable. No patient contact, clinical outcome, refund or Ads mutation was performed in this follow-up.
 
 **Plan 2 prompt (do not run automatically):** “Execute `docs/superpowers/plans/2026-09-06-02-certificate-revenue-recovery.md` using the canonical sequence in `docs/ROADMAP.md`. Read Plan 1's release receipts and observation handoff first, refresh dated operational/commercial evidence, and work only Plan 2.”
+
+### Telegram repeat-alert follow-up — 2026-09-08
+
+**Diagnosis and authority:** the operator requested commit, protected merge and production deployment before Plan 2, and asked to stop recurring critical business notifications. At September 7 16:30 UTC the same certificate fingerprint had successful Telegram receipts every 4½ hours; this was the independent four-hour Telegram timer, not failed Sentry deduplication. A fresh aggregate anti-join confirmed one March 2026 approved/paid certificate obligation with superseded history and no current valid certificate. No patient record was opened or changed.
+
+**Correction:** notify once per accepted aggregate incident, then for increased severity/count, a new category or recurrence after verified recovery. Keep failed-send retries, independent delivery evidence, state-store outage fallback and unknown-section handling. Match the exact numeric category/transition token so delayed old sends cannot suppress a recurrence. A distinct operator acknowledgement is prepared for the exact known March incident during rollout; its clinical finding remains open. No automatic legacy receipt migration, schema/env/dependency change, patient contact or Plan 2 work is included. [OPERATIONS.md](../../OPERATIONS.md) owns the delivery/acknowledgement and rollback rules.
+
+**Local evidence:** seven assertions failed before the source correction; 98 focused regressions across six files now pass, covering delivery/receipt failure, copy drift, 5→4→5, severity, recovery/recurrence, stale CAS observations and browser-observer compatibility. Lint, typecheck, doc audit, the unchanged dead-code ratchet and the disposable PostgreSQL monitor ACL/validation/CAS/retained-state checks pass. Independent review, required CI, merge, READY deployment and native production observation remain pending at this preparation checkpoint; local tests are not production delivery proof.

@@ -93,9 +93,8 @@ describe("prescription fulfilment SLA alerts", () => {
 })
 
 /**
- * The cooldown itself needs a database, so its wiring is pinned at the source
- * level. The property that matters is not the hash — it is that cooling the
- * Telegram page never costs a recorded signal.
+ * Delivery behavior is covered by critical-alert-delivery.test.ts. Keep only
+ * the cron integration and legacy outage-fallback contracts here.
  */
 describe("critical alert Telegram cooldown wiring", () => {
   const cronSource = readFileSync(
@@ -107,24 +106,15 @@ describe("critical alert Telegram cooldown wiring", () => {
     "utf8",
   )
 
-  it("evaluates Sentry incidents independently before Telegram cooldowns", () => {
+  it("evaluates Sentry incidents before independent Telegram delivery", () => {
     const sentryIndex = cronSource.indexOf("await dispatchBusinessIncidents(alerts")
-    const cooldownIndex = cronSource.indexOf("await shouldSendCriticalAlert")
+    const cooldownIndex = cronSource.indexOf("await deliverCriticalBusinessAlerts")
     expect(sentryIndex).toBeGreaterThan(-1)
     expect(cooldownIndex).toBeGreaterThan(sentryIndex)
     expect(cronSource).toContain('const criticalAlerts = alerts.filter((a) => a.severity === "critical")')
   })
 
-  it("cools each critical signal independently and receipts only delivered signals", () => {
-    expect(cronSource).toMatch(
-      /for \(const alert of criticalAlerts\)[\s\S]{0,240}shouldSendCriticalAlert\(alert\.detail/,
-    )
-    expect(cronSource).toMatch(
-      /if \(delivered\)[\s\S]{0,240}recordCriticalAlertSent\(alert\.detail/,
-    )
-  })
-
-  it("holds the terminal Google Ads incident for its full seven-day freshness window", async () => {
+  it("retains the terminal Google Ads seven-day fallback during state-store outages", async () => {
     const cooldownModule = await import(
       "@/lib/monitoring/critical-alert-cooldown"
     )
@@ -168,14 +158,12 @@ describe("critical alert Telegram cooldown wiring", () => {
   })
 
   it("checks equivalent historical wording before paging Telegram", () => {
-    expect(cronSource).toMatch(
+    expect(readFileSync(join(process.cwd(), "lib/monitoring/critical-alert-dispatch.ts"), "utf8")).toMatch(
       /equivalentDetails: resolveEquivalentCriticalAlertDetails\(alert\)/,
     )
   })
 
-  it("fingerprints the detail text so an escalation pages immediately", () => {
-    // Keying on content rather than alert type is what lets a count change or
-    // a newly-added alert bypass the cooldown.
+  it("retains detail fingerprints for the outage fallback and rollback", () => {
     expect(cooldownSource).toContain("createHash(\"sha256\").update(detail.trim())")
   })
 
@@ -189,7 +177,7 @@ describe("critical alert Telegram cooldown wiring", () => {
     expect(shouldSend).toMatch(/catch[\s\S]{0,200}return true/)
   })
 
-  it("caps a persistent condition well below the 30-minute cron cadence", () => {
+  it("bounds fallback pages below the 30-minute cron cadence", () => {
     const cooldownHours = Number(
       /CRITICAL_ALERT_COOLDOWN_HOURS = (\d+)/.exec(cooldownSource)?.[1],
     )

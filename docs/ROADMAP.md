@@ -3,7 +3,7 @@
 > **Authority:** the sole source of truth for the current operating phase, ordered active work, status, and checkpoints.
 > `docs/BUSINESS_PLAN.md` owns durable strategy. `docs/REVENUE_MODEL.md` owns milestones and economic gates. Implementation plans may elaborate one item but may not redefine this queue.
 >
-> **Last refreshed:** 2026-09-07. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
+> **Last refreshed:** 2026-09-08. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
 
 ---
 
@@ -65,7 +65,7 @@ Review channel/service contribution, refund and chargeback trends, queue/support
 | 4 | [Room to prescribe](superpowers/plans/2026-09-06-04-parchment-prescribing-workspace.md) | 2 | Larger usable Parchment workspace consuming Session 3's summary, with verified mobile and return-state behavior |
 | 5 | [Queue and Requests navigation](superpowers/plans/2026-09-06-05-queue-requests-navigation.md) | 2 | Clear rows, consolidated filters/actions and safe return navigation around the released workspace |
 
-**Plan 1 build and release complete; operational observations remain open.** The approved checkout and monitoring corrections are released; the [execution receipt](superpowers/plans/2026-09-06-01-checkout-data-reliability.md#execution-receipt) owns review, CI, deployment, production checks and remaining evidence. Historical profile repair and navbar phone removal are complete. Scheduled browser freshness recovered on September 7 and stayed clear after the final release, but the observed 8-hour 7-minute gap does not establish dependable two-hour coverage. Keep the dated September 8 cadence and normal review-request observations open, with provider-delivery and transport-cause limits explicit. Plans 2–5 remain unstarted; Plan 2 is next when requested. Due measurement reads remain part of the standing operating rhythm and are checked at each session start, so the build sequence does not postpone the Sep 9/11/19 checkpoints. Commercial observation may continue within the existing gates.
+**Plan 1 releases through PR #535 are complete; the September 8 Telegram repeat-alert follow-up is pending release.** The approved checkout and monitoring corrections are released; the [execution receipt](superpowers/plans/2026-09-06-01-checkout-data-reliability.md#execution-receipt) owns review, CI, deployment, production checks and remaining evidence. Historical profile repair and navbar phone removal are complete. The operator additionally requested that unchanged Telegram critical alerts stop repeating; the bounded delivery/acknowledgement correction must be merged and production-verified before the Plan 2 handoff. Scheduled browser freshness recovered on September 7 and stayed clear after the final release, but the observed 8-hour 7-minute gap does not establish dependable two-hour coverage. Keep the dated September 8 cadence and normal review-request observations open, with provider-delivery and transport-cause limits explicit. Plans 2–5 remain unstarted; Plan 2 is next when requested. Due measurement reads remain part of the standing operating rhythm and are checked at each session start, so the build sequence does not postpone the Sep 9/11/19 checkpoints. Commercial observation may continue within the existing gates.
 
 ### Sequential build session protocol
 
