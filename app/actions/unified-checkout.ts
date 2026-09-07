@@ -23,7 +23,7 @@ import {
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
 import { createIntakeAndCheckoutAction, retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
-import { reconcileCancelledDraftCheckout } from "@/lib/stripe/checkout/restored-draft-recovery"
+import { reconcileTerminalDraftCheckout } from "@/lib/stripe/checkout/restored-draft-recovery"
 import type { CheckoutResult } from "@/lib/stripe/checkout/types"
 import { checkoutFailure } from "@/lib/stripe/checkout-failure"
 import { buildAuthenticatedCheckoutSubmissionKey, buildGuestCheckoutSubmissionKey } from "@/lib/stripe/checkout-submission-key"
@@ -153,6 +153,7 @@ async function createCheckoutFromUnifiedFlowInternal(
       category,
       email: authResult?.user.email ?? identity.email,
       patientId: authResult?.profile?.id,
+      requireGuestProof: !authResult?.user,
       flowInstanceId,
       serviceType: draftServiceType,
       sessionId: serverDraftSessionId,
@@ -163,18 +164,20 @@ async function createCheckoutFromUnifiedFlowInternal(
   if (convertedDraft.kind === "blocked") {
     const blockedMessages = {
       discarded:
-        "This saved request was discarded. Start a new request to continue.",
+        "This saved request was discarded. Contact support to check any earlier payment before starting again.",
       identity_mismatch:
         "We couldn’t verify access to this saved request. Sign in with the email you used, or contact support for help.",
       query_error:
-        "We couldn’t safely verify this saved request. Please try again shortly.",
+        "We couldn’t safely verify this saved request. Contact support before starting another payment.",
       request_mismatch:
-        "We couldn’t verify access to this saved request. Sign in with the email you used, or contact support for help.",
+        "We couldn’t match this browser to the saved request. Contact support to recover access before starting another payment.",
+      service_mismatch:
+        "This saved form is for a different service. Contact support to recover it before starting another payment.",
     } as const
     return checkoutFailure(
       convertedDraft.reason === "query_error" ? "persistence" : "auth_or_session",
       blockedMessages[convertedDraft.reason],
-      convertedDraft.reason === "identity_mismatch" || convertedDraft.reason === "request_mismatch" ? { requiresSignIn: true } : {},
+      convertedDraft.reason === "identity_mismatch" ? { requiresSignIn: true } : { requiresSupport: true },
     )
   }
 
@@ -197,7 +200,7 @@ async function createCheckoutFromUnifiedFlowInternal(
     candidateValue: candidateGrowthExperienceVersion,
     context: growthContext,
   })
-  if (convertedDraft.kind === "reusable") {
+  if (convertedDraft.kind === "reusable" || convertedDraft.kind === "service_changed") {
     const { intake } = convertedDraft
     const isOwnedByAuthenticatedPatient = Boolean(
       authResult?.profile && intake.patientId === authResult.profile.id,
@@ -210,6 +213,14 @@ async function createCheckoutFromUnifiedFlowInternal(
       identity.email.trim().toLowerCase() !== intake.guestEmail.trim().toLowerCase()
     ))) {
       return checkoutFailure("auth_or_session", "We couldn't verify ownership of this saved request. Sign in to the matching account or contact support.", { requiresSignIn: true })
+    }
+
+    if (convertedDraft.kind === "service_changed") {
+      return checkoutFailure("auth_or_session", "Your saved request is for a different service. Return to it to check its payment status before starting another request.", {
+        savedRequestUrl: isOwnedByAuthenticatedPatient
+          ? `${getAppUrl().replace(/\/$/, "")}/patient/intakes/${intake.id}`
+          : buildSignedCheckoutResumeUrl({ appUrl: getAppUrl(), intakeId: intake.id }),
+      })
     }
 
     if (isTerminalPaidPaymentStatus(intake.paymentStatus)) {
@@ -233,8 +244,8 @@ async function createCheckoutFromUnifiedFlowInternal(
       }
     }
 
-    if (intake.status === "cancelled" && intake.patientId) {
-      return reconcileCancelledDraftCheckout({
+    if ((intake.status === "cancelled" || intake.status === "expired") && intake.patientId) {
+      return reconcileTerminalDraftCheckout({
         supabase: createServiceRoleClient(), patientId: intake.patientId,
         intake: {
           id: intake.id, status: intake.status, payment_status: intake.paymentStatus,
@@ -245,7 +256,7 @@ async function createCheckoutFromUnifiedFlowInternal(
           : buildSignedCheckoutResumeUrl({ appUrl: getAppUrl(), intakeId: intake.id }),
       })
     }
-    return checkoutFailure("auth_or_session", "This request is not awaiting payment. Please check its status or contact support.")
+    return checkoutFailure("auth_or_session", "This request is not awaiting payment. Please check its status or contact support.", { requiresSupport: true })
   }
   
   if (authResult?.user && authResult?.profile) {

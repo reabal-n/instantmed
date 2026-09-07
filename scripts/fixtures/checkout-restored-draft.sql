@@ -1,8 +1,12 @@
 -- Disposable fixture schema: actual PostgreSQL uniqueness + CAS semantics.
 -- It intentionally contains no patient answers, provider secrets, or production data.
 create role checkout_fixture nologin;
+create table public.services (id text primary key, slug text, price_cents integer, is_active boolean);
+insert into public.services values ('fixture-service', 'med-cert-sick', 2495, true);
+create table public.profiles (id text primary key, email text, email_verified boolean, full_name text, date_of_birth text, date_of_birth_encrypted text, phone text, phone_encrypted text, auth_user_id text, updated_at timestamptz);
+insert into public.profiles (id, email, email_verified, full_name, date_of_birth) values ('fixture-owner', 'fixture@example.test', false, 'Fixture Patient', '1985-04-01');
 create table public.intakes (
- id uuid primary key default gen_random_uuid(), patient_id text, service_id text,
+ id uuid primary key default gen_random_uuid(), patient_id text, service_id text references public.services(id),
  status text, payment_status text, payment_id text, checkout_error text, guest_email text,
  amount_cents integer, category text, subtype text, is_priority boolean,
  idempotency_key text unique, flow_instance_id uuid,
@@ -16,6 +20,7 @@ create table public.intakes (
 create table public.intake_answers (intake_id uuid primary key, answers jsonb);
 grant usage on schema public to checkout_fixture;
 grant all on public.intakes, public.intake_answers to checkout_fixture;
+grant all on public.services, public.profiles to checkout_fixture;
 
 -- Minimal columns required by the exact canonical draft-claim function.
 create table public.partial_intakes (

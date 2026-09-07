@@ -144,6 +144,7 @@ interface DuplicateGuestIntake {
   patient_id?: string
   growth_experience_version?: string | null
   id: string
+  idempotency_key?: string
   is_priority: boolean
   payment_id: string
   payment_status: string
@@ -192,6 +193,8 @@ function makeDuplicateHairIntake(
 
 function repeatGuestCheckoutInput() {
   return {
+    flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID,
+    serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
     answers: {
       accuracy_confirmed: true,
       address_line1: "12 Clinical Way",
@@ -221,6 +224,8 @@ function repeatGuestCheckoutInput() {
 
 function hairLossGuestCheckoutInput() {
   return {
+    flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID,
+    serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
     answers: {
       agreedToTerms: true,
       confirmedAccuracy: true,
@@ -266,7 +271,7 @@ function createGuestCheckoutSupabaseMock({
   existingGuestProfiles = [],
   forceDuplicate = false,
   restoredFlow = false,
-  draftProof = "missing",
+  draftProof = "valid",
 }: {
   boundDraftGrowthRead?: {
     data: { growth_experience_version: string | null } | null
@@ -278,7 +283,7 @@ function createGuestCheckoutSupabaseMock({
   existingGuestProfiles?: Array<Record<string, unknown>>
   forceDuplicate?: boolean
   restoredFlow?: boolean
-  draftProof?: "valid" | "missing" | "expired" | "wrong_flow" | "wrong_service" | "foreign_email" | "unconverted"
+  draftProof?: "valid" | "missing" | "expired" | "wrong_flow" | "wrong_service" | "foreign_email" | "missing_email" | "foreign_intake" | "unconverted"
 } = {}) {
   if (duplicateIntake) {
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce(
@@ -296,10 +301,13 @@ function createGuestCheckoutSupabaseMock({
     let operation: "select" | "insert" | "update" | "delete" | null = null
     let selectCount = 0
     const filters: Record<string, unknown> = {}
-    const matchesRestored = () => !restoredFlow || (
-      filters.flow_instance_id === SPECIALTY_FLOW_INSTANCE_ID
-      && filters.patient_id === "guest-profile-1"
-    ) || (restoredFlow && filters.id === duplicateIntake?.id && filters.patient_id === (duplicateIntake?.patient_id ?? "guest-profile-1"))
+    const matchesRestored = () => {
+      if (!duplicateIntake) return false
+      const row: Record<string, unknown> = { patient_id: "guest-profile-1", flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, ...duplicateIntake }
+      return Object.entries(filters).every(([column, value]) => column === "idempotency_key"
+        ? !restoredFlow && (!row.idempotency_key || row.idempotency_key === value)
+        : row[column] === value)
+    }
     const builder = {
       eq: vi.fn((column: string, value: unknown) => { filters[column] = value; return builder }),
       in: vi.fn(() => builder),
@@ -352,7 +360,7 @@ function createGuestCheckoutSupabaseMock({
             table === "partial_intakes" && operation === "select"
               ? boundDraftGrowthRead?.data ?? null
               : table === "intakes" && operation === "select"
-                ? matchesRestored() && duplicateIntake ? { patient_id: "guest-profile-1", ...duplicateIntake } : null
+                ? matchesRestored() && duplicateIntake ? { patient_id: "guest-profile-1", flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, ...duplicateIntake } : null
                 : table === "intake_answers" && operation === "select" && duplicateIntake && duplicateAnswers
                   ? { intake_id: duplicateIntake.id }
                   : null,
@@ -388,10 +396,10 @@ function createGuestCheckoutSupabaseMock({
       rpc: vi.fn((_operation: string, args: Record<string, unknown>) => ({
         maybeSingle: vi.fn(async () => ({
           data: draftProof === "missing" || draftProof === "expired" || args.p_session_id !== SPECIALTY_DRAFT_SESSION_ID ? null : {
-            converted_to_intake_id: draftProof === "unconverted" ? null : duplicateIntake?.id,
-            email: draftProof === "foreign_email" ? "foreign@example.test" : "patient@example.test",
+            converted_to_intake_id: draftProof === "unconverted" ? null : draftProof === "foreign_intake" ? "foreign-intake" : duplicateIntake?.id,
+            email: draftProof === "missing_email" ? null : draftProof === "foreign_email" ? "foreign@example.test" : "patient@example.test",
             flow_instance_id: draftProof === "wrong_flow" ? "44444444-4444-4444-8444-444444444444" : SPECIALTY_FLOW_INSTANCE_ID,
-            service_type: draftProof === "wrong_service" ? "prescription" : "consult",
+            service_type: draftProof === "wrong_service" ? "prescription" : duplicateIntake?.category === "medical_certificate" ? "med-cert" : duplicateIntake?.category === "prescription" ? "prescription" : "consult",
           },
           error: null,
         })),
@@ -637,6 +645,8 @@ describe("checkout operating hours", () => {
       })
 
       const result = await createGuestCheckoutAction({
+        flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID,
+        serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
         answers: {
           accuracy_confirmed: true,
           terms_agreed: true,
@@ -694,6 +704,8 @@ describe("checkout operating hours", () => {
     mocks.createServiceRoleClient.mockReturnValue(supabase)
 
     await expect(createGuestCheckoutAction({
+      flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID,
+      serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
       answers: {
         accuracy_confirmed: true,
         terms_agreed: true,
@@ -961,10 +973,68 @@ describe("checkout operating hours", () => {
   })
 
 
+  describe.each(["paid", "expired", "cancelled", "pending_payment"])("same-key guest %s possession boundary", (status) => {
+    it.each(["missing", "invalid", "foreign_bearer", "expired", "wrong_flow", "wrong_service", "foreign_email", "missing_email", "foreign_intake", "unconverted"] as const)("blocks %s proof before recovery or provider IO", async (proof) => {
+      const originalKey = "original-guest-submission-key"
+      const duplicateIntake = makeDuplicateHairIntake({
+        idempotency_key: originalKey, flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, status,
+        payment_status: status === "paid" ? "paid" : status === "expired" ? "expired" : "pending",
+      })
+      const { supabase, intakeLookups } = createGuestCheckoutSupabaseMock({
+        duplicateIntake,
+        draftProof: proof === "invalid" || proof === "foreign_bearer" ? "valid" : proof,
+        existingGuestProfiles: [{ id: "guest-profile-1", email: "patient@example.test", email_verified: false, full_name: "Test Patient", date_of_birth: "1985-04-01", auth_user_id: null }],
+      })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+      mocks.stripeSessionRetrieve.mockResolvedValue({ id: "cs_current", metadata: { intake_id: "intake-existing" }, status: "expired", payment_status: "unpaid", payment_intent: null })
+      const result = await createGuestCheckoutAction({
+        ...hairLossGuestCheckoutInput(), checkoutSubmissionKey: originalKey,
+        flowInstanceId: proof === "wrong_flow" ? "44444444-4444-4444-8444-444444444444" : SPECIALTY_FLOW_INSTANCE_ID,
+        serverDraftSessionId: proof === "missing" ? undefined : proof === "invalid" ? "invalid" : proof === "foreign_bearer" ? "55555555-5555-4555-8555-555555555555" : SPECIALTY_DRAFT_SESSION_ID,
+      })
+      expect(result).toMatchObject({ success: false, failureCode: "auth_or_session", requiresSupport: true })
+      expect(JSON.stringify(result)).not.toMatch(/intake-existing|cs_current|hair_loss|patient@example|checkoutUrl|savedRequestUrl|requiresFreshRequest|requiresSignIn/)
+      expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+      expect(intakeLookups.every((lookup) => lookup.patient_id === "guest-profile-1")).toBe(true)
+      expect(intakeLookups.some((lookup) => "idempotency_key" in lookup)).toBe(false)
+    })
+
+    it("keeps repeated same-key submissions on the proved original obligation", async () => {
+      const originalKey = "original-guest-submission-key"
+      const duplicateIntake = makeDuplicateHairIntake({
+        idempotency_key: originalKey, flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, status,
+        payment_status: status === "paid" ? "paid" : status === "expired" ? "expired" : "pending",
+      })
+      const { supabase, inserts } = createGuestCheckoutSupabaseMock({ duplicateIntake, draftProof: "valid" })
+      mocks.createServiceRoleClient.mockReturnValue(supabase)
+      mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({})
+      mocks.stripeSessionRetrieve.mockResolvedValue({
+        id: "cs_current", metadata: { intake_id: "intake-existing" }, payment_intent: null,
+        status: status === "pending_payment" ? "open" : "expired", payment_status: "unpaid",
+        url: status === "pending_payment" ? "https://checkout.stripe.test/pay/cs_current" : null,
+      })
+      const input = { ...hairLossGuestCheckoutInput(), checkoutSubmissionKey: originalKey, flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID }
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const result = await createGuestCheckoutAction(input)
+        expect(result).toMatchObject(status === "paid" || status === "pending_payment"
+          ? { success: true, intakeId: "intake-existing", checkoutUrl: expect.stringContaining("cs_current") }
+          : { success: false, requiresFreshRequest: true })
+      }
+      expect(supabase.rpc.mock.calls.filter(([operation]) => operation === "claim_partial_intake_draft_for_checkout")).toHaveLength(2)
+      expect(inserts.filter(({ table }) => table === "intakes").map(({ payload }) => payload.idempotency_key)).toEqual([originalKey, originalKey])
+      expect(inserts.filter(({ table }) => table === "intake_answers")).toHaveLength(0)
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    })
+  })
+
   it("release review rejects flow-only guest recovery without possession proof", async () => {
     const duplicateIntake = makeDuplicateHairIntake({ flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, status: "paid", payment_status: "paid" })
     const { supabase } = createGuestCheckoutSupabaseMock({
-      duplicateIntake, restoredFlow: true,
+      duplicateIntake, restoredFlow: true, draftProof: "missing",
       existingGuestProfiles: [{ id: "guest-profile-1", email: "patient@example.test", email_verified: false, full_name: "Test Patient", date_of_birth: "1985-04-01", auth_user_id: null }],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
@@ -986,12 +1056,10 @@ describe("checkout operating hours", () => {
         ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID,
         serverDraftSessionId: proof === "missing" ? undefined : proof === "invalid" ? "invalid" : proof === "foreign_bearer" ? "55555555-5555-4555-8555-555555555555" : SPECIALTY_DRAFT_SESSION_ID,
       })
-      expect(result).toMatchObject({ success: false, failureCode: "auth_or_session", requiresSignIn: true })
+      expect(result).toMatchObject({ success: false, failureCode: "auth_or_session", requiresSupport: true })
       expect(JSON.stringify(result)).not.toMatch(/intake-existing|cs_current|requiresFreshRequest/)
-      // The established exact submission-key lookup is preserved. No request
-      // lookup by flow or id may run when bearer possession is unproven.
-      expect(intakeLookups).toHaveLength(1)
-      expect(intakeLookups[0]).toHaveProperty("idempotency_key")
+      // Even the exact submission-key lookup waits for bearer proof.
+      expect(intakeLookups).toHaveLength(0)
       expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
       expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
       expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
@@ -1004,9 +1072,9 @@ describe("checkout operating hours", () => {
     const { supabase, intakeLookups } = createGuestCheckoutSupabaseMock({ duplicateIntake, restoredFlow: true, draftProof: "valid" })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     const result = await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID })
-    expect(result).toMatchObject({ success: false, failureCode: "auth_or_session", requiresSignIn: true })
-    expect(intakeLookups).toHaveLength(2)
-    expect(intakeLookups[1]).toMatchObject({ id: "intake-existing", patient_id: "guest-profile-1" })
+    expect(result).toMatchObject({ success: false, failureCode: "auth_or_session", requiresSupport: true })
+    expect(intakeLookups).toHaveLength(1)
+    expect(intakeLookups[0]).toMatchObject({ id: "intake-existing", patient_id: "guest-profile-1" })
     expect(JSON.stringify(result)).not.toMatch(/intake-existing|cs_current/)
     expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
   })
@@ -1017,7 +1085,7 @@ describe("checkout operating hours", () => {
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     const result = await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID })
     expect(result).toMatchObject({ success: false, failureCode: "persistence" })
-    expect(intakeLookups).toHaveLength(1)
+    expect(intakeLookups).toHaveLength(0)
     expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
   })
 
@@ -1041,16 +1109,16 @@ describe("checkout operating hours", () => {
     const result = await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID })
     expect(result).toMatchObject({ success: true, intakeId: "intake-existing" })
     expect(supabase.rpc).toHaveBeenCalledWith("claim_partial_intake_draft_for_checkout", { p_flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, p_service_type: "consult", p_session_id: SPECIALTY_DRAFT_SESSION_ID })
-    expect(intakeLookups.slice(1)).toHaveLength(2)
-    expect(intakeLookups.slice(1).every((lookup) => lookup.id === "intake-existing" && lookup.patient_id === "guest-profile-1")).toBe(true)
+    expect(intakeLookups.filter((lookup) => lookup.id)).toHaveLength(2)
+    expect(intakeLookups.every((lookup) => lookup.patient_id === "guest-profile-1")).toBe(true)
     expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
   })
 
-  it.each(["guest", "authenticated"])("recovers a cancelled restored flow with a new submission key through %s checkout", async (actor) => {
+  it.each(["guest", "authenticated"].flatMap(actor => ["cancelled", "expired"].map(status => ({ actor, status }))))("recovers a terminal restored flow with a new submission key: %j", async ({ actor, status }) => {
     const duplicateIntake = makeDuplicateHairIntake({
       flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID,
-      status: "cancelled",
-      payment_status: "unpaid",
+      status,
+      payment_status: status === "expired" ? "expired" : "unpaid",
     })
     const { supabase, inserts } = createGuestCheckoutSupabaseMock({ duplicateIntake, restoredFlow: true, draftProof: "valid" })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
@@ -1071,6 +1139,24 @@ describe("checkout operating hours", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
     expect(inserts.filter(({ table }) => table === "intake_answers")).toHaveLength(0)
   })
+  it.each(["guest", "authenticated"])("returns the owned saved request for a changed subtype through %s checkout", async (actor) => {
+    const duplicateIntake = makeDuplicateHairIntake({ flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, subtype: "ed" })
+    const { supabase, inserts } = createGuestCheckoutSupabaseMock({ duplicateIntake, restoredFlow: true, draftProof: "valid" })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    if (actor === "authenticated") {
+      mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
+        user: { id: "user-1", email: "patient@example.test" },
+        profile: { id: "guest-profile-1", date_of_birth: "1985-04-01", full_name: "Test Patient", stripe_customer_id: null },
+      })
+    }
+    const result = actor === "guest"
+      ? await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID })
+      : await createIntakeAndCheckoutAction({ ...hairLossAuthenticatedCheckoutInput(), flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID })
+    expect(result).toMatchObject({ success: false, savedRequestUrl: expect.stringContaining(actor === "guest" ? "/resume/" : "/patient/intakes/intake-existing") })
+    expect(JSON.stringify(result)).not.toMatch(/requiresFreshRequest|requiresSignIn/)
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled(); expect(mocks.stripeSessionExpire).not.toHaveBeenCalled(); expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(inserts.filter(({ table }) => table === "intake_answers")).toHaveLength(0)
+  })
 
   it("fails safely when the unique flow guard wins outside the old idempotency key", async () => {
     const { supabase } = createGuestCheckoutSupabaseMock({ forceDuplicate: true })
@@ -1088,8 +1174,7 @@ describe("checkout operating hours", () => {
       subtype: "work",
       type: "med-cert",
     })).resolves.toMatchObject({
-      error:
-        "This request is already being submitted. Please wait a moment and try again.",
+      requiresSupport: true,
       success: false,
     })
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
@@ -1679,6 +1764,128 @@ describe("checkout operating hours", () => {
       )
     },
   )
+
+  describe.skipIf(!process.env.CHECKOUT_FIXTURE_URL)("guest duplicate proof against disposable PostgreSQL/PostgREST", () => {
+    let db: import("@supabase/supabase-js").SupabaseClient
+    const intakeId = "42424242-4242-4242-8242-424242424242"
+    const originalKey = "fixture-original-key"
+    const input = {
+      category: "medical_certificate" as const, subtype: "work", type: "med-cert",
+      answers: { accuracy_confirmed: true, terms_agreed: true },
+      guestName: "Fixture Patient", guestDateOfBirth: "1985-04-01", guestEmail: "fixture@example.test",
+      checkoutSubmissionKey: originalKey, flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
+    }
+    beforeEach(async () => {
+      const fixtureUrl = process.env.CHECKOUT_FIXTURE_URL!
+      if (!/^http:\/\/127\.0\.0\.1:\d+$/.test(fixtureUrl)) throw new Error("Guest checkout DB fixtures require a disposable loopback endpoint")
+      const { createClient } = await vi.importActual<typeof import("@supabase/supabase-js")>("@supabase/supabase-js")
+      db = createClient(fixtureUrl, "fixture-only", {
+        auth: { persistSession: false },
+        global: { fetch: (url, options) => {
+          const headers = new Headers(options?.headers)
+          headers.delete("authorization")
+          return fetch(String(url).replace("/rest/v1", ""), { ...options, headers })
+        } },
+      })
+      expect((await db.from("partial_intakes").delete().not("session_id", "is", null)).error).toBeNull()
+      expect((await db.from("intake_answers").delete().not("intake_id", "is", null)).error).toBeNull()
+      expect((await db.from("intakes").delete().not("id", "is", null)).error).toBeNull()
+      expect((await db.from("intakes").insert({
+        id: intakeId, patient_id: "fixture-owner", guest_email: "fixture@example.test", service_id: "fixture-service",
+        status: "paid", payment_status: "paid", payment_id: "cs_fixture", checkout_error: null,
+        category: "medical_certificate", subtype: "work", flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, idempotency_key: originalKey,
+      })).error).toBeNull()
+      expect((await db.from("partial_intakes").insert({
+        session_id: SPECIALTY_DRAFT_SESSION_ID, flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID,
+        service_type: "med-cert", email: "fixture@example.test", converted_to_intake_id: intakeId, expires_at: "2099-01-01T00:00:00Z",
+      })).error).toBeNull()
+      mocks.createServiceRoleClient.mockReturnValue(db)
+      mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({})
+      mocks.stripeSessionRetrieve.mockResolvedValue({ id: "cs_fixture", metadata: { intake_id: intakeId }, status: "expired", payment_status: "unpaid", payment_intent: null })
+    })
+
+    describe.each(["paid", "expired"])("same-key %s", (status) => {
+      it.each(["missing", "malformed", "foreign_bearer", "expired", "wrong_flow", "foreign_email", "missing_email", "foreign_profile", "foreign_intake", "missing_intake_flow", "wrong_intake_flow", "missing_intake_email", "foreign_intake_email", "unconverted"] as const)("blocks %s proof without exposing or changing the earlier obligation", async (proof) => {
+        expect((await db.from("intakes").update({ status, payment_status: status }).eq("id", intakeId)).error).toBeNull()
+        const draftChanges = proof === "expired" ? { expires_at: "2000-01-01T00:00:00Z" }
+          : proof === "foreign_email" ? { email: "foreign@example.test" }
+          : proof === "missing_email" ? { email: null }
+          : proof === "foreign_intake" ? { converted_to_intake_id: "46464646-4646-4646-8646-464646464646" }
+          : proof === "unconverted" ? { converted_to_intake_id: null } : null
+        if (draftChanges) expect((await db.from("partial_intakes").update(draftChanges).eq("session_id", SPECIALTY_DRAFT_SESSION_ID)).error).toBeNull()
+        if (proof === "foreign_profile") expect((await db.from("intakes").update({ patient_id: "foreign-owner" }).eq("id", intakeId)).error).toBeNull()
+        const intakeChanges = proof === "missing_intake_flow" ? { flow_instance_id: null }
+          : proof === "wrong_intake_flow" ? { flow_instance_id: "46464646-4646-4646-8646-464646464646" }
+          : proof === "missing_intake_email" ? { guest_email: null }
+          : proof === "foreign_intake_email" ? { guest_email: "foreign@example.test" } : null
+        if (intakeChanges) expect((await db.from("intakes").update(intakeChanges).eq("id", intakeId)).error).toBeNull()
+        const result = await createGuestCheckoutAction({
+          ...input,
+          flowInstanceId: proof === "wrong_flow" ? "44444444-4444-4444-8444-444444444444" : input.flowInstanceId,
+          serverDraftSessionId: proof === "missing" ? undefined : proof === "malformed" ? "malformed" : proof === "foreign_bearer" ? "45454545-4545-4545-8545-454545454545" : input.serverDraftSessionId,
+        })
+        expect(result).toMatchObject({ success: false, requiresSupport: true })
+        expect(JSON.stringify(result)).not.toMatch(/42424242|cs_fixture|medical_certificate|fixture@example|checkoutUrl|savedRequestUrl|requiresFreshRequest|requiresSignIn/)
+        expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+        expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+        expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+        expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
+        expect((await db.from("intakes").select("id, status, payment_status, payment_id"))).toMatchObject({ data: [{ id: intakeId, status, payment_status: status, payment_id: "cs_fixture" }], error: null })
+      })
+    })
+
+    it.each(["pending_payment", "paid", "cancelled", "expired"])("recovers repeated valid same-key %s submissions on exactly one obligation", async (status) => {
+      const paymentStatus = status === "pending_payment" ? "pending" : status === "cancelled" ? "unpaid" : status
+      expect((await db.from("intakes").update({ status, payment_status: paymentStatus }).eq("id", intakeId)).error).toBeNull()
+      mocks.stripeSessionRetrieve.mockResolvedValue({
+        id: "cs_fixture", metadata: { intake_id: intakeId }, payment_intent: null, payment_status: "unpaid",
+        status: status === "pending_payment" ? "open" : "expired", url: "https://checkout.stripe.test/pay/cs_fixture",
+      })
+      const rpc = vi.spyOn(db, "rpc")
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const result = await createGuestCheckoutAction(input)
+        expect(result).toMatchObject(status === "pending_payment" || status === "paid"
+          ? { success: true, intakeId, checkoutUrl: expect.stringContaining("cs_fixture") }
+          : { success: false, requiresFreshRequest: true })
+      }
+      expect(rpc.mock.calls.filter(([operation]) => operation === "claim_partial_intake_draft_for_checkout")).toHaveLength(2)
+      expect((await db.from("intakes").select("id, status, payment_status, idempotency_key"))).toMatchObject({ data: [{ id: intakeId, status, payment_status: paymentStatus, idempotency_key: originalKey }], error: null })
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    })
+
+    it("waits for the first conversion to finish before allowing same-key recovery", async () => {
+      expect((await db.from("intakes").update({ status: "pending_payment", payment_status: "pending" }).eq("id", intakeId)).error).toBeNull()
+      expect((await db.from("partial_intakes").update({ converted_to_intake_id: null }).eq("session_id", SPECIALTY_DRAFT_SESSION_ID)).error).toBeNull()
+      const beforeConversion = await createGuestCheckoutAction(input)
+      expect(beforeConversion).toMatchObject({ success: false, requiresSupport: true })
+      expect(JSON.stringify(beforeConversion)).not.toMatch(/42424242|cs_fixture|checkoutUrl|savedRequestUrl|requiresFreshRequest/)
+      expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+      expect((await db.from("partial_intakes").select("converted_to_intake_id").eq("session_id", SPECIALTY_DRAFT_SESSION_ID))).toMatchObject({ data: [{ converted_to_intake_id: null }], error: null })
+      expect((await db.from("partial_intakes").update({ converted_to_intake_id: intakeId }).eq("session_id", SPECIALTY_DRAFT_SESSION_ID)).error).toBeNull()
+      mocks.stripeSessionRetrieve.mockResolvedValue({ id: "cs_fixture", metadata: { intake_id: intakeId }, status: "open", payment_status: "unpaid", url: "https://checkout.stripe.test/pay/cs_fixture" })
+      await expect(createGuestCheckoutAction(input)).resolves.toMatchObject({ success: true, intakeId, checkoutUrl: "https://checkout.stripe.test/pay/cs_fixture" })
+      expect((await db.from("intakes").select("id"))).toMatchObject({ data: [{ id: intakeId }], error: null })
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    })
+
+    it("blocks a valid bearer when the submitted key selects a different obligation", async () => {
+      const otherId = "47474747-4747-4747-8747-474747474747"
+      expect((await db.from("intakes").update({ idempotency_key: "proved-request-key" }).eq("id", intakeId)).error).toBeNull()
+      expect((await db.from("intakes").insert({
+        id: otherId, patient_id: "fixture-owner", guest_email: "fixture@example.test", service_id: "fixture-service",
+        status: "paid", payment_status: "paid", payment_id: "cs_other", category: "medical_certificate", subtype: "work",
+        flow_instance_id: "48484848-4848-4848-8848-484848484848", idempotency_key: originalKey,
+      })).error).toBeNull()
+      const result = await createGuestCheckoutAction(input)
+      expect(result).toMatchObject({ success: false, requiresSupport: true })
+      expect(JSON.stringify(result)).not.toMatch(/42424242|47474747|cs_fixture|cs_other|checkoutUrl|savedRequestUrl|requiresFreshRequest/)
+      expect((await db.from("intakes").select("id, payment_status").order("id"))).toMatchObject({ data: [{ id: intakeId, payment_status: "paid" }, { id: otherId, payment_status: "paid" }], error: null })
+      expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+      expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    })
+  })
 
   it("copies the stored cohort to rebuilt guest Session and PaymentIntent metadata", async () => {
     const duplicateIntake = makeDuplicateRepeatIntake({

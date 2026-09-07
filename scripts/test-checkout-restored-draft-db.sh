@@ -34,4 +34,6 @@ for attempt in {1..50}; do
   sleep 0.2
 done
 cd "$REPO_ROOT"
-CHECKOUT_FIXTURE_URL="http://127.0.0.1:$FIXTURE_PORT" corepack pnpm test run lib/__tests__/checkout-restored-draft-db.test.ts
+CHECKOUT_FIXTURE_URL="http://127.0.0.1:$FIXTURE_PORT" corepack pnpm test run \
+  lib/__tests__/checkout-restored-draft-db.test.ts lib/__tests__/stripe/checkout-operating-hours.test.ts \
+  --testNamePattern='disposable PostgreSQL' --no-file-parallelism

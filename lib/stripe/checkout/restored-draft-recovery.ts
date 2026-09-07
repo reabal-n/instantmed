@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
 
-import { reportCheckoutPersistenceFailure } from "@/lib/observability/checkout-persistence-diagnostics"
+import { CONTACT_EMAIL } from "@/lib/constants"
+import { reportCheckoutPersistenceFailure, reportCheckoutProviderFailure } from "@/lib/observability/checkout-persistence-diagnostics"
 import { createLogger } from "@/lib/observability/logger"
-import { invalidateCheckoutSessionForSafety } from "@/lib/stripe/checkout/checkout-session-safety"
 import type { CheckoutResult } from "@/lib/stripe/checkout/types"
 import { checkoutFailure } from "@/lib/stripe/checkout-failure"
 import { stripe } from "@/lib/stripe/client"
@@ -20,8 +20,8 @@ export interface RestoredCheckoutIntake {
   checkout_error: string | null
 }
 
-/** Call only after owner/bearer verification. Never turn a cancelled row payable. */
-export async function reconcileCancelledDraftCheckout({
+/** Call only after owner/bearer verification. Never turn a terminal row payable. */
+export async function reconcileTerminalDraftCheckout({
   supabase, intake, patientId, existingUrl,
 }: {
   supabase: SupabaseClient
@@ -32,15 +32,15 @@ export async function reconcileCancelledDraftCheckout({
   const existing = (): CheckoutResult => ({ success: true, intakeId: intake.id, checkoutUrl: existingUrl })
   const blocked = (reason: string): CheckoutResult => {
     logger.warn("Restored checkout needs payment recovery", { reason })
-    return checkoutFailure("payment_provider", "We need to confirm the payment status of your previous request. Contact support@instantmed.com.au before starting another payment.")
+    return checkoutFailure("payment_provider", `We need to confirm the payment status of your previous request. Contact ${CONTACT_EMAIL} before starting another payment.`, { requiresSupport: true })
   }
   if (isTerminalPaidPaymentStatus(intake.payment_status)) return existing()
-  if (intake.status !== "cancelled") return blocked("request_not_cancelled")
+  if (intake.status !== "cancelled" && intake.status !== "expired") return blocked("request_not_terminal")
   if (intake.checkout_error === HIGH_STAKES_PAYMENT_LOCK) {
-    return checkoutFailure("clinical_or_input_validation", "This request cannot be completed online. Please contact support or arrange an in-person assessment.")
+    return checkoutFailure("clinical_or_input_validation", "This request cannot be completed online. Please contact support or arrange an in-person assessment.", { requiresSupport: true })
   }
   if (!intake.payment_id) return blocked("missing_provider_reference")
-  if (!["pending", "unpaid", "failed"].includes(intake.payment_status ?? "")) return blocked("unknown_database_payment_state")
+  if (!["pending", "unpaid", "failed", "expired"].includes(intake.payment_status ?? "")) return blocked("unknown_database_payment_state")
 
   const inspect = async (): Promise<Stripe.Checkout.Session | null> => {
     try {
@@ -55,6 +55,7 @@ export async function reconcileCancelledDraftCheckout({
         && (intent.metadata.intake_id || intent.metadata.request_id) !== intake.id) return null
       return session
     } catch {
+      reportCheckoutProviderFailure("restored_session_inspect")
       return null
     }
   }
@@ -65,11 +66,24 @@ export async function reconcileCancelledDraftCheckout({
   const inFlight = () => typeof session?.payment_intent === "object" && ["processing", "requires_capture"].includes(session?.payment_intent?.status ?? "")
   if (inFlight() || session.status === "complete") return blocked("payment_in_flight")
   if (session.status === "open" && session.payment_status === "unpaid") {
-    const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, { storedPaymentId: intake.payment_id })
+    const intent = session.payment_intent
+    if (intent && (typeof intent !== "object" || !["requires_payment_method", "requires_confirmation", "requires_action", "canceled"].includes(intent.status))) {
+      return blocked("unknown_provider_intent_state")
+    }
+    // The expanded inspection above owns the exact Session/intent proof.
+    // Keep this bounded to one expire attempt and never forward Stripe's raw
+    // exception through the generic session-safety logger.
+    let expirationFailed = false
+    try {
+      await stripe.checkout.sessions.expire(intake.payment_id)
+    } catch {
+      expirationFailed = true
+    }
     // Even a successful expire response is not read-back proof.
     session = await inspect()
     if (paid()) return existing()
-    if (invalidation !== "invalidated" || !session) return blocked("invalidation_unconfirmed")
+    if (expirationFailed) reportCheckoutProviderFailure("restored_session_expire")
+    if (!session) return blocked("invalidation_unconfirmed")
   }
   if (!session || session.status !== "expired" || session.payment_status !== "unpaid"
     || (session.payment_intent !== null && (typeof session.payment_intent !== "object" || session.payment_intent.status !== "canceled"))) {
@@ -77,18 +91,18 @@ export async function reconcileCancelledDraftCheckout({
   }
 
   // Reassert every stored payment/cancellation field after provider IO. A
-  // changed row or lost response blocks recovery. The terminal row remains
-  // cancelled, so existing attach/retry guards cannot create another session.
+  // changed row or lost response blocks recovery. The terminal row stays
+  // terminal, so existing attach/retry guards cannot create another session.
   let query = supabase.from("intakes").update({ updated_at: new Date().toISOString() })
-    .eq("id", intake.id).eq("patient_id", patientId).eq("status", "cancelled")
+    .eq("id", intake.id).eq("patient_id", patientId).eq("status", intake.status)
     .eq("payment_id", intake.payment_id).eq("payment_status", intake.payment_status!)
   query = intake.checkout_error === null ? query.is("checkout_error", null) : query.eq("checkout_error", intake.checkout_error)
   const { data, error } = await query.select("id")
   if (error) {
-    reportCheckoutPersistenceFailure("cancelled_recovery_compare_and_set", error.code)
+    reportCheckoutPersistenceFailure("terminal_recovery_compare_and_set", error.code)
     return blocked("reconciliation_write_failed")
   }
   if (!data || data.length !== 1) return blocked("payment_state_changed")
-  logger.info("Restored cancelled checkout verified unpayable", { reason: "provider_expired_unpaid" })
-  return checkoutFailure("auth_or_session", "Your previous request was cancelled and its payment session is closed. Start this request over and complete the form again to continue.", { requiresFreshRequest: true })
+  logger.info("Restored terminal checkout verified unpayable", { reason: "provider_expired_unpaid" })
+  return checkoutFailure("auth_or_session", "Your previous request is closed and its payment session has expired. Start this request over and complete the form again to continue.", { requiresFreshRequest: true })
 }

@@ -37,19 +37,52 @@ describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/Po
   it("validates an exact converted bearer and owner using the canonical claim RPC", async () => {
     const sessionId = "43434343-4343-4343-8343-434343434343"
     expect((await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email: "fixture@example.test", converted_to_intake_id: intakeId, expires_at: "2099-01-01T00:00:00Z" })).error).toBeNull()
-    const input = { sessionId, flowInstanceId: flow, serviceType: "med-cert" as const, category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: "fixture-owner" }
+    const input = { sessionId, flowInstanceId: flow, serviceType: "med-cert" as const, category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: "fixture-owner", requireGuestProof: false }
     await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "reusable", intake: { id: intakeId, patientId: "fixture-owner" } })
     await expect(findConvertedPartialIntakeForCheckout(db, { ...input, patientId: "foreign-owner" })).resolves.toMatchObject({ kind: "blocked" })
     await expect(findConvertedPartialIntakeForCheckout(db, { ...input, flowInstanceId: "44444444-4444-4444-8444-444444444444" })).resolves.toMatchObject({ kind: "blocked", reason: "request_mismatch" })
-    await expect(findConvertedPartialIntakeForCheckout(db, { ...input, serviceType: "consult" })).resolves.toMatchObject({ kind: "blocked", reason: "request_mismatch" })
+    await expect(findConvertedPartialIntakeForCheckout(db, { ...input, serviceType: "consult" })).resolves.toMatchObject({ kind: "service_changed", intake: { id: intakeId } })
     expect(mocks.retrieve).not.toHaveBeenCalled()
   })
-  it("does not confer existing-request access on a manufactured same-flow unconverted bearer", async () => {
+  it.each([true, false])("requires complete guest recovery proof while retaining authenticated legacy access: guest=%s", async (requireGuestProof) => {
+    const sessionId = "43434343-4343-4343-8343-434343434343"
+    expect((await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email: "fixture@example.test", converted_to_intake_id: intakeId, expires_at: "2099-01-01T00:00:00Z" })).error).toBeNull()
+    const input = { sessionId, flowInstanceId: flow, serviceType: "med-cert" as const, category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: requireGuestProof ? undefined : "fixture-owner", requireGuestProof }
+    await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "reusable", intake: { id: intakeId, patientId: "fixture-owner" } })
+    expect((await db.from("partial_intakes").update({ email: null }).eq("session_id", sessionId)).error).toBeNull()
+    const missingEmail = await findConvertedPartialIntakeForCheckout(db, input)
+    expect(missingEmail).toMatchObject({ kind: requireGuestProof ? "blocked" : "reusable" })
+    expect((await db.from("partial_intakes").update({ email: "fixture@example.test" }).eq("session_id", sessionId)).error).toBeNull()
+    expect((await db.from("intakes").update({ flow_instance_id: null }).eq("id", intakeId)).error).toBeNull()
+    const missingFlow = await findConvertedPartialIntakeForCheckout(db, input)
+    expect(missingFlow).toMatchObject({ kind: requireGuestProof ? "blocked" : "reusable" })
+    if (requireGuestProof) expect(JSON.stringify([missingEmail, missingFlow])).not.toMatch(/42424242|cs_fixture|fixture@example/)
+    expect(mocks.retrieve).not.toHaveBeenCalled()
+  })
+  it.each([undefined, "fixture-owner"])("returns the original converted service only after exact bearer/flow/owner proof: %s", async (patientId) => {
+    const sessionId = "43434343-4343-4343-8343-434343434343"
+    await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email: "fixture@example.test", converted_to_intake_id: intakeId, expires_at: "2099-01-01T00:00:00Z" })
+    const input = { sessionId, flowInstanceId: flow, serviceType: "consult" as const, category: "consult", subtype: "ed", email: "fixture@example.test", patientId, requireGuestProof: !patientId }
+    await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "service_changed", intake: { id: intakeId, category: "medical_certificate", subtype: "work" } })
+    for (const changed of [{ patientId: "foreign-owner" }, { email: "foreign@example.test" }, { flowInstanceId: "44444444-4444-4444-8444-444444444444" }]) {
+      const result = await findConvertedPartialIntakeForCheckout(db, { ...input, ...changed })
+      expect(result).toMatchObject({ kind: "blocked" })
+      expect(JSON.stringify(result)).not.toMatch(/medical_certificate|work|fixture@example|42424242|cs_fixture/)
+    }
+    expect(mocks.retrieve).not.toHaveBeenCalled()
+  })
+  it("routes a same-owner uniqueness collision with a changed subtype to the original request", async () => {
+    const result = await createIntakeWithAnswers(db, { ...args, input: { ...args.input, subtype: "study" } })
+    expect(result).toMatchObject({ ok: true, data: { result: { success: false, savedRequestUrl: `http://localhost:3060/patient/intakes/${intakeId}` } } })
+    expect((await db.from("intakes").select("*").eq("flow_instance_id", flow)).data).toMatchObject([original])
+    expect(mocks.retrieve).not.toHaveBeenCalled()
+  })
+  it.each([null, "fixture@example.test"])("does not confer existing-request access on a manufactured same-flow unconverted bearer with captured email %s", async (email) => {
     const sessionId = "45454545-4545-4545-8545-454545454545"
     // The draft API permits this shape even after the intake exists. Neither
     // the flow ID nor claimed email can substitute for its missing conversion.
-    expect((await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email: "fixture@example.test", expires_at: "2099-01-01T00:00:00Z" })).error).toBeNull()
-    await expect(findConvertedPartialIntakeForCheckout(db, { sessionId, flowInstanceId: flow, serviceType: "med-cert", category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: "fixture-owner" })).resolves.toMatchObject({ kind: "none", reason: "not_converted" })
+    expect((await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email, expires_at: "2099-01-01T00:00:00Z" })).error).toBeNull()
+    await expect(findConvertedPartialIntakeForCheckout(db, { sessionId, flowInstanceId: flow, serviceType: "med-cert", category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: "fixture-owner", requireGuestProof: true })).resolves.toMatchObject({ kind: "none", reason: "not_converted" })
     expect(mocks.retrieve).not.toHaveBeenCalled()
   })
   it("reproduces the real 23505 flow collision independently of submission key", async () => {
@@ -63,9 +96,14 @@ describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/Po
     expect((await db.from("intakes").select("*").eq("flow_instance_id", flow)).data).toMatchObject([original])
     expect(mocks.expire).not.toHaveBeenCalled()
   })
+  it("reconciles the actual expired webhook pair and preserves its terminal state", async () => {
+    await db.from("intakes").update({ status: "expired", payment_status: "expired" }).eq("id", intakeId)
+    await expect(createIntakeWithAnswers(db, args)).resolves.toMatchObject({ ok: true, data: { result: { requiresFreshRequest: true } } })
+    expect((await db.from("intakes").select("status, payment_status").eq("id", intakeId)).data).toEqual([{ status: "expired", payment_status: "expired" }])
+  })
   it("does not disclose a flow owned by another patient", async () => {
     const result = await createIntakeWithAnswers(db, { ...args, patientId: "different-owner" })
-    expect(result).toMatchObject({ ok: false })
+    expect(result).toMatchObject({ ok: true, data: { result: { success: false, requiresSupport: true } } })
     expect(JSON.stringify(result)).not.toContain(intakeId)
     expect(mocks.retrieve).not.toHaveBeenCalled()
   })

@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({ retrieve: vi.fn(), expire: vi.fn(), log: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }))
 vi.mock("@/lib/stripe/client", () => ({ stripe: { checkout: { sessions: { retrieve: mocks.retrieve, expire: mocks.expire } } } }))
 vi.mock("@/lib/observability/logger", () => ({ createLogger: () => mocks.log }))
-import { reconcileCancelledDraftCheckout, type RestoredCheckoutIntake } from "@/lib/stripe/checkout/restored-draft-recovery"
+import { reconcileTerminalDraftCheckout, type RestoredCheckoutIntake } from "@/lib/stripe/checkout/restored-draft-recovery"
 
 const initial: RestoredCheckoutIntake & { patient_id: string } = {
   id: "intake-owned", patient_id: "patient-owned", status: "cancelled", payment_status: "unpaid",
@@ -26,7 +26,7 @@ function fixture(overrides: Partial<typeof initial> = {}, databaseError: { code:
     }),
   }
   const supabase = { from: () => ({ update: (payload: Record<string, unknown>) => { writes.push(payload); return query } }) } as unknown as SupabaseClient
-  const run = () => reconcileCancelledDraftCheckout({ supabase, intake: original, patientId: "patient-owned", existingUrl: "/patient/intakes/intake-owned" })
+  const run = () => reconcileTerminalDraftCheckout({ supabase, intake: original, patientId: "patient-owned", existingUrl: "/patient/intakes/intake-owned" })
   return { row, run, writes, filters }
 }
 
@@ -40,6 +40,30 @@ describe("restored cancelled checkout provider reconciliation", () => {
     expect(filters).toEqual(initial)
     expect(writes).toEqual([{ updated_at: expect.any(String) }])
     expect(row).toEqual(initial)
+  })
+  it.each(["unpaid", "pending", "failed", "expired"])("reconciles an expired request with %s DB payment state without reviving it", async (payment_status) => {
+    const f = fixture({ status: "expired", payment_status })
+    await expect(f.run()).resolves.toMatchObject({ success: false, requiresFreshRequest: true })
+    expect(f.filters).toMatchObject({ status: "expired", payment_status })
+    expect(f.row.status).toBe("expired")
+    expect(f.writes).toEqual([{ updated_at: expect.any(String) }])
+  })
+  it("marks an unresolved payment as a support recovery that cannot be retried", async () => {
+    mocks.retrieve.mockResolvedValue({ ...terminal, payment_intent: { status: "processing" } })
+    await expect(fixture().run()).resolves.toMatchObject({ success: false, requiresSupport: true })
+  })
+  it("reports an unexpected provider exception without its private payload", async () => {
+    mocks.retrieve.mockRejectedValue(new Error("private-provider-value cs_owned patient-owned"))
+    await fixture().run()
+    expect(mocks.log.error).toHaveBeenCalledWith("Checkout provider operation failed", { operation: "restored_session_inspect" })
+    expect(JSON.stringify(mocks.log.error.mock.calls)).not.toMatch(/private-provider|cs_owned|patient-owned/)
+  })
+  it("never logs the original expiration exception or provider identifiers", async () => {
+    mocks.retrieve.mockResolvedValue({ ...terminal, status: "open" })
+    mocks.expire.mockRejectedValue(new Error("private-provider-value cs_owned patient-owned"))
+    await fixture().run()
+    expect(mocks.log.error).toHaveBeenCalledWith("Checkout provider operation failed", { operation: "restored_session_expire" })
+    expect(JSON.stringify(mocks.log.error.mock.calls)).not.toMatch(/private-provider|cs_owned|patient-owned/)
   })
   it.each(["paid", "refunded", "partially_refunded", "disputed"])("returns existing %s payment without a provider mutation", async (payment_status) => {
     const { run, writes } = fixture({ payment_status })
@@ -81,23 +105,35 @@ describe("restored cancelled checkout provider reconciliation", () => {
   })
   it("confirms open-session expiration with a separate expanded read-back", async () => {
     const open = { ...terminal, status: "open" }
-    mocks.retrieve.mockResolvedValueOnce(open).mockResolvedValueOnce(open).mockResolvedValueOnce(terminal)
+    mocks.retrieve.mockResolvedValueOnce(open).mockResolvedValueOnce(terminal)
     mocks.expire.mockResolvedValue({ id: "cs_owned", status: "expired" })
     await expect(fixture().run()).resolves.toMatchObject({ requiresFreshRequest: true })
     expect(mocks.expire).toHaveBeenCalledTimes(1)
     expect(mocks.retrieve).toHaveBeenLastCalledWith("cs_owned", { expand: ["payment_intent"] })
   })
   it.each(["open", "complete"])("does not trust expire success when read-back is %s", async (status) => {
-    mocks.retrieve.mockResolvedValueOnce({ ...terminal, status: "open" }).mockResolvedValueOnce({ ...terminal, status: "open" }).mockResolvedValueOnce({ ...terminal, status })
+    mocks.retrieve.mockResolvedValueOnce({ ...terminal, status: "open" }).mockResolvedValueOnce({ ...terminal, status })
     mocks.expire.mockResolvedValue({ status: "expired" })
     const { run, writes } = fixture()
     expect((await run()).requiresFreshRequest).not.toBe(true)
     expect(writes).toEqual([])
   })
   it("routes payment that wins the expire race to existing recovery", async () => {
-    mocks.retrieve.mockResolvedValueOnce({ ...terminal, status: "open" }).mockResolvedValueOnce({ ...terminal, status: "open" }).mockResolvedValueOnce({ ...terminal, status: "complete", payment_status: "paid" })
+    mocks.retrieve.mockResolvedValueOnce({ ...terminal, status: "open" }).mockResolvedValueOnce({ ...terminal, status: "complete", payment_status: "paid" })
     mocks.expire.mockResolvedValue({ status: "expired" })
     await expect(fixture().run()).resolves.toMatchObject({ success: true })
+  })
+  it("uses paid read-back after an expire rejection without treating the expected race as a provider incident", async () => {
+    mocks.retrieve.mockResolvedValueOnce({ ...terminal, status: "open" }).mockResolvedValueOnce({ ...terminal, status: "complete", payment_status: "paid" })
+    mocks.expire.mockRejectedValue(new Error("private-provider-race"))
+    await expect(fixture().run()).resolves.toMatchObject({ success: true })
+    expect(mocks.log.error).not.toHaveBeenCalled()
+  })
+  it("requires terminal read-back even when the expire response is lost", async () => {
+    mocks.retrieve.mockResolvedValueOnce({ ...terminal, status: "open" }).mockResolvedValueOnce(terminal)
+    mocks.expire.mockRejectedValue(new Error("private-provider-response-loss"))
+    await expect(fixture().run()).resolves.toMatchObject({ success: false, requiresFreshRequest: true })
+    expect(mocks.log.error).toHaveBeenCalledWith("Checkout provider operation failed", { operation: "restored_session_expire" })
   })
   it.each([
     { payment_id: "cs_replaced" }, { status: "paid", payment_status: "paid" },
@@ -115,12 +151,29 @@ describe("restored cancelled checkout provider reconciliation", () => {
     await expect(fixture({ checkout_error: "safety_blocked_high_stakes" }).run()).resolves.toMatchObject({ success: false, failureCode: "clinical_or_input_validation" })
     expect(mocks.retrieve).not.toHaveBeenCalled()
   })
+  it.each(["paid", "refunded", "partially_refunded", "disputed"])("never restarts expired requests with a terminal %s cash state", async (payment_status) => {
+    await expect(fixture({ status: "expired", payment_status }).run()).resolves.toMatchObject({ success: true })
+    expect(mocks.retrieve).not.toHaveBeenCalled(); expect(mocks.expire).not.toHaveBeenCalled()
+  })
+  it.each(["expired", "failed", "pending", "unpaid"])("keeps expired high-stakes clinical locks closed for %s", async (payment_status) => {
+    await expect(fixture({ status: "expired", payment_status, checkout_error: "safety_blocked_high_stakes" }).run()).resolves.toMatchObject({ success: false, requiresSupport: true })
+    expect(mocks.retrieve).not.toHaveBeenCalled(); expect(mocks.expire).not.toHaveBeenCalled()
+  })
+  it.each([null, "unknown", "processing"])("does not inspect or reset expired requests with uncertain %s cash state", async (payment_status) => {
+    await expect(fixture({ status: "expired", payment_status }).run()).resolves.toMatchObject({ success: false, requiresSupport: true })
+    expect(mocks.retrieve).not.toHaveBeenCalled()
+  })
+  it("does not expire a session with a future unknown PaymentIntent state", async () => {
+    mocks.retrieve.mockResolvedValue({ ...terminal, status: "open", payment_intent: { status: "unknown_future_state" } })
+    await expect(fixture().run()).resolves.toMatchObject({ success: false, requiresSupport: true })
+    expect(mocks.expire).not.toHaveBeenCalled()
+  })
   it("bounds failed invalidation to one attempt and withholds fresh recovery", async () => {
     mocks.retrieve.mockResolvedValue({ ...terminal, status: "open" })
     mocks.expire.mockRejectedValue(new Error("provider unavailable"))
     expect((await fixture().run()).requiresFreshRequest).not.toBe(true)
     expect(mocks.expire).toHaveBeenCalledTimes(1)
-    expect(mocks.retrieve).toHaveBeenCalledTimes(4)
+    expect(mocks.retrieve).toHaveBeenCalledTimes(2)
   })
   it("blocks missing payment reference and network loss without a fresh-request hint", async () => {
     expect((await fixture({ payment_id: null }).run()).requiresFreshRequest).not.toBe(true)
@@ -131,8 +184,8 @@ describe("restored cancelled checkout provider reconciliation", () => {
     const f = fixture({}, { code: "42501", message: "secret clinical sentinel" })
     expect((await f.run()).requiresFreshRequest).not.toBe(true)
     expect(mocks.log.error).toHaveBeenCalledWith("Checkout persistence operation failed", {
-      operation: "cancelled_recovery_compare_and_set", databaseCode: "42501",
-    }, expect.any(Error))
+      operation: "terminal_recovery_compare_and_set", databaseCode: "42501",
+    })
     expect(JSON.stringify(mocks.log.error.mock.calls)).not.toMatch(/sentinel|intake-owned|patient-owned|cs_owned/)
   })
   it("keeps Back/reload/another-tab submissions bound to the old cancelled obligation", async () => {
