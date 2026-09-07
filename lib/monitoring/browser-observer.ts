@@ -29,19 +29,31 @@ export async function checkBrowserObserver() {
       if (current.state.backoffUntil > now) {
         state.backoffUntil = Math.max(state.backoffUntil, current.state.backoffUntil)
       }
+      // Wall-clock polling order does not establish source-window order. An
+      // older fetched list cannot clear outstanding work in the newer known
+      // window, whether it arrives on a CAS retry or an ordinary later poll.
+      if (current.state.invocation && (!collected.sourceInvocation
+        || compareBrowserEvidence(current.state.invocation, collected.sourceInvocation) > 0)) {
+        state.coverageGap = current.state.coverageGap
+        state.running = current.state.running
+        state.observerOk &&= current.state.observerOk
+      }
       // A concurrent successful observer must not have its source evidence
       // erased by this older snapshot. CAS retries merge immutable evidence.
       for (const field of ["latest", "success", "failure", "invocation"] as const) {
         if (current.state[field]) state[field] = mergeCompletion(state[field], current.state[field]!)
       }
       const health = browserHealth(state, now)
-      let unavailableReason = collected.unavailableReason
+      let unavailableReason: typeof collected.unavailableReason | "newer_window_unavailable" = collected.unavailableReason
       // Cadence availability is derived from the merged proof. A competing
       // poll may have restored scheduled evidence or evicted its last receipt.
       if (unavailableReason === "cadence_unknown" && health.stale !== null) {
-        state.observerOk = true
+        // Its timestamp proves cadence, not completeness of the contributing
+        // source window. Pending jobs or a coverage gap still stay unavailable.
+        state.observerOk = current.state.observerOk
         unavailableReason = undefined
       }
+      if (!state.observerOk && !unavailableReason) unavailableReason = state.coverageGap ? "coverage_gap" : "newer_window_unavailable"
       if (health.stale === null) {
         state.observerOk = false
         unavailableReason ??= "cadence_unknown"

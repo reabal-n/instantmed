@@ -69,9 +69,10 @@ async function getJson(path: string, now: number): Promise<unknown> {
   return response.json()
 }
 
-export async function collectBrowserEvidence(previous: BrowserState, now: number): Promise<{ state: BrowserState; completions: Evidence[]; unavailableReason?: UnavailableReason }> {
+export async function collectBrowserEvidence(previous: BrowserState, now: number): Promise<{ state: BrowserState; completions: Evidence[]; sourceInvocation?: Evidence; unavailableReason?: UnavailableReason }> {
   const state: BrowserState = { ...previous, checkedAt: now, cache: [...previous.cache], observerOk: false }
   const completions: Evidence[] = []
+  let sourceInvocation: Evidence | undefined
   let unavailableReason: UnavailableReason | undefined
   try {
     if (now < state.backoffUntil) throw new ObservationError(state.backoffUntil, "backoff")
@@ -86,6 +87,9 @@ export async function collectBrowserEvidence(previous: BrowserState, now: number
       return evidence
     }).sort((a, b) => compareBrowserEvidence(b, a))
     if (new Set(runs.map(run => `${run.id}:${run.attempt}`)).size !== runs.length) throw new ObservationError()
+    // This poll's fetched head is internal reconciliation evidence. Persisted
+    // invocation is a historical maximum and can outlive an older API list.
+    sourceInvocation = runs[0]
     // A capped window that no longer overlaps prior invocation evidence cannot
     // establish whether intermediate failures occurred. Keep this visible.
     state.coverageGap = !!previous.invocation && runs.length === 10 && runs.every(run => compareBrowserEvidence(run, previous.invocation!) > 0)
@@ -136,5 +140,5 @@ export async function collectBrowserEvidence(previous: BrowserState, now: number
     unavailableReason ??= "cadence_unknown"
   }
   // Diagnostic enum is response-only; durable snapshots remain numeric/boolean.
-  return { state, completions, unavailableReason }
+  return { state, completions, sourceInvocation, unavailableReason }
 }

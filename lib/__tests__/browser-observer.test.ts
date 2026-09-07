@@ -213,6 +213,71 @@ describe("bounded public GitHub observer", () => {
     expect(result).toHaveProperty("unavailableReason", backoff ? "backoff" : undefined)
     expect(browserHealth(db.read(), now).stale).toBe(false)
   })
+  it.each([
+    { mode: "pending", concurrent: true, priorHead: false },
+    { mode: "coverage", concurrent: true, priorHead: false },
+    { mode: "running", concurrent: true, priorHead: false },
+    { mode: "pending", concurrent: true, priorHead: true },
+    { mode: "pending", concurrent: false, priorHead: false },
+    { mode: "coverage", concurrent: false, priorHead: false },
+    { mode: "running", concurrent: false, priorHead: false },
+  ])("retains newer $mode window availability (CAS=$concurrent, prior head=$priorHead) until verified", async ({ mode, concurrent, priorHead }) => {
+    const manual = { ...evidence(1), event: 1 }
+    const initial = { ...state(), cache: [manual], latest: manual, success: manual,
+      invocation: priorHead ? { ...evidence(4, 0), completed: 0 } : manual,
+      incidents: [{ metric: 2, severity: 2, count: 1, active: true, at: now - 60000 }] }
+    // These competing snapshots come from the real bounded collector, not
+    // hand-built availability flags. Only two completed jobs are examined.
+    const pendingRuns = mode === "pending" ? [run(4), run(3), run(2), { ...run(1), event: "workflow_dispatch" }]
+      : mode === "running" ? [run(13, "in_progress"), ...Array.from({ length: 9 }, (_, index) => run(12 - index))]
+      : Array.from({ length: 10 }, (_, index) => run(12 - index))
+    const window = { total_count: pendingRuns[0].id, workflow_runs: pendingRuns }
+    const firstJobs = pendingRuns.filter(item => item.status === "completed").slice(0, 2)
+    replies(window, ...firstJobs.map(item => jobs(item.id)))
+    const competing = await collectBrowserEvidence(initial, now - 1)
+    expect(competing.state.observerOk).toBe(false)
+    expect(competing.unavailableReason).toBe(mode === "pending" ? "pending_evidence" : "coverage_gap")
+    expect(browserHealth(competing.state, now).stale).toBe(false)
+    const db = store(concurrent ? initial : competing.state)
+    if (concurrent) db.rpc.mockImplementationOnce(async () => {
+      expect(db.append(competing.state)).toEqual({ error: null, data: true })
+      return { error: null, data: false }
+    })
+    // A later-started poll can still obtain an older source list. Its own
+    // wall-clock time cannot erase the newer window's outstanding work.
+    replies({ total_count: 1, workflow_runs: [{ ...run(1), event: "workflow_dispatch" }] })
+    const result = await checkBrowserObserver()
+    const recoveries = () => mocks.capture.mock.calls.filter(call => call[0] === "browser-monitor: observer_unavailable recovered")
+    expect({ observerOk: result.observerOk, healthy: result.healthy, coverageGap: result.coverageGap,
+      running: result.running, unavailableIncidentActive: db.read().incidents.find(item => item.metric === 2)?.active,
+      recoveries: recoveries().length,
+    }).toEqual({ observerOk: false, healthy: false, coverageGap: mode !== "pending",
+      running: competing.state.running, unavailableIncidentActive: true, recoveries: 0 })
+    expect(result).not.toHaveProperty("persistenceAvailable", false)
+    expect(result).toHaveProperty("unavailableReason", mode === "pending" ? "newer_window_unavailable" : "coverage_gap")
+    expect(result).not.toHaveProperty("sourceInvocation")
+    expect(db.read()).not.toHaveProperty("sourceInvocation")
+
+    // Returning to the known newer head and draining its actual jobs proves
+    // recovery. Merely copying its scheduled completion never did.
+    const completeWindow = { ...window, workflow_runs: pendingRuns.map(item => ({ ...item, status: "completed" })) }
+    const polls = mode === "pending" ? 1 : 4
+    for (let poll = 0; poll < polls; poll++) {
+      vi.setSystemTime(now + (poll + 1) * 300000)
+      const uncached = completeWindow.workflow_runs.filter(item => !db.read().cache.some(cached => cached.id === item.id)).slice(0, 2)
+      const fetcher = replies(completeWindow, ...uncached.map(item => jobs(item.id)))
+      expect((await checkBrowserObserver()).healthy).toBe(poll === polls - 1)
+      expect(fetcher).toHaveBeenCalledTimes(1 + uncached.length)
+    }
+    expect(recoveries()).toHaveLength(1)
+    expect(db.read().coverageGap).toBe(false)
+    expect(db.read().running).toBeUndefined()
+    vi.setSystemTime(now + (polls + 1) * 300000)
+    const stable = replies(completeWindow)
+    expect((await checkBrowserObserver()).healthy).toBe(true)
+    expect(stable).toHaveBeenCalledTimes(1)
+    expect(recoveries()).toHaveLength(1)
+  })
   it.each(["malformed", "timeout"])("persists partial failure evidence after a second-read %s with a full cache", async failure => {
     const db = store(fullCache())
     const fetcher = replies({ total_count: 12, workflow_runs: [run(12), run(11)] }, jobs(12, "failure"))
