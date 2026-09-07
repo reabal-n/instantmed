@@ -5,6 +5,7 @@ import { z } from "zod"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const safeNumber = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
+// `at` is the last alertable transition; checkedAt records every accepted poll.
 const incidentSchema = z.object({ metric: safeNumber.max(99), severity: safeNumber.max(2), count: safeNumber, at: safeNumber, active: z.boolean() }).strict()
 const evidenceSchema = z.object({ event: safeNumber.max(1).optional(), id: safeNumber, number: safeNumber, attempt: safeNumber, created: safeNumber, started: safeNumber, completed: safeNumber, outcome: safeNumber.max(2), status: safeNumber.max(2) }).strict()
 const common = { enabledAt: safeNumber, checkedAt: safeNumber, incidents: z.array(incidentSchema).max(100) }

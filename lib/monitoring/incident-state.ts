@@ -31,8 +31,14 @@ export function advanceIncidents(previous: Incident[], observed: Observation[], 
     const old = incidents.find(item => item.metric === metric)
     if (old && old.at > at) continue
     const next: Incident = { metric, severity: observation?.severity ?? 0, count: observation?.count ?? 0, at, active: !!observation }
-    if (observation && (!old?.active || next.severity > old.severity || next.count > old.count)
-      || !observation && old?.active) events.push(next)
+    const notify = !!(observation && (!old?.active || next.severity > old.severity || next.count > old.count)
+      || !observation && old?.active)
+    // `at` identifies the last alertable transition. Keep it on unchanged or
+    // improving observations so delivered Telegram incidents stay quiet.
+    // Counts still advance: 5 → 4 → 5 gets a fresh token. Each caller's durable
+    // checkedAt/CAS guard, not this retained timestamp, orders whole polls.
+    if (old && !notify) next.at = old.at
+    if (notify) events.push(next)
     if (old) Object.assign(old, next)
     else incidents.push(next)
   }
@@ -47,25 +53,30 @@ export function captureIncident(source: string, metric: string, incident: Pick<I
   })
 }
 
-export async function dispatchBusinessIncidents(alerts: BusinessAlert[], knownMetrics: IncidentMetric[], at: number): Promise<boolean> {
+export type BusinessIncidentDispatch =
+  | { status: "accepted"; incidents: Incident[] }
+  | { status: "superseded" | "unavailable" }
+
+export async function dispatchBusinessIncidents(alerts: BusinessAlert[], knownMetrics: IncidentMetric[], at: number): Promise<BusinessIncidentDispatch> {
   const observed = alerts.filter(alert => alert.severity !== "info").map(alert => ({
     metric: INCIDENT_METRICS.indexOf(alert.metric), severity: alert.severity === "critical" ? 2 : 1, count: alert.count ?? 1,
   }))
   const known = knownMetrics.map(metric => INCIDENT_METRICS.indexOf(metric)).filter(metric => metric >= 0)
-  const failOpen = () => {
+  const failOpen = (): BusinessIncidentDispatch => {
     for (const alert of alerts.filter(alert => alert.severity !== "info")) captureIncident("business-alert", alert.metric, { active: true, severity: alert.severity === "critical" ? 2 : 1, count: alert.count ?? 1 })
     Sentry.captureMessage("Business incident state unavailable", { level: "error", fingerprint: ["business-alert-state-unavailable"] })
-    return false
+    return { status: "unavailable" }
   }
   try {
     if (observed.some(item => item.metric < 0)) return failOpen()
     for (let attempt = 0; attempt < 3; attempt++) {
       const { state, version } = await readMonitorState("business_incident_state", businessStateSchema)
-      if (state.checkedAt >= at) return true
+      // Never attach this poll's old alert text to a newer incident token.
+      if (state.checkedAt >= at) return { status: "superseded" }
       const next = advanceIncidents(state.incidents, observed, known, at)
       if (!await appendMonitorState("business_incident_state", version, { ...state, checkedAt: at, incidents: next.incidents })) continue
       for (const event of next.events) captureIncident("business-alert", INCIDENT_METRICS[event.metric], event)
-      return true
+      return { status: "accepted", incidents: next.incidents }
     }
   } catch { /* Fail open without provider data. */ }
   return failOpen()

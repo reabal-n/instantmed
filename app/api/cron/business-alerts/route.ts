@@ -17,12 +17,7 @@ import {
 } from "@/lib/monitoring/ads-contribution-health"
 import { type BusinessAlert, runAlertSection } from "@/lib/monitoring/alert-sections"
 import { buildAuthEmailFailureAlert } from "@/lib/monitoring/auth-email-failure"
-import {
-  recordCriticalAlertSent,
-  resolveCriticalAlertCooldownHours,
-  resolveEquivalentCriticalAlertDetails,
-  shouldSendCriticalAlert,
-} from "@/lib/monitoring/critical-alert-cooldown"
+import { deliverCriticalBusinessAlerts } from "@/lib/monitoring/critical-alert-dispatch"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import {
   buildGoogleAdsAdjustmentTerminalRiskAlert,
@@ -47,7 +42,6 @@ import {
   STALE_HUMAN_QUEUE_CATEGORIES,
   STALE_HUMAN_QUEUE_THRESHOLD_HOURS,
 } from "@/lib/monitoring/stale-human-queue"
-import { sendCriticalBusinessAlertViaTelegram } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
 import {
@@ -677,45 +671,15 @@ export async function GET(request: NextRequest) {
       knownMetrics.push("google_ads_conversion_uploads_stalled", "google_ads_conversion_upload_partial_failures")
     }
     if (googleAdsAdjustmentHealth && !googleAdsAdjustmentHealth.queryFailed) knownMetrics.push("google_ads_adjustment_terminal_click_attributed_failures")
-    if (!await dispatchBusinessIncidents(alerts, knownMetrics, now.getTime())) handledFailures++
+    const observation = await dispatchBusinessIncidents(alerts, knownMetrics, now.getTime())
+    if (observation.status === "unavailable") handledFailures++
+
+    // Critical aggregate signals page once per incident transition. Telegram
+    // receipts follow successful delivery, independently of Sentry claims, so
+    // a failed send retries and an older poll cannot silence a newer incident.
+    if (!await deliverCriticalBusinessAlerts(alerts, observation)) handledFailures++
 
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")
-    if (criticalAlerts.length > 0) {
-      // Essential criticals also reach the operator's Telegram (operator
-      // decision 2026-07-17). Criticals ONLY — warnings stay Sentry-side, so
-      // Telegram never becomes a general second alerting channel. Detail
-      // strings are the same aggregate PHI-free text the Sentry capture uses.
-      //
-      // Telegram cools each signal independently of Sentry incident claims,
-      // so a new incident pages immediately without dragging an unchanged
-      // historical signal back into every message.
-      const pageableCriticalAlerts: BusinessAlert[] = []
-      for (const alert of criticalAlerts) {
-        const cooldownHours = resolveCriticalAlertCooldownHours(alert.metric)
-        if (await shouldSendCriticalAlert(alert.detail, {
-          cooldownHours,
-          equivalentDetails: resolveEquivalentCriticalAlertDetails(alert),
-        })) {
-          pageableCriticalAlerts.push(alert)
-        }
-      }
-
-      if (pageableCriticalAlerts.length > 0) {
-        const criticalDetail = pageableCriticalAlerts
-          .map((alert) => alert.detail)
-          .join("; ")
-        const delivered = await sendCriticalBusinessAlertViaTelegram(criticalDetail)
-        if (delivered) {
-          for (const alert of pageableCriticalAlerts) {
-            await recordCriticalAlertSent(alert.detail, {
-              cooldownHours: resolveCriticalAlertCooldownHours(alert.metric),
-            })
-          }
-        } else {
-          handledFailures++
-        }
-      }
-    }
 
     const warningAlerts = alerts.filter((a) => a.severity === "warning")
     if (alerts.length > 0) {

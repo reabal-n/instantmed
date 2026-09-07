@@ -76,7 +76,7 @@ describe("business Sentry dispatch", () => {
   })
   it("read/write/claim failures fail open", async () => {
     mocks.append.mockRejectedValue(new Error("private provider detail"))
-    expect(await dispatchBusinessIncidents([{ metric: "payment_failed", severity: "critical", count: 5, detail: "private prose" }], [], 10)).toBe(false)
+    expect(await dispatchBusinessIncidents([{ metric: "payment_failed", severity: "critical", count: 5, detail: "private prose" }], [], 10)).toEqual({ status: "unavailable" })
     expect(mocks.capture).toHaveBeenCalledTimes(2)
     expect(JSON.stringify(mocks.capture.mock.calls)).not.toContain("private")
   })
@@ -84,7 +84,23 @@ describe("business Sentry dispatch", () => {
     mocks.append.mockResolvedValueOnce(false)
     mocks.read.mockResolvedValueOnce({ version: 1, state: { enabledAt: 1, checkedAt: 1, incidents: [] } })
       .mockResolvedValueOnce({ version: 2, state: { enabledAt: 1, checkedAt: 10, incidents: [] } })
-    expect(await dispatchBusinessIncidents([], [], 10)).toBe(true)
+    expect(await dispatchBusinessIncidents([], [], 10)).toEqual({ status: "superseded" })
+    expect(mocks.capture).not.toHaveBeenCalled()
+  })
+  it("returns this accepted poll's stable incident token even when Sentry has no new event", async () => {
+    const incident = { metric: 0, severity: 2, count: 5, active: true, at: 2 }
+    mocks.read.mockResolvedValue({ version: 2, state: { enabledAt: 1, checkedAt: 3, incidents: [incident] } })
+    expect(await dispatchBusinessIncidents([{ metric: "payment_failed", severity: "critical", count: 5, detail: "updated prose" }], ["payment_failed"], 10))
+      .toEqual({ status: "accepted", incidents: [incident] })
+    expect(mocks.append.mock.calls[0][2].checkedAt).toBe(10)
+    expect(mocks.capture).not.toHaveBeenCalled()
+  })
+  it("never pairs an older poll's alerts with a newer state after losing CAS", async () => {
+    mocks.append.mockResolvedValueOnce(false)
+    mocks.read.mockResolvedValueOnce({ version: 1, state: { enabledAt: 1, checkedAt: 1, incidents: [] } })
+      .mockResolvedValueOnce({ version: 2, state: { enabledAt: 1, checkedAt: 11, incidents: [{ metric: 0, severity: 2, count: 1, active: true, at: 11 }] } })
+    expect(await dispatchBusinessIncidents([{ metric: "payment_failed", severity: "critical", count: 5, detail: "older alert" }], ["payment_failed"], 10))
+      .toEqual({ status: "superseded" })
     expect(mocks.capture).not.toHaveBeenCalled()
   })
 })
