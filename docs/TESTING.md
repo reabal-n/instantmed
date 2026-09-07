@@ -406,20 +406,25 @@ PostgREST to a random loopback port, loads a synthetic minimal schema and the ex
 flow-uniqueness index and draft-claim function from canonical migrations, then exercises the real
 checkout persistence and conditional-update paths. Its exit trap removes only the
 two run-owned containers and their anonymous volumes; it does not reuse a local Supabase project or load an
-environment file. The eight DB tests intentionally skip during ordinary Vitest runs
+environment file. The DB fixture tests intentionally skip during ordinary Vitest runs
 unless this harness supplies `CHECKOUT_FIXTURE_URL`, which rejects non-loopback
 endpoints. Passing this fixture proves uniqueness, ownership filtering, and CAS
-behavior, including exact converted-bearer binding and manufactured unconverted same-flow rejection, not a full migration replay or production RLS acceptance.
+behavior, including cancelled/expired reconciliation, exact converted-bearer binding and manufactured unconverted same-flow rejection, not a full migration replay or production RLS acceptance.
 
-The browser command requires Chromium from the existing Playwright installation
-and an unused port **3060**. It bundles the real review component, Zustand request
+The required CI `e2e` job runs the browser command immediately after installing
+Chromium, before provider-secret setup and the ordinary app E2E server. It requires
+Chromium from the existing Playwright installation and an unused port **3060**.
+It bundles the real review component, Zustand request
 store, draft retirement code, app CSS, and local payment logos in a temporary
 fixture server at `http://localhost:3060/request?service=prescription`. Server-action
 results and analytics are isolated local seams; it does not invoke the normal
 Playwright environment loader/global seeding or read the checkout's `.env*` files.
 It checks desktop/mobile light and dark layouts, keyboard focus, disabled stale
-Pay behavior, explicit fresh identity and consent reset, and unresolved payment
-copy. The browser/server close on exit; the printed temporary output directory
+Pay behavior, explicit fresh identity and consent reset, unresolved payment copy,
+and recovery after browser Back/reload while retaining the original flow and draft
+bearer. Recovery flags are intentionally component-local; a restored submission
+must ask the server to reconcile again before a new payment can be allowed.
+The browser/server close on exit; the printed temporary output directory
 retains logs/assets/screenshots for review and may be deleted afterward. This is
 component-and-store interaction proof, not the full Next request shell/SSR journey,
 a real provider Session, or a hosted Stripe payment acceptance run.
