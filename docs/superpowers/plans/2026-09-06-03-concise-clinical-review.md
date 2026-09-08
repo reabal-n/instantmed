@@ -148,7 +148,7 @@ The automatic review's low score is a release-quality gate under [OPERATIONS](..
 
 Earlier run 34248097217 passed build/Lighthouse but exceeded the former 40-minute E2E job limit; its delayed-response assertion failures were reproduced and corrected. The later run 34255902221 stopped at the refreshed `@ai-sdk/provider-utils` advisory (GHSA-866g-f22w-33x8); its security gate was preserved and the transitive dependency patched. Neither earlier run is used as the final acceptance result.
 
-Branch protection was verified before merge: PR-only main, strict required `build` and `e2e`, with no bypass. The merge commit preserves original local skill commits `eed034d39` and `17aa2827f` as ancestors. Preview checks were skipped by the repository's preview policy and do not constitute preview browser proof.
+Branch protection was verified before merge: PR-only main and strict required `build` and `e2e`. No bypass was used. The merge commit preserves original local skill commits `eed034d39` and `17aa2827f` as ancestors. Preview checks were skipped by the repository's preview policy and do not constitute preview browser proof.
 
 Prior production was READY deployment `dpl_5C2SyJYztksVgur5S6kQBcLTgRav`, source `8bd1d6ace476943bc644fb1d7716b8ad7e4be240`, ready `2026-09-07T18:04:14.472Z`. Roll back the Plan 3 runtime commits through a governed PR if required; the earlier skill consolidation is separable. A code rollback does not undo notes, clarification messages or clinical outcomes already saved. No environment or schema migration or backfill is included. The transitive security patch is separable, but reverting it restores the audited vulnerability and fails the unchanged security gate.
 
