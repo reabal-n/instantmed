@@ -491,17 +491,19 @@ test.describe("Doctor prescription UI flow", () => {
     })
     await expect(medicationContext).toContainText("Likely match from a previous prescription")
     await expect(medicationContext.getByText("Frequency", { exact: true })).toBeVisible()
-    await expect(medicationContext.getByText("Once daily", { exact: true })).toBeVisible()
+    await expect(medicationContext.getByText("Not separately captured; see directions", { exact: true })).toBeVisible()
 
     await medicationContext.getByRole("button", { name: /Copy .*medicine name/ }).click()
     await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("Sertraline")
 
-    await medicationContext.getByRole("button", { name: "Copy patient-reported frequency" }).click()
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("Once daily")
+    await expect(medicationContext.getByRole("button", { name: "Copy patient-reported frequency" })).toHaveCount(0)
+    await medicationContext.getByRole("button", { name: "Copy patient-reported directions" }).click()
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("100 mg once daily")
 
-    await medicationContext.getByText("Request details", { exact: true }).click()
-    await expect(medicationContext).toContainText("Patient entered: Sertralne 100mg")
-    await expect(medicationContext).toContainText("Current dose: 100 mg once daily")
+    await expect(medicationContext.locator('[data-parchment-request-fact="medicine"]')).toContainText("Sertralne 100mg")
+    await expect(medicationContext.locator('[data-parchment-request-fact="patient_dose"]')).toContainText("100 mg once daily")
+    await expect(medicationContext.locator('[data-parchment-request-fact="indication"]')).toContainText("Depression and anxiety")
+    await expect(medicationContext.getByText("Request details", { exact: true })).toHaveCount(0)
   })
 
   test("shows prior request history while excluding the active request from the profile drawer", async ({ page }) => {
@@ -744,7 +746,7 @@ test.describe("Doctor prescription UI flow", () => {
     const intakeId = await seedWomensHealthUtiCase(patientId)
     testIntakeIds.push(intakeId)
 
-    await page.goto("/dashboard?status=review#doctor-queue")
+    await page.goto("/dashboard?status=review&showTestData=1&onlyTestData=1#doctor-queue")
     await waitForPageLoad(page)
 
     const row = page.locator(`[data-testid="queue-row-${intakeId}"]`)

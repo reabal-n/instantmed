@@ -277,13 +277,18 @@ export function useReviewActions({
           intakeId={intake.id}
           patientName={intake.patient?.full_name || "Patient"}
           patientProfileHref={intake.patient?.id ? buildStaffPatientHref(intake.patient.id) : undefined}
-          prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
+          prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary(), {
+            category: intake.category,
+            subtype: intake.subtype,
+            serviceType: service?.type,
+            answers: (intake.answers?.answers || {}) as Record<string, unknown>,
+          })}
           onIntakeRefresh={reloadReviewData}
           onClose={activePanel ? () => openPanel(activePanel) : undefined}
         />
       ),
     })
-  }, [activePanel, getClinicalCaseSummary, intake, openPanel, reloadReviewData])
+  }, [activePanel, getClinicalCaseSummary, intake, openPanel, reloadReviewData, service?.type])
 
   const resolveDecisionNote = useCallback(() => {
     const caseSummary = getClinicalCaseSummary()

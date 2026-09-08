@@ -506,7 +506,12 @@ export function useIntakeActions({
           intakeId={intake.id}
           patientName={intake.patient?.full_name || "Patient"}
           patientProfileHref={intake.patient?.id ? buildStaffPatientHref(intake.patient.id) : undefined}
-          prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
+          prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary(), {
+            category: intake.category,
+            subtype: intake.subtype,
+            serviceType: service?.type,
+            answers: (intake.answers?.answers || {}) as Record<string, unknown>,
+          })}
           onIntakeRefresh={reloadReviewData}
           onScriptSent={() => {
             dialogs.openScriptDialog()
@@ -514,7 +519,7 @@ export function useIntakeActions({
         />
       ),
     })
-  }, [getClinicalCaseSummary, intake.id, intake.patient?.full_name, intake.patient?.id, parchmentEnabled, openPanel, dialogs, reloadReviewData])
+  }, [getClinicalCaseSummary, intake, parchmentEnabled, openPanel, dialogs, reloadReviewData, service?.type])
 
   const handleMarkRefunded = useCallback(async () => {
     startTransition(async () => {
