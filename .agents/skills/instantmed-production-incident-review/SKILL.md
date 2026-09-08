@@ -1,6 +1,10 @@
 ---
 name: instantmed-production-incident-review
-description: InstantMed production incident, outage, and live-ops review workflow. Use when a task in /Users/rey/Developer/instantmed mentions production bugs, incidents, outage, customer impact, stuck intake, failed payment, webhook DLQ, Sentry, Vercel logs, PostHog, Supabase production data, Stripe, Resend, Parchment, cron failures, recovery, rollback, hotfix, break-glass, or operator runbooks.
+description: Investigate InstantMed outages, stuck requests and failed integrations using project incident and recovery rules before edits or production recovery.
+metadata:
+  owner: Rey / instantmed
+  scope: project:instantmed
+  version: 1.0.0
 ---
 
 # InstantMed Production Incident Review
@@ -47,3 +51,11 @@ Lead with:
 - Root cause or strongest current hypothesis.
 - Fix or recovery action.
 - Verification and remaining risk.
+
+## Scope and ownership
+
+This workflow applies only to instantmed and its verified checkouts/worktrees. Confirm the project from its operating docs and Git root before applying it. Project doctrine owns product, brand, privacy and release requirements; shared skills supply techniques only. Resolve commands and project paths from the active checkout, not a fixed machine path.
+
+## Verification
+
+Verify the requested result against the authoritative project files and relevant checks. Report evidence, skipped checks and remaining uncertainty; do not infer owner approval.

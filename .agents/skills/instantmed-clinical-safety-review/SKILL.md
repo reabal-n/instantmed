@@ -1,6 +1,10 @@
 ---
 name: instantmed-clinical-safety-review
-description: InstantMed clinical and safety launch review workflow. Use when a task in /Users/rey/Developer/instantmed touches clinical policy, intake safety, service launch or gating, consult subtypes, women's health, repeat prescriptions, ED, hair loss, medical certificates, red flags, triage, AI clinical drafting, doctor review surfaces, prescribing boundaries, docs/CLINICAL.md, lib/safety, lib/clinical, lib/request, components/request, or any patient-safety-affecting change.
+description: InstantMed software safety review for intake, triage, prescribing, certificates and doctor-facing changes. Applies to this project before edits; not patient-specific clinical advice.
+metadata:
+  owner: Rey / instantmed
+  scope: project:instantmed
+  version: 1.0.0
 ---
 
 # InstantMed Clinical Safety Review
@@ -49,3 +53,11 @@ Lead with the recommendation:
 - Verification: commands or browser paths run, and what they actually prove.
 
 Ask the user only when the repo cannot answer a clinical or product policy decision.
+
+## Scope and ownership
+
+This workflow applies only to instantmed and its verified checkouts/worktrees. Confirm the project from its operating docs and Git root before applying it. Project doctrine owns product, brand, privacy and release requirements; shared skills supply techniques only. Resolve commands and project paths from the active checkout, not a fixed machine path.
+
+## Verification
+
+Verify the requested result against the authoritative project files and relevant checks. Report evidence, skipped checks and remaining uncertainty; do not infer owner approval.

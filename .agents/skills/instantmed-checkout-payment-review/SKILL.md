@@ -1,6 +1,10 @@
 ---
 name: instantmed-checkout-payment-review
-description: InstantMed checkout and payment safety workflow. Use when a task in /Users/rey/Developer/instantmed touches Stripe checkout, guest checkout, retry payment, payment_status, payment_id, stale Checkout Sessions, webhooks, refunds, decline refunds, price mapping, priority fee, checkout_failed recovery, intake lifecycle transitions, lib/stripe, app/api/stripe, app/actions/decline-refund.ts, or any money-moving path.
+description: 'InstantMed payment changes: review checkout, retries, webhooks, refunds and payment-state transitions against the project contracts before editing.'
+metadata:
+  owner: Rey / instantmed
+  scope: project:instantmed
+  version: 1.0.0
 ---
 
 # InstantMed Checkout Payment Review
@@ -51,3 +55,7 @@ Pick the narrowest proof:
 - Browser check only when UI or operator recovery surfaces changed.
 
 Report proof scope precisely: which path was exercised, which status changed, and which paths were not rerun.
+
+## Scope and ownership
+
+This workflow applies only to instantmed and its verified checkouts/worktrees. Confirm the project from its operating docs and Git root before applying it. Project doctrine owns product, brand, privacy and release requirements; shared skills supply techniques only. Resolve commands and project paths from the active checkout, not a fixed machine path.

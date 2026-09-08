@@ -147,7 +147,7 @@ Make **0495 049 555** the only public support number and use `+61495049555` for 
 
 - Add admin-only routes, server actions, route constants, list/detail components, filters, status actions, complaint flagging, and suggested-match correction.
 - Follow the existing operator-shell patterns and keep the page compact and scannable.
-- Run the repo UI workflow before implementation (`/impeccable teach`, then shape) and the InstantMed browser-verification workflow before sign-off.
+- Run the repo UI workflow before implementation (`web-design` after reading the project design documents) and the InstantMed browser-verification workflow before sign-off.
 
 ### 5. Public number and privacy
 

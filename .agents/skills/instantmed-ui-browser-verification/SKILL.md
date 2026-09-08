@@ -1,6 +1,10 @@
 ---
 name: instantmed-ui-browser-verification
-description: InstantMed UI polish and browser verification workflow. Use when a task in /Users/rey/Developer/instantmed touches UI, UX, layout, animation, motion, Tailwind classes, shadcn components, marketing pages, patient flows, staff cockpit pages, visual polish, screenshots, Browser checks, Playwright checks, desktop/mobile rendering, dark mode, reduced motion, app or components directories, DESIGN.md, PRODUCT.md, or docs/AI_ONBOARDING.md.
+description: Verify InstantMed patient and staff UI flows using its approved browser tooling, data policy and visual evidence requirements before sign-off.
+metadata:
+  owner: Rey / instantmed
+  scope: project:instantmed
+  version: 1.0.0
 ---
 
 # InstantMed UI Browser Verification
@@ -61,3 +65,7 @@ Report:
 - Which design docs/primitives governed it.
 - Screens or browser paths checked.
 - Any remaining visual risk or unverified breakpoint/state.
+
+## Scope and ownership
+
+This workflow applies only to instantmed and its verified checkouts/worktrees. Confirm the project from its operating docs and Git root before applying it. Project doctrine owns product, brand, privacy and release requirements; shared skills supply techniques only. Resolve commands and project paths from the active checkout, not a fixed machine path.
