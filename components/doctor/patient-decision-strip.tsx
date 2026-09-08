@@ -108,14 +108,14 @@ export function PatientDecisionStrip({
     <section
       aria-label="Patient safety context"
       className={cn(
-        "shrink-0 rounded-xl border border-border/60 bg-muted/20 px-3.5 py-3",
+        "shrink-0 rounded-xl border border-border/60 bg-muted/20 px-3 py-2",
         className,
       )}
       data-patient-safety-band
     >
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+      <div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <h2 className="truncate text-xl font-semibold leading-tight tracking-tight text-foreground">
+          <h2 className="break-words text-lg font-semibold leading-tight tracking-tight text-foreground">
             {summary.patientName}
           </h2>
           <p
@@ -134,12 +134,12 @@ export function PatientDecisionStrip({
         ) : null}
       </div>
 
-      <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-3">
+      <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
         {facts.map(({ label, value, blocked, readiness }) => (
           <div
             key={label}
             className={cn(
-              "min-w-0 border-l border-border/55 pl-2.5 first:border-l-0 first:pl-0 xl:first:border-l-0",
+              "flex min-w-0 flex-wrap items-baseline gap-x-1.5",
               blocked && "border-warning-border",
             )}
             data-readiness={readiness}
@@ -154,12 +154,20 @@ export function PatientDecisionStrip({
             </dt>
             <dd
               className={cn(
-                "mt-0.5 truncate text-[13px] font-semibold leading-5 text-foreground tabular-nums",
+                "break-words text-[13px] font-semibold leading-5 text-foreground tabular-nums",
                 blocked && "text-warning",
               )}
               title={value}
             >
-              {value}
+              {label === "Phone" && snapshot.phone.present ? (
+                <a
+                  href={`tel:${snapshot.phone.label.replace(/[^+\d]/g, "")}`}
+                  aria-label={`Call patient on ${value}`}
+                  className="inline-flex min-h-11 items-center underline decoration-border underline-offset-4 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:min-h-0"
+                >
+                  {value}
+                </a>
+              ) : value}
             </dd>
           </div>
         ))}

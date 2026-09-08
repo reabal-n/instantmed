@@ -97,10 +97,12 @@ node_modules 2
 DAILY_AUDIT_PROMPT.md
 
 # Claude Code session state (scheduled_tasks.lock etc)
-.claude/
+.claude/*
+!.claude/skills/
 
 # Codex/agent local tooling state
-.agents/
+.agents/*
+!.agents/skills/
 .codex/
 skills-lock.json
 
@@ -123,3 +125,12 @@ supabase/.temp/
 
 # pnpm content-addressable store (created by the pinned pnpm-11 security:audit run)
 .pnpm-store/
+
+# Project skill discovery links share the repository-owned sources.
+!/.claude/skills/instantmed-checkout-payment-review
+!/.claude/skills/instantmed-clinical-safety-review
+!/.claude/skills/instantmed-doc-drift-repair
+!/.claude/skills/instantmed-marketing-compliance-review
+!/.claude/skills/instantmed-openseo-research
+!/.claude/skills/instantmed-production-incident-review
+!/.claude/skills/instantmed-ui-browser-verification

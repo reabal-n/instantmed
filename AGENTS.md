@@ -75,7 +75,7 @@ All three are sanctioned for this repo. **agent-browser is explicitly allowed he
 
 ## InstantMed Workflow Skills
 
-Use these repo-specific skills automatically when the task matches. The canonical source lives in `.agent-skills/`; `/Users/rey/.claude/skills` and `/Users/rey/.agents/skills` are generated install targets so Claude Code and Codex can both discover them. After changing any InstantMed skill, run `scripts/sync-agent-skills.sh`, then `scripts/sync-agent-skills.sh --check`. Treat safety, payment, incident, and doc-drift workflows as mandatory before edits; UI and marketing workflows are mandatory before final sign-off; trivial typo fixes and read-only explanation can use them as advisory routing.
+Use these repo-specific skills automatically when the task matches. The canonical source lives in `.agents/skills/`; Codex discovers that project folder and `.claude/skills/` contains relative links to the same source for Claude Code. These workflows are not installed globally, so other projects do not load InstantMed policy. After changing any InstantMed skill, run `scripts/sync-agent-skills.sh`, then `scripts/sync-agent-skills.sh --check`. Treat safety, payment, incident, and doc-drift workflows as mandatory before edits; UI and marketing workflows are mandatory before final sign-off; trivial typo fixes and read-only explanation can use them as advisory routing.
 
 | Task trigger | Skill | Gate |
 |--------------|-------|------|
@@ -156,7 +156,7 @@ If you are an AI and the user asks you to upgrade something on this list, **stop
 - shadcn/ui + Radix primitives for all form elements
 - CVA (class-variance-authority) for component style variants
 - lucide-react exclusively for icons
-- Framer Motion via `motion` — always respect `useReducedMotion()`. Default spring (stiffness 100, damping 10) produces mechanical feel — run `/emil-design-eng` before shipping any animated component for a `| Before | After | Why |` spring-physics audit
+- Framer Motion via `motion` — always respect `useReducedMotion()`. Default spring (stiffness 100, damping 10) produces mechanical feel — use the interaction-motion reference in `web-design` before shipping animated components
 - Public marketing/auth surfaces use abstract clinical or account marks, not fake people. DiceBear is allowed only for patient-selected account avatars or internal placeholder contexts.
 
 ### Form Inputs
@@ -183,52 +183,13 @@ If you are an AI and the user asks you to upgrade something on this list, **stop
 - **Error handling**: Route-level `error.tsx` files for staff pages; flow-specific `StepErrorBoundary` (`components/request/`); global connectivity banner via `NetworkStatus` from `@/components/ui/error-recovery`
 - **Card surfaces**: Solid depth pattern — `bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]`. See DESIGN.md §5
 
-## Design Tooling — Impeccable + Emil
+## Design tooling
 
-Two skill packs are installed globally (`~/.Codex/skills/`) and supersede any generic design skills. Apply to all UI/UX/styling/animation/component-review work.
+Use shared `web-design` for UI craft and `cinematic-web` when substantial motion or scroll choreography is part of the task. Read `DESIGN.md`, `docs/BRAND.md`, `docs/VOICE.md` and relevant project contracts first. These project documents own identity, stack and compliance; shared methods do not replace them.
 
-### Bootstrap requirement
+Impeccable, its standalone commands, Emil and Design Taste are consolidated into `web-design` modes and references. Describe the work normally: layout, typography, colour, critique, polish, clarify, responsive behavior or interaction motion. No `/impeccable teach` bootstrap or new design pack is required. Keep the chosen Framer Motion v11 stack and reduced-motion behavior.
 
-**`/impeccable teach` must be run once per cold project context before any artifact-level Impeccable command.** It loads the full design-system snapshot so subsequent commands have correct token/component references. Skip it and commands fall back to generic defaults — wrong for this codebase.
-
-### Do NOT reinstall overlapping packs
-
-Do not install `frontend-design`, `design-system`, or similar skills. Impeccable supersedes them. Overlapping packs bloat the skill registry on every turn and cause redundant invocations.
-
-### Impeccable — 17 commands
-
-| Command | Lens — when to use |
-|---------|-------------------|
-| `/impeccable` | Full-page audit: runs shape → critique → audit → layout → typeset → colorize → polish in sequence. Comprehensive pass on a new or heavily changed page. |
-| `/shape` | Plan UX and information architecture **before writing code**. Layout decisions, hierarchy, interaction model. Always run first on a new feature or page. |
-| `/critique` | Evaluate a completed design from a UX perspective: usability, clarity, conversion friction, trust signals. |
-| `/audit` | Technical quality checks: WCAG AA, semantic HTML, ARIA, color contrast, keyboard nav. Run before shipping any patient-facing surface. |
-| `/typeset` | Fix font choices, hierarchy, size scale, line-height, letter-spacing, reading rhythm. Use when type feels off or dense. |
-| `/colorize` | Add or correct strategic color. Use when a surface is too monochromatic or drifts from the Morning Canvas palette. |
-| `/animate` | Add or improve motion: entrances, transitions, micro-interactions. Pairs with Framer Motion v11 + `useReducedMotion()`. |
-| `/delight` | Add personality moments: micro-copy, unexpected positive feedback. Use sparingly — post-UX-solidification only. |
-| `/bolder` | Amplify timid designs: increase contrast, weight, scale. Use when a design is too safe or forgettable. |
-| `/quieter` | Tone down visually aggressive or overstimulating UI. Important for a health/trust context — anxious pages hurt conversion. |
-| `/overdrive` | Push interfaces past conventional limits for high-impact hero or marketing moments. Top-of-funnel only. |
-| `/layout` | Fix spacing, alignment, visual rhythm, grid issues. Use when layout feels loose, unbalanced, or inconsistent. |
-| `/distill` | Strip to essence — remove clutter, redundancy, decoration. Use when a page has accumulated visual debt. |
-| `/clarify` | Improve UX copy, error messages, microcopy, empty states, CTAs. Use when wording creates friction or sounds clinical. |
-| `/adapt` | Adapt layouts across breakpoints. Use when a design breaks or degrades on mobile/tablet. |
-| `/polish` | Final quality pass before shipping: alignment, pixel precision, dark-mode parity, focus rings, icon sizing. Run last. |
-| `/optimize` | Diagnose rendering performance: layout thrashing, paint cost, animation frame drops. Use when a component feels slow. |
-
-### Emil — motion / spring / component-feel
-
-`/emil-design-eng` applies Emil Kowalski's philosophy on animation physics, spring curves, and interaction depth. Use it when:
-- Motion feels mechanical or linear (wrong spring stiffness/damping)
-- Components lack physical weight or responsiveness on hover/press
-- You want a `| Before | After | Why |` audit of animation decisions
-
-Emil is complementary to `/animate` — `/animate` adds motion; Emil makes existing motion feel physically correct.
-
-### Decision rule
-
-Any message touching UI / UX / styling / animation / component review: scan available-skills, pick the matching Impeccable command or Emil, and invoke it. Do not paraphrase around the skill.
+Run `instantmed-ui-browser-verification` for patient/staff flow and browser evidence, and `instantmed-marketing-compliance-review` for public claims. For copy changes, apply the clarify mode in `web-design` while preserving required clinical/legal wording.
 
 ---
 
@@ -323,7 +284,7 @@ All prices in `lib/constants/index.ts` (`PRICING`). Stripe IDs mapped in `lib/st
 - **AHPRA validation**: Format check `/^[A-Z]{3}\d{10}$/` only — not a real AHPRA lookup
 - **No template editor**: Certificates use static PDF templates in `/public/templates/` with `pdf-lib` text overlay — not a WYSIWYG editor
 - **GP comparisons**: Kept but subtle — `text-xs text-muted-foreground`, no crossed-out prices
-- **Copy-only changes need `/clarify`**: Any PR that's primarily copy (regulatory sweeps, microcopy updates, FAQ edits, CTA text) must have `/clarify` run before committing. Clinical and legal language that passes compliance review routinely creates UX friction. The pass takes 2 minutes; skipping it ships friction into a high-anxiety patient flow
+- **Copy-only changes need the clarify mode in `web-design`**: Any PR that's primarily copy (regulatory sweeps, microcopy updates, FAQ edits, CTA text) must receive that copy/clarity review before committing. Clinical and legal language that passes compliance review routinely creates UX friction. The pass takes 2 minutes; skipping it ships friction into a high-anxiety patient flow
 - **Public reviews/social proof**: Keep the Google stars badge stars-only. Do not render review counts, numeric star ratings, testimonials, or aggregate-rating schema on public regulated-health advertising surfaces.
 - **Doctor model**: System supports multiple doctors. Don't advertise doctor count, individual doctor names, FRACGP, peer review, or team size claims unless verified and approved.
 - **Dev routes blocked in prod**: Middleware always blocks `/api/test/*`, `/email-preview*`, `/sentry-test*`, `/cert-preview*` in Vercel production and preview deployments. There is no `PLAYWRIGHT=1` exception outside local/CI execution. `/cert-preview` is a retired dev route and stays fail-closed in middleware. Note: `(dev)` route group files resolve to their path WITHOUT the group prefix — every new `(dev)` page/route must have a corresponding middleware block added manually.

@@ -73,7 +73,7 @@ describe("doctor review prescribing controls", () => {
     )
     expect(queueSheetActionsSource).toContain("const showPreSendSignals")
     expect(queueSheetActionsSource).toContain("!hasRecordedPrescription")
-    expect(queueSheetActionsSource.match(/\{showPreSendSignals \? \(/g)).toHaveLength(1)
+    expect(queueSheetActionsSource).toContain("showPreSendSignals && (!isPrescribingWorkflow")
     expect(queueSheetActionsSource).not.toContain("data-decision-wait-signal")
     expect(queueSheetActionsSource).toMatch(/const canDecline =\s*intake\.script_sent !== true/)
   })
@@ -213,7 +213,8 @@ describe("doctor review prescribing controls", () => {
     expect(parchmentPanelSource).toContain("sm:w-[min(800px,100vw)]")
     expect(parchmentPanelSource).toContain("pb-[max(0.75rem,env(safe-area-inset-bottom))]")
     expect(parchmentPanelSource).toContain('data-parchment-medication-context="compact"')
-    expect(parchmentPanelSource).toContain("Request details")
+    expect(parchmentPanelSource).not.toContain("Request details")
+    expect(parchmentPanelSource).toContain("max-h-[45dvh] overflow-y-auto")
     expect(parchmentPanelSource).toContain("min-h-11")
     expect(queueSheetActionsSource).toMatch(
       /onClick=\{handlePrescribeClick\}[\s\S]*?className="min-h-11[^"]*sm:h-7/,

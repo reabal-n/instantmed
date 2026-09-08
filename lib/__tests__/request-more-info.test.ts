@@ -34,7 +34,7 @@ const INTAKE_ID = "11111111-1111-4111-8111-111111111111"
 const PATIENT_ID = "22222222-2222-4222-8222-222222222222"
 const DOCTOR_ID = "33333333-3333-4333-8333-333333333333"
 
-function createSupabaseMock() {
+function createSupabaseMock(overrides: Record<string, unknown> = {}) {
   const rpcCalls: { name: string; params: Record<string, unknown> }[] = []
 
   const supabase = {
@@ -53,6 +53,8 @@ function createSupabaseMock() {
                   status: "paid",
                   patient_id: PATIENT_ID,
                   category: "medical_certificate",
+                  service: { type: "med_certs" },
+                  subtype: null,
                   claimed_by: DOCTOR_ID,
                   reviewing_doctor_id: null,
                   reviewed_by: null,
@@ -61,6 +63,7 @@ function createSupabaseMock() {
                     full_name: "Test Patient",
                     email: "patient@example.test",
                   },
+                  ...overrides,
                 },
                 error: null,
               })),
@@ -146,4 +149,53 @@ describe("requestMoreInfoAction", () => {
     })
     expect(mocks.sendEmail).not.toHaveBeenCalled()
   })
+  it.each(["failed", "thrown"])("keeps the durable request successful when notification is %s", async (failure) => {
+    const { supabase, rpcCalls } = createSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    if (failure === "thrown") mocks.sendEmail.mockRejectedValueOnce(new Error("Provider unavailable"))
+    else mocks.sendEmail.mockResolvedValueOnce({ success: false, error: "Provider unavailable" })
+    const { requestMoreInfoAction } = await import("@/app/actions/request-more-info")
+    const result = await requestMoreInfoAction(INTAKE_ID, "other", "Please clarify your symptoms.")
+    expect(result.success).toBe(true)
+    expect(result.notificationWarning).toMatch(/saved.*email.*not sent/i)
+    expect(rpcCalls).toHaveLength(1)
+    expect(mocks.revalidatePath).toHaveBeenCalled()
+  })
+
+  it("rejects a scoped-out clinician before creating a message or email", async () => {
+    mocks.requireRole.mockResolvedValue({ profile: { id: DOCTOR_ID, role: "doctor", can_review_med_certs: false } })
+    const { supabase, rpcCalls } = createSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const { requestMoreInfoAction } = await import("@/app/actions/request-more-info")
+    const result = await requestMoreInfoAction(INTAKE_ID, "other", "Please clarify.")
+    expect(result.success).toBe(false)
+    expect(result.error).toMatch(/not authorised/)
+    expect(rpcCalls).toHaveLength(0)
+    expect(mocks.sendEmail).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { claimed_by: "another-doctor" },
+    { claimed_by: null },
+    { status: "awaiting_script" },
+  ])("rejects unsupported ownership/lifecycle %j without mutation", async (overrides) => {
+    const { supabase, rpcCalls } = createSupabaseMock(overrides)
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const { requestMoreInfoAction } = await import("@/app/actions/request-more-info")
+    expect((await requestMoreInfoAction(INTAKE_ID, "other", "Please clarify.")).success).toBe(false)
+    expect(rpcCalls).toHaveLength(0)
+    expect(mocks.sendEmail).not.toHaveBeenCalled()
+  })
+
+  it("reports a missing patient email without replaying the durable message", async () => {
+    const { supabase, rpcCalls } = createSupabaseMock({ patient: { id: PATIENT_ID, full_name: "Synthetic Patient", email: null } })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const { requestMoreInfoAction } = await import("@/app/actions/request-more-info")
+    const result = await requestMoreInfoAction(INTAKE_ID, "other", "Please clarify.")
+    expect(result.success).toBe(true)
+    expect(result.notificationWarning).toContain("email was not sent")
+    expect(rpcCalls).toHaveLength(1)
+    expect(mocks.sendEmail).not.toHaveBeenCalled()
+  })
+
 })

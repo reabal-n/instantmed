@@ -2,6 +2,7 @@
 
 import { ArrowDown, ArrowUp, ExternalLink, LockKeyhole, RefreshCw, User } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { CertificatePreviewDialog } from "@/components/doctor/certificate-preview-dialog"
@@ -9,8 +10,8 @@ import { useAuditTrail } from "@/components/doctor/hooks/use-audit-trail"
 import { type IntakeLockState, useIntakeLock } from "@/components/doctor/hooks/use-intake-lock"
 import { useReviewData } from "@/components/doctor/hooks/use-review-data"
 import { IntakeFlagsPanel } from "@/components/doctor/intake-flags-panel"
+import { LazyPatientProfilePanel as PatientProfilePanel } from "@/components/doctor/lazy-patient-profile-panel"
 import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
-import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
 import { DeclineIntakeDialog } from "@/components/doctor/review/decline-intake-dialog"
 import { IntakeReviewCockpit } from "@/components/doctor/review/intake-review-cockpit"
 import {
@@ -22,7 +23,6 @@ import {
   formatDate,
   getStatusColor,
   isConcerningValue,
-  stripGenericClinicalNoteBoilerplate,
 } from "@/components/doctor/review/utils"
 import { useReviewActions } from "@/components/doctor/review-actions"
 import { SlaChip } from "@/components/doctor/sla-chip"
@@ -61,7 +61,7 @@ function SheetShell({
   children: React.ReactNode
 }) {
   return (
-    <SheetPanel title={title} description={description} width={1040} onClose={onClose}>
+    <SheetPanel title={title} description={description} width={1040} onClose={onClose} contentClassName="min-h-0 overflow-hidden px-3 py-2 sm:px-6 sm:py-4">
       {children}
     </SheetPanel>
   )
@@ -175,7 +175,9 @@ export function IntakeReviewPanel({
   onBeforeLeaveChange,
 }: IntakeReviewPanelProps) {
   useAuth()
+  const router = useRouter()
   const { closePanel, openPanel } = usePanel()
+  const navigationGuardRef = useRef<() => Promise<boolean>>(async () => true)
   // This hook runs only after an explicit case open; queue hover remains visual
   // and does not prefetch PHI-heavy review payloads.
   const {
@@ -223,8 +225,8 @@ export function IntakeReviewPanel({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isEditableOrInteractiveKeyboardTarget(e.target)) return
-      if (e.key === "ArrowDown" && onNextCase) { e.preventDefault(); onNextCase() }
-      if (e.key === "ArrowUp" && onPrevCase) { e.preventDefault(); onPrevCase() }
+      if (e.key === "ArrowDown" && onNextCase) { e.preventDefault(); void navigationGuardRef.current().then((saved) => { if (saved) onNextCase() }) }
+      if (e.key === "ArrowUp" && onPrevCase) { e.preventDefault(); void navigationGuardRef.current().then((saved) => { if (saved) onPrevCase() }) }
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
@@ -233,9 +235,13 @@ export function IntakeReviewPanel({
   // ---- Extracted hooks ----
 
   // Lock management: acquire on data load, extend on interval, release on unmount
-  const lockableForReview = Boolean(data && isReviewLockableStatus(data.intake.status))
+  const lockableForReview = Boolean(data?.viewerActionAccess?.canReviewService && isReviewLockableStatus(data.intake.status))
   const { lockWarning, releaseLock, lockState } = useIntakeLock(intakeId, lockableForReview)
   const [claimAgeNow, setClaimAgeNow] = useState(() => Date.now())
+  // Claim success changes server-owned permission; never enable from local lock state.
+  useEffect(() => {
+    if (lockState.status === "claimed") void reloadReviewData({ background: true })
+  }, [lockState.status, reloadReviewData])
 
   useEffect(() => {
     if (lockState.status !== "claimed") return
@@ -259,6 +265,7 @@ export function IntakeReviewPanel({
     onActionComplete,
   })
   const { flushNotes } = actions
+  navigationGuardRef.current = flushNotes
 
   useEffect(() => {
     onBeforeLeaveChange?.(flushNotes)
@@ -266,15 +273,13 @@ export function IntakeReviewPanel({
   }, [flushNotes, onBeforeLeaveChange])
 
   // Pre-fill clinical notes when data first loads.
-  // setInitialNotes(notes, dbNotes) sets the baseline so auto-save only fires
-  // for content that differs from what's already in the DB.
-  // AI drafts use themselves as the baseline so they are visible but not
-  // persisted until the doctor edits, saves, or approves.
+  // Baseline suppresses autosave until an edit. The explicit persisted flag
+  // keeps generated content Draft; a stored empty string remains a cleared note.
   useEffect(() => {
     if (!data) return
     if (initializedNotesForIntakeRef.current === data.intake.id) return
     initializedNotesForIntakeRef.current = data.intake.id
-    const existingNotes = stripGenericClinicalNoteBoilerplate(data.intake.doctor_notes || "")
+    const existingNotes = data.intake.doctor_notes || ""
     const fallbackDraftNote = buildClinicalCaseSummary({
       answers: (data.intake.answers?.answers || {}) as Record<string, unknown>,
       category: data.intake.category,
@@ -287,14 +292,14 @@ export function IntakeReviewPanel({
       requiresLiveConsult: data.intake.requires_live_consult,
       scriptSent: data.intake.script_sent,
     }).draftNote
-    if (!existingNotes && data.aiDrafts) {
+    if (data.intake.doctor_notes == null && data.aiDrafts) {
       const clinicalDraft = findClinicalNoteDraft(data.aiDrafts)
       if (clinicalDraft) {
         const formatted = formatClinicalNoteContent(clinicalDraft.content)
         const resolvedDraftNote = formatted?.trim() ? formatted : fallbackDraftNote
-        actions.setInitialNotes(resolvedDraftNote, resolvedDraftNote)
+        actions.setInitialNotes(resolvedDraftNote, resolvedDraftNote, false)
       } else {
-        actions.setInitialNotes(fallbackDraftNote, fallbackDraftNote)
+        actions.setInitialNotes(fallbackDraftNote, fallbackDraftNote, false)
       }
     } else {
       // dbNotes=existingNotes → already in DB, no immediate auto-save
@@ -542,6 +547,7 @@ export function IntakeReviewPanel({
     handleStatusChange: actions.handleStatusChange,
     handleDecline: actions.handleDecline,
     handleSaveNotes: actions.handleSaveNotes,
+    flushNotes: actions.flushNotes,
     handleGenerateOrRegenerateNote: actions.handleGenerateOrRegenerateNote,
     handleOpenParchmentPrescribe: actions.handleOpenParchmentPrescribe,
     handleApprovePrescribedScript: actions.handleApprovePrescribedScript,
@@ -578,7 +584,7 @@ export function IntakeReviewPanel({
         <IntakeReviewProvider value={contextValue}>
           <div
             className={cn(
-              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
+              inline ? "flex h-full min-h-0 flex-col gap-2 motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]" : "flex h-full min-h-0 flex-col gap-2 overflow-hidden motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
             )}
             data-testid="intake-review-panel"
           >
@@ -616,7 +622,7 @@ export function IntakeReviewPanel({
                     size="icon-sm"
                     aria-label="Previous case"
                     disabled={!onPrevCase || caseIndex === 0}
-                    onClick={onPrevCase}
+                    onClick={async () => { if (await flushNotes()) onPrevCase?.() }}
                   >
                     <ArrowUp className="h-3.5 w-3.5" />
                   </Button>
@@ -625,7 +631,7 @@ export function IntakeReviewPanel({
                     size="icon-sm"
                     aria-label="Next case"
                     disabled={!onNextCase || (caseIndex != null && totalCases != null && caseIndex >= totalCases - 1)}
-                    onClick={onNextCase}
+                    onClick={async () => { if (await flushNotes()) onNextCase?.() }}
                   >
                     <ArrowDown className="h-3.5 w-3.5" />
                   </Button>
@@ -672,7 +678,8 @@ export function IntakeReviewPanel({
                     variant="outline"
                     size="sm"
                     className="border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground"
-                    onClick={() => {
+                    onClick={async () => {
+                      if (!await flushNotes()) return
                       openPanel({
                         id: `${profileMode}-patient-profile-${intake.patient.id}`,
                         type: "drawer",
@@ -695,7 +702,13 @@ export function IntakeReviewPanel({
                     size="sm"
                     className="border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground"
                   >
-                    <Link href={fullCaseHref} onClick={inline ? undefined : () => closePanel()}>
+                    <Link href={fullCaseHref} onClick={async (event) => {
+                      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+                      event.preventDefault()
+                      if (!await flushNotes()) return
+                      if (!inline) closePanel()
+                      router.push(fullCaseHref)
+                    }}>
                       <ExternalLink className="h-3.5 w-3.5" />
                       Open full record
                     </Link>
@@ -710,7 +723,7 @@ export function IntakeReviewPanel({
             />
 
             <IntakeReviewCockpit
-              className={inline ? "min-h-0 flex-1" : undefined}
+              className="min-h-0 flex-1"
             />
           </div>
         </IntakeReviewProvider>

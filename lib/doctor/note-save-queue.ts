@@ -11,3 +11,16 @@ export function createNoteSaveQueue(save: (id: string, notes: string) => Promise
     return next
   }
 }
+
+/** Navigation must wait for edits made while its first snapshot was in flight, too. */
+export async function flushLatestNotes(
+  getLatest: () => string,
+  save: (notes: string) => Promise<SaveResult>,
+): Promise<boolean> {
+  let snapshot: string
+  do {
+    snapshot = getLatest()
+    if (!(await save(snapshot)).success) return false
+  } while (getLatest() !== snapshot)
+  return true
+}

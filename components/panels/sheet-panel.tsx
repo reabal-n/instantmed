@@ -34,6 +34,7 @@ interface SheetPanelProps {
   title?: string
   description?: string
   className?: string
+  contentClassName?: string
 }
 
 export function SheetPanel({ 
@@ -43,7 +44,8 @@ export function SheetPanel({
   width = 640,
   title,
   description,
-  className
+  className,
+  contentClassName
 }: SheetPanelProps) {
   const { closePanel } = usePanel()
   const prefersReducedMotion = useReducedMotion()
@@ -135,7 +137,7 @@ export function SheetPanel({
         </div>
 
         {/* Content - scrollable with more padding */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className={cn("flex-1 overflow-y-auto px-6 py-4", contentClassName)}>
           {children}
         </div>
       </motion.div>

@@ -22,7 +22,7 @@ import { toast } from "sonner"
 
 import { quickPrescribeRenewalAction } from "@/app/doctor/queue/actions"
 import { IntakeFlagsBadge } from "@/components/doctor/intake-flags-panel"
-import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
+import { LazyPatientProfilePanel as PatientProfilePanel } from "@/components/doctor/lazy-patient-profile-panel"
 import { QueueClinicalStatusBadges } from "@/components/doctor/queue-clinical-status-badges"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"

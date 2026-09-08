@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertCircle, CheckCircle2, FileText } from "lucide-react"
+import { AlertCircle, FileText } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { ClinicalCaseReview } from "@/components/doctor/clinical-case-review"
@@ -41,7 +41,7 @@ function ReviewFactItem({
       </dt>
       <dd
         className={cn(
-          "mt-0.5 break-words font-semibold",
+          "mt-0.5 whitespace-pre-wrap break-words font-semibold",
           prominent ? "text-base leading-6" : "text-[13px] leading-5",
           reviewFactTone(fact),
         )}
@@ -58,24 +58,10 @@ function ReviewFactItem({
   )
 }
 
-function compactSafetyNegativeDisplays(packet: ReviewPacket): string[] {
-  const facts = packet.safety.confirmedNegatives
-  const hasAllergyNegative = facts.some((fact) => fact.key === "allergies")
-  const hasReactionNegative = facts.some((fact) => fact.key === "medication_reactions")
-  const displays = facts
-    .filter((fact) => !(
-      hasAllergyNegative &&
-      hasReactionNegative &&
-      (fact.key === "allergies" || fact.key === "medication_reactions")
-    ))
-    .map((fact) => fact.display)
-
-  if (hasAllergyNegative && hasReactionNegative) {
-    const sideEffectIndex = facts.findIndex((fact) => fact.key === "side_effects")
-    displays.splice(sideEffectIndex >= 0 ? 1 : 0, 0, "No allergies or medicine reactions")
-  }
-
-  return displays
+const SAFETY_FACT_KEYS: Record<string, string> = {
+  current_medications: "other_medications",
+  pregnant_breastfeeding: "pregnancy_breastfeeding",
+  adverse_medication_reactions: "medication_reactions",
 }
 
 /**
@@ -97,8 +83,8 @@ export function RequestInfoCard({
     answers,
     doctorNotes,
     setDoctorNotes,
-    setNoteSaved,
     noteDirty,
+    noteSaved,
     savedAt,
     isAutoSaving,
     autoSaveError,
@@ -114,27 +100,23 @@ export function RequestInfoCard({
   const medicationFact = isRepeatPrescription
     ? packet.facts.find((fact) => fact.key === "medicine")
     : null
-  const supportingFacts = medicationFact
-    ? packet.facts.filter((fact) => fact.key !== medicationFact.key)
-    : packet.facts
-  const missingSafetyDetails = packet.safety.gaps
-    .filter((fact) => fact.state === "missing")
-    .map((fact) => fact.display)
-  const notAskedSafetyLabels = packet.safety.gaps
-    .filter((fact) => fact.state === "not_asked")
-    .map((fact) => fact.label)
-  const safetyGapDetails = [
-    missingSafetyDetails.length > 0
-      ? `Needs confirmation · ${missingSafetyDetails.join(" · ")}`
-      : null,
-    notAskedSafetyLabels.length > 0
-      ? `Not captured in this request · ${notAskedSafetyLabels.join(" · ")}`
-      : null,
-  ].filter(Boolean).join(" · ")
-  const showSafetyContext = isRepeatPrescription && (
-    packet.safety.confirmedNegatives.length > 0 || packet.safety.gaps.length > 0
-  )
-  const safetyNegativeDisplays = compactSafetyNegativeDisplays(packet)
+  const supportingFacts = packet.facts.filter((fact) => (
+    fact.key !== medicationFact?.key &&
+    // Keep any distinct summary detail, but do not repeat an identical source
+    // finding already visible in its labelled safety row.
+    !packet.safety.rows.some((row) => (
+      row.key === (SAFETY_FACT_KEYS[fact.key] || fact.key) && row.display.includes(fact.value)
+    ))
+  ))
+  const regimenFact = isRepeatPrescription
+    ? supportingFacts.find((fact) => fact.key === "patient_dose")
+    : null
+  const adjacentFacts = isRepeatPrescription
+    ? supportingFacts.filter((fact) => fact.key === "indication" || fact.key === "frequency")
+    : []
+  const remainingFacts = supportingFacts.filter((fact) => (
+    fact !== regimenFact && !adjacentFacts.includes(fact)
+  ))
 
   return (
     <section
@@ -155,54 +137,51 @@ export function RequestInfoCard({
         ) : null}
       </div>
 
-      <div className="mt-3 border-t border-border/50 pt-3">
+      <div className="mt-2 space-y-2 border-t border-border/50 pt-2">
         {medicationFact ? (
           <dl>
             <ReviewFactItem fact={medicationFact} prominent />
           </dl>
         ) : null}
-        {supportingFacts.length > 0 ? (
-          <dl
-            className={cn(
-              "grid grid-cols-2 gap-x-4 gap-y-2",
-              medicationFact ? "mt-3 border-t border-border/40 pt-3 lg:grid-cols-4" : "lg:grid-cols-3",
-            )}
-          >
-            {supportingFacts.map((fact) => (
-              <ReviewFactItem key={fact.key} fact={fact} />
-            ))}
+        {regimenFact ? (
+          <dl>
+            <ReviewFactItem fact={regimenFact} />
+          </dl>
+        ) : null}
+        {adjacentFacts.length > 0 ? (
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+            {adjacentFacts.map((fact) => <ReviewFactItem key={fact.key} fact={fact} />)}
+          </dl>
+        ) : null}
+        {remainingFacts.length > 0 ? (
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+            {remainingFacts.map((fact) => <ReviewFactItem key={fact.key} fact={fact} />)}
           </dl>
         ) : null}
       </div>
 
-      {showSafetyContext ? (
+      {isRepeatPrescription && packet.safety.rows.length > 0 ? (
         <section
           aria-label="Patient-reported safety"
           data-review-safety-context="true"
-          className="mt-3 space-y-1.5 border-t border-border/50 pt-3 text-[11px] leading-4"
+          className="mt-3 border-t border-border/50 pt-2"
         >
-          {packet.safety.confirmedNegatives.length > 0 ? (
-            <p
-              data-review-safety-negatives="true"
-              className="flex items-start gap-1.5 text-muted-foreground"
-            >
-              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
-              <span>
-                <span className="font-semibold text-foreground">Patient reported</span>
-                {" · "}
-                {safetyNegativeDisplays.join(" · ")}
-              </span>
-            </p>
-          ) : null}
-          {packet.safety.gaps.length > 0 ? (
-            <p
-              data-review-safety-gaps="true"
-              className="flex items-start gap-1.5 font-medium text-warning"
-            >
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <span>{safetyGapDetails}</span>
-            </p>
-          ) : null}
+          <p className="mb-2 text-xs font-semibold text-foreground">Patient-reported safety</p>
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+            {packet.safety.rows.map((row) => (
+              <div key={row.key} className="min-w-0" data-review-safety-row={row.key} data-review-safety-state={row.state}>
+                <dt className="text-xs font-medium text-muted-foreground">{row.label}</dt>
+                <dd className={cn(
+                  "whitespace-pre-wrap break-words text-[13px] leading-5",
+                  row.state === "confirmed_negative" ? "text-muted-foreground" :
+                    row.state === "confirmed_positive" ? "font-semibold text-foreground" : "font-medium text-warning",
+                )}>
+                  {row.display}
+                  {row.issue ? <span className="block text-xs text-warning">{row.issue}</span> : null}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </section>
       ) : null}
 
@@ -233,13 +212,14 @@ export function RequestInfoCard({
           draftNoteTextareaRef={notesRef}
           onDraftNoteChange={(value) => {
             setDoctorNotes(value)
-            setNoteSaved(false)
           }}
           onDraftNoteSave={handleSaveNotes}
-          isDraftNoteSaving={isPending || isAutoSaving}
+          isDraftNoteSaving={isAutoSaving}
           draftNoteDirty={noteDirty}
           draftNoteSavedAt={savedAt}
+          draftNoteSaved={noteSaved}
           draftNoteSaveError={autoSaveError}
+          draftNoteReadOnly={isPending}
           doctorSignOffLabel={doctorSignOffLabel}
         />
       </div>

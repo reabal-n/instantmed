@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { AlertTriangle, CheckCircle, ChevronDown, Clipboard, ExternalLink, Loader2, RefreshCw, X } from "lucide-react"
+import { AlertTriangle, CheckCircle, Clipboard, ExternalLink, Loader2, RefreshCw, X } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -140,11 +140,6 @@ export function ParchmentPrescribePanel({
   const requestedNameCopyText = prescriptionContext?.requestedNameCopyText?.trim() || ""
   const copyableMedicationName = verifiedGenericName || requestedNameCopyText
   const patientRequestEntry = prescriptionContext?.medicationLabel?.trim() || ""
-  const shouldShowPatientRequestEntry = Boolean(
-    copyableMedicationName &&
-    patientRequestEntry &&
-    patientRequestEntry.localeCompare(copyableMedicationName, "en-AU", { sensitivity: "base" }) !== 0,
-  )
   const matchedFromPreviousPrescription = genericReference.status === "resolved"
     && genericReference.source === "previous_prescription"
   const medicationMatchMessage = matchedFromPreviousPrescription
@@ -168,9 +163,9 @@ export function ParchmentPrescribePanel({
   const directionsContext = prescriptionContext?.regimenSource === "template"
     ? prescriptionContext.directionsTemplate
     : null
-  const hasAdditionalRequestDetails = Boolean(
-    shouldShowPatientRequestEntry || prescriptionContext?.patientReportedDose || directionsContext,
-  )
+  const requestFacts = prescriptionContext?.requestFacts
+  const assessmentFacts = prescriptionContext?.assessmentFacts
+  const patientDirections = prescriptionContext?.patientReportedDose
 
   useEffect(() => {
     const searchValue = prescriptionContext?.searchHint || prescriptionContext?.medicationLabel
@@ -257,7 +252,7 @@ export function ParchmentPrescribePanel({
   }, [copyableMedicationName])
 
   const copyPatientReportedFrequency = useCallback(async () => {
-    const patientReportedFrequency = prescriptionContext?.patientReportedFrequency?.trim()
+    const patientReportedFrequency = requestFrequency
     if (!patientReportedFrequency) return
     try {
       await navigator.clipboard.writeText(patientReportedFrequency)
@@ -265,7 +260,17 @@ export function ParchmentPrescribePanel({
     } catch {
       toast.error("Could not copy frequency")
     }
-  }, [prescriptionContext?.patientReportedFrequency])
+  }, [requestFrequency])
+
+  const copyPatientDirections = useCallback(async () => {
+    if (!patientDirections) return
+    try {
+      await navigator.clipboard.writeText(patientDirections)
+      toast.success("Copied current directions")
+    } catch {
+      toast.error("Could not copy current directions")
+    }
+  }, [patientDirections])
 
   const prescribingAttempt = useRef(0)
   const loadPrescribingUrl = useCallback(async () => {
@@ -451,12 +456,63 @@ export function ParchmentPrescribePanel({
           {prescriptionContext && (
             <div
               className={cn(
-                "mt-2 border-t border-border/60 pt-2",
+                "mt-2 max-h-[45dvh] overflow-y-auto overscroll-contain border-t border-border/60 pt-2",
                 keyboardInset && "hidden",
               )}
               data-parchment-medication-context="compact"
             >
-              <div className="flex items-center justify-between gap-3">
+              <div className="space-y-2" aria-label="Current prescribing request">
+                {requestFacts ? (
+                  <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {requestFacts.map((fact) => (
+                      <div key={fact.key} data-parchment-request-fact={fact.key} data-review-fact-state={fact.state}
+                        className={cn("min-w-0", (fact.key === "medicine" || fact.key === "patient_dose") && "sm:col-span-2")}>
+                        <dt className="text-xs font-medium text-muted-foreground">{fact.label}</dt>
+                        <dd className={cn("select-text whitespace-pre-wrap break-words text-sm leading-5 text-foreground", fact.key === "medicine" && "font-semibold")}>
+                          {fact.value}
+                        </dd>
+                        {fact.issue && <p className="text-xs text-warning">{fact.issue}</p>}
+                      </div>
+                    ))}
+                  </dl>
+                ) : (
+                  <dl className="space-y-2">
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">{directionsContext ? "Medicine context (template)" : "Medicine"}</dt>
+                      <dd className="select-text whitespace-pre-wrap break-words text-sm font-semibold">{patientRequestEntry || prescriptionContext.presetLabel || "Medicine not recorded"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">{directionsContext ? "Directions context (template)" : "Current dose / directions"}</dt>
+                      <dd className="select-text whitespace-pre-wrap break-words text-sm">{directionsContext || patientDirections || "Not available in this prescribing context"}</dd>
+                    </div>
+                    <div data-parchment-context-field="frequency">
+                      <dt className="text-xs font-medium text-muted-foreground">Frequency</dt>
+                      <dd className="text-sm">{patientDirections ? "Not separately captured; see directions" : "Not separately captured in this prescribing context"}</dd>
+                    </div>
+                    <div data-parchment-context-field="assessment">
+                      <dt className="text-xs font-medium text-muted-foreground">Indication / request context</dt>
+                      <dd className="select-text whitespace-pre-wrap break-words text-sm">
+                        {assessmentFacts?.length ? (
+                          <dl className="mt-1 space-y-1">
+                            {assessmentFacts.map((fact) => (
+                              <div key={fact.key} data-parchment-assessment-fact={fact.key} data-review-fact-state={fact.state}>
+                                <dt className="inline font-medium">{fact.label}: </dt>
+                                <dd className="inline">{fact.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        ) : "Not available in this prescribing context"}
+                      </dd>
+                    </div>
+                  </dl>
+                )}
+                {patientDirections && (
+                  <Button type="button" variant="outline" size="sm" className="min-h-11 px-2.5 sm:min-h-9" onClick={copyPatientDirections} aria-label="Copy patient-reported directions">
+                    <Clipboard className="mr-1.5 h-3.5 w-3.5" />Copy directions
+                  </Button>
+                )}
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3 border-t border-border/50 pt-2">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-muted-foreground">Medicine to search</p>
                   <p className="select-text break-words text-sm font-semibold leading-5 text-foreground">
@@ -512,34 +568,6 @@ export function ParchmentPrescribePanel({
                     Copy frequency
                   </Button>
                 </div>
-              ) : null}
-              {hasAdditionalRequestDetails ? (
-                <details className="group mt-1.5 text-xs text-muted-foreground">
-                  <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-1 rounded-sm pr-2 font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:min-h-9 [&::-webkit-details-marker]:hidden">
-                    <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden />
-                    <span>Request details</span>
-                  </summary>
-                  <div className="mt-2 space-y-1 border-t border-border/50 pt-2">
-                    {shouldShowPatientRequestEntry ? (
-                      <p className="break-words">
-                        <span className="font-medium text-foreground">Patient entered:</span>{" "}
-                        {patientRequestEntry}
-                      </p>
-                    ) : null}
-                    {prescriptionContext.patientReportedDose ? (
-                      <p className="break-words">
-                        <span className="font-medium text-foreground">Current dose:</span>{" "}
-                        {prescriptionContext.patientReportedDose}
-                      </p>
-                    ) : null}
-                    {directionsContext ? (
-                      <p className="break-words">
-                        <span className="font-medium text-foreground">Directions context:</span>{" "}
-                        {directionsContext}
-                      </p>
-                    ) : null}
-                  </div>
-                </details>
               ) : null}
             </div>
           )}

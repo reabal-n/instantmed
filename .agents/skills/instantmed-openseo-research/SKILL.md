@@ -1,6 +1,9 @@
 ---
 name: instantmed-openseo-research
-description: InstantMed OpenSEO governance workflow. Use when a task in /Users/rey/Developer/instantmed mentions OpenSEO, open-seo, SEO project setup, third-party keyword research, keyword clustering, competitor SEO analysis, SERP or backlink research, link prospecting, OpenSEO project context, OpenSEO credits, or connecting Search Console through OpenSEO.
+description: InstantMed OpenSEO governance before provider access, context changes, credit spend or adopting research. Shared seo-research supplies methods within this project boundary.
+metadata:
+  owner: Rey / instantmed
+  scope: project:instantmed
 ---
 
 # InstantMed OpenSEO Research
@@ -37,18 +40,7 @@ Follow the field ownership table in `docs/OPERATIONS.md`.
 
 ## Approved Upstream Helpers
 
-The approved surface is pinned to the `every-app/open-seo` installer receipt recorded on 2026-08-25:
-
-| Skill | `skills-lock.json` computed hash |
-|---|---|
-| `competitive-landscape` | `88a0bb250f405b6df0bfefa17928fb87442bb9c63239d64df023068bf8aeb112` |
-| `competitor-analysis` | `fef33beaa7877755e3b711c8a0ea1d5ec58b1c57e23a38ea58a3b5f531209b89` |
-| `keyword-clustering` | `1ea9d92c067e5bcf48e400b4c815e1d0f2917c974e9fdcfd607ba15193ca2f2b` |
-| `keyword-research` | `72575e1b0405dad5d800985ad30b0b23e4af0a2661d653ef641354284a2bddb6` |
-| `link-prospecting` | `9ccdb6e5ab043b3434324298c4f787b6e4b0884dab7510cc736f340f33e538aa` |
-| `seo-project-setup` | `c5ff55dfcfd58e645963710ef93b8bbf195a33e195be3b2c90d6036549f9ccc0` |
-
-If an installed hash is missing or differs, stop and request an upstream review; do not update or reinstall silently. `seo-audit`, `local-seo`, `seo-coach`, and `simple-issue-description` are not approved for this repo.
+Use shared `seo-research` and its OpenSEO reference for keyword research, page clustering, competitor analysis, competitive landscape, link prospecting and requested project-context setup. This project skill retains all account, data, credit and adoption gates. The former six standalone helpers are retired; their consolidation does not expand the approved provider scope.
 
 ## Research Path
 
@@ -66,3 +58,11 @@ If an installed hash is missing or differs, stop and request an upstream review;
 - Outreach drafts require `instantmed-marketing-compliance-review`; nothing sends without explicit approval.
 - Separate tool estimates from verified first-party or live-page evidence.
 
+
+## Scope and ownership
+
+This workflow applies only to instantmed and its verified checkouts/worktrees. Confirm the project from its operating docs and Git root before applying it. Project doctrine owns product, brand, privacy and release requirements; shared skills supply techniques only. Resolve commands and project paths from the active checkout, not a fixed machine path.
+
+## Verification
+
+Verify the requested result against the authoritative project files and relevant checks. Report evidence, skipped checks and remaining uncertainty; do not infer owner approval.

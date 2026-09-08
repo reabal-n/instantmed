@@ -650,6 +650,6 @@ describe("doctor queue production contract", () => {
   it("falls back to the case-summary draft when the formatted AI note is empty", () => {
     expect(intakeReviewPanelSource).toContain("const fallbackDraftNote = buildClinicalCaseSummary")
     expect(intakeReviewPanelSource).toContain("const resolvedDraftNote = formatted?.trim() ? formatted : fallbackDraftNote")
-    expect(intakeReviewPanelSource).toContain("actions.setInitialNotes(resolvedDraftNote, resolvedDraftNote)")
+    expect(intakeReviewPanelSource).toContain("actions.setInitialNotes(resolvedDraftNote, resolvedDraftNote, false)")
   })
 })

@@ -25,6 +25,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
+import { getClinicalReviewActionAccess } from "@/lib/doctor/case-action-guard"
 import { isConsultServiceType } from "@/lib/doctor/service-types"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { calculateAge } from "@/lib/format"
@@ -132,6 +133,7 @@ export default async function AdminIntakeDetailPage({
           ? ADMIN_HISTORICAL_AUTO_ISSUED_REVIEW_HREF
           : STAFF_DASHBOARD_HREF}
         backLabel={isHistoricalReview ? "Back to historical reviews" : "Back to work"}
+        viewerActionAccess={getClinicalReviewActionAccess(auth.profile, intake)}
         viewerCanRevokeAutoIssued
         historicalReviewActions={isHistoricalReview ? (
           <HistoricalAutoIssuedReviewActions

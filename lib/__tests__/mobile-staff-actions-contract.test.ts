@@ -27,16 +27,11 @@ describe("mobile staff action contracts", () => {
     expect(ledgerSource).toContain("Issue refund")
   })
 
-  it("moves manual fulfilment behind a compact mobile disclosure", () => {
-    expect(actionRailSource).toContain('data-mobile-fulfilment-options="true"')
-    expect(actionRailSource).toContain("Fulfilment options")
-    expect(actionRailSource).toContain(
-      'className="hidden sm:block" data-desktop-fulfilment-fallback="true"',
-    )
-    expect(actionRailSource).toContain('instance="mobile"')
-    expect(actionRailSource).toContain('restoreOnMount={false}')
-    expect(actionRailSource).toContain('instance="desktop"')
-    expect(actionRailSource).toContain("const instanceId = `${intakeId}-${instance}`")
+  it("keeps manual fulfilment a labelled recovery disclosure across viewports", () => {
+    expect(actionRailSource).toContain('data-prescribing-recovery="true"')
+    expect(actionRailSource).toContain("Recovery options")
+    expect(actionRailSource).toContain("Record sent script")
+    expect(actionRailSource).toContain("disabled={isActionDisabled}")
     expect(parchmentPanelSource).toContain("Record sent script")
   })
 
@@ -72,8 +67,8 @@ describe("mobile staff action contracts", () => {
     // and footer collapse instead of eating the keyboard-shortened viewport.
     expect(parchmentPanelSource).toContain('keyboardInset && "hidden"')
     expect(parchmentPanelSource).toContain('data-parchment-medication-context="compact"')
-    expect(parchmentPanelSource).toContain("Request details")
-    expect(parchmentPanelSource).toContain("min-h-11 w-fit")
+    expect(parchmentPanelSource).not.toContain("Request details")
+    expect(parchmentPanelSource).toContain("max-h-[45dvh] overflow-y-auto")
     expect(parchmentPanelSource).not.toContain('data-parchment-medication-context="mobile"')
     expect(parchmentPanelSource).not.toContain('data-parchment-medication-context="desktop"')
   })

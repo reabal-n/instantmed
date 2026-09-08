@@ -1172,7 +1172,7 @@ export function QueueClient({
         <OperatorSplitPane
           mode={expandedId ? "reviewing" : "idle"}
           className={cn(
-            "min-h-0 flex-1",
+            "min-h-0 flex-1 lg:h-auto lg:min-h-0",
           )}
           listClassName="min-h-0"
           detailClassName="min-h-0"

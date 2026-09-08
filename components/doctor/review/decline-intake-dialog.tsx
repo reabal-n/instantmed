@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
+import { formatCurrency } from "@/lib/format"
 import { isFulfilmentEntitledPaymentStatus } from "@/lib/stripe/fulfilment-entitlement"
 import { cn } from "@/lib/utils"
 import type { DeclineReasonCode } from "@/types/db"
@@ -63,6 +64,7 @@ export function DeclineIntakeDialog() {
   // refund. Surface that here so the doctor knows the patient gets
   // their money back when they confirm.
   const isPaid = isFulfilmentEntitledPaymentStatus(intake.payment_status)
+  const remainingRefund = Math.max(0, (intake.amount_cents ?? 0) - (intake.refund_amount_cents ?? 0))
 
   return (
     <AlertDialog open={showDeclineDialog} onOpenChange={handleOpenChange}>
@@ -130,7 +132,7 @@ export function DeclineIntakeDialog() {
               <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden="true" />
               <span>
                 This is a paid intake. Confirming decline will issue a full
-                Stripe refund to the patient.
+                Stripe refund to the patient{remainingRefund > 0 ? ` (${formatCurrency(remainingRefund)} remaining)` : ""}.
               </span>
             </div>
           ) : null}

@@ -4,6 +4,7 @@ import { createContext, type RefObject, useContext } from "react"
 
 import type { AIDraft } from "@/app/actions/draft-approval"
 import type { PatientThreadMessage } from "@/lib/data/patient-messages"
+import type { ClinicalReviewActionAccess } from "@/lib/doctor/case-action-guard"
 import type { RenewalMatch } from "@/lib/doctor/renewal-format"
 import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails, IntakeWithPatient, PatientNote } from "@/types/db"
 
@@ -38,6 +39,7 @@ export interface ReviewData {
    * absent/false hides the control rather than showing one that can only fail.
    */
   viewerCanRevokeAutoIssued?: boolean
+  viewerActionAccess?: ClinicalReviewActionAccess
   /**
    * Populated by the review-data API when the intake is a renewal of a
    * prior active/completed prescription for the same patient. Drives the
@@ -75,7 +77,7 @@ export interface IntakeReviewContextValue {
   // Clinical notes
   doctorNotes: string
   setDoctorNotes: (v: string) => void
-  setInitialNotes: (notes: string, dbNotes: string) => void
+  setInitialNotes: (notes: string, baselineNotes: string, persisted?: boolean) => void
   noteSaved: boolean
   setNoteSaved: (v: boolean) => void
   noteDirty: boolean
@@ -97,6 +99,7 @@ export interface IntakeReviewContextValue {
   handleStatusChange: (status: IntakeStatus) => Promise<void>
   handleDecline: () => Promise<void>
   handleSaveNotes: (nextNotes?: string) => Promise<void>
+  flushNotes: () => Promise<boolean>
   handleGenerateOrRegenerateNote: () => Promise<void>
   handleOpenParchmentPrescribe: () => void
   handleApprovePrescribedScript: () => Promise<void>

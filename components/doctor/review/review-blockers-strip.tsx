@@ -39,7 +39,6 @@ export function ReviewBlockersStrip() {
     !data.certificate.email_sent_at &&
     !data.certificate.email_opened_at,
   )
-  const scriptDeliveryPending = intake.status === "awaiting_script" && !intake.script_sent
 
   const blockers: BlockerItem[] = [
     ...(snapshot.missingCriticalFields.length > 0 && requiresPrescribingIdentity
@@ -64,16 +63,16 @@ export function ReviewBlockersStrip() {
       ? [{
           id: "waiting-patient",
           label: "Waiting for patient",
-          detail: "Info request sent. No patient reply yet.",
+          detail: "Info request recorded. No patient reply yet.",
           icon: Mail,
           tone: "warning" as const,
         }]
       : []),
-    ...(certificateDeliveryPending || scriptDeliveryPending
+    ...(certificateDeliveryPending
       ? [{
           id: "delivery",
           label: "Delivery pending",
-          detail: certificateDeliveryPending ? "Certificate email not sent yet." : "Script not marked sent yet.",
+          detail: data.certificate?.email_failed_at ? "Certificate email delivery failed. Check delivery recovery." : "Certificate email not sent yet.",
           icon: Truck,
           tone: "warning" as const,
         }]

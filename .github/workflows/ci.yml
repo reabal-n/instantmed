@@ -395,7 +395,8 @@ jobs:
     needs: build
     if: ${{ needs.build.result == 'success' && needs.build.outputs.e2e-required == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    # Prior successful serialized gates took ~35.5m before the added clinical-review cases.
+    timeout-minutes: 50
     # The blocking E2E suite reuses a deterministic Supabase fixture set.
     # Serialize it across branches so one run's teardown cannot remove child
     # records while another run is inside the document/review flow.
@@ -509,6 +510,7 @@ jobs:
             e2e/consult-subtypes.spec.ts \
             e2e/doctor.weight-review.spec.ts \
             e2e/doctor.prescription-ui.spec.ts \
+            e2e/clinical-review-concise.spec.ts \
             e2e/intake-terminal-blocks.spec.ts \
             e2e/parchment-webhook.spec.ts
           pnpm exec playwright test --project='Mobile Chrome' --workers=1 \

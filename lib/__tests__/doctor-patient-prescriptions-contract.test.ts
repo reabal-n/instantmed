@@ -256,25 +256,37 @@ describe("doctor patient medication history contract", () => {
     expect(clinicalCaseReviewSource).not.toContain("Copy search")
   })
 
-  it("copies the separately labelled patient-reported frequency only", () => {
+  it("copies original directions separately and offers frequency only when available", () => {
     expect(panelSource).toContain("copyPatientReportedFrequency")
     expect(panelSource).toContain('toast.success("Copied frequency")')
     expect(panelSource).toContain(">Frequency</p>")
     expect(panelSource).toContain("Copy frequency")
-    expect(panelSource.indexOf("Copy frequency")).toBeLessThan(
-      panelSource.indexOf("<details"),
-    )
+    expect(panelSource).toContain("{requestFrequency ? (")
+    expect(panelSource).toContain("navigator.clipboard.writeText(patientDirections)")
+    expect(panelSource).toContain('aria-label="Copy patient-reported directions"')
     expect(panelSource).not.toContain("Copy dose &amp; frequency")
   })
 
-  it("keeps the Parchment handoff compact and puts raw request context behind disclosure", () => {
+  it("keeps the Parchment handoff bounded with current request facts above the iframe", () => {
     expect(panelSource).toContain('data-parchment-medication-context="compact"')
     expect(panelSource).toContain("Medicine to search")
     expect(panelSource).toContain("Copy name")
-    expect(panelSource).toContain("Request details")
+    expect(panelSource).not.toContain("Request details")
+    expect(panelSource).toContain("data-parchment-request-fact={fact.key}")
+    expect(panelSource).toContain("max-h-[45dvh] overflow-y-auto")
+    expect(panelSource.indexOf("data-parchment-request-fact")).toBeLessThan(panelSource.indexOf("<iframe"))
     expect(panelSource).toContain("Likely match from a previous prescription")
     expect(panelSource).not.toContain('data-parchment-medication-context="mobile"')
     expect(panelSource).not.toContain('data-parchment-medication-context="desktop"')
+  })
+
+  it("shows specialty assessment and explicit absence states separately from template directions", () => {
+    expect(panelSource).toContain("Indication / request context")
+    expect(panelSource).toContain("Directions context (template)")
+    expect(panelSource).toContain("Not separately captured in this prescribing context")
+    expect(panelSource).toContain("Not available in this prescribing context")
+    expect(panelSource).toContain("assessmentFacts.map")
+    expect(panelSource).not.toContain('prescriptionContext.regimenSource === "patient_reported" && <>')
   })
 
   it("never falls back to copying a strength-bearing search hint", () => {

@@ -39,7 +39,6 @@ import {
   requiresPrescribingIdentityForCase,
 } from "@/lib/doctor/patient-snapshot"
 import { isConsultServiceType, isKnownDoctorServiceType, isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
-import { formatCurrency } from "@/lib/format"
 import { isFulfilmentEntitledPaymentStatus } from "@/lib/stripe/fulfilment-entitlement"
 import { cn } from "@/lib/utils"
 
@@ -164,14 +163,17 @@ export function IntakeActionButtons({
   requiresClinicalDetail = false,
   onRequestClinicalDetail,
   isRequestingClinicalDetail = false,
+  onRequestInformation,
 }: {
   placement?: "top" | "bottom"
   requiresClinicalDetail?: boolean
   onRequestClinicalDetail?: () => void
   isRequestingClinicalDetail?: boolean
+  onRequestInformation?: () => void
 }) {
   const {
     intake,
+    data,
     service,
     answers,
     doctorNotes,
@@ -302,9 +304,6 @@ export function IntakeActionButtons({
     intake.script_sent !== true &&
     !["approved", "declined", "completed"].includes(intake.status)
   const showRefundOnDecline = canDecline && isFulfilmentEntitledPaymentStatus(intake.payment_status)
-  const refundRemainingCents = Math.max(0, (intake.amount_cents ?? 0) - (intake.refund_amount_cents ?? 0))
-  const refundLabel = refundRemainingCents > 0 ? formatCurrency(refundRemainingCents) : null
-  const refundShortLabel = refundLabel?.replace(/\.00$/, "")
   const requestClinicalDetailLabel = "Request symptoms"
   const disabledApproveHint = requiresClinicalDetail
     ? "Symptoms missing; the next screen asks you to confirm before sending."
@@ -317,14 +316,7 @@ export function IntakeActionButtons({
   const readyLabel = service?.type === "med_certs"
     ? "Certificate details ready for review."
     : "Case details ready for review."
-  const patientFirstName = intake.patient.full_name?.trim().split(/\s+/)[0] || ""
-  const refundRecipient = patientFirstName || "the patient"
   const declineLabel = showRefundOnDecline ? "Decline with reason" : "Decline request"
-  const declineCaption = showRefundOnDecline
-    ? refundShortLabel
-      ? `Full refund if you decline: ${refundShortLabel} back to ${refundRecipient}.`
-      : `Full refund if you decline. ${refundRecipient} is refunded.`
-    : "Opens confirmation."
   const safetyReady =
     caseSummary.safetyItems.every((item) => (
       item.severity === "info" ||
@@ -334,8 +326,28 @@ export function IntakeActionButtons({
     intake.risk_tier !== "high" &&
     reviewPacket.safety.gaps.length === 0
   const canApproveAfterPrescribe = intake.script_sent === true
-  const canShowPrescribingCompletion = isPrescribingWorkflow && isActivePrescribingStatus
-  const isActionDisabled = isPending || !isHydrated
+  const canShowPrescribingCompletion = isPrescribingWorkflow && (isActivePrescribingStatus || intake.status === "pending_info")
+  const accessReason = data.viewerActionAccess?.allowed
+    ? null
+    : data.viewerActionAccess?.reason ?? "Checking permission to act on this request."
+  const isActionDisabled = isPending || !isHydrated || Boolean(accessReason)
+  const informationDisabledReason = ["paid", "in_review", "pending_info"].includes(intake.status)
+    ? null
+    : intake.status === "awaiting_script"
+      ? "Information cannot be requested while awaiting a script."
+      : "Information cannot be requested for this request status."
+  const showPrescribingState = isPrescribingWorkflow &&
+    (isActivePrescribingStatus || ["pending_info", "approved", "completed"].includes(intake.status))
+  const prescribingState = ["approved", "completed"].includes(intake.status)
+    ? "completed"
+    : intake.script_sent === true ? "recorded"
+      : ["awaiting_script", "pending_info"].includes(intake.status) ? "pending" : "ready"
+  const prescribingStateLabel = {
+    completed: "Request completed",
+    recorded: "Prescription recorded",
+    pending: intake.status === "pending_info" ? "Waiting for patient information" : "Prescription pending",
+    ready: "Ready for prescribing review",
+  }[prescribingState]
   const approveAfterPrescribeTitle = hasPrescribingIdentityBlocker
     ? prescribingIdentityTitle
     : canApproveAfterPrescribe
@@ -346,7 +358,9 @@ export function IntakeActionButtons({
       ? "Complete or record the prescription in Parchment first."
       : null
   const completionDisabledReason = isPrescribingWorkflow
-    ? hasPrescribingIdentityBlocker
+    ? intake.status === "pending_info"
+      ? "Await patient information before completing the request."
+      : hasPrescribingIdentityBlocker
       ? prescribingIdentityTitle
       : !canApproveAfterPrescribe
         ? "Complete or record the prescription in Parchment first."
@@ -409,10 +423,15 @@ export function IntakeActionButtons({
         </p>
       )}
       <div
-        className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-6 [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
+        className="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-3 [&>span]:col-span-2 [&>[data-action-readiness]]:col-span-2"
         data-action-bar
       >
-        {showPreSendSignals ? (
+        {showPrescribingState ? (
+          <span className="text-xs font-medium text-muted-foreground sm:mr-auto" data-prescribing-state={prescribingState}>
+            {prescribingStateLabel}
+          </span>
+        ) : null}
+        {showPreSendSignals && (!isPrescribingWorkflow || !hasPatientDetailsReady || needsClinicalNotes || !safetyReady) ? (
           <ActionReadinessChecks
             detailsReady={hasPatientDetailsReady}
             noteReady={!needsClinicalNotes}
@@ -475,12 +494,6 @@ export function IntakeActionButtons({
               {prescribingActionLabel ?? "Prescribe"}
             </Button>
           ) : null}
-          {canApproveAfterPrescribe ? (
-            <span className="inline-flex h-7 items-center gap-1.5 px-1 text-xs font-semibold text-success" data-fulfilment-recorded>
-              <CheckCircle className="h-3.5 w-3.5" aria-hidden="true" />
-              Prescription recorded
-            </span>
-          ) : null}
           <Button
             onClick={handleApprovePrescribedScript}
             className="min-h-11 bg-primary px-3 text-sm hover:bg-primary/90 sm:h-7 sm:min-h-0 sm:px-2.5 sm:text-xs"
@@ -494,31 +507,20 @@ export function IntakeActionButtons({
           </Button>
           {canPrescribeInParchment && intake.script_sent !== true
             ? (
-              <>
-                <details className="group sm:hidden" data-mobile-fulfilment-options="true">
-                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-medium text-foreground sm:hidden [&::-webkit-details-marker]:hidden">
-                    Fulfilment options
-                  </summary>
-                  <div className="hidden pt-2 group-open:block">
-                    <MarkSentManuallyButton
-                      intakeId={intake.id}
-                      disabled={!isHydrated}
-                      instance="mobile"
-                      reloadReviewData={reloadReviewData}
-                      restoreOnMount={false}
-                    />
-                  </div>
-                </details>
-                <div className="hidden sm:block" data-desktop-fulfilment-fallback="true">
+              <details className="group" data-prescribing-recovery="true">
+                <summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-md border border-border px-3 text-sm font-medium sm:min-h-0 sm:py-1 sm:text-xs">
+                  Recovery options
+                </summary>
+                <div className="hidden pt-2 group-open:block">
                   <MarkSentManuallyButton
                     intakeId={intake.id}
-                    disabled={!isHydrated}
+                    disabled={isActionDisabled}
                     instance="desktop"
                     reloadReviewData={reloadReviewData}
                     restoreOnMount
                   />
                 </div>
-              </>
+              </details>
             )
             : null}
         </>
@@ -553,6 +555,19 @@ export function IntakeActionButtons({
           </Button>
         )}
 
+      {onRequestInformation ? (
+        <Button
+          variant="outline"
+          size="sm"
+          className="min-h-11 px-3 text-sm sm:h-7 sm:min-h-0 sm:text-xs"
+          onClick={onRequestInformation}
+          disabled={isActionDisabled || Boolean(informationDisabledReason)}
+          title={accessReason ?? informationDisabledReason ?? undefined}
+          aria-describedby={informationDisabledReason ? "information-unavailable" : undefined}
+        >
+          Request information
+        </Button>
+      ) : null}
       {/* Decline */}
       {canDecline && (
         <div
@@ -571,20 +586,11 @@ export function IntakeActionButtons({
           >
             {declineLabel}
           </Button>
-          <p
-            className={cn(
-              "rounded-md px-2 py-1 text-[10px] font-semibold leading-tight",
-              showRefundOnDecline
-                ? "bg-transparent text-muted-foreground"
-                : "text-muted-foreground",
-            )}
-            data-decline-confirmation-copy
-          >
-            {declineCaption}
-          </p>
         </div>
       )}
       </div>
+      {accessReason ? <p role="status" className="mt-2 text-xs text-warning">{accessReason}</p> : null}
+      {onRequestInformation && informationDisabledReason ? <p id="information-unavailable" className="mt-1 text-xs text-muted-foreground">{informationDisabledReason}</p> : null}
       {visibleDisabledHint && (
         <p
           id={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
@@ -680,6 +686,7 @@ function MarkSentManuallyButton({
   }, [closeManualPanel, isPending, open])
 
   const handleConfirm = () => {
+    if (disabled || isPending) return
     const externalReference = referenceInputRef.current?.value.trim() || ""
     const reasonNote = reasonInputRef.current?.value.trim() || ""
     if (!externalReference && !reasonNote) {
@@ -782,7 +789,7 @@ function MarkSentManuallyButton({
             </Button>
             <Button
               onClick={handleConfirm}
-              disabled={isPending}
+              disabled={disabled || isPending}
               className="min-h-11 bg-blue-600 hover:bg-blue-700 sm:min-h-0"
             >
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

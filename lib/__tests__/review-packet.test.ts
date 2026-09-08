@@ -40,6 +40,87 @@ function repeatRxInput(
 }
 
 describe("buildReviewPacket", () => {
+  it("preserves the entire source medicine name and strength qualifiers", () => {
+    const packet = buildReviewPacket(repeatRxInput({ answers: {
+      ...repeatRxInput().answers,
+      medications: [{
+        name: "Budesonide with formoterol fumarate dihydrate maintenance inhaler",
+        strength: "200 micrograms / 6 micrograms per actuation",
+      }],
+    } }))
+    expect(packet.facts.find((fact) => fact.key === "medicine")?.value).toBe(
+      "Budesonide with formoterol fumarate dihydrate maintenance inhaler 200 micrograms / 6 micrograms per actuation",
+    )
+  })
+
+  it("retains incomplete patient directions without relaxing the existing prescribing blocker", () => {
+    const packet = buildReviewPacket(repeatRxInput({ answers: {
+      ...repeatRxInput().answers, currentDose: "Once daily",
+    } }))
+    expect(packet.facts.find((fact) => fact.key === "patient_dose")).toMatchObject({
+      value: "Once daily", state: "missing", blocksPrescribing: true,
+    })
+    expect(getReviewPacketBlocker(packet, "").blocked).toBe(true)
+  })
+
+  it.each([
+    "Take 1 tablet once daily as needed, only during symptoms",
+    "Take 2 tablets daily for 3 days, then 1 tablet every second day",
+    "Medicine A: 1 tablet each morning; medicine B: 2 tablets at night",
+  ])("keeps qualified directions intact and does not invent a separate frequency: %s", (directions) => {
+    const packet = buildReviewPacket(repeatRxInput({ answers: {
+      ...repeatRxInput().answers, currentDose: directions,
+    } }))
+    expect(packet.facts.find((fact) => fact.key === "patient_dose")?.value).toBe(directions)
+    expect(packet.facts.find((fact) => fact.key === "frequency")).toMatchObject({
+      value: "Not separately captured; see directions", state: "not_asked",
+      blocksPrescribing: false, provenance: "current_request",
+    })
+  })
+
+  it("renders positive safety answers directly from their source even without summary facts", () => {
+    const packet = buildReviewPacket(repeatRxInput({ answers: {
+      ...repeatRxInput().answers, hasAllergies: true, allergies: "Penicillin rash",
+      hasAdverseMedicationReactions: true, isPregnantOrBreastfeeding: true,
+    }, summary: { title: "Repeat prescription", keyFacts: [] } }))
+    expect(packet.safety.rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: "allergies", display: "Yes. Penicillin rash", state: "confirmed_positive" }),
+      expect.objectContaining({ key: "medication_reactions", display: "Yes", state: "confirmed_positive" }),
+      expect.objectContaining({ key: "pregnancy_breastfeeding", display: "Yes", state: "confirmed_positive" }),
+    ]))
+  })
+
+  it("keeps both sides of recorded safety contradictions available for reconciliation", () => {
+    const packet = buildReviewPacket(repeatRxInput({ answers: {
+      ...repeatRxInput().answers, hasAllergies: false, allergies: "Penicillin rash",
+      hasConditions: false, has_conditions: "yes", conditions: "Asthma",
+    } }))
+    expect(packet.safety.rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: "allergies", display: "Answered no. Recorded details: Penicillin rash", state: "conflicting" }),
+      expect.objectContaining({ key: "conditions", display: "Recorded responses: No / Yes. Recorded details: Asthma", state: "conflicting" }),
+    ]))
+  })
+
+  it("keeps an indication beside an explicit negative condition answer without inferring a diagnosis or contradiction", () => {
+    const packet = buildReviewPacket(repeatRxInput({ answers: {
+      ...repeatRxInput().answers, indication: "Anxiety", hasConditions: false,
+    } }))
+    expect(packet.facts.find((fact) => fact.key === "indication")?.value).toBe("Anxiety")
+    expect(packet.safety.rows?.find((row) => row.key === "conditions")).toMatchObject({
+      display: "No conditions", state: "confirmed_negative",
+    })
+  })
+
+  it("distinguishes an uncaptured response with detail from a positive answer missing detail", () => {
+    const packet = buildReviewPacket(repeatRxInput({ answers: {
+      ...repeatRxInput().answers, allergies: "Penicillin rash", hasSideEffects: true,
+    } }))
+    expect(packet.safety.rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: "allergies", display: "Response not captured. Recorded details: Penicillin rash", state: "not_asked" }),
+      expect.objectContaining({ key: "side_effects", display: "Yes. Side-effect details missing", state: "missing" }),
+    ]))
+  })
+
   it("does not duplicate a structured strength embedded in a medication name", () => {
     const packet = buildReviewPacket(repeatRxInput())
 
@@ -50,6 +131,7 @@ describe("buildReviewPacket", () => {
     expect(packet.facts.map((fact) => fact.key)).toEqual([
       "medicine",
       "patient_dose",
+      "frequency",
       "indication",
       "last_prescribed",
       "regimen",
@@ -101,7 +183,7 @@ describe("buildReviewPacket", () => {
     expect(packet.facts.some((fact) => fact.key === "strength")).toBe(false)
     expect(packet.facts.some((fact) => fact.key === "form")).toBe(false)
     expect(packet.facts.find((fact) => fact.key === "patient_dose")).toMatchObject({
-      label: "Current dose",
+      label: "Current dose / directions",
       value: "Not recorded",
       state: "missing",
       issue: "Confirm dose and frequency",
@@ -139,7 +221,7 @@ describe("buildReviewPacket", () => {
       message: "Confirm strength in Parchment",
     }])
     expect(packet.facts.find((fact) => fact.key === "patient_dose")).toMatchObject({
-      value: "Not recorded",
+      value: "Once daily",
       state: "missing",
       issue: "Confirm dose and frequency",
       blocksPrescribing: true,
