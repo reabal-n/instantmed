@@ -17,6 +17,11 @@ function render(value: IntakeReviewContextValue, blockers = false) {
 }
 
 describe("shared clinical review action presentation", () => {
+  it.each(["declined", "draft", "pending_payment", "payment_failed", "cancelled"])("does not label inactive %s prescribing records ready", (status) => {
+    const html = render(context(status))
+    expect(html).not.toContain("Ready for prescribing review")
+    expect(html).not.toContain("data-prescribing-state")
+  })
   it("offers labelled clarification and explains the unsupported awaiting-script state", () => {
     const html = render(context("awaiting_script"))
     expect(html).toContain("Request information")

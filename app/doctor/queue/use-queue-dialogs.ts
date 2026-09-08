@@ -27,7 +27,7 @@ export interface QueueDialogState {
   isInfoPending: boolean
   infoError: string | null
   infoDialog: string | null
-  setInfoDialog: (id: string | null) => void
+  setInfoDialog: (id: string | null, initialDraft?: { templateCode: string; message: string }) => void
   infoTemplateCode: string
   infoMessage: string
   setInfoMessage: (msg: string) => void
@@ -182,11 +182,12 @@ export function useRequestInfoDialog(onRequested?: () => void | Promise<void>) {
   const inFlight = useRef(false)
   const [infoError, setInfoError] = useState<string | null>(null)
 
-  const setInfoDialog = (id: string | null) => {
+  const setInfoDialog = (id: string | null, initialDraft?: { templateCode: string; message: string }) => {
     if (inFlight.current) return
-    if (id && draftIntakeId.current !== id) {
-      setInfoMessage("")
-      setInfoTemplateCode("")
+    // Shortcuts may seed a new/empty draft, but never replace retained text.
+    if (id && (draftIntakeId.current !== id || (initialDraft && !infoMessage.trim()))) {
+      setInfoMessage(initialDraft?.message ?? "")
+      setInfoTemplateCode(initialDraft?.templateCode ?? "")
       setInfoError(null)
       draftIntakeId.current = id
     }

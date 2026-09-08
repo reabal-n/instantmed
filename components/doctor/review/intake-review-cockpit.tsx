@@ -215,9 +215,10 @@ export function IntakeReviewCockpit({
   const canRequestClinicalDetail = hasThinMedCertIntake && ["paid", "in_review"].includes(intake.status)
   const handleRequestClinicalDetail = () => {
     if (!canRequestClinicalDetail || !data.viewerActionAccess?.allowed) return
-    informationDialog.setInfoDialog(intake.id)
-    informationDialog.handleInfoTemplateChange("symptom_clarification")
-    informationDialog.setInfoMessage(MED_CERT_SYMPTOM_DETAIL_REQUEST)
+    informationDialog.setInfoDialog(intake.id, {
+      templateCode: "symptom_clarification",
+      message: MED_CERT_SYMPTOM_DETAIL_REQUEST,
+    })
   }
 
   // There is no post-approval attestation card (operator decision 2026-08-04):

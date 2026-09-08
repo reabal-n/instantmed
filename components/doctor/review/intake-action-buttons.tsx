@@ -336,6 +336,8 @@ export function IntakeActionButtons({
     : intake.status === "awaiting_script"
       ? "Information cannot be requested while awaiting a script."
       : "Information cannot be requested for this request status."
+  const showPrescribingState = isPrescribingWorkflow &&
+    (isActivePrescribingStatus || ["pending_info", "approved", "completed"].includes(intake.status))
   const prescribingState = ["approved", "completed"].includes(intake.status)
     ? "completed"
     : intake.script_sent === true ? "recorded"
@@ -424,7 +426,7 @@ export function IntakeActionButtons({
         className="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-3 [&>span]:col-span-2 [&>[data-action-readiness]]:col-span-2"
         data-action-bar
       >
-        {isPrescribingWorkflow ? (
+        {showPrescribingState ? (
           <span className="text-xs font-medium text-muted-foreground sm:mr-auto" data-prescribing-state={prescribingState}>
             {prescribingStateLabel}
           </span>
