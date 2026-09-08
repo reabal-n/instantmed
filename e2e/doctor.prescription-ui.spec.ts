@@ -383,7 +383,16 @@ test.describe("Doctor prescription UI flow", () => {
     await waitForPageLoad(page)
     await expect.poll(() => profileSummaryRequests).toBe(0)
 
-    await page.getByRole("button", { name: "View profile" }).click()
+    const [summaryResponse] = await Promise.all([
+      page.waitForResponse(async (response) => {
+        if (!response.url().includes(`/api/doctor/patients/${patientId}/summary?currentRequestId=${intakeId}`)) return false
+        await response.finished()
+        return true
+      }, { timeout: 30_000 }),
+      page.getByRole("button", { name: "View profile" }).click(),
+    ])
+    expect(summaryResponse.ok()).toBe(true)
+    expect(await summaryResponse.finished()).toBeNull()
     const drawer = page.getByRole("dialog", { name: "Patient profile" })
     await expect(drawer).toBeVisible()
     await expect.poll(() => profileSummaryRequests).toBeGreaterThanOrEqual(1)
@@ -544,7 +553,16 @@ test.describe("Doctor prescription UI flow", () => {
 
     await page.goto(`/doctor/intakes/${intakeId}`)
     await waitForPageLoad(page)
-    await page.getByRole("button", { name: "View profile" }).click()
+    const [summaryResponse] = await Promise.all([
+      page.waitForResponse(async (response) => {
+        if (!response.url().includes(`/api/doctor/patients/${patientId}/summary?currentRequestId=${intakeId}`)) return false
+        await response.finished()
+        return true
+      }, { timeout: 30_000 }),
+      page.getByRole("button", { name: "View profile" }).click(),
+    ])
+    expect(summaryResponse.ok()).toBe(true)
+    expect(await summaryResponse.finished()).toBeNull()
 
     const drawer = page.getByRole("dialog", { name: "Patient profile" })
     await expect(drawer.getByText("2 requests total · 0 notes total", { exact: true })).toBeVisible({ timeout: 15000 })

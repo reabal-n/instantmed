@@ -68,7 +68,7 @@ async function persistedNote(page: Page, intakeId: string): Promise<string> {
   return payload.intake?.doctor_notes || ""
 }
 
-function ownsAction(route: Route, intakeId: string): boolean {
+function ownsAction(route: Pick<Route, "request">, intakeId: string): boolean {
   const request = route.request()
   return request.method() === "POST"
     && Boolean(request.headers()["next-action"])
@@ -129,7 +129,8 @@ async function assertNotClipped(control: Locator) {
 }
 
 test.describe("Concise clinical review", () => {
-  test.describe.configure({ mode: "serial", timeout: 120_000 })
+  // Each case owns its seed/cleanup. Run sequentially without replaying the whole group on retry.
+  test.describe.configure({ mode: "default", timeout: 120_000 })
   const intakeIds: string[] = []
 
   async function seedCase({
@@ -302,8 +303,19 @@ test.describe("Concise clinical review", () => {
     await expect(profile).toBeHidden()
     const stopBlocking = await preventProviderSession(page, intakeId)
     try {
+      const saveCompleted = page.waitForResponse(async (response) => {
+        if (!ownsAction(response, intakeId)
+          || !(response.request().postData() || "").includes("Saved before prescribing opens.")) return false
+        await response.finished()
+        return true
+      }, { timeout: 30_000 })
       await subjective.fill(`${text}\nSaved before prescribing opens.`)
-      await panel.getByRole("button", { name: "Prescribe", exact: true }).click()
+      const [saveResponse] = await Promise.all([
+        saveCompleted,
+        panel.getByRole("button", { name: "Prescribe", exact: true }).click(),
+      ])
+      expect(saveResponse.ok()).toBe(true)
+      expect(await saveResponse.finished()).toBeNull()
       const portal = page.getByRole("dialog", { name: /^Prescribe for / })
       await expect(portal).toBeVisible()
       await portal.getByRole("button", { name: "Close panel", exact: true }).click()
@@ -424,13 +436,28 @@ test.describe("Concise clinical review", () => {
       await expect(send).toBeDisabled()
       await dialog.getByRole("combobox").click()
       await page.getByRole("option", { name: /Other/i }).click()
-      await dialog.getByPlaceholder("Explain what you need...").fill("Synthetic clarification: please confirm the directions printed on your current label.")
+      const message = "Synthetic clarification: please confirm the directions printed on your current label."
+      await dialog.getByPlaceholder("Explain what you need...").fill(message)
       await expect(send).toBeEnabled()
       // E2E sendEmail skips external delivery. This exercises the real action
       // and durable pending_info transition, not an email-provider claim.
-      await send.click()
+      const [requestResponse] = await Promise.all([
+        page.waitForResponse(async (response) => {
+          if (!ownsAction(response, intakeId) || !(response.request().postData() || "").includes(message)) return false
+          await response.finished()
+          return true
+        }, { timeout: 30_000 }),
+        send.click(),
+      ])
+      expect(requestResponse.ok()).toBe(true)
+      expect(await requestResponse.finished()).toBeNull()
       await expect(dialog).toBeHidden()
       await expect.poll(async () => (await getIntakeById(intakeId))?.status).toBe("pending_info")
+      // Already-pending requests must create a new message, not just keep the same status.
+      const savedMessages = await getSupabaseClient().from("patient_messages")
+        .select("content, sender_type").eq("intake_id", intakeId)
+      expect(savedMessages.error).toBeNull()
+      expect(savedMessages.data).toEqual([{ content: message, sender_type: "doctor" }])
     })
   }
 
