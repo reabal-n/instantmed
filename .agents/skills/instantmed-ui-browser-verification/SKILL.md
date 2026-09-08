@@ -4,7 +4,6 @@ description: Verify InstantMed patient and staff UI flows using its approved bro
 metadata:
   owner: Rey / instantmed
   scope: project:instantmed
-  version: 1.0.0
 ---
 
 # InstantMed UI Browser Verification

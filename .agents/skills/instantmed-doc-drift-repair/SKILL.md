@@ -4,7 +4,6 @@ description: 'InstantMed documentation repair: reconcile canonical docs, generat
 metadata:
   owner: Rey / instantmed
   scope: project:instantmed
-  version: 1.0.0
 ---
 
 # InstantMed Doc Drift Repair

@@ -4,7 +4,6 @@ description: InstantMed public claims, ads, SEO, pricing and marketing copy revi
 metadata:
   owner: Rey / instantmed
   scope: project:instantmed
-  version: 1.0.0
 ---
 
 # InstantMed Marketing Compliance Review

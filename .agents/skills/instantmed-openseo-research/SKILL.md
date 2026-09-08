@@ -4,7 +4,6 @@ description: InstantMed OpenSEO governance before provider access, context chang
 metadata:
   owner: Rey / instantmed
   scope: project:instantmed
-  version: 1.0.0
 ---
 
 # InstantMed OpenSEO Research

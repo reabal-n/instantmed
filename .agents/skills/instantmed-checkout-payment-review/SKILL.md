@@ -4,7 +4,6 @@ description: 'InstantMed payment changes: review checkout, retries, webhooks, re
 metadata:
   owner: Rey / instantmed
   scope: project:instantmed
-  version: 1.0.0
 ---
 
 # InstantMed Checkout Payment Review

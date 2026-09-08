@@ -4,7 +4,6 @@ description: Investigate InstantMed outages, stuck requests and failed integrati
 metadata:
   owner: Rey / instantmed
   scope: project:instantmed
-  version: 1.0.0
 ---
 
 # InstantMed Production Incident Review

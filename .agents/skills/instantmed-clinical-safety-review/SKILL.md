@@ -4,7 +4,6 @@ description: InstantMed software safety review for intake, triage, prescribing, 
 metadata:
   owner: Rey / instantmed
   scope: project:instantmed
-  version: 1.0.0
 ---
 
 # InstantMed Clinical Safety Review
