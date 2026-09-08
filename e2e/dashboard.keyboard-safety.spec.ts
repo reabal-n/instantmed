@@ -11,6 +11,8 @@ import {
 } from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
+const browserErrors = new WeakMap<Page, string[]>()
+
 const E2E_OPERATOR_ID = "e2e00000-0000-0000-0000-000000000001"
 const PRODUCTION_SUPABASE_PROJECT_REF = "witzcrovsoumktyndqgz"
 
@@ -264,13 +266,9 @@ async function seedShortcutSafetyCase(
 
 async function placeCaretAtEnd(locator: Locator): Promise<void> {
   await locator.evaluate((element) => {
-    const range = document.createRange()
-    range.selectNodeContents(element)
-    range.collapse(false)
-    const selection = window.getSelection()
-    selection?.removeAllRanges()
-    selection?.addRange(range)
-    ;(element as HTMLElement).focus()
+    const textarea = element as HTMLTextAreaElement
+    textarea.focus()
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length)
   })
 }
 
@@ -283,7 +281,7 @@ async function openDraftNote(panel: Locator): Promise<Locator> {
   }
 
   await expect(trigger).toHaveAttribute("aria-expanded", "true")
-  const note = panel.locator('[contenteditable="true"][aria-label="Draft clinical note"]')
+  const note = panel.getByRole("textbox", { name: "Draft clinical note", exact: true })
   await expect(note).toBeVisible({ timeout: 15_000 })
   return note
 }
@@ -292,9 +290,20 @@ test.describe("Doctor keyboard shortcut safety", () => {
   const testIntakeIds: string[] = []
 
   test.beforeEach(async ({ page }) => {
+    const errors: string[] = []
+    browserErrors.set(page, errors)
+    page.on("pageerror", (error) => errors.push(error.message))
+    page.on("console", (message) => {
+      if (message.type() !== "error") return
+      errors.push(message.text())
+    })
     test.skip(!isDbAvailable(), "Database required for keyboard-safety E2E")
     const login = await loginAsOperator(page)
     expect(login.success, `E2E login should succeed: ${login.error}`).toBe(true)
+  })
+
+  test.afterEach(async ({ page }) => {
+    expect(browserErrors.get(page), "No unexpected browser console or runtime errors").toEqual([])
   })
 
   test.afterEach(async ({ page }) => {
@@ -340,7 +349,7 @@ test.describe("Doctor keyboard shortcut safety", () => {
 
     await placeCaretAtEnd(firstNote)
     await firstNote.press("/")
-    await expect(firstNote).toContainText("First unstructured clinical note/")
+    await expect(firstNote).toHaveValue("First unstructured clinical note/")
     await expect(firstNote).toBeFocused()
   })
 
@@ -386,8 +395,11 @@ test.describe("Doctor keyboard shortcut safety", () => {
     await firstNote.press("ArrowDown")
     await page.waitForTimeout(900)
 
-    expect(reviewDataRequests).toEqual([])
+    // An owned current-case claim/refresh may complete during this window.
+    // Caret keys must not fetch another case or change selection/focus.
+    expect(reviewDataRequests.filter((url) => new URL(url).pathname !== `/api/doctor/intakes/${firstIntakeId}/review-data`)).toEqual([])
     await expect(firstNote).toBeFocused()
+    expect(await firstNote.evaluate((element) => (element as HTMLTextAreaElement).selectionStart)).toBe("First unstructured clinical note".length)
     await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${firstIntakeId}$`))
 
     await panel.getByRole("button", { name: "Next case" }).click()
@@ -400,7 +412,9 @@ test.describe("Doctor keyboard shortcut safety", () => {
     await secondNote.press("ArrowUp")
     await page.waitForTimeout(900)
 
-    expect(reviewDataRequests).toEqual([])
+    expect(reviewDataRequests.filter((url) => new URL(url).pathname !== `/api/doctor/intakes/${secondIntakeId}/review-data`)).toEqual([])
+    await expect(secondNote).toBeFocused()
+    expect(await secondNote.evaluate((element) => (element as HTMLTextAreaElement).selectionStart)).toBeLessThan("Second unstructured clinical note".length)
     await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${secondIntakeId}$`))
   })
 

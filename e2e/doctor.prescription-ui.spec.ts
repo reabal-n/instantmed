@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 
-import { expect, test } from "@playwright/test"
+import { expect, type Page, test } from "@playwright/test"
 
 import { LEGACY_REPEAT_RX_RECONCILIATION_NOTE } from "@/lib/clinical/repeat-rx-attestation"
 
@@ -13,6 +13,9 @@ import {
   seedTestIntake,
 } from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
+
+const browserErrors = new WeakMap<Page, string[]>()
+const expectedNetworkAbort = new WeakSet<Page>()
 
 const E2E_OPERATOR_ID = "e2e00000-0000-0000-0000-000000000001"
 const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
@@ -56,6 +59,7 @@ async function seedRepeatPrescriptionCase({
   const { error: noteError } = await supabase
     .from("intakes")
     .update({
+      amount_cents: 2995,
       doctor_notes:
         "E2E review note: patient repeat prescription history and safety answers reviewed before prescribing.",
       updated_at: new Date().toISOString(),
@@ -317,9 +321,21 @@ test.describe("Doctor prescription UI flow", () => {
   const testPrescriptionIds: string[] = []
 
   test.beforeEach(async ({ page }) => {
+    const errors: string[] = []
+    browserErrors.set(page, errors)
+    page.on("pageerror", (error) => errors.push(error.message))
+    page.on("console", (message) => {
+      if (message.type() !== "error") return
+      if (expectedNetworkAbort.has(page) && message.text() === "Failed to load resource: net::ERR_FAILED") return
+      errors.push(message.text())
+    })
     test.skip(!isDbAvailable(), "Database required for prescription UI flow")
     const login = await loginAsOperator(page)
     expect(login.success, `E2E login should succeed: ${login.error}`).toBe(true)
+  })
+
+  test.afterEach(async ({ page }) => {
+    expect(browserErrors.get(page), "No unexpected browser console or runtime errors").toEqual([])
   })
 
   test.afterEach(async ({ page }) => {
@@ -456,20 +472,16 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(page.getByText("3_to_6_months", { exact: true })).toHaveCount(0)
 
     const safety = packet.getByRole("region", { name: "Patient-reported safety" })
-    await expect(safety).toContainText("Patient reported")
+    await expect(safety).toContainText("Patient-reported safety")
     await expect(safety).toContainText("No side effects")
-    await expect(safety).toContainText("No allergies or medicine reactions")
+    await expect(safety.locator('[data-review-safety-row="allergies"]')).toContainText("No allergies")
+    await expect(safety.locator('[data-review-safety-row="medication_reactions"]')).toContainText("No medicine reactions")
     await expect(safety.locator('[data-review-safety-gaps="true"]')).toHaveCount(0)
 
-    const readiness = page.locator("[data-action-readiness]").first()
-    await expect(readiness).toHaveAttribute("data-action-readiness-state", "advisory")
-    await expect(readiness).toHaveAttribute(
-      "data-action-readiness-summary",
-      /Identity details captured · Safety responses captured · Draft note ready/,
-    )
-    await expect(readiness).not.toContainText("No flags detected")
-    await expect(readiness.getByText("Ready for Parchment · confirm strength there", { exact: true })).toBeVisible()
-    await expect(readiness.getByText("Responses captured. Review before you send.", { exact: true })).toHaveCount(0)
+    const actionRail = page.locator('[data-review-action-rail="true"]').first()
+    await expect(actionRail.getByText("Ready for prescribing review", { exact: true })).toBeVisible()
+    await expect(actionRail.getByRole("button", { name: "Complete request", exact: true })).toBeDisabled()
+    await expect(actionRail).not.toContainText("No flags detected")
     const prescribeButton = page
       .locator('[data-review-action-rail="true"]')
       .first()
@@ -629,6 +641,7 @@ test.describe("Doctor prescription UI flow", () => {
     await page.route("**/*", async (route) => {
       if (route.request().method() === "POST" && route.request().headers()["next-action"]) {
         interruptedActions += 1
+        expectedNetworkAbort.add(page)
         await route.abort("failed")
       } else {
         await route.continue()
@@ -649,7 +662,7 @@ test.describe("Doctor prescription UI flow", () => {
     expect(intake?.script_sent).toBe(false)
   })
 
-  test("auto-unlocks Complete request after durable script evidence is recorded", async ({ page, isMobile }) => {
+  test("auto-unlocks Complete request after durable script evidence is recorded", async ({ page }) => {
     const intakeId = await seedRepeatPrescriptionCase()
     testIntakeIds.push(intakeId)
 
@@ -663,10 +676,8 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(completeButton).toBeDisabled()
     await expect(actionRail.getByText("Complete or record the prescription in Parchment first.")).toBeVisible()
 
-    if (isMobile) {
-      await actionRail.locator('[data-mobile-fulfilment-options="true"] summary').click()
-    }
-    await actionRail.getByRole("button", { name: "Record sent script" }).click()
+    await actionRail.locator('[data-prescribing-recovery="true"] summary').click()
+    await actionRail.getByRole("button", { name: "Record sent script", exact: true }).click()
     const manualSentPanel = page.getByRole("dialog", { name: "Record sent prescription" })
     await expect(manualSentPanel).toBeVisible()
     await expect(manualSentPanel.getByLabel("Parchment or external reference")).toBeVisible()
@@ -746,12 +757,10 @@ test.describe("Doctor prescription UI flow", () => {
     const intakeId = await seedWomensHealthUtiCase(patientId)
     testIntakeIds.push(intakeId)
 
-    await page.goto("/dashboard?status=review&showTestData=1&onlyTestData=1#doctor-queue")
+    // This owned patient is intentionally distinct from the canonical queue
+    // fixture; seed-only dashboard filtering must not be widened to include it.
+    await page.goto(`/doctor/intakes/${intakeId}`)
     await waitForPageLoad(page)
-
-    const row = page.locator(`[data-testid="queue-row-${intakeId}"]`)
-    await expect(row).toBeVisible({ timeout: 15000 })
-    await row.getByRole("button", { name: /Open case for/i }).click()
 
     await expect(page.getByText("Women's health · UTI")).toBeVisible({ timeout: 15000 })
 

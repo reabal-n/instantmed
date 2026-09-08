@@ -20,6 +20,8 @@ import {
 } from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
+const browserErrors = new WeakMap<Page, string[]>()
+
 const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
 const SEEDED_PATIENT_NAME = "E2E Test Patient"
 const LANDING_PATH = "/medical-certificate"
@@ -92,7 +94,7 @@ async function cleanupReviewContext(): Promise<void> {
 }
 
 async function openSeededReviewCockpit(page: Page) {
-  await page.goto("/dashboard")
+  await page.goto("/dashboard?showTestData=1&onlyTestData=1")
   await waitForPageLoad(page)
 
   await expect(page.getByRole("heading", { name: "Today's queue" })).toBeVisible({ timeout: 15_000 })
@@ -118,6 +120,13 @@ test.describe("Doctor review cockpit", () => {
   test.describe.configure({ mode: "serial", timeout: 120_000 })
 
   test.beforeEach(async ({ page }) => {
+    const errors: string[] = []
+    browserErrors.set(page, errors)
+    page.on("pageerror", (error) => errors.push(error.message))
+    page.on("console", (message) => {
+      if (message.type() !== "error") return
+      errors.push(message.text())
+    })
     test.skip(!isDbAvailable(), "DB credentials required")
     await seedReviewContext()
     const result = await loginAsOperator(page)
@@ -137,6 +146,10 @@ test.describe("Doctor review cockpit", () => {
     ])
     expect(reviewResponse.ok(), "Review-data route should be ready").toBe(true)
     expect(summaryResponse.ok(), "Patient summary route should be ready").toBe(true)
+  })
+
+  test.afterEach(async ({ page }) => {
+    expect(browserErrors.get(page), "No unexpected browser console or runtime errors").toEqual([])
   })
 
   test.afterEach(async ({ page }) => {
@@ -195,7 +208,7 @@ test.describe("Doctor review cockpit", () => {
     const firstNote = "Synthetic review note saved while prescribing."
     const finalNote = "Synthetic updated note saved before leaving this case."
     try {
-      await page.goto("/dashboard")
+      await page.goto("/dashboard?showTestData=1&onlyTestData=1")
       await waitForPageLoad(page)
       await page.getByTestId(`queue-row-${intakeId}`).getByRole("button", { name: /Open case for/i }).click()
       const cockpit = page.getByTestId("intake-review-panel")

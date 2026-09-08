@@ -49,6 +49,14 @@ For public or patient-facing UI, check at least:
 - Reduced motion when motion changed.
 - No text overflow, overlapping UI, broken focus states, or console errors.
 
+## Staff fixture privacy boundary
+
+- Validate the route and authenticated role before navigation or capture. Masking after a page loads does not prevent exposure.
+- Against shared Supabase, use `/dashboard?showTestData=1&onlyTestData=1` only as an admin with `PLAYWRIGHT=1`. Both seed-only flags are admin-only; an ordinary doctor ignores them and can receive unrelated queue/history data.
+- Test an ordinary doctor through an exact owned synthetic full-record or API route. Never use an unfiltered doctor queue or Ledger to reach a test row. Ledger search after initial rendering is not an isolation boundary; its browser proof requires isolated data.
+- Use exact owned synthetic IDs and clean up transient records in `finally` or test teardown. Do not attach a real-session Realtime client to shared patient data. Keep screenshots, traces and logs free of real patient content.
+- Isolate external provider actions before the browser reaches them. For local prescribing UI QA, use a loopback discard provider URL, blank provider secrets and disabled email/error-reporting credentials with the existing E2E email seam. State separately whether durable synthetic evidence, actual provider delivery, physical-device input or production behavior was verified.
+
 ## Verification Ladder
 
 - For TS/TSX changes, run the narrowest useful focused tests plus `pnpm lint` and `pnpm typecheck` when the change is more than copy/classes.
