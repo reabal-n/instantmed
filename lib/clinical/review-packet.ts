@@ -40,7 +40,12 @@ interface ReviewSafetyFact {
   issue?: string
 }
 
+interface ReviewSafetyRow extends Omit<ReviewSafetyFact, "state"> {
+  state: ReviewSafetyFactState | "confirmed_positive" | "conflicting"
+}
+
 interface ReviewSafetySummary {
+  rows: ReviewSafetyRow[]
   confirmedNegatives: ReviewSafetyFact[]
   gaps: ReviewSafetyFact[]
 }
@@ -225,6 +230,7 @@ function answerBoolean(answers: Record<string, unknown>, keys: string[]): boolea
 function repeatPrescriptionSafety(answers: Record<string, unknown>): ReviewSafetySummary {
   const confirmedNegatives: ReviewSafetyFact[] = []
   const gaps: ReviewSafetyFact[] = []
+  const rows: ReviewSafetyRow[] = []
 
   for (const definition of REPEAT_SAFETY_DEFINITIONS) {
     const answer = answerBoolean(answers, definition.answerKeys)
@@ -234,6 +240,42 @@ function repeatPrescriptionSafety(answers: Record<string, unknown>): ReviewSafet
     const hasAffirmativeDetail = Boolean(
       recordedDetail && !isRoutineNegativeContextValue(recordedDetail),
     )
+
+    // Preserve the recorded response and detail together. Alias disagreements
+    // are recorded contradictions; indication is a separate fact, never a
+    // diagnosis or an inferred conflict with a negative conditions answer.
+    const recordedResponses = definition.answerKeys
+      .map((key) => answerBoolean(answers, [key]))
+      .filter((value): value is boolean => value !== undefined)
+    const conflictingResponses = recordedResponses.includes(true) && recordedResponses.includes(false)
+    const row: ReviewSafetyRow = {
+      key: definition.key,
+      label: definition.label,
+      display: definition.negativeDisplay,
+      state: "confirmed_negative",
+      provenance: "current_request",
+    }
+    if (conflictingResponses || (answer === false && hasAffirmativeDetail)) {
+      row.state = "conflicting"
+      row.display = conflictingResponses
+        ? `Recorded responses: ${[...new Set(recordedResponses)].map((value) => value ? "Yes" : "No").join(" / ")}`
+        : "Answered no"
+      if (recordedDetail) row.display += `. Recorded details: ${recordedDetail}`
+      row.issue = `Confirm ${definition.label.toLowerCase()}`
+    } else if (answer === undefined) {
+      row.state = "not_asked"
+      row.display = recordedDetail
+        ? `Response not captured. Recorded details: ${recordedDetail}`
+        : "Not captured in this request"
+    } else if (answer === true) {
+      row.state = definition.detailKeys && !hasAffirmativeDetail ? "missing" : "confirmed_positive"
+      row.display = recordedDetail ? `Yes. ${recordedDetail}` : "Yes"
+      if (row.state === "missing") {
+        row.display += `. ${definition.missingDetailDisplay || "Details missing"}`
+        row.issue = definition.missingDetailIssue
+      }
+    }
+    rows.push(row)
 
     if (answer === false) {
       // Persisted drafts can contain a stale negative toggle alongside real
@@ -284,7 +326,7 @@ function repeatPrescriptionSafety(answers: Record<string, unknown>): ReviewSafet
     }
   }
 
-  return { confirmedNegatives, gaps }
+  return { confirmedNegatives, gaps, rows }
 }
 
 function repeatPrescriptionAdvisories(
@@ -415,7 +457,7 @@ function repeatPrescriptionFacts(input: BuildReviewPacketInput): ReviewFact[] {
   const facts: ReviewFact[] = []
 
   const medicationValue = medications.length > 0
-    ? medications.map(formatRepeatScriptMedicationCompactLabel).join("; ")
+    ? medications.map((medication) => formatRepeatScriptMedicationCompactLabel(medication, { preserveSource: true })).join("; ")
     : null
   const missingStrength = medications.length > 0 && medications.some((medication) => (
     !getRepeatScriptMedicationDisplayParts(medication).strength
@@ -459,8 +501,8 @@ function repeatPrescriptionFacts(input: BuildReviewPacketInput): ReviewFact[] {
   const patientDoseComplete = hasCompleteRepeatRxRegimen(patientDose)
   facts.push(fact(
     "patient_dose",
-    "Current dose",
-    patientDoseComplete ? patientDose : null,
+    "Current dose / directions",
+    patientDose,
     {
       state: patientDoseComplete ? "confirmed" : "missing",
       issue: patientDoseComplete ? undefined : "Confirm dose and frequency",
@@ -468,6 +510,15 @@ function repeatPrescriptionFacts(input: BuildReviewPacketInput): ReviewFact[] {
       blocksPrescribing: !patientDoseComplete,
       noteCanResolve: !patientDoseComplete,
     },
+  ))
+
+  // The intake captures one free-text regimen, not an independent frequency.
+  // A shortened extraction can drop PRN, taper or medicine-specific qualifiers.
+  facts.push(fact(
+    "frequency",
+    "Frequency",
+    patientDose ? "Not separately captured; see directions" : "Not captured in this request",
+    { state: "not_asked", optional: true, blocksPrescribing: false, noteCanResolve: false },
   ))
 
   const indication = answerString(input.answers, ["indication", "indication_for"])
@@ -508,7 +559,7 @@ function repeatPrescriptionFacts(input: BuildReviewPacketInput): ReviewFact[] {
   const attestation = getRepeatRxAttestationStatus(input.answers)
   facts.push(fact(
     "regimen",
-    "Dose and directions",
+    "Regimen change",
     attestation === "confirmed_unchanged"
       ? "Confirmed unchanged"
       : attestation === "changed"
@@ -559,7 +610,7 @@ export function buildReviewPacket(input: BuildReviewPacketInput): ReviewPacket {
       : genericFacts(input)
   const safety = workflow.kind === "repeat_prescription"
     ? repeatPrescriptionSafety(input.answers)
-    : { confirmedNegatives: [], gaps: [] }
+    : { confirmedNegatives: [], gaps: [], rows: [] }
   const advisories = workflow.kind === "repeat_prescription"
     ? repeatPrescriptionAdvisories(input.answers)
     : []

@@ -287,7 +287,21 @@ export function getRepeatScriptMedicationDisplayParts(
   }
 }
 
-export function formatRepeatScriptMedicationCompactLabel(entry: RepeatScriptMedicationEntry): string {
+export function formatRepeatScriptMedicationCompactLabel(
+  entry: RepeatScriptMedicationEntry,
+  options: { preserveSource?: boolean } = {},
+): string {
+  if (options.preserveSource) {
+    // Clinical review must retain form, concentration and other qualifiers.
+    // Only omit an exact repeated source field; do not interpret or shorten it.
+    const name = entry.name.trim()
+    const sourceName = ` ${name.toLowerCase().replace(/\s+/g, " ")} `
+    const extraFields = [entry.strength, entry.form]
+      .map((value) => value?.trim())
+      .filter((value): value is string => Boolean(value))
+      .filter((value) => !sourceName.includes(` ${value.toLowerCase().replace(/\s+/g, " ")} `))
+    return [name, ...extraFields].join(" ")
+  }
   const parts = getRepeatScriptMedicationDisplayParts(entry)
   return [parts.name, parts.strength, parts.form].filter(Boolean).join(" ")
 }

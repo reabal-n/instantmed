@@ -578,7 +578,7 @@ export function IntakeReviewPanel({
         <IntakeReviewProvider value={contextValue}>
           <div
             className={cn(
-              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
+              inline ? "flex h-full min-h-0 flex-col gap-2 motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
             )}
             data-testid="intake-review-panel"
           >

@@ -895,7 +895,7 @@ function scalpSummary(answers: Answers): string {
 function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const { answers } = input
   const medications = extractRepeatScriptMedications(answers)
-  const medicationLabels = medications.map(formatRepeatScriptMedicationCompactLabel)
+  const medicationLabels = medications.map((medication) => formatRepeatScriptMedicationCompactLabel(medication))
   const primaryMedication = medications[0]
   const primaryMedicationParts = primaryMedication
     ? getRepeatScriptMedicationDisplayParts(primaryMedication)

@@ -296,7 +296,7 @@ export function IntakeReviewCockpit({
         data-review-body-transition
       >
         {/* Sticky top: always-on clinical blockers. Compact density. */}
-        <div className="flex flex-col gap-3 pb-3">
+        <div className="flex flex-col gap-2 [&:has(>*)]:pb-2">
           <ReviewBlockersStrip />
           <SafetyFlagsCard />
         </div>
