@@ -210,7 +210,12 @@ export function useReviewActions({
     autoSaveTimerRef.current = setTimeout(() => {
       const snapshot = latestNotesRef.current
       if (snapshot === lastSavedNotesRef.current) return
-      void persistNotes(intakeId, snapshot)
+      // A successful snapshot can make a reverted editor dirty again. Reconcile
+      // immediately through the same queue; a failure stops rather than retries.
+      void flushLatestNotes(
+        () => latestNotesRef.current,
+        (notes) => persistNotes(intakeId, notes),
+      )
     }, 800)
 
     return () => {
@@ -233,7 +238,13 @@ export function useReviewActions({
       toast.info("Wait for the current decision before leaving this request.")
       return false
     }
-    return flushCurrentNotes()
+    const saved = await flushCurrentNotes()
+    // A decision may have started while this navigation waited for its save.
+    if (decisionPendingRef.current) {
+      toast.info("Wait for the current decision before leaving this request.")
+      return false
+    }
+    return saved
   }, [flushCurrentNotes])
 
   // React 18 transitions do not hold pending across awaits. Keep this clinical
