@@ -33,14 +33,6 @@ export function QueueDialogs({ dialogs }: { dialogs: QueueDialogState }) {
     handleDecline,
     handleDeclineTemplateChange,
     requiresNote,
-    infoDialog,
-    setInfoDialog,
-    infoTemplateCode,
-    infoMessage,
-    setInfoMessage,
-    infoTemplates,
-    handleRequestInfo,
-    handleInfoTemplateChange,
     flagDialog,
     setFlagDialog,
     flagReason,
@@ -121,60 +113,7 @@ export function QueueDialogs({ dialogs }: { dialogs: QueueDialogState }) {
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={!!infoDialog}
-        onOpenChange={() => {
-          setInfoDialog(null)
-          setInfoMessage("")
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Request More Information</DialogTitle>
-            <DialogDescription>The patient will be notified by email.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-medium">What do you need?</label>
-              <Select value={infoTemplateCode} onValueChange={handleInfoTemplateChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {infoTemplates.map((template) => (
-                    <SelectItem key={template.code} value={template.code}>
-                      {template.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium">Message to patient</label>
-              <Textarea
-                placeholder="Explain what you need..."
-                value={infoMessage}
-                onChange={(event) => setInfoMessage(event.target.value)}
-                className="min-h-[100px]"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setInfoDialog(null)
-                setInfoMessage("")
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleRequestInfo} disabled={!infoTemplateCode || !infoMessage.trim() || isPending}>
-              Send Request
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RequestInformationDialog dialogs={dialogs} />
 
       <Dialog open={!!flagDialog} onOpenChange={() => setFlagDialog(null)}>
         <DialogContent>
@@ -199,5 +138,66 @@ export function QueueDialogs({ dialogs }: { dialogs: QueueDialogState }) {
         </DialogContent>
       </Dialog>
     </>
+  )
+}
+
+export function RequestInformationDialog({ dialogs }: { dialogs: Pick<QueueDialogState, "infoDialog" | "setInfoDialog" | "infoTemplateCode" | "infoMessage" | "setInfoMessage" | "infoTemplates" | "handleRequestInfo" | "handleInfoTemplateChange" | "isInfoPending" | "infoError"> }) {
+  const { infoDialog, setInfoDialog, infoTemplateCode, infoMessage, setInfoMessage, infoTemplates, handleRequestInfo, handleInfoTemplateChange, isInfoPending, infoError } = dialogs
+  return (
+    <Dialog
+      open={!!infoDialog}
+      onOpenChange={() => setInfoDialog(null)}
+    >
+      <DialogContent onEscapeKeyDown={(event) => {
+        event.stopPropagation()
+        if (isInfoPending) event.preventDefault()
+      }}>
+        <DialogHeader>
+          <DialogTitle>Request More Information</DialogTitle>
+          <DialogDescription>The request is saved in the patient portal and an email notification is attempted.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <label className="mb-2 block text-sm font-medium">What do you need?</label>
+            <Select disabled={isInfoPending} value={infoTemplateCode} onValueChange={handleInfoTemplateChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent>
+                {infoTemplates.map((template) => (
+                  <SelectItem key={template.code} value={template.code}>
+                    {template.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label htmlFor="information-request-message" className="mb-2 block text-sm font-medium">Message to patient</label>
+            <Textarea
+              disabled={isInfoPending}
+              id="information-request-message"
+              placeholder="Explain what you need..."
+              value={infoMessage}
+              onChange={(event) => setInfoMessage(event.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+        </div>
+        {infoError ? <p role="alert" className="text-sm text-destructive">{infoError}</p> : null}
+        <DialogFooter>
+          <Button
+            disabled={isInfoPending}
+            variant="outline"
+            onClick={() => setInfoDialog(null)}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleRequestInfo} disabled={!infoTemplateCode || !infoMessage.trim() || isInfoPending}>
+            {isInfoPending ? "Sending…" : "Send Request"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

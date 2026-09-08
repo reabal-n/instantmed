@@ -159,7 +159,15 @@ export function PatientDecisionStrip({
               )}
               title={value}
             >
-              {value}
+              {label === "Phone" && snapshot.phone.present ? (
+                <a
+                  href={`tel:${snapshot.phone.label.replace(/[^+\d]/g, "")}`}
+                  aria-label={`Call patient on ${value}`}
+                  className="inline-flex min-h-11 items-center underline decoration-border underline-offset-4 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:min-h-0"
+                >
+                  {value}
+                </a>
+              ) : value}
             </dd>
           </div>
         ))}

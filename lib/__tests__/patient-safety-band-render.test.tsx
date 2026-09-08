@@ -74,6 +74,8 @@ describe("PatientDecisionStrip safety band", () => {
     expect(html).toContain("Age and date of birth:")
     expect(html).toContain("Ellenbrook, WA")
     expect(html).toContain("0412 345 678")
+    expect(html).toContain('href="tel:0412345678"')
+    expect(html).toContain('aria-label="Call patient on 0412 345 678"')
     expect(html).toContain("Medicare / IHI")
     expect(html).toContain("Ready")
     expect(html).not.toContain("Visits")
@@ -146,7 +148,7 @@ describe("PatientDecisionStrip safety band", () => {
     expect(cockpitIndex).toBeGreaterThan(bandIndex)
     expect(cockpitSource).not.toContain("PatientDecisionStrip")
     expect(fullDetailSource.indexOf("<PatientDecisionStrip")).toBeLessThan(
-      fullDetailSource.indexOf('className="min-h-0 flex-1 overflow-y-auto pr-1"'),
+      fullDetailSource.indexOf("<IntakeReviewCockpit"),
     )
   })
 })

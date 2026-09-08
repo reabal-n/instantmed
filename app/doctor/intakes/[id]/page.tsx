@@ -9,6 +9,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientNotes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
+import { getClinicalReviewActionAccess } from "@/lib/doctor/case-action-guard"
 import { buildPreviousIntakeContext } from "@/lib/doctor/intake-medication-label"
 import { isConsultServiceType } from "@/lib/doctor/service-types"
 import { getFeatureFlags } from "@/lib/feature-flags"
@@ -97,6 +98,7 @@ export default async function DoctorIntakeDetailPage({
       pendingCorrection={pendingCorrection}
       followups={followups}
       certDelivery={certDelivery}
+      viewerActionAccess={getClinicalReviewActionAccess(profile, intake)}
       viewerCanRevokeAutoIssued={hasAdminAccess(profile)}
       parchmentEnabled={featureFlags.parchment_embedded_prescribing}
       patientMessages={patientMessages}

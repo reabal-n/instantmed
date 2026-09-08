@@ -1,11 +1,10 @@
 "use client"
 
 import { FileText, Loader2, RefreshCw } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { type ReactNode, useCallback, useMemo, useState, useTransition } from "react"
-import { toast } from "sonner"
+import { type ReactNode, useMemo, useState } from "react"
 
-import { requestMoreInfoAction } from "@/app/actions/request-more-info"
+import { RequestInformationDialog } from "@/app/doctor/queue/queue-dialogs"
+import { useRequestInfoDialog } from "@/app/doctor/queue/use-queue-dialogs"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { RenewalLink } from "@/components/doctor/renewal-link"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
@@ -145,11 +144,10 @@ export function IntakeReviewCockpit({
   // Server-resolved by default; the prop is an explicit override for callers
   // that render without the review-data payload. Either way it fails closed.
   const mayRevokeAutoIssued = canRevokeAutoIssued ?? data.viewerCanRevokeAutoIssued ?? false
-  const router = useRouter()
+  const informationDialog = useRequestInfoDialog(async () => { await review.reloadReviewData({ background: true }) })
 
   const [disclosureOpen, setDisclosureOpen] = useState(false)
   const [draftNoteOpen, setDraftNoteOpen] = useState(false)
-  const [isRequestingClinicalDetail, startRequestingClinicalDetail] = useTransition()
 
   const messageCount = (data.patientMessages?.length ?? 0) +
     (intake.info_request_message ? 1 : 0)
@@ -215,24 +213,12 @@ export function IntakeReviewCockpit({
         : ""
   const hasThinMedCertIntake = service?.type === "med_certs" && symptomDetail.trim().length === 0
   const canRequestClinicalDetail = hasThinMedCertIntake && ["paid", "in_review"].includes(intake.status)
-  const handleRequestClinicalDetail = useCallback(() => {
-    if (!canRequestClinicalDetail) return
-
-    startRequestingClinicalDetail(async () => {
-      const result = await requestMoreInfoAction(
-        intake.id,
-        "symptom_clarification",
-        MED_CERT_SYMPTOM_DETAIL_REQUEST,
-      )
-
-      if (result.success) {
-        toast.success("Detail request sent to patient")
-        router.refresh()
-      } else {
-        toast.error(result.error || "Failed to request detail")
-      }
-    })
-  }, [canRequestClinicalDetail, intake.id, router])
+  const handleRequestClinicalDetail = () => {
+    if (!canRequestClinicalDetail || !data.viewerActionAccess?.allowed) return
+    informationDialog.setInfoDialog(intake.id)
+    informationDialog.handleInfoTemplateChange("symptom_clarification")
+    informationDialog.setInfoMessage(MED_CERT_SYMPTOM_DETAIL_REQUEST)
+  }
 
   // There is no post-approval attestation card (operator decision 2026-08-04):
   // risk is gated BEFORE issuance. A delivered auto-issued certificate is past
@@ -251,7 +237,8 @@ export function IntakeReviewCockpit({
       placement="bottom"
       requiresClinicalDetail={canRequestClinicalDetail}
       onRequestClinicalDetail={handleRequestClinicalDetail}
-      isRequestingClinicalDetail={isRequestingClinicalDetail}
+      isRequestingClinicalDetail={informationDialog.isInfoPending}
+      onRequestInformation={() => informationDialog.setInfoDialog(intake.id)}
     />
   )
   const decisionActions = historicalReviewActions ? (
@@ -262,7 +249,7 @@ export function IntakeReviewCockpit({
   ) : standardDecisionActions
 
   useDoctorShortcuts({
-    disabled: review.isPending,
+    disabled: review.isPending || !data.viewerActionAccess?.allowed,
     onApprove: () => {
       if (intake.status !== "paid" && intake.status !== "in_review") return
       if (service?.type === "med_certs") {
@@ -349,6 +336,7 @@ export function IntakeReviewCockpit({
           </div>
         </div>
       </div>
+      <RequestInformationDialog dialogs={informationDialog} />
       <div className="sticky bottom-0 z-30 mt-3 shrink-0 shadow-lg shadow-primary/[0.06]" data-action-rail-shell>
         {decisionActions}
       </div>

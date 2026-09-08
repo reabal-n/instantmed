@@ -61,7 +61,7 @@ function SheetShell({
   children: React.ReactNode
 }) {
   return (
-    <SheetPanel title={title} description={description} width={1040} onClose={onClose}>
+    <SheetPanel title={title} description={description} width={1040} onClose={onClose} contentClassName="min-h-0 overflow-hidden px-3 py-2 sm:px-6 sm:py-4">
       {children}
     </SheetPanel>
   )
@@ -233,9 +233,13 @@ export function IntakeReviewPanel({
   // ---- Extracted hooks ----
 
   // Lock management: acquire on data load, extend on interval, release on unmount
-  const lockableForReview = Boolean(data && isReviewLockableStatus(data.intake.status))
+  const lockableForReview = Boolean(data?.viewerActionAccess?.canReviewService && isReviewLockableStatus(data.intake.status))
   const { lockWarning, releaseLock, lockState } = useIntakeLock(intakeId, lockableForReview)
   const [claimAgeNow, setClaimAgeNow] = useState(() => Date.now())
+  // Claim success changes server-owned permission; never enable from local lock state.
+  useEffect(() => {
+    if (lockState.status === "claimed") void reloadReviewData({ background: true })
+  }, [lockState.status, reloadReviewData])
 
   useEffect(() => {
     if (lockState.status !== "claimed") return
@@ -578,7 +582,7 @@ export function IntakeReviewPanel({
         <IntakeReviewProvider value={contextValue}>
           <div
             className={cn(
-              inline ? "flex h-full min-h-0 flex-col gap-2 motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
+              inline ? "flex h-full min-h-0 flex-col gap-2 motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]" : "flex h-full min-h-0 flex-col gap-2 overflow-hidden motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
             )}
             data-testid="intake-review-panel"
           >
@@ -710,7 +714,7 @@ export function IntakeReviewPanel({
             />
 
             <IntakeReviewCockpit
-              className={inline ? "min-h-0 flex-1" : undefined}
+              className="min-h-0 flex-1"
             />
           </div>
         </IntakeReviewProvider>

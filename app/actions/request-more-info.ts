@@ -1,6 +1,7 @@
 "use server"
 
 import { requireRole } from "@/lib/auth/helpers"
+import { describeServiceCapability, doctorCanReviewService } from "@/lib/auth/staff-capabilities"
 import { env } from "@/lib/config/env"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getDoctorCaseActionError } from "@/lib/doctor/case-action-guard"
@@ -23,6 +24,7 @@ interface InfoRequestTemplate {
 interface RequestInfoResult {
   success: boolean
   error?: string
+  notificationWarning?: string
 }
 
 /**
@@ -77,6 +79,8 @@ export async function requestMoreInfoAction(
         status,
         patient_id,
         category,
+        subtype,
+        service:services(type),
         claimed_by,
         reviewing_doctor_id,
         reviewed_by,
@@ -103,6 +107,11 @@ export async function requestMoreInfoAction(
 
     if (actionError) {
       return { success: false, error: actionError }
+    }
+
+    const service = Array.isArray(intake.service) ? intake.service[0] : intake.service
+    if (!doctorCanReviewService(profile, service?.type, intake.subtype)) {
+      return { success: false, error: `You are not authorised to review ${describeServiceCapability(service?.type, intake.subtype)}.` }
     }
 
     // Check status allows info request
@@ -148,44 +157,57 @@ export async function requestMoreInfoAction(
       return { success: false, error: "Failed to update request" }
     }
 
-    // Send email to patient
-    if (patient?.email) {
-      const requestTypeLabel = emailRequestTypeLabel(intake.category)
-      await sendEmail({
-        to: patient.email,
-        toName: patient.full_name,
-        subject: needsMoreInfoSubject(requestTypeLabel),
-        template: NeedsMoreInfoEmail({
-          patientName: patient.full_name?.split(" ")[0] || "there",
-          requestType: requestTypeLabel,
-          requestId: intakeId,
-          requestAccessUrl: buildPatientRequestAccessUrl({
-            appUrl: env.appUrl,
-            intakeId,
+    // The atomic message/status is already durable. A failed notification must
+    // never invite replay of the clinical message.
+    let notificationSent = false
+    try {
+      if (patient?.email) {
+        const requestTypeLabel = emailRequestTypeLabel(intake.category)
+        const delivery = await sendEmail({
+          to: patient.email,
+          toName: patient.full_name,
+          subject: needsMoreInfoSubject(requestTypeLabel),
+          template: NeedsMoreInfoEmail({
+            patientName: patient.full_name?.split(" ")[0] || "there",
+            requestType: requestTypeLabel,
+            requestId: intakeId,
+            requestAccessUrl: buildPatientRequestAccessUrl({
+              appUrl: env.appUrl,
+              intakeId,
+            }),
+            doctorMessage: trimmedMessage,
           }),
-          doctorMessage: trimmedMessage,
-        }),
-        emailType: "needs_more_info",
-        intakeId,
-        patientId: patient.id,
-        metadata: {
-          template_code: templateCode,
-          requested_by: profile.id,
-        },
-        tags: [
-          { name: "category", value: "info_request" },
-          { name: "intake_id", value: intakeId },
-        ],
-      })
+          emailType: "needs_more_info",
+          intakeId,
+          patientId: patient.id,
+          metadata: {
+            template_code: templateCode,
+            requested_by: profile.id,
+          },
+          tags: [
+            { name: "category", value: "info_request" },
+            { name: "intake_id", value: intakeId },
+          ],
+        })
 
-      log.info("Info request email sent", { hasPatientEmail: true })
+        notificationSent = delivery.success
+        if (notificationSent) log.info("Info request email sent", { hasPatientEmail: true })
+      }
+
+    } catch {
+      log.warn("Info request saved but email notification failed")
     }
 
     // Revalidate paths
     revalidateStaff({ intakeId })
     revalidatePatient({ intakeId })
 
-    return { success: true }
+    return {
+      success: true,
+      ...(!notificationSent ? {
+        notificationWarning: "Information request saved in the patient portal, but the email was not sent. Check email delivery in Operations; do not send this request again.",
+      } : {}),
+    }
   } catch (error) {
     log.error("Request more info error", {
       error: error instanceof Error ? error.message : String(error),

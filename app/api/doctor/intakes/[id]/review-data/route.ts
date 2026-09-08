@@ -8,6 +8,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientNotes } from "@/lib/data/intakes"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
+import { getClinicalReviewActionAccess } from "@/lib/doctor/case-action-guard"
 import { buildPreviousIntakeContext } from "@/lib/doctor/intake-medication-label"
 import { detectRenewalsForIntakes } from "@/lib/doctor/renewal-detection"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -126,6 +127,7 @@ export async function GET(
     // lookup), so a non-admin doctor must not be shown a control that can only
     // fail. Resolved here because the server knows the role; the action stays
     // the authority.
+    viewerActionAccess: getClinicalReviewActionAccess(auth.profile, intake),
     viewerCanRevokeAutoIssued: hasAdminAccess(auth.profile),
     renewalMatch,
     draftId: medCertDraft?.id || null,

@@ -73,7 +73,7 @@ describe("doctor review prescribing controls", () => {
     )
     expect(queueSheetActionsSource).toContain("const showPreSendSignals")
     expect(queueSheetActionsSource).toContain("!hasRecordedPrescription")
-    expect(queueSheetActionsSource.match(/\{showPreSendSignals \? \(/g)).toHaveLength(1)
+    expect(queueSheetActionsSource).toContain("showPreSendSignals && (!isPrescribingWorkflow")
     expect(queueSheetActionsSource).not.toContain("data-decision-wait-signal")
     expect(queueSheetActionsSource).toMatch(/const canDecline =\s*intake\.script_sent !== true/)
   })

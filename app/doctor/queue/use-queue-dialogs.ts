@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect, useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { getInfoRequestTemplatesAction, requestMoreInfoAction } from "@/app/actions/request-more-info"
@@ -24,6 +24,8 @@ export interface QueueDialogState {
   requiresNote: boolean
 
   // Info request
+  isInfoPending: boolean
+  infoError: string | null
   infoDialog: string | null
   setInfoDialog: (id: string | null) => void
   infoTemplateCode: string
@@ -59,12 +61,7 @@ export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions)
   const [declineTemplates, setDeclineTemplates] = useState<Array<{ code: string; label: string; description: string | null; requires_note: boolean }>>([])
   const [declineTemplatesLoaded, setDeclineTemplatesLoaded] = useState(false)
 
-  // Info dialog
-  const [infoDialog, setInfoDialog] = useState<string | null>(null)
-  const [infoTemplateCode, setInfoTemplateCode] = useState("")
-  const [infoMessage, setInfoMessage] = useState("")
-  const [infoTemplates, setInfoTemplates] = useState<Array<{ code: string; label: string; description: string | null; message_template: string | null }>>([])
-  const [infoTemplatesLoaded, setInfoTemplatesLoaded] = useState(false)
+  const info = useRequestInfoDialog()
 
   // Flag dialog
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
@@ -82,17 +79,6 @@ export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions)
     }
   }, [declineDialog, declineTemplatesLoaded])
 
-  useEffect(() => {
-    if (infoDialog && !infoTemplatesLoaded) {
-      getInfoRequestTemplatesAction().then((result) => {
-        if (result.success && result.templates) {
-          setInfoTemplates(result.templates)
-          setInfoTemplatesLoaded(true)
-        }
-      })
-    }
-  }, [infoDialog, infoTemplatesLoaded])
-
   const selectedTemplate = declineTemplates.find((t) => t.code === declineReasonCode)
   const requiresNote = selectedTemplate?.requires_note || declineReasonCode === "other"
 
@@ -100,12 +86,6 @@ export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions)
     setDeclineReasonCode(code)
     const template = declineTemplates.find((t) => t.code === code)
     if (template?.description && !declineReasonNote) setDeclineReasonNote(template.description)
-  }
-
-  const handleInfoTemplateChange = (code: string) => {
-    setInfoTemplateCode(code)
-    const template = infoTemplates.find((t) => t.code === code)
-    if (template?.message_template) setInfoMessage(template.message_template)
   }
 
   const handleDecline = async () => {
@@ -150,22 +130,6 @@ export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions)
     })
   }
 
-  const handleRequestInfo = async () => {
-    if (!infoDialog || !infoTemplateCode) return
-    startTransition(async () => {
-      const result = await requestMoreInfoAction(infoDialog, infoTemplateCode, infoMessage)
-      if (result.success) {
-        toast.success("Information request sent to patient")
-        setInfoDialog(null)
-        setInfoTemplateCode("")
-        setInfoMessage("")
-        router.refresh()
-      } else {
-        toast.error(result.error || "Failed to send request")
-      }
-    })
-  }
-
   const handleFlag = async () => {
     if (!flagDialog || !flagReason.trim()) return
     startTransition(async () => {
@@ -194,19 +158,94 @@ export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions)
     handleDecline,
     handleDeclineTemplateChange,
     requiresNote,
-    infoDialog,
-    setInfoDialog,
-    infoTemplateCode,
-    infoMessage,
-    setInfoMessage,
-    infoTemplates,
-    handleRequestInfo,
-    handleInfoTemplateChange,
+    ...info,
     flagDialog,
     setFlagDialog,
     flagReason,
     setFlagReason,
     handleFlag,
-    isPending,
+    isPending: isPending || info.isInfoPending,
   }
+}
+
+/** Shared queue/full-review clarification state. React 18 transitions do not
+ * track async actions, so a ref and explicit busy state own the whole send. */
+export function useRequestInfoDialog(onRequested?: () => void | Promise<void>) {
+  const router = useRouter()
+  const [infoDialog, setInfoDialogState] = useState<string | null>(null)
+  const draftIntakeId = useRef<string | null>(null)
+  const [infoTemplateCode, setInfoTemplateCode] = useState("")
+  const [infoMessage, setInfoMessage] = useState("")
+  const [infoTemplates, setInfoTemplates] = useState<Array<{ code: string; label: string; description: string | null; message_template: string | null }>>([])
+  const [infoTemplatesLoaded, setInfoTemplatesLoaded] = useState(false)
+  const [isInfoPending, setIsInfoPending] = useState(false)
+  const inFlight = useRef(false)
+  const [infoError, setInfoError] = useState<string | null>(null)
+
+  const setInfoDialog = (id: string | null) => {
+    if (inFlight.current) return
+    if (id && draftIntakeId.current !== id) {
+      setInfoMessage("")
+      setInfoTemplateCode("")
+      setInfoError(null)
+      draftIntakeId.current = id
+    }
+    setInfoDialogState(id)
+  }
+
+  useEffect(() => {
+    if (infoDialog && !infoTemplatesLoaded) {
+      getInfoRequestTemplatesAction().then((result) => {
+        if (result.success && result.templates) {
+          setInfoTemplates(result.templates)
+          setInfoTemplatesLoaded(true)
+        }
+      })
+    }
+  }, [infoDialog, infoTemplatesLoaded])
+
+  const handleInfoTemplateChange = (code: string) => {
+    if (inFlight.current) return
+    setInfoTemplateCode(code)
+    const template = infoTemplates.find((t) => t.code === code)
+    if (template?.message_template) setInfoMessage(template.message_template)
+  }
+
+  const handleRequestInfo = async () => {
+    if (inFlight.current || !infoDialog || !infoTemplateCode || !infoMessage.trim()) return
+    inFlight.current = true
+    setIsInfoPending(true)
+    setInfoError(null)
+    try {
+      const result = await requestMoreInfoAction(infoDialog, infoTemplateCode, infoMessage)
+      if (!result.success) {
+        const error = result.error || "Failed to save information request"
+        setInfoError(error)
+        toast.error(error)
+        return
+      }
+      // Clear only after durable success, even when the separate email failed.
+      setInfoDialogState(null)
+      setInfoTemplateCode("")
+      setInfoMessage("")
+      draftIntakeId.current = null
+      if (result.notificationWarning) toast.warning(result.notificationWarning, { duration: 12000 })
+      else toast.success("Information request saved and notification email sent")
+      router.refresh()
+      try {
+        await onRequested?.()
+      } catch {
+        toast.warning("Information request saved. Refresh the review to see the latest state.")
+      }
+    } catch {
+      const error = "Could not confirm the request. Your draft is retained. Check the patient message thread before trying again."
+      setInfoError(error)
+      toast.error(error)
+    } finally {
+      inFlight.current = false
+      setIsInfoPending(false)
+    }
+  }
+
+  return { infoDialog, setInfoDialog, infoTemplateCode, infoMessage, setInfoMessage, infoTemplates, handleRequestInfo, handleInfoTemplateChange, isInfoPending, infoError }
 }

@@ -56,3 +56,15 @@ describe("doctor case action guard", () => {
     })).toBe("Claim this case before taking action.")
   })
 })
+
+ describe("server clinical review access projection", () => {
+  it("requires both ownership and the service capability, with the existing admin override", async () => {
+    const { getClinicalReviewActionAccess } = await import("@/lib/doctor/case-action-guard")
+    const intake = { claimed_by: "doctor-1", service: { type: "repeat_rx" }, subtype: null }
+    expect(getClinicalReviewActionAccess({ id: "doctor-1", role: "doctor" }, intake)).toEqual({ allowed: true, reason: null, canReviewService: true })
+    expect(getClinicalReviewActionAccess({ id: "doctor-2", role: "doctor" }, intake)).toEqual({ allowed: false, reason: expect.stringContaining("another doctor"), canReviewService: true })
+    expect(getClinicalReviewActionAccess({ id: "doctor-1", role: "doctor", can_review_repeat_rx: false }, intake)).toEqual({ allowed: false, reason: expect.stringContaining("not authorised"), canReviewService: false })
+    expect(getClinicalReviewActionAccess({ id: "admin", role: "admin", can_review_repeat_rx: false }, intake)).toEqual({ allowed: true, reason: null, canReviewService: true })
+    expect(getClinicalReviewActionAccess({ id: "doctor-1", role: "doctor" }, { ...intake, claimed_by: null })).toEqual({ allowed: false, reason: expect.stringContaining("Claim this case"), canReviewService: true })
+  })
+})
