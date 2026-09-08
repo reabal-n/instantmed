@@ -564,4 +564,45 @@ test.describe("Concise clinical review", () => {
     }
   })
 
+  test("retries a failed profile chunk locally while preserving the exact clinical note", async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 768 })
+    const intakeId = await seedCase()
+    const stopProvider = await preventProviderSession(page, intakeId)
+    const panel = await openQueueCase(page, intakeId)
+    const note = await openNote(panel)
+    // Local/CI run Next's dev server, whose split-chunk name identifies this module.
+    const profileChunk = /\/_next\/static\/chunks\/.*patient-profile-panel.*\.js/
+    let chunkRequests = 0
+    const failFirstChunk = async (route: Route) => {
+      chunkRequests += 1
+      if (chunkRequests === 1) {
+        expectedNetworkAbort.add(page)
+        await route.abort("failed")
+      } else await route.continue()
+    }
+    await page.route(profileChunk, failFirstChunk)
+    const text = "Synthetic profile retry reasoning.  "
+    try {
+      await note.fill(text)
+      await note.press("ControlOrMeta+End")
+      await note.pressSequentially("Retain spaces ")
+      const authored = `${text}Retain spaces `
+      const saved = SOAP.replace("Synthetic patient reports an unchanged regimen.", authored)
+      await panel.getByRole("button", { name: "View profile", exact: true }).click()
+      const profile = page.getByRole("dialog", { name: "Patient profile", exact: true })
+      await expect(profile.getByRole("status")).toHaveText("Patient profile could not be loaded.")
+      expect(await persistedNote(page, intakeId)).toBe(saved)
+      await profile.getByRole("button", { name: "Retry loading profile", exact: true }).click()
+      await expect(profile).toContainText("Identity and contact")
+      await expect(profile.getByText("E2E Test Patient", { exact: true })).toBeVisible()
+      expect(chunkRequests).toBe(2)
+      await profile.getByRole("button", { name: "Close drawer", exact: true }).click()
+      await expect(note).toHaveValue(authored)
+      expect(await persistedNote(page, intakeId)).toBe(saved)
+    } finally {
+      await page.unroute(profileChunk, failFirstChunk)
+      await stopProvider()
+    }
+  })
+
 })
