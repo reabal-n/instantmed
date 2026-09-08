@@ -280,6 +280,15 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).not.toContain('data-parchment-medication-context="desktop"')
   })
 
+  it("shows specialty assessment and explicit absence states separately from template directions", () => {
+    expect(panelSource).toContain("Indication / request context")
+    expect(panelSource).toContain("Directions context (template)")
+    expect(panelSource).toContain("Not separately captured in this prescribing context")
+    expect(panelSource).toContain("Not available in this prescribing context")
+    expect(panelSource).toContain("assessmentFacts.map")
+    expect(panelSource).not.toContain('prescriptionContext.regimenSource === "patient_reported" && <>')
+  })
+
   it("never falls back to copying a strength-bearing search hint", () => {
     expect(panelSource).not.toContain("copyPrescriptionSearchHint")
     expect(panelSource).not.toContain("Copied Parchment search term")

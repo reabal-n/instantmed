@@ -164,6 +164,7 @@ export function ParchmentPrescribePanel({
     ? prescriptionContext.directionsTemplate
     : null
   const requestFacts = prescriptionContext?.requestFacts
+  const assessmentFacts = prescriptionContext?.assessmentFacts
   const patientDirections = prescriptionContext?.patientReportedDose
 
   useEffect(() => {
@@ -476,14 +477,33 @@ export function ParchmentPrescribePanel({
                   </dl>
                 ) : (
                   <dl className="space-y-2">
-                    <div><dt className="text-xs font-medium text-muted-foreground">Medicine</dt>
-                      <dd className="select-text whitespace-pre-wrap break-words text-sm font-semibold">{patientRequestEntry || prescriptionContext.presetLabel || "Medicine not recorded"}</dd></div>
-                    <div><dt className="text-xs font-medium text-muted-foreground">{directionsContext ? "Directions context" : "Current dose / directions"}</dt>
-                      <dd className="select-text whitespace-pre-wrap break-words text-sm">{directionsContext || patientDirections || "Not captured in this request"}</dd></div>
-                    {prescriptionContext.regimenSource === "patient_reported" && <>
-                      <div><dt className="text-xs font-medium text-muted-foreground">Frequency</dt><dd className="text-sm">{patientDirections ? "Not separately captured; see directions" : "Not captured in this request"}</dd></div>
-                      <div><dt className="text-xs font-medium text-muted-foreground">Indication</dt><dd className="text-sm">Not captured in this request</dd></div>
-                    </>}
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">{directionsContext ? "Medicine context (template)" : "Medicine"}</dt>
+                      <dd className="select-text whitespace-pre-wrap break-words text-sm font-semibold">{patientRequestEntry || prescriptionContext.presetLabel || "Medicine not recorded"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">{directionsContext ? "Directions context (template)" : "Current dose / directions"}</dt>
+                      <dd className="select-text whitespace-pre-wrap break-words text-sm">{directionsContext || patientDirections || "Not available in this prescribing context"}</dd>
+                    </div>
+                    <div data-parchment-context-field="frequency">
+                      <dt className="text-xs font-medium text-muted-foreground">Frequency</dt>
+                      <dd className="text-sm">{patientDirections ? "Not separately captured; see directions" : "Not separately captured in this prescribing context"}</dd>
+                    </div>
+                    <div data-parchment-context-field="assessment">
+                      <dt className="text-xs font-medium text-muted-foreground">Indication / request context</dt>
+                      <dd className="select-text whitespace-pre-wrap break-words text-sm">
+                        {assessmentFacts?.length ? (
+                          <dl className="mt-1 space-y-1">
+                            {assessmentFacts.map((fact) => (
+                              <div key={fact.key} data-parchment-assessment-fact={fact.key} data-review-fact-state={fact.state}>
+                                <dt className="inline font-medium">{fact.label}: </dt>
+                                <dd className="inline">{fact.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        ) : "Not available in this prescribing context"}
+                      </dd>
+                    </div>
                   </dl>
                 )}
                 {patientDirections && (

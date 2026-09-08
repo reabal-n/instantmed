@@ -24,6 +24,8 @@ export interface ParchmentPrescriptionContext {
   presetLabel: string
   /** Source-faithful current request facts, separate from medication search. */
   requestFacts?: ReviewFact[]
+  /** Existing specialty request assessment, never an inferred indication or diagnosis. */
+  assessmentFacts?: ReviewFact[]
   medicationLabel?: string
   searchHint?: string
   patientReportedDose?: string
@@ -65,6 +67,9 @@ export function buildParchmentPrescriptionContext(
   const requestFacts = packet?.workflow.kind === "repeat_prescription"
     ? packet.facts.filter(({ key }) => ["medicine", "patient_dose", "frequency", "indication"].includes(key))
     : undefined
+  const assessmentFacts = !requestFacts && !hasPatientReportedRegimen
+    ? (packet || buildReviewPacket({ category: "consult", answers: {}, summary })).facts
+    : undefined
   const sourceDirections = source && requestFacts
     ? ["currentDose", "current_dose", "dosageInstructions", "dosage_instructions"]
       .map((key) => source.answers[key])
@@ -73,6 +78,7 @@ export function buildParchmentPrescriptionContext(
 
   return {
     ...(requestFacts ? { requestFacts } : {}),
+    ...(assessmentFacts ? { assessmentFacts } : {}),
     presetLabel: intent.presetLabel,
     medicationLabel: requestFacts?.find(({ key }) => key === "medicine")?.value || medicationLabel || undefined,
     searchHint: intent.medicationSearchHint || undefined,

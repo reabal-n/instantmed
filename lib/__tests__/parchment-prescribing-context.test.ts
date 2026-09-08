@@ -177,6 +177,32 @@ describe("buildParchmentPrescriptionContext", () => {
   })
 
   it.each([
+    ["ed", "Duration", "1–3 years"],
+    ["hair_loss", "Onset", "Over 12 months"],
+    ["womens_health", "Symptoms", "Burning and urinary frequency"],
+    ["weight_loss", "Patient goal", "Improve mobility"],
+  ])("keeps %s assessment facts separate from template directions", (subtype, label, value) => {
+    const summary = {
+      title: "Specialty request", patientStory: "", keyFacts: [{ label, value }], safetyItems: [],
+      recommendedPlan: { action: "prescribe" as const, title: "Review", rationale: "", nextSteps: [] },
+      prescriptionIntent: {
+        presetLabel: "Specialty template", medicationSearchHint: "Doctor selects medicine",
+        directionsTemplate: "Template says once daily; confirm in Parchment.",
+        safetyChecks: [], parchmentMode: "open_patient_prescribe" as const, clipboardText: "",
+      }, draftNote: "",
+    }
+    const context = buildParchmentPrescriptionContext(summary, { category: "consult", subtype, answers: {} })
+    expect(context?.assessmentFacts).toEqual([expect.objectContaining({ label, value, provenance: "current_request" })])
+    expect(context?.regimenSource).toBe("template")
+    expect(context?.patientReportedDose).toBeUndefined()
+    expect(context?.patientReportedFrequency).toBeUndefined()
+    expect(context?.requestFacts).toBeUndefined()
+    expect(context?.directionsTemplate).toBe(summary.prescriptionIntent.directionsTemplate)
+    expect(buildParchmentPrescriptionContext(summary)?.assessmentFacts).toEqual(context?.assessmentFacts)
+    expect(buildParchmentPrescriptionContext({ ...summary, keyFacts: [] })?.assessmentFacts).toEqual([])
+  })
+
+  it.each([
     "Rosuvastatin 10 mg tablet",
     "Rosuvastatin once daily",
     "Rosuvastatin: patient requested",
