@@ -1,0 +1,1279 @@
+{
+  "schemaVersion": 1,
+  "decisionDate": "2026-09-08",
+  "status": {
+    "investigationDecision": "complete_no_certificate_build",
+    "documentationValidation": "passed_local",
+    "independentReview": "KEEP_no_unresolved_material_findings",
+    "browserIntegration": "accepted_bounded_baseline_with_two_unfixed_findings",
+    "release": "documentation_only; subsequent CI and merge state owned by Plan 2 execution receipt",
+    "nextPlans": "3-5 unstarted"
+  },
+  "decision": "No certificate code, content, price, keyword, bid or budget change selected. Separate Scripts/Hair campaign-status pause packet validated only; no operator approval, send or apply.",
+  "privacy": {
+    "aggregateOnly": true,
+    "rawPatientFlowPersonClickIdsPersisted": false,
+    "rawSearchTermsPersisted": false,
+    "clinicalContentPersisted": false,
+    "providerCredentialsPersisted": false,
+    "allowedIdentifiers": "Campaign, proposal, deployment and scheduler-run identifiers only"
+  },
+  "cash": {
+    "readAt": "2026-09-08T09:18:40.417Z",
+    "sourceHead": "9ec755788",
+    "timezone": "Australia/Sydney",
+    "currency": "AUD",
+    "amountUnit": "cents",
+    "method": "Canonical cash-event reader and classifier; in-memory identifiers only; exact count gates and refund-ledger health enforced; cached actual fees with canonical estimate fallback; no database or provider mutations.",
+    "health": {
+      "canonicalReader": "passed",
+      "paidRows": 434,
+      "refundMovements": 28,
+      "disputes": 0,
+      "attributionRows": 435,
+      "reportableFixtureMarkers": 0
+    },
+    "independentReconciliation": {
+      "periods": [
+        "1d",
+        "7d",
+        "prior7d",
+        "30d"
+      ],
+      "method": "Separate aggregate canonical cash-ledger SQL executed by root",
+      "discrepancies": 0
+    },
+    "periods": [
+      {
+        "name": "1d",
+        "startUtc": "2026-09-06T14:00:00.000Z",
+        "endUtcExclusive": "2026-09-07T14:00:00.000Z",
+        "orderCount": 14,
+        "grossCents": 46930,
+        "refundCents": 0,
+        "refundDebitsCents": 0,
+        "refundReversalsCents": 0,
+        "disputeCents": 0,
+        "netCents": 46930,
+        "feesCents": 1216,
+        "actualFeeOrders": 5,
+        "estimatedFeeOrders": 9,
+        "spendCents": 9214,
+        "cashContributionCents": 36500,
+        "blendedRetainedToSpend": 5.093336227479922
+      },
+      {
+        "name": "7d",
+        "startUtc": "2026-08-31T14:00:00.000Z",
+        "endUtcExclusive": "2026-09-07T14:00:00.000Z",
+        "orderCount": 72,
+        "grossCents": 231590,
+        "refundCents": 20955,
+        "refundDebitsCents": 20955,
+        "refundReversalsCents": 0,
+        "disputeCents": 0,
+        "netCents": 210635,
+        "feesCents": 6218,
+        "actualFeeOrders": 37,
+        "estimatedFeeOrders": 35,
+        "spendCents": 92366,
+        "cashContributionCents": 112051,
+        "blendedRetainedToSpend": 2.2804386895610937
+      },
+      {
+        "name": "prior7d",
+        "startUtc": "2026-08-24T14:00:00.000Z",
+        "endUtcExclusive": "2026-08-31T14:00:00.000Z",
+        "orderCount": 68,
+        "grossCents": 234590,
+        "refundCents": 7480,
+        "refundDebitsCents": 7480,
+        "refundReversalsCents": 0,
+        "disputeCents": 0,
+        "netCents": 227110,
+        "feesCents": 6136,
+        "actualFeeOrders": 32,
+        "estimatedFeeOrders": 36,
+        "spendCents": 87161,
+        "cashContributionCents": 133813,
+        "blendedRetainedToSpend": 2.6056378426130955
+      },
+      {
+        "name": "30d",
+        "startUtc": "2026-08-08T14:00:00.000Z",
+        "endUtcExclusive": "2026-09-07T14:00:00.000Z",
+        "orderCount": 298,
+        "grossCents": 980270,
+        "refundCents": 50385,
+        "refundDebitsCents": 50385,
+        "refundReversalsCents": 0,
+        "disputeCents": 0,
+        "netCents": 929885,
+        "feesCents": 26401,
+        "actualFeeOrders": 153,
+        "estimatedFeeOrders": 145,
+        "spendCents": 338767,
+        "cashContributionCents": 564717,
+        "blendedRetainedToSpend": 2.7449102185277785
+      }
+    ],
+    "serviceBridge": [
+      {
+        "service": "medical_certificate",
+        "prior7d": {
+          "orderCount": 24,
+          "grossCents": 67875,
+          "refundCents": 2495,
+          "netCents": 65380
+        },
+        "current7d": {
+          "orderCount": 24,
+          "grossCents": 66875,
+          "refundCents": 0,
+          "netCents": 66875
+        },
+        "retainedDeltaCents": 1495
+      },
+      {
+        "service": "prescription",
+        "prior7d": {
+          "orderCount": 33,
+          "grossCents": 106795,
+          "refundCents": 3990,
+          "netCents": 102805
+        },
+        "current7d": {
+          "orderCount": 42,
+          "grossCents": 134745,
+          "refundCents": 20955,
+          "netCents": 113790
+        },
+        "retainedDeltaCents": 10985
+      },
+      {
+        "service": "ed",
+        "prior7d": {
+          "orderCount": 3,
+          "grossCents": 17970,
+          "refundCents": 0,
+          "netCents": 17970
+        },
+        "current7d": {
+          "orderCount": 2,
+          "grossCents": 9990,
+          "refundCents": 0,
+          "netCents": 9990
+        },
+        "retainedDeltaCents": -7980
+      },
+      {
+        "service": "womens_health",
+        "prior7d": {
+          "orderCount": 8,
+          "grossCents": 41950,
+          "refundCents": 995,
+          "netCents": 40955
+        },
+        "current7d": {
+          "orderCount": 3,
+          "grossCents": 14985,
+          "refundCents": 0,
+          "netCents": 14985
+        },
+        "retainedDeltaCents": -25970
+      },
+      {
+        "service": "hair_loss",
+        "prior7d": {
+          "orderCount": 0,
+          "grossCents": 0,
+          "refundCents": 0,
+          "netCents": 0
+        },
+        "current7d": {
+          "orderCount": 1,
+          "grossCents": 4995,
+          "refundCents": 0,
+          "netCents": 4995
+        },
+        "retainedDeltaCents": 4995
+      }
+    ],
+    "certificateSourceBridge": {
+      "prior7d": [
+        {
+          "key": "direct",
+          "orderCount": 3,
+          "netCents": 8480
+        },
+        {
+          "key": "organic_brand",
+          "orderCount": 6,
+          "netCents": 13975
+        },
+        {
+          "key": "ai_referral",
+          "orderCount": 11,
+          "netCents": 30945
+        },
+        {
+          "key": "organic_nonbrand",
+          "orderCount": 2,
+          "netCents": 4990
+        },
+        {
+          "key": "google_ads",
+          "orderCount": 1,
+          "netCents": 3995
+        },
+        {
+          "key": "lifecycle_email",
+          "orderCount": 1,
+          "netCents": 2995
+        }
+      ],
+      "7d": [
+        {
+          "key": "direct",
+          "orderCount": 3,
+          "netCents": 8485
+        },
+        {
+          "key": "organic_brand",
+          "orderCount": 5,
+          "netCents": 16970
+        },
+        {
+          "key": "ai_referral",
+          "orderCount": 4,
+          "netCents": 9980
+        },
+        {
+          "key": "organic_nonbrand",
+          "orderCount": 4,
+          "netCents": 10480
+        },
+        {
+          "key": "google_ads",
+          "orderCount": 5,
+          "netCents": 13475
+        },
+        {
+          "key": "recovery_email",
+          "orderCount": 3,
+          "netCents": 7485
+        }
+      ]
+    },
+    "limits": [
+      "Cash event refunds/reversals use movement time and are not campaign intake snapshots.",
+      "Fees include canonical estimates where actual fee receipts are unavailable.",
+      "Contribution excludes fixed overhead and an invented owner-doctor wage.",
+      "Blended retained/spend is not paid ROAS; acquisition classification is observational."
+    ],
+    "contextPeriods": [
+      {
+        "name": "prior30d",
+        "startUtc": "2026-07-09T14:00:00.000Z",
+        "endUtcExclusive": "2026-08-08T14:00:00.000Z",
+        "orderCount": 136,
+        "netCents": 400285
+      },
+      {
+        "name": "weekMinus2",
+        "startUtc": "2026-08-17T14:00:00.000Z",
+        "endUtcExclusive": "2026-08-24T14:00:00.000Z",
+        "orderCount": 85,
+        "netCents": 259550
+      },
+      {
+        "name": "weekMinus3",
+        "startUtc": "2026-08-10T14:00:00.000Z",
+        "endUtcExclusive": "2026-08-17T14:00:00.000Z",
+        "orderCount": 59,
+        "netCents": 187670
+      },
+      {
+        "name": "weekMinus4",
+        "startUtc": "2026-08-03T14:00:00.000Z",
+        "endUtcExclusive": "2026-08-10T14:00:00.000Z",
+        "orderCount": 50,
+        "netCents": 158220
+      },
+      {
+        "name": "previousMonday",
+        "startUtc": "2026-08-30T14:00:00.000Z",
+        "endUtcExclusive": "2026-08-31T14:00:00.000Z",
+        "orderCount": 11,
+        "netCents": 31940
+      },
+      {
+        "name": "twoMondaysAgo",
+        "startUtc": "2026-08-23T14:00:00.000Z",
+        "endUtcExclusive": "2026-08-24T14:00:00.000Z",
+        "orderCount": 16,
+        "netCents": 48915
+      },
+      {
+        "name": "threeMondaysAgo",
+        "startUtc": "2026-08-16T14:00:00.000Z",
+        "endUtcExclusive": "2026-08-17T14:00:00.000Z",
+        "orderCount": 8,
+        "netCents": 28950
+      },
+      {
+        "name": "fourMondaysAgo",
+        "startUtc": "2026-08-09T14:00:00.000Z",
+        "endUtcExclusive": "2026-08-10T14:00:00.000Z",
+        "orderCount": 10,
+        "netCents": 32940
+      }
+    ]
+  },
+  "ads": {
+    "readAt": "2026-09-08T09:18:45.054Z",
+    "checkpointReadAt": "2026-09-08T09:22:47.127Z",
+    "method": "Fresh Google Ads reporting/account reads. Campaign cash estimate uses existing Ads attribution and intake refund timing, separately labelled from canonical top-line cash ledger. No fee sync/cache writes. Fees include canonical fallback.",
+    "periods": [
+      {
+        "period": "7d",
+        "campaignId": "23651537255",
+        "name": "JDM | Search | Med Certs",
+        "orders": 5,
+        "clicks": 27,
+        "spendCents": 14946,
+        "netCents": 13475,
+        "feesCents": 381,
+        "contributionCents": -1852,
+        "snapshotRefundCents": 0,
+        "services": {
+          "medical_certificate": 5
+        }
+      },
+      {
+        "period": "prior7d",
+        "campaignId": "23651537255",
+        "name": "JDM | Search | Med Certs",
+        "orders": 1,
+        "clicks": 17,
+        "spendCents": 8237,
+        "netCents": 3995,
+        "feesCents": 98,
+        "contributionCents": -4340,
+        "snapshotRefundCents": 0,
+        "services": {
+          "medical_certificate": 1
+        }
+      },
+      {
+        "period": "30d",
+        "campaignId": "23870042807",
+        "name": "JDM | Search | Scripts",
+        "orders": 107,
+        "clicks": 403,
+        "spendCents": 192362,
+        "netCents": 321410,
+        "feesCents": 9978,
+        "contributionCents": 119070,
+        "snapshotRefundCents": 33920,
+        "services": {
+          "prescription": 103,
+          "womens_health": 1,
+          "ed": 3
+        }
+      },
+      {
+        "period": "30d",
+        "campaignId": "23651537255",
+        "name": "JDM | Search | Med Certs",
+        "orders": 23,
+        "clicks": 113,
+        "spendCents": 57843,
+        "netCents": 66370,
+        "feesCents": 1825,
+        "contributionCents": 6702,
+        "snapshotRefundCents": 0,
+        "services": {
+          "medical_certificate": 23
+        }
+      },
+      {
+        "period": "30d",
+        "campaignId": "24040886787",
+        "name": "IM | Search | ED | Pilot",
+        "orders": 9,
+        "clicks": 113,
+        "spendCents": 37228,
+        "netCents": 46945,
+        "feesCents": 1062,
+        "contributionCents": 8655,
+        "snapshotRefundCents": 0,
+        "services": {
+          "ed": 9
+        }
+      },
+      {
+        "period": "30d",
+        "campaignId": "24144825264",
+        "name": "IM | Search | Women's Health | AU",
+        "orders": 13,
+        "clicks": 98,
+        "spendCents": 28555,
+        "netCents": 61930,
+        "feesCents": 1543,
+        "contributionCents": 31832,
+        "snapshotRefundCents": 995,
+        "services": {
+          "womens_health": 11,
+          "prescription": 2
+        }
+      },
+      {
+        "period": "30d",
+        "campaignId": "24040886790",
+        "name": "IM | Search | Hair Loss | Pilot",
+        "orders": 1,
+        "clicks": 76,
+        "spendCents": 22779,
+        "netCents": 4995,
+        "feesCents": 114,
+        "contributionCents": -17898,
+        "snapshotRefundCents": 0,
+        "services": {
+          "hair_loss": 1
+        }
+      }
+    ],
+    "queryCoverage": {
+      "visibleRows": 507,
+      "clicks": 69,
+      "costMicros": 371751223,
+      "possiblePersonalQueriesSuppressed": 0,
+      "rawTermsPersisted": false
+    },
+    "certificateDeliveryDiagnostics": [
+      {
+        "campaignId": "23651537255",
+        "status": "ENABLED",
+        "biddingStrategyType": "MAXIMIZE_CONVERSIONS",
+        "budgetAmountCents": 2000,
+        "searchBudgetLostImpressionShare": 0.8128159139083646,
+        "searchRankLostImpressionShare": 0.1781495041726576
+      }
+    ],
+    "latestDelivered": {
+      "reportDate": "2026-09-07",
+      "trackingState": "GREEN",
+      "deliveredAt": "2026-09-07T23:01:05.586+00:00",
+      "recommendation": [
+        {
+          "kind": "HOLD",
+          "service": "med_certs",
+          "reasonCodes": [
+            "MEDCERT_OBSERVATION_HOLD"
+          ],
+          "proposedMutationFamily": null
+        },
+        {
+          "kind": "APPROVAL_NEEDED",
+          "service": "scripts",
+          "reasonCodes": [
+            "QUEUE_P95_AT_OR_OVER_6H"
+          ],
+          "proposedMutationFamily": "campaign_status"
+        },
+        {
+          "kind": "HOLD",
+          "service": "ed",
+          "reasonCodes": [
+            "PILOT_WITHIN_LOSS_CAP"
+          ],
+          "proposedMutationFamily": null
+        },
+        {
+          "kind": "APPROVAL_NEEDED",
+          "service": "hair_loss",
+          "reasonCodes": [
+            "SPECIALTY_LOSS_CAP"
+          ],
+          "proposedMutationFamily": "campaign_status"
+        },
+        {
+          "kind": "INVESTIGATE",
+          "service": "womens_health",
+          "reasonCodes": [
+            "CROSS_SERVICE_ATTRIBUTION"
+          ],
+          "proposedMutationFamily": null
+        }
+      ]
+    },
+    "scriptsPostChange": {
+      "attributedOrders": 16,
+      "closedDays": 4
+    },
+    "gates": {
+      "scripts": {
+        "queueP95Hours": 9.221,
+        "queueHardHoldHours": 6,
+        "refunds": 11,
+        "recognizedOrders": 107,
+        "refundRate": 0.102803738317757,
+        "maximumRefundRateExclusive": 0.1,
+        "decision": "pause_proposal_no_increase"
+      },
+      "hair": {
+        "recognizedOrders": 1,
+        "contributionCents": -17898,
+        "maximumLossCents": 15000,
+        "decision": "pause_proposal_now_preserve_September11_readout_and_H2_hold"
+      },
+      "womensHealth": {
+        "recognizedOrders": 13,
+        "expectedServiceOrders": 11,
+        "attributionPurity": 0.8461538461538461,
+        "minimumRecognizedOrders": 20,
+        "minimumContributionMargin": 0.2,
+        "maximumRefundRateExclusive": 0.1,
+        "minimumAttributionPurity": 0.9,
+        "decision": "not_graduated"
+      }
+    },
+    "limits": [
+      "Campaign contribution uses the existing attributed paid-intake/refund-snapshot reader; canonical cash owns business totals.",
+      "Manual Scripts bid modifiers do not apply to the current tROAS strategy.",
+      "No loss or queue trigger applies a provider mutation without exact operator approval."
+    ]
+  },
+  "proposal": {
+    "proposalKey": "ADS-20260908-02",
+    "state": "validated",
+    "operations": [
+      {
+        "kind": "campaign_status",
+        "resourceName": "customers/9205010513/campaigns/23870042807",
+        "expected": "ENABLED",
+        "next": "PAUSED"
+      },
+      {
+        "kind": "campaign_status",
+        "resourceName": "customers/9205010513/campaigns/24040886790",
+        "expected": "ENABLED",
+        "next": "PAUSED"
+      }
+    ],
+    "campaignLabels": "JDM | Search | Scripts (23870042807); IM | Search | Hair Loss | Pilot (24040886790)",
+    "expiresAt": "2026-09-09T09:38:01.877+00:00",
+    "validation": {
+      "baselineHash": "61ed5e102a9c22412453c8f0d40ebe85ac95c0f96b2d89c637ab687ce23a9a90",
+      "errorCode": null,
+      "googleOperationsHash": "7f05d070cdf629ea0e740b2fbae81f08c2899bc26cb12cef8de6876ba27236ff",
+      "ok": true,
+      "operationHash": "37b3f3ed19d200561325c8a3eb66d5c7d71c45c43d39f065114f098db5a4b56f",
+      "proposalKey": "ADS-20260908-02",
+      "requestId": "8knok6l0p5ilbpguS21guA",
+      "validatedAt": "2026-09-08T09:38:25.600Z"
+    },
+    "approved": false,
+    "applied": false,
+    "sent": false,
+    "rollback": "To resume either campaign, prepare a new immutable PAUSED-to-ENABLED proposal after fresh tracking, economics, refund, attribution, fulfilment and queue checks, then obtain exact operator approval. Do not automatically re-enable or increase either budget. Hair H1 and ED E1 product assignments stay intact.",
+    "supersededDraft": {
+      "proposalKey": "ADS-20260908-01",
+      "status": "failed",
+      "errorCode": "local_presentation_campaign_name_mismatch",
+      "providerCalled": false,
+      "requestId": null,
+      "explanation": "Human labels differed from verified live names; campaign IDs/operations were correct. Not Google validation or operator rejection."
+    }
+  },
+  "posthog": {
+    "asOf": "2026-09-08T09:20:00Z",
+    "method": "Every captured exact flow observes outcomes in [started_at, started_at + 24 hours), with fixed read cutoff September7 14:00 UTC. Starts stop before September6 14:00 UTC so every flow has a complete equal 24-hour follow-through. Stage order uses earliest captured timestamp per stage. Captured analytics only, not accounting totals.",
+    "certificateFunnelRows": [
+      {
+        "period": "Aug10-Aug16",
+        "service": "med-cert",
+        "device": "Desktop",
+        "starts": 4,
+        "checkout_flows": 1,
+        "payment_handoffs": 1,
+        "ordered_paid": 0,
+        "any_paid": 1,
+        "failed_flows": 0
+      },
+      {
+        "period": "Aug10-Aug16",
+        "service": "med-cert",
+        "device": "Mobile",
+        "starts": 46,
+        "checkout_flows": 26,
+        "payment_handoffs": 20,
+        "ordered_paid": 4,
+        "any_paid": 20,
+        "failed_flows": 1
+      },
+      {
+        "period": "Aug17-Aug23",
+        "service": "med-cert",
+        "device": "Desktop",
+        "starts": 7,
+        "checkout_flows": 3,
+        "payment_handoffs": 3,
+        "ordered_paid": 3,
+        "any_paid": 3,
+        "failed_flows": 0
+      },
+      {
+        "period": "Aug17-Aug23",
+        "service": "med-cert",
+        "device": "Mobile",
+        "starts": 50,
+        "checkout_flows": 30,
+        "payment_handoffs": 27,
+        "ordered_paid": 26,
+        "any_paid": 26,
+        "failed_flows": 4
+      },
+      {
+        "period": "Aug24-Aug30",
+        "service": "med-cert",
+        "device": "Desktop",
+        "starts": 8,
+        "checkout_flows": 5,
+        "payment_handoffs": 5,
+        "ordered_paid": 5,
+        "any_paid": 5,
+        "failed_flows": 0
+      },
+      {
+        "period": "Aug24-Aug30",
+        "service": "med-cert",
+        "device": "Mobile",
+        "starts": 37,
+        "checkout_flows": 23,
+        "payment_handoffs": 21,
+        "ordered_paid": 20,
+        "any_paid": 20,
+        "failed_flows": 4
+      },
+      {
+        "period": "Aug31-Sep6",
+        "service": "med-cert",
+        "device": "Desktop",
+        "starts": 3,
+        "checkout_flows": 2,
+        "payment_handoffs": 2,
+        "ordered_paid": 2,
+        "any_paid": 2,
+        "failed_flows": 0
+      },
+      {
+        "period": "Aug31-Sep6",
+        "service": "med-cert",
+        "device": "Mobile",
+        "starts": 33,
+        "checkout_flows": 20,
+        "payment_handoffs": 19,
+        "ordered_paid": 18,
+        "any_paid": 18,
+        "failed_flows": 1
+      }
+    ],
+    "landingPageviews": {
+      "method": "Separate production-host $pageview aggregate; is_e2e excluded; no pageview-to-order rate inferred. No returned rows for certificate explanatory route.",
+      "periods": [
+        {
+          "sydneyDays": "2026-08-25 to 2026-08-31",
+          "pathname": "/medical-certificate",
+          "desktopViews": 3,
+          "mobileViews": 19
+        },
+        {
+          "sydneyDays": "2026-09-01 to 2026-09-07",
+          "pathname": "/medical-certificate",
+          "desktopViews": 9,
+          "mobileViews": 28
+        }
+      ]
+    },
+    "failedFlowRecovery": [
+      {
+        "sydneyDay": "2026-09-03",
+        "service": "repeat-script",
+        "category": "identity_or_session",
+        "flows": 1,
+        "sameFlowLaterHandoff": 1,
+        "sameFlowLaterPaid": 1
+      },
+      {
+        "sydneyDay": "2026-09-04",
+        "service": "repeat-script",
+        "category": "unknown",
+        "flows": 1,
+        "sameFlowLaterHandoff": 0,
+        "sameFlowLaterPaid": 0
+      },
+      {
+        "sydneyDay": "2026-09-06",
+        "service": "repeat-script",
+        "category": "persistence",
+        "flows": 1,
+        "sameFlowLaterHandoff": 0,
+        "sameFlowLaterPaid": 0
+      },
+      {
+        "sydneyDay": "2026-09-07",
+        "service": "med-cert",
+        "category": "identity_or_session",
+        "flows": 1,
+        "sameFlowLaterHandoff": 1,
+        "sameFlowLaterPaid": 1
+      }
+    ],
+    "latestCertificateFailure": {
+      "firstAt": "2026-09-07T01:58:17.824Z",
+      "lastAt": "2026-09-07T01:58:24.577Z",
+      "category": "identity_or_session",
+      "code": "auth_or_session",
+      "stage": "session_creation",
+      "events": 2,
+      "flows": 1,
+      "sameFlowLaterPaid": true,
+      "beforeFinalPlan1CheckoutDeployment": true
+    },
+    "limits": [
+      "PostHog project timezone UTC; explicit UTC boundaries map Sydney periods.",
+      "read-data-warehouse-schema tool unavailable; events and critical properties verified through event schema tools and current repository query.",
+      "Server purchase-property schema tool errored; event and flow key validated by successful grouped coverage query.",
+      "No session replay, raw patient payload, identity or contact read."
+    ],
+    "funnelQuery": "\nSELECT period, service, device, count() AS starts,\n countIf(checkout_at >= started_at AND checkout_at < observe_until) AS checkout_flows,\n countIf(init_at >= checkout_at AND checkout_at >= started_at AND init_at < observe_until) AS payment_handoffs,\n countIf(paid_at >= init_at AND init_at >= checkout_at AND checkout_at >= started_at AND paid_at < observe_until) AS ordered_paid,\n countIf(paid_at >= started_at AND paid_at < observe_until) AS any_paid,\n countIf(failed_at >= started_at AND failed_at < observe_until) AS failed_flows\nFROM (\n SELECT *, multiIf(started_at >= toDateTime('2026-08-30 14:00:00'),'Aug31-Sep6',started_at >= toDateTime('2026-08-23 14:00:00'),'Aug24-Aug30',started_at >= toDateTime('2026-08-16 14:00:00'),'Aug17-Aug23','Aug10-Aug16') AS period,\n least(started_at + INTERVAL 24 HOUR, toDateTime('2026-09-07 14:00:00')) AS observe_until\n FROM (\n  SELECT toString(properties.flow_instance_id) AS flow,\n   minIf(timestamp,event='intake_started') AS started_at,\n   minIf(timestamp,event='checkout_viewed') AS checkout_at,\n   minIf(timestamp,event='intake_funnel_payment_initiated') AS init_at,\n   minIf(timestamp,event='purchase_completed_server') AS paid_at,\n   minIf(timestamp,event='checkout_failed') AS failed_at,\n   argMinIf(toString(properties.service_type),timestamp,event='intake_started') AS service,\n   argMinIf(toString(properties.$device_type),timestamp,event='intake_started') AS device\n  FROM events\n  WHERE timestamp >= toDateTime('2026-08-09 14:00:00') AND timestamp < toDateTime('2026-09-07 14:00:00')\n   AND event IN ('intake_started','checkout_viewed','intake_funnel_payment_initiated','purchase_completed_server','checkout_failed')\n   AND (properties.is_e2e IS NULL OR properties.is_e2e != true)\n   AND notEmpty(toString(properties.flow_instance_id))\n  GROUP BY flow\n  HAVING started_at >= toDateTime('2026-08-09 14:00:00') AND started_at < toDateTime('2026-09-06 14:00:00')\n )\n)\nGROUP BY period,service,device ORDER BY period,service,device LIMIT 100",
+    "fixed24hCorrection": {
+      "recordedAt": "2026-09-08T09:42:30Z",
+      "reviewCorrection": "Earlier query followed each weekly cohort until week-end plus one day. The corrected true fixed-24-hour rerun returned the same aggregate rows. The earlier query does not support fixed-24-hour claims."
+    }
+  },
+  "search": {
+    "readAt": "2026-09-08T09:17:35.120Z",
+    "timezone": "America/Los_Angeles",
+    "dataState": "final",
+    "windows": {
+      "current30": {
+        "startDate": "2026-08-07",
+        "endDate": "2026-09-05",
+        "pageTotals": [
+          {
+            "path": "/medical-certificate",
+            "clicks": 11,
+            "impressions": 7505,
+            "position": 52.55722851432378
+          },
+          {
+            "path": "/medical-certificate-online",
+            "clicks": 1,
+            "impressions": 29,
+            "position": 12.724137931034482
+          },
+          {
+            "path": "/contraceptive-pill-assessment-online",
+            "clicks": 0,
+            "impressions": 3,
+            "position": 6.666666666666667
+          },
+          {
+            "path": "/erectile-dysfunction",
+            "clicks": 0,
+            "impressions": 320,
+            "position": 36.94375
+          },
+          {
+            "path": "/hair-loss",
+            "clicks": 0,
+            "impressions": 37,
+            "position": 43.13513513513514
+          },
+          {
+            "path": "/medical-certificate/",
+            "clicks": 0,
+            "impressions": 2,
+            "position": 1
+          },
+          {
+            "path": "/womens-health",
+            "clicks": 0,
+            "impressions": 62,
+            "position": 7.016129032258065
+          }
+        ]
+      },
+      "prior30": {
+        "startDate": "2026-07-08",
+        "endDate": "2026-08-06",
+        "pageTotals": [
+          {
+            "path": "/medical-certificate",
+            "clicks": 7,
+            "impressions": 4628,
+            "position": 44.2333621434745
+          },
+          {
+            "path": "/medical-certificate-online",
+            "clicks": 0,
+            "impressions": 11,
+            "position": 6.909090909090909
+          }
+        ]
+      },
+      "current7": {
+        "startDate": "2026-08-30",
+        "endDate": "2026-09-05",
+        "pageTotals": [
+          {
+            "path": "/medical-certificate",
+            "clicks": 1,
+            "impressions": 1364,
+            "position": 50.164956011730204
+          },
+          {
+            "path": "/medical-certificate-online",
+            "clicks": 0,
+            "impressions": 8,
+            "position": 4.375
+          },
+          {
+            "path": "/medical-certificate/",
+            "clicks": 0,
+            "impressions": 1,
+            "position": 1
+          }
+        ]
+      },
+      "prior7": {
+        "startDate": "2026-08-23",
+        "endDate": "2026-08-29",
+        "pageTotals": [
+          {
+            "path": "/medical-certificate",
+            "clicks": 4,
+            "impressions": 1641,
+            "position": 51.45094454600853
+          },
+          {
+            "path": "/medical-certificate-online",
+            "clicks": 0,
+            "impressions": 4,
+            "position": 42.25
+          },
+          {
+            "path": "/medical-certificate/",
+            "clicks": 0,
+            "impressions": 1,
+            "position": 1
+          }
+        ]
+      }
+    },
+    "storedIndex": [
+      {
+        "path": "/medical-certificate",
+        "verdict": "PASS",
+        "coverageState": "Submitted and indexed",
+        "lastCrawlTime": "2026-08-28T05:07:37Z"
+      },
+      {
+        "path": "/medical-certificate-online",
+        "verdict": "PASS",
+        "coverageState": "Submitted and indexed",
+        "lastCrawlTime": "2026-08-16T23:16:02Z"
+      },
+      {
+        "path": "/prescriptions",
+        "verdict": "NEUTRAL",
+        "coverageState": "Discovered - currently not indexed"
+      },
+      {
+        "path": "/online-prescriptions",
+        "verdict": "NEUTRAL",
+        "coverageState": "Discovered - currently not indexed"
+      },
+      {
+        "path": "/erectile-dysfunction",
+        "verdict": "PASS",
+        "coverageState": "Submitted and indexed",
+        "lastCrawlTime": "2026-08-25T04:12:07Z"
+      },
+      {
+        "path": "/hair-loss",
+        "verdict": "PASS",
+        "coverageState": "Submitted and indexed",
+        "lastCrawlTime": "2026-08-21T05:25:37Z"
+      },
+      {
+        "path": "/womens-health",
+        "verdict": "PASS",
+        "coverageState": "Submitted and indexed",
+        "lastCrawlTime": "2026-08-01T01:17:30Z"
+      },
+      {
+        "path": "/uti-assessment-online",
+        "verdict": "NEUTRAL",
+        "coverageState": "Discovered - currently not indexed"
+      },
+      {
+        "path": "/contraceptive-pill-assessment-online",
+        "verdict": "PASS",
+        "coverageState": "Submitted and indexed",
+        "lastCrawlTime": "2026-06-21T04:42:21Z"
+      },
+      {
+        "path": "/weight-loss",
+        "verdict": "PASS",
+        "coverageState": "Submitted and indexed",
+        "lastCrawlTime": "2026-08-21T00:37:47Z"
+      },
+      {
+        "path": "/weight-loss-online",
+        "verdict": "NEUTRAL",
+        "coverageState": "Discovered - currently not indexed"
+      }
+    ],
+    "liveCrawl": {
+      "checkedAt": "2026-09-08T09:19:43.340Z",
+      "pagesChecked": 9,
+      "http200": 9,
+      "selfCanonical": 9,
+      "indexFollow": 9,
+      "inRootSitemap": 9,
+      "xRobotsTagPresent": 0
+    },
+    "certificateDeviceDiscrepancy": {
+      "pageOnlyClicks": 11,
+      "pageOnlyImpressions": 7505,
+      "deviceClicks": 5,
+      "deviceImpressions": 7209,
+      "independentExactPageReadReproduced": true,
+      "cause": "unverified",
+      "doNotInferDeviceFailure": true
+    },
+    "limits": [
+      "GSC provides top rows only and anonymizes queries; query aggregates need not equal page totals.",
+      "Qualified intent is a transparent lexical classification of visible query rows, not verified eligibility or conversion.",
+      "No raw search-query strings or private URLs persisted."
+    ]
+  },
+  "deploymentBoundaries": [
+    {
+      "purpose": "certificate PR494",
+      "id": "dpl_9KGej9q63KbHrHofeRngphvgqHfF",
+      "url": "instantmed-de1zl6xw4-rey-project.vercel.app",
+      "sha": "45827b69efc0d85839608e51f2ccedbdae30a570",
+      "target": "production",
+      "state": "READY",
+      "readyAt": "2026-08-24T16:14:42.297Z",
+      "createdAt": "2026-08-24T16:11:54.859Z",
+      "aliasError": null,
+      "window1End": "2026-09-23T16:14:42.297Z",
+      "window2End": "2026-10-23T16:14:42.297Z"
+    },
+    {
+      "purpose": "prescriptions PR496",
+      "id": "dpl_Ev5tgg2ARPBubCvDMTrm7tZUsM8P",
+      "url": "instantmed-ndi7pd0kk-rey-project.vercel.app",
+      "sha": "95f717ce96b0da54f874069512c412d97c560a81",
+      "target": "production",
+      "state": "READY",
+      "readyAt": "2026-08-24T17:03:12.673Z",
+      "createdAt": "2026-08-24T17:00:28.642Z",
+      "aliasError": null,
+      "window1End": "2026-09-23T17:03:12.673Z",
+      "window2End": "2026-10-23T17:03:12.673Z"
+    },
+    {
+      "purpose": "current production alias",
+      "id": "dpl_5C2SyJYztksVgur5S6kQBcLTgRav",
+      "url": "instantmed-hn2feh0r1-rey-project.vercel.app",
+      "sha": "8bd1d6ace476943bc644fb1d7716b8ad7e4be240",
+      "target": "production",
+      "state": "READY",
+      "readyAt": "2026-09-07T18:04:14.472Z",
+      "createdAt": "2026-09-07T18:01:18.240Z",
+      "aliasError": null,
+      "window1End": null,
+      "window2End": null
+    }
+  ],
+  "operations": {
+    "observedAtRangeUtc": [
+      "2026-09-08T09:16:09.649575Z",
+      "2026-09-08T09:19:00.728624Z"
+    ],
+    "queue": [
+      {
+        "service": "ed",
+        "reviewed_sample": 2,
+        "p95_review_h": "1.479",
+        "never_opened_active": 0,
+        "review_24h_breaches": 0,
+        "active_obligations": 0
+      },
+      {
+        "service": "hair_loss",
+        "reviewed_sample": 1,
+        "p95_review_h": "5.376",
+        "never_opened_active": 0,
+        "review_24h_breaches": 0,
+        "active_obligations": 0
+      },
+      {
+        "service": "med_certs",
+        "reviewed_sample": 4,
+        "p95_review_h": "3.117",
+        "never_opened_active": 0,
+        "review_24h_breaches": 0,
+        "active_obligations": 0
+      },
+      {
+        "service": "scripts",
+        "reviewed_sample": 32,
+        "p95_review_h": "9.221",
+        "never_opened_active": 0,
+        "review_24h_breaches": 0,
+        "active_obligations": 0
+      },
+      {
+        "service": "womens_health",
+        "reviewed_sample": 2,
+        "p95_review_h": "0.718",
+        "never_opened_active": 0,
+        "review_24h_breaches": 0,
+        "active_obligations": 0
+      }
+    ],
+    "certificateRecordCounts": [
+      {
+        "cohort": "March_historical",
+        "approved_or_completed": 14,
+        "no_valid_certificate": 1
+      },
+      {
+        "cohort": "other_history",
+        "approved_or_completed": 237,
+        "no_valid_certificate": 0
+      },
+      {
+        "cohort": "September_current",
+        "approved_or_completed": 28,
+        "no_valid_certificate": 0
+      }
+    ],
+    "currentReportablePaidObligations": 0,
+    "reviewRequest": {
+      "normalRunAt": "2026-09-08T00:00:13.578241Z",
+      "status": "ok",
+      "processed": 4,
+      "sentWithDurableProviderIdAndStoredDelivered": 1,
+      "futureCooldowns": 3,
+      "due": 0,
+      "independentResendRead": "unverified"
+    },
+    "browserCadence": {
+      "accepted": false,
+      "windowStart": "2026-09-07T05:18:53Z",
+      "windowEnd": "2026-09-08T05:18:53Z",
+      "actualScheduledAttempt1Completions": 4,
+      "completionRunIds": [
+        "34123496950",
+        "34152939000",
+        "34168122225",
+        "34188236504"
+      ],
+      "internalGapSeconds": [
+        21692,
+        14785,
+        21314
+      ],
+      "boundaryGapSeconds": 29226,
+      "monitorStaleHours": 6,
+      "limitation": "A clear six-hour observer does not prove dependable two-hour cadence."
+    },
+    "historicalCritical": {
+      "exactIncidentAcknowledged": true,
+      "successfulRepeatPagesDuringOver15HourObservation": 0,
+      "clinicalResolutionClaimed": false
+    },
+    "historicalItems": [
+      "March certificate unchanged and unsent",
+      "Nine retrospective cases remain clinician-owned",
+      "Two April Ads discrepancies remain historical reporting uncertainty"
+    ]
+  },
+  "refill": {
+    "asOf": "2026-09-08 09:16:37.385268+00",
+    "method": "Existing get_refill_reminder_funnel, trailing 90 days, canonical seeded exclusions; gross paid only",
+    "sent": 7,
+    "delivered": 7,
+    "providerClicks": 0,
+    "strictPaidRenewals": 0,
+    "samePatientPaidReorders": 0,
+    "preConsentMatureSends": 2,
+    "postConsentMaturingSends": 5,
+    "qualifyingMaturePostConsentWaves": 0,
+    "firstPostConsentWaveMaturityUtc": "2026-09-26T23:00:39.097Z",
+    "requiredQualifyingMatureWeeklyWaves": 3,
+    "minimumStrictConversionEach": 0.1,
+    "additionalGuards": [
+      "complaints",
+      "unsubscribes",
+      "refunds",
+      "support contacts"
+    ],
+    "retainedRevenueAvailability": "unavailable",
+    "scheduler": [
+      {
+        "job_name": "refill-reminders",
+        "last_run_at": "2026-09-07 23:00:38.512156+00",
+        "last_status": "ok",
+        "last_success_at": "2026-09-07 23:00:38.512156+00",
+        "last_failure_at": null,
+        "last_failure_status": null
+      }
+    ]
+  },
+  "browser": {
+    "integrationStatus": "accepted_bounded_baseline_with_two_unfixed_findings",
+    "baseline": {
+      "startedAt": "2026-09-08T09:26:56.089Z",
+      "finishedAt": "2026-09-08T09:32:42.035Z",
+      "intercepted": {
+        "draft": 19,
+        "telemetry": 32,
+        "mutation": 7,
+        "external": 4
+      },
+      "lastMutation": {
+        "method": "POST",
+        "path": "/request"
+      },
+      "pageErrorCount": 0,
+      "consoleErrorCount": 11,
+      "storageExperiment": {
+        "startedAt": "2026-09-08T09:38:19.240Z",
+        "finishedAt": "2026-09-08T09:42:58.520Z",
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "theme": "light",
+        "fault": "Storage.prototype.setItem throws QuotaExceededError for localStorage and sessionStorage",
+        "intercepted": {
+          "draft": 0,
+          "telemetry": 13,
+          "mutation": 4,
+          "external": 1
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 8,
+        "quotaConsoleErrorCount": 3,
+        "quotaWritesBeforeFirstReload": 14,
+        "repeatedBoundary": true,
+        "reloadRestoredTwoDayChoice": false,
+        "cookieOnlyNoopControlReachedReview": true
+      }
+    },
+    "boundary": "Isolated synthetic public-site browser with all mutative/provider requests intercepted; no production drafts/payments/documents/sends.",
+    "findings": [
+      {
+        "finding": "Long unbroken name clips in small-phone review summary",
+        "selectedForFix": false,
+        "revenueCausality": "not established"
+      },
+      {
+        "finding": "Storage write-denial causes route error through deferred cookie-banner initialization",
+        "source": "components/shared/cookie-banner.tsx:101",
+        "fault": "Storage.prototype.setItem throws QuotaExceededError for localStorage and sessionStorage; reads/removals ordinary",
+        "control": "Cookie-consent write alone locally no-oped while every other write still threw; retry reached review",
+        "repeatedAfterReloadAndRetry": true,
+        "productionDraftApiAttempts": 0,
+        "coverageReport": "complete",
+        "selectedForFix": false,
+        "prevalence": "not established",
+        "revenueCausality": "not established"
+      }
+    ],
+    "limits": [
+      "No hosted Stripe, server persistence, clinical issuance or physical-device proof",
+      "Two findings remain unfixed; completed investigation coverage is not a blanket pass",
+      "Storage-read/property-access denial, real quota, full offline reload and server resume untested",
+      "Production alias/head independently read, but browser-loaded assets not separately fingerprinted to SHA"
+    ]
+  },
+  "nextCheckpoints": [
+    {
+      "dateSydney": "2026-09-09",
+      "scope": "Weight organic checkpoint, not paid launch"
+    },
+    {
+      "dateSydney": "2026-09-11",
+      "scope": "Hair existing readout; loss-cap pause proposal already prepared"
+    },
+    {
+      "dateSydney": "2026-09-12",
+      "scope": "Bounded stored-index reinspection; no resubmission"
+    },
+    {
+      "dateSydney": "2026-09-15",
+      "scope": "Completed September8-14 Sydney cash against September1-7; same 24h exact-flow observation methods"
+    },
+    {
+      "atUtc": "2026-09-19T05:13:53.870Z",
+      "scope": "ED earliest settled close; no E2 beforehand"
+    },
+    {
+      "dateSydney": "2026-09-19",
+      "scope": "Bounded stored-index reinspection"
+    },
+    {
+      "dateSydney": "2026-09-24",
+      "scope": "First existing copy windows close at exact receipt timestamps"
+    },
+    {
+      "atUtc": "2026-09-26T23:00:39.097Z",
+      "scope": "First full post-consent refill-wave21-day maturity, not three-wave gate completion"
+    },
+    {
+      "dateSydney": "2026-10-24",
+      "scope": "Second copy windows close; preserve original free-channel rules"
+    }
+  ],
+  "validation": {
+    "json": "parsed_and_selected_aggregate_arithmetic_checked_by_documentation_helper",
+    "docAudit": {
+      "passed": true,
+      "specs": 10,
+      "tests": 124,
+      "markdownFiles": 134
+    },
+    "independentReview": "Independent Astra review KEEP; per-flow 24h query and ratio corrections verified; source, arithmetic, gates, immutable packet and browser boundaries reviewed. Subsequent CI/merge metadata belongs to Plan 2 execution receipt.",
+    "ci": "Subsequent exact-head result owned by Plan 2 execution receipt",
+    "merge": "Subsequent documentation merge receipt owned by Plan 2 execution receipt",
+    "implementationAndChangedPaymentProviderChecks": "not_applicable_no_product_change",
+    "unitTests": {
+      "passed": 7503,
+      "skipped": 122
+    },
+    "focusedRevenueAndAdsTests": {
+      "passed": 97
+    },
+    "typecheck": "passed",
+    "lint": "passed excluding only ignored .superpowers investigation scripts; no tracked rule change; ordinary committed-tree lint remains required in CI",
+    "runtime": "Node24.15.0 and pnpm10.23.0 passed",
+    "mainProtection": "PR-only, strict build + e2e, no direct push verified"
+  },
+  "handoff": {
+    "nextPlan": "docs/superpowers/plans/2026-09-06-03-concise-clinical-review.md",
+    "started": false,
+    "automaticSchedulerCreated": false
+  },
+  "releaseEvidenceOwner": "../plans/2026-09-06-02-certificate-revenue-recovery.md#browser-validation-and-release-handoff"
+}
