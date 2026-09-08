@@ -25,7 +25,7 @@ export function parseSoapDraft(note: string): SoapSections | null {
 }
 
 /** Replace only the edited span; retain original headers, whitespace and all other text. */
-export function replaceSoapSection(note: string, section: SectionSpan, value: string): string {
+function replaceSoapSection(note: string, section: SectionSpan, value: string): string {
   return note.slice(0, section.start) + value + note.slice(section.end)
 }
 

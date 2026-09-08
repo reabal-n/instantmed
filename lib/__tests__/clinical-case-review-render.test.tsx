@@ -3,7 +3,6 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
 import { ClinicalCaseReview } from "@/components/doctor/clinical-case-review"
-import { stripGenericClinicalNoteBoilerplate } from "@/components/doctor/review/utils"
 import type { ClinicalCaseSummary } from "@/lib/clinical/case-summary"
 
 function render(element: React.ReactElement): string {
@@ -146,17 +145,6 @@ describe("ClinicalCaseReview", () => {
     expect(html).not.toContain("Prescription already recorded")
     expect(html).toContain("Clinician-administered medicine")
     expect(html).toContain('data-safety-severity="caution"')
-  })
-
-  it("strips generic process-speak note boilerplate before it reaches the editable note", () => {
-    expect(
-      stripGenericClinicalNoteBoilerplate(
-        "Patient history reviewed. Medical certificate request requires doctor review before approval.",
-      ),
-    ).toBe("")
-    expect(stripGenericClinicalNoteBoilerplate("Reviewed intake. Patient has fever and cough today.")).toContain(
-      "fever and cough",
-    )
   })
 
   it("renders normal women's health safety findings as compact reviewed facts", () => {

@@ -10,7 +10,7 @@ const GENERIC_CLINICAL_NOTE_BOILERPLATE = [
   "e2e baseline clinical note. patient history reviewed. medical certificate request requires doctor review before approval.",
 ] as const
 
-export function stripGenericClinicalNoteBoilerplate(note: string): string {
+function stripGenericClinicalNoteBoilerplate(note: string): string {
   const normalized = note.replace(/\s+/g, " ").trim().toLowerCase()
   return GENERIC_CLINICAL_NOTE_BOILERPLATE.includes(normalized as typeof GENERIC_CLINICAL_NOTE_BOILERPLATE[number])
     ? ""
