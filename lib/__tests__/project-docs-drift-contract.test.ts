@@ -1,4 +1,4 @@
-import { existsSync,readdirSync, readFileSync } from "node:fs"
+import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync } from "node:fs"
 import { join, relative } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -358,7 +358,7 @@ describe("project docs drift contract", () => {
   })
 
   it("keeps InstantMed workflow skills repo-owned and installable for Codex and Claude", () => {
-    const skillRoot = join(root, ".agent-skills")
+    const skillRoot = join(root, ".agents/skills")
     const actualSkills = readdirSync(skillRoot, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
@@ -367,30 +367,34 @@ describe("project docs drift contract", () => {
     expect(actualSkills).toEqual(expectedInstantMedSkills)
 
     for (const source of [agents, claude]) {
-      expect(source).toContain("The canonical source lives in `.agent-skills/`")
-      expect(source).toContain("/Users/rey/.claude/skills")
-      expect(source).toContain("/Users/rey/.agents/skills")
+      expect(source).toContain("The canonical source lives in `.agents/skills/`")
+      expect(source).toContain("`.claude/skills/` contains relative links")
+      expect(source).toContain("not installed globally")
       expect(source).toContain("scripts/sync-agent-skills.sh --check")
       for (const skill of expectedInstantMedSkills) {
         expect(source).toContain(`\`${skill}\``)
       }
     }
 
-    expect(syncAgentSkills).toContain('SOURCE_DIR=".agent-skills"')
-    expect(syncAgentSkills).toContain('"$HOME/.agents/skills"')
-    expect(syncAgentSkills).toContain('"$HOME/.claude/skills"')
+    expect(syncAgentSkills).toContain('SOURCE_DIR=".agents/skills"')
+    expect(syncAgentSkills).toContain('TARGET_DIR=".claude/skills"')
+    expect(syncAgentSkills).not.toContain("$HOME")
 
     for (const skill of expectedInstantMedSkills) {
-      const skillMarkdown = readProjectFile(`.agent-skills/${skill}/SKILL.md`)
-      const openAiConfig = readProjectFile(`.agent-skills/${skill}/agents/openai.yaml`)
+      const skillMarkdown = readProjectFile(`.agents/skills/${skill}/SKILL.md`)
+      const openAiConfig = readProjectFile(`.agents/skills/${skill}/agents/openai.yaml`)
 
       expect(skillMarkdown).toContain(`name: ${skill}`)
-      expect(skillMarkdown).toContain("description: InstantMed")
+      expect(skillMarkdown).toMatch(/description: [^\n]*InstantMed/)
+      expect(skillMarkdown).toContain("scope: project:instantmed")
+      const claudeLink = join(root, ".claude/skills", skill)
+      expect(lstatSync(claudeLink).isSymbolicLink()).toBe(true)
+      expect(realpathSync(claudeLink)).toBe(realpathSync(join(skillRoot, skill)))
       expect(openAiConfig).toContain("allow_implicit_invocation: true")
     }
 
     const openSeoSkill = readProjectFile(
-      ".agent-skills/instantmed-openseo-research/SKILL.md",
+      ".agents/skills/instantmed-openseo-research/SKILL.md",
     )
     const approvedHelpers = openSeoSkill.slice(
       openSeoSkill.indexOf("## Approved Upstream Helpers"),
@@ -402,8 +406,8 @@ describe("project docs drift contract", () => {
     expect(operations).toContain("OpenSEO remains a projection and evidence store")
     expect(seoContentPolicy).toContain("Their output is evidence, not permission")
     expect(articleTemplate).toContain("must not create a parallel queue")
-    expect(approvedHelpers).toContain("`keyword-research`")
-    expect(approvedHelpers).toContain("`seo-project-setup`")
+    expect(approvedHelpers).toContain("`seo-research`")
+    expect(approvedHelpers).toContain("account, data, credit and adoption gates")
     expect(approvedHelpers).not.toContain("| `seo-audit` |")
   })
 

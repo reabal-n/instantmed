@@ -1,6 +1,9 @@
 ---
 name: instantmed-doc-drift-repair
-description: InstantMed documentation drift repair workflow. Use when a task in /Users/rey/Developer/instantmed mentions stale docs, docs out of sync, doc:audit, AGENTS.md, CLAUDE.md, wiki, README, architecture docs, clinical docs, operations docs, testing docs, pricing docs, model/version drift, generated agent docs, documentation cleanup, canonical source of truth, or updating docs after code changes.
+description: 'InstantMed documentation repair: reconcile canonical docs, generated agent instructions, wiki and implementation evidence without creating competing sources.'
+metadata:
+  owner: Rey / instantmed
+  scope: project:instantmed
 ---
 
 # InstantMed Doc Drift Repair
@@ -44,3 +47,11 @@ Report:
 - Docs changed.
 - Guard added or why no guard was useful.
 - Verification run.
+
+## Scope and ownership
+
+This workflow applies only to instantmed and its verified checkouts/worktrees. Confirm the project from its operating docs and Git root before applying it. Project doctrine owns product, brand, privacy and release requirements; shared skills supply techniques only. Resolve commands and project paths from the active checkout, not a fixed machine path.
+
+## Verification
+
+Verify the requested result against the authoritative project files and relevant checks. Report evidence, skipped checks and remaining uncertainty; do not infer owner approval.

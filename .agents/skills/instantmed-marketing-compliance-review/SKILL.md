@@ -1,6 +1,9 @@
 ---
 name: instantmed-marketing-compliance-review
-description: InstantMed marketing, advertising, SEO, and regulated-health copy review workflow. Use when a task in /Users/rey/Developer/instantmed touches public landing pages, homepage, service pages, paid ads, Google Ads, metadata, schema, SEO guides, blog content, pricing copy, testimonials, reviews, social proof, CTAs, email marketing copy, lib/marketing, lib/seo, content/blog, docs/ADVERTISING_COMPLIANCE.md, docs/SEO_CONTENT_POLICY.md, docs/BRAND.md, or docs/VOICE.md.
+description: InstantMed public claims, ads, SEO, pricing and marketing copy review. Applies the project compliance and voice rules before sign-off.
+metadata:
+  owner: Rey / instantmed
+  scope: project:instantmed
 ---
 
 # InstantMed Marketing Compliance Review
@@ -50,3 +53,11 @@ Lead with:
 - Source of truth for each factual claim.
 - Any code primitive or constant that should own the text.
 - Verification: `pnpm content:audit` for guide/SEO changes, focused copy/schema tests where available, and browser checks when rendered public surfaces changed.
+
+## Scope and ownership
+
+This workflow applies only to instantmed and its verified checkouts/worktrees. Confirm the project from its operating docs and Git root before applying it. Project doctrine owns product, brand, privacy and release requirements; shared skills supply techniques only. Resolve commands and project paths from the active checkout, not a fixed machine path.
+
+## Verification
+
+Verify the requested result against the authoritative project files and relevant checks. Report evidence, skipped checks and remaining uncertainty; do not infer owner approval.
