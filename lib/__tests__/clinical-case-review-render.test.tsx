@@ -78,7 +78,7 @@ describe("ClinicalCaseReview", () => {
 
     expect(html).not.toContain("Clinical plan")
     expect(html).toContain("Draft note · Review required")
-    expect(html).toContain("contenteditable")
+    expect(html).toContain("<textarea")
     expect(html).toContain("Patient requests a one-day work certificate")
   })
 
@@ -249,4 +249,35 @@ describe("ClinicalCaseReview", () => {
     expect(html).not.toContain("75mg")
     expect(html).toContain("Clinical note · Review required")
   })
+})
+
+describe("readable draft persistence", () => {
+  it("retains trailing spaces and blank lines in structured fields", () => {
+    const html = render(<ClinicalCaseReview answers={{}} draftNoteOpen draftNoteValue={"S: Typed word  \n\nO: Observed\nA: Reviewed\nP: Planned\n\n"} onDraftNoteChange={() => undefined} />)
+    expect(html).toContain("Typed word  \n</textarea>")
+    expect(html).toContain("Planned\n\n</textarea>")
+  })
+  it("shows Saved without a session timestamp and never infers a signature", () => {
+    const html = render(<ClinicalCaseReview answers={{}} draftNoteValue="Saved clinician text" onDraftNoteChange={() => undefined} draftNoteSaved />)
+    expect(html).toContain(">Saved</span>")
+    expect(html).not.toContain("Signed")
+    expect(html).toContain("Draft note · Review required")
+  })
+  it("offers retry beside the note title even while the note is collapsed", () => {
+    const html = render(<ClinicalCaseReview answers={{}} draftNoteValue="Unsaved text" onDraftNoteChange={() => undefined} onDraftNoteSave={() => undefined} draftNoteSaveError />)
+    expect(html).toContain("Save failed")
+    expect(html).toContain("Retry save")
+  })
+})
+
+it("keeps notes readable but unavailable for edits while a decision is in flight", () => {
+  const html = render(<ClinicalCaseReview answers={{}} draftNoteOpen draftNoteValue="A saved clinician note." onDraftNoteChange={() => undefined} draftNoteReadOnly />)
+  expect(html).toContain('readonly=""')
+  expect(html).toContain("Note editing is paused while this decision is saved.")
+})
+
+it("shows Saving while a retry is in flight instead of the previous failed attempt", () => {
+  const html = render(<ClinicalCaseReview answers={{}} draftNoteValue="Unsaved clinician text" onDraftNoteChange={() => undefined} draftNoteSaveError isDraftNoteSaving />)
+  expect(html).toContain(">Saving</span>")
+  expect(html).not.toContain(">Save failed</span>")
 })

@@ -1,6 +1,7 @@
 "use client"
 
 import { FileText, Loader2, RefreshCw } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { type ReactNode, useMemo, useState } from "react"
 
 import { RequestInformationDialog } from "@/app/doctor/queue/queue-dialogs"
@@ -139,12 +140,13 @@ export function IntakeReviewCockpit({
   canRevokeAutoIssued,
   historicalReviewActions,
 }: IntakeReviewCockpitProps) {
+  const router = useRouter()
   const review = useIntakeReview()
   const { data, intake, answers, service } = review
   // Server-resolved by default; the prop is an explicit override for callers
   // that render without the review-data payload. Either way it fails closed.
   const mayRevokeAutoIssued = canRevokeAutoIssued ?? data.viewerCanRevokeAutoIssued ?? false
-  const informationDialog = useRequestInfoDialog(async () => { await review.reloadReviewData({ background: true }) })
+  const informationDialog = useRequestInfoDialog(async () => { await review.reloadReviewData({ background: true }) }, review.flushNotes)
 
   const [disclosureOpen, setDisclosureOpen] = useState(false)
   const [draftNoteOpen, setDraftNoteOpen] = useState(false)
@@ -278,7 +280,16 @@ export function IntakeReviewCockpit({
   })
 
   return (
-    <div className={cn("flex h-full min-h-0 flex-col overflow-hidden", className)}>
+    <div className={cn("flex h-full min-h-0 flex-col overflow-hidden", className)}
+      onClickCapture={async (event) => {
+        // History and renewal links replace the review just like its full-record link.
+        const link = (event.target as Element).closest<HTMLAnchorElement>("a[href]")
+        const href = link?.getAttribute("href")
+        if (!href?.startsWith("/") || link?.target === "_blank" || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        event.preventDefault()
+        event.stopPropagation()
+        if (await review.flushNotes()) router.push(href)
+      }}>
       <div
         className="flex min-h-0 flex-1 flex-col motion-safe:animate-[review-body-in_240ms_cubic-bezier(0.16,1,0.3,1)]"
         data-review-body-transition

@@ -1,7 +1,7 @@
 "use client"
 
 import { AlertTriangle, CheckCircle2, ChevronDown, Clipboard, FileText, Loader2, Save, ShieldAlert, Stethoscope } from "lucide-react"
-import { type RefObject } from "react"
+import { type RefObject, useCallback, useEffect, useRef } from "react"
 import { toast } from "sonner"
 
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
@@ -11,7 +11,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { Textarea } from "@/components/ui/textarea"
+import { Textarea, type TextareaProps } from "@/components/ui/textarea"
 import {
   buildClinicalCaseSummary,
   type ClinicalCaseSummary,
@@ -23,6 +23,7 @@ import {
   LEGACY_REPEAT_RX_RECONCILIATION_NOTE,
 } from "@/lib/clinical/repeat-rx-attestation"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
+import { editSoapSection, parseSoapDraft, SOAP_SECTIONS } from "@/lib/doctor/soap-note"
 import { cn } from "@/lib/utils"
 
 interface ClinicalCaseReviewProps {
@@ -56,7 +57,9 @@ interface ClinicalCaseReviewProps {
   isDraftNoteSaving?: boolean
   draftNoteDirty?: boolean
   draftNoteSavedAt?: Date | null
+  draftNoteSaved?: boolean
   draftNoteSaveError?: boolean
+  draftNoteReadOnly?: boolean
   doctorSignOffLabel?: string | null
   /**
    * Suppress the inline Parchment handoff block when ReviewPacket owns the
@@ -65,59 +68,37 @@ interface ClinicalCaseReviewProps {
   hidePrescriptionIntent?: boolean
 }
 
-const SOAP_SECTIONS = [
-  { key: "S", label: "Subjective" },
-  { key: "O", label: "Objective" },
-  { key: "A", label: "Assessment" },
-  { key: "P", label: "Plan" },
-] as const
 const COMPACT_FACT_LIMIT = 4
 const PINNED_DRAFT_FACT_LIMIT = 4
 
-type SoapSectionKey = typeof SOAP_SECTIONS[number]["key"]
-type SoapSections = Record<SoapSectionKey, string>
-
-function parseSoapDraft(note: string): SoapSections | null {
-  const matches = Array.from(note.matchAll(/(?:^|\n)[ \t]*([SOAP]):[ \t]*/g))
-  if (matches.length < SOAP_SECTIONS.length) return null
-
-  const sections = SOAP_SECTIONS.reduce((acc, section) => {
-    acc[section.key] = ""
-    return acc
-  }, {} as SoapSections)
-  const foundSections = new Set<SoapSectionKey>()
-
-  for (let index = 0; index < matches.length; index += 1) {
-    const match = matches[index]
-    const key = match[1] as SoapSectionKey
-    if (!(key in sections) || typeof match.index !== "number") continue
-    foundSections.add(key)
-    const start = match.index + match[0].length
-    const end = matches[index + 1]?.index ?? note.length
-    sections[key] = note.slice(start, end).trim()
-  }
-
-  return SOAP_SECTIONS.every((section) => foundSections.has(section.key)) ? sections : null
-}
-
-function composeSoapDraft(sections: SoapSections): string {
-  return SOAP_SECTIONS
-    .map((section) => `${section.key}: ${sections[section.key].trim()}`)
-    .join("\n")
-}
-
-function getSoapTextareaRows(section: SoapSectionKey, value: string): number {
-  const explicitLines = value.split("\n").length
-  const wrappedLines = Math.ceil(value.length / 78)
-  const baseline = section === "P" ? 4 : 3
-
-  return Math.min(9, Math.max(baseline, explicitLines + wrappedLines))
-}
-
-function getCompactSoapTextareaRows(section: SoapSectionKey, value: string): number {
-  if (section === "S") return Math.min(3, Math.max(2, Math.ceil(value.length / 96)))
-  if (section === "P") return 3
-  return 2
+/** Local note control: grows on typing and width changes inside the review's one scroll. */
+function NoteTextarea({ noteRef, value, ...props }: TextareaProps & { noteRef?: RefObject<HTMLTextAreaElement> }) {
+  const ref = useRef<HTMLTextAreaElement | null>(null)
+  const resize = useCallback(() => {
+    const node = ref.current
+    if (!node) return
+    node.style.height = "auto"
+    node.style.height = `${node.scrollHeight + 2}px`
+  }, [])
+  const attach = useCallback((node: HTMLTextAreaElement | null) => {
+    ref.current = node
+    if (noteRef) (noteRef as { current: HTMLTextAreaElement | null }).current = node
+    resize()
+  }, [noteRef, resize])
+  useEffect(() => {
+    resize()
+    const node = ref.current
+    if (!node) return
+    let width = node.getBoundingClientRect().width
+    const observer = new ResizeObserver(() => {
+      const nextWidth = node.getBoundingClientRect().width
+      if (nextWidth !== width) { width = nextWidth; resize() }
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [value, resize])
+  return <Textarea {...props} ref={attach} value={value} minRows={2} rows={2}
+    textareaClassName="resize-none overflow-hidden border-transparent bg-transparent px-1 py-1 text-sm leading-relaxed shadow-none hover:border-transparent focus:border-primary focus:ring-2 focus:ring-primary/20" />
 }
 
 function normaliseClinicalFactText(value: string): string {
@@ -177,7 +158,9 @@ export function ClinicalCaseReview({
   isDraftNoteSaving = false,
   draftNoteDirty = false,
   draftNoteSavedAt = null,
+  draftNoteSaved = false,
   draftNoteSaveError = false,
+  draftNoteReadOnly = false,
   doctorSignOffLabel = null,
   hidePrescriptionIntent = false,
 }: ClinicalCaseReviewProps) {
@@ -241,16 +224,15 @@ export function ClinicalCaseReview({
     ? []
     : summary.keyFacts.slice(0, PINNED_DRAFT_FACT_LIMIT)
   const signOffParts = doctorSignOffLabel?.split(/\s+·\s+/, 2) ?? null
-  const structuredSoapDraft = isEditableDraftNote ? parseSoapDraft(visibleDraftNote) : null
+  const soapEditorRef = useRef<{ note: string; sections: ReturnType<typeof parseSoapDraft> } | null>(null)
+  if (soapEditorRef.current?.note !== visibleDraftNote) {
+    soapEditorRef.current = { note: visibleDraftNote, sections: parseSoapDraft(visibleDraftNote) }
+  }
+  const structuredSoapDraft = isEditableDraftNote ? soapEditorRef.current.sections : null
   // In compact mode (cockpit panel) facts come first so the doctor can scan
   // clinical context before reviewing the draft note. Full-page view keeps
   // the note at the top as the primary work surface.
   const showClinicalNoteBeforeAnswers = !compact && isEditableDraftNote
-  const setDraftNoteEditableRef = (node: HTMLDivElement | null) => {
-    if (!draftNoteTextareaRef) return
-    ;(draftNoteTextareaRef as unknown as { current: HTMLTextAreaElement | null }).current =
-      node as unknown as HTMLTextAreaElement | null
-  }
   const draftNoteLabel = needsRecordedScriptReconciliation
     ? "Recorded-script reconciliation note · Review required"
     : isEditableDraftNote
@@ -277,15 +259,21 @@ export function ClinicalCaseReview({
           />
         </CollapsibleTrigger>
         {isEditableDraftNote ? (
-          <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
-            {draftNoteSaveError ? (
+          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <span role="status" aria-live="polite">
+            {isDraftNoteSaving ? (
+              <span>Saving</span>
+            ) : draftNoteSaveError ? (
               <span className="text-destructive">Save failed</span>
-            ) : isDraftNoteSaving ? (
-              <span>Saving...</span>
             ) : draftNoteDirty ? (
-              <span>Auto-saving...</span>
-            ) : draftNoteSavedAt ? (
-              <span>Draft saved</span>
+              <span>Saving</span>
+            ) : draftNoteSaved || draftNoteSavedAt ? (
+              <span>Saved</span>
+            ) : <span>Draft</span>}
+            </span>
+            {draftNoteSaveError && onDraftNoteSave ? (
+              <Button type="button" variant="outline" size="sm" disabled={isDraftNoteSaving}
+                onClick={() => void onDraftNoteSave(visibleDraftNote)}>Retry save</Button>
             ) : null}
           </div>
         ) : null}
@@ -305,7 +293,7 @@ export function ClinicalCaseReview({
                   size="sm"
                   onClick={() => onDraftNoteChange?.(
                     visibleDraftNote.trim()
-                      ? `${visibleDraftNote.trim()}\n\n${LEGACY_REPEAT_RX_RECONCILIATION_NOTE}`
+                      ? `${visibleDraftNote}\n\n${LEGACY_REPEAT_RX_RECONCILIATION_NOTE}`
                       : LEGACY_REPEAT_RX_RECONCILIATION_NOTE,
                   )}
                 >
@@ -361,7 +349,7 @@ export function ClinicalCaseReview({
           ) : null}
           {structuredSoapDraft ? (
             <div
-              className={cn("grid gap-2", compact ? "xl:grid-cols-2" : "grid-cols-1")}
+              className="grid grid-cols-1 gap-3"
               aria-label="Structured SOAP note"
             >
               {SOAP_SECTIONS.map((section) => (
@@ -383,47 +371,33 @@ export function ClinicalCaseReview({
                   >
                     {compact ? `${section.key} · ${section.label}` : section.label}
                   </label>
-                  <Textarea
+                  <NoteTextarea
                     id={`draft-soap-${section.key}`}
-                    ref={section.key === "S" ? draftNoteTextareaRef : undefined}
-                    value={structuredSoapDraft[section.key]}
+                    noteRef={section.key === "S" ? draftNoteTextareaRef : undefined}
+                    value={structuredSoapDraft[section.key].value}
                     placeholder={`${section.label} note`}
-                    minRows={compact ? getCompactSoapTextareaRows(section.key, structuredSoapDraft[section.key]) : getSoapTextareaRows(section.key, structuredSoapDraft[section.key])}
+                    readOnly={draftNoteReadOnly}
                     onChange={(event) => {
-                      onDraftNoteChange?.(composeSoapDraft({
-                        ...structuredSoapDraft,
-                        [section.key]: event.target.value,
-                      }))
+                      const edited = editSoapSection(visibleDraftNote, structuredSoapDraft, section.key, event.target.value)
+                      soapEditorRef.current = edited
+                      onDraftNoteChange?.(edited.note)
                     }}
-                    className="w-full"
-                    textareaClassName="resize-y overflow-auto border-transparent bg-transparent px-0 py-0 text-sm leading-relaxed shadow-none hover:border-transparent focus:border-transparent focus:ring-0 focus-visible:ring-0"
                     aria-label={`Draft clinical note ${section.label}`}
                   />
                 </div>
               ))}
             </div>
           ) : (
-            <div
-              ref={setDraftNoteEditableRef}
-              role="textbox"
+            <NoteTextarea
+              noteRef={draftNoteTextareaRef}
               aria-label="Draft clinical note"
-              aria-multiline="true"
-              contentEditable
-              suppressContentEditableWarning
-              data-placeholder="Start your note. Press Cmd+Enter to approve."
-              onInput={(event) => {
-                onDraftNoteChange?.(event.currentTarget.innerText)
-              }}
-              onPaste={(event) => {
-                event.preventDefault()
-                const text = event.clipboardData.getData("text/plain")
-                document.execCommand("insertText", false, text)
-              }}
-              className="min-h-[112px] w-full scroll-mt-6 overflow-visible whitespace-pre-wrap rounded-md border border-border/70 bg-[#FFFEFB] px-3 pb-2 pt-6 font-sans text-sm font-medium leading-6 text-foreground shadow-inner shadow-primary/[0.025] outline-none transition-[min-height,border-color,box-shadow] duration-150 ease-out empty:before:text-muted-foreground empty:before:content-[attr(data-placeholder)] hover:border-border focus:min-h-[150px] focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-card"
-            >
-              {visibleDraftNote}
-            </div>
+              value={visibleDraftNote}
+              readOnly={draftNoteReadOnly}
+              placeholder="Start your note."
+              onChange={(event) => onDraftNoteChange?.(event.target.value)}
+            />
           )}
+          {draftNoteReadOnly ? <p className="text-xs text-muted-foreground" role="status">Note editing is paused while this decision is saved.</p> : null}
           {!draftNoteReady ? (
             <p className="rounded-md border border-border/60 bg-muted/25 px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
               Add one clinical note line before signing.
@@ -441,26 +415,7 @@ export function ClinicalCaseReview({
               ) : null}
             </div>
           ) : null}
-          {draftNoteSaveError && onDraftNoteSave ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void onDraftNoteSave(visibleDraftNote)}
-              disabled={isDraftNoteSaving}
-            >
-              {isDraftNoteSaving ? (
-                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-              ) : (
-                <Save className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-              )}
-              Save note
-            </Button>
-          ) : !compact ? (
-            <p className="text-xs text-muted-foreground">
-              Saved as you type. Private until you send.
-            </p>
-          ) : null}
+
           </div>
         ) : (
           <div className="space-y-2 px-3 py-2">

@@ -46,7 +46,8 @@ export interface DoctorNotesWriteResult {
 export async function prepareDoctorNotesWrite(
   notes: string | null
 ): Promise<DoctorNotesWriteResult> {
-  if (!notes) {
+  // An explicitly cleared note is still authored content; null means no saved note.
+  if (notes === null) {
     return { doctor_notes: null, doctor_notes_enc: null }
   }
 

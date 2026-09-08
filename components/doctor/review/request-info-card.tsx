@@ -83,8 +83,8 @@ export function RequestInfoCard({
     answers,
     doctorNotes,
     setDoctorNotes,
-    setNoteSaved,
     noteDirty,
+    noteSaved,
     savedAt,
     isAutoSaving,
     autoSaveError,
@@ -212,13 +212,14 @@ export function RequestInfoCard({
           draftNoteTextareaRef={notesRef}
           onDraftNoteChange={(value) => {
             setDoctorNotes(value)
-            setNoteSaved(false)
           }}
           onDraftNoteSave={handleSaveNotes}
-          isDraftNoteSaving={isPending || isAutoSaving}
+          isDraftNoteSaving={isAutoSaving}
           draftNoteDirty={noteDirty}
           draftNoteSavedAt={savedAt}
+          draftNoteSaved={noteSaved}
           draftNoteSaveError={autoSaveError}
+          draftNoteReadOnly={isPending}
           doctorSignOffLabel={doctorSignOffLabel}
         />
       </div>

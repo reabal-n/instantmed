@@ -170,7 +170,7 @@ export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions)
 
 /** Shared queue/full-review clarification state. React 18 transitions do not
  * track async actions, so a ref and explicit busy state own the whole send. */
-export function useRequestInfoDialog(onRequested?: () => void | Promise<void>) {
+export function useRequestInfoDialog(onRequested?: () => void | Promise<void>, beforeRequest?: () => Promise<boolean>) {
   const router = useRouter()
   const [infoDialog, setInfoDialogState] = useState<string | null>(null)
   const draftIntakeId = useRef<string | null>(null)
@@ -218,6 +218,10 @@ export function useRequestInfoDialog(onRequested?: () => void | Promise<void>) {
     setIsInfoPending(true)
     setInfoError(null)
     try {
+      if (beforeRequest && !await beforeRequest()) {
+        setInfoError("Save the clinical note before requesting information. Close this dialog and retry the note save.")
+        return
+      }
       const result = await requestMoreInfoAction(infoDialog, infoTemplateCode, infoMessage)
       if (!result.success) {
         const error = result.error || "Failed to save information request"

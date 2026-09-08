@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useRef, useState, useTransition } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { regenerateDrafts } from "@/app/actions/draft-approval"
@@ -31,9 +31,9 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { playApprovalSound } from "@/lib/audio/approval-sound"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
-import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
+import { isClinicalNoteSufficient, resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
-import { createNoteSaveQueue } from "@/lib/doctor/note-save-queue"
+import { createNoteSaveQueue, flushLatestNotes } from "@/lib/doctor/note-save-queue"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
@@ -49,7 +49,7 @@ export interface ReviewActionsState {
   doctorNotes: string
   setDoctorNotes: (v: string) => void
   /** Set notes from server data, records the baseline so auto-save only fires for doctor edits. */
-  setInitialNotes: (notes: string, dbNotes: string) => void
+  setInitialNotes: (notes: string, baselineNotes: string, persisted?: boolean) => void
   noteSaved: boolean
   setNoteSaved: (v: boolean) => void
   /** True while there are unsaved changes pending the 800 ms debounce */
@@ -120,41 +120,66 @@ export function useReviewActions({
 }: UseReviewActionsOptions): ReviewActionsState {
   const router = useRouter()
   const { activePanel, closePanel, openPanel } = usePanel()
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
+  const decisionPendingRef = useRef(false)
 
   // Doctor notes
-  const [doctorNotes, setDoctorNotes] = useState("")
+  const [doctorNotes, setDoctorNotesState] = useState("")
+  const latestNotesRef = useRef("")
+  const noteEditRevisionRef = useRef(0)
+  const setDoctorNotes = useCallback((notes: string) => {
+    latestNotesRef.current = notes
+    setDoctorNotesState(notes)
+  }, [])
   const [noteSaved, setNoteSaved] = useState(false)
   const [savedAt, setSavedAt] = useState<Date | null>(null)
   const [isAutoSaving, setIsAutoSaving] = useState(false)
   const [autoSaveError, setAutoSaveError] = useState(false)
   const [isAiPrefilled, setIsAiPrefilled] = useState(false)
   const notesRef = useRef<HTMLTextAreaElement>(null)
-  // Tracks the last content successfully persisted to DB so we only auto-save diffs.
+  // Autosave baseline: persisted content, or an untouched generated draft.
   const lastSavedNotesRef = useRef<string>("")
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const noteSaveQueueRef = useRef(createNoteSaveQueue(saveDoctorNotesAction))
   const pendingNoteSavesRef = useRef(0)
+  const saveFailedRef = useRef(false)
   const persistNotes = useCallback(async (id: string, notes: string) => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
     pendingNoteSavesRef.current++
+    setIsAutoSaving(true)
     try {
-      return await noteSaveQueueRef.current(id, notes)
+      const result = await noteSaveQueueRef.current(id, notes)
+      saveFailedRef.current = !result.success
+      if (result.success) {
+        lastSavedNotesRef.current = notes
+        setNoteSaved(true)
+        setSavedAt(new Date())
+        setAutoSaveError(false)
+      } else {
+        setAutoSaveError(true)
+      }
+      return result
     } finally {
       pendingNoteSavesRef.current--
+      setIsAutoSaving(pendingNoteSavesRef.current > 0)
     }
   }, [])
 
-  // Load notes from server without triggering auto-save for unchanged content.
-  // Generated drafts should stay draft-only until a doctor edits, saves, or approves.
-  const setInitialNotes = useCallback((notes: string, dbNotes: string) => {
+  // Baseline suppresses autosave of generated drafts; it is not persistence evidence.
+  const setInitialNotes = useCallback((notes: string, baselineNotes: string, persisted = true) => {
     setDoctorNotes(notes)
-    lastSavedNotesRef.current = dbNotes
-  }, [])
+    lastSavedNotesRef.current = baselineNotes
+    setNoteSaved(persisted && notes === baselineNotes)
+    setSavedAt(null)
+    saveFailedRef.current = false
+    setAutoSaveError(false)
+  }, [setDoctorNotes])
   const updateDoctorNotes = useCallback((notes: string) => {
+    if (decisionPendingRef.current) return
+    noteEditRevisionRef.current++
     setDoctorNotes(notes)
     setIsAiPrefilled(false)
-  }, [])
+  }, [setDoctorNotes])
 
   // Decline dialog
   const [showDeclineDialog, setShowDeclineDialog] = useState(false)
@@ -182,25 +207,10 @@ export function useReviewActions({
     if (doctorNotes === lastSavedNotesRef.current) return
 
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
-    autoSaveTimerRef.current = setTimeout(async () => {
-      const snapshot = doctorNotes
+    autoSaveTimerRef.current = setTimeout(() => {
+      const snapshot = latestNotesRef.current
       if (snapshot === lastSavedNotesRef.current) return
-      setIsAutoSaving(true)
-      try {
-        const result = await persistNotes(intakeId, snapshot)
-        if (result.success) {
-          lastSavedNotesRef.current = snapshot
-          setNoteSaved(true)
-          setSavedAt(new Date())
-          setAutoSaveError(false)
-        } else {
-          setAutoSaveError(true)
-        }
-      } catch {
-        setAutoSaveError(true)
-      } finally {
-        setIsAutoSaving(false)
-      }
+      void persistNotes(intakeId, snapshot)
     }, 800)
 
     return () => {
@@ -208,24 +218,44 @@ export function useReviewActions({
     }
   }, [doctorNotes, intakeId, intakeStatus, persistNotes])
 
+  const flushCurrentNotes = useCallback(async () => {
+    if (!intakeId || (latestNotesRef.current === lastSavedNotesRef.current && pendingNoteSavesRef.current === 0 && !saveFailedRef.current)) return true
+    const success = await flushLatestNotes(
+      () => latestNotesRef.current,
+      (notes) => persistNotes(intakeId, notes),
+    )
+    if (!success) toast.error("Notes could not be saved. Keep this request open and retry.")
+    return success
+  }, [intakeId, persistNotes])
+
   const flushNotes = useCallback(async () => {
-    if (!intakeId || (doctorNotes === lastSavedNotesRef.current && pendingNoteSavesRef.current === 0)) return true
-    const result = await persistNotes(intakeId, doctorNotes)
-    if (!result.success) {
-      setAutoSaveError(true)
-      toast.error("Notes could not be saved. Keep this request open and retry.")
+    if (decisionPendingRef.current) {
+      toast.info("Wait for the current decision before leaving this request.")
       return false
     }
-    lastSavedNotesRef.current = doctorNotes
-    setNoteSaved(true)
-    setSavedAt(new Date())
-    setAutoSaveError(false)
-    return true
-  }, [doctorNotes, intakeId, persistNotes])
+    return flushCurrentNotes()
+  }, [flushCurrentNotes])
+
+  // React 18 transitions do not hold pending across awaits. Keep this clinical
+  // decision boundary explicit: freeze editing, flush, then run the existing action.
+  const runReviewDecision = async (decision: () => Promise<void>) => {
+    if (decisionPendingRef.current) return
+    decisionPendingRef.current = true
+    setIsPending(true)
+    try {
+      if (!await flushCurrentNotes()) return
+      await decision()
+    } catch {
+      toast.error("Could not confirm the decision. Check this request’s status before trying again.")
+    } finally {
+      decisionPendingRef.current = false
+      setIsPending(false)
+    }
+  }
 
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (doctorNotes !== lastSavedNotesRef.current || isAutoSaving) {
+      if (latestNotesRef.current !== lastSavedNotesRef.current || pendingNoteSavesRef.current > 0 || saveFailedRef.current || decisionPendingRef.current) {
         event.preventDefault()
         event.returnValue = ""
       }
@@ -267,8 +297,8 @@ export function useReviewActions({
     })
   }, [intake, service?.type])
 
-  const openParchmentPanel = useCallback(() => {
-    if (!intake) return
+  const openParchmentPanel = useCallback(async () => {
+    if (!intake || !await flushNotes()) return
     openPanel({
       id: `parchment-prescribe-${intake.id}`,
       type: "sheet",
@@ -288,9 +318,10 @@ export function useReviewActions({
         />
       ),
     })
-  }, [activePanel, getClinicalCaseSummary, intake, openPanel, reloadReviewData, service?.type])
+  }, [activePanel, flushNotes, getClinicalCaseSummary, intake, openPanel, reloadReviewData, service?.type])
 
   const resolveDecisionNote = useCallback(() => {
+    if (isClinicalNoteSufficient(latestNotesRef.current)) return latestNotesRef.current
     const caseSummary = getClinicalCaseSummary()
     if (!caseSummary) return null
 
@@ -334,7 +365,7 @@ export function useReviewActions({
 
   const handleCertPreviewConfirm = async (editedData: CertificatePreviewData) => {
     if (!intake) return
-    startTransition(async () => {
+    await runReviewDecision(async () => {
       const decisionNote = resolveDecisionNote()
       if (!decisionNote) {
         toast.error("Use the draft note or add a brief clinical note.")
@@ -401,7 +432,7 @@ export function useReviewActions({
       return
     }
 
-    startTransition(async () => {
+    await runReviewDecision(async () => {
       if ((status === "approved" || status === "awaiting_script") && decisionNote) {
         const saveResult = await persistNotes(intake.id, decisionNote)
         if (!saveResult.success) {
@@ -447,7 +478,7 @@ export function useReviewActions({
       return
     }
 
-    startTransition(async () => {
+    await runReviewDecision(async () => {
       const saveResult = await persistNotes(intake.id, decisionNote)
       if (!saveResult.success) {
         toast.error(saveResult.error || "Failed to save clinical notes")
@@ -482,7 +513,7 @@ export function useReviewActions({
 
   const handleDecline = async () => {
     if (!intake || intake.script_sent === true || !declineReason.trim()) return
-    startTransition(async () => {
+    await runReviewDecision(async () => {
       const result = await declineIntakeAction(intake.id, declineReasonCode, declineReason)
       if (result.success) {
         setShowDeclineDialog(false)
@@ -496,6 +527,8 @@ export function useReviewActions({
 
   const handleGenerateOrRegenerateNote = async () => {
     if (!intake) return
+    if (!await flushNotes()) return
+    const generationRevision = noteEditRevisionRef.current
     setIsRegenerating(true)
     try {
       const result = await regenerateDrafts(intake.id)
@@ -505,8 +538,8 @@ export function useReviewActions({
           const clinicalDraft = findClinicalNoteDraft(reviewData.aiDrafts || [])
           if (clinicalDraft) {
             const formatted = formatClinicalNoteContent(clinicalDraft.content)
-            if (formatted) {
-              setInitialNotes(formatted, formatted)
+            if (formatted && noteEditRevisionRef.current === generationRevision) {
+              setInitialNotes(formatted, formatted, false)
               setIsAiPrefilled(true)
               setNoteSaved(false)
               toast.success(hasClinicalDraft ? "AI note regenerated" : "AI draft generated")
@@ -531,23 +564,12 @@ export function useReviewActions({
 
   const handleSaveNotes = async (nextNotes?: string) => {
     if (!intake) return
-    const notesToSave = nextNotes ?? doctorNotes
-    if (nextNotes !== undefined && nextNotes !== doctorNotes) {
-      setDoctorNotes(nextNotes)
-    }
-    startTransition(async () => {
-      const result = await persistNotes(intake.id, notesToSave)
-      if (result.success) {
-        lastSavedNotesRef.current = notesToSave
-        setNoteSaved(true)
-        setSavedAt(new Date())
-        setAutoSaveError(false)
-        setIsAiPrefilled(false)
-      } else {
-        setAutoSaveError(true)
-        toast.error(result.error || "Failed to save notes")
-      }
-    })
+    if (nextNotes !== undefined) updateDoctorNotes(nextNotes)
+    const success = await flushLatestNotes(
+      () => latestNotesRef.current,
+      (notes) => persistNotes(intake.id, notes),
+    )
+    if (!success) toast.error("Notes could not be saved. Keep this request open and retry.")
   }
 
   const handleResend = async () => {

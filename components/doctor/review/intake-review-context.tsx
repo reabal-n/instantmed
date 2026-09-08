@@ -77,7 +77,7 @@ export interface IntakeReviewContextValue {
   // Clinical notes
   doctorNotes: string
   setDoctorNotes: (v: string) => void
-  setInitialNotes: (notes: string, dbNotes: string) => void
+  setInitialNotes: (notes: string, baselineNotes: string, persisted?: boolean) => void
   noteSaved: boolean
   setNoteSaved: (v: boolean) => void
   noteDirty: boolean
@@ -99,6 +99,7 @@ export interface IntakeReviewContextValue {
   handleStatusChange: (status: IntakeStatus) => Promise<void>
   handleDecline: () => Promise<void>
   handleSaveNotes: (nextNotes?: string) => Promise<void>
+  flushNotes: () => Promise<boolean>
   handleGenerateOrRegenerateNote: () => Promise<void>
   handleOpenParchmentPrescribe: () => void
   handleApprovePrescribedScript: () => Promise<void>
