@@ -21,7 +21,7 @@ For UI work, read:
 5. For public copy or claims: `docs/BRAND.md`, `docs/VOICE.md`, and `docs/ADVERTISING_COMPLIANCE.md`
 6. Relevant component README such as `components/operator/README.md`, `components/request/README.md`, or `components/uix/README.md`
 
-Respect the repo's Impeccable/Emil routing. If the task clearly asks for shape, audit, layout, polish, clarify, animation, or motion feel, use the matching design skill too.
+Use `web-design` modes for shape, audit, layout, polish, clarify, and component animation, including its interaction-motion reference for motion feel. Add `cinematic-web` only for substantial scene motion or scroll choreography, following the project design documents.
 
 ## Build Rules
 

@@ -409,6 +409,14 @@ describe("project docs drift contract", () => {
     expect(approvedHelpers).toContain("`seo-research`")
     expect(approvedHelpers).toContain("account, data, credit and adoption gates")
     expect(approvedHelpers).not.toContain("| `seo-audit` |")
+    expect(operations).toContain("approved upstream helper is shared `seo-research`")
+    expect(operations).not.toContain("Approved upstream helpers are `keyword-research`")
+
+    const uiSkill = readProjectFile(
+      ".agents/skills/instantmed-ui-browser-verification/SKILL.md",
+    )
+    expect(uiSkill).toContain("Use `web-design` modes")
+    expect(uiSkill).not.toContain("Impeccable/Emil routing")
   })
 
   it("keeps product and design docs pointed at one compact operator experience", () => {

@@ -717,7 +717,7 @@ The approved posture relies on read-only scopes, on-demand Search Console report
 
 Reference plans, memory, interviews, and tool suggestions do not overwrite repo-owned fields. A projection refresh requires an explicit request and an exact field diff; normal research may append its receipt but may not "sharpen" strategy. Check the research log before paid calls and reuse a matching result under 30 days old unless the decision requires fresher evidence. Credit spend requires an explicit request for that research scope or separate approval of the exact call.
 
-Approved upstream helpers are `keyword-research`, `keyword-clustering`, `competitor-analysis`, `competitive-landscape`, `link-prospecting`, and the projection-constrained `seo-project-setup`. Do not use `seo-audit`: internal GSC indexing and content audits own technical triage, and `docs/ROADMAP.md` owns the next action. `local-seo`, `seo-coach`, and `simple-issue-description` also remain pruned.
+The approved upstream helper is shared `seo-research` with its OpenSEO reference, covering keyword research, clustering, competitor analysis, competitive landscape, link prospecting, and projection-constrained project-context setup. The six former standalone helpers are retired; this routing change does not expand provider scope or the account, data, credit, and adoption gates. Do not use `seo-audit`: internal GSC indexing and content audits own technical triage, and `docs/ROADMAP.md` owns the next action. `local-seo`, `seo-coach`, and `simple-issue-description` also remain pruned.
 
 ---
 
