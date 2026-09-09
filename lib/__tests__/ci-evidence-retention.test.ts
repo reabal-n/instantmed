@@ -1,8 +1,9 @@
-import { spawnSync } from "node:child_process"
-import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { spawn, spawnSync } from "node:child_process"
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
+import { setTimeout as delay } from "node:timers/promises"
 
 import { describe, expect, it } from "vitest"
 
@@ -18,6 +19,50 @@ function suitePaths(suite: string) {
   expect(workflow).toContain(report)
   expect(workflow).toContain(output)
   return { report, output }
+}
+
+async function interruptStartedSuite(args: string[], cwd: string) {
+  const child = spawn(process.execPath, args, {
+    cwd,
+    env: { NODE_ENV: "test", PATH: process.env.PATH, HOME: process.env.HOME, CI: "1" },
+    stdio: ["ignore", "pipe", "pipe"],
+  })
+  let output = ""
+  let spawnError: Error | undefined
+  let result: { code: number | null; signal: NodeJS.Signals | null } | undefined
+  child.stdout.on("data", (data) => { output += data.toString() })
+  child.stderr.on("data", (data) => { output += data.toString() })
+  child.on("error", (error) => { spawnError = error })
+  const closed = new Promise<void>((resolve) => {
+    child.once("close", (code, signal) => {
+      result = { code, signal }
+      resolve()
+    })
+  })
+  const waitFor = async (condition: () => boolean, timeout: number, message: string) => {
+    const deadline = performance.now() + timeout
+    while (!condition()) {
+      if (spawnError) throw spawnError
+      if (performance.now() >= deadline) throw new Error(`${message}\n${output}`)
+      await delay(25)
+    }
+  }
+  try {
+    await waitFor(() => {
+      if (result) throw new Error(`Synthetic suite exited before entering its test: ${result.code}\n${output}`)
+      return existsSync(join(cwd, "test-started"))
+    }, 20000, "Synthetic suite did not enter its test before the startup watchdog")
+    // Interrupt only after test.step has started; CLI/worker startup is not the signal.
+    expect(child.kill("SIGINT")).toBe(true)
+    await waitFor(() => result !== undefined, 10000, "Interrupted suite did not finish its reporters")
+    expect(spawnError).toBeUndefined()
+    return { ...result!, output }
+  } finally {
+    if (!result) {
+      child.kill("SIGKILL")
+      await Promise.race([closed, delay(5000)])
+    }
+  }
 }
 
 describe("CI diagnostic evidence retention", () => {
@@ -62,7 +107,7 @@ describe("CI diagnostic evidence retention", () => {
     expect(() => getCiPlaywrightGlobalTimeout(deadline, 1000)).toThrow(/browser evidence deadline|browser test budget exhausted/i)
   })
 
-  it("finishes an interrupted suite with reports and traces before the runner is killed", () => {
+  it("finishes an interrupted suite with reports and traces before the runner is killed", async () => {
     const temporary = mkdtempSync(join(tmpdir(), "instantmed-ci-deadline-"))
     try {
       const playwright = JSON.stringify(require.resolve("@playwright/test"))
@@ -81,22 +126,18 @@ describe("CI diagnostic evidence retention", () => {
       `)
       writeFileSync(join(temporary, "hung.spec.cjs"), `
         const { test } = require(${playwright});
+        const { writeFileSync } = require('node:fs');
         test('synthetic interrupted attempt', async () => {
-          await test.step('wait beyond the browser budget', async () => {
+          await test.step('wait for the runner interruption', async () => {
+            writeFileSync('test-started', 'ready');
             await new Promise(() => {});
           });
         });
       `)
       const args = [require.resolve("@playwright/test/cli"), "test", "--config=playwright.config.cjs", "hung.spec.cjs"]
-      const deadline = Date.now() + 5000
-      const run = spawnSync(process.execPath, args, {
-        cwd: temporary,
-        encoding: "utf8",
-        timeout: 12000,
-        env: { NODE_ENV: "test", PATH: process.env.PATH, HOME: process.env.HOME, CI: "1", PLAYWRIGHT_CI_DEADLINE_MS: String(deadline) },
-      })
-      expect(run.error).toBeUndefined()
-      expect(run.status, run.stdout + run.stderr).toBe(1)
+      const run = await interruptStartedSuite(args, temporary)
+      expect(run.code, run.output).toBe(130)
+      expect(run.signal).toBeNull()
       const reportPath = join(temporary, "playwright-report/paid-clinical/index.html")
       const report = readFileSync(reportPath)
       const attempts = JSON.parse(readFileSync(join(temporary, "attempts.json"), "utf8"))
@@ -117,7 +158,7 @@ describe("CI diagnostic evidence retention", () => {
     } finally {
       rmSync(temporary, { recursive: true, force: true })
     }
-  }, 15000)
+  }, 40000)
 
   it.each([[0, 0], [1, 0], [0, 1], [1, 1]])(
     "runs both paid viewports and preserves failure (desktop=%i, mobile=%i)",
