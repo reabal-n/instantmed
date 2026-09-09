@@ -83,8 +83,9 @@ describe("Google Ads Agent policy documentation", () => {
 
   it("keeps the current Scripts read-back and Hair-loss checkpoint operator-owned", () => {
     expect(roadmap).toContain(
-      "approved 2026-09-03 Scripts step from A$79/day to A$95/day was applied and read back",
+      "Scripts losing keywords are paused and tROAS is 1.35 at $95/day",
     )
+    expect(roadmap).toContain("All applied changes have exact approval and read-back receipts")
     expect(roadmap).toContain("Hair-loss paid pilot — 2026-09-11")
     expect(roadmap).toContain(
       "produce the exact campaign-status pause proposal for operator approval",

@@ -895,7 +895,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                     <p className="mt-4 text-sm text-muted-foreground">
                       Workplace evidence guidance: {" "}
                       <a href="https://www.fairwork.gov.au/leave/sick-and-carers-leave/paid-sick-and-carers-leave/notice-and-medical-certificates" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
-                        Fair Work Ombudsman — notice and medical certificates
+                        Fair Work Ombudsman: notice and medical certificates
                       </a>.
                     </p>
                   </div>
