@@ -499,7 +499,7 @@ export function IntakeActionButtons({
             className="min-h-11 bg-primary px-3 text-sm hover:bg-primary/90 sm:h-7 sm:min-h-0 sm:px-2.5 sm:text-xs"
             disabled={isActionDisabled || Boolean(completionDisabledReason)}
             title={completionDisabledReason ?? approveAfterPrescribeTitle}
-            aria-describedby={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
+            aria-describedby={visibleDisabledHint ? "queue-completion-hint" : undefined}
             size="sm"
           >
             {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
@@ -590,11 +590,18 @@ export function IntakeActionButtons({
       )}
       </div>
       {accessReason ? <p role="status" className="mt-2 text-xs text-warning">{accessReason}</p> : null}
-      {onRequestInformation && informationDisabledReason ? <p id="information-unavailable" className="mt-1 text-xs text-muted-foreground">{informationDisabledReason}</p> : null}
+      {onRequestInformation && informationDisabledReason ? (
+        <p
+          id="information-unavailable"
+          className={intake.status === "awaiting_script" && visibleDisabledHint ? "sr-only" : "mt-1 text-xs text-muted-foreground"}
+        >
+          {informationDisabledReason}
+        </p>
+      ) : null}
       {visibleDisabledHint && (
         <p
-          id={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
-          className="mt-2 inline-flex w-fit items-center rounded-md border border-border/60 bg-muted/25 px-2 py-1 text-xs font-medium text-slate-600 dark:text-muted-foreground"
+          id="queue-completion-hint"
+          className="mt-1.5 text-xs text-muted-foreground"
         >
           {visibleDisabledHint}
         </p>

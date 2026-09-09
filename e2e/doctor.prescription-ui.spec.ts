@@ -506,15 +506,15 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(parchmentPanel).toBeVisible()
     const medicationContext = parchmentPanel.locator('[data-parchment-medication-context]:visible')
     await expect(medicationContext).toBeVisible({ timeout: 15000 })
-    await expect(medicationContext.getByText("Medicine to search", { exact: true })).toBeVisible()
-    await expect(medicationContext.getByText("Sertraline", { exact: true })).toBeVisible({
+    const copyName = medicationContext.getByRole("button", { name: /Copy .*medicine name/ })
+    await expect(copyName).toHaveText("Copy Sertraline", {
       timeout: 30_000,
     })
     await expect(medicationContext).toContainText("Likely match from a previous prescription")
-    await expect(medicationContext.getByText("Frequency", { exact: true })).toBeVisible()
-    await expect(medicationContext.getByText("Not separately captured; see directions", { exact: true })).toBeVisible()
+    await expect(medicationContext.getByText("Frequency", { exact: true })).toHaveCount(0)
+    await expect(medicationContext.getByText("Not separately captured; see directions", { exact: true })).toHaveCount(0)
 
-    await medicationContext.getByRole("button", { name: /Copy .*medicine name/ }).click()
+    await copyName.click()
     await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("Sertraline")
 
     await expect(medicationContext.getByRole("button", { name: "Copy patient-reported frequency" })).toHaveCount(0)

@@ -34,6 +34,12 @@ const ANSWERS = {
   isPregnantOrBreastfeeding: "no",
   hasAdverseMedicationReactions: "no",
 }
+const ED_ANSWERS = {
+  consultSubtype: "ed", edDuration: "6_to_12_months", edErectionFrequency: 3, edPreference: "prn",
+  edNitrates: false, edRecentHeartEvent: false, edSevereHeart: false, edAlphaBlockers: false,
+  previousEdMeds: true, edPreviousTreatment: "Sildenafil 50 mg",
+  has_allergies: false, has_conditions: false, takes_medications: false,
+}
 
 // Ledger intentionally has no browser test here. Its initial SSR has no
 // seed-only filter, and ?q redirects before querying (search is POST-only).
@@ -137,12 +143,21 @@ test.describe("Concise clinical review", () => {
     answers = ANSWERS as Record<string, unknown>,
     status = "in_review",
     claimedBy = OPERATOR_ID,
-  }: { answers?: Record<string, unknown>; status?: string; claimedBy?: string } = {}) {
-    const seed = await seedTestIntake({ status, category: "prescription", payment_status: "paid", claimed_by: claimedBy })
+    ed = false,
+  }: { answers?: Record<string, unknown>; status?: string; claimedBy?: string; ed?: boolean } = {}) {
+    const db = getSupabaseClient()
+    const serviceId = ed ? "e2e00000-0000-0000-0000-000000000022" : undefined
+    if (ed) {
+      const service = await db.from("services").upsert({
+        id: serviceId!, slug: "consult-e2e", name: "E2E Consult", short_name: "E2E Consult",
+        description: "Deterministic E2E consult service", type: "consult", price_cents: 4995, is_active: true,
+      }, { onConflict: "id" })
+      expect(service.error).toBeNull()
+    }
+    const seed = await seedTestIntake({ status, service_id: serviceId, category: ed ? "consult" : "prescription", payment_status: "paid", claimed_by: claimedBy })
     expect(seed.success, seed.error).toBe(true)
     const id = seed.intakeId!
     intakeIds.push(id)
-    const db = getSupabaseClient()
     const isolated = await db.from("intakes")
       .select("exclude_from_reporting, paid_request_telegram_message_id")
       .eq("id", id).single()
@@ -151,7 +166,14 @@ test.describe("Concise clinical review", () => {
     expect(isolated.data?.paid_request_telegram_message_id).toBeNull()
     const inserted = await db.from("intake_answers").insert({ intake_id: id, answers })
     expect(inserted.error).toBeNull()
-    const note = await db.from("intakes").update({ doctor_notes: SOAP, amount_cents: 2995 }).eq("id", id)
+    const note = await db.from("intakes").update({
+      doctor_notes: SOAP,
+      amount_cents: ed ? 4995 : 2995,
+      // Keep these layout fixtures out of the queue timer's first-minute
+      // second-by-second SSR hydration race. Console assertions stay strict.
+      paid_at: new Date(Date.now() - (5 * 60 + 15) * 1000).toISOString(),
+      ...(ed ? { subtype: "ed" } : {}),
+    }).eq("id", id)
     expect(note.error).toBeNull()
     return id
   }
@@ -213,8 +235,86 @@ test.describe("Concise clinical review", () => {
         await expect(panel.getByText("Saved", { exact: true }).first()).toBeVisible()
         if (artifactDir) await page.screenshot({ path: join(artifactDir, `${viewport.width}-${theme}-note-header.png`) })
       })
+
+      test(`keeps ED screening compact and prescribing details optional at ${viewport.width} in ${theme}`, async ({ page }) => {
+        const intakeId = await seedCase({ ed: true, answers: ED_ANSWERS, status: "awaiting_script" })
+        await page.setViewportSize(viewport)
+        await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" })
+        await page.addInitScript((value) => localStorage.setItem("theme", value), theme)
+        const panel = await openQueueCase(page, intakeId)
+        await expect(page.locator("html")).toHaveClass(theme === "dark" ? /dark/ : /light/)
+        const packet = panel.getByRole("region", { name: "Request packet" })
+        const negatives = packet.locator('[data-review-negative-screening="true"]')
+        await expect(negatives.locator("[data-review-fact]")).toHaveCount(4)
+        for (const label of ["Nitrate use", "Recent heart event", "Severe heart condition", "Alpha blockers"]) {
+          await expect(negatives).toContainText(label)
+        }
+        await expect(packet.locator('[data-review-fact="blood_pressure_medication"]')).toHaveCount(0)
+        await expect(packet.locator('[data-review-fact="previous_ed_medication"]')).toContainText("Sildenafil 50 mg")
+        await expect(packet.locator('[data-review-fact="previous_treatment_detail"]')).toHaveCount(0)
+        await expect(panel.getByText("Awaiting Script", { exact: true })).toHaveCount(0)
+        await expect(panel.locator("[data-prescribing-state]")).toHaveCount(1)
+        if (viewport.width === 1366) {
+          await assertNotClipped(packet.locator('[data-review-clinical-context="true"]'))
+          await assertNotClipped(negatives)
+        }
+        const stopBlocking = await preventProviderSession(page, intakeId)
+        try {
+          await panel.getByRole("button", { name: "Prescribe", exact: true }).click()
+          const portal = page.getByRole("dialog", { name: /^Prescribe for / })
+          await expect(portal).toBeVisible()
+          const reference = portal.locator("[data-parchment-medication-context]")
+          await expect(reference.getByText("Sildenafil 50mg tablet", { exact: true })).toBeVisible()
+          await expect(reference.getByText("Take 1 tablet 1 hour before sexual activity. Maximum 1 tablet per 24 hours.", { exact: true })).toBeVisible()
+          await expect(reference.getByText("Erectile dysfunction consult", { exact: true })).toBeVisible()
+          await expect(reference.locator('[data-parchment-provenance="template"]')).toBeVisible()
+          const details = reference.getByRole("button", { name: "Clinical details", exact: true })
+          await expect(details).toHaveAttribute("aria-expanded", "false")
+          await expect(reference.locator('[data-parchment-assessment-fact="nitrate_use"]')).not.toBeVisible()
+          await expect(reference.getByText(/not separately captured/i)).not.toBeVisible()
+          // Measure rendered content before disclosure: routine assessment
+          // must leave at least two-thirds of the viewport for prescribing.
+          expect((await reference.boundingBox())!.height).toBeLessThan(viewport.height / 3)
+          await assertNotClipped(details)
+          await details.focus()
+          await page.keyboard.press("Enter")
+          await expect(details).toHaveAttribute("aria-expanded", "true")
+          await expect(reference.locator('[data-parchment-assessment-fact="nitrate_use"]')).toContainText("No")
+          await expect(reference.locator('[data-parchment-assessment-fact="previous_ed_medication"]')).toContainText("Sildenafil 50 mg")
+          await details.click()
+          await expect(details).toHaveAttribute("aria-expanded", "false")
+          await portal.getByRole("button", { name: "Close panel", exact: true }).click()
+          await assertNotClipped(panel.getByRole("button", { name: "Prescribe", exact: true }))
+          await expect(panel.getByRole("button", { name: "Complete request", exact: true })).toBeDisabled()
+          expect((await getIntakeById(intakeId))?.script_sent).toBe(false)
+        } finally { await stopBlocking() }
+      })
     }
   }
+
+  test("keeps positive and unanswered ED screens distinct from explicit negatives", async ({ page }) => {
+    const answers: Record<string, unknown> = { ...ED_ANSWERS, edAlphaBlockers: true }
+    delete answers.edRecentHeartEvent
+    const intakeId = await seedCase({ ed: true, answers })
+    const panel = await openQueueCase(page, intakeId)
+    const packet = panel.getByRole("region", { name: "Request packet" })
+    const negatives = packet.locator('[data-review-negative-screening="true"]')
+    await expect(negatives.locator("[data-review-fact]")).toHaveCount(2)
+    await expect(negatives).not.toContainText("Alpha blockers")
+    await expect(negatives).not.toContainText("Recent heart event")
+    await expect(packet.locator('[data-review-fact="alpha_blockers"]')).toContainText("Yes")
+    await expect(packet.locator('[data-review-fact="recent_heart_event"]')).toContainText("Not recorded")
+    const stopBlocking = await preventProviderSession(page, intakeId)
+    try {
+      await panel.getByRole("button", { name: "Prescribe", exact: true }).click()
+      const portal = page.getByRole("dialog", { name: /^Prescribe for / })
+      const reference = portal.locator("[data-parchment-medication-context]")
+      await expect(reference.getByRole("button", { name: "Clinical details", exact: true })).toHaveAttribute("aria-expanded", "false")
+      await expect(reference.getByText("Alpha blocker use", { exact: true })).toBeVisible()
+      await portal.getByRole("button", { name: "Close panel", exact: true }).click()
+    } finally { await stopBlocking() }
+    await expect(panel.getByRole("button", { name: "Complete request", exact: true })).toBeDisabled()
+  })
 
   test("keeps the same patient facts on queue and exact admin/doctor records", async ({ page }) => {
     const intakeId = await seedCase()
@@ -238,7 +338,7 @@ test.describe("Concise clinical review", () => {
       await expect(portal).toBeVisible()
       await expect(portal.getByText(DIRECTIONS, { exact: true })).toBeVisible()
       await expect(portal.getByText(INDICATION, { exact: true })).toBeVisible()
-      await expect(portal).toContainText(/not separately captured/i)
+      await expect(portal.getByText(/not separately captured/i)).not.toBeVisible()
       await expect(portal.getByRole("button", { name: "Copy patient-reported frequency" })).toHaveCount(0)
       await portal.getByRole("button", { name: "Close panel", exact: true }).click()
       await expect(page.getByTestId("intake-review-panel")).toBeVisible()
@@ -425,7 +525,10 @@ test.describe("Concise clinical review", () => {
       const requestInfo = panel.getByRole("button", { name: "Request information", exact: true })
       if (status === "awaiting_script") {
         await expect(requestInfo).toBeDisabled()
-        await expect(panel.getByText("Information cannot be requested while awaiting a script.", { exact: true })).toBeVisible()
+        await expect(requestInfo).toHaveAccessibleDescription("Information cannot be requested while awaiting a script.")
+        await expect(panel.locator("#queue-completion-hint")).toHaveText("Complete or record the prescription in Parchment first.")
+        await expect(panel.getByRole("button", { name: "Complete request", exact: true })).toHaveAccessibleDescription("Complete or record the prescription in Parchment first.")
+        await expect(panel.getByText("Awaiting Script", { exact: true })).toHaveCount(0)
         return
       }
       await expect(requestInfo).toBeEnabled()
