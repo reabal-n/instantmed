@@ -60,14 +60,6 @@ export function sydneyDateKey(value: string): string | null {
   return `${values.year}-${values.month}-${values.day}`
 }
 
-export function previousSydneyDateKey(value: string): string | null {
-  const key = sydneyDateKey(value)
-  if (!key) return null
-  const [year, month, day] = key.split("-").map(Number)
-  const previous = new Date(Date.UTC(year, month - 1, day - 1))
-  return previous.toISOString().slice(0, 10)
-}
-
 export function deriveScriptsScaleAuthorizationEvidence(args: {
   budgetResourceName: string
   campaignResourceName: string

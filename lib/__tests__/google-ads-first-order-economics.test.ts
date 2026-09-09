@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("server-only", () => ({}))
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { aggregateFirstOrderCampaignEconomics, readFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics"
+import { readFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics"
+import { aggregateFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics-core"
 import type { AdsSnapshotWindow,CampaignEconomics } from "@/lib/ads-agent/types"
 import { readCustomerGrowthRevenueEvidence } from "@/lib/data/customer-growth-revenue-read"
 
