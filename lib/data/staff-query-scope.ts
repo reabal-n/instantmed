@@ -1,6 +1,6 @@
 import "server-only"
 
-import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
+import { filterSeededE2EIntakes, type SeededE2EFilterOptions } from "@/lib/data/seeded-e2e-data"
 import { isE2ETestModeEnabled } from "@/lib/dev-only-routes"
 
 export type StaffQueryScope = "ordinary" | "synthetic"
@@ -16,7 +16,7 @@ type StaffScopeQuery = {
 }
 
 /** Restrict test reads in SQL, before fetching any identity or answer fields. */
-export function scopeStaffIntakes<T>(query: T, scope: StaffQueryScope): T {
+export function scopeStaffIntakes<T>(query: T, scope: StaffQueryScope, options: SeededE2EFilterOptions = {}): T {
   // PostgREST's recursive overloads are expensive to structurally compare with
   // this small interface. Adapt only the filter boundary, retaining the original
   // builder/result type for the caller; these filters never change its selection.
@@ -29,5 +29,5 @@ export function scopeStaffIntakes<T>(query: T, scope: StaffQueryScope): T {
   }
 
   // The resolved guard takes precedence over stray test flags on Vercel.
-  return filterSeededE2EIntakes(filters, {}) as unknown as T
+  return filterSeededE2EIntakes(filters, {}, options) as unknown as T
 }

@@ -180,6 +180,10 @@ describe("getRecentlyCompletedIntakes", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useRealTimers()
+    // These fixtures exercise ordinary review history; synthetic SQL scope has
+    // a separate executable query-filter regression.
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("PLAYWRIGHT", "")
   })
 
   afterEach(() => {
