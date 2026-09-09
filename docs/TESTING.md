@@ -220,6 +220,10 @@ The med-cert auto-approval E2E contract uses `/api/test/medcert-immediate-auto-a
 
 **Parchment proof boundary:** local and mocked browser checks can prove InstantMed's responsive sheet, same-page restoration, action sizing, and disabled-state contract. They cannot prove the real third-party iframe. Release proof for the vendor interaction requires an explicitly approved Parchment sandbox/test request at a 375px-class viewport, including launch, prescribe/issue, return, durable `script_sent` refresh, and completion unlock. Never use a production patient or create vendor state merely to obtain visual proof.
 
+**Isolated prescribing workspace regression:** `node scripts/test-parchment-workspace-browser.mjs` bundles the real wrapper, shared panel owner and both global/staff stylesheets against a cross-origin loopback provider. It checks laptop/mobile geometry, long references, light/dark modes, exact copy values, retry races and keyboard return. Required CI runs it before loading application secrets, with `--output-dir=test-results/parchment-workspace`; each run retains its own screenshots, results and per-scenario traces. It loads no app environment, database or provider credentials. The simulated visual viewport check is not physical-device keyboard evidence.
+
+**Owned fixture cleanup:** `cleanupTestIntake` rejects returned deletion errors and propagates certificate/transport failures. It keeps the existing child-before-parent order and exact intake/certificate filters. A passing browser assertion cannot hide failed cleanup; failure does not establish that cleanup caused an earlier unrelated CI retry.
+
 ### Hosted Stripe guest-checkout proof
 
 `corepack pnpm e2e:stripe-hosted` is the manual, production-bundle acceptance
@@ -353,6 +357,8 @@ steps:
 ```
 
 **E2E runs in two places:** (1) `ci.yml` on PRs and post-merge main runs; its `e2e` check is a required main-merge context alongside `build`, running Chromium ops/navigation/clinical-input smoke plus blocking paid critical flows whenever at least one changed path is not Markdown; (2) `e2e-preview.yml` against explicitly requested Vercel preview deployments for deploy health plus an active `/request` route smoke. Markdown-only changes still resolve the required `e2e` context but skip the serialized shared-fixture tests; an unknown or unreadable change scope runs E2E. Protected Vercel preview E2E requires the GitHub secret `VERCEL_AUTOMATION_BYPASS_SECRET`; without it, the preview readiness check fails fast on the expected `401`. Preview smoke requires `410 Gone` from `/api/test/login` because `/api/test/*` is always blocked on Vercel production and preview deployments, including when `PLAYWRIGHT=1` is accidentally configured. Unit tests and lint run on every PR and post-merge main run.
+
+**Browser evidence retention:** each app Playwright invocation writes separate report/result directories (`ops`, `medcert`, `paid-clinical`, `paid-clinical-mobile`, `checkout-resume`). Both artifact parents upload even when the job succeeds, retaining failed-attempt traces from tests that pass on retry. Desktop and mobile paid-clinical runs both execute, and either failure fails their step. Retry counts and assertion strictness are unchanged.
 
 **Monthly stack health:** `.github/workflows/stack-drift.yml` runs on the first day of each month and can be triggered manually. It verifies active Node 24, stack pins, lockfile dedupe, high-severity audit, and writes a non-blocking outdated-package report to the workflow summary. Framework upgrades remain separate planned windows, not opportunistic dependency bumps.
 
