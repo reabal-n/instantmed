@@ -20,6 +20,14 @@ const URL_PROPERTY_KEYS = new Set([
   "url",
 ])
 
+// These fixed public acquisition paths have no dynamic segments but collide
+// with the free-text named-ID matcher ("certificate-..."). Keep their labels
+// only after structural URL redaction. Other paths and free text keep the PHI scrubber.
+const PUBLIC_LANDING_PATH_ALLOWLIST = new Set([
+  "/medical-certificate-online",
+  "/compare/online-medical-certificate-options",
+])
+
 const CONTROLLED_TECHNICAL_ID_KEYS = new Set([
   "adgroupid",
   "campaignid",
@@ -131,9 +139,8 @@ function sanitizePostHogUrl(value: string): string {
     const parsed = new URL(value)
     return `${parsed.origin}${redactExternalAnalyticsPathname(parsed.pathname)}`
   } catch {
-    return scrubPHI(
-      redactExternalAnalyticsPathname(value.split(/[?#]/, 1)[0] ?? ""),
-    )
+    const pathname = redactExternalAnalyticsPathname(value.split(/[?#]/, 1)[0] ?? "")
+    return PUBLIC_LANDING_PATH_ALLOWLIST.has(pathname) ? pathname : scrubPHI(pathname)
   }
 }
 

@@ -21,6 +21,51 @@ function readSource(path: string): string {
 }
 
 describe("personless PostHog analytics", () => {
+  it.each([
+    "/medical-certificate-online",
+    "/compare/online-medical-certificate-options",
+  ])("keeps the known public AI landing %s after the capture privacy boundary", (pathname) => {
+    const event = sanitizePostHogEvent({
+      event: "ai_referral",
+      properties: {
+        distinct_id: "anonymous-browser",
+        ai_source: "ChatGPT",
+        matched_by: "utm_source",
+        landing_page: `${pathname}?utm_source=chatgpt.com&email=patient%40example.com#token`,
+        $current_url: `https://instantmed.com.au${pathname}?email=patient%40example.com#token`,
+      },
+    })
+
+    expect(event?.properties).toMatchObject({
+      ai_source: "ChatGPT",
+      matched_by: "utm_source",
+      landing_page: pathname,
+      $current_url: `https://instantmed.com.au${pathname}`,
+      $process_person_profile: false,
+      $geoip_disable: true,
+    })
+  })
+
+  it.each([
+    ["/patient-jane-doe", "/[ID_REDACTED]"],
+    ["/medical-certificate-patient-secret", "/medical-[ID_REDACTED]"],
+    ["/medical-certificate-online/patient-secret", "/medical-[ID_REDACTED]/[ID_REDACTED]"],
+    ["/compare/online-medical-certificate-options/patient-secret", "/compare/online-medical-[ID_REDACTED]/[ID_REDACTED]"],
+    ["/track/request-secret?token=secret", "/track/[ID_REDACTED]"],
+    ["/patient/intakes/11111111-1111-4111-8111-111111111111", "/patient/[REDACTED]"],
+    ["//medical-certificate-online", "/[REDACTED]"],
+    ["/medical-certificate%ZZ", "/[REDACTED]"],
+    ["/medical-certificate-online%253Ftoken", "/[REDACTED]"],
+  ])("keeps redaction for an unknown or private landing %s", (pathname, expected) => {
+    expect(sanitizePostHogProperties({ landing_page: pathname }).landing_page).toBe(expected)
+  })
+
+  it("does not exempt the public route words from general free-text identifier scrubbing", () => {
+    expect(sanitizePostHogProperties({
+      custom_label: "/medical-certificate-online patient-secret",
+    }).custom_label).toBe("/medical-[ID_REDACTED] [ID_REDACTED]")
+  })
+
   it("redacts capability path segments from automatic URL properties", () => {
     const sanitized = sanitizePostHogProperties({
       $current_url: "https://instantmed.com.au/track/request-token?page=1",
