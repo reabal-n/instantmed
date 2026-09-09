@@ -26,6 +26,11 @@ describe("shared clinical review action presentation", () => {
     const html = render(context("awaiting_script"))
     expect(html).toContain("Request information")
     expect(html).toContain("Information cannot be requested while awaiting a script.")
+    // Keep the specific restriction in the accessible description, while
+    // ordinary awaiting-script work has one visible completion explanation.
+    expect(html).toMatch(/<p id="information-unavailable" class="sr-only">/)
+    expect(html).toMatch(/aria-describedby="queue-completion-hint"/)
+    expect(html).toMatch(/<p id="queue-completion-hint"[^>]*>Complete or record the prescription in Parchment first\.<\/p>/)
   })
   it("keeps completion visible while clarification is pending", () => {
     const html = render(context("pending_info"))

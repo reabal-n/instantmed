@@ -570,6 +570,10 @@ export function IntakeReviewPanel({
   const claimStateLabel = formatClaimStateLabel(lockState, claimAgeNow)
   const visibleClaimStateLabel = lockState.status === "blocked" ? claimStateLabel : null
   const queueEnteredAt = getQueueEnteredAt(intake)
+  const prescribingStatusInActions = isPrescribingServiceRequest(
+    service?.type,
+    intake.subtype,
+  ) && ["paid", "in_review", "awaiting_script", "pending_info", "approved", "completed"].includes(intake.status)
 
   return (
     <>
@@ -577,7 +581,7 @@ export function IntakeReviewPanel({
         title={intake.patient.full_name}
         description={[
           service?.short_name || formatServiceType(service?.type || ""),
-          formatIntakeStatus(intake.status),
+          !prescribingStatusInActions ? formatIntakeStatus(intake.status) : null,
         ].filter(Boolean).join(" · ")}
         onClose={handlePanelClose}
       >
@@ -589,11 +593,11 @@ export function IntakeReviewPanel({
             data-testid="intake-review-panel"
           >
             {/* Queue state stays separate from patient safety context. */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            {!prescribingStatusInActions || !inline || visibleClaimStateLabel ? <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge className={getStatusColor(intake.status)}>
+                {!prescribingStatusInActions ? <Badge className={getStatusColor(intake.status)}>
                   {formatIntakeStatus(intake.status)}
-                </Badge>
+                </Badge> : null}
                 {!inline ? (
                   <SlaChip
                     paidAt={queueEnteredAt}
@@ -637,7 +641,7 @@ export function IntakeReviewPanel({
                   </Button>
                 </div>
               ) : null}
-            </div>
+            </div> : null}
 
             {/* Lock warning */}
             {lockWarning && (

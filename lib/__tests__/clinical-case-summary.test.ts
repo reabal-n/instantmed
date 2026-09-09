@@ -13,6 +13,57 @@ function dobForExactAge(age: number): string {
 }
 
 describe("buildClinicalCaseSummary", () => {
+  it.each([undefined, null, "", "   "])("omits an absent legacy ED blood-pressure answer (%s) without changing current medicines", (edBpMedication) => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "ed",
+      answers: { edBpMedication, takes_medications: "yes", current_medications: "Amlodipine 5 mg daily" },
+    })
+
+    expect(summary.keyFacts.some((fact) => fact.label === "Blood pressure medication")).toBe(false)
+    expect(summary.keyFacts).toContainEqual({ label: "Current medications", value: "Amlodipine 5 mg daily" })
+  })
+
+  it.each([
+    { answer: true, value: "Yes" },
+    { answer: false, value: "No" },
+    { answer: "yes", value: "Yes" },
+    { answer: "no", value: "No" },
+    { answer: "not sure", value: "Not Sure" },
+  ])("preserves the historical ED blood-pressure response $answer", ({ answer, value }) => {
+    const summary = buildClinicalCaseSummary({ category: "consult", subtype: "ed", answers: { edBpMedication: answer } })
+
+    expect(summary.keyFacts).toContainEqual({ label: "Blood pressure medication", value })
+  })
+
+  it.each([true, "yes"])("combines a confirmed previous ED treatment answer (%s) with its exact detail once", (previousEdMeds) => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "ed",
+      answers: { previousEdMeds, edPreviousTreatment: "Synthetic medicine 10 mg, only when needed; no headache." },
+    })
+
+    expect(summary.keyFacts).toContainEqual({
+      label: "Previous ED medication", value: "Yes. Synthetic medicine 10 mg, only when needed; no headache.",
+    })
+    expect(summary.keyFacts.some((fact) => fact.label === "Previous treatment detail")).toBe(false)
+  })
+
+  it.each([
+    { answer: false, value: "No" },
+    { answer: undefined, value: "Not provided" },
+    { answer: "not sure", value: "Not Sure" },
+  ])("keeps previous-treatment detail distinct from a negative or unresolved response ($answer)", ({ answer, value }) => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "ed",
+      answers: { previousEdMeds: answer, edPreviousTreatment: "Recorded medicine detail" },
+    })
+
+    expect(summary.keyFacts).toContainEqual({ label: "Previous ED medication", value })
+    expect(summary.keyFacts).toContainEqual({ label: "Previous treatment detail", value: "Recorded medicine detail" })
+  })
+
   it("turns an ED request into a patient story, plan, note, and Parchment prescribing intent", () => {
     const summary = buildClinicalCaseSummary({
       category: "consult",

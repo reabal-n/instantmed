@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 
 describe("buildParchmentPrescriptionContext", () => {
@@ -32,6 +33,7 @@ describe("buildParchmentPrescriptionContext", () => {
     })
 
     expect(context).toEqual({
+      requestLabel: "Repeat prescription",
       presetLabel: "Repeat prescription Parchment context",
       medicationLabel: "Rosuvastatin 10 mg tablet",
       searchHint: "Rosuvastatin 10 mg tablet",
@@ -145,6 +147,18 @@ describe("buildParchmentPrescriptionContext", () => {
     expect(context).toBeNull()
   })
 
+  it.each([
+    { edNitrates: true },
+    { edRecentHeartEvent: true, edGpCleared: false },
+    { edSevereHeart: true, edGpCleared: false },
+  ])("does not create a prescribing context for a blocked ED summary: %s", (answers) => {
+    const source = { category: "consult", subtype: "ed", answers }
+    const summary = buildClinicalCaseSummary(source)
+
+    expect(summary.prescriptionIntent).toBeUndefined()
+    expect(buildParchmentPrescriptionContext(summary, source)).toBeNull()
+  })
+
   it("keeps clinician-selected specialty directions separate from patient-reported dose context", () => {
     const context = buildParchmentPrescriptionContext({
       title: "Women's health",
@@ -192,6 +206,7 @@ describe("buildParchmentPrescriptionContext", () => {
       }, draftNote: "",
     }
     const context = buildParchmentPrescriptionContext(summary, { category: "consult", subtype, answers: {} })
+    expect(context?.requestLabel).toBe("Specialty request")
     expect(context?.assessmentFacts).toEqual([expect.objectContaining({ label, value, provenance: "current_request" })])
     expect(context?.regimenSource).toBe("template")
     expect(context?.patientReportedDose).toBeUndefined()

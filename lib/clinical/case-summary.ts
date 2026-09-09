@@ -544,6 +544,13 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const erectionFrequencyLabel = erectionFrequency !== undefined
     ? `${erectionFrequency}/5 (${ED_FREQUENCY_SEVERITY_LABELS[erectionFrequency] ?? "unspecified"})`
     : undefined
+  const previousEdMedication = yesNo(raw(answers, "previousEdMeds"))
+  const previousTreatmentDetail = str(answers, "edPreviousTreatment")
+  // Combine only an explicit yes with its unchanged detail. A negative,
+  // uncertain or absent response must remain distinct from recorded details.
+  const combinedPreviousTreatment = previousEdMedication === "Yes" && previousTreatmentDetail
+    ? `${previousEdMedication}. ${previousTreatmentDetail}`
+    : null
 
   const safetyItems: ClinicalSafetyItem[] = [
     hasNitrates
@@ -596,14 +603,19 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     { label: "Nitrate use", value: yesNo(raw(answers, "edNitrates")) },
     { label: "Recent heart event", value: yesNo(raw(answers, "edRecentHeartEvent")) },
     { label: "Severe heart condition", value: yesNo(raw(answers, "edSevereHeart")) },
-    { label: "Blood pressure medication", value: yesNo(raw(answers, "edBpMedication")) },
+    // The current screen collects the general medication list, not this legacy
+    // question. Preserve historical answers without turning absence into a gap
+    // or a reassuring negative.
+    typeof raw(answers, "edBpMedication") === "boolean" || str(answers, "edBpMedication")
+      ? { label: "Blood pressure medication", value: yesNo(raw(answers, "edBpMedication")) }
+      : null,
     { label: "Alpha blockers", value: yesNo(raw(answers, "edAlphaBlockers")) },
     hasRecentHeartEvent || hasSevereHeart || hasAlphaBlockers ? { label: "GP clearance reported", value: yesNo(raw(answers, "edGpCleared")) } : null,
-    { label: "Previous ED medication", value: yesNo(raw(answers, "previousEdMeds")) },
+    { label: "Previous ED medication", value: combinedPreviousTreatment || previousEdMedication },
     // Patient's own words. Carries the medicine/dose they are already
     // established on, so the doctor sees it before applying a starting-dose
     // preset.
-    fact("Previous treatment detail", str(answers, "edPreviousTreatment")),
+    combinedPreviousTreatment ? null : fact("Previous treatment detail", previousTreatmentDetail),
     fact("Previous treatment response", str(answers, "edPreviousEffectiveness")),
     fact("Patient notes", str(answers, "edAdditionalInfo")),
     fact("Allergies", str(answers, "known_allergies")),

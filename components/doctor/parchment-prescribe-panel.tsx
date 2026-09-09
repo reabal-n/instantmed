@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { AlertTriangle, CheckCircle, Clipboard, ExternalLink, Loader2, RefreshCw, X } from "lucide-react"
+import { AlertTriangle, CheckCircle, ChevronDown, Clipboard, ExternalLink, Loader2, RefreshCw, X } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -12,6 +12,7 @@ import { getParchmentPrescribeUrlAction } from "@/app/actions/parchment"
 import type { ReloadReviewData } from "@/components/doctor/review/intake-review-context"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useReducedMotion } from "@/components/ui/motion"
 import { computeKeyboardInset, type KeyboardInset } from "@/lib/browser/keyboard-inset"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
@@ -153,10 +154,6 @@ export function ParchmentPrescribePanel({
           ? "Patient-entered name · confirm the match in Parchment"
           : "No verified match · search manually in Parchment"
         : null
-  const displayedMedicationName = copyableMedicationName
-    || patientRequestEntry
-    || prescriptionContext?.presetLabel
-    || "Medicine not recorded"
   const requestFrequency = prescriptionContext?.regimenSource === "patient_reported"
     ? prescriptionContext.patientReportedFrequency || null
     : null
@@ -166,6 +163,14 @@ export function ParchmentPrescribePanel({
   const requestFacts = prescriptionContext?.requestFacts
   const assessmentFacts = prescriptionContext?.assessmentFacts
   const patientDirections = prescriptionContext?.patientReportedDose
+  // Keep real frequency answers and issues, without promoting an uncaptured
+  // field or an extraction from directions into a second prescribing instruction.
+  const visibleRequestFacts = requestFacts?.filter((fact) => (
+    fact.key !== "frequency" || fact.issue || fact.blocksPrescribing ||
+    (fact.state === "confirmed" && !requestFrequency)
+  ))
+  const safetyItems = prescriptionContext?.safetyItems
+  const hasAssessmentDetails = Boolean(assessmentFacts?.length)
 
   useEffect(() => {
     const searchValue = prescriptionContext?.searchHint || prescriptionContext?.medicationLabel
@@ -461,12 +466,12 @@ export function ParchmentPrescribePanel({
               )}
               data-parchment-medication-context="compact"
             >
-              <div className="space-y-2" aria-label="Current prescribing request">
-                {requestFacts ? (
-                  <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {requestFacts.map((fact) => (
+              <div className="space-y-1.5" aria-label="Current prescribing request">
+                {visibleRequestFacts ? (
+                  <dl className="space-y-1.5">
+                    {visibleRequestFacts.map((fact) => (
                       <div key={fact.key} data-parchment-request-fact={fact.key} data-review-fact-state={fact.state}
-                        className={cn("min-w-0", (fact.key === "medicine" || fact.key === "patient_dose") && "sm:col-span-2")}>
+                        className="min-w-0">
                         <dt className="text-xs font-medium text-muted-foreground">{fact.label}</dt>
                         <dd className={cn("select-text whitespace-pre-wrap break-words text-sm leading-5 text-foreground", fact.key === "medicine" && "font-semibold")}>
                           {fact.value}
@@ -476,99 +481,108 @@ export function ParchmentPrescribePanel({
                     ))}
                   </dl>
                 ) : (
-                  <dl className="space-y-2">
+                  <dl className="space-y-1.5">
                     <div>
-                      <dt className="text-xs font-medium text-muted-foreground">{directionsContext ? "Medicine context (template)" : "Medicine"}</dt>
+                      <dt className="flex flex-wrap items-baseline justify-between gap-x-3 text-xs font-medium text-muted-foreground">
+                        Medicine
+                        {prescriptionContext.regimenSource === "template" && <span className="font-normal" data-parchment-provenance="template">Template context</span>}
+                      </dt>
                       <dd className="select-text whitespace-pre-wrap break-words text-sm font-semibold">{patientRequestEntry || prescriptionContext.presetLabel || "Medicine not recorded"}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-medium text-muted-foreground">{directionsContext ? "Directions context (template)" : "Current dose / directions"}</dt>
+                      <dt className="text-xs font-medium text-muted-foreground">{prescriptionContext.regimenSource === "template" ? "Directions" : "Current dose / directions"}</dt>
                       <dd className="select-text whitespace-pre-wrap break-words text-sm">{directionsContext || patientDirections || "Not available in this prescribing context"}</dd>
                     </div>
-                    <div data-parchment-context-field="frequency">
-                      <dt className="text-xs font-medium text-muted-foreground">Frequency</dt>
-                      <dd className="text-sm">{patientDirections ? "Not separately captured; see directions" : "Not separately captured in this prescribing context"}</dd>
-                    </div>
-                    <div data-parchment-context-field="assessment">
-                      <dt className="text-xs font-medium text-muted-foreground">Indication / request context</dt>
-                      <dd className="select-text whitespace-pre-wrap break-words text-sm">
-                        {assessmentFacts?.length ? (
-                          <dl className="mt-1 space-y-1">
-                            {assessmentFacts.map((fact) => (
-                              <div key={fact.key} data-parchment-assessment-fact={fact.key} data-review-fact-state={fact.state}>
-                                <dt className="inline font-medium">{fact.label}: </dt>
-                                <dd className="inline">{fact.value}</dd>
-                              </div>
-                            ))}
-                          </dl>
-                        ) : "Not available in this prescribing context"}
-                      </dd>
+                    <div className="flex items-baseline gap-x-1.5" data-parchment-context-field="request">
+                      <dt className="shrink-0 text-xs font-medium text-muted-foreground">Request</dt>
+                      <dd className="min-w-0 select-text whitespace-pre-wrap break-words text-sm">{prescriptionContext.requestLabel || "Not available in this prescribing context"}</dd>
                     </div>
                   </dl>
                 )}
-                {patientDirections && (
-                  <Button type="button" variant="outline" size="sm" className="min-h-11 px-2.5 sm:min-h-9" onClick={copyPatientDirections} aria-label="Copy patient-reported directions">
-                    <Clipboard className="mr-1.5 h-3.5 w-3.5" />Copy directions
-                  </Button>
+                {requestFrequency ? (
+                  <div className="flex items-baseline gap-x-1.5" data-parchment-context-field="frequency">
+                    <p className="text-xs font-medium text-muted-foreground">Frequency</p>
+                    <p className="min-w-0 select-text whitespace-pre-wrap break-words text-sm leading-5 text-foreground">{requestFrequency}</p>
+                  </div>
+                ) : null}
+                {Boolean(safetyItems?.length) && (
+                  <dl className="space-y-1.5" aria-label="Prescribing safety">
+                    {safetyItems?.map((item, index) => (
+                      <div
+                        key={`${item.label}-${index}`}
+                        data-parchment-safety-severity={item.severity}
+                        className={cn("rounded-md border px-2 py-1", item.severity === "block" ? "border-destructive-border bg-destructive-light" : "border-warning-border bg-warning-light")}
+                      >
+                        <dt className="text-sm font-medium">{item.label}</dt>
+                        <dd className="select-text whitespace-pre-wrap break-words text-sm">{item.detail}</dd>
+                      </div>
+                    ))}
+                  </dl>
                 )}
               </div>
-              <div className="mt-2 flex items-center justify-between gap-3 border-t border-border/50 pt-2">
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-muted-foreground">Medicine to search</p>
-                  <p className="select-text break-words text-sm font-semibold leading-5 text-foreground">
-                    {displayedMedicationName}
-                  </p>
-                  {medicationMatchMessage ? (
-                    <p
-                      aria-live="polite"
-                      className={cn(
-                        "mt-0.5 text-xs",
-                        genericReference.status === "unresolved"
-                          ? "font-medium text-warning"
-                          : "text-muted-foreground",
-                      )}
+              <Collapsible className="group mt-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {copyableMedicationName ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-auto min-h-11 min-w-0 max-w-full whitespace-normal px-2.5 py-2 text-left sm:min-h-9"
+                      onClick={copyMedicationSearchName}
+                      aria-label={verifiedGenericName
+                        ? "Copy verified generic medicine name"
+                        : "Copy patient-entered medicine name"}
                     >
-                      {medicationMatchMessage}
-                    </p>
+                      <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                      <span className="min-w-0 break-words">Copy {copyableMedicationName}</span>
+                    </Button>
                   ) : null}
+                  {patientDirections && (
+                    <Button type="button" variant="outline" size="sm" className="min-h-11 px-2.5 sm:min-h-9" onClick={copyPatientDirections} aria-label="Copy patient-reported directions">
+                      <Clipboard className="mr-1.5 h-3.5 w-3.5" />Copy directions
+                    </Button>
+                  )}
+                  {requestFrequency ? (
+                    <Button type="button" variant="outline" size="sm" className="min-h-11 shrink-0 px-2.5 sm:min-h-9" onClick={copyPatientReportedFrequency} aria-label="Copy patient-reported frequency">
+                      <Clipboard className="mr-1.5 h-3.5 w-3.5" />Copy frequency
+                    </Button>
+                  ) : null}
+                  {hasAssessmentDetails && (
+                    <CollapsibleTrigger asChild>
+                      <Button type="button" variant="ghost" size="sm" className="min-h-11 px-2.5 text-xs text-muted-foreground sm:min-h-9">
+                        <ChevronDown className="mr-1 h-3.5 w-3.5 group-data-[state=open]:rotate-180" />
+                        Clinical details
+                      </Button>
+                    </CollapsibleTrigger>
+                  )}
                 </div>
-                {copyableMedicationName ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="min-h-11 shrink-0 px-2.5 sm:min-h-9"
-                    onClick={copyMedicationSearchName}
-                    aria-label={verifiedGenericName
-                      ? "Copy verified generic medicine name"
-                      : "Copy patient-entered medicine name"}
+                {medicationMatchMessage ? (
+                  <p
+                    aria-live="polite"
+                    className={cn(
+                      "mt-1 text-xs",
+                      genericReference.status === "unresolved"
+                        ? "font-medium text-warning"
+                        : "text-muted-foreground",
+                    )}
                   >
-                    <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                    Copy name
-                  </Button>
+                    {medicationMatchMessage}
+                  </p>
                 ) : null}
-              </div>
-              {requestFrequency ? (
-                <div className="mt-2 flex flex-col items-start gap-2 border-t border-border/50 pt-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-muted-foreground">Frequency</p>
-                    <p className="select-text break-words text-sm leading-5 text-foreground">
-                      {requestFrequency}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="min-h-11 shrink-0 px-2.5 sm:min-h-9"
-                    onClick={copyPatientReportedFrequency}
-                    aria-label="Copy patient-reported frequency"
-                  >
-                    <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                    Copy frequency
-                  </Button>
-                </div>
-              ) : null}
+                {hasAssessmentDetails && (
+                  <CollapsibleContent>
+                    <dl className="mt-2 space-y-1.5 border-t border-border/50 pt-2" aria-label="Full request assessment">
+                      {assessmentFacts?.map((fact) => (
+                        <div key={fact.key} data-parchment-assessment-fact={fact.key} data-review-fact-state={fact.state}>
+                          <dt className="inline text-sm font-medium">{fact.label}: </dt>
+                          <dd className="inline select-text whitespace-pre-wrap break-words text-sm">{fact.value}</dd>
+                          {fact.issue && <p className="text-xs text-warning">{fact.issue}</p>}
+                        </div>
+                      ))}
+                    </dl>
+                  </CollapsibleContent>
+                )}
+              </Collapsible>
             </div>
           )}
         </div>
