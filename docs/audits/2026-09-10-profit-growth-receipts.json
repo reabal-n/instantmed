@@ -888,7 +888,7 @@
     }
   },
   "adPolicyReadback": {
-    "readAt": "2026-09-09T14:44:58.912Z",
+    "readAt": "2026-09-09T14:58:45.989Z",
     "rows": [
       {
         "adGroupAd": {
@@ -1015,8 +1015,7 @@
     "interpretation": "Fourteen-day contribution review, not a waiting veto or autonomous pause. Copy and exclusions changed nearby, so isolated schedule lift is not identifiable."
   },
   "pending": [
-    "Google ad review; pause old women hub RSAs only when replacement destinations can serve",
-    "Local code release and comparison-source refresh"
+    "Google ad review; pause old women hub RSAs only when replacement destinations can serve"
   ],
   "finalAccountReadback": {
     "readAt": "2026-09-09T14:19:22.830Z",
@@ -2570,5 +2569,10 @@
     "scriptsFirstOrderContributionCents": 18167,
     "sourceWindow": "2026-08-10..2026-09-08 Australia/Sydney",
     "patientPayloadIncluded": false
+  },
+  "codeDelivery": {
+    "pullRequest": "https://github.com/reabal-n/instantmed/pull/546",
+    "implementationHead": "8d1c36fe9",
+    "verificationAuthority": "The PR Verification section records final release checks, required CI and production deployment; this pre-merge receipt does not imply deployment."
   }
 }
