@@ -28,6 +28,7 @@ import {
   filterSeededE2EIntakes,
   SEEDED_E2E_PATIENT_PROFILE_ID,
 } from "@/lib/data/seeded-e2e-data"
+import { getStaffQueryScope, scopeStaffIntakes } from "@/lib/data/staff-query-scope"
 import { buildDoctorQueueServiceFilter, type QueueCapabilityService } from "@/lib/doctor/queue-capability-scope"
 import {
   getQueueStatusesForFilter,
@@ -327,6 +328,7 @@ export async function getDoctorQueue(
   const page = options?.page ?? 1
   const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
   const offset = (page - 1) * pageSize
+  const dataScope = getStaffQueryScope()
   const allowSeeded = options?.allowSeeded ?? false
   const onlySeeded = allowSeeded && options?.onlySeeded === true
   const statusFilter = options?.statusFilter ?? "all"
@@ -419,11 +421,11 @@ export async function getDoctorQueue(
     fallback: { count: 0, degraded: true },
     context: { surface: "staff-dashboard" },
     operation: async () => {
-      let query = filterSeededE2EIntakes(supabase
+      let query = scopeStaffIntakes(supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .in("status", [...activeStatuses])
-        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), { allowSeeded })
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), dataScope, { allowSeeded })
 
       if (scope.serviceFilter) {
         query = query.or(scope.serviceFilter)
@@ -446,11 +448,11 @@ export async function getDoctorQueue(
 
   const buildStatusCountsPromise = (searchPredicate: string | null) => Promise.all(
     (["all", "review", "pending_info", "scripts"] as const).map(async (filter) => {
-      let query = filterSeededE2EIntakes(supabase
+      let query = scopeStaffIntakes(supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .in("status", [...getQueueStatusesForFilter(filter)])
-        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), { allowSeeded })
+        .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), dataScope, { allowSeeded })
 
       if (scope.serviceFilter) query = query.or(scope.serviceFilter)
       if (onlySeeded) query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
@@ -469,11 +471,11 @@ export async function getDoctorQueue(
     ? buildStatusCountsPromise(searchOr)
     : globalStatusCountsPromise
 
-  let oldestQuery = filterSeededE2EIntakes(supabase
+  let oldestQuery = scopeStaffIntakes(supabase
     .from("intakes")
     .select("id, paid_at, submitted_at, created_at")
     .in("status", QUEUE_REVIEW_STATUSES)
-    .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), { allowSeeded })
+    .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), dataScope, { allowSeeded })
 
   if (scope.serviceFilter) oldestQuery = oldestQuery.or(scope.serviceFilter)
   if (onlySeeded) oldestQuery = oldestQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
@@ -486,7 +488,7 @@ export async function getDoctorQueue(
     .maybeSingle()
 
   // Fetch paginated data with only necessary fields for queue view
-  let dataQuery = filterSeededE2EIntakes(supabase
+  let dataQuery = scopeStaffIntakes(supabase
     .from("intakes")
     .select(`
       id,
@@ -524,7 +526,7 @@ export async function getDoctorQueue(
       service:services!service_id (id, name, short_name, type, slug)
     `)
     .in("status", [...activeStatuses])
-    .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), { allowSeeded })
+    .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES]), dataScope, { allowSeeded })
 
   if (scope.serviceFilter) {
     dataQuery = dataQuery.or(scope.serviceFilter)
@@ -1453,13 +1455,14 @@ export async function getRecentlyCompletedIntakes(opts: {
   const supabase = createServiceRoleClient()
   const limit = opts.limit || 8
   const queryLimit = limit + 1
+  const dataScope = getStaffQueryScope()
   const allowSeeded = opts.allowSeeded ?? false
   const onlySeeded = allowSeeded && opts.onlySeeded === true
   // The actor's Sydney calendar day, including AEST/AEDT transitions.
   const todayStartISO = startOfDaySydney(new Date()).toISOString()
 
   try {
-    let ordinaryQuery = filterSeededE2EIntakes(supabase
+    let ordinaryQuery = scopeStaffIntakes(supabase
       .from("intakes")
       .select(`
         id,
@@ -1474,7 +1477,7 @@ export async function getRecentlyCompletedIntakes(opts: {
       .eq("reviewed_by", opts.reviewerId)
       // Legacy manual decisions may have NULL here. Only explicit TRUE marks
       // protocol issuance, which is read by the auto-issued stream below.
-      .or("ai_approved.is.false,ai_approved.is.null"), { allowSeeded })
+      .or("ai_approved.is.false,ai_approved.is.null"), dataScope, { allowSeeded })
 
     if (onlySeeded) {
       ordinaryQuery = ordinaryQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
@@ -1486,7 +1489,7 @@ export async function getRecentlyCompletedIntakes(opts: {
 
     let autoIssuedQuery = null
     if (opts.includeAutoIssued) {
-      let query = filterSeededE2EIntakes(supabase
+      let query = scopeStaffIntakes(supabase
         .from("intakes")
         .select(`
           id,
@@ -1503,7 +1506,7 @@ export async function getRecentlyCompletedIntakes(opts: {
         // service that sets `ai_approved` silently joins the med-cert
         // oversight stream under a med-cert-shaped review affordance.
         .eq("category", "medical_certificate")
-        .gte("ai_approved_at", todayStartISO), { allowSeeded })
+        .gte("ai_approved_at", todayStartISO), dataScope, { allowSeeded })
 
       if (onlySeeded) {
         query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
@@ -1522,7 +1525,7 @@ export async function getRecentlyCompletedIntakes(opts: {
     // bounded stream and merge. Deduped by id below.
     let flaggedAutoIssuedQuery = null
     if (opts.includeAutoIssued) {
-      let query = filterSeededE2EIntakes(supabase
+      let query = scopeStaffIntakes(supabase
         .from("intakes")
         .select(`
           id,
@@ -1538,7 +1541,7 @@ export async function getRecentlyCompletedIntakes(opts: {
         .eq("category", "medical_certificate")
         .gte("ai_approved_at", todayStartISO)
         .not("risk_flags", "eq", "[]")
-        .not("risk_flags", "is", null), { allowSeeded })
+        .not("risk_flags", "is", null), dataScope, { allowSeeded })
 
       if (onlySeeded) {
         query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)

@@ -1,5 +1,5 @@
 import { decryptProfilePhi } from "@/lib/data/profiles"
-import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
+import { getStaffQueryScope, scopeStaffIntakes, type StaffQueryScope } from "@/lib/data/staff-query-scope"
 import {
   PARCHMENT_PATIENT_SYNC_STATUSES,
   PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES,
@@ -70,9 +70,10 @@ function firstRelated<T>(value: T | T[] | null | undefined): T | null {
 
 export async function getPrescribingIdentityBlockerReport(
   supabase: ServiceRoleClient,
+  scope: StaffQueryScope = getStaffQueryScope(),
 ): Promise<PrescribingIdentityBlockerReport> {
   const prescribingConsultSubtypeFilter = PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES.join(",")
-  const { data, error } = await filterSeededE2EIntakes(
+  const { data, error } = await scopeStaffIntakes(
     supabase
       .from("intakes")
       .select(`
@@ -101,6 +102,7 @@ export async function getPrescribingIdentityBlockerReport(
       .in("status", [...PARCHMENT_PATIENT_SYNC_STATUSES])
       .order("paid_at", { ascending: true, nullsFirst: false })
       .limit(100),
+    scope,
   )
 
   if (error || !data) {

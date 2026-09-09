@@ -62,6 +62,7 @@ describe("queue pressure signal", () => {
     vi.setSystemTime(new Date("2026-08-24T12:00:00Z"))
     try {
       const html = renderToStaticMarkup(React.createElement(QueuePressureSignal, {
+        initialNowMs: Date.now(),
         oldestWaitingMinutes: 200,
         oldestWaitingEnteredAt: "2026-08-24T08:39:45Z",
         prominent: true,
@@ -69,6 +70,30 @@ describe("queue pressure signal", () => {
 
       expect(html).toContain("3h 20m")
       expect(html).not.toContain("15s")
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it.each([false, true])("keeps initial markup stable across a delayed hydration (prominent=%s)", (prominent) => {
+    vi.useFakeTimers()
+    const initialNowMs = new Date("2026-08-24T12:00:00Z").getTime()
+    const props = {
+      initialNowMs,
+      oldestWaitingMinutes: 71,
+      oldestWaitingEnteredAt: "2026-08-24T10:48:15Z",
+      jumpToOldestOnClick: true,
+      prominent,
+    }
+    try {
+      vi.setSystemTime(initialNowMs)
+      const serverHtml = renderToStaticMarkup(React.createElement(QueuePressureSignal, props))
+      // Crossing a minute also changes pressure severity, target copy and classes.
+      vi.setSystemTime(initialNowMs + 30_000)
+      const initialClientHtml = renderToStaticMarkup(React.createElement(QueuePressureSignal, props))
+
+      expect(initialClientHtml).toBe(serverHtml)
+      expect(serverHtml).toContain('aria-label="Oldest wait: 1h 11m.')
     } finally {
       vi.useRealTimers()
     }

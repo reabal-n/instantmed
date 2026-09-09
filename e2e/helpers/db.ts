@@ -1289,22 +1289,25 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
  * Cleanup a test intake and related data
  */
 export async function cleanupTestIntake(intakeId: string): Promise<void> {
-  try {
-    const supabase = getSupabaseClient()
-    
-    // Delete related records first (foreign key constraints)
-    await supabase.from("intake_events").delete().eq("intake_id", intakeId)
-    await deleteCertificateApprovalArtifactsForIntake(supabase, intakeId)
-    await supabase.from("document_drafts").delete().eq("intake_id", intakeId)
-    await supabase.from("document_drafts").delete().eq("request_id", intakeId)
-    await supabase.from("email_outbox").delete().eq("intake_id", intakeId)
-    await supabase.from("intake_answers").delete().eq("intake_id", intakeId)
-    
-    // Delete the intake
-    await supabase.from("intakes").delete().eq("id", intakeId)
-  } catch (err) {
-    console.error("Error cleaning up test intake:", err)
+  const supabase = getSupabaseClient()
+
+  async function deleteRows(table: string, column: string): Promise<void> {
+    const { error } = await supabase.from(table).delete().eq(column, intakeId)
+    if (error) {
+      throw new Error(`Failed to delete ${table} during test intake cleanup`)
+    }
   }
+
+  // Delete related records first (foreign key constraints). Failures must reach
+  // the test runner so leftover fixtures cannot be reported as successful cleanup.
+  await deleteRows("intake_events", "intake_id")
+  await deleteCertificateApprovalArtifactsForIntake(supabase, intakeId)
+  await deleteRows("document_drafts", "intake_id")
+  await deleteRows("document_drafts", "request_id")
+  await deleteRows("email_outbox", "intake_id")
+  await deleteRows("intake_answers", "intake_id")
+
+  await deleteRows("intakes", "id")
 }
 
 /**

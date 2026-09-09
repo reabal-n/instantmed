@@ -18,6 +18,8 @@ const config: KnipConfig = {
     "scripts/e2e/{seed,teardown}.ts",
     "scripts/test-checkout-restored-browser.mjs",
     "scripts/fixtures/checkout-restored-browser.tsx",
+    "scripts/test-parchment-workspace-browser.mjs",
+    "scripts/fixtures/parchment-workspace-browser.tsx",
   ],
   project: [
     "app/**/*.{ts,tsx}!",

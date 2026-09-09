@@ -259,6 +259,7 @@ export default async function StaffDashboardPage({
                       </div>
                     ) : null}
                     <QueuePressureSignal
+                      initialNowMs={nowMs}
                       oldestWaitingMinutes={oldestWaitingMinutes}
                       oldestWaitingEnteredAt={oldestWaitingEnteredAt}
                       waitingCaseCount={globalWaitingCaseCount ?? 0}

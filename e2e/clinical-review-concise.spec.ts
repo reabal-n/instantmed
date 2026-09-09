@@ -272,9 +272,18 @@ test.describe("Concise clinical review", () => {
           await expect(details).toHaveAttribute("aria-expanded", "false")
           await expect(reference.locator('[data-parchment-assessment-fact="nitrate_use"]')).not.toBeVisible()
           await expect(reference.getByText(/not separately captured/i)).not.toBeVisible()
-          // Measure rendered content before disclosure: routine assessment
-          // must leave at least two-thirds of the viewport for prescribing.
-          expect((await reference.boundingBox())!.height).toBeLessThan(viewport.height / 3)
+          // Wide workspaces retain provider height beside the reference;
+          // compact layouts keep the original top-reference budget.
+          const referenceArea = (await reference.boundingBox())!
+          const providerArea = (await portal.locator("[data-parchment-provider]").boundingBox())!
+          if (viewport.width >= 1280) {
+            expect(providerArea.width).toBeGreaterThanOrEqual(800)
+            expect(providerArea.height).toBeGreaterThanOrEqual(viewport.height - 150)
+            expect(referenceArea.x + referenceArea.width).toBeLessThanOrEqual(providerArea.x + 1)
+          } else {
+            expect(referenceArea.height).toBeLessThan(viewport.height / 3)
+            expect(referenceArea.y + referenceArea.height).toBeLessThanOrEqual(providerArea.y + 1)
+          }
           await assertNotClipped(details)
           await details.focus()
           await page.keyboard.press("Enter")
@@ -403,10 +412,9 @@ test.describe("Concise clinical review", () => {
     await expect(profile).toBeHidden()
     const stopBlocking = await preventProviderSession(page, intakeId)
     try {
-      const saveCompleted = page.waitForResponse(async (response) => {
+      const saveCompleted = page.waitForResponse((response) => {
         if (!ownsAction(response, intakeId)
           || !(response.request().postData() || "").includes("Saved before prescribing opens.")) return false
-        await response.finished()
         return true
       }, { timeout: 30_000 })
       await subjective.fill(`${text}\nSaved before prescribing opens.`)
@@ -415,7 +423,8 @@ test.describe("Concise clinical review", () => {
         panel.getByRole("button", { name: "Prescribe", exact: true }).click(),
       ])
       expect(saveResponse.ok()).toBe(true)
-      expect(await saveResponse.finished()).toBeNull()
+      // Revalidation can keep the RSC stream open after the mutation resolves.
+      // The same-request note read below, not stream EOF, proves persistence.
       const portal = page.getByRole("dialog", { name: /^Prescribe for / })
       await expect(portal).toBeVisible()
       await portal.getByRole("button", { name: "Close panel", exact: true }).click()
@@ -545,15 +554,15 @@ test.describe("Concise clinical review", () => {
       // E2E sendEmail skips external delivery. This exercises the real action
       // and durable pending_info transition, not an email-provider claim.
       const [requestResponse] = await Promise.all([
-        page.waitForResponse(async (response) => {
+        page.waitForResponse((response) => {
           if (!ownsAction(response, intakeId) || !(response.request().postData() || "").includes(message)) return false
-          await response.finished()
           return true
         }, { timeout: 30_000 }),
         send.click(),
       ])
       expect(requestResponse.ok()).toBe(true)
-      expect(await requestResponse.finished()).toBeNull()
+      // Assert the saved status and exact message even if RSC revalidation
+      // continues streaming after the action has returned.
       await expect(dialog).toBeHidden()
       await expect.poll(async () => (await getIntakeById(intakeId))?.status).toBe("pending_info")
       // Already-pending requests must create a new message, not just keep the same status.

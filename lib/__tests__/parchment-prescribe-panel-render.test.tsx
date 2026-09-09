@@ -56,6 +56,14 @@ const pillAnswers = {
 }
 
 describe("ParchmentPrescribePanel clinical context", () => {
+  it("renders one internally scrollable reference beside a separately bounded provider region", () => {
+    const html = renderPanel(specialtyContext)
+    expect(html.match(/data-parchment-medication-context=/g)).toHaveLength(1)
+    expect(html).toContain('data-parchment-workspace="true"')
+    expect(html).toContain('data-parchment-provider="true"')
+    expect(html.match(/Take one tablet daily\./g)).toHaveLength(1)
+  })
+
   it("keeps the full specialty regimen and short request visible while assessment starts collapsed", () => {
     const html = renderPanel(specialtyContext)
 

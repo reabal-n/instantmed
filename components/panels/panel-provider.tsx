@@ -38,6 +38,22 @@ interface PanelContextValue {
 
 const PanelContext = createContext<PanelContextValue | null>(null)
 
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), iframe:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
+
+function getFocusables(dialogEl: HTMLElement) {
+  return Array.from(dialogEl.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+    element => element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden',
+  )
+}
+
+function focusPanelBoundary(edge: 'first' | 'last') {
+  const dialogEl = document.querySelector<HTMLElement>('[role="dialog"]')
+  if (!dialogEl) return
+  const focusables = getFocusables(dialogEl)
+  const target = edge === 'first' ? focusables[0] : focusables[focusables.length - 1]
+  target?.focus({ preventScroll: true })
+}
+
 export function PanelProvider({ children }: { children: ReactNode }) {
   const [activePanel, setActivePanel] = useState<Panel | null>(null)
   const pathname = usePathname()
@@ -60,21 +76,18 @@ export function PanelProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!activePanel) return
 
-    const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-
     // Defer so the panel has time to animate in before we query its contents.
     const rafId = requestAnimationFrame(() => {
       const dialogEl = document.querySelector<HTMLElement>('[role="dialog"]')
       if (!dialogEl) return
-      const getFocusables = () => Array.from(dialogEl.querySelectorAll<HTMLElement>(FOCUSABLE))
-      getFocusables()[0]?.focus()
+      getFocusables(dialogEl)[0]?.focus()
     })
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return
       const dialogEl = document.querySelector<HTMLElement>('[role="dialog"]')
       if (!dialogEl) return
-      const focusables = Array.from(dialogEl.querySelectorAll<HTMLElement>(FOCUSABLE))
+      const focusables = getFocusables(dialogEl)
       if (!focusables.length) return
       const first = focusables[0]
       const last = focusables[focusables.length - 1]
@@ -126,7 +139,11 @@ export function PanelProvider({ children }: { children: ReactNode }) {
       {children}
       {activePanel && (
         <div key={activePanel.id}>
+          {/* Native tab order crosses frame origins; frame keydown events do
+              not bubble here. These boundaries keep that return in this owner. */}
+          <span className="sr-only" tabIndex={0} data-panel-focus-boundary="start" onFocus={() => focusPanelBoundary('last')} />
           {activePanel.component}
+          <span className="sr-only" tabIndex={0} data-panel-focus-boundary="end" onFocus={() => focusPanelBoundary('first')} />
         </div>
       )}
     </PanelContext.Provider>
