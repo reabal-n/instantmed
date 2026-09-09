@@ -412,10 +412,9 @@ test.describe("Concise clinical review", () => {
     await expect(profile).toBeHidden()
     const stopBlocking = await preventProviderSession(page, intakeId)
     try {
-      const saveCompleted = page.waitForResponse(async (response) => {
+      const saveCompleted = page.waitForResponse((response) => {
         if (!ownsAction(response, intakeId)
           || !(response.request().postData() || "").includes("Saved before prescribing opens.")) return false
-        await response.finished()
         return true
       }, { timeout: 30_000 })
       await subjective.fill(`${text}\nSaved before prescribing opens.`)
@@ -424,7 +423,8 @@ test.describe("Concise clinical review", () => {
         panel.getByRole("button", { name: "Prescribe", exact: true }).click(),
       ])
       expect(saveResponse.ok()).toBe(true)
-      expect(await saveResponse.finished()).toBeNull()
+      // Revalidation can keep the RSC stream open after the mutation resolves.
+      // The same-request note read below, not stream EOF, proves persistence.
       const portal = page.getByRole("dialog", { name: /^Prescribe for / })
       await expect(portal).toBeVisible()
       await portal.getByRole("button", { name: "Close panel", exact: true }).click()
@@ -554,15 +554,15 @@ test.describe("Concise clinical review", () => {
       // E2E sendEmail skips external delivery. This exercises the real action
       // and durable pending_info transition, not an email-provider claim.
       const [requestResponse] = await Promise.all([
-        page.waitForResponse(async (response) => {
+        page.waitForResponse((response) => {
           if (!ownsAction(response, intakeId) || !(response.request().postData() || "").includes(message)) return false
-          await response.finished()
           return true
         }, { timeout: 30_000 }),
         send.click(),
       ])
       expect(requestResponse.ok()).toBe(true)
-      expect(await requestResponse.finished()).toBeNull()
+      // Assert the saved status and exact message even if RSC revalidation
+      // continues streaming after the action has returned.
       await expect(dialog).toBeHidden()
       await expect.poll(async () => (await getIntakeById(intakeId))?.status).toBe("pending_info")
       // Already-pending requests must create a new message, not just keep the same status.
