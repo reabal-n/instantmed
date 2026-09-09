@@ -272,9 +272,18 @@ test.describe("Concise clinical review", () => {
           await expect(details).toHaveAttribute("aria-expanded", "false")
           await expect(reference.locator('[data-parchment-assessment-fact="nitrate_use"]')).not.toBeVisible()
           await expect(reference.getByText(/not separately captured/i)).not.toBeVisible()
-          // Measure rendered content before disclosure: routine assessment
-          // must leave at least two-thirds of the viewport for prescribing.
-          expect((await reference.boundingBox())!.height).toBeLessThan(viewport.height / 3)
+          // Wide workspaces retain provider height beside the reference;
+          // compact layouts keep the original top-reference budget.
+          const referenceArea = (await reference.boundingBox())!
+          const providerArea = (await portal.locator("[data-parchment-provider]").boundingBox())!
+          if (viewport.width >= 1280) {
+            expect(providerArea.width).toBeGreaterThanOrEqual(800)
+            expect(providerArea.height).toBeGreaterThanOrEqual(viewport.height - 150)
+            expect(referenceArea.x + referenceArea.width).toBeLessThanOrEqual(providerArea.x + 1)
+          } else {
+            expect(referenceArea.height).toBeLessThan(viewport.height / 3)
+            expect(referenceArea.y + referenceArea.height).toBeLessThanOrEqual(providerArea.y + 1)
+          }
           await assertNotClipped(details)
           await details.focus()
           await page.keyboard.press("Enter")

@@ -210,7 +210,7 @@ describe("doctor review prescribing controls", () => {
     expect(reviewActionsSource).toContain("onClose={activePanel ? () => openPanel(activePanel) : undefined}")
     expect(parchmentPanelSource).toContain("if (onClose) onClose()")
     expect(parchmentPanelSource).toContain("h-[100dvh] w-full")
-    expect(parchmentPanelSource).toContain("sm:w-[min(800px,100vw)]")
+    expect(parchmentPanelSource).toContain("sm:w-[calc(100vw-2rem)]")
     expect(parchmentPanelSource).toContain("pb-[max(0.75rem,env(safe-area-inset-bottom))]")
     expect(parchmentPanelSource).toContain('data-parchment-medication-context="compact"')
     expect(parchmentPanelSource).not.toContain("Request details")

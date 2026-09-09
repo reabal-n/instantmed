@@ -278,8 +278,19 @@ export function ParchmentPrescribePanel({
   }, [patientDirections])
 
   const prescribingAttempt = useRef(0)
+  const iframeRevealTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const clearIframeRevealTimer = useCallback(() => {
+    if (iframeRevealTimer.current !== null) {
+      clearTimeout(iframeRevealTimer.current)
+      iframeRevealTimer.current = null
+    }
+  }, [])
   const loadPrescribingUrl = useCallback(async () => {
     const attempt = ++prescribingAttempt.current
+    clearIframeRevealTimer()
+    setSsoUrl(null)
+    setIframeLoaded(false)
+    setIframeSlowToLoad(false)
     setLoading(true)
     setError(null)
 
@@ -301,15 +312,18 @@ export function ParchmentPrescribePanel({
     } finally {
       if (attempt === prescribingAttempt.current) setLoading(false)
     }
-  }, [loadFreshParchmentUrl])
+  }, [clearIframeRevealTimer, loadFreshParchmentUrl])
 
   // Mint one fresh SSO attempt when the panel opens. Once Parchment establishes
   // its session, never replace an in-progress prescription on a timer. Doctors
   // can explicitly retry or open a newly minted session in another tab.
   useEffect(() => {
     void loadPrescribingUrl()
-    return () => { prescribingAttempt.current += 1 }
-  }, [loadPrescribingUrl])
+    return () => {
+      prescribingAttempt.current += 1
+      clearIframeRevealTimer()
+    }
+  }, [clearIframeRevealTimer, loadPrescribingUrl])
 
   useEffect(() => {
     setCanUseIframe(canEmbedParchmentForHost(window.location.hostname))
@@ -330,9 +344,18 @@ export function ParchmentPrescribePanel({
 
   // Prevent body scroll
   useEffect(() => {
+    const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const previousOverflow = document.body.style.overflow
     document.body.style.overflow = "hidden"
     return () => {
-      document.body.style.overflow = "unset"
+      document.body.style.overflow = previousOverflow
+      // PanelProvider owns focus when returning to another panel. Only restore
+      // the retained review trigger when that owner has no replacement dialog.
+      window.requestAnimationFrame(() => {
+        if (returnFocus?.isConnected && !document.querySelector('[role="dialog"]')) {
+          returnFocus.focus({ preventScroll: true })
+        }
+      })
     }
   }, [])
 
@@ -419,7 +442,7 @@ export function ParchmentPrescribePanel({
         initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
-        className="absolute inset-0 flex h-[100dvh] w-full flex-col bg-background shadow-2xl shadow-primary/[0.12] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[min(800px,100vw)]"
+        className="absolute inset-0 flex h-[100dvh] w-full flex-col bg-background shadow-2xl shadow-primary/[0.12] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[calc(100vw-2rem)] sm:max-w-[1440px]"
         // Beat the h-[100dvh] class while the keyboard is up so the iframe
         // (flex-1) shrinks to the reachable region and Parchment's own
         // scrolling works above the keyboard. sheetVariants only animates x,
@@ -458,10 +481,19 @@ export function ParchmentPrescribePanel({
               </button>
             </div>
           </div>
+        </div>
+
+        <div
+          className={cn(
+            "flex min-h-0 flex-1 flex-col",
+            prescriptionContext && !keyboardInset && "xl:grid xl:grid-cols-[300px_minmax(0,1fr)]",
+          )}
+          data-parchment-workspace="true"
+        >
           {prescriptionContext && (
             <div
               className={cn(
-                "mt-2 max-h-[45dvh] overflow-y-auto overscroll-contain border-t border-border/60 pt-2",
+                "max-h-[45dvh] overflow-y-auto min-h-0 shrink-0 overscroll-contain border-b border-border/60 px-3 py-2 sm:px-6 xl:max-h-none xl:border-b-0 xl:border-r xl:px-4 xl:py-4",
                 keyboardInset && "hidden",
               )}
               data-parchment-medication-context="compact"
@@ -585,133 +617,140 @@ export function ParchmentPrescribePanel({
               </Collapsible>
             </div>
           )}
-        </div>
 
-        {/* Content - iframe fills remaining space */}
-        <div className="flex-1 min-h-0 relative">
-          {/* Loading state */}
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background">
-              <div className="text-center space-y-3">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                <p className="text-sm text-muted-foreground">Loading prescribing portal...</p>
-              </div>
-            </div>
-          )}
-
-          {/* Error state */}
-          {error && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background">
-              <div className="text-center space-y-4 max-w-sm px-6">
-                <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">{errorCopy.title}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{errorCopy.detail}</p>
+          {/* Content - iframe fills remaining space */}
+          <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden" data-parchment-provider="true">
+            {/* Loading state */}
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center overflow-y-auto overscroll-contain bg-background">
+                <div className="text-center space-y-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+                  <p className="text-sm text-muted-foreground">Loading prescribing portal...</p>
                 </div>
-                <div className="flex gap-2 justify-center">
-                  {canEditPatientDetails && patientDetailsHref ? (
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={patientDetailsHref}>Edit patient details</Link>
+              </div>
+            )}
+
+            {/* Error state */}
+            {error && (
+              <div className="absolute inset-0 flex items-center justify-center overflow-y-auto overscroll-contain bg-background">
+                <div className="text-center space-y-4 max-w-sm px-6">
+                  <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{errorCopy.title}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{errorCopy.detail}</p>
+                  </div>
+                  <div className="flex gap-2 justify-center">
+                    {canEditPatientDetails && patientDetailsHref ? (
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={patientDetailsHref}>Edit patient details</Link>
+                      </Button>
+                    ) : null}
+                    <Button variant="outline" size="sm" onClick={loadPrescribingUrl}>
+                      Try Again
                     </Button>
-                  ) : null}
-                  <Button variant="outline" size="sm" onClick={loadPrescribingUrl}>
-                    Try Again
-                  </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Iframe */}
-          {ssoUrl && (
-            <>
-              {canUseIframe ? (
-                <>
-                  {/* Overlay fades out instead of snapping away — prevents the
-                      white-flash that happens when onLoad fires before Parchment's
-                      React app has painted its first frame. opacity-0 + pointer-
-                      events-none keeps it inert after the fade completes. */}
-                  <div
-                    className={cn(
-                      "absolute inset-0 flex items-center justify-center bg-background z-10 transition-opacity duration-300",
-                      iframeLoaded ? "opacity-0 pointer-events-none" : "opacity-100",
-                    )}
-                    aria-live="polite"
-                  >
-                    <div className="max-w-sm px-6 text-center space-y-3">
-                      {!iframeLoaded && <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />}
-                      {iframeSlowToLoad ? (
-                        <>
-                          <p className="text-sm font-medium text-foreground">Parchment is taking a little longer</p>
-                          <p className="text-sm text-muted-foreground">
-                            {copyableMedicationName
-                              ? "Keep waiting, open a new tab, or copy the medicine name and continue there."
-                              : "Keep waiting or open Parchment in a new tab."}
-                          </p>
-                          <div className="flex flex-wrap justify-center gap-2">
-                            <Button type="button" variant="outline" size="sm" onClick={loadPrescribingUrl}>
-                              <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                              Retry session
-                            </Button>
-                            <Button type="button" variant="outline" size="sm" onClick={openInNewTab}>
-                              <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-                              Open in new tab
-                            </Button>
-                            {copyableMedicationName && (
-                              <Button type="button" variant="ghost" size="sm" onClick={copyMedicationSearchName}>
-                                <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                                Copy name
-                              </Button>
-                            )}
-                          </div>
-                        </>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Loading Parchment...</p>
+            {/* Iframe */}
+            {ssoUrl && (
+              <>
+                {canUseIframe ? (
+                  <>
+                    {/* Overlay fades out instead of snapping away — prevents the
+                        white-flash that happens when onLoad fires before Parchment's
+                        React app has painted its first frame. opacity-0 + pointer-
+                        events-none keeps it inert after the fade completes. */}
+                    <div
+                      className={cn(
+                        "absolute inset-0 flex items-center justify-center overflow-y-auto overscroll-contain bg-background z-10 transition-opacity duration-300",
+                        iframeLoaded ? "opacity-0 pointer-events-none" : "opacity-100",
                       )}
+                      aria-live="polite"
+                    >
+                      <div className="max-w-sm px-6 text-center space-y-3">
+                        {!iframeLoaded && <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />}
+                        {iframeSlowToLoad ? (
+                          <>
+                            <p className="text-sm font-medium text-foreground">Parchment is taking a little longer</p>
+                            <p className="text-sm text-muted-foreground">
+                              {copyableMedicationName
+                                ? "Keep waiting, open a new tab, or copy the medicine name and continue there."
+                                : "Keep waiting or open Parchment in a new tab."}
+                            </p>
+                            <div className="flex flex-wrap justify-center gap-2">
+                              <Button type="button" variant="outline" size="sm" onClick={loadPrescribingUrl}>
+                                <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                                Retry session
+                              </Button>
+                              <Button type="button" variant="outline" size="sm" onClick={openInNewTab}>
+                                <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                                Open in new tab
+                              </Button>
+                              {copyableMedicationName && (
+                                <Button type="button" variant="ghost" size="sm" onClick={copyMedicationSearchName}>
+                                  <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                                  Copy name
+                                </Button>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Loading Parchment...</p>
+                        )}
+                      </div>
+                    </div>
+                    <iframe
+                      key={ssoUrl}
+                      src={ssoUrl}
+                      className={cn(
+                        "w-full h-full border-0 transition-opacity duration-300",
+                        iframeLoaded ? "opacity-100" : "opacity-0",
+                      )}
+                      onLoad={() => {
+                        // Delay reveal so Parchment's React app finishes painting
+                        // before the loading overlay fades out. onLoad fires on
+                        // document-ready, not first-paint — without this delay the
+                        // overlay snaps away to a white iframe for ~1s.
+                        clearIframeRevealTimer()
+                        const attempt = prescribingAttempt.current
+                        iframeRevealTimer.current = setTimeout(() => {
+                          iframeRevealTimer.current = null
+                          if (attempt === prescribingAttempt.current) setIframeLoaded(true)
+                        }, 600)
+                      }}
+                      // Parchment's documented print/PDF flow opens a new tab. Permit
+                      // that child context without allowing the frame to navigate this
+                      // prescribing page or download files directly.
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-storage-access-by-user-activation allow-popups allow-popups-to-escape-sandbox"
+                      allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      title="Parchment Prescribing"
+                    />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center overflow-y-auto overscroll-contain bg-background z-20">
+                    <div className="text-center space-y-4 max-w-md px-6">
+                      <ExternalLink className="h-10 w-10 text-primary mx-auto" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Open Parchment in a new tab</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          This host is not enabled for embedded prescribing.
+                          The secure SSO session still works in a separate tab.
+                        </p>
+                      </div>
+                      <Button size="sm" onClick={openInNewTab}>
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open Parchment
+                      </Button>
                     </div>
                   </div>
-                  <iframe
-                    src={ssoUrl}
-                    className={cn(
-                      "w-full h-full border-0 transition-opacity duration-300",
-                      iframeLoaded ? "opacity-100" : "opacity-0",
-                    )}
-                    onLoad={() => {
-                      // Delay reveal so Parchment's React app finishes painting
-                      // before the loading overlay fades out. onLoad fires on
-                      // document-ready, not first-paint — without this delay the
-                      // overlay snaps away to a white iframe for ~1s.
-                      setTimeout(() => setIframeLoaded(true), 600)
-                    }}
-                    // Parchment's documented print/PDF flow opens a new tab. Permit
-                    // that child context without allowing the frame to navigate this
-                    // prescribing page or download files directly.
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-storage-access-by-user-activation allow-popups allow-popups-to-escape-sandbox"
-                    allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    title="Parchment Prescribing"
-                  />
-                </>
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-background z-20">
-                  <div className="text-center space-y-4 max-w-md px-6">
-                    <ExternalLink className="h-10 w-10 text-primary mx-auto" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">Open Parchment in a new tab</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        This host is not enabled for embedded prescribing.
-                        The secure SSO session still works in a separate tab.
-                      </p>
-                    </div>
-                    <Button size="sm" onClick={openInNewTab}>
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Open Parchment
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
+          </div>
+
         </div>
 
         {/* Footer - manual fallback. Hidden while the keyboard is up: every
