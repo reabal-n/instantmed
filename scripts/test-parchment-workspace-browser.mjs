@@ -2,7 +2,7 @@
 // No Next server, env loader, database, patient records or external provider.
 import { createRequire } from 'node:module'
 import { createServer } from 'node:http'
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { execFileSync } from 'node:child_process'
@@ -12,12 +12,17 @@ import tailwind from '@tailwindcss/postcss'
 const require = createRequire(import.meta.url)
 const { build } = createRequire(require.resolve('tsx/package.json'))('esbuild')
 const postcss = createRequire(require.resolve('@tailwindcss/postcss'))('postcss')
-const scratch = await mkdtemp(join(tmpdir(), 'instantmed-parchment-workspace-'))
+const outputDirectory = process.argv.find(arg => arg.startsWith('--output-dir='))?.slice('--output-dir='.length)
+if (outputDirectory !== undefined && !outputDirectory.trim()) throw new Error('--output-dir requires a directory')
+const outputRoot = outputDirectory ? resolve(outputDirectory) : tmpdir()
+await mkdir(outputRoot, { recursive: true })
+// Each invocation owns a fresh directory; never remove another suite's evidence.
+const scratch = await mkdtemp(join(outputRoot, 'instantmed-parchment-workspace-'))
 const baseline = process.argv.includes('--baseline')
 const scenarioFilter = process.argv.find(arg => arg.startsWith('--scenario='))?.slice('--scenario='.length)
 const componentPath = '@/components/doctor/parchment-prescribe-panel'
 const aliases = {
-  '@/app/actions/parchment': 'export async function getParchmentPrescribeUrlAction() { return window.prescribingFixtureSession() }',
+  '@/app/actions/parchment': 'export async function getParchmentPrescribeUrlAction(intakeId) { return window.prescribingFixtureSession(intakeId) }',
   '@/app/actions/manual-patient': 'export async function getPatientParchmentPrescribeUrlAction() { return window.prescribingFixtureSession() }',
   '@/app/actions/medication-reference': 'export async function resolveGenericMedicationNameAction() { return {success:false} }',
   'next/navigation': 'export function usePathname() { return "/fixture" }',
@@ -63,15 +68,18 @@ try {
   const run = async (name, fn, viewport = { width: 1366, height: 768 }, dark = false) => {
     if (scenarioFilter && !name.includes(scenarioFilter)) return
     const context = await browser.newContext({ viewport, reducedMotion: 'reduce', colorScheme: dark ? 'dark' : 'light', permissions: ['clipboard-read', 'clipboard-write'] })
+    await context.tracing.start({ screenshots: true, snapshots: true, sources: true })
     const unexpected = []
     await context.route('**/*', route => ['localhost', '127.0.0.1'].includes(new URL(route.request().url()).hostname) ? route.continue() : (unexpected.push(route.request().url()), route.abort()))
     await context.addInitScript(() => {
       window.fixtureMode = 'success'; window.fixtureAttempt = 0
-      window.prescribingFixtureSession = async () => {
+      window.fixtureSessions = []; window.fixtureResolvers = {}
+      window.prescribingFixtureSession = async (intakeId) => {
         const attempt = ++window.fixtureAttempt
+        window.fixtureSessions.push({ attempt, intakeId })
         if (window.fixtureMode === 'failure') return { success: false, error: 'Synthetic session failure' }
-        if (window.fixtureMode === 'pending') await new Promise(resolve => { window.resolveFixtureSession = resolve })
-        return { success: true, ssoUrl: `http://127.0.0.1:3060/provider?attempt=${attempt}` }
+        if (window.fixtureMode === 'pending') await new Promise(resolve => { window.resolveFixtureSession = resolve; window.fixtureResolvers[intakeId] = resolve })
+        return { success: true, ssoUrl: `http://127.0.0.1:3060/provider?attempt=${attempt}&request=${encodeURIComponent(intakeId || 'patient')}` }
       }
     })
     if (dark) await context.addInitScript(() => {
@@ -92,7 +100,14 @@ try {
       results.push({ name, status: 'fail', error: error.message })
       console.log(`FAIL ${name}: ${error.message}`)
     }
-    finally { await page.screenshot({ path: join(scratch, `${name}.png`) }); await context.close() }
+    finally {
+      try { await page.screenshot({ path: join(scratch, `${name}.png`) }) }
+      finally {
+        try { await context.tracing.stop({ path: join(scratch, `${name}.zip`) }) }
+        finally { await context.close() }
+      }
+      await writeFile(join(scratch, 'results.json'), JSON.stringify({ baseline, results }, null, 2))
+    }
   }
   const open = async (page, query = '') => {
     await page.goto(`http://localhost:3060/fixture${query}`)
@@ -188,7 +203,7 @@ try {
     // Its frame response stays held throughout, so only the old timer can reveal it.
     await page.waitForFunction(() => typeof window.resolveFixtureSession === 'function')
     await page.evaluate(() => window.resolveFixtureSession())
-    await page.locator('iframe[src$="/provider?attempt=2"]').waitFor({ state: 'attached' })
+    await page.locator('iframe[src*="attempt=2"]').waitFor({ state: 'attached' })
     await page.waitForTimeout(950)
     assert.equal(await page.locator('iframe').evaluate(frame => getComputedStyle(frame).opacity), '0', 'Earlier onLoad must not reveal an unloaded replacement')
   })
@@ -202,6 +217,62 @@ try {
     assert.equal(await page.locator('iframe').count(), 0, 'Failed session does not retain provider overlay')
     await page.getByRole('button', { name: 'Try Again', exact: true }).click()
     assert.equal(await page.getByText('Synthetic session failure', { exact: true }).isVisible(), true)
+  })
+  await run('external-tab-fresh-session-return', async page => {
+    await open(page)
+    await page.waitForFunction(() => { const frame = document.querySelector('iframe'); return frame && getComputedStyle(frame).opacity === '1' })
+    const originalUrl = await page.locator('iframe').getAttribute('src')
+    const popupReady = page.context().waitForEvent('page')
+    await page.getByRole('button', { name: 'Open Parchment in a new tab', exact: true }).click()
+    const popup = await popupReady
+    await popup.getByRole('textbox', { name: 'Mock medicine search' }).waitFor()
+    assert.notEqual(popup.url(), originalUrl, 'External tab mints a fresh session')
+    assert.equal(new URL(popup.url()).searchParams.get('request'), 'synthetic-prescribing')
+    assert.equal(await page.locator('iframe').getAttribute('src'), originalUrl, 'External session does not replace in-progress iframe')
+    await popup.close()
+    await page.bringToFront()
+    assert.equal(await page.getByRole('dialog', { name: 'Prescribe for Synthetic Patient' }).isVisible(), true)
+    await page.getByRole('button', { name: 'Close panel', exact: true }).click()
+    assert.equal(await page.locator('[data-fixture-selected-request]').getAttribute('data-fixture-selected-request'), 'synthetic-prescribing')
+    assert.equal(await page.getByRole('textbox').inputValue(), 'Synthetic retained note')
+    assert.deepEqual(await page.evaluate(() => window.fixtureEvents), { completion: 0 })
+    assert.deepEqual(await page.evaluate(() => window.fixtureSessions.map(session => session.intakeId)), ['synthetic-prescribing', 'synthetic-prescribing'])
+  })
+  await run('replacement-ignores-pending-old-session', async page => {
+    await page.goto('http://localhost:3060/fixture')
+    await page.evaluate(() => { window.fixtureMode = 'pending' })
+    await page.getByRole('button', { name: 'Open prescribing', exact: true }).click()
+    await page.waitForFunction(() => typeof window.fixtureResolvers['synthetic-prescribing'] === 'function')
+    await page.evaluate(() => { window.fixtureMode = 'success' })
+    // Simulate the owning review selecting a different request while open.
+    await page.getByRole('button', { name: 'Replace request', exact: true }).evaluate(button => button.click())
+    await page.getByRole('dialog', { name: 'Prescribe for Replacement Patient' }).waitFor()
+    await page.waitForFunction(() => { const frame = document.querySelector('iframe'); return frame && getComputedStyle(frame).opacity === '1' })
+    const replacementUrl = await page.locator('iframe').getAttribute('src')
+    assert.equal(new URL(replacementUrl).searchParams.get('request'), 'synthetic-replacement')
+    await page.evaluate(() => window.fixtureResolvers['synthetic-prescribing']())
+    await page.waitForTimeout(750)
+    assert.equal(await page.locator('iframe').getAttribute('src'), replacementUrl)
+    assert.equal(await page.getByText('Replacement medicine 10 mg', { exact: true }).isVisible(), true)
+    assert.equal(await page.getByText('Two 10 mg tablets at night, only when needed.', { exact: true }).isVisible(), true)
+    assert.equal(await page.getByText('Synthetic medicine 5 mg', { exact: true }).count(), 0)
+    assert.deepEqual(await page.evaluate(() => window.fixtureEvents), { completion: 0 })
+  })
+  await run('replacement-ignores-old-reveal-timer', async page => {
+    await page.route('**/provider?*', () => {})
+    await open(page)
+    await page.locator('iframe').waitFor({ state: 'attached' })
+    await page.evaluate(() => {
+      document.querySelector('iframe').dispatchEvent(new Event('load'))
+      Array.from(document.querySelectorAll('button')).find(button => button.textContent === 'Replace request').click()
+    })
+    await page.getByRole('dialog', { name: 'Prescribe for Replacement Patient' }).waitFor()
+    await page.locator('iframe[src*="synthetic-replacement"]').waitFor({ state: 'attached' })
+    await page.waitForTimeout(950)
+    assert.equal(await page.locator('iframe').evaluate(frame => getComputedStyle(frame).opacity), '0', 'Old case reveal cannot expose replacement case')
+    assert.equal(await page.getByText('Replacement medicine 10 mg', { exact: true }).isVisible(), true)
+    assert.deepEqual(await page.evaluate(() => window.fixtureSessions.map(session => session.intakeId)), ['synthetic-prescribing', 'synthetic-replacement'])
+    assert.deepEqual(await page.evaluate(() => window.fixtureEvents), { completion: 0 })
   })
   await run('basic-panel-focus-boundaries', async page => {
     await page.goto('http://localhost:3060/fixture')

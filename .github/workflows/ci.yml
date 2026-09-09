@@ -427,6 +427,11 @@ jobs:
         timeout-minutes: 5
         run: node scripts/test-checkout-restored-browser.mjs
 
+      # Same isolated loopback boundary; evidence survives later app suites.
+      - name: Prescribing workspace browser regression
+        timeout-minutes: 5
+        run: node scripts/test-parchment-workspace-browser.mjs --output-dir=test-results/parchment-workspace
+
       - name: Verify required E2E secrets
         id: verify_e2e_secrets
         env:

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { createRoot } from "react-dom/client"
 import { PanelProvider, usePanel } from "@/components/panels/panel-provider"
 import { ParchmentPrescribePanel } from "@/components/doctor/parchment-prescribe-panel"
@@ -25,19 +26,38 @@ const context: ParchmentPrescriptionContext = {
   assessmentFacts: [{ key: "history", label: "History", value: "Synthetic assessment detail", state: "confirmed", provenance: "current_request" }],
 }
 
+const fixtureEvents = { completion: 0 }
+Object.assign(window, { fixtureEvents })
+
 function Fixture() {
   const { openPanel, closePanel } = usePanel()
-  const open = () => openPanel({
-    id: "synthetic-prescribing",
-    type: "sheet",
-    component: <ParchmentPrescribePanel intakeId="synthetic-prescribing" patientName="Synthetic Patient" prescriptionContext={new URLSearchParams(location.search).has("long") ? {
+  const [selectedRequest, setSelectedRequest] = useState("synthetic-prescribing")
+  const open = (requestId = "synthetic-prescribing") => {
+    setSelectedRequest(requestId)
+    const replacement = requestId === "synthetic-replacement"
+    const reference = replacement ? {
+      ...context,
+      medicationLabel: "Replacement medicine 10 mg",
+      copyText: "Replacement medicine",
+      patientReportedDose: "Two 10 mg tablets at night, only when needed.",
+    } : new URLSearchParams(location.search).has("long") ? {
       ...context,
       safetyItems: sourceCautions,
       patientReportedDose: Array.from({ length: 30 }, (_, i) => `Synthetic medicine ${i + 1}: one 5 mg tablet on alternate mornings, only when needed.`).join("\n"),
-    } : context} />,
-  })
+    } : context
+    openPanel({
+      id: requestId,
+      type: "sheet",
+      component: <ParchmentPrescribePanel intakeId={requestId}
+        patientName={replacement ? "Replacement Patient" : "Synthetic Patient"}
+        prescriptionContext={reference} />,
+    })
+  }
   return <main className="p-6">
-    <button onClick={open}>Open prescribing</button>
+    <button onClick={() => open()}>Open prescribing</button>
+    <button onClick={() => open("synthetic-replacement")}>Replace request</button>
+    <p data-fixture-selected-request={selectedRequest}>Selected request: {selectedRequest}</p>
+    <button onClick={() => { fixtureEvents.completion += 1 }}>Complete request</button>
     <button onClick={() => openPanel({ id: "basic-panel", type: "sheet", component: (
       <div role="dialog" aria-label="Basic panel">
         <button>First action</button><button onClick={closePanel}>Close basic panel</button>

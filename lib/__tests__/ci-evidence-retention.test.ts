@@ -19,6 +19,19 @@ function suitePaths(suite: string) {
 }
 
 describe("CI diagnostic evidence retention", () => {
+  it("runs the isolated prescribing workspace before application secrets and retains its artifacts", () => {
+    const harness = workflow.indexOf("- name: Prescribing workspace browser regression")
+    expect(harness).toBeGreaterThan(workflow.indexOf("- name: Restored checkout review and recovery browser regression"))
+    expect(harness).toBeLessThan(workflow.indexOf("- name: Verify required E2E secrets"))
+    const step = workflow.slice(harness, workflow.indexOf("- name: Verify required E2E secrets"))
+    expect(step).toContain("timeout-minutes: 5")
+    expect(step).toContain("node scripts/test-parchment-workspace-browser.mjs --output-dir=test-results/parchment-workspace")
+    expect(step).not.toContain("secrets.")
+    const traceUpload = workflow.slice(workflow.indexOf("- name: Upload test traces"))
+    expect(traceUpload).toContain("if: always()")
+    expect(traceUpload).toContain("path: test-results/")
+  })
+
   it("isolates all five invocations and uploads traces after passing retries", () => {
     for (const suite of ["ops", "medcert", "paid-clinical", "paid-clinical-mobile", "checkout-resume"]) {
       suitePaths(suite)
