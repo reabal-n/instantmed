@@ -169,8 +169,8 @@ export function ParchmentPrescribePanel({
     fact.key !== "frequency" || fact.issue || fact.blocksPrescribing ||
     (fact.state === "confirmed" && !requestFrequency)
   ))
-  const assessmentBlockers = assessmentFacts?.filter((fact) => fact.issue || fact.blocksPrescribing)
-  const hasAssessmentDetails = assessmentFacts?.some((fact) => !fact.issue && !fact.blocksPrescribing)
+  const safetyItems = prescriptionContext?.safetyItems
+  const hasAssessmentDetails = Boolean(assessmentFacts?.length)
 
   useEffect(() => {
     const searchValue = prescriptionContext?.searchHint || prescriptionContext?.medicationLabel
@@ -505,13 +505,16 @@ export function ParchmentPrescribePanel({
                     <p className="min-w-0 select-text whitespace-pre-wrap break-words text-sm leading-5 text-foreground">{requestFrequency}</p>
                   </div>
                 ) : null}
-                {Boolean(assessmentBlockers?.length) && (
-                  <dl className="space-y-1.5 border-l-2 border-warning/60 pl-2">
-                    {assessmentBlockers?.map((fact) => (
-                      <div key={fact.key} data-parchment-assessment-fact={fact.key} data-review-fact-state={fact.state}>
-                        <dt className="inline text-sm font-medium">{fact.label}: </dt>
-                        <dd className="inline select-text whitespace-pre-wrap break-words text-sm">{fact.value}</dd>
-                        {fact.issue && <p className="text-xs text-warning">{fact.issue}</p>}
+                {Boolean(safetyItems?.length) && (
+                  <dl className="space-y-1.5" aria-label="Prescribing safety">
+                    {safetyItems?.map((item, index) => (
+                      <div
+                        key={`${item.label}-${index}`}
+                        data-parchment-safety-severity={item.severity}
+                        className={cn("border-l-2 pl-2", item.severity === "block" ? "border-destructive/60" : "border-warning/60")}
+                      >
+                        <dt className="text-sm font-medium">{item.label}</dt>
+                        <dd className="select-text whitespace-pre-wrap break-words text-sm">{item.detail}</dd>
                       </div>
                     ))}
                   </dl>

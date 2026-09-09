@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest"
 
 import { ParchmentPrescribePanel } from "@/components/doctor/parchment-prescribe-panel"
 import { PanelProvider } from "@/components/panels/panel-provider"
-import type { ParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
+import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { buildParchmentPrescriptionContext, type ParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 
 function renderPanel(context: ParchmentPrescriptionContext): string {
   return renderToStaticMarkup(
@@ -30,6 +31,28 @@ const specialtyContext: ParchmentPrescriptionContext = {
     { key: "duration", label: "Duration", value: "1–3 years", state: "confirmed", provenance: "current_request" },
     { key: "prior_treatment", label: "Prior treatment", value: "Earlier trial caused headaches", state: "confirmed", provenance: "current_request" },
   ],
+}
+
+const edAnswers = {
+  edDuration: "6_12_months",
+  edAgeConfirmed: true,
+  edErectionFrequency: 3,
+  edPreference: "prn",
+  edNitrates: false,
+  edRecentHeartEvent: false,
+  edSevereHeart: false,
+  edAlphaBlockers: false,
+  edPreviousTreatment: "Earlier trial caused headaches",
+}
+
+const pillAnswers = {
+  womensHealthOption: "ocp_new",
+  contraceptionType: "start",
+  pregnancyStatus: "no",
+  womens_migraine_aura: false,
+  womens_blood_clot_history: false,
+  womens_smoker: false,
+  contraceptionDetails: "Patient prefers a tablet option",
 }
 
 describe("ParchmentPrescribePanel clinical context", () => {
@@ -89,30 +112,70 @@ describe("ParchmentPrescribePanel clinical context", () => {
     expect(html).not.toContain("Not separately captured")
   })
 
-  it("keeps a genuine assessment blocker visible before the remaining details", () => {
-    const html = renderPanel({
-      ...specialtyContext,
-      assessmentFacts: [
-        ...specialtyContext.assessmentFacts!,
-        { key: "nitrate_answer", label: "Nitrate use", value: "Not recorded", state: "missing", provenance: "current_request", issue: "Confirm nitrate answer before prescribing", blocksPrescribing: true },
-      ],
-    })
+  it.each([
+    [
+      { edAlphaBlockers: true },
+      "Alpha blocker use",
+      "Alpha blockers can increase hypotension risk with PDE5 inhibitors. Confirm medication and dosing separation.",
+    ],
+    [
+      { edRecentHeartEvent: true, edGpCleared: true },
+      "Recent cardiac event",
+      "Patient reports GP clearance. Verify clearance and cardiovascular stability before considering ED medication.",
+    ],
+    [
+      { edSevereHeart: true, edGpCleared: true },
+      "Severe heart condition",
+      "Patient reports GP clearance. Confirm details before prescribing.",
+    ],
+  ])("keeps the real ED %s caution visible before collapsed assessment", (overrides, label, detail) => {
+    const source = { category: "consult", subtype: "ed", answers: { ...edAnswers, ...overrides } }
+    const context = buildParchmentPrescriptionContext(buildClinicalCaseSummary(source), source)
+    expect(context).not.toBeNull()
+    const html = renderPanel(context!)
 
-    expect(html).toContain("Confirm nitrate answer before prescribing")
-    expect(html).toContain('data-parchment-assessment-fact="nitrate_answer"')
-    expect(html.indexOf("Confirm nitrate answer before prescribing")).toBeLessThan(html.indexOf("Clinical details"))
+    expect(html).toContain(label)
+    expect(html).toContain(detail)
+    expect(html).toContain('data-parchment-safety-severity="caution"')
+    expect(html.indexOf(detail)).toBeLessThan(html.indexOf("Clinical details"))
+    expect(html).toContain('aria-expanded="false"')
     expect(html).not.toContain("Earlier trial caused headaches")
+    expect(context?.assessmentFacts).toContainEqual(expect.objectContaining({ value: "Earlier trial caused headaches" }))
   })
 
-  it("does not add an empty details control when every assessment fact is already a visible blocker", () => {
-    const html = renderPanel({
-      ...specialtyContext,
-      assessmentFacts: [
-        { key: "nitrate_answer", label: "Nitrate use", value: "Not recorded", state: "missing", provenance: "current_request", issue: "Confirm nitrate answer before prescribing", blocksPrescribing: true },
-      ],
-    })
+  it("keeps real combined-pill contraindications visible while preserving the POP handoff", () => {
+    const source = {
+      category: "consult", subtype: "womens_health",
+      answers: { ...pillAnswers, womens_migraine_aura: true, womens_blood_clot_history: true },
+    }
+    const context = buildParchmentPrescriptionContext(buildClinicalCaseSummary(source), source)
+    expect(context).not.toBeNull()
+    const html = renderPanel(context!)
 
-    expect(html).toContain("Confirm nitrate answer before prescribing")
-    expect(html).not.toContain("Clinical details")
+    expect(html).toContain("Migraine with aura: YES - combined oral contraceptive contraindicated (raised stroke risk). Steer to a progestogen-only pill.")
+    expect(html).toContain("Blood clot history: YES - combined oral contraceptive contraindicated (VTE risk). Steer to a progestogen-only pill.")
+    expect(html).toContain("Doctor to select a progestogen-only pill in Parchment if clinically appropriate after confirming pregnancy exclusion, allergies, current medicines, and patient preference.")
+    expect(html.match(/data-parchment-safety-severity="block"/g)).toHaveLength(2)
+    expect(html.indexOf("Migraine with aura: YES")).toBeLessThan(html.indexOf("Clinical details"))
+    expect(html).not.toContain("Not pregnant per patient report.")
+    expect(html).not.toContain("Non-smoker per patient report.")
+    expect(html).not.toContain("Patient prefers a tablet option")
+    expect(context?.assessmentFacts).toContainEqual(expect.objectContaining({ value: "Patient prefers a tablet option" }))
+  })
+
+  it.each([
+    ["ed", edAnswers],
+    ["womens_health", pillAnswers],
+  ])("keeps an all-negative %s screen compact without routine safety messages", (subtype, answers) => {
+    const source = { category: "consult", subtype, answers }
+    const context = buildParchmentPrescriptionContext(buildClinicalCaseSummary(source), source)
+    expect(context).not.toBeNull()
+    const html = renderPanel(context!)
+
+    expect(html).not.toContain('aria-label="Prescribing safety"')
+    expect(html).not.toContain("Not pregnant per patient report.")
+    expect(html).not.toContain("Non-smoker per patient report.")
+    expect(html).toContain("Clinical details")
+    expect(html).toContain('aria-expanded="false"')
   })
 })

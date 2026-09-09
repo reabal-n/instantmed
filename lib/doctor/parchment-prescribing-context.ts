@@ -1,4 +1,4 @@
-import type { ClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import type { ClinicalCaseSummary, ClinicalSafetyItem } from "@/lib/clinical/case-summary"
 import { buildReviewPacket, type BuildReviewPacketInput, type ReviewFact } from "@/lib/clinical/review-packet"
 import { getRepeatScriptMedicationDisplayParts } from "@/lib/validation/repeat-script-medications"
 
@@ -28,6 +28,8 @@ export interface ParchmentPrescriptionContext {
   requestFacts?: ReviewFact[]
   /** Existing specialty request assessment, never an inferred indication or diagnosis. */
   assessmentFacts?: ReviewFact[]
+  /** Existing block/caution findings, preserving the clinical summary's classification. */
+  safetyItems?: ClinicalSafetyItem[]
   medicationLabel?: string
   searchHint?: string
   patientReportedDose?: string
@@ -77,10 +79,12 @@ export function buildParchmentPrescriptionContext(
       .map((key) => source.answers[key])
       .find((value): value is string => typeof value === "string" && Boolean(value.trim()))
     : intent.patientReportedDose
+  const safetyItems = summary.safetyItems.filter(({ severity }) => severity === "block" || severity === "caution")
 
   return {
     ...(requestFacts ? { requestFacts } : {}),
     ...(assessmentFacts ? { assessmentFacts } : {}),
+    ...(safetyItems.length ? { safetyItems } : {}),
     presetLabel: intent.presetLabel,
     requestLabel: summary.title,
     medicationLabel: requestFacts?.find(({ key }) => key === "medicine")?.value || medicationLabel || undefined,
