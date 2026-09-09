@@ -425,7 +425,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
+        run: |
+          # Playwright uses its pinned Chromium, not the runner's system Chrome.
+          # A mismatched Google Chrome APT index must not block Ubuntu library
+          # installation; keep the distro feeds and their integrity checks intact.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome*.list /etc/apt/sources.list.d/google-chrome*.sources
+          pnpm exec playwright install --with-deps chromium
 
       # Owns port 3060 briefly and closes it before any application E2E server.
       # Bundles the real ReviewStep/store with local provider seams; no secrets.
