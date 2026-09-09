@@ -16,14 +16,18 @@ type StaffScopeQuery = {
 }
 
 /** Restrict test reads in SQL, before fetching any identity or answer fields. */
-export function scopeStaffIntakes<T extends StaffScopeQuery>(query: T, scope: StaffQueryScope): T {
+export function scopeStaffIntakes<T>(query: T, scope: StaffQueryScope): T {
+  // PostgREST's recursive overloads are expensive to structurally compare with
+  // this small interface. Adapt only the filter boundary, retaining the original
+  // builder/result type for the caller; these filters never change its selection.
+  const filters = query as unknown as StaffScopeQuery
   if (scope === "synthetic") {
     // Both markers are written by the maintained static and random E2E fixtures.
     // This isolates synthetic data, not one run; it does not repair old ciphertext.
-    const marked = query.eq("exclude_from_reporting", true) as T
+    const marked = filters.eq("exclude_from_reporting", true) as StaffScopeQuery
     return marked.like("reference_number", "E2E-%") as T
   }
 
   // The resolved guard takes precedence over stray test flags on Vercel.
-  return filterSeededE2EIntakes(query, {})
+  return filterSeededE2EIntakes(filters, {}) as unknown as T
 }
