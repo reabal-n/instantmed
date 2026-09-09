@@ -24,18 +24,21 @@ Independent review found a campaign-attribution edge case in the new first-order
 
 Account `9205010513`. Each applied operation has an immutable draft, exact Codex task approval, Google validate-only receipt, one apply and independent read-back. Full operations, hashes, request IDs, approval times and rollback values are in [the machine-readable receipts](2026-09-10-profit-growth-receipts.json). Daily budgets remain Scripts $95, Med Certs $20, Women's Health $20, ED $12 and Hair Loss $10.
 
-| Action | Proposal | State |
+| Action | Proposal | State at September 10, 02:25 AEST |
 |---|---|---|
-| Women's UTI and new/switch-pill RSAs use their matching child destinations | ADS-20260909-01 | Created and read back; Google review pending at the latest policy read. |
+| Women's UTI and new/switch-pill RSAs use their matching child destinations | ADS-20260909-01 | Both created and read back. UTI is reviewed and approved with limitations; pill review remains pending. |
+| Pause the original UTI hub RSA after replacement review | ADS-20260910-07 | Applied at `2026-09-09T16:24:11.019Z`, verified at `16:25:00.210Z`. Only the matching UTI destination now remains enabled in that ad group. |
 | Pause Scripts phrase keywords `online prescription Australia` and `prescription repeat` | ADS-20260909-03 | Applied and verified. |
 | Remove campaign phrase negative `backdated medical certificate`, campaign exact `online medical certificate australia`, and ad-group exact `carer's leave certificate` / `carers certificate` | ADS-20260910-01 | Applied and verified. Four actual exclusions, preserving clinical limits on past absence dates. |
-| Replace the work-certificate RSA with bounded clinical-assessment copy | ADS-20260910-02 | Created and read back; Google review pending at the latest policy read. |
+| Replace the work-certificate RSA with bounded clinical-assessment copy | ADS-20260910-02 | Created, read back and now reviewed/approved with limitations. |
 | Pause the old work-certificate RSA containing the unconditional no-call claim | ADS-20260910-03 | Applied and verified; no claim that Google's approval establishes compliance. |
 | Med Certs schedule 08:00–20:00 → 00:00–24:00 daily | ADS-20260910-04 | Applied and verified; $20/day and $22 target CPA unchanged. |
 | Exclude unsupported `trt` phrase from ED | ADS-20260910-05 | Applied and verified; no broad exclusion of otherwise relevant city/clinic searches. |
 | Scripts target ROAS 1.50 → 1.35 | ADS-20260910-06 | Applied and verified; $95/day unchanged. |
 
-The women's replacements are `202440288434~824041494895` (UTI) and `202440288474~824041494898` (pill). Their existing hub ads stay enabled while replacements are under review. The exact old-ad pause packet is prepared, but applying it before replacement eligibility would risk stopping both groups. The new work-certificate RSA is `194546863806~824123285516`; other certificate ad groups remain available while it is reviewed.
+The women's replacements are `202440288434~824041494895` (UTI) and `202440288474~824041494898` (pill). Google reviewed the UTI and work-certificate replacement `194546863806~824123285516` as `APPROVED_LIMITED`, with the prescription-drug-sale policy label; their primary status is `LIMITED`, not `PENDING`. The old UTI hub ad is now paused. The original pill hub ad remains enabled while its replacement is still `PENDING`/under review. The initial two-ad pause packet has been split; only the remaining pill pause packet is pending. This is policy/status evidence, not a claim of delivered impressions.
+
+These provider states are a dated snapshot. Any later Google review and remaining pill activation receipt is recorded in the Verification section of [PR #546](https://github.com/reabal-n/instantmed/pull/546), with exact operation/approval/apply/read-back evidence also retained in the canonical Ads proposal audit.
 
 The first women's Google apply succeeded and its durable apply receipt was stored, but the subsequent audit append failed transiently. Recovery re-appended that same stored request and hashes, then read back both created ads. Google creation was **not repeated**. ADS-20260909-02 was an earlier Scripts keyword draft blocked before Google mutation by the previous experiment lock; it is preserved as a failed validation, not an apply.
 
@@ -74,7 +77,7 @@ Existing September 5 indexing requests for the prescription and UTI pages are pr
 
 ## Code release and verification
 
-Code delivery is tracked in [PR #546](https://github.com/reabal-n/instantmed/pull/546), with implementation through `8d1c36fe9`. The final whole-branch review and scoped correction review are approved. The PR's Verification section records the final release checks, required CI, merged commit and production deployment evidence; the local proof below does not substitute for those boundaries. Live Ads actions above are already applied. Google still reported all three replacement RSAs under review at `2026-09-09T14:58:45.989Z`.
+Code delivery is tracked in [PR #546](https://github.com/reabal-n/instantmed/pull/546), with implementation through `8d1c36fe9`. The final whole-branch review and scoped correction review are approved. The PR's Verification section records the final release checks, required CI, merged commit and production deployment evidence; the local proof below does not substitute for those boundaries. Live Ads actions above are already applied. At `2026-09-09T16:25:47.561Z`, Google had reviewed the UTI and work-certificate replacements with limited approval; the pill replacement remained under review.
 
 Local proof includes 160 focused profit/attribution tests, 106 focused AI/loader/privacy tests, 47 marketing/compliance/hours tests, typecheck, focused lint and the 124-test documentation audit. The AI regressions exercise the installed SDK's expired-session rotation, cookie persistence when Web Storage is denied, failure when no durable marker is available, and marking only an accepted capture. Four delayed-import cases preserve the original comparison landing and classified source for instrumentation/provider entry points and UTM/referrer sources; two private-navigation cases suppress initialization or capture before SDK session access.
 

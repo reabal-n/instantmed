@@ -796,6 +796,74 @@
       },
       "status": "verified",
       "approvedAt": "2026-09-09T14:09:28.525+00:00"
+    },
+    {
+      "artifact": "10-womens-retire-uti-hub-ad.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "ad_status",
+        "operations": [
+          {
+            "expected": "ENABLED",
+            "kind": "ad_status",
+            "next": "PAUSED",
+            "resourceName": "customers/9205010513/adGroupAds/202440288434~821369190701"
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "One old RSA status only. Campaign, ad group, bids, budget, keywords and replacement copy unchanged.",
+          "campaign": "IM | Search | Women's Health | AU",
+          "currentValue": "The original UTI hub RSA is enabled; replacement 202440288434~824041494895 uses the matching child destination.",
+          "reason": "Complete the owner-authorised destination switch for this ad group after replacement review. The other women's ad group is handled separately.",
+          "requestedValue": "Pause the original UTI hub RSA after replacement policy review confirms it can serve, routing this intent to /uti-assessment-online.",
+          "service": "womens_health"
+        },
+        "rollbackPlan": {
+          "value": "Re-enable the original UTI RSA and pause replacement 202440288434~824041494895 through an exact inverse packet."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260910-07",
+      "operationHash": "05b90098fbcf230287349146b7f795c196204edeace2df92acf868b4e7336826",
+      "baselineHash": "b0bc8df3e44878afcefad9bd4a32fbf7a55e36241bdba6b82c2a6d53f95c7c69",
+      "validation": {
+        "baselineHash": "b0bc8df3e44878afcefad9bd4a32fbf7a55e36241bdba6b82c2a6d53f95c7c69",
+        "errorCode": null,
+        "googleOperationsHash": "033e400d2374eaa504b1508a0a8dc8a73047c7397301fe0012872571fba1689c",
+        "ok": true,
+        "operationHash": "05b90098fbcf230287349146b7f795c196204edeace2df92acf868b4e7336826",
+        "proposalKey": "ADS-20260910-07",
+        "requestId": "TYsGPbb8q7vCZzZk0kCbXA",
+        "validatedAt": "2026-09-09T16:23:52.805Z"
+      },
+      "decision": {
+        "consumed": true,
+        "reference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc"
+      },
+      "apply": {
+        "appliedAt": "2026-09-09T16:24:11.019Z",
+        "errorCode": null,
+        "googleOperationsHash": "033e400d2374eaa504b1508a0a8dc8a73047c7397301fe0012872571fba1689c",
+        "outcome": "applied",
+        "proposalKey": "ADS-20260910-07",
+        "requestId": "IM57yu8ellS5vy7C3sbdZA"
+      },
+      "verification": {
+        "outcome": "verified",
+        "proposalKey": "ADS-20260910-07",
+        "resourceHashes": {
+          "op-01": "281d4d8cf0bd9160389dde565e9487f793f3aa9d64a4464ca7d156ef201fc67b"
+        },
+        "verifiedAt": "2026-09-09T16:25:00.210Z"
+      },
+      "status": "verified",
+      "approvedAt": "2026-09-09T16:24:10.989+00:00"
     }
   ],
   "supersededScriptsObservation": {
@@ -888,7 +956,7 @@
     }
   },
   "adPolicyReadback": {
-    "readAt": "2026-09-09T14:58:45.989Z",
+    "readAt": "2026-09-09T16:25:47.561Z",
     "rows": [
       {
         "adGroupAd": {
@@ -901,9 +969,24 @@
             ]
           },
           "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "PROHIBITED",
+                "topic": "ENABLING_DISHONEST_BEHAVIOR"
+              },
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
             "reviewStatus": "REVIEWED",
             "approvalStatus": "APPROVED_LIMITED"
-          }
+          },
+          "primaryStatus": "PAUSED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_PAUSED",
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
         }
       },
       {
@@ -917,9 +1000,24 @@
             ]
           },
           "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "PROHIBITED",
+                "topic": "ENABLING_DISHONEST_BEHAVIOR"
+              },
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
             "reviewStatus": "REVIEWED",
             "approvalStatus": "APPROVED_LIMITED"
-          }
+          },
+          "primaryStatus": "PAUSED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_PAUSED",
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
         }
       },
       {
@@ -933,15 +1031,25 @@
             ]
           },
           "policySummary": {
-            "reviewStatus": "REVIEW_IN_PROGRESS",
-            "approvalStatus": "UNKNOWN"
-          }
+            "policyTopicEntries": [
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
+            "reviewStatus": "REVIEWED",
+            "approvalStatus": "APPROVED_LIMITED"
+          },
+          "primaryStatus": "LIMITED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
         }
       },
       {
         "adGroupAd": {
           "resourceName": "customers/9205010513/adGroupAds/202440288434~821369190701",
-          "status": "ENABLED",
+          "status": "PAUSED",
           "ad": {
             "resourceName": "customers/9205010513/ads/821369190701",
             "finalUrls": [
@@ -949,9 +1057,24 @@
             ]
           },
           "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "LIMITED",
+                "topic": "BIRTH_CONTROL"
+              },
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
             "reviewStatus": "REVIEWED",
             "approvalStatus": "APPROVED_LIMITED"
-          }
+          },
+          "primaryStatus": "PAUSED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_PAUSED",
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
         }
       },
       {
@@ -965,9 +1088,19 @@
             ]
           },
           "policySummary": {
-            "reviewStatus": "REVIEW_IN_PROGRESS",
-            "approvalStatus": "UNKNOWN"
-          }
+            "policyTopicEntries": [
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
+            "reviewStatus": "REVIEWED",
+            "approvalStatus": "APPROVED_LIMITED"
+          },
+          "primaryStatus": "LIMITED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
         }
       },
       {
@@ -981,9 +1114,23 @@
             ]
           },
           "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "LIMITED",
+                "topic": "BIRTH_CONTROL"
+              },
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
             "reviewStatus": "REVIEWED",
             "approvalStatus": "APPROVED_LIMITED"
-          }
+          },
+          "primaryStatus": "LIMITED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
         }
       },
       {
@@ -997,9 +1144,23 @@
             ]
           },
           "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "LIMITED",
+                "topic": "BIRTH_CONTROL"
+              },
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
             "reviewStatus": "REVIEW_IN_PROGRESS",
             "approvalStatus": "UNKNOWN"
-          }
+          },
+          "primaryStatus": "PENDING",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_UNDER_REVIEW"
+          ]
         }
       }
     ]
@@ -1015,7 +1176,7 @@
     "interpretation": "Fourteen-day contribution review, not a waiting veto or autonomous pause. Copy and exclusions changed nearby, so isolated schedule lift is not identifiable."
   },
   "pending": [
-    "Google ad review; pause old women hub RSAs only when replacement destinations can serve"
+    "The original pill RSA remains enabled with limited approval; its enabled replacement remains pending Google review at this snapshot. Prepared one-ad pause packet: 11-womens-retire-pill-hub-ad.json. The original two-ad packet is superseded."
   ],
   "finalAccountReadback": {
     "readAt": "2026-09-09T14:19:22.830Z",
@@ -2574,5 +2735,167 @@
     "pullRequest": "https://github.com/reabal-n/instantmed/pull/546",
     "implementationHead": "8d1c36fe9",
     "verificationAuthority": "The PR Verification section records final release checks, required CI and production deployment; this pre-merge receipt does not imply deployment."
+  },
+  "subsequentAdsReceiptAuthority": "Any later Google policy read or remaining pill activation receipt is recorded in the Verification section of https://github.com/reabal-n/instantmed/pull/546 and the canonical Ads proposal audit; this file preserves its dated snapshot.",
+  "subsequentAccountReadback": {
+    "readAt": "2026-09-09T16:25:45.928Z",
+    "budgetsUnchanged": true,
+    "campaigns": [
+      {
+        "campaign": {
+          "advertisingChannelType": "SEARCH",
+          "biddingStrategyType": "MAXIMIZE_CONVERSIONS",
+          "campaignBudget": "customers/9205010513/campaignBudgets/15429766260",
+          "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+          "geoTargetTypeSetting": {
+            "negativeGeoTargetType": "PRESENCE",
+            "positiveGeoTargetType": "PRESENCE"
+          },
+          "id": "23651537255",
+          "maximizeConversions": {
+            "targetCpaMicros": "22000000"
+          },
+          "name": "JDM | Search | Med Certs",
+          "networkSettings": {
+            "targetContentNetwork": false,
+            "targetGoogleSearch": true,
+            "targetPartnerSearchNetwork": false,
+            "targetSearchNetwork": false
+          },
+          "resourceName": "customers/9205010513/campaigns/23651537255",
+          "status": "ENABLED"
+        },
+        "budget": {
+          "amountMicros": "20000000",
+          "explicitlyShared": false,
+          "resourceName": "customers/9205010513/campaignBudgets/15429766260",
+          "status": "ENABLED"
+        }
+      },
+      {
+        "campaign": {
+          "advertisingChannelType": "SEARCH",
+          "biddingStrategyType": "MAXIMIZE_CONVERSION_VALUE",
+          "campaignBudget": "customers/9205010513/campaignBudgets/15589755119",
+          "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+          "geoTargetTypeSetting": {
+            "negativeGeoTargetType": "PRESENCE",
+            "positiveGeoTargetType": "PRESENCE"
+          },
+          "id": "23870042807",
+          "maximizeConversionValue": {
+            "targetRoas": 1.35
+          },
+          "name": "JDM | Search | Scripts",
+          "networkSettings": {
+            "targetContentNetwork": false,
+            "targetGoogleSearch": true,
+            "targetPartnerSearchNetwork": false,
+            "targetSearchNetwork": false
+          },
+          "resourceName": "customers/9205010513/campaigns/23870042807",
+          "status": "ENABLED"
+        },
+        "budget": {
+          "amountMicros": "95000000",
+          "explicitlyShared": false,
+          "resourceName": "customers/9205010513/campaignBudgets/15589755119",
+          "status": "ENABLED"
+        }
+      },
+      {
+        "campaign": {
+          "advertisingChannelType": "SEARCH",
+          "biddingStrategyType": "MANUAL_CPC",
+          "campaignBudget": "customers/9205010513/campaignBudgets/15723069788",
+          "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+          "geoTargetTypeSetting": {
+            "negativeGeoTargetType": "PRESENCE",
+            "positiveGeoTargetType": "PRESENCE"
+          },
+          "id": "24040886787",
+          "manualCpc": {
+            "enhancedCpcEnabled": false
+          },
+          "name": "IM | Search | ED | Pilot",
+          "networkSettings": {
+            "targetContentNetwork": false,
+            "targetGoogleSearch": true,
+            "targetPartnerSearchNetwork": false,
+            "targetSearchNetwork": false
+          },
+          "resourceName": "customers/9205010513/campaigns/24040886787",
+          "status": "ENABLED"
+        },
+        "budget": {
+          "amountMicros": "12000000",
+          "explicitlyShared": false,
+          "resourceName": "customers/9205010513/campaignBudgets/15723069788",
+          "status": "ENABLED"
+        }
+      },
+      {
+        "campaign": {
+          "advertisingChannelType": "SEARCH",
+          "biddingStrategyType": "MANUAL_CPC",
+          "campaignBudget": "customers/9205010513/campaignBudgets/15723069791",
+          "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+          "geoTargetTypeSetting": {
+            "negativeGeoTargetType": "PRESENCE",
+            "positiveGeoTargetType": "PRESENCE"
+          },
+          "id": "24040886790",
+          "manualCpc": {
+            "enhancedCpcEnabled": false
+          },
+          "name": "IM | Search | Hair Loss | Pilot",
+          "networkSettings": {
+            "targetContentNetwork": false,
+            "targetGoogleSearch": true,
+            "targetPartnerSearchNetwork": false,
+            "targetSearchNetwork": false
+          },
+          "resourceName": "customers/9205010513/campaigns/24040886790",
+          "status": "ENABLED"
+        },
+        "budget": {
+          "amountMicros": "10000000",
+          "explicitlyShared": false,
+          "resourceName": "customers/9205010513/campaignBudgets/15723069791",
+          "status": "ENABLED"
+        }
+      },
+      {
+        "campaign": {
+          "advertisingChannelType": "SEARCH",
+          "biddingStrategyType": "MANUAL_CPC",
+          "campaignBudget": "customers/9205010513/campaignBudgets/15796828955",
+          "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+          "geoTargetTypeSetting": {
+            "negativeGeoTargetType": "PRESENCE",
+            "positiveGeoTargetType": "PRESENCE"
+          },
+          "id": "24144825264",
+          "manualCpc": {
+            "enhancedCpcEnabled": false
+          },
+          "name": "IM | Search | Women's Health | AU",
+          "networkSettings": {
+            "targetContentNetwork": false,
+            "targetGoogleSearch": true,
+            "targetPartnerSearchNetwork": false,
+            "targetSearchNetwork": false
+          },
+          "resourceName": "customers/9205010513/campaigns/24144825264",
+          "status": "ENABLED"
+        },
+        "budget": {
+          "amountMicros": "20000000",
+          "explicitlyShared": false,
+          "resourceName": "customers/9205010513/campaignBudgets/15796828955",
+          "status": "ENABLED"
+        }
+      }
+    ]
   }
 }
