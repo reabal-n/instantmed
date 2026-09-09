@@ -3,7 +3,7 @@ import "server-only"
 import { unstable_cache } from "next/cache"
 
 import type { StaffNavCounts } from "@/lib/dashboard/staff-navigation"
-import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
+import { getStaffQueryScope, scopeStaffIntakes, type StaffQueryScope } from "@/lib/data/staff-query-scope"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { createLogger } from "@/lib/observability/logger"
 import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
@@ -11,24 +11,26 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("staff-nav-counts")
 
-async function computeStaffNavCounts(): Promise<StaffNavCounts> {
+async function computeStaffNavCounts(scope: StaffQueryScope): Promise<StaffNavCounts> {
   const supabase = createServiceRoleClient()
 
   const [scriptsResult, identityResult, queueResult] = await Promise.allSettled([
-    filterSeededE2EIntakes(
+    scopeStaffIntakes(
       supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
         .eq("status", "awaiting_script"),
+      scope,
     ),
-    getPrescribingIdentityBlockerReport(supabase),
-    filterSeededE2EIntakes(
+    getPrescribingIdentityBlockerReport(supabase, scope),
+    scopeStaffIntakes(
       supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])
         .in("status", ["paid", "in_review", "pending_info"]),
+      scope,
     ),
   ])
 
@@ -77,8 +79,13 @@ async function computeStaffNavCounts(): Promise<StaffNavCounts> {
  * /admin/ops/prescribing-identity) call getPrescribingIdentityBlockerReport
  * directly and are unaffected.
  */
-export const getStaffNavCounts = unstable_cache(
+const getCachedStaffNavCounts = unstable_cache(
   computeStaffNavCounts,
   ["staff-nav-counts"],
   { revalidate: 30, tags: ["staff-nav-counts"] },
 )
+
+// Resolve outside the cached callback; scope is part of Next's argument cache key.
+export function getStaffNavCounts(): Promise<StaffNavCounts> {
+  return getCachedStaffNavCounts(getStaffQueryScope())
+}
