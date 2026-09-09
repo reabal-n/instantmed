@@ -87,6 +87,7 @@ function getTargetTokenTone(
 }
 
 interface QueuePressureSignalProps {
+  initialNowMs: number
   oldestWaitingMinutes: number | null | undefined
   oldestWaitingEnteredAt?: string | null
   className?: string
@@ -102,6 +103,7 @@ interface QueuePressureSignalProps {
 }
 
 export function QueuePressureSignal({
+  initialNowMs,
   oldestWaitingMinutes,
   oldestWaitingEnteredAt = null,
   className,
@@ -115,7 +117,8 @@ export function QueuePressureSignal({
   targetMinutes = QUEUE_WAIT_TARGET_MINUTES,
   waitingCaseCount = null,
 }: QueuePressureSignalProps) {
-  const mountedAtRef = useRef(Date.now())
+  // Share the server's snapshot until hydration; the effect starts live ticks.
+  const mountedAtRef = useRef(initialNowMs)
   const [nowMs, setNowMs] = useState(() => mountedAtRef.current)
   const [reviewOpen, setReviewOpen] = useState(false)
 
