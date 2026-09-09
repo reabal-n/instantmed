@@ -187,6 +187,7 @@ function eligibleScaleEvidence(
   overrides: Partial<AdsScaleAuthorizationEvidence> = {},
 ): AdsScaleAuthorizationEvidence {
   const scripts: CampaignEconomics = {
+    firstOrder: { contributionCents: 114_321, netRetainedRevenueCents: 225_590, stripeFeeCents: 7_313, orders: 75 },
     biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
     budgetAmountMicros: 40_000_000,
     budgetResourceName,
@@ -221,7 +222,7 @@ function eligibleScaleEvidence(
       lastChangeAt: null,
     },
     daily: [scripts],
-    generatedAt: "2026-07-30T09:50:00.000Z",
+    generatedAt: "2026-07-30T09:00:00.000Z",
     inputs: {},
     reportDate: "2026-07-29",
     rolling30: [scripts],
@@ -649,6 +650,7 @@ function fakeRepository(
     getLatestTrackingGate: vi.fn(async () => ({
       checkedAt: "2026-07-30T09:50:00.000Z",
       fresh: true,
+      scaleAllowed: trackingState === "GREEN",
       state: trackingState,
     })),
     getMaterialExperimentLock: vi.fn(async () => experimentLock),
@@ -1218,6 +1220,31 @@ describe("Google Ads mutation gateway", () => {
     expect(harness.mutate).not.toHaveBeenCalled()
   })
 
+  it("allows explicitly advisory AMBER while preserving exact approval", async () => {
+    const before = accountState()
+    const after = stateWithBudget(before, budgetOperation.nextMicros)
+    const harness = gateway({ accountReads: [before, after] })
+    vi.mocked(harness.store.repository.getLatestTrackingGate).mockResolvedValue({ checkedAt: before.readAt, fresh: true, scaleAllowed: true, state: "AMBER" })
+    await expect(harness.gateway.applyProposal("ADS-20260730-01")).resolves.toMatchObject({ outcome: "applied" })
+  })
+
+  it("blocks an explicit clinical incident even with profitable cash and exact approval", async () => {
+    const scaleEvidence = eligibleScaleEvidence()
+    scaleEvidence.snapshot.operational = { asOf: scaleEvidence.snapshot.generatedAt, holds: [{ affectedService: "scripts", state: "hold", reasons: ["clinical_incident"] }], manualEvidence: { support: null, clinicalQa: null }, queue: { availability: "unavailable", services: [] } }
+    const harness = gateway({ accountReads: [accountState()], scaleEvidence })
+    await expect(harness.gateway.applyProposal("ADS-20260730-01")).resolves.toMatchObject({ outcome: "aborted", errorCode: "scripts_operational_hold" })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+
+  it("keeps a fresh delivered run usable across Sydney midnight", async () => {
+    const scaleEvidence = eligibleScaleEvidence()
+    scaleEvidence.snapshot.reportDate = "2026-07-28"
+    scaleEvidence.snapshot.generatedAt = "2026-07-29T23:00:00.000Z"
+    const before = accountState()
+    const harness = gateway({ accountReads: [before, stateWithBudget(before, budgetOperation.nextMicros)], scaleEvidence })
+    await expect(harness.gateway.applyProposal("ADS-20260730-01")).resolves.toMatchObject({ outcome: "applied" })
+  })
+
   it("treats an enabled RSA create as scaling and blocks it without GREEN tracking", async () => {
     const state = accountState()
     const initial = proposal(state, {
@@ -1318,6 +1345,7 @@ describe("Google Ads mutation gateway", () => {
 
     const staleEvidence = eligibleScaleEvidence()
     staleEvidence.snapshot.reportDate = "2026-07-28"
+    staleEvidence.snapshot.generatedAt = "2026-07-28T23:00:00.000Z"
     const stale = gateway({
       accountReads: [state],
       initial: proposal(state, { operations }),
@@ -1352,15 +1380,9 @@ describe("Google Ads mutation gateway", () => {
     expect(harness.mutate).toHaveBeenCalledTimes(2)
   })
 
-  it("fails a Scripts increase closed when scale evidence is missing or immature", async () => {
+  it("fails a Scripts increase closed when scale evidence is missing", async () => {
     for (const [scaleEvidence, expected] of [
       [null, "scripts_scale_authorization_unavailable"],
-      [eligibleScaleEvidence({
-        previousMaterialChange: { attributedOrders: 12, closedDays: 2 },
-      }), "scripts_post_change_evidence_immature"],
-      [eligibleScaleEvidence({
-        previousMaterialChange: { attributedOrders: 9, closedDays: 3 },
-      }), "scripts_post_change_evidence_immature"],
     ] as const) {
       const state = accountState()
       const harness = gateway({ accountReads: [state], scaleEvidence })
@@ -1377,7 +1399,10 @@ describe("Google Ads mutation gateway", () => {
       ...budgetOperation,
       nextMicros: 60_000_000,
     }]
+    const scaleEvidence = eligibleScaleEvidence()
+    scaleEvidence.snapshot.rolling30[0].firstOrder = { contributionCents: 38_731, netRetainedRevenueCents: 150_000, stripeFeeCents: 7_313, orders: 50 }
     const harness = gateway({
+      scaleEvidence,
       accountReads: [state],
       initial: proposal(state, { operations }),
     })
@@ -1622,6 +1647,34 @@ describe("Google Ads mutation gateway", () => {
         ...rsaCreateOperation as unknown as Record<string, unknown>,
         finalUrl: "https://instantmed.com.au/hair-loss",
       }],
+      state,
+    })).toThrow("paid_destination_service_mismatch")
+  })
+
+  it.each([
+    ["Women's Health", "/uti-assessment-online"],
+    ["Women's Health", "/contraceptive-pill-assessment-online"],
+    ["Med Certs", "/medical-certificate/work"],
+  ])("accepts the approved %s child destination %s", (name, path) => {
+    const state = accountState()
+    const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
+    campaign.name = name
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...rsaCreateOperation, finalUrl: `https://instantmed.com.au${path}` }],
+      state,
+    })).not.toThrow()
+  })
+
+  it.each([
+    ["Scripts", "/uti-assessment-online"],
+    ["Women's Health", "/medical-certificate/work"],
+    ["Med Certs", "/contraceptive-pill-assessment-online"],
+  ])("rejects a %s RSA sent to another service's child page %s", (name, path) => {
+    const state = accountState()
+    const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
+    campaign.name = name
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...rsaCreateOperation, finalUrl: `https://instantmed.com.au${path}` }],
       state,
     })).toThrow("paid_destination_service_mismatch")
   })

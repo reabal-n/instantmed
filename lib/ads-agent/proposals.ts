@@ -278,8 +278,11 @@ const PAID_DESTINATION_PATHS = new Set([
   "/erectile-dysfunction",
   "/hair-loss",
   "/medical-certificate",
+  "/medical-certificate/work",
   "/prescriptions",
   "/womens-health",
+  "/uti-assessment-online",
+  "/contraceptive-pill-assessment-online",
 ])
 const RATING_OR_TESTIMONIAL_PATTERN =
   /\b(?:rated|rating|ratings|stars?|testimonials?|patient reviews?|customer reviews?|patients? say)\b/i

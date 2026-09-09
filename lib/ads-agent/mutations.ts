@@ -14,6 +14,7 @@ import {
   authorizeScriptsBudgetScale,
   authorizeScriptsScaleEligibility,
   containsProhibitedPaidMedicineTerm,
+  hasBlockingAdsOperationalEvidence,
   POLICY,
   PROHIBITED_PAID_MEDICINE_TERMS,
   resolveAdsCampaignService,
@@ -37,7 +38,6 @@ import {
 } from "@/lib/ads-agent/proposals"
 import {
   type AdsScaleAuthorizationEvidence,
-  previousSydneyDateKey,
   resolveLatestAdsMaterialChangeAt,
 } from "@/lib/ads-agent/scripts-scale-authorization"
 import {
@@ -66,6 +66,7 @@ export interface AdsMutationAuditReceipt {
 }
 
 export interface AdsTrackingGateReceipt {
+  scaleAllowed?: boolean
   checkedAt: string
   fresh: boolean
   state: "GREEN" | "AMBER" | "RED"
@@ -1248,11 +1249,15 @@ function campaignForAdGroup(
 }
 
 const PAID_DESTINATION_BY_SERVICE = {
-  ed: "/erectile-dysfunction",
-  hair_loss: "/hair-loss",
-  med_certs: "/medical-certificate",
-  scripts: "/prescriptions",
-  womens_health: "/womens-health",
+  ed: ["/erectile-dysfunction"],
+  hair_loss: ["/hair-loss"],
+  med_certs: ["/medical-certificate", "/medical-certificate/work"],
+  scripts: ["/prescriptions"],
+  womens_health: [
+    "/womens-health",
+    "/uti-assessment-online",
+    "/contraceptive-pill-assessment-online",
+  ],
 } as const
 
 const ALLOWED_PAID_PRICE_CENTS = {
@@ -1351,8 +1356,8 @@ function assertCampaignCreateSafe(
       throw new Error("proposal_service_mismatch")
     }
     if (
-      new URL(operation.finalUrl).pathname
-      !== PAID_DESTINATION_BY_SERVICE[operation.service]
+      !(PAID_DESTINATION_BY_SERVICE[operation.service] as readonly string[])
+        .includes(new URL(operation.finalUrl).pathname)
     ) {
       throw new Error("paid_destination_service_mismatch")
     }
@@ -1441,7 +1446,8 @@ function assertCreateOperationsSafe(
     if (operation.kind === "positive_keyword_create") continue
 
     const destination = new URL(operation.finalUrl)
-    if (destination.pathname !== PAID_DESTINATION_BY_SERVICE[service]) {
+    if (!(PAID_DESTINATION_BY_SERVICE[service] as readonly string[])
+      .includes(destination.pathname)) {
       throw new Error("paid_destination_service_mismatch")
     }
     if (
@@ -1896,7 +1902,7 @@ async function requireTrackingGreen(args: {
     now: args.now,
     runId: args.proposal.runId,
   })
-  if (!tracking.fresh || tracking.state !== "GREEN") {
+  if (!tracking.fresh || tracking.state === "RED" || tracking.scaleAllowed !== true) {
     throw new Error("tracking_not_green")
   }
 }
@@ -2001,10 +2007,8 @@ async function requireScaleAuthorization(args: {
       service,
     })
     if (!evidence) throw new Error("scripts_scale_authorization_unavailable")
-    if (
-      evidence.snapshot.reportDate
-        !== previousSydneyDateKey(args.state.readAt)
-    ) {
+    const evidenceAge = Date.parse(args.state.readAt) - Date.parse(evidence.snapshot.generatedAt)
+    if (!Number.isFinite(evidenceAge) || evidenceAge < 0 || evidenceAge > TRACKING_GATE_MAX_AGE_MS) {
       throw new Error("scripts_scale_evidence_stale")
     }
 
@@ -2014,6 +2018,10 @@ async function requireScaleAuthorization(args: {
     )
     if (campaigns.length !== 1) {
       throw new Error("scripts_budget_evidence_unavailable")
+    }
+    if (evidence.snapshot.operational?.holds.some((hold) =>
+      hold.affectedService === service && hasBlockingAdsOperationalEvidence(hold))) {
+      throw new Error("scripts_operational_hold")
     }
     authorizeScriptsScaleEligibility(campaigns[0])
     if (change.type === "bidding") continue
@@ -2838,12 +2846,12 @@ export function createSupabaseAdsMutationRepository(args: {
       const [source, latest] = await Promise.all([
         supabase
           .from("google_ads_agent_runs")
-          .select("id, status, tracking_state, completed_at")
+          .select("id, status, tracking_state, completed_at, snapshot")
           .eq("id", runId)
           .maybeSingle(),
         supabase
           .from("google_ads_agent_runs")
-          .select("id, status, tracking_state, completed_at")
+          .select("id, status, tracking_state, completed_at, snapshot")
           .order("started_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
@@ -2870,9 +2878,20 @@ export function createSupabaseAdsMutationRepository(args: {
             || latest.data.tracking_state === "RED"
             ? "RED"
             : "AMBER"
+      const trusted = (row: typeof source.data): boolean => {
+        const tracking = asRecord(asRecord(row?.snapshot)?.tracking)
+        const reasons = tracking?.reasonCodes
+        return tracking?.state === row?.tracking_state
+          && tracking?.scaleAllowed === true
+          && Array.isArray(reasons)
+          && (row?.tracking_state === "GREEN" ? reasons.length === 0
+            : row?.tracking_state === "AMBER" && reasons.length > 0
+              && reasons.every((reason) => ["GOOGLE_DIAGNOSTICS_LAGGING", "CONVERSION_LAG_IMMATURE"].includes(reason)))
+      }
       return {
         checkedAt: now.toISOString(),
         fresh,
+        scaleAllowed: trusted(source.data) && trusted(latest.data),
         state,
       }
     },
