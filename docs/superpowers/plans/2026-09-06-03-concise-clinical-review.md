@@ -10,7 +10,7 @@
 
 **Spec/design brief:** [ROADMAP](../../ROADMAP.md), rank 2; [DESIGN](../../../DESIGN.md), [PRODUCT](../../../PRODUCT.md), [CLINICAL](../../CLINICAL.md). On Sep6 the operator identified concise clinical information as the main pain: medicine name, dose and frequency must be visible in the prescribing modal, with layout decisions delegated to the implementer.
 
-**Status:** The original implementation merged and deployed on 2026-09-09 through PR #541. The operator then rejected its density and approved the compact correction, which merged through PR #543 and is deployed with passing required CI and production smoke. The new automatic public-funnel review again scored 7/10 against its 8/10 target; no operator exception has been recorded, and approval of the staff-density correction does not grant one. Final visual sign-off remains pending. Session 2's release handoff was read before implementation; its commercial measurement continues independently. Sessions 4–5 remain unstarted.
+**Status:** The original implementation merged and deployed on 2026-09-09 through PR #541. The operator then rejected its density and approved the compact correction, which merged through PR #543 and is deployed with passing required CI and production smoke. The new automatic public-funnel review again scored 7/10 against its 8/10 target; no operator exception has been recorded, and approval of the staff-density correction does not grant one. Final visual sign-off remains pending. Session 2's release handoff was read before implementation; its commercial measurement continues independently. Session 4 is now executing under the operator's later approval; Session 5 remains unstarted.
 
 ## Design direction and acceptance scene
 
