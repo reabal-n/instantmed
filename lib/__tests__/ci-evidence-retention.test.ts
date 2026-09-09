@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process"
-import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
@@ -62,7 +62,7 @@ describe("CI diagnostic evidence retention", () => {
     expect(() => getCiPlaywrightGlobalTimeout(deadline, 1000)).toThrow(/browser evidence deadline|browser test budget exhausted/i)
   })
 
-  it("finishes an interrupted suite with reports and traces before the runner is killed", () => {
+  it.each([[0, 0], [6000, 0], [0, 6000]])("preserves timeout reports (worker startup: %ims, cleanup: %ims)", (workerStartupMs, cleanupMs) => {
     const temporary = mkdtempSync(join(tmpdir(), "instantmed-ci-deadline-"))
     try {
       const playwright = JSON.stringify(require.resolve("@playwright/test"))
@@ -72,7 +72,9 @@ describe("CI diagnostic evidence retention", () => {
         const { getCiPlaywrightGlobalTimeout } = require(${budget});
         module.exports = defineConfig({
           testDir: '.', workers: 1, retries: 0, timeout: 60000,
-          globalTimeout: getCiPlaywrightGlobalTimeout(),
+          globalTimeout: getCiPlaywrightGlobalTimeout(
+            process.env.PLAYWRIGHT_CI_DEADLINE_MS ?? String(Date.now() + 5000)
+          ),
           outputDir: 'test-results/paid-clinical',
           reporter: [['html', { open: 'never', outputFolder: 'playwright-report/paid-clinical' }],
             ['json', { outputFile: 'attempts.json' }]],
@@ -81,30 +83,51 @@ describe("CI diagnostic evidence retention", () => {
       `)
       writeFileSync(join(temporary, "hung.spec.cjs"), `
         const { test } = require(${playwright});
+        const { writeFileSync } = require('node:fs');
+        if (process.env.TEST_WORKER_INDEX !== undefined && ${workerStartupMs} > 0) {
+          Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ${workerStartupMs});
+        }
+        if (${cleanupMs} > 0) {
+          test.afterEach(async () => { await new Promise(resolve => setTimeout(resolve, ${cleanupMs})); });
+        }
         test('synthetic interrupted attempt', async () => {
+          writeFileSync('test-started', 'started');
           await test.step('wait beyond the browser budget', async () => {
             await new Promise(() => {});
           });
         });
       `)
       const args = [require.resolve("@playwright/test/cli"), "test", "--config=playwright.config.cjs", "hung.spec.cjs"]
-      const deadline = Date.now() + 5000
       const run = spawnSync(process.execPath, args, {
         cwd: temporary,
         encoding: "utf8",
         timeout: 12000,
-        env: { NODE_ENV: "test", PATH: process.env.PATH, HOME: process.env.HOME, CI: "1", PLAYWRIGHT_CI_DEADLINE_MS: String(deadline) },
+        env: { NODE_ENV: "test", PATH: process.env.PATH, HOME: process.env.HOME, CI: "1" },
       })
       expect(run.error).toBeUndefined()
       expect(run.status, run.stdout + run.stderr).toBe(1)
       const reportPath = join(temporary, "playwright-report/paid-clinical/index.html")
       const report = readFileSync(reportPath)
       const attempts = JSON.parse(readFileSync(join(temporary, "attempts.json"), "utf8"))
-      const attempt = attempts.suites[0].specs[0].tests[0].results[0]
-      expect(attempt.status).toBe("interrupted")
-      const trace = attempt.attachments.find((attachment: { name: string }) => attachment.name === "trace")
-      expect(trace).toBeDefined()
-      expect(readFileSync(trace.path).length).toBeGreaterThan(0)
+      expect(report.length).toBeGreaterThan(0)
+      expect(attempts.errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({ message: expect.stringMatching(/Timed out waiting .+ to run/) }),
+      ]))
+      const results = attempts.suites[0].specs[0].tests[0].results
+      const started = existsSync(join(temporary, "test-started"))
+      // Reporters can finish before a worker reports its final status and trace.
+      // A body-start marker does not turn the runner's default skipped result into interruption proof.
+      if (results.some((attempt: { status: string }) => attempt.status === "interrupted")) {
+        expect(results).toHaveLength(1)
+        const attempt = results[0]
+        expect(attempt.status).toBe("interrupted")
+        const trace = attempt.attachments.find((attachment: { name: string }) => attachment.name === "trace")
+        expect(trace).toBeDefined()
+        expect(readFileSync(trace.path).length).toBeGreaterThan(0)
+      } else {
+        expect(results.every((attempt: { status: string }) => attempt.status === "skipped")).toBe(true)
+      }
+      if (workerStartupMs > 0) expect(started).toBe(false)
 
       const later = spawnSync(process.execPath, args, {
         cwd: temporary,
@@ -153,7 +176,7 @@ describe("CI diagnostic evidence retention", () => {
     },
   )
 
-  it("retains both reports and the first failed attempt trace after a later successful suite", () => {
+  it("retains completed reports and a failed attempt trace after successful and timed-out suites", () => {
     const first = suitePaths("ops")
     const second = suitePaths("medcert")
     const temporary = mkdtempSync(join(tmpdir(), "instantmed-ci-evidence-"))
@@ -164,6 +187,7 @@ describe("CI diagnostic evidence retention", () => {
         const { defineConfig } = require(${playwright});
         module.exports = defineConfig({
           testDir: '.', workers: 1, retries: 1,
+          globalTimeout: process.env.INSTANTMED_EVIDENCE_TIMEOUT === '1' ? 1000 : 0,
           outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR || 'test-results',
           reporter: [['html', { open: 'never' }], ['json', { outputFile: 'attempts.json' }]],
           use: { trace: 'retain-on-failure' }
@@ -180,6 +204,10 @@ describe("CI diagnostic evidence retention", () => {
       writeFileSync(join(temporary, "second.spec.cjs"), `
         const { test, expect } = require(${playwright});
         test('synthetic later suite', async () => { expect(true).toBe(true); });
+      `)
+      writeFileSync(join(temporary, "timeout.spec.cjs"), `
+        const { test } = require(${playwright});
+        test('synthetic later timeout', async () => { await new Promise(() => {}); });
       `)
       const runSuite = (spec: string, paths: ReturnType<typeof suitePaths>) => {
         const run = spawnSync(process.execPath, [join(dirname(require.resolve("playwright/package.json")), "cli.js"), "test", "--config=playwright.config.cjs", spec], {
@@ -213,8 +241,31 @@ describe("CI diagnostic evidence retention", () => {
       expect(readFileSync(join(temporary, first.report, "index.html"))).toEqual(reportBefore)
       expect(readFileSync(join(temporary, second.report, "index.html")).length).toBeGreaterThan(0)
       expect(readdirSync(join(temporary, first.report, "data")).some((name) => name.endsWith(".zip"))).toBe(true)
+
+      const secondReport = readFileSync(join(temporary, second.report, "index.html"))
+      const timedOut = spawnSync(process.execPath, [require.resolve("@playwright/test/cli"), "test", "--config=playwright.config.cjs", "timeout.spec.cjs"], {
+        cwd: temporary,
+        encoding: "utf8",
+        timeout: 12000,
+        env: {
+          NODE_ENV: "test", PATH: process.env.PATH, HOME: process.env.HOME, CI: "1",
+          INSTANTMED_EVIDENCE_TIMEOUT: "1",
+          PLAYWRIGHT_HTML_OUTPUT_DIR: "playwright-report/later-timeout",
+          PLAYWRIGHT_OUTPUT_DIR: "test-results/later-timeout",
+        },
+      })
+      expect(timedOut.error).toBeUndefined()
+      expect(timedOut.status, timedOut.stdout + timedOut.stderr).toBe(1)
+      const timedOutReport = JSON.parse(readFileSync(join(temporary, "attempts.json"), "utf8"))
+      expect(timedOutReport.errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({ message: expect.stringMatching(/Timed out waiting .+ to run/) }),
+      ]))
+      expect(readFileSync(join(temporary, "playwright-report/later-timeout/index.html")).length).toBeGreaterThan(0)
+      expect(readFileSync(trace.path)).toEqual(traceBefore)
+      expect(readFileSync(join(temporary, first.report, "index.html"))).toEqual(reportBefore)
+      expect(readFileSync(join(temporary, second.report, "index.html"))).toEqual(secondReport)
     } finally {
       rmSync(temporary, { recursive: true, force: true })
     }
-  })
+  }, 20000)
 })
