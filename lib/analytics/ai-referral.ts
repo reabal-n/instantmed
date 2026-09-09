@@ -16,7 +16,14 @@ import { isExternalAnalyticsExcludedPathname } from "@/lib/browser/sensitive-cap
 
 const AI_REFERRAL_SESSION_STORAGE_KEY = "instantmed_ai_referral_session_v1"
 const AI_REFERRAL_FALLBACK_STORAGE_KEY = "instantmed_ai_referral_session_fallback_v1"
+const AI_REFERRAL_COOKIE_STORAGE_KEY = "instantmed_ai_referral_session_cookie_v1"
+const AI_REFERRAL_STORAGE_PROBE_KEY = "instantmed_ai_referral_storage_probe_v1"
 const AI_REFERRAL_FALLBACK_MAX_AGE_MS = 24 * 60 * 60 * 1000
+const AI_REFERRAL_FALLBACK_MAX_AGE_SECONDS = AI_REFERRAL_FALLBACK_MAX_AGE_MS / 1000
+
+type AIReferralCaptureResult = {
+  properties?: Record<string, unknown>
+}
 
 type AIReferralPostHogClient = {
   __loaded?: boolean
@@ -24,9 +31,11 @@ type AIReferralPostHogClient = {
     event: string,
     properties?: Record<string, unknown>,
     options?: { send_instantly?: boolean },
-  ) => unknown
-  get_session_id: () => string
+  ) => AIReferralCaptureResult | undefined
   has_opted_out_capturing?: () => boolean
+  sessionManager?: {
+    checkAndGetSessionAndWindowId: (readOnly?: boolean) => { sessionId: string }
+  }
 }
 
 type FallbackMarker = {
@@ -94,6 +103,85 @@ function readFallbackMarker(): FallbackMarker | null {
   return null
 }
 
+function getCookieValue(name: string): string | null {
+  try {
+    const prefix = `${name}=`
+    const cookie = document.cookie
+      .split(";")
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(prefix))
+    return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null
+  } catch {
+    return null
+  }
+}
+
+function cookieAttributes(maxAgeSeconds: number): string {
+  const secure = window.location.protocol === "https:" ? "; Secure" : ""
+  return `; Max-Age=${maxAgeSeconds}; Path=/; SameSite=Lax${secure}`
+}
+
+function removeCookie(name: string): void {
+  try {
+    document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax`
+  } catch {
+    // Cookie access can be denied independently of Web Storage.
+  }
+}
+
+function readCookieMarker(): FallbackMarker | null {
+  try {
+    const raw = getCookieValue(AI_REFERRAL_COOKIE_STORAGE_KEY)
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw) as Partial<FallbackMarker>
+    if (
+      typeof parsed.sessionId === "string" &&
+      parsed.sessionId.length > 0 &&
+      typeof parsed.expiresAt === "number" &&
+      parsed.expiresAt > Date.now()
+    ) {
+      return parsed as FallbackMarker
+    }
+
+    removeCookie(AI_REFERRAL_COOKIE_STORAGE_KEY)
+  } catch {
+    removeCookie(AI_REFERRAL_COOKIE_STORAGE_KEY)
+  }
+
+  return null
+}
+
+function canUseLocalStorageMarker(): boolean {
+  try {
+    window.localStorage.setItem(AI_REFERRAL_STORAGE_PROBE_KEY, "1")
+    const available = window.localStorage.getItem(AI_REFERRAL_STORAGE_PROBE_KEY) === "1"
+    window.localStorage.removeItem(AI_REFERRAL_STORAGE_PROBE_KEY)
+    return available
+  } catch {
+    return false
+  }
+}
+
+function canUseCookieMarker(): boolean {
+  try {
+    document.cookie = `${AI_REFERRAL_STORAGE_PROBE_KEY}=1${cookieAttributes(60)}`
+    const available = getCookieValue(AI_REFERRAL_STORAGE_PROBE_KEY) === "1"
+    removeCookie(AI_REFERRAL_STORAGE_PROBE_KEY)
+    return available
+  } catch {
+    return false
+  }
+}
+
+type CrossTabMarkerStore = "cookie" | "localStorage"
+
+function getCrossTabMarkerStore(): CrossTabMarkerStore | null {
+  if (canUseLocalStorageMarker()) return "localStorage"
+  if (canUseCookieMarker()) return "cookie"
+  return null
+}
+
 function hasTrackedSession(sessionId: string): boolean {
   if (trackedSessionIdInMemory === sessionId) return true
 
@@ -111,10 +199,18 @@ function hasTrackedSession(sessionId: string): boolean {
     return true
   }
 
+  if (readCookieMarker()?.sessionId === sessionId) {
+    trackedSessionIdInMemory = sessionId
+    return true
+  }
+
   return false
 }
 
-function rememberTrackedSession(sessionId: string): void {
+function rememberTrackedSession(
+  sessionId: string,
+  crossTabMarkerStore: CrossTabMarkerStore,
+): void {
   trackedSessionIdInMemory = sessionId
 
   try {
@@ -123,16 +219,25 @@ function rememberTrackedSession(sessionId: string): void {
     // Continue to the bounded cross-tab marker when sessionStorage is denied.
   }
 
-  try {
-    const marker: FallbackMarker = {
-      expiresAt: Date.now() + AI_REFERRAL_FALLBACK_MAX_AGE_MS,
-      sessionId,
+  const marker: FallbackMarker = {
+    expiresAt: Date.now() + AI_REFERRAL_FALLBACK_MAX_AGE_MS,
+    sessionId,
+  }
+
+  if (crossTabMarkerStore === "localStorage") {
+    try {
+      window.localStorage.setItem(AI_REFERRAL_FALLBACK_STORAGE_KEY, JSON.stringify(marker))
+    } catch {
+      // The verified store became unavailable after capture. The accepted
+      // event remains marked for this module lifecycle and sessionStorage.
     }
-    window.localStorage.setItem(AI_REFERRAL_FALLBACK_STORAGE_KEY, JSON.stringify(marker))
+    return
+  }
+
+  try {
+    document.cookie = `${AI_REFERRAL_COOKIE_STORAGE_KEY}=${encodeURIComponent(JSON.stringify(marker))}${cookieAttributes(AI_REFERRAL_FALLBACK_MAX_AGE_SECONDS)}`
   } catch {
-    // With all browser storage denied, only the current module lifecycle can
-    // be deduplicated. PostHog cannot provide a reload-stable session in that
-    // storage state either.
+    // The verified cookie store became unavailable after capture.
   }
 }
 
@@ -140,18 +245,26 @@ function captureAIReferral(posthog: AIReferralPostHogClient): void {
   if (!posthog.__loaded) return
   if (posthog.has_opted_out_capturing?.()) return
 
-  const sessionId = posthog.get_session_id()
+  const crossTabMarkerStore = getCrossTabMarkerStore()
+  if (!crossTabMarkerStore) return
+
+  const sessionId = posthog.sessionManager
+    ?.checkAndGetSessionAndWindowId()
+    .sessionId
   if (!sessionId || hasTrackedSession(sessionId)) return
 
   const { isAIReferral, source, matchedBy } = detectAIReferral()
   if (!isAIReferral || !source) return
 
-  posthog.capture("ai_referral", {
+  const captureResult = posthog.capture("ai_referral", {
     ai_source: source,
     landing_page: window.location.pathname,
     matched_by: matchedBy,
   }, { send_instantly: true })
-  rememberTrackedSession(sessionId)
+  const acceptedSessionId = captureResult?.properties?.$session_id
+  if (typeof acceptedSessionId !== "string" || !acceptedSessionId) return
+
+  rememberTrackedSession(acceptedSessionId, crossTabMarkerStore)
 }
 
 /**

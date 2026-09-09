@@ -1,3 +1,4 @@
+import { SessionIdManager } from "posthog-js/lib/src/sessionid"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 type StorageState = Record<string, string>
@@ -10,6 +11,9 @@ type FakePostHog = {
   init: ReturnType<typeof vi.fn>
   register: ReturnType<typeof vi.fn>
   reset: ReturnType<typeof vi.fn>
+  sessionManager: {
+    checkAndGetSessionAndWindowId: ReturnType<typeof vi.fn>
+  }
 }
 
 function createStorage(
@@ -32,18 +36,50 @@ function createStorage(
   }
 }
 
+function createCookieDocument(
+  state: StorageState,
+  { denied = false }: { denied?: boolean } = {},
+) {
+  const cookieDocument = { referrer: "" }
+
+  Object.defineProperty(cookieDocument, "cookie", {
+    configurable: true,
+    get() {
+      if (denied) return ""
+      return Object.entries(state).map(([key, value]) => `${key}=${value}`).join("; ")
+    },
+    set(serialized: string) {
+      if (denied) return
+      const [pair] = serialized.split(";", 1)
+      const separator = pair.indexOf("=")
+      if (separator < 0) return
+      const key = pair.slice(0, separator)
+      const value = pair.slice(separator + 1)
+      if (/max-age=0(?:;|$)/i.test(serialized)) {
+        delete state[key]
+      } else {
+        state[key] = value
+      }
+    },
+  })
+
+  return cookieDocument
+}
+
 function setBrowser({
   pathname = "/medical-certificate-online",
   search = "?utm_source=chatgpt.com",
   referrer = "",
   sessionStorage = createStorage({}),
   localStorage = createStorage({}),
+  cookieDocument = createCookieDocument({}),
 }: {
   pathname?: string
   search?: string
   referrer?: string
   sessionStorage?: ReturnType<typeof createStorage>
   localStorage?: ReturnType<typeof createStorage>
+  cookieDocument?: ReturnType<typeof createCookieDocument>
 } = {}) {
   const location = {
     origin: "http://localhost:3060",
@@ -53,20 +89,32 @@ function setBrowser({
   }
 
   vi.stubGlobal("window", { location, localStorage, sessionStorage })
-  vi.stubGlobal("document", { cookie: "", referrer })
+  cookieDocument.referrer = referrer
+  vi.stubGlobal("document", cookieDocument)
   vi.stubGlobal("localStorage", localStorage)
   vi.stubGlobal("sessionStorage", sessionStorage)
   return location
 }
 
 function createPostHog(sessionId = "019f0000-0000-7000-8000-000000000001"): FakePostHog {
+  const getSessionId = vi.fn(() => sessionId)
+  const sessionManager = {
+    checkAndGetSessionAndWindowId: vi.fn(() => ({ sessionId: getSessionId() })),
+  }
   const client = {
     __loaded: true,
-    capture: vi.fn(),
-    get_session_id: vi.fn(() => sessionId),
+    capture: vi.fn((event: string, properties?: Record<string, unknown>) => ({
+      event,
+      properties: {
+        ...properties,
+        $session_id: sessionManager.checkAndGetSessionAndWindowId().sessionId,
+      },
+    })),
+    get_session_id: getSessionId,
     init: vi.fn(),
     register: vi.fn(),
     reset: vi.fn(),
+    sessionManager,
   } satisfies FakePostHog
 
   client.init.mockImplementation(() => {
@@ -152,7 +200,7 @@ describe("AI referral startup", () => {
       expect.anything(),
       expect.anything(),
     )
-    expect(posthog.get_session_id).not.toHaveBeenCalled()
+    expect(posthog.sessionManager.checkAndGetSessionAndWindowId).not.toHaveBeenCalled()
     expect(sentryInit).toHaveBeenCalledTimes(1)
   })
 
@@ -177,11 +225,64 @@ describe("AI referral startup", () => {
 
     expect(posthog.init).not.toHaveBeenCalled()
     expect(posthog.capture).not.toHaveBeenCalled()
-    expect(posthog.get_session_id).not.toHaveBeenCalled()
+    expect(posthog.sessionManager.checkAndGetSessionAndWindowId).not.toHaveBeenCalled()
   })
 })
 
 describe("AI referral session deduplication", () => {
+  it("rotates an expired persisted SDK session before applying dedupe", async () => {
+    const now = Date.now()
+    const staleSessionId = "019f0000-0000-7000-8000-000000000010"
+    const activeSessionId = "019f0000-0000-7000-8000-000000000011"
+    const persistence = {
+      _disabled: false,
+      props: {
+        $sesid: [now - 61_000, staleSessionId, now - 61_000],
+      } as Record<string, unknown>,
+      register(values: Record<string, unknown>) {
+        Object.assign(this.props, values)
+      },
+    }
+    const sdkSessionManager = new SessionIdManager({
+      config: {
+        persistence: "memory",
+        persistence_name: "ai-referral-test",
+        session_idle_timeout_seconds: 60,
+        token: "synthetic",
+      },
+      persistence,
+      register: vi.fn(),
+    } as never, () => activeSessionId, () => "019f0000-0000-7000-8000-000000000012")
+    const localState: StorageState = {
+      instantmed_ai_referral_session_fallback_v1: JSON.stringify({
+        expiresAt: now + 60_000,
+        sessionId: staleSessionId,
+      }),
+    }
+    setBrowser({ localStorage: createStorage(localState) })
+    const posthog = createPostHog()
+    posthog.get_session_id.mockImplementation(
+      () => sdkSessionManager.checkAndGetSessionAndWindowId(true).sessionId,
+    )
+    posthog.sessionManager.checkAndGetSessionAndWindowId.mockImplementation(
+      (readOnly?: boolean) => sdkSessionManager.checkAndGetSessionAndWindowId(readOnly),
+    )
+    vi.doMock("posthog-js", () => ({ default: posthog, posthog }))
+
+    try {
+      const { trackAIReferral } = await import("@/lib/analytics/ai-referral")
+      trackAIReferral()
+      await flushDynamicImports()
+
+      expect(posthog.capture).toHaveBeenCalledTimes(1)
+      expect(JSON.parse(localState.instantmed_ai_referral_session_fallback_v1)).toMatchObject({
+        sessionId: activeSessionId,
+      })
+    } finally {
+      sdkSessionManager.destroy()
+    }
+  })
+
   it("records one first landing after a module reload in the same SDK session", async () => {
     const sessionState: StorageState = {}
     const location = setBrowser({ sessionStorage: createStorage(sessionState) })
@@ -248,6 +349,55 @@ describe("AI referral session deduplication", () => {
     expect(posthog.capture).toHaveBeenCalledTimes(1)
   })
 
+  it("uses a bounded cookie marker when both Web Storage APIs are denied", async () => {
+    const cookieState: StorageState = {}
+    const setDeniedStorageBrowser = () => setBrowser({
+      sessionStorage: createStorage({}, { denied: true }),
+      localStorage: createStorage({}, { denied: true }),
+      cookieDocument: createCookieDocument(cookieState),
+    })
+    setDeniedStorageBrowser()
+    const posthog = createPostHog()
+    vi.doMock("posthog-js", () => ({ default: posthog, posthog }))
+
+    const firstModule = await import("@/lib/analytics/ai-referral")
+    firstModule.trackAIReferral()
+    await flushDynamicImports()
+    vi.resetModules()
+    setDeniedStorageBrowser()
+    const reloadedModule = await import("@/lib/analytics/ai-referral")
+    reloadedModule.trackAIReferral()
+    await flushDynamicImports()
+
+    expect(posthog.capture).toHaveBeenCalledTimes(1)
+    expect(cookieState).toHaveProperty("instantmed_ai_referral_session_cookie_v1")
+    const cookieMarker = JSON.parse(decodeURIComponent(
+      cookieState.instantmed_ai_referral_session_cookie_v1,
+    )) as { expiresAt: number; sessionId: string }
+    expect(cookieMarker).toMatchObject({
+      sessionId: "019f0000-0000-7000-8000-000000000001",
+    })
+    expect(cookieMarker.expiresAt).toBeGreaterThan(Date.now())
+    expect(cookieMarker.expiresAt).toBeLessThanOrEqual(Date.now() + 24 * 60 * 60 * 1000)
+  })
+
+  it("fails closed when no cross-tab marker store is available", async () => {
+    setBrowser({
+      sessionStorage: createStorage({}, { denied: true }),
+      localStorage: createStorage({}, { denied: true }),
+      cookieDocument: createCookieDocument({}, { denied: true }),
+    })
+    const posthog = createPostHog()
+    vi.doMock("posthog-js", () => ({ default: posthog, posthog }))
+    const { trackAIReferral } = await import("@/lib/analytics/ai-referral")
+
+    trackAIReferral()
+    await flushDynamicImports()
+
+    expect(posthog.capture).not.toHaveBeenCalled()
+    expect(posthog.sessionManager.checkAndGetSessionAndWindowId).not.toHaveBeenCalled()
+  })
+
   it("deduplicates the same SDK session across tabs", async () => {
     const localState: StorageState = {}
     setBrowser({
@@ -288,6 +438,32 @@ describe("AI referral session deduplication", () => {
     expect(posthog.capture).toHaveBeenCalledTimes(1)
   })
 
+  it("marks only an event accepted by the SDK", async () => {
+    const localState: StorageState = {}
+    setBrowser({ localStorage: createStorage(localState) })
+    const posthog = createPostHog()
+    posthog.capture.mockReturnValueOnce(undefined)
+    vi.doMock("posthog-js", () => ({ default: posthog, posthog }))
+
+    const droppedModule = await import("@/lib/analytics/ai-referral")
+    droppedModule.trackAIReferral()
+    await flushDynamicImports()
+    expect(localState).not.toHaveProperty("instantmed_ai_referral_session_fallback_v1")
+
+    vi.resetModules()
+    const acceptedModule = await import("@/lib/analytics/ai-referral")
+    acceptedModule.trackAIReferral()
+    await flushDynamicImports()
+
+    vi.resetModules()
+    const dedupedModule = await import("@/lib/analytics/ai-referral")
+    dedupedModule.trackAIReferral()
+    await flushDynamicImports()
+
+    expect(posthog.capture).toHaveBeenCalledTimes(2)
+    expect(localState).toHaveProperty("instantmed_ai_referral_session_fallback_v1")
+  })
+
   it("does not rewrite existing revenue attribution storage", async () => {
     const sessionState = {
       instantmed_attribution: JSON.stringify({
@@ -322,6 +498,6 @@ describe("AI referral session deduplication", () => {
     await flushDynamicImports()
 
     expect(posthog.capture).not.toHaveBeenCalled()
-    expect(posthog.get_session_id).not.toHaveBeenCalled()
+    expect(posthog.sessionManager.checkAndGetSessionAndWindowId).not.toHaveBeenCalled()
   })
 })
