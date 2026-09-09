@@ -3,6 +3,21 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 type StorageState = Record<string, string>
 
+const DELAYED_AI_SOURCE_CASES = [
+  {
+    label: "UTM",
+    matchedBy: "utm_source",
+    referrer: "",
+    search: "?utm_source=chatgpt.com",
+  },
+  {
+    label: "referrer",
+    matchedBy: "referrer",
+    referrer: "https://chatgpt.com/answer",
+    search: "",
+  },
+] as const
+
 type FakePostHog = {
   __loaded: boolean
   capture: ReturnType<typeof vi.fn>
@@ -128,7 +143,18 @@ async function flushDynamicImports() {
   await new Promise((resolve) => setTimeout(resolve, 0))
 }
 
-async function importInstrumentation(posthog: FakePostHog) {
+function createDeferred() {
+  let resolve!: () => void
+  const promise = new Promise<void>((resolvePromise) => {
+    resolve = resolvePromise
+  })
+  return { promise, resolve }
+}
+
+async function importInstrumentation(
+  posthog: FakePostHog,
+  { posthogImportGate }: { posthogImportGate?: Promise<void> } = {},
+) {
   const firstInteractionCallbacks: Array<() => void> = []
   const sentryInit = vi.fn()
 
@@ -136,7 +162,10 @@ async function importInstrumentation(posthog: FakePostHog) {
   vi.stubEnv("NEXT_PUBLIC_PLAYWRIGHT", "0")
   vi.stubEnv("NEXT_PUBLIC_SENTRY_DSN", "https://synthetic@example.invalid/1")
   vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "production")
-  vi.doMock("posthog-js", () => ({ default: posthog, posthog }))
+  vi.doMock("posthog-js", async () => {
+    await posthogImportGate
+    return { default: posthog, posthog }
+  })
   vi.doMock("@sentry/nextjs", () => ({
     captureRouterTransitionStart: vi.fn(),
     init: sentryInit,
@@ -149,7 +178,7 @@ async function importInstrumentation(posthog: FakePostHog) {
   }))
 
   await import("../../instrumentation-client")
-  await flushDynamicImports()
+  if (!posthogImportGate) await flushDynamicImports()
 
   return { firstInteractionCallbacks, sentryInit }
 }
@@ -224,6 +253,109 @@ describe("AI referral startup", () => {
     await importInstrumentation(posthog)
 
     expect(posthog.init).not.toHaveBeenCalled()
+    expect(posthog.capture).not.toHaveBeenCalled()
+    expect(posthog.sessionManager.checkAndGetSessionAndWindowId).not.toHaveBeenCalled()
+  })
+
+  it.each(DELAYED_AI_SOURCE_CASES)(
+    "keeps the original $label landing while instrumentation waits for the SDK",
+    async ({ matchedBy, referrer, search }) => {
+      const location = setBrowser({
+        pathname: "/compare/online-medical-certificate-options",
+        referrer,
+        search,
+      })
+      const posthog = createPostHog()
+      const sdkImport = createDeferred()
+
+      await importInstrumentation(posthog, { posthogImportGate: sdkImport.promise })
+      location.pathname = "/medical-certificate-online"
+      location.search = ""
+      sdkImport.resolve()
+      await flushDynamicImports()
+      await flushDynamicImports()
+
+      expect(posthog.capture).toHaveBeenCalledWith("ai_referral", {
+        ai_source: "ChatGPT",
+        landing_page: "/compare/online-medical-certificate-options",
+        matched_by: matchedBy,
+      }, { send_instantly: true })
+    },
+  )
+
+  it("does not initialize after a delayed AI landing navigates to a private route", async () => {
+    const location = setBrowser({
+      pathname: "/compare/online-medical-certificate-options",
+      search: "?utm_source=chatgpt.com",
+    })
+    const posthog = createPostHog()
+    const sdkImport = createDeferred()
+
+    await importInstrumentation(posthog, { posthogImportGate: sdkImport.promise })
+    location.pathname = "/patient/intakes/private"
+    location.search = ""
+    sdkImport.resolve()
+    await flushDynamicImports()
+    await flushDynamicImports()
+
+    expect(posthog.init).not.toHaveBeenCalled()
+    expect(posthog.capture).not.toHaveBeenCalled()
+    expect(posthog.sessionManager.checkAndGetSessionAndWindowId).not.toHaveBeenCalled()
+  })
+})
+
+describe("AI referral immutable landing snapshot", () => {
+  it.each(DELAYED_AI_SOURCE_CASES)(
+    "keeps the original $label landing through the provider import path",
+    async ({ matchedBy, referrer, search }) => {
+      const location = setBrowser({
+        pathname: "/compare/online-medical-certificate-options",
+        referrer,
+        search,
+      })
+      const posthog = createPostHog()
+      const sdkImport = createDeferred()
+      vi.doMock("posthog-js", async () => {
+        await sdkImport.promise
+        return { default: posthog, posthog }
+      })
+      const { trackAIReferral } = await import("@/lib/analytics/ai-referral")
+
+      trackAIReferral()
+      location.pathname = "/medical-certificate-online"
+      location.search = ""
+      sdkImport.resolve()
+      await flushDynamicImports()
+      await flushDynamicImports()
+
+      expect(posthog.capture).toHaveBeenCalledWith("ai_referral", {
+        ai_source: "ChatGPT",
+        landing_page: "/compare/online-medical-certificate-options",
+        matched_by: matchedBy,
+      }, { send_instantly: true })
+    },
+  )
+
+  it("drops a delayed public referral after navigation to a private route", async () => {
+    const location = setBrowser({
+      pathname: "/compare/online-medical-certificate-options",
+      search: "?utm_source=chatgpt.com",
+    })
+    const posthog = createPostHog()
+    const sdkImport = createDeferred()
+    vi.doMock("posthog-js", async () => {
+      await sdkImport.promise
+      return { default: posthog, posthog }
+    })
+    const { trackAIReferral } = await import("@/lib/analytics/ai-referral")
+
+    trackAIReferral()
+    location.pathname = "/patient/intakes/private"
+    location.search = ""
+    sdkImport.resolve()
+    await flushDynamicImports()
+    await flushDynamicImports()
+
     expect(posthog.capture).not.toHaveBeenCalled()
     expect(posthog.sessionManager.checkAndGetSessionAndWindowId).not.toHaveBeenCalled()
   })

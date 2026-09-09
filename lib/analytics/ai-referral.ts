@@ -51,6 +51,12 @@ interface AIReferralResult {
   matchedBy: "utm_source" | "referrer" | null
 }
 
+export type AIReferralLandingSnapshot = Readonly<{
+  landingPage: string
+  matchedBy: "utm_source" | "referrer"
+  source: string
+}>
+
 /**
  * Detects AI referral from URL params (utm_source) or document referrer.
  */
@@ -69,14 +75,18 @@ export function detectAIReferral(): AIReferralResult {
 }
 
 /**
- * Returns true only when the current public landing has exact AI-source
- * evidence. Instrumentation uses this to bypass interaction deferral for
- * PostHog alone; sensitive/private paths still fail closed.
+ * Captures the approved public landing as safe classifier tokens before any
+ * asynchronous SDK import. Raw referral and query values are not retained.
  */
-export function isEligibleAIReferralLanding(): boolean {
-  if (typeof window === "undefined") return false
-  if (isExternalAnalyticsExcludedPathname(window.location.pathname)) return false
-  return detectAIReferral().isAIReferral
+export function getEligibleAIReferralLanding(): AIReferralLandingSnapshot | null {
+  if (typeof window === "undefined") return null
+  const landingPage = window.location.pathname
+  if (isExternalAnalyticsExcludedPathname(landingPage)) return null
+
+  const { isAIReferral, source, matchedBy } = detectAIReferral()
+  if (!isAIReferral || !source || !matchedBy) return null
+
+  return Object.freeze({ landingPage, matchedBy, source })
 }
 
 function readFallbackMarker(): FallbackMarker | null {
@@ -241,7 +251,11 @@ function rememberTrackedSession(
   }
 }
 
-function captureAIReferral(posthog: AIReferralPostHogClient): void {
+function captureAIReferral(
+  posthog: AIReferralPostHogClient,
+  landing: AIReferralLandingSnapshot,
+): void {
+  if (isExternalAnalyticsExcludedPathname(window.location.pathname)) return
   if (!posthog.__loaded) return
   if (posthog.has_opted_out_capturing?.()) return
 
@@ -253,13 +267,10 @@ function captureAIReferral(posthog: AIReferralPostHogClient): void {
     .sessionId
   if (!sessionId || hasTrackedSession(sessionId)) return
 
-  const { isAIReferral, source, matchedBy } = detectAIReferral()
-  if (!isAIReferral || !source) return
-
   const captureResult = posthog.capture("ai_referral", {
-    ai_source: source,
-    landing_page: window.location.pathname,
-    matched_by: matchedBy,
+    ai_source: landing.source,
+    landing_page: landing.landingPage,
+    matched_by: landing.matchedBy,
   }, { send_instantly: true })
   const acceptedSessionId = captureResult?.properties?.$session_id
   if (typeof acceptedSessionId !== "string" || !acceptedSessionId) return
@@ -275,19 +286,24 @@ function captureAIReferral(posthog: AIReferralPostHogClient): void {
  * deliberately removed (2026-08-11): the classifier already consumed them,
  * and raw external URLs do not belong in analytics events.
  */
-export function trackAIReferral(client?: AIReferralPostHogClient): void {
+export function trackAIReferral(
+  client?: AIReferralPostHogClient,
+  approvedLanding?: AIReferralLandingSnapshot,
+): void {
   if (typeof window === "undefined") return
   if (isExternalAnalyticsExcludedPathname(window.location.pathname)) return
-  if (!detectAIReferral().isAIReferral) return
+
+  const landing = approvedLanding ?? getEligibleAIReferralLanding()
+  if (!landing) return
 
   if (client) {
-    captureAIReferral(client)
+    captureAIReferral(client, landing)
     return
   }
 
   import("posthog-js").then((module) => {
     const posthog = resolvePostHogClient(module)
     if (!posthog) return
-    captureAIReferral(posthog)
+    captureAIReferral(posthog, landing)
   }).catch(() => {})
 }

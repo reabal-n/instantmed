@@ -5,7 +5,7 @@
 import type { BeforeSendFn } from "posthog-js";
 
 import {
-  isEligibleAIReferralLanding,
+  getEligibleAIReferralLanding,
   trackAIReferral,
 } from "@/lib/analytics/ai-referral";
 import { resolvePostHogClient } from "@/lib/analytics/posthog-client-resolver";
@@ -176,9 +176,11 @@ startTelemetryWhenReady(() => loadAndInitSentry());
 // Dynamic import to avoid module-level crash when posthog-js can't initialize
 if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  const immediateAIReferral = isEligibleAIReferralLanding();
+  const aiReferralLanding = getEligibleAIReferralLanding();
   startTelemetryWhenReady(() => {
     import("posthog-js").then((module) => {
+      if (isExternalAnalyticsExcludedPath() && !isPostConversionPath()) return;
+
       const posthog = resolvePostHogClient(module);
       if (!posthog) return;
 
@@ -233,9 +235,9 @@ if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
         $process_person_profile: false,
         $geoip_disable: true,
       });
-      trackAIReferral(posthog);
+      trackAIReferral(posthog, aiReferralLanding ?? undefined);
     }).catch(() => {
       // PostHog not available - skip silently
     });
-  }, { external: true, immediate: immediateAIReferral });
+  }, { external: true, immediate: aiReferralLanding !== null });
 }
