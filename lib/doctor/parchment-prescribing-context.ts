@@ -22,6 +22,8 @@ function safeMedicationNameCopyText(value: string): string {
 
 export interface ParchmentPrescriptionContext {
   presetLabel: string
+  /** Existing request title; describes the service context, not a diagnosis. */
+  requestLabel?: string
   /** Source-faithful current request facts, separate from medication search. */
   requestFacts?: ReviewFact[]
   /** Existing specialty request assessment, never an inferred indication or diagnosis. */
@@ -80,6 +82,7 @@ export function buildParchmentPrescriptionContext(
     ...(requestFacts ? { requestFacts } : {}),
     ...(assessmentFacts ? { assessmentFacts } : {}),
     presetLabel: intent.presetLabel,
+    requestLabel: summary.title,
     medicationLabel: requestFacts?.find(({ key }) => key === "medicine")?.value || medicationLabel || undefined,
     searchHint: intent.medicationSearchHint || undefined,
     patientReportedDose: sourceDirections || undefined,
