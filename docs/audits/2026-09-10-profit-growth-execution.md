@@ -18,7 +18,7 @@ Closed payment window: August 10–September 8, from `2026-08-09T14:00:00.000Z` 
 
 Scripts spent $1,972.68. Its blended contribution of $1,122.28 includes repeat orders and is separate from first-order contribution. Google conversion-date accounting reports 106 orders and $3,194.19, versus 74 credited by click date. Database retained cash is $3,194.10. This is a nine-cent value difference, not evidence that 30% of orders are missing; do not change count settings or manufacture repeat-order credits.
 
-Independent review found a campaign-attribution edge case in the new first-order reader: it needed the same numeric campaign-ID fallback and paid-marker predicate as existing Ads reporting. A read-only live comparison found **zero discrepancies** across 302 cash-cohort rows, including 153 campaign-relevant rows; all campaign contribution deltas were zero. The Scripts mutation's economic basis remains $181.67. The implementation correction and regression evidence belong in the code release below.
+Independent review found a campaign-attribution edge case in the new first-order reader: it needed the same numeric campaign-ID fallback and paid-marker predicate as existing Ads reporting. Correction `11985680c` shares the canonical resolver and query projection across both paths and passed scoped independent re-review. Regression tests cover an older refund changing apparent profit into a loss and exclusion of a non-Google UTM-only purchase. A read-only live comparison found **zero discrepancies** across 302 cash-cohort rows, including 153 campaign-relevant rows; all campaign contribution deltas were zero. The Scripts mutation's economic basis remains $181.67.
 
 ## Live Google Ads actions
 
@@ -64,7 +64,7 @@ Matched Sydney weeks are August 26–September 1 and September 2–8. Public AI-
 
 The visit decline is 38.2%; the small matched cohort does not show worse conversion. The larger calendar order fall includes lagged older referrals and must not be divided by the current session count. Certificate landing pages held seven to eight captured sessions; the comparison page fell eleven to five and had one start, zero flow-linked paid orders across all sixteen captured sessions.
 
-The concrete growth target is `/compare/online-medical-certificate-options`: recheck its July provider table against each provider's own current sources, show a dated source list, qualify inconsistent advertised prices, and add a clear link to InstantMed certificate details near the introduction. This improves the usefulness and verifiability of an existing discovery page and tests an easier next step. It does not guarantee more citations or orders. Record its deployment timestamp; the existing certificate copy window becomes confounded from that point.
+The concrete growth target is `/compare/online-medical-certificate-options`. Commit `9d66c13fc` refreshes its July table against nine providers' current first-party pages, shows a dated source list and publisher disclosure, qualifies inconsistent advertised prices, and adds a clear link to InstantMed certificate details near the introduction. This improves the usefulness and verifiability of an existing discovery page and tests an easier next step. It does not guarantee more citations or orders. Record its deployment timestamp; the existing certificate copy window becomes confounded from that point.
 
 The separate measurement repair records exact supported AI landings without waiting for interaction and deduplicates the referral within the actual PostHog session. Private routes remain excluded, Sentry and ordinary acquisition remain deferred, and the revenue-attribution cookie is unchanged. This repair measures traffic; it does not create it.
 
@@ -74,6 +74,10 @@ Existing September 5 indexing requests for the prescription and UTI pages are pr
 
 ## Code release and verification
 
-Status: implementation and review in progress on `codex/profit-growth`; no production-code release claimed yet. Live Ads actions above are already applied. Record final commits, checks, PR and deployment evidence here before closing the task.
+Status: final review and release verification in progress on `codex/profit-growth`; no production-code release claimed yet. Live Ads actions above are already applied. Google still reported all three replacement RSAs under review at `2026-09-09T14:44:58.912Z`.
+
+Local proof includes 160 focused profit/attribution tests, 100 focused AI/loader/privacy tests, 47 marketing/compliance/hours tests, typecheck, focused lint and the 124-test documentation audit. Independent profit re-review is approved. The AI regressions exercise the installed SDK's expired-session rotation, cookie persistence when Web Storage is denied, failure when no durable marker is available, and marking only an accepted capture.
+
+Public comparison checks cover 390-pixel mobile and 1440-pixel desktop layouts, light/dark appearance, all nine semantic rows, source links, no horizontal overflow and navigation to the certificate service. AI browser proof uses the real local app with all ingest requests intercepted and discarded: one event on an exact AI arrival, still one after reload, zero for ordinary passive and private visits, and no console errors. These are local observations, separate from deployment and provider-side acquisition results. Record full release checks, final review, PR and deployment evidence before closing the task.
 
 Rollback: revert the code through a PR; restore Scripts tROAS 1.50 or certificate schedules through an exact approved inverse packet if commercial evidence warrants it. Recreate removed negatives using their original text, match type and scope—removed Google criterion IDs cannot be re-enabled. Do not restore misleading old certificate copy as a rollback. No database migration, persistent environment change, new provider, clinical policy change or patient-record mutation is part of this release.
