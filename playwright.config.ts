@@ -38,6 +38,8 @@ process.env.PLAYWRIGHT_BASE_URL = E2E_BASE_URL
 
 export default defineConfig({
   testDir: "./e2e",
+  // Each CI invocation owns its artifacts; later suites must not erase them.
+  outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR || "test-results",
   
   // Global setup seeds test data, teardown cleans up
   globalSetup: "./e2e/global-setup.ts",
