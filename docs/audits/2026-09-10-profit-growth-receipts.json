@@ -1,0 +1,2901 @@
+{
+  "ownerDecision": "2026-09-09, Codex task 01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+  "timezone": "Australia/Sydney",
+  "currency": "AUD",
+  "providerReceipts": [
+    {
+      "artifact": "01-womens-destinations.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "responsive_search_ad_create",
+        "operations": [
+          {
+            "adGroupResourceName": "customers/9205010513/adGroups/202440288434",
+            "descriptions": [
+              "Complete a secure UTI symptom form. An Australian doctor reviews what happens next.",
+              "Red-flag screening comes first. The doctor may call if more detail is needed.",
+              "One-off doctor review from $49.95. Full refund if the doctor declines.",
+              "For suitable adults in Australia. Urgent or complex symptoms need in-person care."
+            ],
+            "finalUrl": "https://instantmed.com.au/uti-assessment-online",
+            "headlines": [
+              "Online UTI Assessment",
+              "Australian Doctor Review",
+              "Start With A Secure Form",
+              "UTI Symptoms Reviewed Online",
+              "Clear Safety Screening",
+              "One-Off Doctor Review",
+              "From $49.95",
+              "Full Refund If Declined"
+            ],
+            "kind": "responsive_search_ad_create",
+            "path1": "womens-health",
+            "path2": "uti-review",
+            "status": "ENABLED"
+          },
+          {
+            "adGroupResourceName": "customers/9205010513/adGroups/202440288474",
+            "descriptions": [
+              "Complete a secure health form to start or switch the pill after doctor review.",
+              "Your doctor checks prescribing safety and may call if more detail is needed.",
+              "One-off doctor review from $49.95. Full refund if the doctor declines.",
+              "The doctor decides whether prescribing is clinically appropriate."
+            ],
+            "finalUrl": "https://instantmed.com.au/contraceptive-pill-assessment-online",
+            "headlines": [
+              "Contraception Assessment",
+              "Start Or Switch The Pill",
+              "Australian Doctor Review",
+              "Secure Online Health Form",
+              "Prescribing Safety First",
+              "One-Off Doctor Review",
+              "From $49.95",
+              "Full Refund If Declined"
+            ],
+            "kind": "responsive_search_ad_create",
+            "path1": "womens-health",
+            "path2": "contraception",
+            "status": "ENABLED"
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "A$20/day and A$3 max CPC unchanged. Create replacements, verify, then pause old RSAs. Measure paid contribution; report repeat-script handoffs separately.",
+          "campaign": "IM | Search | Women's Health | AU",
+          "currentValue": "UTI and contraception ads both land on /womens-health.",
+          "reason": "Match paid search intent to the live assessment and preselected form. Both pages verified HTTP200 with current price and possible-call wording.",
+          "requestedValue": "Same RSA copy; UTI to /uti-assessment-online and pill to /contraceptive-pill-assessment-online.",
+          "service": "womens_health"
+        },
+        "rollbackPlan": {
+          "value": "Pause both new RSA resources and re-enable the two previous RSAs at their original /womens-health URL."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260909-01",
+      "operationHash": "cf61266016bcaf098e6dd25059fd3c289ad86f5e9c9674e8ca392c61d6cc9cc3",
+      "baselineHash": "8889f8df268fcf1908907f5e926071fff823f273a4c3db640997a5d81cd9b80a",
+      "validation": {
+        "baselineHash": "8889f8df268fcf1908907f5e926071fff823f273a4c3db640997a5d81cd9b80a",
+        "errorCode": null,
+        "googleOperationsHash": "cf1105c9a45a8cb2e4267900f2cbb5b6c0a1bb9038a104d6e3e3d5fa566562a9",
+        "ok": true,
+        "operationHash": "cf61266016bcaf098e6dd25059fd3c289ad86f5e9c9674e8ca392c61d6cc9cc3",
+        "proposalKey": "ADS-20260909-01",
+        "requestId": "a_wfFCaws0RjY2Bh0Clvcg",
+        "validatedAt": "2026-09-09T13:50:50.464Z"
+      },
+      "decision": {
+        "consumed": true,
+        "reference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc"
+      },
+      "apply": {
+        "appliedAt": "2026-09-09T13:51:30.458Z",
+        "errorCode": null,
+        "googleOperationsHash": "cf1105c9a45a8cb2e4267900f2cbb5b6c0a1bb9038a104d6e3e3d5fa566562a9",
+        "outcome": "applied",
+        "proposalKey": "ADS-20260909-01",
+        "requestId": "iYnzIHrSFnQ8q1MvBCNXXA"
+      },
+      "approvedAt": "2026-09-09T13:51:30.422+00:00",
+      "verification": {
+        "outcome": "verified",
+        "proposalKey": "ADS-20260909-01",
+        "resourceHashes": {
+          "op-01": "fe91f78436c04abe5f4477d62959ff1b10d3f1d2417eff198477a09244d99bd1",
+          "op-02": "65440aa714870de4867e962fe490d02ec26e081e0b02334bc62ef957a1cb1800"
+        },
+        "verifiedAt": "2026-09-09T13:54:33.288Z"
+      },
+      "recovery": "Google application was durable; post-apply audit append retried from stored receipt, then read-only provider verification. No Google mutation repeated."
+    },
+    {
+      "artifact": "03-initial-lock.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "keyword_status",
+        "operations": [
+          {
+            "expected": "ENABLED",
+            "kind": "keyword_status",
+            "next": "PAUSED",
+            "resourceName": "customers/9205010513/adGroupCriteria/196799711437~2483355916270"
+          },
+          {
+            "expected": "ENABLED",
+            "kind": "keyword_status",
+            "next": "PAUSED",
+            "resourceName": "customers/9205010513/adGroupCriteria/196799711917~407126557387"
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "A$95/day unchanged. Historical A$340.90 spend is exposure removed, not guaranteed savings. Remaining profitable terms can buy replacement traffic.",
+          "campaign": "JDM | Search | Scripts",
+          "currentValue": "Two phrase keywords enabled: online prescription Australia; prescription repeat.",
+          "reason": "Aug10-Sep8 matched cash contribution after actual fees and Ads was -A$57.96 and -A$49.51 respectively.",
+          "requestedValue": "Pause both keywords. All other keywords remain unchanged.",
+          "service": "scripts"
+        },
+        "rollbackPlan": {
+          "value": "Re-enable the same two keyword criterion resources from PAUSED after a fresh state check."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260909-02",
+      "operationHash": "c6f45554673a2c6b687d72a153c694b136db56f3b2daf0d6db26c7cd23d9e40d",
+      "baselineHash": "997e43edae280b0bf7760c22781b65bb82158af4811baa41aca6e2358b32fc5e",
+      "validation": {
+        "baselineHash": "997e43edae280b0bf7760c22781b65bb82158af4811baa41aca6e2358b32fc5e",
+        "errorCode": "experiment_material_change_locked",
+        "googleOperationsHash": null,
+        "ok": false,
+        "operationHash": "c6f45554673a2c6b687d72a153c694b136db56f3b2daf0d6db26c7cd23d9e40d",
+        "proposalKey": "ADS-20260909-02",
+        "requestId": null,
+        "validatedAt": "2026-09-09T13:55:58.700Z"
+      }
+    },
+    {
+      "artifact": "03-scripts-keyword-pauses.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "keyword_status",
+        "operations": [
+          {
+            "expected": "ENABLED",
+            "kind": "keyword_status",
+            "next": "PAUSED",
+            "resourceName": "customers/9205010513/adGroupCriteria/196799711437~2483355916270"
+          },
+          {
+            "expected": "ENABLED",
+            "kind": "keyword_status",
+            "next": "PAUSED",
+            "resourceName": "customers/9205010513/adGroupCriteria/196799711917~407126557387"
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "A$95/day unchanged. Historical A$340.90 spend is exposure removed, not guaranteed savings. Remaining profitable terms can buy replacement traffic.",
+          "campaign": "JDM | Search | Scripts",
+          "currentValue": "Two phrase keywords enabled: online prescription Australia; prescription repeat.",
+          "reason": "Aug10-Sep8 matched cash contribution after actual fees and Ads was -A$57.96 and -A$49.51 respectively.",
+          "requestedValue": "Pause both keywords. All other keywords remain unchanged.",
+          "service": "scripts"
+        },
+        "rollbackPlan": {
+          "value": "Re-enable the same two keyword criterion resources from PAUSED after a fresh state check."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260909-03",
+      "operationHash": "c6f45554673a2c6b687d72a153c694b136db56f3b2daf0d6db26c7cd23d9e40d",
+      "baselineHash": "997e43edae280b0bf7760c22781b65bb82158af4811baa41aca6e2358b32fc5e",
+      "validation": {
+        "baselineHash": "997e43edae280b0bf7760c22781b65bb82158af4811baa41aca6e2358b32fc5e",
+        "errorCode": null,
+        "googleOperationsHash": "9d2a1e8901144022825984b9124204b3c7d91e68effedc40ec91d694b551c6cb",
+        "ok": true,
+        "operationHash": "c6f45554673a2c6b687d72a153c694b136db56f3b2daf0d6db26c7cd23d9e40d",
+        "proposalKey": "ADS-20260909-03",
+        "requestId": "2Yn3ZeHK0WHtU_PCL2K5jQ",
+        "validatedAt": "2026-09-09T13:59:44.376Z"
+      },
+      "decision": {
+        "consumed": true,
+        "reference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc"
+      },
+      "apply": {
+        "appliedAt": "2026-09-09T14:00:02.310Z",
+        "errorCode": null,
+        "googleOperationsHash": "9d2a1e8901144022825984b9124204b3c7d91e68effedc40ec91d694b551c6cb",
+        "outcome": "applied",
+        "proposalKey": "ADS-20260909-03",
+        "requestId": "vKOi1bdc2J2sruR5G9KchA"
+      },
+      "verification": {
+        "outcome": "verified",
+        "proposalKey": "ADS-20260909-03",
+        "resourceHashes": {
+          "op-01": "281d4d8cf0bd9160389dde565e9487f793f3aa9d64a4464ca7d156ef201fc67b",
+          "op-02": "281d4d8cf0bd9160389dde565e9487f793f3aa9d64a4464ca7d156ef201fc67b"
+        },
+        "verifiedAt": "2026-09-09T14:01:10.847Z"
+      },
+      "status": "verified",
+      "approvedAt": "2026-09-09T14:00:02.28+00:00"
+    },
+    {
+      "artifact": "04-certificate-exclusion-retest.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "keyword_status",
+        "operations": [
+          {
+            "expected": "ENABLED",
+            "kind": "keyword_status",
+            "next": "REMOVED",
+            "resourceName": "customers/9205010513/campaignCriteria/23651537255~365704156786"
+          },
+          {
+            "expected": "ENABLED",
+            "kind": "keyword_status",
+            "next": "REMOVED",
+            "resourceName": "customers/9205010513/campaignCriteria/23651537255~417779267962"
+          },
+          {
+            "expected": "ENABLED",
+            "kind": "keyword_status",
+            "next": "REMOVED",
+            "resourceName": "customers/9205010513/adGroupCriteria/200985427412~325734774610"
+          },
+          {
+            "expected": "ENABLED",
+            "kind": "keyword_status",
+            "next": "REMOVED",
+            "resourceName": "customers/9205010513/adGroupCriteria/200985427412~383187451107"
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "A$20/day and tCPA A$22 unchanged. Query intent, paid orders and contribution determine whether exclusions should return.",
+          "campaign": "JDM | Search | Med Certs",
+          "currentValue": "Four negatives exclude Australia certificate, two carer phrases and past-absence requests.",
+          "reason": "Retest service-relevant intent. Past absence may be supported within clinical policy; document issue date and clinical eligibility remain unchanged.",
+          "requestedValue": "Remove only the four exact reviewed negative criterion resources.",
+          "service": "med_certs"
+        },
+        "rollbackPlan": {
+          "value": "Recreate Australia exact and backdated phrase campaign negatives; recreate both carer exact negatives in ad group200985427412. Original removed IDs cannot be restored."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260910-01",
+      "operationHash": "651dfa19e361e7bfb5b1793984b097f4421cf04c51eec05ec72ebf95e961ffc7",
+      "baselineHash": "a71dd245780bc5ce3c70cd55550613e75a098a7ed63dfbdb0be97bb8576dda31",
+      "validation": {
+        "baselineHash": "a71dd245780bc5ce3c70cd55550613e75a098a7ed63dfbdb0be97bb8576dda31",
+        "errorCode": null,
+        "googleOperationsHash": "7537bc8d6f7668b9450bc016e8ed9bb64c53c493fdbd3bc5a0caca8a18692436",
+        "ok": true,
+        "operationHash": "651dfa19e361e7bfb5b1793984b097f4421cf04c51eec05ec72ebf95e961ffc7",
+        "proposalKey": "ADS-20260910-01",
+        "requestId": "yGeEcX8JT9UN_LenGbWQ_w",
+        "validatedAt": "2026-09-09T14:01:36.834Z"
+      },
+      "decision": {
+        "consumed": true,
+        "reference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc"
+      },
+      "apply": {
+        "appliedAt": "2026-09-09T14:01:54.526Z",
+        "errorCode": null,
+        "googleOperationsHash": "7537bc8d6f7668b9450bc016e8ed9bb64c53c493fdbd3bc5a0caca8a18692436",
+        "outcome": "applied",
+        "proposalKey": "ADS-20260910-01",
+        "requestId": "PhpCR3qpGfFx69xdkHtKRw"
+      },
+      "verification": {
+        "outcome": "verified",
+        "proposalKey": "ADS-20260910-01",
+        "resourceHashes": {
+          "op-01": "467892055be1596fa5b024f7d23e2bec683c55b46b62fc06dc17da28fb7778f3",
+          "op-02": "467892055be1596fa5b024f7d23e2bec683c55b46b62fc06dc17da28fb7778f3",
+          "op-03": "467892055be1596fa5b024f7d23e2bec683c55b46b62fc06dc17da28fb7778f3",
+          "op-04": "467892055be1596fa5b024f7d23e2bec683c55b46b62fc06dc17da28fb7778f3"
+        },
+        "verifiedAt": "2026-09-09T14:02:46.932Z"
+      },
+      "status": "verified",
+      "approvedAt": "2026-09-09T14:01:54.496+00:00"
+    },
+    {
+      "artifact": "05-certificate-work-rsa.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "responsive_search_ad_create",
+        "operations": [
+          {
+            "adGroupResourceName": "customers/9205010513/adGroups/194546863806",
+            "descriptions": [
+              "Request a medical certificate for a short work absence. Secure online form from A$24.95.",
+              "Routine requests follow an approved clinical protocol. A doctor reviews concerns.",
+              "A doctor may contact you. A certificate is issued only if clinically appropriate.",
+              "Requests are open 24/7. Full refund if the doctor declines your certificate request."
+            ],
+            "finalUrl": "https://instantmed.com.au/medical-certificate/work",
+            "headlines": [
+              "Medical Certificate Review",
+              "For Short Work Absences",
+              "Start With A Secure Form",
+              "Requests Open 24/7",
+              "From A$24.95",
+              "Secure PDF If Approved",
+              "Clinical Assessment First",
+              "Work Absence Certificate",
+              "No Booked Appointment",
+              "Clear Clinical Boundaries",
+              "Australian Telehealth"
+            ],
+            "kind": "responsive_search_ad_create",
+            "path1": "work",
+            "path2": "certificate",
+            "status": "ENABLED"
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "Budget A$20/day and tCPA A$22 unchanged. Google review is separate from API validation; do not claim approval until read back.",
+          "campaign": "JDM | Search | Med Certs",
+          "currentValue": "Work RSA has disapproved assets and an unconditional no-call headline.",
+          "reason": "Repair rejected assets after reviewing actual certificate policy and live work destination. No guaranteed outcome or unconditional no-call claim.",
+          "requestedValue": "Replacement work-certificate RSA with clinical protocol, possible contact and conditional issue wording.",
+          "service": "med_certs"
+        },
+        "rollbackPlan": {
+          "value": "Pause replacement RSA. Previous copy is retained paused for audit; do not re-enable its unconditional no-call claim."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260910-02",
+      "operationHash": "5a12c8fe0f37206ccb7a545eddf36fc331828e5de6fbfd76961cb7630294bf86",
+      "baselineHash": "e3b29d16b762b5e9f3109cbeb4d45cb22c4bba86a49f2c65a42a86119f70ecea",
+      "validation": {
+        "baselineHash": "e3b29d16b762b5e9f3109cbeb4d45cb22c4bba86a49f2c65a42a86119f70ecea",
+        "errorCode": null,
+        "googleOperationsHash": "3ddc322bb0be6e9c7e559df28c8b7c3a65579e01a3131bb8ed58eeb1c8258b90",
+        "ok": true,
+        "operationHash": "5a12c8fe0f37206ccb7a545eddf36fc331828e5de6fbfd76961cb7630294bf86",
+        "proposalKey": "ADS-20260910-02",
+        "requestId": "lg8JMNfDyaO0cBDObg6V6A",
+        "validatedAt": "2026-09-09T14:03:05.474Z"
+      },
+      "decision": {
+        "consumed": true,
+        "reference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc"
+      },
+      "apply": {
+        "appliedAt": "2026-09-09T14:03:24.216Z",
+        "errorCode": null,
+        "googleOperationsHash": "3ddc322bb0be6e9c7e559df28c8b7c3a65579e01a3131bb8ed58eeb1c8258b90",
+        "outcome": "applied",
+        "proposalKey": "ADS-20260910-02",
+        "requestId": "-ZyTCmKIn14ETMd24dYcag"
+      },
+      "verification": {
+        "outcome": "verified",
+        "proposalKey": "ADS-20260910-02",
+        "resourceHashes": {
+          "op-01": "9943396e2dd0f57f4ec096d5b499730361cd6d13e72284fa9006d2d192cfcfc5"
+        },
+        "verifiedAt": "2026-09-09T14:04:15.344Z"
+      },
+      "status": "verified",
+      "approvedAt": "2026-09-09T14:03:24.186+00:00"
+    },
+    {
+      "artifact": "06-certificate-retire-rsa.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "ad_status",
+        "operations": [
+          {
+            "expected": "ENABLED",
+            "kind": "ad_status",
+            "next": "PAUSED",
+            "resourceName": "customers/9205010513/adGroupAds/194546863806~817285618697"
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "No budget, bid, keyword or campaign changes. New RSA may remain under Google policy review.",
+          "campaign": "JDM | Search | Med Certs",
+          "currentValue": "Prior work RSA enabled with disapproved assets and unconditional no-call claim.",
+          "reason": "Remove the reviewed copy defect from the serving work-certificate ad group.",
+          "requestedValue": "Pause prior RSA after revised RSA is created and verified.",
+          "service": "med_certs"
+        },
+        "rollbackPlan": {
+          "value": "Retain old ad paused. If replacement is rejected, revise compliant copy in a new exact packet."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260910-03",
+      "operationHash": "796fe694e1d06fcb82ec1fbe7445b085893206cca64fcd31d144becb20af1308",
+      "baselineHash": "388b29761fc782d2f0f2c0f5585ec06f63107bb9016721a2ad7aa0f2d06c33a3",
+      "validation": {
+        "baselineHash": "388b29761fc782d2f0f2c0f5585ec06f63107bb9016721a2ad7aa0f2d06c33a3",
+        "errorCode": null,
+        "googleOperationsHash": "b9d6a2195dc9ab53f91c84d20f01295829df1c6f15383cb2f740546a725b38c0",
+        "ok": true,
+        "operationHash": "796fe694e1d06fcb82ec1fbe7445b085893206cca64fcd31d144becb20af1308",
+        "proposalKey": "ADS-20260910-03",
+        "requestId": "HNVdc41G-fI9K7M0OA8OjA",
+        "validatedAt": "2026-09-09T14:04:40.632Z"
+      },
+      "decision": {
+        "consumed": true,
+        "reference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc"
+      },
+      "apply": {
+        "appliedAt": "2026-09-09T14:05:02.866Z",
+        "errorCode": null,
+        "googleOperationsHash": "b9d6a2195dc9ab53f91c84d20f01295829df1c6f15383cb2f740546a725b38c0",
+        "outcome": "applied",
+        "proposalKey": "ADS-20260910-03",
+        "requestId": "xl1ivxt4H6zDB_DVmq3ZUw"
+      },
+      "verification": {
+        "outcome": "verified",
+        "proposalKey": "ADS-20260910-03",
+        "resourceHashes": {
+          "op-01": "281d4d8cf0bd9160389dde565e9487f793f3aa9d64a4464ca7d156ef201fc67b"
+        },
+        "verifiedAt": "2026-09-09T14:06:40.759Z"
+      },
+      "status": "verified",
+      "approvedAt": "2026-09-09T14:05:02.836+00:00"
+    },
+    {
+      "artifact": "07-certificate-24h.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "schedule_replace",
+        "operations": [
+          {
+            "campaignResourceName": "customers/9205010513/campaigns/23651537255",
+            "expected": [
+              {
+                "dayOfWeek": "MONDAY",
+                "endHour": 20,
+                "endMinute": "ZERO",
+                "startHour": 8,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "TUESDAY",
+                "endHour": 20,
+                "endMinute": "ZERO",
+                "startHour": 8,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "WEDNESDAY",
+                "endHour": 20,
+                "endMinute": "ZERO",
+                "startHour": 8,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "THURSDAY",
+                "endHour": 20,
+                "endMinute": "ZERO",
+                "startHour": 8,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "FRIDAY",
+                "endHour": 20,
+                "endMinute": "ZERO",
+                "startHour": 8,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "SATURDAY",
+                "endHour": 20,
+                "endMinute": "ZERO",
+                "startHour": 8,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "SUNDAY",
+                "endHour": 20,
+                "endMinute": "ZERO",
+                "startHour": 8,
+                "startMinute": "ZERO"
+              }
+            ],
+            "kind": "schedule_replace",
+            "next": [
+              {
+                "dayOfWeek": "MONDAY",
+                "endHour": 24,
+                "endMinute": "ZERO",
+                "startHour": 0,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "TUESDAY",
+                "endHour": 24,
+                "endMinute": "ZERO",
+                "startHour": 0,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "WEDNESDAY",
+                "endHour": 24,
+                "endMinute": "ZERO",
+                "startHour": 0,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "THURSDAY",
+                "endHour": 24,
+                "endMinute": "ZERO",
+                "startHour": 0,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "FRIDAY",
+                "endHour": 24,
+                "endMinute": "ZERO",
+                "startHour": 0,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "SATURDAY",
+                "endHour": 24,
+                "endMinute": "ZERO",
+                "startHour": 0,
+                "startMinute": "ZERO"
+              },
+              {
+                "dayOfWeek": "SUNDAY",
+                "endHour": 24,
+                "endMinute": "ZERO",
+                "startHour": 0,
+                "startMinute": "ZERO"
+              }
+            ]
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "14-day observation, unchanged budget. A$150 test-loss review threshold; compare overnight contribution with daytime. Copy/exclusion repairs share the start, so no isolated schedule-lift claim.",
+          "campaign": "JDM | Search | Med Certs",
+          "currentValue": "Every day 08:00-20:00 Australia/Sydney, A$20/day, tCPA A$22.",
+          "reason": "Capture relevant overnight demand. 18 of 119 certificate orders paid outside current Ads hours; this supports a test, not a forecast.",
+          "requestedValue": "Every day 00:00-24:00; unchanged A$20/day and tCPA A$22.",
+          "service": "med_certs"
+        },
+        "rollbackPlan": {
+          "value": "Replace schedule with the seven original 08:00-20:00 entries. Keep budget A$20 and tCPA A$22 unchanged."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260910-04",
+      "operationHash": "0425d6289f24a73da2f16a3a8a924765e9cf4d7d720ca1d81b5547004b9eaeac",
+      "baselineHash": "a5a70300dbf037da829c67aa6dece1545ed2047928e4e01e5e6fcf8143ac3c85",
+      "validation": {
+        "baselineHash": "a5a70300dbf037da829c67aa6dece1545ed2047928e4e01e5e6fcf8143ac3c85",
+        "errorCode": null,
+        "googleOperationsHash": "6c9b4580ab07d6a64451d3cf78f8b05844bdfe54240105b9a625fa0af920df0e",
+        "ok": true,
+        "operationHash": "0425d6289f24a73da2f16a3a8a924765e9cf4d7d720ca1d81b5547004b9eaeac",
+        "proposalKey": "ADS-20260910-04",
+        "requestId": "ENEZdP5rLoS7swAz8GkMew",
+        "validatedAt": "2026-09-09T14:06:59.081Z"
+      },
+      "decision": {
+        "consumed": true,
+        "reference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc"
+      },
+      "apply": {
+        "appliedAt": "2026-09-09T14:07:19.397Z",
+        "errorCode": null,
+        "googleOperationsHash": "6c9b4580ab07d6a64451d3cf78f8b05844bdfe54240105b9a625fa0af920df0e",
+        "outcome": "applied",
+        "proposalKey": "ADS-20260910-04",
+        "requestId": "z263AUEZ4rLCxP4ZQuF6Vw"
+      },
+      "verification": {
+        "outcome": "verified",
+        "proposalKey": "ADS-20260910-04",
+        "resourceHashes": {
+          "op-01": "4700b7a3504bebb3d7a26d66d7a77e6ad4c5b6fa581cfcb7cae18c664614b293"
+        },
+        "verifiedAt": "2026-09-09T14:08:46.274Z"
+      },
+      "status": "verified",
+      "approvedAt": "2026-09-09T14:07:19.361+00:00"
+    },
+    {
+      "artifact": "08-scripts-roas.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "campaign_bidding",
+        "operations": [
+          {
+            "expected": {
+              "strategy": "MAXIMIZE_CONVERSION_VALUE",
+              "targetRoas": 1.5
+            },
+            "kind": "campaign_bidding",
+            "next": {
+              "strategy": "MAXIMIZE_CONVERSION_VALUE",
+              "targetRoas": 1.35
+            },
+            "resourceName": "customers/9205010513/campaigns/23870042807"
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "Lower return target may buy more auctions and increase realized spend within the unchanged budget. Report marginal contribution, first/repeat separately and keyword-change confounding.",
+          "campaign": "JDM | Search | Scripts",
+          "currentValue": "Maximize Conversion Value, target ROAS 1.5, budget A$95/day.",
+          "reason": "Verified first-order cash contribution is positive. Recent lost impression share is mainly rank; budget is under-used. Conversion-date imports reconcile with cash.",
+          "requestedValue": "Target ROAS 1.35 with budget A$95/day unchanged.",
+          "service": "scripts"
+        },
+        "rollbackPlan": {
+          "value": "Restore target ROAS 1.5 on the same campaign without changing its A$95/day budget."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260910-06",
+      "operationHash": "31d7f0237cf411fb628a8a3f3e4f31ac35e1a9bcaa70afe26d524f1c4e7d0208",
+      "baselineHash": "922027918d11b693c636d3a2a6da212e9eb2338a7d55e8648801141f9d170132",
+      "validation": {
+        "baselineHash": "922027918d11b693c636d3a2a6da212e9eb2338a7d55e8648801141f9d170132",
+        "errorCode": null,
+        "googleOperationsHash": "0f668c2ede7de369ef09dc9cf53d76def8ce125417879c9df1de36a4f4557827",
+        "ok": true,
+        "operationHash": "31d7f0237cf411fb628a8a3f3e4f31ac35e1a9bcaa70afe26d524f1c4e7d0208",
+        "proposalKey": "ADS-20260910-06",
+        "requestId": "-Z9y7DLmBr_twwH27bW8LQ",
+        "validatedAt": "2026-09-09T14:11:20.681Z"
+      },
+      "decision": {
+        "consumed": true,
+        "reference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc"
+      },
+      "apply": {
+        "appliedAt": "2026-09-09T14:11:38.744Z",
+        "errorCode": null,
+        "googleOperationsHash": "0f668c2ede7de369ef09dc9cf53d76def8ce125417879c9df1de36a4f4557827",
+        "outcome": "applied",
+        "proposalKey": "ADS-20260910-06",
+        "requestId": "bQJrawDgAIP1SivCfD4eGg"
+      },
+      "verification": {
+        "outcome": "verified",
+        "proposalKey": "ADS-20260910-06",
+        "resourceHashes": {
+          "op-01": "2d7c4b4ff818d38dfb89474f33129b3a93173ddf623cb52b80109ddd42521926"
+        },
+        "verifiedAt": "2026-09-09T14:12:26.969Z"
+      },
+      "status": "verified",
+      "approvedAt": "2026-09-09T14:11:38.712+00:00"
+    },
+    {
+      "artifact": "09-ed-relevance.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "negative_keyword",
+        "operations": [
+          {
+            "campaignResourceName": "customers/9205010513/campaigns/24040886787",
+            "kind": "negative_keyword",
+            "matchType": "PHRASE",
+            "text": "trt"
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "A$12/day and A$3 maximum CPC unchanged. Keep profitable telehealth mens health keyword; do not exclude all men's-health or city searches.",
+          "campaign": "IM | Search | ED | Pilot",
+          "currentValue": "Unsupported hormone-therapy searches remain eligible through broad matching of an enabled phrase keyword.",
+          "reason": "Observed two irrelevant hormone-service queries consumed A$5.99 across two clicks in Aug10-Sep8. This service is outside the ED pathway.",
+          "requestedValue": "Add campaign-level phrase negative trt.",
+          "service": "ed"
+        },
+        "rollbackPlan": {
+          "value": "Remove only the newly created trt phrase-negative criterion after a fresh state read."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260910-05",
+      "operationHash": "8d26a17f39d311110de71411c41d3e5ad44d2246b30574bb83a4aa10b9b68a37",
+      "baselineHash": "629c540a1472ee4a5b7b3117ddb3f89923d078cc8e1c9f5708968bb9e9a59e5c",
+      "validation": {
+        "baselineHash": "629c540a1472ee4a5b7b3117ddb3f89923d078cc8e1c9f5708968bb9e9a59e5c",
+        "errorCode": null,
+        "googleOperationsHash": "29040c4c256290154a7ccb244d52d044ec95a3a8ed506270251ea05040f8755b",
+        "ok": true,
+        "operationHash": "8d26a17f39d311110de71411c41d3e5ad44d2246b30574bb83a4aa10b9b68a37",
+        "proposalKey": "ADS-20260910-05",
+        "requestId": "C_Z3ET7hD_2veWeLY7cQdA",
+        "validatedAt": "2026-09-09T14:09:08.183Z"
+      },
+      "decision": {
+        "consumed": true,
+        "reference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc"
+      },
+      "apply": {
+        "appliedAt": "2026-09-09T14:09:28.553Z",
+        "errorCode": null,
+        "googleOperationsHash": "29040c4c256290154a7ccb244d52d044ec95a3a8ed506270251ea05040f8755b",
+        "outcome": "applied",
+        "proposalKey": "ADS-20260910-05",
+        "requestId": "xoVD_2Ge64fVY0KDJIWDLw"
+      },
+      "verification": {
+        "outcome": "verified",
+        "proposalKey": "ADS-20260910-05",
+        "resourceHashes": {
+          "op-01": "8063e5a51719c58189c7d5209a5f37b34d14764198145a3f84bfd11c062f11d2"
+        },
+        "verifiedAt": "2026-09-09T14:10:34.926Z"
+      },
+      "status": "verified",
+      "approvedAt": "2026-09-09T14:09:28.525+00:00"
+    },
+    {
+      "artifact": "10-womens-retire-uti-hub-ad.receipt.json",
+      "task": "01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+      "packet": {
+        "mutationFamily": "ad_status",
+        "operations": [
+          {
+            "expected": "ENABLED",
+            "kind": "ad_status",
+            "next": "PAUSED",
+            "resourceName": "customers/9205010513/adGroupAds/202440288434~821369190701"
+          }
+        ],
+        "rationale": {
+          "boundedImpact": "One old RSA status only. Campaign, ad group, bids, budget, keywords and replacement copy unchanged.",
+          "campaign": "IM | Search | Women's Health | AU",
+          "currentValue": "The original UTI hub RSA is enabled; replacement 202440288434~824041494895 uses the matching child destination.",
+          "reason": "Complete the owner-authorised destination switch for this ad group after replacement review. The other women's ad group is handled separately.",
+          "requestedValue": "Pause the original UTI hub RSA after replacement policy review confirms it can serve, routing this intent to /uti-assessment-online.",
+          "service": "womens_health"
+        },
+        "rollbackPlan": {
+          "value": "Re-enable the original UTI RSA and pause replacement 202440288434~824041494895 through an exact inverse packet."
+        }
+      },
+      "sourceRun": {
+        "id": "9a34f440-3fe4-4f53-9d96-59bfd1b37847",
+        "report_date": "2026-09-08",
+        "status": "delivered",
+        "tracking_state": "GREEN",
+        "completed_at": "2026-09-08T23:01:03.984+00:00"
+      },
+      "proposalKey": "ADS-20260910-07",
+      "operationHash": "05b90098fbcf230287349146b7f795c196204edeace2df92acf868b4e7336826",
+      "baselineHash": "b0bc8df3e44878afcefad9bd4a32fbf7a55e36241bdba6b82c2a6d53f95c7c69",
+      "validation": {
+        "baselineHash": "b0bc8df3e44878afcefad9bd4a32fbf7a55e36241bdba6b82c2a6d53f95c7c69",
+        "errorCode": null,
+        "googleOperationsHash": "033e400d2374eaa504b1508a0a8dc8a73047c7397301fe0012872571fba1689c",
+        "ok": true,
+        "operationHash": "05b90098fbcf230287349146b7f795c196204edeace2df92acf868b4e7336826",
+        "proposalKey": "ADS-20260910-07",
+        "requestId": "TYsGPbb8q7vCZzZk0kCbXA",
+        "validatedAt": "2026-09-09T16:23:52.805Z"
+      },
+      "decision": {
+        "consumed": true,
+        "reference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc"
+      },
+      "apply": {
+        "appliedAt": "2026-09-09T16:24:11.019Z",
+        "errorCode": null,
+        "googleOperationsHash": "033e400d2374eaa504b1508a0a8dc8a73047c7397301fe0012872571fba1689c",
+        "outcome": "applied",
+        "proposalKey": "ADS-20260910-07",
+        "requestId": "IM57yu8ellS5vy7C3sbdZA"
+      },
+      "verification": {
+        "outcome": "verified",
+        "proposalKey": "ADS-20260910-07",
+        "resourceHashes": {
+          "op-01": "281d4d8cf0bd9160389dde565e9487f793f3aa9d64a4464ca7d156ef201fc67b"
+        },
+        "verifiedAt": "2026-09-09T16:25:00.210Z"
+      },
+      "status": "verified",
+      "approvedAt": "2026-09-09T16:24:10.989+00:00"
+    }
+  ],
+  "supersededScriptsObservation": {
+    "before": {
+      "id": "e8bdfd3f-bbd6-4fef-9d56-39ee022300c2",
+      "experiment_key": "EXP-20260903-01",
+      "service": "scripts",
+      "hypothesis": "Test whether a 20% budget step captures additional eligible demand while preserving observed contribution after the September 1 keyword cleanup.",
+      "variable": "budgets",
+      "control": {
+        "value": "A$79 per day",
+        "version": "EXP-20260903-01:control",
+        "campaign": "JDM | Search | Scripts",
+        "methodology": "google_custom",
+        "proposalKey": "ADS-20260903-01",
+        "windowEndsAt": "2026-09-03T05:46:35.977Z",
+        "windowStartsAt": "2026-08-04T05:46:35.977Z"
+      },
+      "challenger": {
+        "value": "A$95 per day",
+        "version": "EXP-20260903-01:challenger",
+        "campaign": "JDM | Search | Scripts",
+        "methodology": "google_custom",
+        "proposalKey": "ADS-20260903-01",
+        "windowEndsAt": "2026-10-03T05:46:35.977Z",
+        "windowStartsAt": "2026-09-03T05:46:35.977Z"
+      },
+      "primary_metric": "first_order_contribution_cents_per_retained_order",
+      "max_loss_cents": 15000,
+      "minimum_orders_per_arm": 10,
+      "starts_at": "2026-09-03T05:46:35.977+00:00",
+      "ends_at": "2026-10-03T05:46:35.977+00:00",
+      "status": "running",
+      "result": {
+        "checkpoints": [
+          {
+            "asOf": "2026-09-03T06:33:12.076Z",
+            "control": {
+              "retainedOrders": 0,
+              "contributionCents": 0
+            },
+            "challenger": {
+              "retainedOrders": 0,
+              "contributionCents": 0
+            },
+            "trackingState": "AMBER",
+            "economicsComplete": false
+          }
+        ],
+        "methodology": "google_custom",
+        "stopProposalKey": null,
+        "launchProposalKey": "ADS-20260903-01"
+      },
+      "created_at": "2026-09-03T05:46:36.306694+00:00",
+      "updated_at": "2026-09-03T06:33:12.076+00:00"
+    },
+    "after": {
+      "experiment_key": "EXP-20260903-01",
+      "status": "stopped",
+      "ends_at": "2026-09-09T13:58:43.596+00:00",
+      "result": {
+        "closure": {
+          "reason": "Owner approved new profitable acquisition variables; close observation without rolling back the A$95 budget.",
+          "outcome": "inconclusive",
+          "approvalReference": "codex-task:01a0860a-d25c-7d30-b15c-b04d9f949ddc",
+          "configurationRetained": true,
+          "originalPlannedEndsAt": "2026-10-03T05:46:35.977+00:00",
+          "googleMutationPerformed": false
+        },
+        "stoppedAt": "2026-09-09T13:58:43.596Z",
+        "checkpoints": [
+          {
+            "asOf": "2026-09-03T06:33:12.076Z",
+            "control": {
+              "retainedOrders": 0,
+              "contributionCents": 0
+            },
+            "challenger": {
+              "retainedOrders": 0,
+              "contributionCents": 0
+            },
+            "trackingState": "AMBER",
+            "economicsComplete": false
+          }
+        ],
+        "methodology": "google_custom",
+        "stopProposalKey": null,
+        "launchProposalKey": "ADS-20260903-01"
+      }
+    }
+  },
+  "adPolicyReadback": {
+    "readAt": "2026-09-09T16:25:47.561Z",
+    "rows": [
+      {
+        "adGroupAd": {
+          "resourceName": "customers/9205010513/adGroupAds/194546863806~806447455186",
+          "status": "PAUSED",
+          "ad": {
+            "resourceName": "customers/9205010513/ads/806447455186",
+            "finalUrls": [
+              "https://instantmed.com.au/medical-certificate"
+            ]
+          },
+          "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "PROHIBITED",
+                "topic": "ENABLING_DISHONEST_BEHAVIOR"
+              },
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
+            "reviewStatus": "REVIEWED",
+            "approvalStatus": "APPROVED_LIMITED"
+          },
+          "primaryStatus": "PAUSED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_PAUSED",
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
+        }
+      },
+      {
+        "adGroupAd": {
+          "resourceName": "customers/9205010513/adGroupAds/194546863806~817285618697",
+          "status": "PAUSED",
+          "ad": {
+            "resourceName": "customers/9205010513/ads/817285618697",
+            "finalUrls": [
+              "https://instantmed.com.au/medical-certificate/work"
+            ]
+          },
+          "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "PROHIBITED",
+                "topic": "ENABLING_DISHONEST_BEHAVIOR"
+              },
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
+            "reviewStatus": "REVIEWED",
+            "approvalStatus": "APPROVED_LIMITED"
+          },
+          "primaryStatus": "PAUSED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_PAUSED",
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
+        }
+      },
+      {
+        "adGroupAd": {
+          "resourceName": "customers/9205010513/adGroupAds/194546863806~824123285516",
+          "status": "ENABLED",
+          "ad": {
+            "resourceName": "customers/9205010513/ads/824123285516",
+            "finalUrls": [
+              "https://instantmed.com.au/medical-certificate/work"
+            ]
+          },
+          "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
+            "reviewStatus": "REVIEWED",
+            "approvalStatus": "APPROVED_LIMITED"
+          },
+          "primaryStatus": "LIMITED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
+        }
+      },
+      {
+        "adGroupAd": {
+          "resourceName": "customers/9205010513/adGroupAds/202440288434~821369190701",
+          "status": "PAUSED",
+          "ad": {
+            "resourceName": "customers/9205010513/ads/821369190701",
+            "finalUrls": [
+              "https://instantmed.com.au/womens-health"
+            ]
+          },
+          "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "LIMITED",
+                "topic": "BIRTH_CONTROL"
+              },
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
+            "reviewStatus": "REVIEWED",
+            "approvalStatus": "APPROVED_LIMITED"
+          },
+          "primaryStatus": "PAUSED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_PAUSED",
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
+        }
+      },
+      {
+        "adGroupAd": {
+          "resourceName": "customers/9205010513/adGroupAds/202440288434~824041494895",
+          "status": "ENABLED",
+          "ad": {
+            "resourceName": "customers/9205010513/ads/824041494895",
+            "finalUrls": [
+              "https://instantmed.com.au/uti-assessment-online"
+            ]
+          },
+          "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
+            "reviewStatus": "REVIEWED",
+            "approvalStatus": "APPROVED_LIMITED"
+          },
+          "primaryStatus": "LIMITED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
+        }
+      },
+      {
+        "adGroupAd": {
+          "resourceName": "customers/9205010513/adGroupAds/202440288474~821369190704",
+          "status": "ENABLED",
+          "ad": {
+            "resourceName": "customers/9205010513/ads/821369190704",
+            "finalUrls": [
+              "https://instantmed.com.au/womens-health"
+            ]
+          },
+          "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "LIMITED",
+                "topic": "BIRTH_CONTROL"
+              },
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
+            "reviewStatus": "REVIEWED",
+            "approvalStatus": "APPROVED_LIMITED"
+          },
+          "primaryStatus": "LIMITED",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_APPROVED_LABELED"
+          ]
+        }
+      },
+      {
+        "adGroupAd": {
+          "resourceName": "customers/9205010513/adGroupAds/202440288474~824041494898",
+          "status": "ENABLED",
+          "ad": {
+            "resourceName": "customers/9205010513/ads/824041494898",
+            "finalUrls": [
+              "https://instantmed.com.au/contraceptive-pill-assessment-online"
+            ]
+          },
+          "policySummary": {
+            "policyTopicEntries": [
+              {
+                "type": "LIMITED",
+                "topic": "BIRTH_CONTROL"
+              },
+              {
+                "type": "LIMITED",
+                "topic": "PRESCRIPTION_DRUG_SALE"
+              }
+            ],
+            "reviewStatus": "REVIEW_IN_PROGRESS",
+            "approvalStatus": "UNKNOWN"
+          },
+          "primaryStatus": "PENDING",
+          "primaryStatusReasons": [
+            "AD_GROUP_AD_UNDER_REVIEW"
+          ]
+        }
+      }
+    ]
+  },
+  "certificateObservation": {
+    "startsAt": "2026-09-09T14:07:19.397Z",
+    "endsAt": "2026-09-23T14:07:19.397Z",
+    "method": "observational_before_after",
+    "googleSplitExperimentCreated": false,
+    "dailyBudgetAud": 20,
+    "targetCpaAud": 22,
+    "cashLossReviewThresholdAud": 150,
+    "interpretation": "Fourteen-day contribution review, not a waiting veto or autonomous pause. Copy and exclusions changed nearby, so isolated schedule lift is not identifiable."
+  },
+  "pending": [
+    "The original pill RSA remains enabled with limited approval; its enabled replacement remains pending Google review at this snapshot. Prepared one-ad pause packet: 11-womens-retire-pill-hub-ad.json. The original two-ad packet is superseded."
+  ],
+  "finalAccountReadback": {
+    "readAt": "2026-09-09T14:19:22.830Z",
+    "customer": {
+      "autoTaggingEnabled": true,
+      "currencyCode": "AUD",
+      "finalUrlSuffix": "utm_source=google&utm_medium=cpc&utm_id={campaignid}&utm_campaign={campaignid}&utm_term={keyword}&utm_content={creative}&campaignid={campaignid}&adgroupid={adgroupid}&keyword={keyword}&creative={creative}&matchtype={matchtype}&device={device}&network={network}",
+      "id": "9205010513",
+      "resourceName": "customers/9205010513",
+      "timeZone": "Australia/Sydney"
+    },
+    "budgetsUnchanged": true,
+    "campaigns": [
+      {
+        "resourceName": "customers/9205010513/campaigns/23651537255",
+        "values": {
+          "campaign": {
+            "advertisingChannelType": "SEARCH",
+            "biddingStrategyType": "MAXIMIZE_CONVERSIONS",
+            "campaignBudget": "customers/9205010513/campaignBudgets/15429766260",
+            "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+            "geoTargetTypeSetting": {
+              "negativeGeoTargetType": "PRESENCE",
+              "positiveGeoTargetType": "PRESENCE"
+            },
+            "id": "23651537255",
+            "maximizeConversions": {
+              "targetCpaMicros": "22000000"
+            },
+            "name": "JDM | Search | Med Certs",
+            "networkSettings": {
+              "targetContentNetwork": false,
+              "targetGoogleSearch": true,
+              "targetPartnerSearchNetwork": false,
+              "targetSearchNetwork": false
+            },
+            "resourceName": "customers/9205010513/campaigns/23651537255",
+            "status": "ENABLED"
+          },
+          "campaignBudget": {
+            "amountMicros": "20000000",
+            "explicitlyShared": false,
+            "resourceName": "customers/9205010513/campaignBudgets/15429766260",
+            "status": "ENABLED"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaigns/23870042807",
+        "values": {
+          "campaign": {
+            "advertisingChannelType": "SEARCH",
+            "biddingStrategyType": "MAXIMIZE_CONVERSION_VALUE",
+            "campaignBudget": "customers/9205010513/campaignBudgets/15589755119",
+            "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+            "geoTargetTypeSetting": {
+              "negativeGeoTargetType": "PRESENCE",
+              "positiveGeoTargetType": "PRESENCE"
+            },
+            "id": "23870042807",
+            "maximizeConversionValue": {
+              "targetRoas": 1.35
+            },
+            "name": "JDM | Search | Scripts",
+            "networkSettings": {
+              "targetContentNetwork": false,
+              "targetGoogleSearch": true,
+              "targetPartnerSearchNetwork": false,
+              "targetSearchNetwork": false
+            },
+            "resourceName": "customers/9205010513/campaigns/23870042807",
+            "status": "ENABLED"
+          },
+          "campaignBudget": {
+            "amountMicros": "95000000",
+            "explicitlyShared": false,
+            "resourceName": "customers/9205010513/campaignBudgets/15589755119",
+            "status": "ENABLED"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaigns/24040886787",
+        "values": {
+          "campaign": {
+            "advertisingChannelType": "SEARCH",
+            "biddingStrategyType": "MANUAL_CPC",
+            "campaignBudget": "customers/9205010513/campaignBudgets/15723069788",
+            "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+            "geoTargetTypeSetting": {
+              "negativeGeoTargetType": "PRESENCE",
+              "positiveGeoTargetType": "PRESENCE"
+            },
+            "id": "24040886787",
+            "manualCpc": {
+              "enhancedCpcEnabled": false
+            },
+            "name": "IM | Search | ED | Pilot",
+            "networkSettings": {
+              "targetContentNetwork": false,
+              "targetGoogleSearch": true,
+              "targetPartnerSearchNetwork": false,
+              "targetSearchNetwork": false
+            },
+            "resourceName": "customers/9205010513/campaigns/24040886787",
+            "status": "ENABLED"
+          },
+          "campaignBudget": {
+            "amountMicros": "12000000",
+            "explicitlyShared": false,
+            "resourceName": "customers/9205010513/campaignBudgets/15723069788",
+            "status": "ENABLED"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaigns/24040886790",
+        "values": {
+          "campaign": {
+            "advertisingChannelType": "SEARCH",
+            "biddingStrategyType": "MANUAL_CPC",
+            "campaignBudget": "customers/9205010513/campaignBudgets/15723069791",
+            "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+            "geoTargetTypeSetting": {
+              "negativeGeoTargetType": "PRESENCE",
+              "positiveGeoTargetType": "PRESENCE"
+            },
+            "id": "24040886790",
+            "manualCpc": {
+              "enhancedCpcEnabled": false
+            },
+            "name": "IM | Search | Hair Loss | Pilot",
+            "networkSettings": {
+              "targetContentNetwork": false,
+              "targetGoogleSearch": true,
+              "targetPartnerSearchNetwork": false,
+              "targetSearchNetwork": false
+            },
+            "resourceName": "customers/9205010513/campaigns/24040886790",
+            "status": "ENABLED"
+          },
+          "campaignBudget": {
+            "amountMicros": "10000000",
+            "explicitlyShared": false,
+            "resourceName": "customers/9205010513/campaignBudgets/15723069791",
+            "status": "ENABLED"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaigns/24144825264",
+        "values": {
+          "campaign": {
+            "advertisingChannelType": "SEARCH",
+            "biddingStrategyType": "MANUAL_CPC",
+            "campaignBudget": "customers/9205010513/campaignBudgets/15796828955",
+            "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+            "geoTargetTypeSetting": {
+              "negativeGeoTargetType": "PRESENCE",
+              "positiveGeoTargetType": "PRESENCE"
+            },
+            "id": "24144825264",
+            "manualCpc": {
+              "enhancedCpcEnabled": false
+            },
+            "name": "IM | Search | Women's Health | AU",
+            "networkSettings": {
+              "targetContentNetwork": false,
+              "targetGoogleSearch": true,
+              "targetPartnerSearchNetwork": false,
+              "targetSearchNetwork": false
+            },
+            "resourceName": "customers/9205010513/campaigns/24144825264",
+            "status": "ENABLED"
+          },
+          "campaignBudget": {
+            "amountMicros": "20000000",
+            "explicitlyShared": false,
+            "resourceName": "customers/9205010513/campaignBudgets/15796828955",
+            "status": "ENABLED"
+          }
+        }
+      }
+    ],
+    "campaignCriteria": [
+      {
+        "resourceName": "customers/9205010513/campaignCriteria/23651537255~300096",
+        "values": {
+          "campaignCriterion": {
+            "adSchedule": {
+              "dayOfWeek": "MONDAY",
+              "endHour": 24,
+              "endMinute": "ZERO",
+              "startHour": 0,
+              "startMinute": "ZERO"
+            },
+            "campaign": "customers/9205010513/campaigns/23651537255",
+            "criterionId": "300096",
+            "negative": false,
+            "resourceName": "customers/9205010513/campaignCriteria/23651537255~300096",
+            "status": "ENABLED",
+            "type": "AD_SCHEDULE"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaignCriteria/23651537255~310096",
+        "values": {
+          "campaignCriterion": {
+            "adSchedule": {
+              "dayOfWeek": "TUESDAY",
+              "endHour": 24,
+              "endMinute": "ZERO",
+              "startHour": 0,
+              "startMinute": "ZERO"
+            },
+            "campaign": "customers/9205010513/campaigns/23651537255",
+            "criterionId": "310096",
+            "negative": false,
+            "resourceName": "customers/9205010513/campaignCriteria/23651537255~310096",
+            "status": "ENABLED",
+            "type": "AD_SCHEDULE"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaignCriteria/23651537255~320096",
+        "values": {
+          "campaignCriterion": {
+            "adSchedule": {
+              "dayOfWeek": "WEDNESDAY",
+              "endHour": 24,
+              "endMinute": "ZERO",
+              "startHour": 0,
+              "startMinute": "ZERO"
+            },
+            "campaign": "customers/9205010513/campaigns/23651537255",
+            "criterionId": "320096",
+            "negative": false,
+            "resourceName": "customers/9205010513/campaignCriteria/23651537255~320096",
+            "status": "ENABLED",
+            "type": "AD_SCHEDULE"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaignCriteria/23651537255~330096",
+        "values": {
+          "campaignCriterion": {
+            "adSchedule": {
+              "dayOfWeek": "THURSDAY",
+              "endHour": 24,
+              "endMinute": "ZERO",
+              "startHour": 0,
+              "startMinute": "ZERO"
+            },
+            "campaign": "customers/9205010513/campaigns/23651537255",
+            "criterionId": "330096",
+            "negative": false,
+            "resourceName": "customers/9205010513/campaignCriteria/23651537255~330096",
+            "status": "ENABLED",
+            "type": "AD_SCHEDULE"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaignCriteria/23651537255~340096",
+        "values": {
+          "campaignCriterion": {
+            "adSchedule": {
+              "dayOfWeek": "FRIDAY",
+              "endHour": 24,
+              "endMinute": "ZERO",
+              "startHour": 0,
+              "startMinute": "ZERO"
+            },
+            "campaign": "customers/9205010513/campaigns/23651537255",
+            "criterionId": "340096",
+            "negative": false,
+            "resourceName": "customers/9205010513/campaignCriteria/23651537255~340096",
+            "status": "ENABLED",
+            "type": "AD_SCHEDULE"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaignCriteria/23651537255~350096",
+        "values": {
+          "campaignCriterion": {
+            "adSchedule": {
+              "dayOfWeek": "SATURDAY",
+              "endHour": 24,
+              "endMinute": "ZERO",
+              "startHour": 0,
+              "startMinute": "ZERO"
+            },
+            "campaign": "customers/9205010513/campaigns/23651537255",
+            "criterionId": "350096",
+            "negative": false,
+            "resourceName": "customers/9205010513/campaignCriteria/23651537255~350096",
+            "status": "ENABLED",
+            "type": "AD_SCHEDULE"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaignCriteria/23651537255~360096",
+        "values": {
+          "campaignCriterion": {
+            "adSchedule": {
+              "dayOfWeek": "SUNDAY",
+              "endHour": 24,
+              "endMinute": "ZERO",
+              "startHour": 0,
+              "startMinute": "ZERO"
+            },
+            "campaign": "customers/9205010513/campaigns/23651537255",
+            "criterionId": "360096",
+            "negative": false,
+            "resourceName": "customers/9205010513/campaignCriteria/23651537255~360096",
+            "status": "ENABLED",
+            "type": "AD_SCHEDULE"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/campaignCriteria/24040886787~295021609580",
+        "values": {
+          "campaignCriterion": {
+            "campaign": "customers/9205010513/campaigns/24040886787",
+            "criterionId": "295021609580",
+            "keyword": {
+              "matchType": "PHRASE",
+              "text": "trt"
+            },
+            "negative": true,
+            "resourceName": "customers/9205010513/campaignCriteria/24040886787~295021609580",
+            "status": "ENABLED",
+            "type": "KEYWORD"
+          }
+        }
+      }
+    ],
+    "keywords": [
+      {
+        "resourceName": "customers/9205010513/adGroupCriteria/196799711437~2483355916270",
+        "values": {
+          "adGroupCriterion": {
+            "adGroup": "customers/9205010513/adGroups/196799711437",
+            "criterionId": "2483355916270",
+            "keyword": {
+              "matchType": "PHRASE",
+              "text": "online prescription Australia"
+            },
+            "negative": false,
+            "qualityInfo": {
+              "qualityScore": 6
+            },
+            "resourceName": "customers/9205010513/adGroupCriteria/196799711437~2483355916270",
+            "status": "PAUSED",
+            "type": "KEYWORD"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/adGroupCriteria/196799711917~407126557387",
+        "values": {
+          "adGroupCriterion": {
+            "adGroup": "customers/9205010513/adGroups/196799711917",
+            "criterionId": "407126557387",
+            "keyword": {
+              "matchType": "PHRASE",
+              "text": "prescription repeat"
+            },
+            "negative": false,
+            "qualityInfo": {
+              "qualityScore": 7
+            },
+            "resourceName": "customers/9205010513/adGroupCriteria/196799711917~407126557387",
+            "status": "PAUSED",
+            "type": "KEYWORD"
+          }
+        }
+      }
+    ],
+    "ads": [
+      {
+        "resourceName": "customers/9205010513/adGroupAds/194546863806~817285618697",
+        "values": {
+          "adGroupAd": {
+            "ad": {
+              "finalUrls": [
+                "https://instantmed.com.au/medical-certificate/work"
+              ],
+              "id": "817285618697",
+              "resourceName": "customers/9205010513/ads/817285618697",
+              "responsiveSearchAd": {
+                "descriptions": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Medical certificates from A$24.95. Start with a secure form, about 3 minutes."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "DISAPPROVED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "ENABLING_DISHONEST_BEHAVIOR",
+                          "type": "PROHIBITED"
+                        },
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Suitable certificate requests need no video, call or appointment. Doctor-owned and clear."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "DISAPPROVED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "ENABLING_DISHONEST_BEHAVIOR",
+                          "type": "PROHIBITED"
+                        },
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Requests can be submitted 24/7. If approved, your secure certificate arrives as a PDF."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "DISAPPROVED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "ENABLING_DISHONEST_BEHAVIOR",
+                          "type": "PROHIBITED"
+                        },
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "For genuine work and sick-leave requests. Full refund if the doctor declines."
+                  }
+                ],
+                "headlines": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "DISAPPROVED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "ENABLING_DISHONEST_BEHAVIOR",
+                          "type": "PROHIBITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Work Medical Certificate"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Too Sick for Work?"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED",
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Sick Leave Certificate"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED",
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Medical Cert for Work"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Start in About 3 Minutes"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED",
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Requests Open 24/7"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "DISAPPROVED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "ENABLING_DISHONEST_BEHAVIOR",
+                          "type": "PROHIBITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "From A$24.95"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "DISAPPROVED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "ENABLING_DISHONEST_BEHAVIOR",
+                          "type": "PROHIBITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "No Video. No Call."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "DISAPPROVED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "ENABLING_DISHONEST_BEHAVIOR",
+                          "type": "PROHIBITED"
+                        },
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "No Appointment Needed"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Secure PDF If Approved"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "DISAPPROVED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "ENABLING_DISHONEST_BEHAVIOR",
+                          "type": "PROHIBITED"
+                        },
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Full Refund If Declined"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Australian Doctor Review"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "AHPRA-Registered Doctors"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Secure Clinical Form"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "DISAPPROVED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "ENABLING_DISHONEST_BEHAVIOR",
+                          "type": "PROHIBITED"
+                        },
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Fill It Out. Get On With It."
+                  }
+                ],
+                "path1": "work",
+                "path2": "certificate"
+              },
+              "type": "RESPONSIVE_SEARCH_AD"
+            },
+            "adGroup": "customers/9205010513/adGroups/194546863806",
+            "policySummary": {
+              "approvalStatus": "APPROVED_LIMITED",
+              "policyTopicEntries": [
+                {
+                  "topic": "ENABLING_DISHONEST_BEHAVIOR",
+                  "type": "PROHIBITED"
+                },
+                {
+                  "topic": "PRESCRIPTION_DRUG_SALE",
+                  "type": "LIMITED"
+                }
+              ]
+            },
+            "resourceName": "customers/9205010513/adGroupAds/194546863806~817285618697",
+            "status": "PAUSED"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/adGroupAds/194546863806~824123285516",
+        "values": {
+          "adGroupAd": {
+            "ad": {
+              "finalUrls": [
+                "https://instantmed.com.au/medical-certificate/work"
+              ],
+              "id": "824123285516",
+              "resourceName": "customers/9205010513/ads/824123285516",
+              "responsiveSearchAd": {
+                "descriptions": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Request a medical certificate for a short work absence. Secure online form from A$24.95."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Routine requests follow an approved clinical protocol. A doctor reviews concerns."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "A doctor may contact you. A certificate is issued only if clinically appropriate."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Requests are open 24/7. Full refund if the doctor declines your certificate request."
+                  }
+                ],
+                "headlines": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Medical Certificate Review"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "For Short Work Absences"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Start With A Secure Form"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Requests Open 24/7"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "From A$24.95"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Secure PDF If Approved"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Clinical Assessment First"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Work Absence Certificate"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "No Booked Appointment"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Clear Clinical Boundaries"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Australian Telehealth"
+                  }
+                ],
+                "path1": "work",
+                "path2": "certificate"
+              },
+              "type": "RESPONSIVE_SEARCH_AD"
+            },
+            "adGroup": "customers/9205010513/adGroups/194546863806",
+            "policySummary": {
+              "approvalStatus": "UNKNOWN"
+            },
+            "resourceName": "customers/9205010513/adGroupAds/194546863806~824123285516",
+            "status": "ENABLED"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/adGroupAds/202440288434~821369190701",
+        "values": {
+          "adGroupAd": {
+            "ad": {
+              "finalUrls": [
+                "https://instantmed.com.au/womens-health"
+              ],
+              "id": "821369190701",
+              "resourceName": "customers/9205010513/ads/821369190701",
+              "responsiveSearchAd": {
+                "descriptions": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Complete a secure UTI symptom form. An Australian doctor reviews what happens next."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Red-flag screening comes first. The doctor may call if more detail is needed."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "One-off doctor review from $49.95. Full refund if the doctor declines."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "For suitable adults in Australia. Urgent or complex symptoms need in-person care."
+                  }
+                ],
+                "headlines": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Online UTI Assessment"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Australian Doctor Review"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Start With A Secure Form"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "UTI Symptoms Reviewed Online"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Clear Safety Screening"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "One-Off Doctor Review"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "From $49.95"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Full Refund If Declined"
+                  }
+                ],
+                "path1": "womens-health",
+                "path2": "uti-review"
+              },
+              "type": "RESPONSIVE_SEARCH_AD"
+            },
+            "adGroup": "customers/9205010513/adGroups/202440288434",
+            "policySummary": {
+              "approvalStatus": "APPROVED_LIMITED",
+              "policyTopicEntries": [
+                {
+                  "topic": "BIRTH_CONTROL",
+                  "type": "LIMITED"
+                },
+                {
+                  "topic": "PRESCRIPTION_DRUG_SALE",
+                  "type": "LIMITED"
+                }
+              ]
+            },
+            "resourceName": "customers/9205010513/adGroupAds/202440288434~821369190701",
+            "status": "ENABLED"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/adGroupAds/202440288434~824041494895",
+        "values": {
+          "adGroupAd": {
+            "ad": {
+              "finalUrls": [
+                "https://instantmed.com.au/uti-assessment-online"
+              ],
+              "id": "824041494895",
+              "resourceName": "customers/9205010513/ads/824041494895",
+              "responsiveSearchAd": {
+                "descriptions": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Complete a secure UTI symptom form. An Australian doctor reviews what happens next."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Red-flag screening comes first. The doctor may call if more detail is needed."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "One-off doctor review from $49.95. Full refund if the doctor declines."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "For suitable adults in Australia. Urgent or complex symptoms need in-person care."
+                  }
+                ],
+                "headlines": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Online UTI Assessment"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Australian Doctor Review"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Start With A Secure Form"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "UTI Symptoms Reviewed Online"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Clear Safety Screening"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "One-Off Doctor Review"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "From $49.95"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Full Refund If Declined"
+                  }
+                ],
+                "path1": "womens-health",
+                "path2": "uti-review"
+              },
+              "type": "RESPONSIVE_SEARCH_AD"
+            },
+            "adGroup": "customers/9205010513/adGroups/202440288434",
+            "policySummary": {
+              "approvalStatus": "UNKNOWN"
+            },
+            "resourceName": "customers/9205010513/adGroupAds/202440288434~824041494895",
+            "status": "ENABLED"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/adGroupAds/202440288474~821369190704",
+        "values": {
+          "adGroupAd": {
+            "ad": {
+              "finalUrls": [
+                "https://instantmed.com.au/womens-health"
+              ],
+              "id": "821369190704",
+              "resourceName": "customers/9205010513/ads/821369190704",
+              "responsiveSearchAd": {
+                "descriptions": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Complete a secure health form to start or switch the pill after doctor review."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Your doctor checks prescribing safety and may call if more detail is needed."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "One-off doctor review from $49.95. Full refund if the doctor declines."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "The doctor decides whether prescribing is clinically appropriate."
+                  }
+                ],
+                "headlines": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Contraception Assessment"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Start Or Switch The Pill"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Australian Doctor Review"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Secure Online Health Form"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Prescribing Safety First"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "One-Off Doctor Review"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "From $49.95"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "approvalStatus": "APPROVED_LIMITED",
+                      "policyTopicEntries": [
+                        {
+                          "topic": "PRESCRIPTION_DRUG_SALE",
+                          "type": "LIMITED"
+                        },
+                        {
+                          "topic": "BIRTH_CONTROL",
+                          "type": "LIMITED"
+                        }
+                      ],
+                      "reviewStatus": "REVIEWED"
+                    },
+                    "text": "Full Refund If Declined"
+                  }
+                ],
+                "path1": "womens-health",
+                "path2": "contraception"
+              },
+              "type": "RESPONSIVE_SEARCH_AD"
+            },
+            "adGroup": "customers/9205010513/adGroups/202440288474",
+            "policySummary": {
+              "approvalStatus": "APPROVED_LIMITED",
+              "policyTopicEntries": [
+                {
+                  "topic": "BIRTH_CONTROL",
+                  "type": "LIMITED"
+                },
+                {
+                  "topic": "PRESCRIPTION_DRUG_SALE",
+                  "type": "LIMITED"
+                }
+              ]
+            },
+            "resourceName": "customers/9205010513/adGroupAds/202440288474~821369190704",
+            "status": "ENABLED"
+          }
+        }
+      },
+      {
+        "resourceName": "customers/9205010513/adGroupAds/202440288474~824041494898",
+        "values": {
+          "adGroupAd": {
+            "ad": {
+              "finalUrls": [
+                "https://instantmed.com.au/contraceptive-pill-assessment-online"
+              ],
+              "id": "824041494898",
+              "resourceName": "customers/9205010513/ads/824041494898",
+              "responsiveSearchAd": {
+                "descriptions": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Complete a secure health form to start or switch the pill after doctor review."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Your doctor checks prescribing safety and may call if more detail is needed."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "One-off doctor review from $49.95. Full refund if the doctor declines."
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "The doctor decides whether prescribing is clinically appropriate."
+                  }
+                ],
+                "headlines": [
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Contraception Assessment"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Start Or Switch The Pill"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Australian Doctor Review"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Secure Online Health Form"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Prescribing Safety First"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "One-Off Doctor Review"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "From $49.95"
+                  },
+                  {
+                    "assetPerformanceLabel": "PENDING",
+                    "policySummaryInfo": {
+                      "reviewStatus": "REVIEW_IN_PROGRESS"
+                    },
+                    "text": "Full Refund If Declined"
+                  }
+                ],
+                "path1": "womens-health",
+                "path2": "contraception"
+              },
+              "type": "RESPONSIVE_SEARCH_AD"
+            },
+            "adGroup": "customers/9205010513/adGroups/202440288474",
+            "policySummary": {
+              "approvalStatus": "UNKNOWN"
+            },
+            "resourceName": "customers/9205010513/adGroupAds/202440288474~824041494898",
+            "status": "ENABLED"
+          }
+        }
+      }
+    ]
+  },
+  "canonicalAttributionParity": {
+    "cashCohortRows": 302,
+    "campaignRelevantRows": 153,
+    "mismatchRows": 0,
+    "scriptsFirstOrders": 69,
+    "scriptsFirstOrderContributionCents": 18167,
+    "sourceWindow": "2026-08-10..2026-09-08 Australia/Sydney",
+    "patientPayloadIncluded": false
+  },
+  "codeDelivery": {
+    "pullRequest": "https://github.com/reabal-n/instantmed/pull/546",
+    "implementationHead": "8d1c36fe9",
+    "verificationAuthority": "The PR Verification section records final release checks, required CI and production deployment; this pre-merge receipt does not imply deployment."
+  },
+  "subsequentAdsReceiptAuthority": "Any later Google policy read or remaining pill activation receipt is recorded in the Verification section of https://github.com/reabal-n/instantmed/pull/546 and the canonical Ads proposal audit; this file preserves its dated snapshot.",
+  "subsequentAccountReadback": {
+    "readAt": "2026-09-09T16:25:45.928Z",
+    "budgetsUnchanged": true,
+    "campaigns": [
+      {
+        "campaign": {
+          "advertisingChannelType": "SEARCH",
+          "biddingStrategyType": "MAXIMIZE_CONVERSIONS",
+          "campaignBudget": "customers/9205010513/campaignBudgets/15429766260",
+          "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+          "geoTargetTypeSetting": {
+            "negativeGeoTargetType": "PRESENCE",
+            "positiveGeoTargetType": "PRESENCE"
+          },
+          "id": "23651537255",
+          "maximizeConversions": {
+            "targetCpaMicros": "22000000"
+          },
+          "name": "JDM | Search | Med Certs",
+          "networkSettings": {
+            "targetContentNetwork": false,
+            "targetGoogleSearch": true,
+            "targetPartnerSearchNetwork": false,
+            "targetSearchNetwork": false
+          },
+          "resourceName": "customers/9205010513/campaigns/23651537255",
+          "status": "ENABLED"
+        },
+        "budget": {
+          "amountMicros": "20000000",
+          "explicitlyShared": false,
+          "resourceName": "customers/9205010513/campaignBudgets/15429766260",
+          "status": "ENABLED"
+        }
+      },
+      {
+        "campaign": {
+          "advertisingChannelType": "SEARCH",
+          "biddingStrategyType": "MAXIMIZE_CONVERSION_VALUE",
+          "campaignBudget": "customers/9205010513/campaignBudgets/15589755119",
+          "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+          "geoTargetTypeSetting": {
+            "negativeGeoTargetType": "PRESENCE",
+            "positiveGeoTargetType": "PRESENCE"
+          },
+          "id": "23870042807",
+          "maximizeConversionValue": {
+            "targetRoas": 1.35
+          },
+          "name": "JDM | Search | Scripts",
+          "networkSettings": {
+            "targetContentNetwork": false,
+            "targetGoogleSearch": true,
+            "targetPartnerSearchNetwork": false,
+            "targetSearchNetwork": false
+          },
+          "resourceName": "customers/9205010513/campaigns/23870042807",
+          "status": "ENABLED"
+        },
+        "budget": {
+          "amountMicros": "95000000",
+          "explicitlyShared": false,
+          "resourceName": "customers/9205010513/campaignBudgets/15589755119",
+          "status": "ENABLED"
+        }
+      },
+      {
+        "campaign": {
+          "advertisingChannelType": "SEARCH",
+          "biddingStrategyType": "MANUAL_CPC",
+          "campaignBudget": "customers/9205010513/campaignBudgets/15723069788",
+          "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+          "geoTargetTypeSetting": {
+            "negativeGeoTargetType": "PRESENCE",
+            "positiveGeoTargetType": "PRESENCE"
+          },
+          "id": "24040886787",
+          "manualCpc": {
+            "enhancedCpcEnabled": false
+          },
+          "name": "IM | Search | ED | Pilot",
+          "networkSettings": {
+            "targetContentNetwork": false,
+            "targetGoogleSearch": true,
+            "targetPartnerSearchNetwork": false,
+            "targetSearchNetwork": false
+          },
+          "resourceName": "customers/9205010513/campaigns/24040886787",
+          "status": "ENABLED"
+        },
+        "budget": {
+          "amountMicros": "12000000",
+          "explicitlyShared": false,
+          "resourceName": "customers/9205010513/campaignBudgets/15723069788",
+          "status": "ENABLED"
+        }
+      },
+      {
+        "campaign": {
+          "advertisingChannelType": "SEARCH",
+          "biddingStrategyType": "MANUAL_CPC",
+          "campaignBudget": "customers/9205010513/campaignBudgets/15723069791",
+          "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+          "geoTargetTypeSetting": {
+            "negativeGeoTargetType": "PRESENCE",
+            "positiveGeoTargetType": "PRESENCE"
+          },
+          "id": "24040886790",
+          "manualCpc": {
+            "enhancedCpcEnabled": false
+          },
+          "name": "IM | Search | Hair Loss | Pilot",
+          "networkSettings": {
+            "targetContentNetwork": false,
+            "targetGoogleSearch": true,
+            "targetPartnerSearchNetwork": false,
+            "targetSearchNetwork": false
+          },
+          "resourceName": "customers/9205010513/campaigns/24040886790",
+          "status": "ENABLED"
+        },
+        "budget": {
+          "amountMicros": "10000000",
+          "explicitlyShared": false,
+          "resourceName": "customers/9205010513/campaignBudgets/15723069791",
+          "status": "ENABLED"
+        }
+      },
+      {
+        "campaign": {
+          "advertisingChannelType": "SEARCH",
+          "biddingStrategyType": "MANUAL_CPC",
+          "campaignBudget": "customers/9205010513/campaignBudgets/15796828955",
+          "containsEuPoliticalAdvertising": "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING",
+          "geoTargetTypeSetting": {
+            "negativeGeoTargetType": "PRESENCE",
+            "positiveGeoTargetType": "PRESENCE"
+          },
+          "id": "24144825264",
+          "manualCpc": {
+            "enhancedCpcEnabled": false
+          },
+          "name": "IM | Search | Women's Health | AU",
+          "networkSettings": {
+            "targetContentNetwork": false,
+            "targetGoogleSearch": true,
+            "targetPartnerSearchNetwork": false,
+            "targetSearchNetwork": false
+          },
+          "resourceName": "customers/9205010513/campaigns/24144825264",
+          "status": "ENABLED"
+        },
+        "budget": {
+          "amountMicros": "20000000",
+          "explicitlyShared": false,
+          "resourceName": "customers/9205010513/campaignBudgets/15796828955",
+          "status": "ENABLED"
+        }
+      }
+    ]
+  }
+}

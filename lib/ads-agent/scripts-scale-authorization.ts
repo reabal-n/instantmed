@@ -2,7 +2,6 @@ import "server-only"
 
 import type { GoogleAdsAccountState } from "@/lib/ads-agent/account-state"
 import {
-  POLICY,
   resolveAdsCampaignService,
 } from "@/lib/ads-agent/policy"
 import { isAdsAgentSnapshot } from "@/lib/ads-agent/runs"
@@ -23,6 +22,7 @@ function asString(value: unknown): string | null {
 }
 
 export interface AdsScaleAuthorizationEvidence {
+  firstOrderEvidence?: { readAt: string; sourceRunId: string; range: AdsAgentSnapshot["windows"]["rolling30"] }
   previousMaterialChange: {
     attributedOrders: number
     closedDays: number
@@ -58,14 +58,6 @@ export function sydneyDateKey(value: string): string | null {
       .map((part) => [part.type, part.value]),
   )
   return `${values.year}-${values.month}-${values.day}`
-}
-
-export function previousSydneyDateKey(value: string): string | null {
-  const key = sydneyDateKey(value)
-  if (!key) return null
-  const [year, month, day] = key.split("-").map(Number)
-  const previous = new Date(Date.UTC(year, month - 1, day - 1))
-  return previous.toISOString().slice(0, 10)
 }
 
 export function deriveScriptsScaleAuthorizationEvidence(args: {
@@ -146,7 +138,6 @@ export function deriveScriptsScaleAuthorizationEvidence(args: {
   const changeDate = sydneyDateKey(previousChangeAt)
   if (!changeDate) return null
   let attributedOrders = 0
-  let totalOrdersAfterChange = 0
   const closedDates = new Set<string>()
   for (const row of args.runs) {
     if (
@@ -177,13 +168,7 @@ export function deriveScriptsScaleAuthorizationEvidence(args: {
     }
     closedDates.add(row.report_date)
     attributedOrders += scriptsOrders
-    totalOrdersAfterChange += totalOrders
   }
-  if (
-    totalOrdersAfterChange > 0
-    && attributedOrders / totalOrdersAfterChange
-      < POLICY.attribution.minimumExpectedServiceOrderShare
-  ) return null
   return {
     previousMaterialChange: {
       attributedOrders,

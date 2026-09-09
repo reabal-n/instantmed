@@ -2,6 +2,7 @@ import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { readFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics"
 import { isAdsAgentSnapshot } from "@/lib/ads-agent/runs"
 import {
   type AdsScaleAuthorizationEvidence,
@@ -100,7 +101,7 @@ export async function readScriptsScaleAuthorizationEvidence(args: {
     .lte("report_date", latest.data.report_date)
     .order("report_date", { ascending: true })
   if (runs.error) return null
-  return deriveScriptsScaleAuthorizationEvidence({
+  const evidence = deriveScriptsScaleAuthorizationEvidence({
     budgetResourceName: args.budgetResourceName,
     campaignResourceName: args.campaignResourceName,
     historyComplete: (
@@ -114,4 +115,20 @@ export async function readScriptsScaleAuthorizationEvidence(args: {
     proposals: [...proposalRows.values()],
     runs: runs.data ?? [],
   })
+  if (!evidence) return null
+  // Fresh enrichment of the immutable run's exact window. Never overwrite the stored run.
+  const rolling30 = await readFirstOrderCampaignEconomics({
+    campaigns: evidence.snapshot.rolling30,
+    range: evidence.snapshot.windows.rolling30,
+    supabase: args.supabase,
+  })
+  return {
+    ...evidence,
+    firstOrderEvidence: {
+      readAt: new Date().toISOString(),
+      sourceRunId: latest.data.id,
+      range: evidence.snapshot.windows.rolling30,
+    },
+    snapshot: { ...evidence.snapshot, rolling30 },
+  }
 }

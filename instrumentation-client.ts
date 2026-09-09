@@ -4,6 +4,10 @@
 
 import type { BeforeSendFn } from "posthog-js";
 
+import {
+  getEligibleAIReferralLanding,
+  trackAIReferral,
+} from "@/lib/analytics/ai-referral";
 import { resolvePostHogClient } from "@/lib/analytics/posthog-client-resolver";
 import { sanitizePostHogEvent } from "@/lib/analytics/posthog-privacy";
 import { onFirstInteraction } from "@/lib/browser/first-interaction";
@@ -29,7 +33,10 @@ import {
  */
 function startTelemetryWhenReady(
   callback: () => void,
-  { external = false }: { external?: boolean } = {},
+  {
+    external = false,
+    immediate = false,
+  }: { external?: boolean; immediate?: boolean } = {},
 ) {
   if (external) {
     if (isExternalAnalyticsExcludedPath() && !isPostConversionPath()) return;
@@ -37,7 +44,7 @@ function startTelemetryWhenReady(
     return;
   }
 
-  if (isPostConversionPath()) {
+  if (isPostConversionPath() || immediate) {
     callback();
   } else {
     onFirstInteraction(callback);
@@ -160,16 +167,20 @@ async function loadAndInitSentry() {
 }
 
 // Gate telemetry behind first user interaction. Passive bounces should not pay
-// the parse/compile cost for Sentry or PostHog on /request —
-// except on post-conversion pages, where measurement must not wait for a click.
+// the parse/compile cost for Sentry or ordinary acquisition analytics — except
+// for post-conversion pages and exact AI landings whose bounce denominator is
+// the measurement itself. Sentry remains deferred on those AI landings.
 startTelemetryWhenReady(() => loadAndInitSentry());
 
 // PostHog Analytics initialization (single source of truth - do not duplicate in provider)
 // Dynamic import to avoid module-level crash when posthog-js can't initialize
 if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  const aiReferralLanding = getEligibleAIReferralLanding();
   startTelemetryWhenReady(() => {
     import("posthog-js").then((module) => {
+      if (isExternalAnalyticsExcludedPath() && !isPostConversionPath()) return;
+
       const posthog = resolvePostHogClient(module);
       if (!posthog) return;
 
@@ -189,8 +200,8 @@ if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
         capture_heatmaps: false,
         // Native Web Vitals capture — fires $web_vitals events for LCP, FCP,
         // CLS, INP, TTFB, FID. Real-user metric (CrUX-equivalent), measured
-        // from actual browsers. Zero LCP impact because posthog-js itself
-        // loads after first interaction.
+        // from actual browsers. PostHog stays off the ordinary acquisition
+        // critical path; exact AI landings are the narrow eager exception.
         capture_performance: { web_vitals: true, network_timing: false },
         disable_session_recording: true,
         // Surveys module is ~25KB and we have no surveys live. Skip loading it.
@@ -224,8 +235,9 @@ if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
         $process_person_profile: false,
         $geoip_disable: true,
       });
+      trackAIReferral(posthog, aiReferralLanding ?? undefined);
     }).catch(() => {
       // PostHog not available - skip silently
     });
-  }, { external: true });
+  }, { external: true, immediate: aiReferralLanding !== null });
 }

@@ -104,7 +104,7 @@ export function classifyTrackingHealth(input: TrackingHealthInput): TrackingHeal
   return {
     evidenceAsOf: input.evidenceAsOf,
     reasonCodes: [...redReasonCodes, ...amberReasonCodes],
-    scaleAllowed: state === "GREEN",
+    scaleAllowed: redReasonCodes.length === 0,
     state,
   }
 }

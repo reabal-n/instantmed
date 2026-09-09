@@ -30,6 +30,7 @@ const NOW = new Date("2026-08-27T00:30:00.000Z")
 
 function scriptsCampaign(): CampaignEconomics {
   return {
+    firstOrder: { contributionCents: 144_545, netRetainedRevenueCents: 303_440, stripeFeeCents: 8_896, orders: 98 },
     biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
     budgetAmountMicros: 79_000_000,
     budgetResourceName: "customers/1/campaignBudgets/1",
@@ -283,23 +284,19 @@ describe("getBusinessAdsActionEvidence", () => {
     })
   })
 
-  it("ignores an expired proposal and reports the live post-change observation", async () => {
+  it("ignores an expired proposal and requires a new exact proposal without a fixed waiting veto", async () => {
     expect(await readActionEvidence({
       proposals: [proposal({ expiresAt: "2026-08-26T23:59:59.000Z" })],
       scriptsScaleEvidence: scaleEvidence(2, 8),
     })).toEqual({
-      attributedOrders: 8,
-      closedDays: 2,
       currentBudgetCents: 7_900,
-      kind: "observation",
+      kind: "proposal_required",
       mutationFamily: "campaign_budget",
-      requiredAttributedOrders: 10,
-      requiredClosedDays: 3,
       service: "scripts",
     })
   })
 
-  it("requires a proposal after the full post-change gate passes", async () => {
+  it("requires a proposal for an eligible positive cash campaign", async () => {
     expect(await readActionEvidence({
       proposals: [],
       scriptsScaleEvidence: scaleEvidence(3, 10),

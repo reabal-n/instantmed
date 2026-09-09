@@ -8,6 +8,12 @@ import {
   hashGoogleAdsAccountState,
 } from "@/lib/ads-agent/account-state"
 import {
+  normalizeGoogleAdsCampaignId as normalizeCampaignId,
+  resolveGoogleAdsPurchaseCampaignId,
+  UNMAPPED_GOOGLE_ADS_CAMPAIGN_ID as UNMAPPED_CAMPAIGN_ID,
+} from "@/lib/ads-agent/campaign-attribution"
+import { readFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics"
+import {
   ADS_OPERATIONAL_SERVICES,
   readAdsOperationalQueueEvidence,
   readManualGrowthHealthEvidence,
@@ -42,7 +48,6 @@ import {
   type LocalGoogleAdsPurchaseRow,
 } from "@/lib/analytics/google-ads-report"
 
-const UNMAPPED_CAMPAIGN_ID = "google_ads_unmapped"
 const UNMAPPED_CAMPAIGN_NAME = "Unmapped Google Ads"
 
 interface AccountCampaign {
@@ -109,19 +114,6 @@ function microsToCents(value: unknown): number | null {
 
 function roundRatio(value: number): number {
   return Math.round((value + Number.EPSILON) * 10_000) / 10_000
-}
-
-function normalizeCampaignId(value: unknown): string | null {
-  const candidate = asString(value)?.replace(/-/g, "")
-  return candidate && /^\d+$/.test(candidate) ? candidate : null
-}
-
-function localCampaignId(row: LocalGoogleAdsPurchaseRow): string {
-  return (
-    normalizeCampaignId(row.campaignid) ||
-    normalizeCampaignId(row.utm_id) ||
-    UNMAPPED_CAMPAIGN_ID
-  )
 }
 
 function localService(row: LocalGoogleAdsPurchaseRow): string {
@@ -275,9 +267,8 @@ function aggregateLocalRows(
   const campaigns = new Map<string, LocalCampaignRollup>()
 
   for (const row of rows) {
-    if (!isLikelyGoogleAttributed(row)) continue
-
-    const campaignId = localCampaignId(row)
+    const campaignId = resolveGoogleAdsPurchaseCampaignId(row)
+    if (campaignId === null) continue
     const {
       grossRevenueCents,
       purchaseInWindow,
@@ -717,20 +708,22 @@ export async function buildAdsAgentSnapshot(args: {
   }
   const feeMap = fulfilledValue(feeResult)
   const accountCampaigns = getAccountCampaigns(accountState)
-  const daily = buildCampaignEconomics({
+  const daily = await readFirstOrderCampaignEconomics({
+    supabase: args.supabase, range: dailyWindow, campaigns: buildCampaignEconomics({
     accountCampaigns,
     feeMap,
     localRows: dailyLocalRows,
     range: dailyWindow,
     spendRows: dailySpendRows,
-  })
-  const rolling30 = buildCampaignEconomics({
+  }) })
+  const rolling30 = await readFirstOrderCampaignEconomics({
+    supabase: args.supabase, range: rolling30Window, campaigns: buildCampaignEconomics({
     accountCampaigns,
     feeMap,
     localRows: rollingLocalRows,
     range: rolling30Window,
     spendRows: rollingSpendRows,
-  })
+  }) })
   const feeTruthComplete =
     feeResult.status === "fulfilled" &&
     allFeesAvailable(knownLocalRows, feeMap, rolling30Window)

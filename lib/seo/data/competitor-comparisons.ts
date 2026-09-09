@@ -39,6 +39,8 @@ export interface ProviderPriceRow {
   ahpraDoctors: boolean
   /** One verifiable distinguishing fact (model, speed, extras, billing). */
   notable: string
+  /** Current first-party pages supporting this row's price and service details. */
+  sources: Array<{ href: string; label: string }>
   /** Marks our own row for wayfinding only (bolded name) — not a rating. */
   isInstantMed?: boolean
 }
@@ -46,10 +48,10 @@ export interface ProviderPriceRow {
 /**
  * Optional dated cross-provider price table. When present it renders in place
  * of the head-to-head `comparisonTable` (facts only, no winner highlighting).
- * Prices are re-verified monthly — see `pricesVerified`.
+ * The displayed check date belongs to the cited source verification session.
  */
 export interface ProviderPriceTable {
-  /** Human month the prices were last checked, e.g. "June 2026". */
+  /** Human-readable date the sources were last checked. */
   pricesVerified: string
   /** Disclaimer rendered under the table. */
   note: string

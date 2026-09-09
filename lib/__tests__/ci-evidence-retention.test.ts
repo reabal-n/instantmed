@@ -1,8 +1,9 @@
-import { spawnSync } from "node:child_process"
+import { spawn, spawnSync } from "node:child_process"
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
+import { setTimeout as delay } from "node:timers/promises"
 
 import { describe, expect, it } from "vitest"
 
@@ -18,6 +19,50 @@ function suitePaths(suite: string) {
   expect(workflow).toContain(report)
   expect(workflow).toContain(output)
   return { report, output }
+}
+
+async function interruptStartedSuite(args: string[], cwd: string) {
+  const child = spawn(process.execPath, args, {
+    cwd,
+    env: { NODE_ENV: "test", PATH: process.env.PATH, HOME: process.env.HOME, CI: "1" },
+    stdio: ["ignore", "pipe", "pipe"],
+  })
+  let output = ""
+  let spawnError: Error | undefined
+  let result: { code: number | null; signal: NodeJS.Signals | null } | undefined
+  child.stdout.on("data", (data) => { output += data.toString() })
+  child.stderr.on("data", (data) => { output += data.toString() })
+  child.on("error", (error) => { spawnError = error })
+  const closed = new Promise<void>((resolve) => {
+    child.once("close", (code, signal) => {
+      result = { code, signal }
+      resolve()
+    })
+  })
+  const waitFor = async (condition: () => boolean, timeout: number, message: string) => {
+    const deadline = performance.now() + timeout
+    while (!condition()) {
+      if (spawnError) throw spawnError
+      if (performance.now() >= deadline) throw new Error(`${message}\n${output}`)
+      await delay(25)
+    }
+  }
+  try {
+    await waitFor(() => {
+      if (result) throw new Error(`Synthetic suite exited before entering its test: ${result.code}\n${output}`)
+      return existsSync(join(cwd, "test-started"))
+    }, 20000, "Synthetic suite did not enter its test before the startup watchdog")
+    // Interrupt only after test.step has started; CLI/worker startup is not the signal.
+    expect(child.kill("SIGINT")).toBe(true)
+    await waitFor(() => result !== undefined, 10000, "Interrupted suite did not finish its reporters")
+    expect(spawnError).toBeUndefined()
+    return { ...result!, output }
+  } finally {
+    if (!result) {
+      child.kill("SIGKILL")
+      await Promise.race([closed, delay(5000)])
+    }
+  }
 }
 
 describe("CI diagnostic evidence retention", () => {
@@ -45,11 +90,11 @@ describe("CI diagnostic evidence retention", () => {
     expect(traceUpload).not.toContain("if: failure()")
   })
 
-  it("reserves time for reports before the unchanged job deadline", () => {
+  it("reserves three minutes for reports within the measured suite runtime allowance", () => {
     const e2e = workflow.slice(workflow.indexOf("  e2e:"))
-    expect(e2e).toContain("timeout-minutes: 50")
+    expect(e2e).toContain("timeout-minutes: 65")
     expect(e2e).toContain("PLAYWRIGHT_CI_DEADLINE_MS")
-    expect(e2e).toContain("47 * 60")
+    expect(e2e).toContain("62 * 60")
     expect(config).toContain("globalTimeout: getCiPlaywrightGlobalTimeout()")
   })
 
@@ -61,6 +106,59 @@ describe("CI diagnostic evidence retention", () => {
   it.each(["", "invalid", "0", "1"])("fails closed for an invalid or exhausted browser budget (%s)", (deadline) => {
     expect(() => getCiPlaywrightGlobalTimeout(deadline, 1000)).toThrow(/browser evidence deadline|browser test budget exhausted/i)
   })
+
+  it("finishes an interrupted suite with reports and traces before the runner is killed", async () => {
+    const temporary = mkdtempSync(join(tmpdir(), "instantmed-ci-deadline-"))
+    try {
+      const playwright = JSON.stringify(require.resolve("@playwright/test"))
+      const budget = JSON.stringify(join(process.cwd(), "e2e/helpers/ci-time-budget.ts"))
+      writeFileSync(join(temporary, "playwright.config.cjs"), `
+        const { defineConfig } = require(${playwright});
+        const { getCiPlaywrightGlobalTimeout } = require(${budget});
+        module.exports = defineConfig({
+          testDir: '.', workers: 1, retries: 0, timeout: 60000,
+          globalTimeout: getCiPlaywrightGlobalTimeout(),
+          outputDir: 'test-results/paid-clinical',
+          reporter: [['html', { open: 'never', outputFolder: 'playwright-report/paid-clinical' }],
+            ['json', { outputFile: 'attempts.json' }]],
+          use: { trace: 'retain-on-failure' }
+        });
+      `)
+      writeFileSync(join(temporary, "hung.spec.cjs"), `
+        const { test } = require(${playwright});
+        const { writeFileSync } = require('node:fs');
+        test('synthetic interrupted attempt', async () => {
+          await test.step('wait for the runner interruption', async () => {
+            writeFileSync('test-started', 'ready');
+            await new Promise(() => {});
+          });
+        });
+      `)
+      const args = [require.resolve("@playwright/test/cli"), "test", "--config=playwright.config.cjs", "hung.spec.cjs"]
+      const run = await interruptStartedSuite(args, temporary)
+      expect(run.code, run.output).toBe(130)
+      expect(run.signal).toBeNull()
+      const reportPath = join(temporary, "playwright-report/paid-clinical/index.html")
+      const report = readFileSync(reportPath)
+      const attempts = JSON.parse(readFileSync(join(temporary, "attempts.json"), "utf8"))
+      const attempt = attempts.suites[0].specs[0].tests[0].results[0]
+      expect(attempt.status).toBe("interrupted")
+      const trace = attempt.attachments.find((attachment: { name: string }) => attachment.name === "trace")
+      expect(trace).toBeDefined()
+      expect(readFileSync(trace.path).length).toBeGreaterThan(0)
+
+      const later = spawnSync(process.execPath, args, {
+        cwd: temporary,
+        encoding: "utf8",
+        env: { NODE_ENV: "test", PATH: process.env.PATH, PLAYWRIGHT_CI_DEADLINE_MS: "1" },
+      })
+      expect(later.status).toBe(1)
+      expect(later.stderr).toMatch(/browser test budget exhausted/i)
+      expect(readFileSync(reportPath)).toEqual(report)
+    } finally {
+      rmSync(temporary, { recursive: true, force: true })
+    }
+  }, 40000)
 
   it.each([[0, 0], [6000, 0], [0, 6000]])("preserves timeout reports (worker startup: %ims, cleanup: %ims)", (workerStartupMs, cleanupMs) => {
     const temporary = mkdtempSync(join(tmpdir(), "instantmed-ci-deadline-"))

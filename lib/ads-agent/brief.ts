@@ -10,6 +10,13 @@ import type {
 const REPORT_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 
 const guardrailCopy: Record<string, string> = {
+  FIRST_ORDER_CONTRIBUTION_POSITIVE: "Measured first-order cash contribution is positive",
+  FIRST_ORDER_CONTRIBUTION_NOT_POSITIVE: "First-order cash contribution is not positive",
+  SMALL_SAMPLE_UNCERTAINTY: "Small sample; profit may not persist",
+  REFUND_RATE_REVIEW: "Review refund causes and eligibility/copy weekly",
+  RECENT_CHANGE_MONITORING: "Recent change; keep before/after evidence separate",
+  GOOGLE_DIAGNOSTICS_LAGGING: "Google diagnostics are lagging",
+  CONVERSION_LAG_IMMATURE: "Conversion reporting is still maturing",
   ATTRIBUTION_INVESTIGATION_HOLD:
     "Attribution investigation remains open — scaling stays blocked until the recorded resolution",
   BUDGET_ENVELOPE_UNAVAILABLE: "Daily budget data is unavailable",
@@ -168,7 +175,7 @@ function recommendationLines(
         : "exact proposal review"
       const reason = recommendation.reasonCodes
         .map((reasonCode) => guardrailCopy[reasonCode])
-        .find(Boolean)
+        .filter(Boolean).join("; ")
       return [`Action: ${service} · ${action}${reason ? ` · ${reason}` : ""}`]
     }
     if (recommendation.kind === "INVESTIGATE") {

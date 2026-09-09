@@ -395,8 +395,9 @@ jobs:
     needs: build
     if: ${{ needs.build.result == 'success' && needs.build.outputs.e2e-required == 'true' }}
     runs-on: ubuntu-latest
-    # Prior successful serialized gates took ~35.5m before the added clinical-review cases.
-    timeout-minutes: 50
+    # The complete matrix passed in 45.5m; a slower CI run reached 47m with
+    # ~6m of previously measured work left. Allow variance without dropping cases.
+    timeout-minutes: 65
     # The blocking E2E suite reuses a deterministic Supabase fixture set.
     # Serialize it across branches so one run's teardown cannot remove child
     # records while another run is inside the document/review flow.
@@ -407,8 +408,8 @@ jobs:
       - name: Reserve time for browser evidence uploads
         # A job-level kill also skips always() uploads. Playwright must finish
         # with a failing result and written diagnostics before that deadline.
-        # The full serialized matrix exceeds 45m; keep 3m for diagnostics.
-        run: echo "PLAYWRIGHT_CI_DEADLINE_MS=$(( ($(date +%s) + 47 * 60) * 1000 ))" >> "$GITHUB_ENV"
+        # Keep 3m outside the shared browser budget for diagnostics.
+        run: echo "PLAYWRIGHT_CI_DEADLINE_MS=$(( ($(date +%s) + 62 * 60) * 1000 ))" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v6.0.2
 
@@ -425,7 +426,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
+        run: |
+          # Playwright uses its pinned Chromium, not the runner's system Chrome.
+          # A mismatched Google Chrome APT index must not block Ubuntu library
+          # installation; keep the distro feeds and their integrity checks intact.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome*.list /etc/apt/sources.list.d/google-chrome*.sources
+          pnpm exec playwright install --with-deps chromium
 
       # Owns port 3060 briefly and closes it before any application E2E server.
       # Bundles the real ReviewStep/store with local provider seams; no secrets.

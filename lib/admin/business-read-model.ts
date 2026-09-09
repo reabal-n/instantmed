@@ -174,8 +174,10 @@ function aggregateCampaignEconomics(
       clicksTotal !== null && clicksTotal > 0
         ? Math.round(spendCents / clicksTotal)
         : null,
-    firstOrderContributionCents:
-      adsNetRetainedCents - stripeFeeCents - spendCents,
+    firstOrderContributionCents: campaigns.every((campaign) =>
+      finiteNumber(campaign.firstOrder?.contributionCents) !== null)
+      ? campaigns.reduce((sum, campaign) => sum + campaign.firstOrder!.contributionCents!, 0)
+      : null,
     netRetainedRoas: roundRatio(adsNetRetainedCents, spendCents),
     orders,
     spendCents,
@@ -293,7 +295,7 @@ export function buildBusinessReadModel(args: {
   if (!run) reasons.push(`ADS_EVIDENCE_${args.adsRun.reason?.toUpperCase() ?? "UNAVAILABLE"}`)
   if (run && stale) reasons.push("ADS_EVIDENCE_STALE")
   if (run && !aggregate) reasons.push("ECONOMICS_UNAVAILABLE")
-  if (run && trackingState !== "GREEN") reasons.push("TRACKING_NOT_GREEN")
+  if (run && (trackingState === "RED" || !run.snapshot.tracking.scaleAllowed)) reasons.push("TRACKING_NOT_GREEN")
   if (run) {
     reasons.push(...run.snapshot.tracking.reasonCodes)
     for (const recommendation of run.recommendations) {
@@ -321,7 +323,7 @@ export function buildBusinessReadModel(args: {
     }
   }
 
-  const truthGatePassed = revenueAvailable && Boolean(run) && !stale && Boolean(aggregate) && trackingState === "GREEN"
+  const truthGatePassed = revenueAvailable && Boolean(run) && !stale && Boolean(aggregate) && trackingState !== "RED" && run?.snapshot.tracking.scaleAllowed === true
   const economics = revenueAvailable && !stale ? aggregate : null
   const scaleDecision: BusinessScaleDecision = !truthGatePassed
     ? "HOLD"

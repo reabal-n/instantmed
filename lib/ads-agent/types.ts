@@ -107,7 +107,17 @@ export type CampaignAvailabilityReason =
   | "REVENUE_UNAVAILABLE"
   | "STRIPE_FEES_UNAVAILABLE"
 
+/** Verified first-customer-order cash in the campaign window; all campaign spend is charged here. */
+export interface AdsFirstOrderEconomics {
+  contributionCents: number | null
+  netRetainedRevenueCents: number | null
+  orders: number | null
+  stripeFeeCents: number | null
+}
+
 export interface CampaignEconomics {
+  /** Missing in historical snapshots; never substitute blended contribution. */
+  firstOrder?: AdsFirstOrderEconomics | null
   /** Optional on historical snapshots created before campaign configuration was bound. */
   biddingStrategyType?: string | null
   /** Optional on historical snapshots; exact micros from the campaign budget resource. */
