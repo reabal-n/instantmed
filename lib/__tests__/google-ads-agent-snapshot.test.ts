@@ -445,6 +445,13 @@ describe("Google Ads Agent snapshot", () => {
       const built = await buildAdsAgentSnapshot({ supabase: supabase as never })
       const snapshot = {
         ...built,
+        // Independent cash/cohort reader is covered in first-order-economics tests.
+        rolling30: built.rolling30.map((campaign) => ({ ...campaign, firstOrder: {
+          contributionCents: campaign.contributionCents,
+          netRetainedRevenueCents: campaign.netRetainedRevenueCents,
+          stripeFeeCents: campaign.stripeFeeCents,
+          orders: campaign.orders,
+        } })),
         tracking: {
           evidenceAsOf: REPORT_NOW.toISOString(),
           reasonCodes: [],
@@ -467,11 +474,9 @@ describe("Google Ads Agent snapshot", () => {
       expect(evaluateAdsPolicy(snapshot).find(
         ({ service }) => service === "scripts",
       )).toEqual({
-        kind: queueState === "unavailable" ? "INVESTIGATE" : "APPROVAL_NEEDED",
-        proposedMutationFamily: queueState === "unavailable" ? null : "campaign_budget",
-        reasonCodes: queueState === "unavailable"
-          ? ["OPERATIONAL_EVIDENCE_UNAVAILABLE"]
-          : ["SCRIPTS_SCALE_GATES_PASSED"],
+        kind: "APPROVAL_NEEDED",
+        proposedMutationFamily: "campaign_budget",
+        reasonCodes: ["FIRST_ORDER_CONTRIBUTION_POSITIVE", ...(queueState === "unavailable" ? ["OPERATIONAL_EVIDENCE_UNAVAILABLE"] : queueState === "watch" ? ["QUEUE_P95_OVER_2H_WATCH"] : [])],
         service: "scripts",
       })
       expect(supabase.from).toHaveBeenCalledWith("operational_metrics")

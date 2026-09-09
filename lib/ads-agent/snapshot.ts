@@ -7,6 +7,7 @@ import {
   type GoogleAdsAccountState,
   hashGoogleAdsAccountState,
 } from "@/lib/ads-agent/account-state"
+import { readFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics"
 import {
   ADS_OPERATIONAL_SERVICES,
   readAdsOperationalQueueEvidence,
@@ -717,20 +718,22 @@ export async function buildAdsAgentSnapshot(args: {
   }
   const feeMap = fulfilledValue(feeResult)
   const accountCampaigns = getAccountCampaigns(accountState)
-  const daily = buildCampaignEconomics({
+  const daily = await readFirstOrderCampaignEconomics({
+    supabase: args.supabase, range: dailyWindow, campaigns: buildCampaignEconomics({
     accountCampaigns,
     feeMap,
     localRows: dailyLocalRows,
     range: dailyWindow,
     spendRows: dailySpendRows,
-  })
-  const rolling30 = buildCampaignEconomics({
+  }) })
+  const rolling30 = await readFirstOrderCampaignEconomics({
+    supabase: args.supabase, range: rolling30Window, campaigns: buildCampaignEconomics({
     accountCampaigns,
     feeMap,
     localRows: rollingLocalRows,
     range: rolling30Window,
     spendRows: rollingSpendRows,
-  })
+  }) })
   const feeTruthComplete =
     feeResult.status === "fulfilled" &&
     allFeesAvailable(knownLocalRows, feeMap, rolling30Window)

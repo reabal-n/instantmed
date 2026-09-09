@@ -3,7 +3,7 @@
 > **Authority:** revenue milestones, economic definitions, paid-scaling gates, and hiring/capacity thresholds.
 > Live values come from the admin dashboard. Durable strategy lives in `docs/BUSINESS_PLAN.md`. Current priorities and status live in `docs/ROADMAP.md`.
 
-**Last updated:** 2026-08-15
+**Last updated:** 2026-09-09
 
 ---
 
@@ -32,7 +32,7 @@ The dashboard measures the rolling 30-day value from payment truth. A milestone 
 - revenue comes from real paid orders, excluding seeded E2E and failed checkout rows
 - refunds and disputes are deducted
 - paid acquisition is first-order contribution-positive or inside an explicitly approved bounded test
-- clinical QA, queue health, chargebacks, and support load remain controlled
+- real clinical incidents, explicit service holds, fulfilment failures and payment integrity remain separately actionable; numeric queue or support targets do not invalidate cash revenue
 
 Leads, clicks, intake starts, gross checkout value, and temporary revenue that is later refunded do not count as milestone attainment.
 
@@ -75,13 +75,15 @@ Below-capacity first-order contribution after acquisition
 
 Fixed software, insurance, accounting, and general business overhead stay outside this channel-level calculation. They remain business costs, but they do not determine whether one extra paid order contributes positively.
 
-This is the decision formula while the owner-doctor fulfils demand within existing capacity. Owner-doctor time has zero marginal cash cost in that phase, but it is still a capacity constraint: growth must stay inside the queue, safety, fulfilment, and support guardrails below. Do not invent a contractor rate or sample active minutes to create a hypothetical cash expense.
+This is the decision formula while the owner-doctor fulfils demand within existing capacity. Owner-doctor time has zero marginal cash cost in that phase. Queue and support measurements inform capacity decisions; actual clinical incidents, explicit service holds and fulfilment failures still block affected-service growth. Do not invent a contractor rate or sample active minutes to create a hypothetical cash expense.
 
 If an order actually incurs paid incremental doctor or support labour, subtract that realised cost. It is then no longer below-capacity owner volume.
 
 Paid-to-decision elapsed time (`paid_at` to `approved_at` or `declined_at`) is an operational latency measure. It includes queue and waiting time, so it is not active doctor labour and must not be used as the labour input in the contribution formula.
 
-Do not use assumed lifetime value, hoped-for repeat orders, approval rate, or gross AOV to justify first-order losses.
+Do not use assumed lifetime value, hoped-for repeat orders, approval rate, or gross AOV to justify first-order losses. Repeat revenue cannot subsidise a first-order loss in a profitable-scale recommendation.
+
+First means the customer's earliest reportable paid order across all services and channels, ordered by payment time and intake ID for ties. The Ads reader keeps identifiers in memory, reads complete historical purchases for affected patients, deducts canonical cash-ledger refunds and disputes (including older first orders with cash movement in the window), and uses actual durable Stripe fees. All campaign acquisition spend is charged to first orders. Historical snapshots without this cohort evidence remain unavailable for first-order qualification; the mutation reader may add a fresh, timestamped in-memory read for the stored run's exact window, without rewriting that run. Blended campaign contribution remains separate.
 
 ## 5. Operating scorecard
 
@@ -92,45 +94,29 @@ Review these metrics by service before increasing paid demand:
 | Rolling 30-day net-retained revenue | Captured revenue less refunds and disputes in the rolling window. | Track against the active `$2k -> $5k -> $10k` milestone. |
 | Paid order volume | Real paid intakes, excluding seeded E2E and failed checkout rows. | Growth must not overload clinical or support capacity. |
 | First-order contribution after acquisition | Formula in section 4, by service and channel, using retained revenue, payment fees, and attributable acquisition cost. | Must be positive for scaling; untrusted revenue, fee, or acquisition inputs block a scaling decision. |
-| Refund rate | Refunded or partially refunded paid intakes by service. | Stay below 8-10%; a spike pauses scaling and triggers eligibility/copy review. |
-| Chargeback rate | Stripe disputes divided by paid orders. | Stay below 0.5%; any cluster gets same-week review. |
-| Support tickets per 100 orders | Patient support contacts per 100 paid orders. | Stay below 5 per 100; above target means fix friction before adding demand. |
+| Refund rate | Refunded or partially refunded paid intakes by service. | Advisory weekly eligibility/copy review; actual refund cash remains deducted from profit. |
+| Chargeback rate | Stripe disputes divided by paid orders. | Investigate clusters in the same week; actual dispute cash remains deducted. |
+| Support tickets per 100 orders | Patient support contacts per 100 paid orders. | Advisory friction and capacity review; workload count alone is not a scaling veto. |
 | Paid-to-decision elapsed time | Time from payment to approval or decline, including queue and waiting time. | Track operational responsiveness only; this is not an active-labour input. |
-| Queue P95 | Paid-to-first-clinician-open wait for reportable manual-review requests, by service. | Two hours is the operating target. Above 2 but below 6 hours is watch; 6 hours is the new-scale hard stop. Any 24-hour breach is a service hold. |
+| Queue P95 | Paid-to-first-clinician-open wait for reportable manual-review requests, by service. | Two hours remains an operating target. P95, oldest wait and 24-hour breaches are advisory investigation signals, not automatic commercial holds. |
 | Clinical/fulfilment health | Safety escalations, unsuitable cases, Parchment completion, delivery failures. | Any unsafe or unreliable pattern blocks scaling. |
-| Capacity review state | Section 8 thresholds. | A triggered state requires an operating decision before further ramp. |
+| Capacity review state | Section 8 thresholds. | Review staffing and workflow when triggered; only a real incident or explicit service hold blocks commercial scaling. |
 
 ## 6. Paid Growth Guardrails
 
 Every launched service remains a low-budget pilot while it gathers data. Remaining live is not the same as being approved to scale.
 
-Material budget increases require:
+**Owner decision — 2026-09-09:** confirmed positive first-order cash contribution is the commercial qualification for a profitable-scale proposal. The previous 20/30/40% margin tiers, 10/30/50-order minimums, refund-rate veto, 90% service-purity graduation, and fixed post-change waiting/sample rules are superseded. They must not reject verified positive cash contribution.
 
-- compliant ads and destinations under `docs/ADVERTISING_COMPLIANCE.md`
-- trustworthy purchase and refund/dispute measurement
-- a complete contribution calculation using retained revenue, payment fees, and attributable acquisition cost
-- positive first-order contribution for the service being scaled
-- `GREEN` deterministic tracking health; an attribution, spend, revenue, refund, or fee failure fails closed and blocks scaling
-- separately reviewed refund, chargeback, clinical, queue, fulfilment, and support metrics; a recorded service-specific breach is an explicit hold, not a hidden portfolio-wide cap
-- explicit operator approval for the exact change
+Material budget increases still require compliant ads and destinations, trustworthy purchase/refund/dispute/fee/spend evidence, positive first-order contribution for the campaign, no actual clinical incident, explicit service hold or fulfilment failure, and exact operator approval. Unknown or non-positive first-order economics cannot be called profitable. Tracking faults remain blocking; diagnostics or conversion-reporting lag alone are advisory when critical financial and attribution inputs are trustworthy.
 
-The operational evidence gate is deliberately proportionate. The **two-hour operating target** is the day-to-day goal; a trailing-seven-day P95 above two but below six hours is advisory `watch`, remains visible, and does not suppress an otherwise valid operator-approval scale proposal or cancel an already-approved bounded test. The **six-hour new-scale gate** blocks a new campaign, bid/budget increase, or next product variable when P95 reaches six hours. A 24-hour breach, an oldest unreviewed request at 20 hours, an active clinical incident, broken fulfilment, an explicit service hold, verified support above **5 per 100 paid orders**, or fresh **completed clinical-QA evidence** marked behind creates a hard hold and a pause proposal for approval.
+Refund rate, queue P95/oldest/wait duration, missing queue data, support contacts and QA workload are advisory investigation signals. Review eligibility, copy, workflow and capacity weekly. Support and completed-QA attestations expire after seven days; selection-only `qa_sampled` is not completed QA. Only evidenced clinical incidents, explicit service holds and actual fulfilment failures create operational commercial holds. No numerical wait or workload threshold manufactures one.
 
-Manual support and completed-QA inputs are optional and fresh for **seven days**. Missing rows remain visible as `null` evidence. Missing or stale inputs do not manufacture harm or block an otherwise evidence-backed scale packet; malformed or future-dated values are ignored. Fresh verified support above 5 per 100 paid orders and fresh completed QA marked behind remain hard holds. Service-level incident, explicit-hold, and fulfilment controls work the same way: an explicitly evidenced harmful state is a hard hold, while an absent optional control is not. The selection-only `qa_sampled` stamp is never completed-QA evidence. Queue evidence is different and mandatory: a missing, malformed, or unavailable queue read blocks the next growth variable. Operational precedence is `hold > unavailable > watch > clear`; no state mutates Ads without the exact operator approval workflow.
+Every budget, keyword, negative keyword, asset, sitelink, targeting, bid-strategy, pause or enable change follows `docs/OPERATIONS.md`; no routine Ads mutation is autonomous. The **maximum 50% budget step** remains a hard ceiling, and a proposed increase is additionally bounded by the measured first-order cash break-even ceiling (retaining at least one cent). The live Scripts tROAS floor and exact approved amounts remain enforced. There is no permission for unlimited spend or an automatic budget increase.
 
-Every budget, keyword, negative keyword, asset, sitelink, targeting, bid-strategy, pause, or enable recommendation follows the approval workflow in `docs/OPERATIONS.md`. No routine Google Ads mutation is autonomous.
+Sample size and time since a change are uncertainty signals. Preserve closed-day/order counts and actual before/after timestamps; disclose overlapping experiments rather than imposing a fixed three-day/10-order delay. An observation is not proof that the change caused the result. An active experiment constrains causal attribution, not revenue indefinitely: the owner may explicitly close its measurement window as inconclusive before authorizing another variable, retaining original checkpoints and the exact stop timestamp. Closing measurement does not roll back the existing Ads budget.
 
-Change one material variable at a time. Budget steps are earned from the same fee-aware service economics rather than capped by one arbitrary percentage:
-
-| Scale tier | Closed-window evidence | Maximum budget step |
-|------------|------------------------|---------------------|
-| Positive | At least 10 attributed orders and at least 20% contribution margin | 20% |
-| Proven | At least 30 attributed orders and at least 30% contribution margin | 35% |
-| Strong | At least 50 attributed orders and at least 40% contribution margin | 50% |
-
-The machine authorization enforces a refund rate below 10%, GREEN tracking, at least 90% service-attribution purity, the live tROAS floor, the earned tier, the modelled 30% contribution ceiling, and the post-change sample. Fulfilment evidence and Google forecasts remain visible operator inputs rather than silent numeric caps; an explicit service hold still blocks a packet. The **maximum 50% budget step** is a hard ceiling, not a default recommendation. There is no hidden account-wide dollar ceiling: bind the lower of the earned tier step and economic ceiling to the exact operator-approved budget packet, and use a current forecast as advisory evidence.
-
-After a material bid or budget change, wait at least three closed days **and** collect at least 10 attributed orders after the change before another increase. This replaces the previous universal seven-day/20% rule, which delayed a mature profitable campaign without adding account-specific safety.
+Campaign cash includes real recognised cross-service orders, but their actual service identity must remain visible. Women's Health repeat-pill handoffs are prescriptions, not women's consultations. The current purchase rows do not persist the explicit `womens-health-repeat-handoff` source marker, so campaign-attributed prescriptions cannot truthfully be divided into repeat-pill handoffs and unrelated leakage. Keep cross-service warnings; the bounded future fix is to persist the existing explicit handoff marker into checkout attribution and report handoff counts separately, without reading clinical answers or relabelling all Scripts orders.
 
 A target cost per acquisition (tCPA) is an average acquisition target. It is not a CPC limit, a guaranteed per-conversion price, or permission to ignore service-level retained contribution.
 
@@ -168,10 +154,10 @@ Revenue alone does not decide staffing. The `$10,000` rung triggers a capacity r
 |---------|-------------------|
 | `$10k/month` rolling net-retained run-rate | Formal capacity and staffing review only; no automatic hire. |
 | Sustained 20+ prescription requests/hour | Add verified doctor coverage before further ramp. This is the only automatic extra-doctor trigger. |
-| Support contacts above 5 per 100 orders | Fix product friction or add bounded support capacity before scaling. |
-| Queue P95 above 2 but below 6 hours | Advisory watch only: diagnose workflow, service mix, and coverage without suppressing an otherwise valid operator-approval scale proposal. |
-| Queue P95 at or above 6 hours, oldest unresolved work at or above 20 hours, or any 24-hour breach | Produce an approval-ready pause proposal and diagnose the affected service; this is not an automatic hire. |
-| Fresh completed clinical QA is behind | Produce an approval-ready pause proposal and restore QA capacity before resuming. Selection alone is not completed QA. |
+| Support contacts above 5 per 100 orders | Investigate friction or support capacity; the count alone does not veto profitable scale. |
+| Queue P95 above 2 but below 6 hours | Advisory watch: diagnose workflow, service mix and coverage. |
+| Queue P95 at or above 6 hours, oldest unresolved work at or above 20 hours, or any 24-hour breach | Investigate the affected service. Elapsed time alone creates neither an automatic commercial hold nor a hire. |
+| Fresh completed clinical QA is behind | Review QA capacity; workload alone is advisory. Selection alone is not completed QA. |
 | Weight-management scaling is considered | The 2026-08-10 launch is one-off review only (D-E): continuation is a new consult, so no standing monitoring capacity is assumed. Any move beyond that model needs its own capacity decision. |
 
 Future clinicians use `doctor` accounts with verified capability flags. Future non-clinical operators use `support`. The owner remains the sole human admin.

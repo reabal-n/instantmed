@@ -25,6 +25,7 @@ function campaign(
     campaignResourceName: "customers/123/campaigns/23870042807",
     campaignStatus: "ENABLED",
     channel: "SEARCH",
+    firstOrder: { contributionCents: 24000, netRetainedRevenueCents: 60000, stripeFeeCents: 2000, orders: 12 },
     contributionCents: 24000,
     contributionMargin: 0.4,
     grossRevenueCents: 65000,
@@ -57,6 +58,7 @@ function specialtyCampaign(
   }
 
   return campaign({
+    firstOrder: undefined,
     campaignId: `${service}-pilot`,
     campaignName: names[service],
     campaignResourceName: `customers/123/campaigns/${service}-pilot`,
@@ -188,21 +190,62 @@ function evaluatePolicyWithoutHolds(snap: ReturnType<typeof snapshot>) {
 }
 
 describe("Google Ads Agent policy", () => {
+  it("permits positive first-order cash with high refunds and a small sample", () => {
+    const profitable = campaign({
+      firstOrder: { contributionCents: 100, netRetainedRevenueCents: 3600, stripeFeeCents: 100, orders: 2 },
+      contributionCents: 100, contributionMargin: 100 / 3600,
+      netRetainedRevenueCents: 3600, stripeFeeCents: 100, spendCents: 3400,
+      orders: 2, serviceOrders: { scripts: 1, med_certs: 1 }, refundRate: 0.5,
+    })
+    const result = recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [profitable] })), "scripts")
+    expect(result).toMatchObject({ kind: "APPROVAL_NEEDED" })
+    expect(result?.reasonCodes).toEqual(expect.arrayContaining([
+      "FIRST_ORDER_CONTRIBUTION_POSITIVE", "SMALL_SAMPLE_UNCERTAINTY", "REFUND_RATE_REVIEW", "CROSS_SERVICE_ATTRIBUTION",
+    ]))
+    expect(() => authorizeScriptsScaleEligibility(profitable)).not.toThrow()
+  })
+
+  it.each([-1, 0, null, Number.NaN])("never calls first-order cash %s profitable even when repeat revenue is positive", (contributionCents) => {
+    const result = campaign({ firstOrder: { contributionCents, netRetainedRevenueCents: 60000, stripeFeeCents: 2000, orders: 12 } })
+    expect(() => authorizeScriptsScaleEligibility(result)).toThrow()
+    expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [result] })), "scripts")?.kind).not.toBe("APPROVAL_NEEDED")
+  })
+
+  it("fails closed when first-order cash evidence is absent", () => {
+    const result = campaign({ firstOrder: undefined })
+    expect(() => authorizeScriptsScaleEligibility(result)).toThrow("scripts_scale_economics_unavailable")
+    expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [result] })), "scripts")?.reasonCodes).toContain("ECONOMICS_UNAVAILABLE")
+  })
+
+  it("proposes a profitable low-sample specialty while keeping paused campaigns paused", () => {
+    const women = specialtyCampaign("womens_health", {
+      contributionCents: 500, netRetainedRevenueCents: 2000, spendCents: 1400, stripeFeeCents: 100,
+      orders: 1, serviceOrders: { womens_health: 1 }, refundRate: 0,
+      firstOrder: { contributionCents: 500, netRetainedRevenueCents: 2000, stripeFeeCents: 100, orders: 1 },
+    })
+    expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [women] })), "womens_health")).toMatchObject({ kind: "APPROVAL_NEEDED", proposedMutationFamily: "campaign_budget" })
+    expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [{ ...women, campaignStatus: "PAUSED" }] })), "womens_health")).toMatchObject({ kind: "HOLD", proposedMutationFamily: null })
+  })
+
+  it("holds real first-order loss and absent first-order demand even with high blended profit", () => {
+    for (const firstOrder of [
+      { contributionCents: -100, netRetainedRevenueCents: 34000, stripeFeeCents: 100, orders: 2 },
+      { contributionCents: 100, netRetainedRevenueCents: 34200, stripeFeeCents: 100, orders: 0 },
+    ]) {
+      const result = recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [campaign({ firstOrder, refundRate: 0.5 })] })), "scripts")
+      expect(result).toMatchObject({ kind: "HOLD", reasonCodes: expect.arrayContaining(["FIRST_ORDER_CONTRIBUTION_NOT_POSITIVE", "REFUND_RATE_REVIEW"]) })
+    }
+  })
+
   it("pins the campaign constitution and safety limits", () => {
     expect(POLICY.attribution.minimumExpectedServiceOrderShare).toBe(0.90)
-    expect(POLICY.scripts.scale.minimumContributionMargin).toBe(0.20)
-    expect(POLICY.scripts.scale.maximumRefundRate).toBe(0.10)
-    expect(POLICY.scripts.scale.minimumMatureOrders).toBe(10)
+    expect(POLICY.scripts.scale.refundRateReviewThreshold).toBe(0.10)
+    expect(POLICY.scripts.scale.smallSampleOrderThreshold).toBe(10)
     expect(POLICY.scripts.scale.initialTargetRoas).toBe(1.35)
     expect(POLICY.scripts.scale.maximumBudgetStep).toBe(0.50)
     expect(POLICY.scripts.scale.budgetStepTiers).toEqual([
-      expect.objectContaining({ name: "positive", maximumBudgetStep: 0.20 }),
-      expect.objectContaining({ name: "proven", maximumBudgetStep: 0.35 }),
-      expect.objectContaining({ name: "strong", maximumBudgetStep: 0.50 }),
+      expect.objectContaining({ name: "positive", maximumBudgetStep: 0.50 }),
     ])
-    expect(POLICY.scripts.scale.observationDaysAfterBidChange).toBe(3)
-    expect(POLICY.scripts.scale.minimumOrdersAfterChange).toBe(10)
-    expect(POLICY.scripts.scale.targetContributionMargin).toBe(0.30)
     expect(POLICY.ed.pilot.maximumLossCents).toBe(15000)
     expect(POLICY.ed.pilot.investigateClicks).toBe(10)
     expect(POLICY.ed.pilot.pauseProposalClicks).toBe(30)
@@ -239,7 +282,7 @@ describe("Google Ads Agent policy", () => {
     expect(POLICY.keywords.medicineNamesAllowed).toBe(false)
   })
 
-  it("earns progressively larger budget steps from measured contribution", () => {
+  it("does not use margin tiers to qualify positive cash", () => {
     const eligible = (orders: number, contributionMargin: number) =>
       authorizeScriptsScaleEligibility(campaign({
         contributionMargin,
@@ -249,12 +292,13 @@ describe("Google Ads Agent policy", () => {
       })).name
 
     expect(eligible(10, 0.20)).toBe("positive")
-    expect(eligible(30, 0.30)).toBe("proven")
-    expect(eligible(50, 0.40)).toBe("strong")
+    expect(eligible(30, 0.30)).toBe("positive")
+    expect(eligible(50, 0.40)).toBe("positive")
   })
 
   it("binds a strong Scripts step to tROAS, economics, and post-change proof", () => {
     const strong = campaign({
+      firstOrder: { contributionCents: 114_321, netRetainedRevenueCents: 225_590, stripeFeeCents: 7_313, orders: 75 },
       biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
       budgetAmountMicros: 40_000_000,
       budgetResourceName: "customers/123/campaignBudgets/789",
@@ -277,15 +321,15 @@ describe("Google Ads Agent policy", () => {
       nextMicros: 57_000_000,
       ordersAfterPreviousChange: 10,
     })
-    expect(authorized.tier).toBe("strong")
+    expect(authorized.tier).toBe("positive")
     expect(authorized.maximumNextMicros).toBeGreaterThan(57_000_000)
-    expect(authorized.maximumNextMicros).toBeLessThan(60_000_000)
+    expect(authorized.maximumNextMicros).toBe(60_000_000)
 
     expect(() => authorizeScriptsBudgetScale({
       campaign: strong,
       closedDaysAfterPreviousChange: 3,
       expectedMicros: 40_000_000,
-      nextMicros: 60_000_000,
+      nextMicros: 60_000_001,
       ordersAfterPreviousChange: 10,
     })).toThrow("scripts_budget_authorization_exceeded")
     expect(() => authorizeScriptsBudgetScale({
@@ -294,14 +338,14 @@ describe("Google Ads Agent policy", () => {
       expectedMicros: 40_000_000,
       nextMicros: 48_000_000,
       ordersAfterPreviousChange: 12,
-    })).toThrow("scripts_post_change_evidence_immature")
+    })).not.toThrow()
     expect(() => authorizeScriptsBudgetScale({
       campaign: strong,
       closedDaysAfterPreviousChange: 3,
       expectedMicros: 40_000_000,
       nextMicros: 48_000_000,
       ordersAfterPreviousChange: 9,
-    })).toThrow("scripts_post_change_evidence_immature")
+    })).not.toThrow()
     expect(() => authorizeScriptsBudgetScale({
       campaign: { ...strong, targetRoas: null },
       expectedMicros: 40_000_000,
@@ -314,7 +358,7 @@ describe("Google Ads Agent policy", () => {
       },
       expectedMicros: 40_000_000,
       nextMicros: 48_000_000,
-    })).toThrow("scripts_scale_attribution_contaminated")
+    })).not.toThrow()
   })
 
   it("blocks scale proposals whenever tracking is not GREEN", () => {
@@ -353,12 +397,12 @@ describe("Google Ads Agent policy", () => {
     expect(recommendationFor(recommendations, "scripts")).toEqual({
       kind: "APPROVAL_NEEDED",
       proposedMutationFamily: "campaign_budget",
-      reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+      reasonCodes: ["FIRST_ORDER_CONTRIBUTION_POSITIVE"],
       service: "scripts",
     })
   })
 
-  it("holds Scripts when the refund gate is breached", () => {
+  it("keeps refund rate visible as review evidence alongside positive cash", () => {
     const scripts = campaign({
       refundedOrders: 2,
       refundRate: 2 / 12,
@@ -369,9 +413,9 @@ describe("Google Ads Agent policy", () => {
     }))
 
     expect(recommendationFor(recommendations, "scripts")).toEqual({
-      kind: "HOLD",
-      proposedMutationFamily: null,
-      reasonCodes: ["SCRIPTS_REFUND_GATE"],
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_bidding",
+      reasonCodes: ["FIRST_ORDER_CONTRIBUTION_POSITIVE", "REFUND_RATE_REVIEW"],
       service: "scripts",
     })
   })
@@ -714,7 +758,7 @@ describe("Google Ads Agent policy", () => {
     expect(recommendationFor(recommendations, "scripts")).toEqual({
       kind: "APPROVAL_NEEDED",
       proposedMutationFamily: "campaign_bidding",
-      reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+      reasonCodes: ["FIRST_ORDER_CONTRIBUTION_POSITIVE"],
       service: "scripts",
     })
   })
@@ -734,12 +778,12 @@ describe("Google Ads Agent policy", () => {
     expect(recommendationFor(recommendations, "scripts")).toEqual({
       kind: "APPROVAL_NEEDED",
       proposedMutationFamily: "campaign_bidding",
-      reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+      reasonCodes: ["FIRST_ORDER_CONTRIBUTION_POSITIVE"],
       service: "scripts",
     })
   })
 
-  it("investigates material cross-service attribution before economic action", () => {
+  it("shows cross-service attribution without rejecting verified campaign profit", () => {
     const scripts = campaign({
       orders: 10,
       refundedOrders: 0,
@@ -752,9 +796,9 @@ describe("Google Ads Agent policy", () => {
     }))
 
     expect(recommendationFor(recommendations, "scripts")).toEqual({
-      kind: "INVESTIGATE",
-      proposedMutationFamily: null,
-      reasonCodes: ["CROSS_SERVICE_ATTRIBUTION"],
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_bidding",
+      reasonCodes: ["FIRST_ORDER_CONTRIBUTION_POSITIVE", "CROSS_SERVICE_ATTRIBUTION"],
       service: "scripts",
     })
   })
@@ -872,7 +916,7 @@ describe("Attribution Investigation Holds (code-owned, durable)", () => {
   it("the recorded Scripts resolution restores ordinary gate evaluation", () => {
     const cleared = evaluateAdsPolicy(snapshot())
     expect(recommendationFor(cleared, "scripts")?.reasonCodes).toEqual([
-      "SCRIPTS_SCALE_GATES_PASSED",
+      "FIRST_ORDER_CONTRIBUTION_POSITIVE",
     ])
   })
 })
@@ -939,12 +983,12 @@ describe("operational growth holds", () => {
     expect(recommendationFor(recommendations, "scripts")).toEqual({
       kind: "APPROVAL_NEEDED",
       proposedMutationFamily: "campaign_bidding",
-      reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
+      reasonCodes: ["FIRST_ORDER_CONTRIBUTION_POSITIVE", "QUEUE_P95_OVER_2H_WATCH"],
       service: "scripts",
     })
   })
 
-  it("uses hold over unavailable and watch at the genuine stop boundaries", () => {
+  it("keeps long waits advisory and never turns elapsed time into a pause", () => {
     const result = operational({
       manualEvidence: { support: null, clinicalQa: null },
       queue: {
@@ -955,7 +999,7 @@ describe("operational growth holds", () => {
       },
     })
 
-    expect(result.state).toBe("hold")
+    expect(result.state).toBe("watch")
     expect(result.reasons).toEqual(expect.arrayContaining([
       "queue_p95_at_or_over_6h",
       "queue_oldest_at_or_over_20h",
@@ -972,7 +1016,7 @@ describe("operational growth holds", () => {
     }))
     expect(recommendationFor(recommendations, "scripts")).toEqual({
       kind: "APPROVAL_NEEDED",
-      proposedMutationFamily: "campaign_status",
+      proposedMutationFamily: "campaign_bidding",
       reasonCodes: expect.arrayContaining([
         "QUEUE_P95_AT_OR_OVER_6H",
         "QUEUE_OLDEST_AT_OR_OVER_20H",
@@ -1048,14 +1092,14 @@ describe("operational growth holds", () => {
       })),
       "scripts",
     )).toEqual({
-      kind: "INVESTIGATE",
-      proposedMutationFamily: null,
-      reasonCodes: ["OPERATIONAL_EVIDENCE_UNAVAILABLE"],
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_bidding",
+      reasonCodes: expect.arrayContaining(["OPERATIONAL_EVIDENCE_UNAVAILABLE"]),
       service: "scripts",
     })
   })
 
-  it("blocks new scale when queue values are invalid", () => {
+  it("keeps invalid queue data advisory for commercial scale", () => {
     const unavailable = operational({
       queue: {
         availability: "available",
@@ -1081,9 +1125,17 @@ describe("operational growth holds", () => {
       })),
       "scripts",
     )).toMatchObject({
-      kind: "INVESTIGATE",
-      proposedMutationFamily: null,
+      kind: "APPROVAL_NEEDED",
+      proposedMutationFamily: "campaign_bidding",
     })
+  })
+
+  it("does not replay a historical numeric queue hold as a clinical incident", () => {
+    const result = evaluatePolicyWithoutHolds(snapshot({ operational: {
+      asOf: now.toISOString(), holds: [{ affectedService: "scripts", state: "hold", reasons: ["queue_24h_breach"] }],
+      manualEvidence: freshManualEvidence, queue: { availability: "available", services: [] },
+    } }))
+    expect(recommendationFor(result, "scripts")).toMatchObject({ kind: "APPROVAL_NEEDED", proposedMutationFamily: "campaign_bidding" })
   })
 
   it("does not require optional service-control rows to clear a healthy service", () => {
@@ -1104,7 +1156,7 @@ describe("operational growth holds", () => {
     })
   })
 
-  it("holds only on fresh support or completed-QA evidence, never qa_sampled", () => {
+  it("treats fresh support and completed-QA workload as advisory", () => {
     expect(operational({
       manualEvidence: {
         ...freshManualEvidence,
@@ -1115,7 +1167,7 @@ describe("operational growth holds", () => {
       },
     })).toMatchObject({
       reasons: expect.arrayContaining(["support_over_5_per_100"]),
-      state: "hold",
+      state: "watch",
     })
     expect(operational({
       manualEvidence: {
@@ -1127,7 +1179,7 @@ describe("operational growth holds", () => {
       },
     })).toMatchObject({
       reasons: expect.arrayContaining(["clinical_qa_lag"]),
-      state: "hold",
+      state: "watch",
     })
   })
 
@@ -1185,7 +1237,7 @@ describe("operational growth holds", () => {
     expect(recommendationFor(recommendations, "ed")).toEqual({
       kind: "APPROVAL_NEEDED",
       proposedMutationFamily: "campaign_status",
-      reasonCodes: ["SPECIALTY_LOSS_CAP"],
+      reasonCodes: ["SPECIALTY_LOSS_CAP", "OPERATIONAL_EVIDENCE_UNAVAILABLE"],
       service: "ed",
     })
   })

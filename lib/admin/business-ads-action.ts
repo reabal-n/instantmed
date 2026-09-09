@@ -5,7 +5,6 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import type { BusinessAdsActionEvidence } from "@/lib/admin/business-read-model"
 import {
   authorizeScriptsBudgetScale,
-  POLICY,
   resolveAdsCampaignService,
 } from "@/lib/ads-agent/policy"
 import {
@@ -120,23 +119,7 @@ function resolveBusinessAdsActionEvidence(args: {
       mutationFamily: "campaign_budget",
       service: "scripts",
     }
-  } catch (error) {
-    if (
-      error instanceof Error
-      && error.message === "scripts_post_change_evidence_immature"
-      && previousChange
-    ) {
-      return {
-        attributedOrders: previousChange.attributedOrders,
-        closedDays: previousChange.closedDays,
-        currentBudgetCents: Math.round(campaign.budgetAmountMicros / 10_000),
-        kind: "observation",
-        mutationFamily: "campaign_budget",
-        requiredAttributedOrders: POLICY.scripts.scale.minimumOrdersAfterChange,
-        requiredClosedDays: POLICY.scripts.scale.observationDaysAfterBidChange,
-        service: "scripts",
-      }
-    }
+  } catch {
     return { kind: "unavailable" }
   }
 }

@@ -104,7 +104,7 @@ describe("Google Ads Agent tracking health", () => {
     ["GOOGLE_DIAGNOSTICS_LAGGING", { googleDiagnosticsLagging: true }],
     ["CONVERSION_LAG_IMMATURE", { conversionLagImmature: true }],
   ] satisfies Array<[string, Partial<TrackingHealthInput>]>)(
-    "classifies %s as AMBER and blocks scaling",
+    "keeps %s as advisory AMBER with reliable cash evidence",
     (reasonCode, override) => {
       expect(classifyTrackingHealth({
         ...greenFixture,
@@ -112,7 +112,7 @@ describe("Google Ads Agent tracking health", () => {
         ...override,
       })).toMatchObject({
         reasonCodes: [reasonCode],
-        scaleAllowed: false,
+        scaleAllowed: true,
         state: "AMBER",
       })
     },

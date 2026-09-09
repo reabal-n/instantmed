@@ -25,7 +25,7 @@ describe("Google Ads Agent policy documentation", () => {
     expect(operations).toContain("A$20/day")
     expect(operations).toContain("A$3 maximum CPC")
     expect(revenue).toContain("maximum 50% budget step")
-    expect(revenue).toContain("10 attributed orders after the change")
+    expect(revenue).toContain("Sample size and time since a change are uncertainty signals")
     expect(revenue).not.toContain("tCPA cap")
   })
 
@@ -69,25 +69,16 @@ describe("Google Ads Agent policy documentation", () => {
     expect(policy).not.toContain("proposal:send")
   })
 
-  it("pins the conversion-friendly operational growth gate without weakening real holds", () => {
+  it("records the September 9 profit decision without weakening real holds", () => {
     for (const document of [operations, revenue]) {
-      expect(document).toContain("two-hour operating target")
-      expect(document).toContain("six-hour new-scale gate")
-      expect(document).toContain("24-hour")
-      expect(document).toContain("seven days")
+      expect(document).toContain("2026-09-09")
+      expect(document).toContain("positive first-order")
+      expect(document).toContain("clinical incident")
+      expect(document).toContain("explicit service hold")
+      expect(document).toContain("advisory")
     }
-    expect(operations).toContain("hold > unavailable > watch > clear")
-    expect(operations).toContain(
-      "do not suppress an otherwise valid operator-approval scale proposal",
-    )
-    expect(operations).toContain(
-      "a missing, malformed, or unavailable queue read remains `unavailable`",
-    )
-    expect(operations).toContain(
-      "No operational state mutates Google Ads autonomously",
-    )
-    expect(revenue).toContain("5 per 100 paid orders")
-    expect(revenue).toContain("completed clinical-QA evidence")
+    expect(operations).toContain("No operational state mutates Google Ads autonomously")
+    expect(revenue).toContain("Repeat revenue cannot subsidise a first-order loss")
   })
 
   it("keeps the current Scripts read-back and Hair-loss checkpoint operator-owned", () => {

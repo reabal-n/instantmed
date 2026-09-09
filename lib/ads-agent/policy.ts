@@ -67,10 +67,10 @@ export const POLICY = {
   },
   operations: {
     manualEvidenceFreshDays: 7,
-    queueHardHoldHours: 6,
-    queueOldestHardHoldHours: 20,
+    queueReviewHours: 6,
+    queueOldestReviewHours: 20,
     queueTargetHours: 2,
-    supportContactsPer100HardHold: 5,
+    supportContactsPer100Review: 5,
   },
   medCerts: {
     dailyBudgetCents: 2_000,
@@ -80,33 +80,12 @@ export const POLICY = {
     dailyBudgetCents: 4_000,
     scale: {
       budgetStepTiers: [
-        {
-          maximumBudgetStep: 0.20,
-          minimumContributionMargin: 0.20,
-          minimumMatureOrders: 10,
-          name: "positive",
-        },
-        {
-          maximumBudgetStep: 0.35,
-          minimumContributionMargin: 0.30,
-          minimumMatureOrders: 30,
-          name: "proven",
-        },
-        {
-          maximumBudgetStep: 0.50,
-          minimumContributionMargin: 0.40,
-          minimumMatureOrders: 50,
-          name: "strong",
-        },
+        { maximumBudgetStep: 0.50, name: "positive" },
       ],
       initialTargetRoas: 1.35,
       maximumBudgetStep: 0.50,
-      maximumRefundRate: 0.10,
-      minimumContributionMargin: 0.20,
-      minimumMatureOrders: 10,
-      minimumOrdersAfterChange: 10,
-      observationDaysAfterBidChange: 3,
-      targetContributionMargin: 0.30,
+      refundRateReviewThreshold: 0.10,
+      smallSampleOrderThreshold: 10,
     },
   },
   womensHealth: {
@@ -157,7 +136,7 @@ function isNonNegativeFinite(value: number | null): boolean {
  * Converts aggregate queue and manually verified operating facts into one
  * service-level gate. Optional manual facts create a hold only when fresh,
  * verified evidence crosses a stop boundary. Missing optional facts are not
- * evidence of harm; queue evidence remains mandatory for a new growth step.
+ * evidence of harm. Queue and workload signals are advisory, never commercial vetoes.
  */
 export function resolveAdsOperationalHold(
   input: ResolveAdsOperationalHoldInput,
@@ -186,24 +165,27 @@ export function resolveAdsOperationalHold(
   if (
     queueValuesValid
     && input.queue.p95ReviewHours !== null
-    && input.queue.p95ReviewHours >= POLICY.operations.queueHardHoldHours
+    && input.queue.p95ReviewHours >= POLICY.operations.queueReviewHours
   ) {
-    addHardHold("queue_p95_at_or_over_6h")
+    hasWatch = true
+    reasons.push("queue_p95_at_or_over_6h")
   }
   if (
     queueValuesValid
     && input.queue.oldestUnresolvedHours !== null
     && input.queue.oldestUnresolvedHours
-      >= POLICY.operations.queueOldestHardHoldHours
+      >= POLICY.operations.queueOldestReviewHours
   ) {
-    addHardHold("queue_oldest_at_or_over_20h")
+    hasWatch = true
+    reasons.push("queue_oldest_at_or_over_20h")
   }
   if (
     queueValuesValid
     && input.queue.review24hBreaches !== null
     && input.queue.review24hBreaches > 0
   ) {
-    addHardHold("queue_24h_breach")
+    hasWatch = true
+    reasons.push("queue_24h_breach")
   }
 
   const support = input.manualEvidence.support
@@ -215,9 +197,10 @@ export function resolveAdsOperationalHold(
   if (
     supportFresh
     && support.contactsPer100Paid
-      > POLICY.operations.supportContactsPer100HardHold
+      > POLICY.operations.supportContactsPer100Review
   ) {
-    addHardHold("support_over_5_per_100")
+    hasWatch = true
+    reasons.push("support_over_5_per_100")
   }
 
   const clinicalQa = input.manualEvidence.clinicalQa
@@ -225,14 +208,15 @@ export function resolveAdsOperationalHold(
     && clinicalQa.source === "medical_director_completed_review"
     && isFreshManualEvidence(clinicalQa.asOf, input.now)
   if (clinicalQaFresh && clinicalQa.state === "behind") {
-    addHardHold("clinical_qa_lag")
+    hasWatch = true
+    reasons.push("clinical_qa_lag")
   }
 
   if (
     queueValuesValid
     && input.queue.p95ReviewHours !== null
     && input.queue.p95ReviewHours > POLICY.operations.queueTargetHours
-    && input.queue.p95ReviewHours < POLICY.operations.queueHardHoldHours
+    && input.queue.p95ReviewHours < POLICY.operations.queueReviewHours
   ) {
     hasWatch = true
     reasons.push("queue_p95_over_2h_watch")
@@ -254,51 +238,30 @@ export function resolveAdsOperationalHold(
 export type ScriptsScaleTier =
   (typeof POLICY.scripts.scale.budgetStepTiers)[number]
 
-function resolveScriptsScaleTier(args: {
-  contributionMargin: number
-  orders: number
-}): ScriptsScaleTier | null {
-  return [...POLICY.scripts.scale.budgetStepTiers]
-    .reverse()
-    .find((tier) =>
-      args.orders >= tier.minimumMatureOrders
-      && args.contributionMargin >= tier.minimumContributionMargin
-    ) ?? null
-}
-
 export interface ScriptsBudgetScaleAuthorization {
   maximumNextMicros: number
   tier: ScriptsScaleTier["name"]
+  advisoryReasonCodes: string[]
 }
 
-export function authorizeScriptsScaleEligibility(
-  campaign: CampaignEconomics,
-): ScriptsScaleTier {
-  if (
-    campaign.orders == null
-    || campaign.contributionMargin == null
-    || campaign.refundRate == null
-    || campaign.unavailableReasonCodes.length > 0
-  ) {
+function firstOrderEconomicsAvailable(campaign: CampaignEconomics): boolean {
+  const first = campaign.firstOrder
+  return !!first
+    && [first.contributionCents, first.netRetainedRevenueCents, first.stripeFeeCents, first.orders]
+      .every((value) => value != null && Number.isSafeInteger(value))
+    && first.stripeFeeCents! >= 0 && first.orders! >= 0
+    && campaign.spendCents != null && Number.isSafeInteger(campaign.spendCents) && campaign.spendCents >= 0
+    && first.contributionCents === first.netRetainedRevenueCents! - first.stripeFeeCents! - campaign.spendCents
+}
+
+export function authorizeScriptsScaleEligibility(campaign: CampaignEconomics): ScriptsScaleTier {
+  if (economicsUnavailable(campaign) || !firstOrderEconomicsAvailable(campaign)) {
     throw new Error("scripts_scale_economics_unavailable")
   }
-  const scriptsOrders = campaign.serviceOrders.scripts ?? 0
-  if (
-    campaign.orders <= 0
-    || scriptsOrders / campaign.orders
-      < POLICY.attribution.minimumExpectedServiceOrderShare
-  ) {
-    throw new Error("scripts_scale_attribution_contaminated")
+  if (campaign.firstOrder!.contributionCents! <= 0 || campaign.firstOrder!.orders! <= 0) {
+    throw new Error("scripts_first_order_contribution_not_positive")
   }
-  if (campaign.refundRate >= POLICY.scripts.scale.maximumRefundRate) {
-    throw new Error("scripts_refund_gate")
-  }
-  const tier = resolveScriptsScaleTier({
-    contributionMargin: campaign.contributionMargin,
-    orders: scriptsOrders,
-  })
-  if (!tier) throw new Error("scripts_scale_tier_unavailable")
-  return tier
+  return POLICY.scripts.scale.budgetStepTiers[0]
 }
 
 export function authorizeScriptsBudgetScale(args: {
@@ -332,12 +295,9 @@ export function authorizeScriptsBudgetScale(args: {
   }
   const tier = authorizeScriptsScaleEligibility(campaign)
 
-  const maximumWindowSpendCents = Math.floor(
-    campaign.netRetainedRevenueCents
-      - campaign.stripeFeeCents
-      - POLICY.scripts.scale.targetContributionMargin
-        * campaign.netRetainedRevenueCents,
-  )
+  // Preserve at least one cent of measured first-order cash contribution.
+  const maximumWindowSpendCents = campaign.firstOrder!.netRetainedRevenueCents!
+    - campaign.firstOrder!.stripeFeeCents! - 1
   if (campaign.spendCents <= 0 || maximumWindowSpendCents <= 0) {
     throw new Error("scripts_scale_economic_ceiling_unavailable")
   }
@@ -355,22 +315,12 @@ export function authorizeScriptsBudgetScale(args: {
     throw new Error("scripts_budget_authorization_exceeded")
   }
 
-  const hasPreviousChange =
-    args.closedDaysAfterPreviousChange != null
-    || args.ordersAfterPreviousChange != null
-  if (
-    hasPreviousChange
-    && (
-      (args.closedDaysAfterPreviousChange ?? -1)
-        < POLICY.scripts.scale.observationDaysAfterBidChange
-      || (args.ordersAfterPreviousChange ?? -1)
-        < POLICY.scripts.scale.minimumOrdersAfterChange
-    )
-  ) {
-    throw new Error("scripts_post_change_evidence_immature")
-  }
-
-  return { maximumNextMicros, tier: tier.name }
+  const advisoryReasonCodes = [
+    ...(campaign.firstOrder!.orders! < POLICY.scripts.scale.smallSampleOrderThreshold ? ["SMALL_SAMPLE_UNCERTAINTY"] : []),
+    ...(args.closedDaysAfterPreviousChange != null || args.ordersAfterPreviousChange != null
+      ? ["RECENT_CHANGE_MONITORING"] : []),
+  ]
+  return { maximumNextMicros, tier: tier.name, advisoryReasonCodes }
 }
 
 export const PROHIBITED_PAID_MEDICINE_TERMS = [
@@ -500,6 +450,10 @@ function groupedCampaigns(
   return campaigns
 }
 
+export function hasBlockingAdsOperationalEvidence(hold: AdsOperationalHold): boolean {
+  return hold.reasons.some((reason) => ["clinical_incident", "explicit_service_hold", "fulfilment_unhealthy"].includes(reason))
+}
+
 function operationalReasonCodes(hold: AdsOperationalHold): string[] {
   const reasonCodes = hold.reasons.map((reason) => reason.toUpperCase())
   return reasonCodes.length > 0
@@ -550,46 +504,27 @@ function economicsUnavailable(campaign: CampaignEconomics): boolean {
   )
 }
 
-function evaluateScripts(campaign: CampaignEconomics): AdsRecommendation {
-  if (economicsUnavailable(campaign) || campaign.contributionMargin == null) {
-    return investigate("scripts", "ECONOMICS_UNAVAILABLE")
-  }
-  if (
-    campaign.refundRate == null
-    || campaign.refundRate >= POLICY.scripts.scale.maximumRefundRate
-  ) {
-    return hold("scripts", "SCRIPTS_REFUND_GATE")
-  }
-  const scaleTier = resolveScriptsScaleTier({
-    contributionMargin: campaign.contributionMargin,
-    orders: campaign.serviceOrders.scripts ?? 0,
-  })
-  if (
-    (campaign.serviceOrders.scripts ?? 0)
-      < POLICY.scripts.scale.minimumMatureOrders
-  ) {
-    return hold("scripts", "POST_CHANGE_SAMPLE_IMMATURE")
-  }
-  if (!scaleTier) {
-    return hold("scripts", "SCRIPTS_CONTRIBUTION_GATE")
-  }
-
-  const hasScaleRoasFloor =
-    campaign.biddingStrategyType === "MAXIMIZE_CONVERSION_VALUE"
-    && campaign.targetRoas != null
-    && campaign.targetRoas >= POLICY.scripts.scale.initialTargetRoas
-
+function profitRecommendation(service: AdsService, campaign: CampaignEconomics): AdsRecommendation | null {
+  if (campaign.campaignStatus !== "ENABLED") return hold(service, inactiveCampaignReason(campaign.campaignStatus))
+  if (!firstOrderEconomicsAvailable(campaign)) return investigate(service, "ECONOMICS_UNAVAILABLE")
+  if (campaign.firstOrder!.contributionCents! <= 0 || campaign.firstOrder!.orders! <= 0) return null
   return {
     kind: "APPROVAL_NEEDED",
-    // Older snapshots omit bidding configuration and deliberately fall back to
-    // the tROAS step. Fresh snapshots move on to budget only after the
-    // contribution floor is present in the live campaign.
-    proposedMutationFamily: hasScaleRoasFloor
-      ? "campaign_budget"
-      : "campaign_bidding",
-    reasonCodes: ["SCRIPTS_SCALE_GATES_PASSED"],
-    service: "scripts",
+    proposedMutationFamily: service === "scripts" && !(
+      campaign.biddingStrategyType === "MAXIMIZE_CONVERSION_VALUE"
+      && campaign.targetRoas != null && campaign.targetRoas >= POLICY.scripts.scale.initialTargetRoas
+    ) ? "campaign_bidding" : "campaign_budget",
+    reasonCodes: [
+      "FIRST_ORDER_CONTRIBUTION_POSITIVE",
+      ...(campaign.firstOrder!.orders! < POLICY.scripts.scale.smallSampleOrderThreshold ? ["SMALL_SAMPLE_UNCERTAINTY"] : []),
+    ],
+    service,
   }
+}
+
+function evaluateScripts(campaign: CampaignEconomics): AdsRecommendation {
+  if (economicsUnavailable(campaign)) return investigate("scripts", "ECONOMICS_UNAVAILABLE")
+  return profitRecommendation("scripts", campaign) ?? hold("scripts", "FIRST_ORDER_CONTRIBUTION_NOT_POSITIVE")
 }
 
 function evaluateMedCerts(campaign: CampaignEconomics): AdsRecommendation {
@@ -599,7 +534,7 @@ function evaluateMedCerts(campaign: CampaignEconomics): AdsRecommendation {
   if (campaign.contributionCents! < 0) {
     return hold("med_certs", "MEDCERT_NEGATIVE_CONTRIBUTION")
   }
-  return hold("med_certs", "MEDCERT_OBSERVATION_HOLD")
+  return profitRecommendation("med_certs", campaign) ?? hold("med_certs", "FIRST_ORDER_CONTRIBUTION_NOT_POSITIVE")
 }
 
 function specialtyPilot(
@@ -687,7 +622,7 @@ function evaluateSpecialty(
     }
   }
 
-  return hold(service, "PILOT_WITHIN_LOSS_CAP")
+  return (campaign.firstOrder ? profitRecommendation(service, campaign) : null) ?? hold(service, "PILOT_WITHIN_LOSS_CAP")
 }
 
 /**
@@ -704,8 +639,7 @@ function evaluateSpecialty(
  * campaign mapping, or tracking state says.
  *
  * Clearing is an Attribution Investigation Resolution (CONTEXT.md): recorded
- * cause, completed correction, and fresh rolling 30-day evidence at >= 90%
- * expected-service attribution across >= 10 recognised orders — then remove
+ * cause, completed correction, and trustworthy campaign attribution evidence — then remove
  * the service here in a reviewed code change (the same code-owned governance
  * pattern as lib/clinical/auto-approval-governance.ts). Threshold recovery
  * alone never clears it.
@@ -749,7 +683,7 @@ export function evaluateAdsPolicy(
 
     // Concrete harm wins over attribution or other evidence investigations.
     // This still emits only an approval-ready proposal; it never mutates Ads.
-    if (operational?.state === "hold") {
+    if (operational && hasBlockingAdsOperationalEvidence(operational)) {
       const enabledCampaigns = serviceCampaigns.filter(
         (campaign) => campaign.campaignStatus === "ENABLED",
       )
@@ -783,14 +717,12 @@ export function evaluateAdsPolicy(
     }
 
     const campaign = serviceCampaigns[0]
-    if (campaignHasMaterialCrossServiceOrders(campaign, service)) {
-      recommendations.push(
-        investigate(service, "CROSS_SERVICE_ATTRIBUTION"),
-      )
+    if (snapshot.tracking.state === "RED" || !snapshot.tracking.scaleAllowed) {
+      recommendations.push(hold(service, "TRACKING_NOT_GREEN"))
       continue
     }
-    if (snapshot.tracking.state !== "GREEN" || !snapshot.tracking.scaleAllowed) {
-      recommendations.push(hold(service, "TRACKING_NOT_GREEN"))
+    if (campaign.campaignStatus !== "ENABLED" && service === "scripts") {
+      recommendations.push(hold(service, inactiveCampaignReason(campaign.campaignStatus)))
       continue
     }
 
@@ -800,23 +732,13 @@ export function evaluateAdsPolicy(
         ? evaluateMedCerts(campaign)
         : evaluateSpecialty(service, campaign)
 
-    // A queue watch stays visible in the snapshot/brief but is advisory: the
-    // explicit six-hour boundary owns the scale gate. Unavailable queue
-    // evidence still blocks a new growth variable without manufacturing a
-    // pause for a bounded campaign that is already live. A reached economic
-    // stop still wins because pausing reduces exposure.
-    if (
-      operational
-      && operational.state === "unavailable"
-      && recommendation.kind === "APPROVAL_NEEDED"
-      && recommendation.proposedMutationFamily !== "campaign_status"
-    ) {
-      recommendations.push(
-        investigate(service, ...operationalReasonCodes(operational)),
-      )
-    } else {
-      recommendations.push(recommendation)
-    }
+    const advisory = [
+      ...(campaignHasMaterialCrossServiceOrders(campaign, service) ? ["CROSS_SERVICE_ATTRIBUTION"] : []),
+      ...(campaign.refundRate != null && campaign.refundRate >= POLICY.scripts.scale.refundRateReviewThreshold ? ["REFUND_RATE_REVIEW"] : []),
+      ...(operational && operational.state !== "clear" ? operationalReasonCodes(operational) : []),
+      ...(snapshot.tracking.state === "AMBER" ? snapshot.tracking.reasonCodes : []),
+    ]
+    recommendations.push({ ...recommendation, reasonCodes: [...recommendation.reasonCodes, ...advisory] })
   }
 
   const hasUnmappedEnabledCampaign = snapshot.rolling30.some(
