@@ -3,13 +3,15 @@
 > Production gates for launching, keeping healthy, or materially scaling paid traffic for repeat scripts, ED, hair loss, women's health, and weight management.
 > The launched services are live as bounded pilots. Paid acquisition applies only to service lines with separate approval. Use this before any material ramp and whenever pilot health drifts.
 
-**Last updated:** 2026-08-10
+**Last updated:** 2026-09-10
 
 ## Launch Rule
 
 Medical certificates, repeat scripts, ED, hair loss, narrowly scoped women's health, and (from 2026-08-10) the weight-management assessment may remain live as bounded pilots to gather data (operator decisions 2026-07-12 and 2026-08-07). Paid budget applies only where separately approved; weight-management advertising remains unapproved. A standing pilot approval is not approval to scale.
 
 Do not materially increase spend for a prescribing or specialty service until every must-pass item is current, evidence is captured, the service passes the economic rule in `docs/REVENUE_MODEL.md`, and the owner-operator approves the exact Ads mutation. If a gate fails, hold scaling and present the required pause, rollback, or remediation for approval. Clinical/service kill switches remain governed by the incident and safety runbooks.
+
+**September 9 owner decision:** confirmed positive first-order cash contribution qualifies profitable scale under `docs/REVENUE_MODEL.md`. Numeric refund, contact-rate, queue-time, sample-size and score thresholds are advisory; they cannot veto profitable acquisition. Actual refunds and fees remain costs. Explicit clinical incidents, service holds, failed fulfilment, untrustworthy financial evidence and concrete compliance failures remain blocking. A slow review or a high contact rate alone is not such an incident.
 
 ## Shared Must-Pass Gates
 
@@ -35,7 +37,7 @@ Do not materially increase spend for a prescribing or specialty service until ev
 | Identity completeness | DOB, sex, Medicare details, phone, and structured address are complete before Parchment launch. | Parchment sync fails after the doctor has approved the case. |
 | Parchment completion | Doctor can approve to `awaiting_script`, open Parchment, write the eScript, receive webhook, and trigger patient email. | Script exists in Parchment but InstantMed stays stuck. |
 | Paid landing page | Ads target repeat prescription review intent only. No prescription drug names in ad copy, URL params, hero copy, metadata, or schema. | Google disapproval, TGA risk, or high-intent drug-seeker traffic. |
-| Pilot threshold | Keep exact or phrase match high-intent search first. Broad match waits until at least 30 clean paid conversions and an operator-approved bounded test. | Budget is spent learning on unsafe or vague intent. |
+| Acquisition review | Prefer exact or phrase match for demonstrated service intent. Any broader-match test needs an exact owner-approved spend bound and truthful contribution measurement; sample size describes uncertainty. | Budget is spent learning on unsupported or vague intent. |
 
 ## ED
 
@@ -47,7 +49,7 @@ Do not materially increase spend for a prescribing or specialty service until ev
 | Drug-name discipline | Paid ED pages and ads use assessment language only. No sildenafil, tadalafil, Viagra, Cialis, or equivalent terms in paid destinations. | TGA and Google policy breach. |
 | Privacy UX | Intake reassures privacy without promising anonymity or guaranteed medicine. | Patients overtrust the flow or misunderstand clinical accountability. |
 | Parchment path | Approved ED case can be prescribed inside Parchment and patient notification completes. | Higher-AOV service launches before fulfilment is stable. |
-| Pilot threshold | Use exact service-intent terms. Recommend pausing or remediating if refund rate exceeds 10% or doctor-contact rate exceeds 35% in a 30-case cohort. | Paid channel scales into high-friction clinical review. |
+| Acquisition review | Use service-assessment intent. Review decline reasons and doctor-contact patterns weekly to improve eligibility copy and targeting; profitable scale follows the revenue model. | Acquisition attracts unsupported requests or conceals a worsening cost of acquisition. |
 
 ## Hair Loss
 
@@ -58,7 +60,7 @@ Do not materially increase spend for a prescribing or specialty service until ev
 | No outcome claims | Pages and ads avoid guaranteed regrowth, before-after framing, testimonials, and prescription medicine names. | Compliance breach and unrealistic expectation setting. |
 | Photo policy | If photos are used, the page states why, storage handling, and what happens if the doctor cannot assess safely. If photos are not required, the flow must not imply visual diagnosis. | Ambiguous diagnostic promise. |
 | Parchment path | Approved case can be prescribed inside Parchment and patient notification completes. | Launch depends on manual workaround. |
-| Pilot threshold | Use hair-loss assessment intent, not medicine intent. Recommend pausing or remediating if more than 20% of paid cases are clinically unsuitable in a 30-case cohort. | Spend attracts medicine shoppers instead of review intent. |
+| Acquisition review | Use hair-loss assessment intent, not medicine intent. Review unsuitable requests and their search terms weekly; charge refunds and fees against contribution. | Spend attracts medicine shoppers instead of review intent. |
 
 ## Women's Health
 
@@ -72,7 +74,7 @@ Scope is live but deliberately narrow: UTI symptoms and new/switch contraceptive
 | Doctor surface | The case summary shows women's-health option, key safety answers, and escalation rationale so the doctor can approve, call, or decline without reconstructing the screener. | Structured safety work is lost after payment. |
 | Parchment path | Approved prescribing cases can be completed in Parchment and patient notification completes. | A live prescribing service depends on manual fulfilment. |
 | Paid landing page | Ads and pages stay narrow: UTI assessment or contraception review only. No antibiotic guarantee, pill guarantee, broad women's-health positioning, prescription medicine names, or no-call promise. | AHPRA/TGA/Google risk and unsuitable patient intent increase. |
-| Pilot threshold | Keep bounded paid cohorts under daily manual review. Recommend pausing or remediating if refund rate exceeds 10%, unsuitable-case rate exceeds 20%, or doctor-contact rate exceeds 40%. | Paid traffic scales a high-friction or clinically unsuitable service. |
+| Acquisition review | Report UTI and new/switch-pill outcomes separately. Report explicitly attributed repeat-pill handoffs separately where the marker exists; keep other cross-service orders visible. Use decline and contact patterns to repair targeting and copy. | Broad demand or unrecognised handoffs obscure service economics. |
 
 ## Weight Management (launched 2026-08-10)
 
@@ -86,11 +88,11 @@ Scope is deliberately narrow: a one-off, form-first, GLP-1-focused doctor assess
 | Capability | Non-admin doctors need `can_review_weight_loss` (default FALSE) + Medical Director sign-off before reviewing this line. | An unverified doctor reviews weight cases. |
 | Repeat-lane routing | Dual-indication GLP-1s ask the structured weight-vs-diabetes question; weight-only brands hard-route; phentermine/orlistat flag for decline-to-GP. Diabetic repeats are never walled out. | The $29.95 lane resumes serving unscreened weight requests, or diabetics lose access. |
 | Kill switch | `disable_weight_loss` stops this line alone; `disable_consults` still stops every consult subtype. | The new line cannot be stopped without taking down ED/hair/WH. |
-| Pilot threshold | Bounded manual review of every early case. Pause and remediate if refund rate exceeds 10%, unsuitable-case rate exceeds 20%, or doctor-call rate exceeds 40%. | Scaling a high-friction or clinically unsuitable service. |
+| Outcome review | Every prescribing request receives an individual doctor outcome. Review unsuitable requests, declines and doctor-call patterns to improve eligibility and copy. Any future paid proposal follows the revenue model and needs separate authorisation. | Unsupported demand is missed or an unapproved paid campaign starts. |
 
 ## Service-Specific Scorecard
 
-Each prescribing/specialty service must reach at least 90/100 before any material paid scale. A bounded pilot does not waive a failed safety, fulfilment, or compliance gate.
+This diagnostic scorecard helps prioritise repairs. Its aggregate score is advisory; assess concrete safety, fulfilment and compliance failures directly. It does not add a numeric graduation gate to the revenue model.
 
 | Area | Weight |
 |------|--------|
@@ -101,4 +103,4 @@ Each prescribing/specialty service must reach at least 90/100 before any materia
 | Support and refund readiness | 10 |
 | Doctor capacity impact | 10 |
 
-Below 90, do not scale and remediate the failed gate. Between 90 and 94, remain a capped pilot. At 95 or above, the service may be proposed for operator-approved scaling with daily review of the bounded change.
+Record the affected area and evidence when a repair is needed. A profitable campaign can be proposed for an exact owner-approved scale change without waiting for a score threshold; a real failed must-pass requirement still needs repair.

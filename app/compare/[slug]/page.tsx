@@ -195,25 +195,25 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       { feature: "Prescription services", instantmed: true, competitor: "Some services", winner: "instantmed" },
     ],
     // Dated, fact-only cross-provider price table. Prices verified from each
-    // provider's own website (July 2026) — re-verify monthly. Ordered by
-    // single-day price ascending. No ratings, no winner highlighting.
+    // provider's own website. Ordered by lowest advertised one-off price;
+    // eligibility and conflicting prices stay visible. No winner ranking.
     providerPriceTable: {
-      pricesVerified: "July 2026",
-      note: "Lowest advertised single-day certificate price from each provider's own website, checked July 2026. Providers set their own prices and run promotions, so confirm the current price on the provider's site. We re-check this table monthly.",
+      pricesVerified: "10 September 2026",
+      note: "Advertised one-off prices checked on each provider's own website on 10 September 2026. Student pricing, subscriptions, priority options and certificate duration are not equivalent products. Where a page lists conflicting prices, both are shown. Confirm the total and refund terms before paying.",
       rows: [
-        { provider: "MedCertify", singleDayFrom: "$12", ahpraDoctors: true, notable: "Issued in roughly 15–30 minutes; available 24/7." },
-        { provider: "Doccy", singleDayFrom: "$12.90", ahpraDoctors: true, notable: "Available 24/7; a 2–5 day certificate is a flat $28." },
-        { provider: "Hola Health", singleDayFrom: "$14.90", ahpraDoctors: true, notable: "Work certificates from $16.90; available 24/7; issued by AHPRA-registered doctors or nurse practitioners." },
-        { provider: "Qoctor", singleDayFrom: "$14.99", ahpraDoctors: true, notable: "Same-day from $14.99; optional priority queue; also offers referral letters." },
-        { provider: "MIDOC", singleDayFrom: "$18", ahpraDoctors: true, notable: "Advertises certificates issued in about 15 minutes." },
-        { provider: "InstantScripts", singleDayFrom: "$19", ahpraDoctors: true, notable: "Open 24/7; a multi-day certificate consult is $49; certificates carry a QR code for employer validation." },
-        { provider: "NextClinic", singleDayFrom: "$19.90", ahpraDoctors: true, notable: "You pay only if the certificate is approved; 60-minute review target." },
-        { provider: "InstantMed", singleDayFrom: PRICING_DISPLAY.MED_CERT, ahpraDoctors: true, isInstantMed: true, notable: `One-off, no subscription, 24/7. ${GUARANTEE} Employers can verify every certificate at instantmed.com.au/verify. Also covers repeat prescriptions, ED and hair loss.` },
-        { provider: "Updoc", singleDayFrom: "$39.95", ahpraDoctors: true, notable: "One-off certificate consult is $39.95; the Updoc Plus subscription is $19.95/month with certificates included." },
+        { provider: "MedCertify", singleDayFrom: "$12 / $14.90", ahpraDoctors: true, notable: "Its page shows both prices for certificates; confirm the checkout amount. Available 24/7.", sources: [{ href: "https://medcertify.com.au/", label: "Service and pricing" }] },
+        { provider: "Doccy", singleDayFrom: "$12.90", ahpraDoctors: true, notable: "One day is $12.90; 2–5 days cost $28. Its terms do not refund a certificate declined by the doctor.", sources: [{ href: "https://doccy.com.au/medical-certificate", label: "Certificate pricing" }, { href: "https://doccy.com.au/terms", label: "Refund terms" }] },
+        { provider: "Hola Health", singleDayFrom: "$14.90 student", ahpraDoctors: true, notable: "Work, carer and stress certificates start at $16.90. AHPRA-registered doctors or nurse practitioners; available 24/7.", sources: [{ href: "https://hola.health/pricing-telehealth-services/", label: "Pricing and eligibility" }] },
+        { provider: "Qoctor", singleDayFrom: "$14.99", ahpraDoctors: true, notable: "Same-day certificate assessment; optional priority queue costs another $19.99.", sources: [{ href: "https://www.qoctor.com.au/medical-certificate/", label: "Certificate pricing" }] },
+        { provider: "MIDOC", singleDayFrom: "$18", ahpraDoctors: true, notable: "Available 24/7. Its site states a full refund if a certificate cannot be issued.", sources: [{ href: "https://www.midoc.com.au/", label: "Service, pricing and refund" }] },
+        { provider: "InstantScripts", singleDayFrom: "$19", ahpraDoctors: true, notable: "Single-day certificate; a multi-day doctor consultation is $49. Certificates include QR verification.", sources: [{ href: "https://www.instantscripts.com.au/online-medical-certificates", label: "Certificate pricing" }, { href: "https://help.instantscripts.com.au/en/articles/60-how-do-i-verify-an-instantscripts-medical-certificate", label: "Verification" }] },
+        { provider: "NextClinic", singleDayFrom: "$19.90", ahpraDoctors: true, notable: "Express certificates are charged only if approved. This differs from its general consultation refund terms.", sources: [{ href: "https://nextclinic.com.au/medical-certificates-online", label: "Express certificate pricing" }, { href: "https://nextclinic.com.au/page/terms-of-service", label: "Consultation terms" }] },
+        { provider: "InstantMed", singleDayFrom: PRICING_DISPLAY.MED_CERT, ahpraDoctors: true, isInstantMed: true, notable: `One-off payment, no subscription; requests open 24/7. ${GUARANTEE} Includes employer verification.`, sources: [{ href: "https://instantmed.com.au/medical-certificate", label: "Certificate service" }, { href: "https://instantmed.com.au/pricing", label: "Pricing and refund" }] },
+        { provider: "Updoc", singleDayFrom: "$39.95", ahpraDoctors: true, notable: "Standard one-off certificate consultation. Its $19.95/month subscription and $59.95 priority consultation are separate options.", sources: [{ href: "https://updoc.com.au/medical-certificate", label: "Certificate options" }, { href: "https://updoc.com.au/", label: "Advertised pricing" }] },
       ],
     },
     whenInstantMedBetter: [
-      "You need your certificate quickly (under 1 hour)",
+      "You want to start with a secure online form without booking an appointment",
       "You want to be able to message the doctor if they have questions",
       "You also need a prescription or other medical service",
       "You value a refund guarantee if your request can't be fulfilled",
@@ -225,7 +225,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       "You have a specific service you've used before and trust",
       "You want video consultation rather than asynchronous"
     ],
-    verdict: "When choosing an online medical certificate service, prioritise: (1) AHPRA-registered doctors, (2) clear pricing, (3) reasonable response times, (4) a proper clinical assessment, (5) a refund if the doctor declines, and (6) a way for your employer to verify the certificate. Avoid services that seem to guarantee approval or don't involve a real doctor reviewing your case.",
+    verdict: "Compare the total price, eligible certificate duration, clinical assessment process, refund terms and employer verification. Check whether you are paying once or joining a subscription. InstantMed uses an approved clinical protocol for routine requests and doctor review for concerning or uncertain requests. Approval is not guaranteed.",
     faqs: [
       {
         q: "Are all online medical certificates legitimate?",
@@ -233,7 +233,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "Why do prices vary so much between services?",
-        a: "Prices reflect different business models. Some services use very brief assessments, others more thorough. Cheaper isn't always better - look for services that do a proper clinical assessment."
+        a: "Prices vary by certificate duration, consultation format, subscription or one-off model, and priority options. A lower price does not by itself establish a difference in assessment quality. Check what the advertised price includes and whether it applies to your situation."
       },
       {
         q: "What should I look for in an online certificate service?",
@@ -245,15 +245,15 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "Are online medical certificates accepted under the Fair Work Act?",
-        a: "Yes. The Fair Work Act requires a medical certificate from a 'registered health practitioner.' AHPRA-registered doctors providing certificates through telehealth meet this standard. The Act makes no distinction between online and in-person certificates."
+        a: "A medical certificate can support a sick or carer's leave request. Fair Work also recognises statutory declarations as an example of evidence: the evidence needs to satisfy a reasonable person that the employee was entitled to leave. An award or registered agreement may specify evidence requirements. Check your workplace's requirements before applying."
       },
       {
         q: "Can I get a backdated medical certificate online?",
-        a: "Some services can backdate certificates when it's clinically appropriate - for example, if you were genuinely unwell yesterday but couldn't see a doctor. The doctor needs to be satisfied there's a reasonable basis for backdating. Services that backdate without any clinical assessment should be avoided."
+        a: "Some services can assess a recent past absence when there is a clinical basis and it falls within their policy. The certificate must accurately state when it was issued; covering a past absence does not mean changing the issue date. Check the provider's limits before applying."
       },
       {
         q: "What happens if my online certificate request is declined?",
-        a: `A reputable service will explain why the request was declined and suggest next steps - usually seeing a GP in person. At InstantMed, ${GUARANTEE} If a service keeps your money after declining, that's worth questioning.`
+        a: `Refund terms differ. Some providers charge for the consultation even when no certificate is issued; others refund a declined request or charge only after approval. Read the applicable terms before paying. At InstantMed, ${GUARANTEE}`
       },
       {
         q: "How long is an online medical certificate valid for?",
@@ -284,17 +284,17 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
           id: "legitimacy",
           title: "What Makes an Online Certificate Legitimate",
           paragraphs: [
-            "The reliability of a medical certificate starts with who issued it and whether there was a real clinical assessment. For routine sick-leave evidence, an AHPRA-registered doctor should assess the request and document the absence period they consider appropriate from the information available.",
+            "The reliability of a medical certificate depends on its clinical basis, the issuing practitioner and accurate dates. At InstantMed, routine requests may follow a Medical Director-approved clinical protocol. Concerning or uncertain requests go to a doctor before a certificate is issued.",
             "The certificate itself should include the doctor's name, AHPRA registration number (or provider number), the date of assessment, the stated absence period, and the doctor's signature or digital equivalent. If a service issues certificates missing those elements, that's a problem. If it issues them without any clinical assessment at all, that's a bigger problem.",
-            "Worth noting: your employer can verify a doctor's registration on the AHPRA website. They can also contact the issuing doctor to confirm a certificate is genuine. Services that use real, registered doctors have nothing to hide here."
+            "You can check a practitioner's registration on the public AHPRA register. An employer verification service should confirm the document's authenticity without disclosing private symptoms or clinical notes."
           ]
         },
         {
           id: "assessment-quality",
           title: "Why the Assessment Process Matters",
           paragraphs: [
-            "Some online certificate services use a minimal questionnaire - a few checkboxes and you're done. Others conduct a more thorough assessment, asking about your symptoms, duration, severity, and any relevant medical history. The quality of this assessment directly affects the quality (and defensibility) of the certificate.",
-            "A proper assessment protects you. If your employer ever questions a certificate, a thorough assessment record supports the doctor's decision. It also means the doctor can pick up on red flags - symptoms that might suggest something more serious, or patterns that warrant follow-up. The extra few minutes of answering questions is a feature, not a bug."
+            "Check what information the service asks for, how it handles concerning symptoms and when a doctor may contact you. A short form or a low price alone does not tell you whether its clinical assessment is appropriate.",
+            "Answer questions about symptoms, dates and relevant history accurately. A service should explain when online assessment is unsuitable and when you need in-person care. A certificate should only cover an absence supported by the clinical assessment."
           ]
         },
         {
@@ -686,7 +686,7 @@ function CertificateComparisonFacts({ pricesVerified }: { pricesVerified: string
     },
     {
       term: "Price date",
-      detail: `Single-day certificate prices were checked in ${pricesVerified}. Provider prices can change, so patients should confirm current pricing on each provider's own website.`,
+      detail: `Advertised prices and source pages were checked on ${pricesVerified}. Provider prices can change, so patients should confirm current pricing on each provider's own website.`,
     },
     {
       term: "Verification method",
@@ -805,6 +805,12 @@ export default async function ComparisonPage({ params }: PageProps) {
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 {comparison.heroText}
               </p>
+              {isOnlineMedCertOptions && (
+                <Link href="/medical-certificate" className="mt-5 inline-flex min-h-11 items-center gap-2 font-medium text-primary underline underline-offset-4">
+                  See InstantMed certificate details
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              )}
             </div>
           </section>
 
@@ -817,11 +823,11 @@ export default async function ComparisonPage({ params }: PageProps) {
                     Online medical certificate prices compared
                   </h2>
                   <p className="text-sm text-muted-foreground text-center max-w-2xl mx-auto mb-1">
-                    Every provider below uses AHPRA-registered Australian doctors. You can always confirm a
-                    doctor&apos;s registration on the public AHPRA register.
+                    These providers advertise AHPRA-registered clinicians. Check the issuing
+                    practitioner&apos;s registration on the public AHPRA register.
                   </p>
                   <p className="text-xs text-muted-foreground text-center mb-6">
-                    Prices verified {comparison.providerPriceTable.pricesVerified}
+                    Sources checked {comparison.providerPriceTable.pricesVerified}
                   </p>
 
                   <div className="bg-white dark:bg-card rounded-2xl border border-border dark:border-border overflow-hidden shadow-sm shadow-primary/[0.04] dark:shadow-none">
@@ -831,12 +837,12 @@ export default async function ComparisonPage({ params }: PageProps) {
                         row carries a faint tint + bold name for wayfinding only. */}
                     <table className="block w-full border-collapse sm:table sm:table-fixed">
                       <caption className="sr-only">
-                        Single-day online medical certificate prices by Australian telehealth provider
+                        Advertised one-off medical certificate prices by Australian telehealth provider
                       </caption>
                       <thead className="hidden sm:table-header-group">
                         <tr className="bg-muted/50 dark:bg-white/[0.06] border-b border-border dark:border-border text-sm font-medium text-muted-foreground">
                           <th scope="col" className="w-[24%] p-4 text-left font-medium">Provider</th>
-                          <th scope="col" className="w-[20%] p-4 text-left font-medium">Single-day certificate (from)</th>
+                          <th scope="col" className="w-[20%] p-4 text-left font-medium">Advertised one-off price</th>
                           <th scope="col" className="p-4 text-left font-medium">Notable</th>
                         </tr>
                       </thead>
@@ -865,6 +871,34 @@ export default async function ComparisonPage({ params }: PageProps) {
                   <p className="mt-4 text-xs text-muted-foreground leading-relaxed">
                     {comparison.providerPriceTable.note}
                   </p>
+                  <div className="mt-6 rounded-xl border border-border bg-white p-5 dark:bg-card">
+                    <h3 className="font-semibold text-foreground">Sources checked</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Provider pages checked on {comparison.providerPriceTable.pricesVerified}.
+                      InstantMed publishes this comparison and is one of the providers listed.
+                    </p>
+                    <ul className="mt-4 space-y-3 text-sm">
+                      {comparison.providerPriceTable.rows.map((row) => (
+                        <li key={row.provider}>
+                          <span className="font-medium text-foreground">{row.provider}: </span>
+                          {row.sources.map((source, index) => (
+                            <span key={source.href}>
+                              {index > 0 && "; "}
+                              <a href={source.href} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+                                {source.label}
+                              </a>
+                            </span>
+                          ))}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Workplace evidence guidance: {" "}
+                      <a href="https://www.fairwork.gov.au/leave/sick-and-carers-leave/paid-sick-and-carers-leave/notice-and-medical-certificates" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+                        Fair Work Ombudsman — notice and medical certificates
+                      </a>.
+                    </p>
+                  </div>
                 </>
               ) : (
                 <>
