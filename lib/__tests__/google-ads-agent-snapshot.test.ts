@@ -486,10 +486,21 @@ describe("Google Ads Agent snapshot", () => {
     }
   })
 
-  it("counts an old purchase refund by refunded_at without requiring an old purchase fee", async () => {
+  it("uses normalized campaign attribution and excludes non-Google UTM-only orders", async () => {
+    mocks.getLocalGoogleAdsPurchasesForRange.mockResolvedValue([
+      { ...scriptOrderOne, campaignid: " 23-870-042807 " },
+      { ...scriptOrderTwo, campaignid: null, utm_id: "23870042807", utm_source: "instagram", utm_medium: "social" },
+    ])
+    const snapshot = await buildAdsAgentSnapshot({ now: REPORT_NOW, supabase: {} as never })
+    expect(snapshot.rolling30.find((campaign) => campaign.campaignId === "23870042807")).toMatchObject({ orders: 1, netRetainedRevenueCents: 29950, stripeFeeCents: 1500 })
+    expect(snapshot.rolling30.find((campaign) => campaign.campaignId === "google_ads_unmapped")).toBeUndefined()
+  })
+
+  it("counts an old purchase refund through normalized fallback without requiring an old purchase fee", async () => {
     const oldPurchaseRefundedToday = {
       amount_cents: 4995,
-      campaignid: "23870042807",
+      campaignid: "invalid",
+      utm_id: "23870042807",
       category: "prescription",
       id: "intake-old-refund",
       paid_at: "2026-05-01T01:00:00.000Z",

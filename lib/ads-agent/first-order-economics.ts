@@ -2,7 +2,9 @@ import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { resolveGoogleAdsPurchaseCampaignId } from "@/lib/ads-agent/campaign-attribution"
 import type { AdsFirstOrderEconomics, AdsSnapshotWindow, CampaignEconomics } from "@/lib/ads-agent/types"
+import { GOOGLE_ADS_ATTRIBUTION_SELECT, type GoogleAdsAttributionRow } from "@/lib/analytics/google-ads-post-payment"
 import {
   buildCustomerGrowthRevenueForIntakeIds,
   collectCustomerGrowthAttributionIntakeIds,
@@ -17,7 +19,7 @@ interface PurchaseHistoryRow {
   patient_id: string | null
   paid_at: string | null
 }
-interface CampaignPurchaseRow extends PurchaseHistoryRow {
+interface CampaignPurchaseRow extends PurchaseHistoryRow, GoogleAdsAttributionRow {
   campaignid: string | null
   utm_id: string | null
   stripe_fee_cents: number | null
@@ -52,7 +54,7 @@ export function aggregateFirstOrderCampaignEconomics(args: {
       earliest.set(row.patient_id, row)
     }
   }
-  const campaignRows = args.rows.filter((row) => (row.campaignid || row.utm_id) === args.campaignId)
+  const campaignRows = args.rows.filter((row) => resolveGoogleAdsPurchaseCampaignId(row) === args.campaignId)
   const firstIds = new Set<string>()
   for (const row of campaignRows) {
     const historic = historyById.get(row.id)
@@ -93,13 +95,13 @@ export async function readFirstOrderCampaignEconomics(args: {
     for (let index = 0; index < ids.length; index += CHUNK_SIZE) {
       const chunk = ids.slice(index, index + CHUNK_SIZE)
       const result = await filterReportableIntakes(args.supabase.from("intakes")
-        .select("id, patient_id, paid_at, campaignid, utm_id, stripe_fee_cents, stripe_balance_transaction_id, stripe_fee_synced_at", { count: "exact" })
+        .select(`id, patient_id, paid_at, stripe_fee_cents, stripe_balance_transaction_id, stripe_fee_synced_at, ${GOOGLE_ADS_ATTRIBUTION_SELECT}`, { count: "exact" })
         .in("id", chunk).limit(CHUNK_SIZE))
       if (result.error || result.count !== chunk.length || result.data?.length !== chunk.length) throw new Error("first_order_rows_incomplete")
       rows.push(...result.data as CampaignPurchaseRow[])
     }
     const campaignIds = new Set(args.campaigns.map((campaign) => campaign.campaignId))
-    const relevant = rows.filter((row) => campaignIds.has(row.campaignid || row.utm_id || ""))
+    const relevant = rows.filter((row) => campaignIds.has(resolveGoogleAdsPurchaseCampaignId(row) ?? ""))
     if (relevant.some((row) => !row.patient_id)) throw new Error("first_order_identity_unavailable")
     const patientIds = [...new Set(relevant.map((row) => row.patient_id!))]
     const history: PurchaseHistoryRow[] = []

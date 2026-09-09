@@ -33,6 +33,24 @@ describe("first-order campaign cash", () => {
     }
     expect(aggregateFirstOrderCampaignEconomics({ evidence: cash, rows: [first, repeat, older], history: [first, repeat, older], since, until, campaignId: "123", spendCents: 1000 })).toMatchObject({ contributionCents: -1600, netRetainedRevenueCents: -500 })
   })
+  it("includes an older refund through valid UTM fallback when campaignid is invalid", () => {
+    const older = { ...row("older", "patient-b", "2026-07-01T00:00:00Z", "invalid"), utm_id: "123" }
+    const cash = { ...evidence, refundRows: [{ id: "older", amount_cents: 3000, refund_amount_cents: 500, refunded_at: "2026-08-15T00:00:00Z", refund_status: "succeeded", stripe_refund_id: "re_older" }] }
+    const result = aggregateFirstOrderCampaignEconomics({ evidence: cash, rows: [first, repeat, older], history: [first, repeat, older], since, until, campaignId: "123", spendCents: 2850 })
+    // Omitting the older refund falsely reports +50 cents and qualifies a loss for scale.
+    expect(result).toEqual({ orders: 1, stripeFeeCents: 100, netRetainedRevenueCents: 2500, contributionCents: -450 })
+  })
+  it("excludes UTM-only purchases without a Google paid attribution marker", () => {
+    const organic = { ...first, campaignid: null, utm_id: "123", utm_source: "instagram", utm_medium: "social" }
+    expect(aggregateFirstOrderCampaignEconomics({ evidence, rows: [organic], history: [first], since, until, campaignId: "123", spendCents: 1000 })).toEqual({ orders: 0, stripeFeeCents: 0, netRetainedRevenueCents: 0, contributionCents: -1000 })
+  })
+  it.each([
+    { campaignid: " 1-23 ", utm_id: null },
+    { campaignid: null, utm_id: "123", gclid: "test-click" },
+    { campaignid: null, utm_id: "123", utm_source: "google", utm_medium: "cpc" },
+  ])("preserves canonical paid attribution and campaign normalization: %j", (attribution) => {
+    expect(aggregateFirstOrderCampaignEconomics({ evidence, rows: [{ ...first, ...attribution }], history: [first], since, until, campaignId: "123", spendCents: 1000 })).toMatchObject({ orders: 1, contributionCents: 1900 })
+  })
   it("fails closed for unknown identity or actual fees instead of guessing zero", () => {
     expect(() => aggregateFirstOrderCampaignEconomics({ evidence, rows: [{ ...first, patient_id: null }, repeat], history: [first, repeat], since, until, campaignId: "123", spendCents: 1000 })).toThrow()
     expect(() => aggregateFirstOrderCampaignEconomics({ evidence, rows: [{ ...first, stripe_fee_cents: null }, repeat], history: [first, repeat], since, until, campaignId: "123", spendCents: 1000 })).toThrow()
@@ -59,6 +77,38 @@ describe("fresh first-order reader boundary", () => {
       return query
     }) } as unknown as SupabaseClient
   }
+  function projectedDatabase(purchases: Record<string, unknown>[], history: Record<string, unknown>[]) {
+    return { from: vi.fn(() => {
+      let selected: string[] = []
+      let ids: string[] = []
+      let idField = "id"
+      const query = { then: (resolve: (value: unknown) => unknown) => {
+        const matching = (idField === "patient_id" ? history : purchases).filter((purchase) => ids.includes(String(purchase[idField])))
+        const data = matching.map((purchase) => Object.fromEntries(selected.map((field) => [field, purchase[field] ?? null])))
+        return Promise.resolve({ data, count: data.length, error: null }).then(resolve)
+      } } as Record<string, unknown>
+      query.select = vi.fn((selection: string) => { selected = selection.split(",").map((field) => field.trim()); return query })
+      query.in = vi.fn((field: string, values: string[]) => { if (field === "id" || field === "patient_id") { idField = field; ids = values }; return query })
+      for (const key of ["not", "lte", "limit", "or", "neq"]) query[key] = vi.fn(() => query)
+      return query
+    }) } as unknown as SupabaseClient
+  }
+  it("reads the older refund's patient history through normalized campaign fallback", async () => {
+    const older = { ...row("older", "patient-b", "2026-07-01T00:00:00Z", "invalid"), utm_id: "123" }
+    vi.mocked(readCustomerGrowthRevenueEvidence).mockResolvedValue({ ...evidence, refundRows: [{ id: "older", amount_cents: 3000, refund_amount_cents: 500, refunded_at: "2026-08-15T00:00:00Z", refund_status: "succeeded", stripe_refund_id: "re_older" }] })
+    const result = await readFirstOrderCampaignEconomics({ campaigns: [{ ...campaigns[0], spendCents: 2850 }], range, supabase: projectedDatabase([first, repeat, older], [first, repeat, older]) })
+    expect(result[0].firstOrder).toEqual({ orders: 1, stripeFeeCents: 100, netRetainedRevenueCents: 2500, contributionCents: -450 })
+  })
+  it.each([
+    { name: "Google click", attribution: { gclid: "test-click" }, expectedOrders: 1 },
+    { name: "paid Google UTM", attribution: { utm_source: "google", utm_medium: "cpc" }, expectedOrders: 1 },
+    { name: "non-Google UTM", attribution: { utm_source: "instagram", utm_medium: "social" }, expectedOrders: 0 },
+  ])("projects the canonical predicate evidence for $name", async ({ attribution, expectedOrders }) => {
+    const purchase = { ...first, campaignid: null, utm_id: "123", ...attribution }
+    vi.mocked(readCustomerGrowthRevenueEvidence).mockResolvedValue({ ...evidence, paidRows: [evidence.paidRows[0]] })
+    const result = await readFirstOrderCampaignEconomics({ campaigns, range, supabase: projectedDatabase([purchase], [first]) })
+    expect(result[0].firstOrder).toEqual({ orders: expectedOrders, stripeFeeCents: expectedOrders * 100, netRetainedRevenueCents: expectedOrders * 3000, contributionCents: expectedOrders * 2900 - 1000 })
+  })
   it("enriches aggregate evidence without changing the source campaign", async () => {
     vi.mocked(readCustomerGrowthRevenueEvidence).mockResolvedValue(evidence)
     const result = await readFirstOrderCampaignEconomics({ campaigns, range, supabase: database() })
