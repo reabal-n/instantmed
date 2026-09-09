@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test"
 
+import { getCiPlaywrightGlobalTimeout } from "./e2e/helpers/ci-time-budget"
 import { loadE2EEnv } from "./e2e/load-env"
 
 // Load env from this checkout first, then the primary checkout for git worktrees.
@@ -40,6 +41,7 @@ export default defineConfig({
   testDir: "./e2e",
   // Each CI invocation owns its artifacts; later suites must not erase them.
   outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR || "test-results",
+  globalTimeout: getCiPlaywrightGlobalTimeout(),
   
   // Global setup seeds test data, teardown cleans up
   globalSetup: "./e2e/global-setup.ts",

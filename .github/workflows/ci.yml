@@ -404,6 +404,11 @@ jobs:
       group: instantmed-shared-e2e-fixtures
       cancel-in-progress: false
     steps:
+      - name: Reserve time for browser evidence uploads
+        # A job-level kill also skips always() uploads. Playwright must finish
+        # with a failing result and written diagnostics before that deadline.
+        run: echo "PLAYWRIGHT_CI_DEADLINE_MS=$(( ($(date +%s) + 45 * 60) * 1000 ))" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v6.0.2
 
       - name: Setup pnpm

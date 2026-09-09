@@ -6,6 +6,8 @@ import { dirname, join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { getCiPlaywrightGlobalTimeout } from "@/e2e/helpers/ci-time-budget"
+
 const require = createRequire(import.meta.url)
 const workflow = readFileSync(join(process.cwd(), ".github/workflows/ci.yml"), "utf8")
 const config = readFileSync(join(process.cwd(), "playwright.config.ts"), "utf8")
@@ -42,6 +44,80 @@ describe("CI diagnostic evidence retention", () => {
     expect(traceUpload).toContain("path: test-results/")
     expect(traceUpload).not.toContain("if: failure()")
   })
+
+  it("reserves time for reports before the unchanged job deadline", () => {
+    const e2e = workflow.slice(workflow.indexOf("  e2e:"))
+    expect(e2e).toContain("timeout-minutes: 50")
+    expect(e2e).toContain("PLAYWRIGHT_CI_DEADLINE_MS")
+    expect(e2e).toContain("45 * 60")
+    expect(config).toContain("globalTimeout: getCiPlaywrightGlobalTimeout()")
+  })
+
+  it("leaves runs without a shared CI deadline unchanged", () => {
+    expect(getCiPlaywrightGlobalTimeout(undefined, 1000)).toBeUndefined()
+    expect(getCiPlaywrightGlobalTimeout("5000", 1000)).toBe(4000)
+  })
+
+  it.each(["", "invalid", "0", "1"])("fails closed for an invalid or exhausted browser budget (%s)", (deadline) => {
+    expect(() => getCiPlaywrightGlobalTimeout(deadline, 1000)).toThrow(/browser evidence deadline|browser test budget exhausted/i)
+  })
+
+  it("finishes an interrupted suite with reports and traces before the runner is killed", () => {
+    const temporary = mkdtempSync(join(tmpdir(), "instantmed-ci-deadline-"))
+    try {
+      const playwright = JSON.stringify(require.resolve("@playwright/test"))
+      const budget = JSON.stringify(join(process.cwd(), "e2e/helpers/ci-time-budget.ts"))
+      writeFileSync(join(temporary, "playwright.config.cjs"), `
+        const { defineConfig } = require(${playwright});
+        const { getCiPlaywrightGlobalTimeout } = require(${budget});
+        module.exports = defineConfig({
+          testDir: '.', workers: 1, retries: 0, timeout: 60000,
+          globalTimeout: getCiPlaywrightGlobalTimeout(),
+          outputDir: 'test-results/paid-clinical',
+          reporter: [['html', { open: 'never', outputFolder: 'playwright-report/paid-clinical' }],
+            ['json', { outputFile: 'attempts.json' }]],
+          use: { trace: 'retain-on-failure' }
+        });
+      `)
+      writeFileSync(join(temporary, "hung.spec.cjs"), `
+        const { test } = require(${playwright});
+        test('synthetic interrupted attempt', async () => {
+          await test.step('wait beyond the browser budget', async () => {
+            await new Promise(() => {});
+          });
+        });
+      `)
+      const args = [require.resolve("@playwright/test/cli"), "test", "--config=playwright.config.cjs", "hung.spec.cjs"]
+      const deadline = Date.now() + 5000
+      const run = spawnSync(process.execPath, args, {
+        cwd: temporary,
+        encoding: "utf8",
+        timeout: 12000,
+        env: { NODE_ENV: "test", PATH: process.env.PATH, HOME: process.env.HOME, CI: "1", PLAYWRIGHT_CI_DEADLINE_MS: String(deadline) },
+      })
+      expect(run.error).toBeUndefined()
+      expect(run.status, run.stdout + run.stderr).toBe(1)
+      const reportPath = join(temporary, "playwright-report/paid-clinical/index.html")
+      const report = readFileSync(reportPath)
+      const attempts = JSON.parse(readFileSync(join(temporary, "attempts.json"), "utf8"))
+      const attempt = attempts.suites[0].specs[0].tests[0].results[0]
+      expect(attempt.status).toBe("interrupted")
+      const trace = attempt.attachments.find((attachment: { name: string }) => attachment.name === "trace")
+      expect(trace).toBeDefined()
+      expect(readFileSync(trace.path).length).toBeGreaterThan(0)
+
+      const later = spawnSync(process.execPath, args, {
+        cwd: temporary,
+        encoding: "utf8",
+        env: { NODE_ENV: "test", PATH: process.env.PATH, PLAYWRIGHT_CI_DEADLINE_MS: "1" },
+      })
+      expect(later.status).toBe(1)
+      expect(later.stderr).toMatch(/browser test budget exhausted/i)
+      expect(readFileSync(reportPath)).toEqual(report)
+    } finally {
+      rmSync(temporary, { recursive: true, force: true })
+    }
+  }, 15000)
 
   it.each([[0, 0], [1, 0], [0, 1], [1, 1]])(
     "runs both paid viewports and preserves failure (desktop=%i, mobile=%i)",
