@@ -511,7 +511,7 @@ export function ParchmentPrescribePanel({
                       <div
                         key={`${item.label}-${index}`}
                         data-parchment-safety-severity={item.severity}
-                        className={cn("border-l-2 pl-2", item.severity === "block" ? "border-destructive/60" : "border-warning/60")}
+                        className={cn("rounded-md border px-2 py-1", item.severity === "block" ? "border-destructive-border bg-destructive-light" : "border-warning-border bg-warning-light")}
                       >
                         <dt className="text-sm font-medium">{item.label}</dt>
                         <dd className="select-text whitespace-pre-wrap break-words text-sm">{item.detail}</dd>
