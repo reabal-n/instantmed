@@ -1384,7 +1384,7 @@ export function RequestFlow({
             <h1 className="font-semibold text-sm">
               {currentStep.label}
             </h1>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               Step {currentStepIndex + 1} of {activeSteps.length}
             </span>
           </div>
