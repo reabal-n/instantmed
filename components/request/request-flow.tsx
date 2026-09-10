@@ -79,8 +79,6 @@ import { useUnsavedChanges } from "./hooks/use-unsaved-changes"
 import { preloadStepComponent } from "./step-loaders"
 import { StepRouter } from "./step-router"
 import {
-  beginRequestDraftHydrationCutoff,
-  clearRequestDraftHydrationCutoff,
   type RequestProfilePrefill,
   useRequestStore,
 } from "./store"
@@ -535,15 +533,12 @@ export function RequestFlow({
       }
     }
 
-    const hydrationCutoffToken = beginRequestDraftHydrationCutoff(savedBefore)
-
     const captureGrowthExperienceClaim = () => {
       const hydratedState = useRequestStore.getState()
       const hasAuthoritativePatientWork = hasActivePatientWorkForRequestedService({
         requestedService: initialService,
         serviceType: hydratedState.serviceType,
         lastSavedAt: hydratedState.lastSavedAt,
-        savedBefore,
       })
       growthExperienceClaimAtEntryRef.current = resolveSpecialtyExperienceEntryClaim(
         initialGrowthExperienceVersion,
@@ -610,8 +605,6 @@ export function RequestFlow({
     }
 
     const finishHydration = async () => {
-      clearRequestDraftHydrationCutoff(hydrationCutoffToken)
-
       if (hasExplicitRecovery) {
         captureGrowthExperienceClaim()
         if (!initialDraftId) {
@@ -682,7 +675,6 @@ export function RequestFlow({
         () => finishHydration(),
         () => finishHydration(),
       ).catch(() => {
-        clearRequestDraftHydrationCutoff(hydrationCutoffToken)
         if (cancelled) return
         if (hasExplicitRecovery) {
           setRecoveryUnavailable(true)
@@ -697,14 +689,12 @@ export function RequestFlow({
       })
     } else {
       void finishHydration().catch(() => {
-        clearRequestDraftHydrationCutoff(hydrationCutoffToken)
         if (!cancelled) setRecoveryUnavailable(true)
       })
     }
 
     return () => {
       cancelled = true
-      clearRequestDraftHydrationCutoff(hydrationCutoffToken)
     }
     // Mount-only by design: URL params are re-checked by the hydration-gated
     // sync effect below; re-running rehydrate on prop change would re-fight

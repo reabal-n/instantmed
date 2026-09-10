@@ -102,6 +102,86 @@ async function expectReadableContrast(field: Locator, part: "placeholder" | "bac
     .toBeGreaterThanOrEqual(part === "placeholder" ? 4.5 : 3)
 }
 
+for (const { storage, rollbackMs } of [
+  { storage: "scoped", rollbackMs: 0 },
+  { storage: "legacy", rollbackMs: 120 },
+] as const) {
+  test(`review draft survives ${storage} hydration after a ${rollbackMs}ms clock rollback`, async ({ page }) => {
+    // A wall-clock comparison cannot determine whether patient work existed
+    // before this document. Reproduce equal timestamps and a small backwards
+    // clock correction while timers keep running, without timing-dependent waits.
+    await page.clock.setFixedTime(new Date("2026-09-10T02:00:00Z"))
+    await page.context().route("**/api/draft**", route => route.abort())
+    await page.goto("/")
+    const description = "Runny nose and a mild headache. I need a day off work to rest."
+    await page.evaluate(({ storage, rollbackMs, description }) => {
+      const draft = {
+        serviceType: "med-cert",
+        currentStepId: "checkout",
+        furthestVisitedStepId: "checkout",
+        answers: { certType: "work", startDate: "2026-09-10", duration: "1", symptomDetails: description },
+        firstName: "Test",
+        lastName: "Patient",
+        email: "draft-clock-check@example.com",
+        dob: "1990-01-01",
+        safetyConfirmed: false,
+        lastSavedAt: new Date(Date.now() + rollbackMs).toISOString(),
+      }
+      localStorage.setItem(
+        storage === "legacy" ? "instantmed-request-draft" : "instantmed-draft-med-cert",
+        JSON.stringify(storage === "legacy" ? { state: draft, version: 0 } : draft),
+      )
+    }, { storage, rollbackMs, description })
+
+    await page.goto("/request?service=med-cert")
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Review & pay")
+    await expect(page.locator("dd").filter({ hasText: description })).toHaveText(description)
+    await expect(page.getByRole("checkbox", { name: /Confirm request and payment terms/i })).not.toBeChecked()
+    await page.reload()
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Review & pay")
+    await expect(page.locator("dd").filter({ hasText: description })).toHaveText(description)
+  })
+}
+
+for (const existingDraft of [false, true]) {
+  test(`clock-safe hydration preserves ${existingDraft ? "existing" : "fresh"} specialty attribution`, async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-09-10T02:00:00Z"))
+    await page.context().route("**/api/draft**", async route => {
+      if (route.request().method() === "POST") {
+        const body = route.request().postDataJSON() as { sessionId: string }
+        await route.fulfill({ json: {
+          sessionId: body.sessionId,
+          updatedAt: "2026-09-10T02:00:00Z",
+          expiresAt: "2026-09-11T02:00:00Z",
+        } })
+      } else {
+        await route.fulfill({ status: 404, json: { error: "Not found" } })
+      }
+    })
+    await page.goto("/")
+    if (existingDraft) {
+      await page.evaluate(() => localStorage.setItem("instantmed-draft-consult", JSON.stringify({
+        serviceType: "consult",
+        flowInstanceId: "cd7e6a00-b25f-4de1-bcd8-f65d5c347d25",
+        growthExperienceVersion: null,
+        currentStepId: "ed-goals",
+        answers: { consultSubtype: "ed", edDuration: "1_to_3_years", edErectionFrequency: 3 },
+        lastSavedAt: new Date(Date.now() + 120).toISOString(),
+      })))
+    }
+    await page.goto("/request?service=consult&subtype=ed&growth_experience_version=spx_e1_20260828")
+    if (existingDraft) {
+      await expect(page.getByRole("radio", { name: "1–3 years", exact: true })).toBeChecked()
+    }
+    const draftWrite = page.waitForRequest(request => request.url().includes("/api/draft")
+      && request.method() === "POST"
+      && request.postDataJSON()?.answers?.edDuration === "3_plus_years")
+    await page.getByRole("radio", { name: "3+ years", exact: true }).click()
+    const saved = (await draftWrite).postDataJSON() as { growthExperienceVersion?: string }
+    expect(saved.growthExperienceVersion ?? null).toBe(existingDraft ? null : "spx_e1_20260828")
+  })
+}
+
 // Browser behaviour only. Keep draft writes and checkout actions inside the
 // browser boundary; this spec does not establish hosted payment or delivery.
 for (const theme of ["light", "dark"] as const) {

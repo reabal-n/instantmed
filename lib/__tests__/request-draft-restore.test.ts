@@ -112,10 +112,9 @@ describe("request draft restore decision", () => {
     ).toBe(false)
   })
 
-  it("owns cohort attribution only for active pre-entry work on the requested service", () => {
+  it("owns cohort attribution only for active patient work on the requested service", () => {
     const boundary = {
       requestedService: "consult" as const,
-      savedBefore: NOW,
       now: NOW,
     }
 
@@ -144,9 +143,18 @@ describe("request draft restore decision", () => {
       hasActivePatientWorkForRequestedService({
         ...boundary,
         serviceType: "consult",
-        lastSavedAt: new Date(NOW + 1).toISOString(),
+        lastSavedAt: null,
       }),
     ).toBe(false)
+  })
+
+  it.each([0, 1, 120])("preserves cohort ownership when the clock rolls back %i ms", (rollbackMs) => {
+    expect(hasActivePatientWorkForRequestedService({
+      requestedService: "consult",
+      serviceType: "consult",
+      lastSavedAt: new Date(NOW + rollbackMs).toISOString(),
+      now: NOW,
+    })).toBe(true)
   })
 
   it("reads the pre-hydration legacy draft candidate from storage", () => {

@@ -22,7 +22,6 @@ interface ActivePatientWorkInput {
   serviceType: UnifiedServiceType | null | undefined
   lastSavedAt: string | null | undefined
   now?: number
-  savedBefore?: number
 }
 
 type DraftRestoreCandidate = Omit<DraftRestoreInput, "now"> & {
@@ -70,15 +69,15 @@ function getCandidateTime(candidate: DraftRestoreCandidate): number {
 /**
  * Attribution ownership uses hydrated patient work, not the pre-hydration
  * fallback candidate used to decide whether a restore banner might render.
- * Review/pay is still active work here; only service, age, and pre-entry time
- * determine whether an existing flow owns its null-or-set cohort slot.
+ * Review/pay is still active work here. Only patient work stamps lastSavedAt;
+ * service and expiry determine whether it owns its null-or-set cohort slot.
+ * Clock corrections must not relabel a restored flow as a new tagged entry.
  */
 export function hasActivePatientWorkForRequestedService({
   requestedService,
   serviceType,
   lastSavedAt,
   now = Date.now(),
-  savedBefore,
 }: ActivePatientWorkInput): boolean {
   const requestedCanonical = canonicalizeServiceType(requestedService)
   const hydratedCanonical = canonicalizeServiceType(serviceType)
@@ -88,10 +87,8 @@ export function hasActivePatientWorkForRequestedService({
 
   const savedTime = new Date(lastSavedAt).getTime()
   if (!Number.isFinite(savedTime)) return false
-  if (typeof savedBefore === "number" && savedTime >= savedBefore) return false
-
   const hoursSinceSave = (now - savedTime) / (1000 * 60 * 60)
-  return hoursSinceSave >= 0 && hoursSinceSave < DRAFT_RESTORE_WINDOW_HOURS
+  return hoursSinceSave < DRAFT_RESTORE_WINDOW_HOURS
 }
 
 export function getStoredDraftRestoreCandidate(
