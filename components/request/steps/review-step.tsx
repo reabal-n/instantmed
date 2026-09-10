@@ -32,6 +32,7 @@ import { isPriorityReviewOffered } from "@/lib/request/priority-review-window"
 import { getActiveServerDraftSessionId } from "@/lib/request/server-draft"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { CHECKOUT_FAILURE_TAXONOMY_VERSION } from "@/lib/stripe/checkout-failure"
+import { cn } from "@/lib/utils"
 
 import { markIntentionalNavigation } from "../hooks/use-unsaved-changes"
 import { useRequestStore } from "../store"
@@ -122,7 +123,7 @@ function medicalHistoryReviewValue(response: unknown, detail: unknown): string {
   return ''
 }
 
-const TRUNCATE_THRESHOLD = 60
+const TRUNCATE_THRESHOLD = 240
 type ReviewItem = { label: string; value: string; badge?: { label: string; tone: "success" | "warning" } }
 
 function cleanTelemetryValue(value?: string | null): string | null {
@@ -242,10 +243,18 @@ function ReviewSummaryCard({
           </div>
           <dl className="space-y-2">
             {section.items.map((item, i) => (
-              <div key={i} className="flex justify-between gap-3 text-base">
+              <div key={i} className={cn(
+                "flex justify-between gap-3 text-base",
+                item.value.length > 32 && "flex-col gap-1",
+              )}>
                 <dt className="min-w-0 text-muted-foreground">{item.label}</dt>
-                <dd className="flex max-w-[64%] flex-col items-end gap-1 text-right font-medium">
-                  {item.value ? <span><ExpandableValue value={item.value} /></span> : null}
+                <dd className={cn(
+                  "min-w-0 flex flex-col gap-1 break-words font-medium",
+                  item.value.length > 32
+                    ? "items-start text-left"
+                    : "max-w-[64%] items-end text-right",
+                )}>
+                  {item.value ? <span className="min-w-0 max-w-full"><ExpandableValue value={item.value} /></span> : null}
                   {item.badge && (
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${

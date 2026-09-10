@@ -373,7 +373,26 @@ describe("video review multi-model contract", () => {
     expect(filterContradictedFindings(findings, evidence)).toEqual([findings[2]])
   })
 
-  it("does not let DOM-contradicted high-severity findings drag the combined gate score below 8", () => {
+  it.each([
+    "The SOAP Objective and Assessment labels are clipped behind the fixed action footer.",
+    "The SOAP Objective and Assessment labels are unreadable on the mobile screen.",
+  ])("does not dismiss visual findings because their labels exist in the DOM: %s", (issue) => {
+    const findings = [{
+      severity: 4,
+      timestamp_seconds: 12,
+      issue,
+      recommendation: "Keep the entire note reachable above the footer.",
+    }]
+    expect(filterContradictedFindings(findings, {
+      capturedAt: "2026-09-10T00:00:00.000Z",
+      url: "http://localhost:3060/dashboard?showTestData=1&onlyTestData=1",
+      title: "Dashboard",
+      visibleText: "S · Subjective O · Objective A · Assessment P · Plan",
+      elements: [],
+    })).toEqual(findings)
+  })
+
+  it("preserves judge scores when a finding is contradicted instead of manufacturing a passing score", () => {
     const evidence: DomEvidenceSnapshot = {
       capturedAt: "2026-05-27T00:00:00.000Z",
       url: "http://localhost:3628/dashboard?showTestData=1",
@@ -431,6 +450,6 @@ describe("video review multi-model contract", () => {
     expect(getDomGroundedCombinedScore({
       critique: lowScoreWithFalsePositive,
       claudeCritique: normalJudge,
-    }, evidence)).toBe(8)
+    }, evidence)).toBe(7)
   })
 })

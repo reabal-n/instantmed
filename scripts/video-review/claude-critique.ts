@@ -18,7 +18,7 @@ import { getClaudeCredentialSource, getClaudeModel, getClaudeModelLabel } from "
 import { buildRubricPrompt } from "./rubric"
 import { RUBRIC_CATEGORIES } from "./rubric-categories"
 import { withTimeout } from "./retry"
-import { CritiqueSchema, type StructuredCritique } from "./schema"
+import { FrameCritiqueSchema, type StructuredCritique } from "./schema"
 
 const CLAUDE_VISION_TIMEOUT_MS = 4 * 60_000
 const MAX_CLAUDE_FRAMES = 8
@@ -57,14 +57,14 @@ export async function critiqueWithClaudeVision(
       `(timeout ${CLAUDE_VISION_TIMEOUT_MS / 1000}s)...`,
   )
 
-  const promptText = `${buildRubricPrompt()}
+  const promptText = `${buildRubricPrompt({ medium: "frames" })}
 
 # Capture metadata
 - Journey: ${opts.journeyLabel}
 - URL: ${opts.capturedUrl}
 - Source: representative PNG frames extracted from the same Playwright video capture.
 
-Review the attached frames as a chronological screencast. The filename tells you the approximate timestamp. Return the structured JSON only.`
+Review the attached still frames in chronological order. The filename tells you the approximate timestamp. Motion is unverified from these stills and must have a null score. Return the structured JSON only.`
   const schemaReminder = `
 
 # Exact JSON shape
@@ -76,18 +76,15 @@ Return this exact shape. Do not rename keys.
     "brand_spine": { "score": 1, "observation": "Concrete observation.", "findings": [{ "severity": 1, "timestamp_seconds": 0, "issue": "Issue sentence.", "recommendation": "Concrete fix." }] },
     "typography": { "score": 1, "observation": "Concrete observation.", "findings": [] },
     "color_and_surface": { "score": 1, "observation": "Concrete observation.", "findings": [] },
-    "motion": { "score": 1, "observation": "Concrete observation.", "findings": [] },
+    "motion": { "score": null, "observation": "Motion cannot be assessed from still frames.", "findings": [] },
     "copy_voice": { "score": 1, "observation": "Concrete observation.", "findings": [] },
     "hierarchy_and_layout": { "score": 1, "observation": "Concrete observation.", "findings": [] },
     "conversion_friction": { "score": 1, "observation": "Concrete observation.", "findings": [] },
     "signature_devices": { "score": 1, "observation": "Concrete observation.", "findings": [] }
   },
-  "top_three_actions": [
-    { "action": "Concrete action.", "why": "Specific reason.", "estimated_impact": "high" },
-    { "action": "Concrete action.", "why": "Specific reason.", "estimated_impact": "medium" },
-    { "action": "Concrete action.", "why": "Specific reason.", "estimated_impact": "low" }
-  ]
-}`
+  "top_three_actions": []
+}
+The action array may contain up to three objects with action, why and estimated_impact (high, medium or low). Include only evidence-backed actions.`
 
   try {
     const result = await withTimeout(
@@ -132,10 +129,10 @@ Return this exact shape. Do not rename keys.
         }`,
       )
     }
-    const validation = CritiqueSchema.safeParse(parsed)
+    const validation = FrameCritiqueSchema.safeParse(parsed)
     const repaired = validation.success
       ? validation
-      : CritiqueSchema.safeParse(normalizeClaudeCritique(parsed))
+      : FrameCritiqueSchema.safeParse(normalizeClaudeCritique(parsed))
     if (!repaired.success) {
       const debugPath = join(opts.outDir, "claude-critique.raw.txt")
       await writeFile(debugPath, result.text, "utf8")
@@ -174,7 +171,7 @@ export function extractClaudeJson(text: string): string {
     .trim()
 }
 
-function normalizeClaudeCritique(parsed: unknown): unknown {
+export function normalizeClaudeCritique(parsed: unknown): unknown {
   if (!isRecord(parsed)) return parsed
   if (isRecord(parsed.categories)) {
     return normalizeStructuredClaudeCritique(parsed)
@@ -205,7 +202,7 @@ function normalizeClaudeCritique(parsed: unknown): unknown {
       })
 
     categories[category.key] = {
-      score: clampScore(Number(rawScore ?? 5), 1, 10),
+      score: rawScore,
       observation:
         findings[0]?.issue ??
         `Claude vision did not return a specific ${category.label} observation.`,
@@ -222,15 +219,8 @@ function normalizeClaudeCritique(parsed: unknown): unknown {
       estimated_impact: impactFromSeverity(Number(action.severity ?? (index === 0 ? 4 : 3))),
     }))
 
-  while (topThree.length < 3) {
-    topThree.push({
-      action: "Review the captured dashboard friction.",
-      why: "Claude returned fewer than three ranked actions.",
-      estimated_impact: "low",
-    })
-  }
-
   const scores = Object.values(parsed.scores)
+    .filter((score) => score !== null)
     .map((score) => Number(score))
     .filter((score) => Number.isFinite(score))
   const overall = scores.length
@@ -258,7 +248,7 @@ function normalizeStructuredClaudeCritique(parsed: Record<string, unknown>): unk
       : {}
     const rawFindings: unknown[] = Array.isArray(raw.findings) ? raw.findings : []
     categories[category.key] = {
-      score: clampScore(Number(raw.score ?? 5), 1, 10),
+      score: raw.score,
       observation: String(raw.observation ?? `Review ${category.label}.`),
       findings: rawFindings.filter(isRecord).map((finding) => {
         const issue = String(finding.issue ?? finding.note ?? `Issue observed in ${category.label}.`)
@@ -278,14 +268,6 @@ function normalizeStructuredClaudeCritique(parsed: Record<string, unknown>): unk
     why: String(action.why ?? action.reason ?? `Claude ranked this as action ${index + 1}.`),
     estimated_impact: normalizeImpact(action.estimated_impact, index),
   }))
-
-  while (topThree.length < 3) {
-    topThree.push({
-      action: "Review the captured dashboard friction.",
-      why: "Claude returned fewer than three ranked actions.",
-      estimated_impact: "low",
-    })
-  }
 
   return {
     summary: String(parsed.summary ?? "Claude vision reviewed the captured frames."),

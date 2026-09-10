@@ -119,6 +119,7 @@ You have two independent visual judges:
 
 Use both. Prioritise issues that both models agree on. When they disagree, call out the more concrete, frame-grounded evidence. Do not silently average vague claims into the report.
 When a model claim conflicts with the DOM/text evidence, mark it as a model false positive instead of a product defect.
+Do not change either judge's score after dismissing a finding. Report the score as scoped to the captured journey, and list unobserved provider/payment/delivery states separately. A DOM label can prove spelling, but cannot prove that it was readable or unobstructed in a video frame.
 
 # Frontmatter values (copy verbatim into the report)
 
@@ -212,31 +213,13 @@ type Finding = StructuredCritique["categories"][keyof StructuredCritique["catego
 
 export function getDomGroundedCombinedScore(
   opts: Pick<SynthesizeOptions, "critique" | "claudeCritique">,
-  domEvidence: DomEvidenceSnapshot | null,
+  _domEvidence: DomEvidenceSnapshot | null,
 ): number {
+  // DOM evidence can challenge a finding, but cannot supply a new judge score.
+  // Preserve the original ratings; a changed rating requires a fresh review.
   return Math.round((
-    getDomGroundedJudgeScore(opts.critique, domEvidence) +
-    getDomGroundedJudgeScore(opts.claudeCritique, domEvidence)
+    opts.critique.overall_score + opts.claudeCritique.overall_score
   ) / 2)
-}
-
-function getDomGroundedJudgeScore(
-  critique: StructuredCritique,
-  domEvidence: DomEvidenceSnapshot | null,
-): number {
-  if (!domEvidence || critique.overall_score >= 8) return critique.overall_score
-
-  const findings = Object.values(critique.categories).flatMap((category) => category.findings)
-  const contradicted = findings.filter((finding) => isContradictedByDomEvidence(finding, domEvidence))
-  if (contradicted.length === 0) return critique.overall_score
-
-  const validFindings = filterContradictedFindings(findings, domEvidence)
-  const validMaxSeverity = Math.max(0, ...validFindings.map((finding) => finding.severity))
-  const contradictedMaxSeverity = Math.max(0, ...contradicted.map((finding) => finding.severity))
-
-  if (contradictedMaxSeverity >= 4 && validMaxSeverity <= 3) return 8
-  if (contradictedMaxSeverity >= 3 && validMaxSeverity <= 2) return 8
-  return critique.overall_score
 }
 
 export function filterContradictedFindings(
@@ -344,6 +327,10 @@ function isContradictedByDomEvidence(
   domEvidence: DomEvidenceSnapshot | null,
 ): boolean {
   if (!domEvidence) return false
+  // Text presence cannot refute a visual obstruction or a contrast problem.
+  if (/clipp|truncat|obscur|overlap|cover|legib|contrast|off.?screen|cut.?off|readability|hidden\s+(?:behind|under)/i.test(finding.issue)) {
+    return false
+  }
   const findingText = `${finding.issue} ${finding.recommendation}`.toLowerCase()
   const evidenceText = [
     domEvidence.visibleText,
@@ -381,8 +368,8 @@ function isContradictedByDomEvidence(
   }
 
   const claimsSoapNumberingProblem =
-    /\bsoap\b/.test(findingText) &&
-    /\b(number|numbering|sequence|skip|jump|1\s+to\s+4|objective|plan|assessment)\b/.test(findingText)
+    /\bsoap\b/.test(finding.issue.toLowerCase()) &&
+    /\b(numbering|numbered|sequence|skips?\s+from|jumps?\s+from|1\s+to\s+4)\b/.test(finding.issue.toLowerCase())
   const evidenceShowsSoapLabels =
     /\bs\s*·\s*subjective\b/.test(evidenceText) &&
     /\bo\s*·\s*objective\b/.test(evidenceText) &&

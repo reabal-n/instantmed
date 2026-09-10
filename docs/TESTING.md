@@ -109,7 +109,8 @@ Codex Browser Use is part of the local UI review stack for exploratory hover, cl
 
 - Use Browser Use after material UI changes to inspect the rendered page, visible copy, focus/hover feel, and obvious layout defects.
 - Keep Playwright as the authenticated release gate for doctor/admin flows because it owns the E2E auth bypass, seeded data, first-click assertions, and no-PHI-prefetch network checks.
-- Keep Gemini + Claude video review for qualitative design/motion critique after Playwright passes.
+- Keep Gemini video review and Claude still-frame review for qualitative critique after Playwright passes. Still frames cannot score motion; unobserved or inapplicable categories stay unscored. Preserve the original judge ratings when a finding is challenged, and never dismiss clipping or overlap solely because a label exists in the DOM. Recommendations are limited to up to three observed defects, with no filler quota.
+- The public `paid-funnel` capture follows Get started, the service chooser and each med-cert step to Review & pay without submitting payment. `e2e/patient-journey-readability.spec.ts` also checks long-answer layout, editing, reload, consent focus and uncertain-checkout recovery in light/dark mobile views. Its draft and checkout network boundaries are intercepted; hosted Stripe, signed webhooks, confirmation and delivery need the separate hosted test journey and provider evidence.
 - Do not add AutoExplore to the default stack; it is intentionally excluded for cost.
 
 ### Auth Bypass

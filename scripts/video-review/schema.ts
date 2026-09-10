@@ -28,7 +28,8 @@ const CategorySchema = z.object({
     .int()
     .min(1)
     .max(10)
-    .describe("1-10. 10 matches reference bar. 5 generic healthtech. 3 actively hurts trust."),
+    .nullable()
+    .describe("1-10 for observed, applicable criteria. Null when unobserved or inapplicable; explain the evidence gap. Never assign a neutral or passing score to missing evidence."),
   observation: z
     .string()
     .min(20)
@@ -84,11 +85,19 @@ export const CritiqueSchema = z
           estimated_impact: z.enum(["high", "medium", "low"]),
         }),
       )
-      .length(3, "Must return exactly three top actions, ordered most to least valuable."),
+      .max(3, "Return up to three evidence-backed actions, ordered most to least valuable. Do not pad the list."),
   })
   .strict()
 
 export type StructuredCritique = z.infer<typeof CritiqueSchema>
+
+/** Still images cannot substantiate a motion rating, even if a judge returns one. */
+export const FrameCritiqueSchema = CritiqueSchema.extend({
+  categories: z.object({
+    ...CategoriesShape,
+    motion: CategorySchema.extend({ score: z.null() }),
+  }),
+})
 
 /**
  * Gemini accepts a subset of JSON Schema in `responseSchema`. Zod 4's

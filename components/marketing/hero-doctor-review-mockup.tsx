@@ -23,12 +23,6 @@ const REVIEW_STEPS = [
   { id: "decision", label: "Decision" },
 ] as const
 
-type FloatPosition =
-  | "top-left"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-right"
-
 interface FloatingCard {
   icon: typeof FileText
   iconClass: string
@@ -36,16 +30,6 @@ interface FloatingCard {
   title: string
   status: string
   statusClass: string
-  position: FloatPosition
-}
-
-// Asymmetric placement so the four corners don't read as a grid.
-// Each float has its own offset, keeping the composition organic.
-const FLOATING_POSITIONS: Record<FloatPosition, string> = {
-  "top-left": "-top-3 -left-6 sm:-left-10 lg:-left-12",
-  "top-right": "-top-2 -right-4 sm:-right-8 lg:-right-10",
-  "bottom-left": "-bottom-2 -left-4 sm:-left-8 lg:-left-12",
-  "bottom-right": "-bottom-3 -right-5 sm:-right-10 lg:-right-14",
 }
 
 const PRIMARY_CARD_VARIANTS = {
@@ -68,7 +52,6 @@ const FLOATS: FloatingCard[] = [
     title: "Medical certificate",
     status: "Approved",
     statusClass: "text-emerald-700 dark:text-emerald-300",
-    position: "top-left",
   },
   {
     icon: Pill,
@@ -77,7 +60,6 @@ const FLOATS: FloatingCard[] = [
     title: "eScript",
     status: getApprovedClaim("prescription_escript_sent"),
     statusClass: "text-primary",
-    position: "top-right",
   },
   {
     icon: RefreshCcw,
@@ -96,7 +78,6 @@ const FLOATS: FloatingCard[] = [
     // (icon + tint keep the bright signature --brand-coral). #FF6B5B as text
     // was ~2.8:1; the siblings already use their dark -700 shade for text.
     statusClass: "text-brand-coral-strong",
-    position: "bottom-left",
   },
   {
     icon: Stethoscope,
@@ -105,7 +86,6 @@ const FLOATS: FloatingCard[] = [
     title: "Doctor plan",
     status: "Reviewed",
     statusClass: "text-amber-700 dark:text-amber-300",
-    position: "bottom-right",
   },
 ]
 
@@ -113,26 +93,9 @@ const CYCLE_MS = 1800
 const REST_AT_END_MS = 1400
 
 /**
- * Hero mockup — doctor-led, multi-output, sequenced.
- *
- * Replaces the previous kitchen-sink hero composition.
- *
- * Structure:
- *   - Primary card: "Your GP — reviewing now" with a 3-state progress
- *     sequence (Identity → Clinical assessment → Decision). The animation
- *     loops with a small rest at the end so it never feels frantic.
- *   - Four static floating output cards (cert, eScript, repeat Rx,
- *     treatment plan) at asymmetric corners. They mount in once with a
- *     stagger and stay still — no continuous motion noise.
- *
- * Anti-cert-mill positioning: the doctor IS the hero. Floating cards
- * prove platform breadth so the page reads as primary-care telehealth,
- * not a single-service mill.
- *
- * Constraints:
- *   - No real doctor name (CLAUDE.md: "Never advertise individual doctor names").
- *   - Reduced-motion users see the end state with no animation.
- *   - Parent must allow `overflow-visible` (floats clip otherwise).
+ * Illustrative doctor review with the possible outputs beneath it.
+ * Normal document flow keeps every label readable at narrow widths.
+ * Reduced-motion users see the final state without animation.
  */
 export function HeroDoctorReviewMockup() {
   const prefersReducedMotion = useReducedMotion()
@@ -176,7 +139,7 @@ export function HeroDoctorReviewMockup() {
   const displayedIndex = animate ? activeIndex : REVIEW_STEPS.length - 1
 
   return (
-    <div className="relative w-[280px] lg:w-[320px] xl:w-[340px]">
+    <div className="relative w-full max-w-[360px]" aria-label="Example of doctor review">
       {/* Primary card */}
       <motion.div
         data-reduced-motion-final="doctor-card"
@@ -271,7 +234,8 @@ export function HeroDoctorReviewMockup() {
         </div>
       </motion.div>
 
-      {/* Floating outputs */}
+      {/* Outputs stay clear of the review content at every viewport. */}
+      <div className="mt-3 grid grid-cols-2 gap-3">
       {FLOATS.map((card, i) => {
         const Icon = card.icon
         return (
@@ -279,9 +243,8 @@ export function HeroDoctorReviewMockup() {
             key={card.title}
             data-reduced-motion-final="doctor-float"
             className={cn(
-              "absolute z-10 inline-flex items-center gap-2.5 whitespace-nowrap rounded-xl bg-white px-3 py-2 shadow-lg shadow-primary/[0.06] pointer-events-none",
+              "min-w-0 flex items-center gap-2 rounded-xl bg-white px-3 py-3 shadow-sm shadow-primary/[0.06] pointer-events-none",
               "border border-border/50 dark:border-white/15 dark:bg-card dark:shadow-none",
-              FLOATING_POSITIONS[card.position],
             )}
             variants={FLOAT_VARIANTS}
             initial={animate ? "hidden" : "reduced"}
@@ -302,16 +265,17 @@ export function HeroDoctorReviewMockup() {
               <Icon className={cn("w-3.5 h-3.5", card.iconClass)} />
             </span>
             <div className="leading-tight">
-              <p className="text-[11px] font-semibold text-foreground">
+              <p className="text-xs font-semibold text-foreground">
                 {card.title}
               </p>
-              <p className={cn("text-[10px] font-medium", card.statusClass)}>
+              <p className={cn("mt-1 text-xs font-medium", card.statusClass)}>
                 {card.status}
               </p>
             </div>
           </motion.div>
         )
       })}
+      </div>
     </div>
   )
 }

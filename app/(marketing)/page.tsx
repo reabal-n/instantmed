@@ -137,18 +137,17 @@ export default async function HomePage() {
           {/* Hero owns the first-fold action and states the service boundary. */}
           <Hero
             title={TAGLINE}
+            titleClassName="min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5"
             liveWait={waitState}
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
           >
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-[2.5rem] text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-6 leading-tight font-semibold tracking-tight">
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-[2.5rem] text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-4 sm:mb-6 leading-tight font-semibold tracking-tight">
               {PROP_PHRASE}
             </h2>
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-              Six focused services for Australian adults 18+: medical certificates, repeat
-              prescriptions, ED, hair loss, women&apos;s health, and weight management. Fees from{" "}
-              {PRICING_DISPLAY.MED_CERT} AUD. Broader concerns, ongoing care, or anything needing an
-              examination belongs with your regular GP or an in-person service.
+            <p className="text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed text-balance">
+              Medical certificates, repeat prescriptions and focused assessments for Australian
+              adults 18+. From {PRICING_DISPLAY.MED_CERT} AUD.
             </p>
           </Hero>
 

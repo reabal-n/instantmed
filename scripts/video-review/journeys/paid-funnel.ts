@@ -1,7 +1,7 @@
 /**
  * Paid-funnel journey: the money path.
  *
- * Homepage hero → tap "Medical certificate" CTA → walk the /request flow
+ * Homepage hero → Get started → service hub → Medical certificate → /request flow
  * for a 1-day cert, fill the form fields with throw-away data, advance to
  * the checkout step (do NOT submit payment).
  *
@@ -20,7 +20,7 @@ import type { Journey } from "./index"
 
 export const paidFunnel: Journey = {
   name: "paid-funnel",
-  label: "Paid funnel (homepage → /request med-cert → checkout)",
+  label: "Paid funnel (homepage → service chooser → med-cert → Review & pay; payment not submitted)",
   targetSeconds: 75,
   async postCapture(page, baseUrl) {
     // The journey enters an email, which intentionally creates the same
@@ -64,10 +64,11 @@ export const paidFunnel: Journey = {
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }))
     await page.waitForTimeout(1500)
 
-    await page.goto(`${baseUrl}/request?service=med-cert`, {
-      waitUntil: "networkidle",
-      timeout: 30000,
-    })
+    await page.getByRole("link", { name: /^Get started$/i }).first().click()
+    await page.getByRole("heading", { name: /What brings you in today/i })
+      .waitFor({ state: "visible", timeout: 15000 })
+    await page.waitForTimeout(1500)
+    await page.getByRole("button", { name: /^Medical certificate$/i }).click()
     await page
       .getByRole("heading", { name: /Certificate details/i })
       .waitFor({ state: "visible", timeout: 15000 })
