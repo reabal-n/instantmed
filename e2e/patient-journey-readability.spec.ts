@@ -2,8 +2,8 @@ import { expect, type Locator, test } from "@playwright/test"
 
 import { paidFunnel } from "../scripts/video-review/journeys/paid-funnel"
 
-async function expectReadablePlaceholder(field: Locator) {
-  const ratio = await field.evaluate((element) => {
+async function expectReadableContrast(field: Locator, part: "placeholder" | "background" = "placeholder") {
+  const ratio = await field.evaluate((element, part) => {
     const canvas = document.createElement("canvas")
     canvas.width = canvas.height = 1
     const context = canvas.getContext("2d")!
@@ -14,11 +14,14 @@ async function expectReadablePlaceholder(field: Locator) {
     const ancestors: Element[] = []
     for (let current: Element | null = element; current; current = current.parentElement) ancestors.unshift(current)
     for (const ancestor of ancestors) {
+      if (ancestor === element && part === "background") continue
       context.fillStyle = getComputedStyle(ancestor).backgroundColor
       context.fillRect(0, 0, 1, 1)
     }
     const background = context.getImageData(0, 0, 1, 1).data
-    context.fillStyle = getComputedStyle(element, "::placeholder").color
+    context.fillStyle = part === "placeholder"
+      ? getComputedStyle(element, "::placeholder").color
+      : getComputedStyle(element).backgroundColor
     context.fillRect(0, 0, 1, 1)
     const foreground = context.getImageData(0, 0, 1, 1).data
     const luminance = (color: Uint8ClampedArray) => Array.from(color).slice(0, 3)
@@ -28,8 +31,9 @@ async function expectReadablePlaceholder(field: Locator) {
     const a = luminance(background)
     const b = luminance(foreground)
     return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
-  })
-  expect(ratio, "input examples must remain readable against their field background").toBeGreaterThanOrEqual(4.5)
+  }, part)
+  expect(ratio, "field guidance and control states must contrast with their rendered background")
+    .toBeGreaterThanOrEqual(part === "placeholder" ? 4.5 : 3)
 }
 
 // Browser behaviour only. Keep draft writes and checkout actions inside the
@@ -37,6 +41,9 @@ async function expectReadablePlaceholder(field: Locator) {
 for (const theme of ["light", "dark"] as const) {
   test(`public journey keeps answers readable and recoverable in ${theme} mode`, async ({ page, baseURL }, testInfo) => {
     test.setTimeout(120_000)
+    // Noon in Sydney: priority review is intentionally hidden overnight.
+    // Keep this control check deterministic without changing that offer rule.
+    await page.clock.install({ time: new Date("2026-09-10T02:00:00Z") })
     await page.setViewportSize({ width: 375, height: 812 })
     await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" })
     await page.addInitScript((mode) => localStorage.setItem("theme", mode), theme)
@@ -67,7 +74,7 @@ for (const theme of ["light", "dark"] as const) {
     await paidFunnel.run(page, baseURL!)
     await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`))
     await page.getByRole("button", { name: "Edit Symptoms", exact: true }).click()
-    await expectReadablePlaceholder(page.locator("#symptom-details"))
+    await expectReadableContrast(page.locator("#symptom-details"))
     const description = "Runny nose and a mild headache since this morning. I feel tired and need a day off work to rest."
     await page.locator("#symptom-details").fill(description)
     const actionBar = page.locator('[data-intake-mobile-action-bar="true"]')
@@ -75,7 +82,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your details")
     await expect(page.getByRole("textbox", { name: /First name/i })).toHaveValue("Test")
     for (const name of [/First name/i, /Last name/i, /Email/i, /Date of birth/i]) {
-      await expectReadablePlaceholder(page.getByRole("textbox", { name }))
+      await expectReadableContrast(page.getByRole("textbox", { name }))
     }
     const longEmail = `${"avery.example".repeat(4)}@example.com`
     await page.getByRole("textbox", { name: /Email/i }).fill(longEmail)
@@ -106,6 +113,10 @@ for (const theme of ["light", "dark"] as const) {
     await page.reload()
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Review & pay")
     await expect(page.locator("dd").filter({ hasText: description })).toHaveText(description)
+    const priority = page.getByRole("switch", { name: "Enable priority review" })
+    const priorityTrack = priority.locator(":scope > span[aria-hidden]")
+    await expectReadableContrast(priorityTrack, "background")
+    await expectReadableContrast(priorityTrack.locator("span"), "background")
     await page.screenshot({ path: testInfo.outputPath(`review-${theme}.png`), fullPage: true })
 
     const consent = page.getByRole("checkbox", { name: /Confirm request and payment terms/i })

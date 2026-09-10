@@ -61,6 +61,7 @@ test.describe("IntakeResumeChip", () => {
   })
 
   test("does not render when no draft exists", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
     await page.goto("/", { waitUntil: "domcontentloaded" })
     await page.evaluate(() => {
       // Clear any service draft keys + the dismissal flag
@@ -73,6 +74,10 @@ test.describe("IntakeResumeChip", () => {
       page.getByText(/Pick up your .* request\?/i),
       "chip should be hidden when no draft",
     ).not.toBeVisible()
+    const navigation = await page.getByRole("navigation", { name: "Main navigation", exact: true }).boundingBox()
+    const availability = await page.locator("main .hero-availability-enter").first().boundingBox()
+    expect(availability!.y, "fresh homepage content must clear fixed navigation")
+      .toBeGreaterThanOrEqual(navigation!.y + navigation!.height)
   })
 
   for (const width of [375, 1440]) {
