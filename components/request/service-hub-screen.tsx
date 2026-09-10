@@ -273,7 +273,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           >
             <span>LegitScript certified</span>
             <span className="h-1 w-1 rounded-full bg-border-em" aria-hidden="true" />
-            <span>Google healthcare certified</span>
+            <span>{getApprovedClaim("google_healthcare_ads_label")}</span>
           </div>
           <p className="text-center text-[11px] leading-snug text-muted-foreground">
             Prescribing and any concerning certificate request is reviewed by an Australian-registered doctor.
