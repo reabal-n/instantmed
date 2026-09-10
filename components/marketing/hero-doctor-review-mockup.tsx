@@ -2,15 +2,13 @@
 
 import { motion, useAnimationControls } from "framer-motion"
 import {
-  CheckCircle2,
   FileText,
-  Loader2,
   Pill,
   RefreshCcw,
   ShieldCheck,
   Stethoscope,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING_DISPLAY } from "@/lib/constants"
@@ -18,7 +16,7 @@ import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { cn } from "@/lib/utils"
 
 const REVIEW_STEPS = [
-  { id: "identity", label: "Identity verified" },
+  { id: "identity", label: "Identity check" },
   { id: "assessment", label: "Clinical assessment" },
   { id: "decision", label: "Decision" },
 ] as const
@@ -89,18 +87,14 @@ const FLOATS: FloatingCard[] = [
   },
 ]
 
-const CYCLE_MS = 1800
-const REST_AT_END_MS = 1400
-
 /**
- * Illustrative doctor review with the possible outputs beneath it.
+ * A static example of doctor review with possible outputs beneath it.
  * Normal document flow keeps every label readable at narrow widths.
- * Reduced-motion users see the final state without animation.
+ * Entrance motion never simulates an active clinical request.
  */
 export function HeroDoctorReviewMockup() {
   const prefersReducedMotion = useReducedMotion()
   const entranceControls = useAnimationControls()
-  const [activeIndex, setActiveIndex] = useState(REVIEW_STEPS.length - 1)
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -112,31 +106,7 @@ export function HeroDoctorReviewMockup() {
     void entranceControls.start("visible")
   }, [entranceControls, prefersReducedMotion])
 
-  useEffect(() => {
-    if (prefersReducedMotion) return
-    let timeout: ReturnType<typeof setTimeout>
-
-    const tick = () => {
-      setActiveIndex((current) => {
-        const next = current + 1
-        if (next >= REVIEW_STEPS.length) {
-          // Hold at the final state for a beat before looping back, so the
-          // sequence feels resolved, not relentless.
-          timeout = setTimeout(() => setActiveIndex(0), REST_AT_END_MS)
-          return REVIEW_STEPS.length - 1
-        }
-        timeout = setTimeout(tick, CYCLE_MS)
-        return next
-      })
-    }
-
-    timeout = setTimeout(tick, CYCLE_MS)
-    return () => clearTimeout(timeout)
-  }, [prefersReducedMotion])
-
   const animate = !prefersReducedMotion
-  // For reduced motion: render the final state so the user sees the resolved sequence.
-  const displayedIndex = animate ? activeIndex : REVIEW_STEPS.length - 1
 
   return (
     <div className="relative w-full max-w-[360px]" aria-label="Example of doctor review">
@@ -162,76 +132,32 @@ export function HeroDoctorReviewMockup() {
             >
               <Stethoscope className="h-5 w-5" />
             </span>
-            <span
-              aria-hidden="true"
-              className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-card"
-            />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground leading-tight">
               Doctor review
             </p>
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1 leading-tight mt-0.5">
+            <p className="text-xs text-muted-foreground flex items-center gap-1 leading-tight mt-1">
               <ShieldCheck className="w-3 h-3 text-primary" aria-hidden="true" />
               AHPRA registered
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full border border-[#047857]/20 bg-[#DCFCE7] px-2 py-0.5 text-[10px] font-medium text-[#064E3B] dark:border-[#6EE7B7]/30 dark:bg-[#052E1B] dark:text-[#D1FAE5]">
-            <span
-              className="w-1.5 h-1.5 rounded-full bg-[#059669] dark:bg-[#6EE7B7]"
-              style={{ animation: animate ? "pulse 2.5s ease-in-out infinite" : undefined }}
-              aria-hidden="true"
-            />
-            Reviewing
+          <span className="rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+            Example
           </span>
         </div>
 
         {/* Steps */}
-        <div className="px-5 py-4 space-y-3">
-          {REVIEW_STEPS.map((step, i) => {
-            const isComplete = i < displayedIndex
-            const isActive = i === displayedIndex
-            return (
-              <div
-                key={step.id}
-                className={cn(
-                  "flex items-center gap-3 transition-opacity duration-300",
-                  !isActive && !isComplete && "opacity-40",
-                )}
-              >
-                <span className="shrink-0 w-5 h-5 flex items-center justify-center">
-                  {isComplete ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500" aria-hidden="true" />
-                  ) : isActive ? (
-                    <Loader2
-                      className="w-4 h-4 text-primary"
-                      style={{
-                        animation: animate ? "spin 1.4s linear infinite" : undefined,
-                      }}
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground/30" aria-hidden="true" />
-                  )}
-                </span>
-                <span
-                  className={cn(
-                    "text-sm font-medium transition-colors duration-300",
-                    isActive ? "text-foreground" : isComplete ? "text-foreground/70" : "text-muted-foreground",
-                  )}
-                >
-                  {step.label}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Footer hairline */}
-        <div className="px-5 py-3 bg-muted/30 dark:bg-white/[0.03] border-t border-border/30 flex items-center justify-between">
-          <span className="text-[10px] text-muted-foreground">Doctor review</span>
-          <span className="text-[10px] font-mono text-muted-foreground tracking-wider">IM-2026</span>
-        </div>
+        <ol className="px-5 py-4 space-y-3">
+          {REVIEW_STEPS.map((step, i) => (
+            <li key={step.id} className="flex items-center gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary" aria-hidden="true">
+                {i + 1}
+              </span>
+              <span className="text-sm font-medium text-foreground">{step.label}</span>
+            </li>
+          ))}
+        </ol>
       </motion.div>
 
       {/* Outputs stay clear of the review content at every viewport. */}

@@ -7,7 +7,7 @@
  *
  * What the rubric should see:
  *   - Brand spine on the hero (TAGLINE + PROP_PHRASE)
- *   - Trust strip + signature wait counter
+ *   - Trust strip and labelled review example
  *   - Service hub card design
  *   - Intake step transitions (animation, layout consistency)
  *   - Mobile sticky primary-action bar behaviour
@@ -95,6 +95,7 @@ export const paidFunnel: Journey = {
     await page
       .getByRole("heading", { name: /What is stopping you today/i })
       .waitFor({ state: "visible", timeout: 15000 })
+    await page.waitForTimeout(4200)
 
     const symptomStarter = page.getByRole("button", { name: /^Cold or flu$/i }).first()
     await symptomStarter.waitFor({ state: "visible", timeout: 15000 })
@@ -111,6 +112,7 @@ export const paidFunnel: Journey = {
       .getByRole("heading", { name: /Your details/i })
       .last()
       .waitFor({ state: "visible", timeout: 15000 })
+    await page.waitForTimeout(4200)
 
     await page.getByRole("textbox", { name: /First name/i }).fill("Test")
     await page.getByRole("textbox", { name: /Last name/i }).fill("Patient")
@@ -125,6 +127,9 @@ export const paidFunnel: Journey = {
     await page
       .getByRole("heading", { name: /One last check/i })
       .waitFor({ state: "visible", timeout: 15000 })
+    // Hold the review header and answers before consent scrolls into view.
+    // Periodic still capture must see the whole step, not only its pay area.
+    await page.waitForTimeout(4200)
     await page.getByRole("checkbox", { name: /Confirm request and payment terms/i }).click()
     await page.getByRole("button", { name: /Pay \$24\.95/i }).waitFor({ state: "visible", timeout: 15000 })
 

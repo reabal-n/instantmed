@@ -1490,7 +1490,7 @@ test.describe("money-page keyboard foundations", () => {
 })
 
 test.describe("money-page reduced-motion foundations", () => {
-  test("hero first paint starts on the resolved review step for either motion preference", async ({ browser }, testInfo) => {
+  test("hero first paint explains review without simulating a live request for either motion preference", async ({ browser }, testInfo) => {
     for (const reducedMotion of ["no-preference", "reduce"] as const) {
       const context = await browser.newContext({
         baseURL: projectBaseURL(testInfo),
@@ -1511,14 +1511,13 @@ test.describe("money-page reduced-motion foundations", () => {
         expect(response?.ok(), `${reducedMotion} first-paint response`).toBe(true)
 
         const doctorCard = page.locator('[data-reduced-motion-final="doctor-card"]')
-        const activeStepIcon = doctorCard.locator('svg[style*="spin"]').first()
-        const activeStep = activeStepIcon.locator(
-          "xpath=ancestor::div[contains(@class, 'flex') and contains(@class, 'items-center')][1]",
-        )
-
         await expect(doctorCard).toBeAttached()
-        await expect(activeStepIcon).toHaveCount(1)
-        await expect(activeStep).toContainText("Decision")
+        await expect(doctorCard.getByText("Example", { exact: true })).toBeVisible()
+        await expect(doctorCard.getByRole("listitem")).toHaveText([
+          "1Identity check", "2Clinical assessment", "3Decision",
+        ])
+        await expect(doctorCard.getByText("Reviewing", { exact: true })).toHaveCount(0)
+        await expect(doctorCard.locator('[style*="spin"], [style*="pulse"]')).toHaveCount(0)
       } finally {
         await context.close()
       }

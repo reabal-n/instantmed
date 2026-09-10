@@ -42,9 +42,7 @@ describe("marketing reduced-motion contract", () => {
   it("settles the hero doctor card and floats immediately", () => {
     const hero = read("components/marketing/hero-doctor-review-mockup.tsx")
 
-    expect(hero).toContain(
-      "const [activeIndex, setActiveIndex] = useState(REVIEW_STEPS.length - 1)",
-    )
+    expect(hero).not.toContain("setActiveIndex")
     expect(hero).toContain('initial={animate ? "hidden" : "reduced"}')
     expect(hero.match(/animate=\{entranceControls\}/g)).toHaveLength(2)
     expect(hero).toContain("entranceControls.stop()")
