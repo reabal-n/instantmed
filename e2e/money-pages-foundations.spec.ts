@@ -1552,9 +1552,11 @@ test.describe("money-page reduced-motion foundations", () => {
         }
 
         if (route.path === "/") {
+          // The drawer loads on interaction; verify its reduced-motion state
+          // after opening it instead of requiring an eagerly mounted menu.
+          await page.getByRole("button", { name: "Open menu" }).click()
           const staticMenu = page.locator('nav[data-mobile-menu-motion="static"]')
           await expect(staticMenu).toBeAttached()
-          await page.getByRole("button", { name: "Open menu" }).click()
 
           const panel = page.locator('[data-mobile-menu-panel="true"]')
           const content = page.locator('[data-mobile-menu-content="true"]')
