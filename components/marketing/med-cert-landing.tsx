@@ -354,7 +354,7 @@ export function MedCertLanding() {
         <Navbar variant="marketing" />
 
         <main className="relative">
-          <IntakeResumeChip className="mx-4 mt-3 max-w-5xl sm:mx-auto" />
+          <IntakeResumeChip className="mx-4 mt-[calc(5.5rem+env(safe-area-inset-top))] max-w-5xl sm:mx-auto" />
           <MedCertHero />
           <LimitationsSection />
           <WorkplaceProofPanel />

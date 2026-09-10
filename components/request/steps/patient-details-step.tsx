@@ -679,7 +679,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           </AlertDescription>
         </Alert>
       )}
-      <QuestionCard compact className="space-y-4">
+      <QuestionCard compact className="space-y-4 [&_input]:placeholder:text-muted-foreground">
       {/* Name fields */}
       <div className="grid grid-cols-2 gap-2.5">
         <FormField

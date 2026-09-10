@@ -58,21 +58,18 @@ export const paidFunnel: Journey = {
   async run(page, baseUrl) {
     await page.goto(baseUrl, { waitUntil: "networkidle", timeout: 30000 })
 
-    await page.waitForTimeout(2000)
-    await page.evaluate(() => window.scrollTo({ top: 600, behavior: "smooth" }))
-    await page.waitForTimeout(2000)
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }))
-    await page.waitForTimeout(1500)
+    // Each stage stays visible for a complete still-frame capture interval.
+    await page.waitForTimeout(4200)
 
     await page.getByRole("link", { name: /^Get started$/i }).first().click()
     await page.getByRole("heading", { name: /What brings you in today/i })
       .waitFor({ state: "visible", timeout: 15000 })
-    await page.waitForTimeout(1500)
+    await page.waitForTimeout(4200)
     await page.getByRole("button", { name: /^Medical certificate$/i }).click()
     await page
       .getByRole("heading", { name: /Certificate details/i })
       .waitFor({ state: "visible", timeout: 15000 })
-    await page.waitForTimeout(1200)
+    await page.waitForTimeout(4200)
 
     const oneDayChip = page
       .getByRole("radio", { name: /1 day|1-day|one day/i })

@@ -251,7 +251,7 @@ export default function SymptomsStep({ serviceType, onNext, hideIntro = false }:
           label={isCarer ? "What symptoms are they having?" : "What symptoms are you having?"}
           required
           error={touched.symptomDetails ? errors.symptomDetails : undefined}
-          hint="Tap all that fit — that's enough to continue."
+          hint="Tap all that fit. That's enough to continue."
         >
           <ChipToggleGroup
             options={COMMON_SYMPTOM_STARTERS}
@@ -267,7 +267,7 @@ export default function SymptomsStep({ serviceType, onNext, hideIntro = false }:
             htmlFor="symptom-details"
             className="mt-3 block text-xs font-normal text-muted-foreground"
           >
-            Add detail (optional) — e.g. when it started
+            Add detail (optional), e.g. when it started
           </Label>
           <Textarea
             id="symptom-details"

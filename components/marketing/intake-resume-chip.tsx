@@ -98,7 +98,7 @@ export function IntakeResumeChip({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 dark:bg-primary/10 px-4 py-3 shadow-sm shadow-primary/[0.04]',
+        'flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-primary/30 bg-primary/5 dark:bg-primary/10 px-4 py-3 shadow-sm shadow-primary/[0.04]',
         className,
       )}
       role="status"
@@ -113,12 +113,12 @@ export function IntakeResumeChip({ className }: { className?: string }) {
           </p>
           <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
             <Clock className="w-3 h-3" aria-hidden="true" />
-            Saved {formatRelative(target.lastSavedAt)} &middot; takes under a minute to finish
+            Saved {formatRelative(target.lastSavedAt)}
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <Button asChild size="sm" className="rounded-full h-8">
+      <div className="flex items-center justify-end gap-2 shrink-0">
+        <Button asChild size="sm" className="rounded-full h-11 min-h-11">
           <Link href={target.href}>
             Continue
             <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
@@ -133,7 +133,7 @@ export function IntakeResumeChip({ className }: { className?: string }) {
             }
             setTarget(null)
           }}
-          className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-foreground/5 transition-colors"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground rounded-md hover:bg-foreground/5 transition-colors"
           aria-label="Dismiss"
         >
           <X className="w-4 h-4" />

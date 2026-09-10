@@ -35,6 +35,7 @@ for (const theme of ["light", "dark"] as const) {
 
     // Exercise the same real CTA and service choice used by visual review.
     await paidFunnel.run(page, baseURL!)
+    await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`))
     await page.getByRole("button", { name: "Edit Symptoms", exact: true }).click()
     const description = "Runny nose and a mild headache since this morning. I feel tired and need a day off work to rest."
     await page.locator("#symptom-details").fill(description)

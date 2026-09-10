@@ -533,6 +533,7 @@ jobs:
           pnpm exec playwright test --project=chromium \
             e2e/unified-request-flow.spec.ts \
             e2e/patient-journey-readability.spec.ts \
+            e2e/intake-resume-chip.spec.ts \
             e2e/consult-subtypes.spec.ts \
             e2e/doctor.weight-review.spec.ts \
             e2e/doctor.prescription-ui.spec.ts \

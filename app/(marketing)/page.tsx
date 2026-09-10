@@ -124,7 +124,7 @@ export default async function HomePage() {
         <ReturningPatientBanner className="mx-4 mt-2" />
 
         {/* Resume unfinished intake draft */}
-        <IntakeResumeChip className="mx-4 mt-2 max-w-5xl lg:mx-auto" />
+        <IntakeResumeChip className="mx-4 mt-[calc(5.5rem+env(safe-area-inset-top))] max-w-5xl lg:mx-auto" />
 
         <Navbar variant="marketing" />
 
