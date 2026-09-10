@@ -107,7 +107,7 @@ export default async function HomePage() {
 
   return (
     <MarketingPageShell>
-      <div className="min-h-screen overflow-x-hidden">
+      <div className="min-h-screen overflow-x-hidden pt-[calc(5rem+env(safe-area-inset-top))]">
         {/* SEO Structured Data */}
         <MedicalBusinessSchema />
         <FAQSchema faqs={faqSchemaData} />
@@ -124,7 +124,7 @@ export default async function HomePage() {
         <ReturningPatientBanner className="mx-4 mt-2" />
 
         {/* Resume unfinished intake draft */}
-        <IntakeResumeChip className="mx-4 mt-[calc(5.5rem+env(safe-area-inset-top))] max-w-5xl lg:mx-auto" />
+        <IntakeResumeChip className="mx-4 mt-2 max-w-5xl lg:mx-auto" />
 
         <Navbar variant="marketing" />
 
@@ -136,6 +136,7 @@ export default async function HomePage() {
         <main className="relative">
           {/* Hero owns the first-fold action and states the service boundary. */}
           <Hero
+            className="pt-6 sm:pt-6 lg:pt-6"
             title={TAGLINE}
             titleClassName="min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5"
             liveWait={waitState}

@@ -1,6 +1,36 @@
-import { expect, test } from "@playwright/test"
+import { expect, type Locator, test } from "@playwright/test"
 
 import { paidFunnel } from "../scripts/video-review/journeys/paid-funnel"
+
+async function expectReadablePlaceholder(field: Locator) {
+  const ratio = await field.evaluate((element) => {
+    const canvas = document.createElement("canvas")
+    canvas.width = canvas.height = 1
+    const context = canvas.getContext("2d")!
+    context.fillStyle = "white"
+    context.fillRect(0, 0, 1, 1)
+    // Input is transparent inside its card. Paint ancestor backgrounds in
+    // document order so contrast uses the rendered surface, including alpha.
+    const ancestors: Element[] = []
+    for (let current: Element | null = element; current; current = current.parentElement) ancestors.unshift(current)
+    for (const ancestor of ancestors) {
+      context.fillStyle = getComputedStyle(ancestor).backgroundColor
+      context.fillRect(0, 0, 1, 1)
+    }
+    const background = context.getImageData(0, 0, 1, 1).data
+    context.fillStyle = getComputedStyle(element, "::placeholder").color
+    context.fillRect(0, 0, 1, 1)
+    const foreground = context.getImageData(0, 0, 1, 1).data
+    const luminance = (color: Uint8ClampedArray) => Array.from(color).slice(0, 3)
+      .map(value => value / 255)
+      .map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
+      .reduce((total, value, index) => total + value * [0.2126, 0.7152, 0.0722][index], 0)
+    const a = luminance(background)
+    const b = luminance(foreground)
+    return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+  })
+  expect(ratio, "input examples must remain readable against their field background").toBeGreaterThanOrEqual(4.5)
+}
 
 // Browser behaviour only. Keep draft writes and checkout actions inside the
 // browser boundary; this spec does not establish hosted payment or delivery.
@@ -37,12 +67,16 @@ for (const theme of ["light", "dark"] as const) {
     await paidFunnel.run(page, baseURL!)
     await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`))
     await page.getByRole("button", { name: "Edit Symptoms", exact: true }).click()
+    await expectReadablePlaceholder(page.locator("#symptom-details"))
     const description = "Runny nose and a mild headache since this morning. I feel tired and need a day off work to rest."
     await page.locator("#symptom-details").fill(description)
     const actionBar = page.locator('[data-intake-mobile-action-bar="true"]')
     await actionBar.getByRole("button", { name: /^Continue( to payment)?$/ }).click()
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your details")
     await expect(page.getByRole("textbox", { name: /First name/i })).toHaveValue("Test")
+    for (const name of [/First name/i, /Last name/i, /Email/i, /Date of birth/i]) {
+      await expectReadablePlaceholder(page.getByRole("textbox", { name }))
+    }
     const longEmail = `${"avery.example".repeat(4)}@example.com`
     await page.getByRole("textbox", { name: /Email/i }).fill(longEmail)
     await actionBar.getByRole("button", { name: /^Continue( to payment)?$/ }).click()

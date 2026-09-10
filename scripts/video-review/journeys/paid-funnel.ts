@@ -116,7 +116,9 @@ export const paidFunnel: Journey = {
     await page.getByRole("textbox", { name: /Email/i }).fill("test@example.com")
     await page.getByRole("textbox", { name: /Date of birth/i }).fill("01/01/1990")
     await page.keyboard.press("Tab")
-    await page.waitForTimeout(1200)
+    // Capture entered values as well as empty fields so a still-frame reviewer
+    // can distinguish the input examples from the patient's review summary.
+    await page.waitForTimeout(4200)
 
     const mobileCta3 = page.locator("[data-intake-mobile-action-bar='true'] button").last()
     await mobileCta3.click()

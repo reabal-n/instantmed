@@ -1510,6 +1510,11 @@ test.describe("money-page reduced-motion foundations", () => {
         const response = await page.goto("/", { waitUntil: "domcontentloaded" })
         expect(response?.ok(), `${reducedMotion} first-paint response`).toBe(true)
 
+        const navigation = await page.getByRole("navigation", { name: "Main navigation", exact: true }).boundingBox()
+        const availability = await page.locator("main .hero-availability-enter").first().boundingBox()
+        expect(availability!.y, "availability must clear the fixed navigation at first paint")
+          .toBeGreaterThanOrEqual(navigation!.y + navigation!.height)
+
         const doctorCard = page.locator('[data-reduced-motion-final="doctor-card"]')
         await expect(doctorCard).toBeAttached()
         await expect(doctorCard.getByText("Example", { exact: true })).toBeVisible()

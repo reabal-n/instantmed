@@ -275,6 +275,7 @@ export default function SymptomsStep({ serviceType, onNext, hideIntro = false }:
             onChange={(e) => setAnswer("symptomDetails", e.target.value)}
             onBlur={() => setTouched((prev) => ({ ...prev, symptomDetails: true }))}
             placeholder="e.g. Fever and sore throat since yesterday."
+            textareaClassName="placeholder:text-muted-foreground"
             className={`mt-1.5 min-h-[72px] resize-none ${touched.symptomDetails && errors.symptomDetails ? "border-destructive" : ""}`}
           />
         </FormField>
