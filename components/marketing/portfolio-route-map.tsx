@@ -122,7 +122,7 @@ function ServiceCard({ service, index }: { service: ServiceDef; index: number })
   )
 }
 
-/** Homepage service chooser: five distinct cards with the shared safety model secondary. */
+/** Homepage service chooser with the shared safety model secondary. */
 export function PortfolioRouteMap() {
   const services = getActiveServices()
 
@@ -157,6 +157,10 @@ export function PortfolioRouteMap() {
             <p className="text-sm font-semibold text-foreground">Doctor-owned clinical pathways</p>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               Each service has its own secure form and safety rules. {FORM_FIRST_WEDGE}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Broader concerns, ongoing care, or anything needing an examination belongs with
+              your regular GP or an in-person service.
             </p>
           </div>
         </div>

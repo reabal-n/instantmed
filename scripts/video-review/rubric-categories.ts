@@ -10,30 +10,32 @@
  *   4. Re-run any sample critique to confirm Gemini honors the new key.
  */
 
+import { GUARANTEE, PROP_PHRASE, TAGLINE } from "@/lib/marketing/voice"
+
 export const RUBRIC_CATEGORIES = [
   {
     key: "brand_spine",
     label: "Brand spine",
     prompt:
-      "Does the brand thesis 'Telehealth without the small talk. A real doctor, ready in the time it takes to make a coffee.' come through in the first 5 seconds? Is the tagline 'Faster than your GP.' visible and credibly delivered? Does the surface feel like Mosh's warmth crossed with Pilot's CTA confidence, or does it feel generic-healthtech?",
+      `On public marketing, are '${TAGLINE}' and '${PROP_PHRASE}' clear and credible? Assess distinctive, calm communication. Intake and staff screens should prioritise their task; do not require marketing slogans there.`,
   },
   {
     key: "typography",
     label: "Typography",
     prompt:
-      "Hero uses Plus Jakarta Sans (font-display, 48px+); body uses Source Sans 3. Is the hierarchy clear? Are line-height and letter-spacing comfortable on mobile? Any orphaned headings, awkward line breaks, dense paragraphs? Compare against Linear and Stripe for restraint.",
+      "Hero uses Plus Jakarta Sans: 36px mobile, 48px tablet, 60px desktop. Body uses Source Sans 3, with 16px minimum on patient flows. Is hierarchy clear? Are line-height and line length comfortable? Identify awkward wrapping, unreadable labels or dense paragraphs. Do not require desktop headline sizes on mobile.",
   },
   {
     key: "color_and_surface",
     label: "Color & surface",
     prompt:
-      "Background is warm ivory #F8F7F4, never pure white. Cards are solid white on ivory with sky-toned shadows. Primary CTA is #2563EB blue. Brand coral #FF6B5B used only on brand-recognition moments. Does the page hold this restraint or has color crept in? Are surfaces calming on a high-anxiety patient flow, or visually loud?",
+      "Light-mode pages use warm ivory #F8F7F4 with solid white cards and restrained sky-toned shadows. Dark mode uses the corresponding dark surfaces. Primary CTA is #2563EB blue; coral is a brand accent. Assess contrast, readable states and calm hierarchy. Do not flag white cards as a background violation.",
   },
   {
     key: "motion",
     label: "Motion",
     prompt:
-      "Signature motion: ivory-to-dawn gradient sweep on page enter + 300ms ease-out lift on primary CTA hover. Respect useReducedMotion. Does motion feel intentional and physical (Linear-grade), or mechanical/linear (default spring 100/10)? Any jank, layout shift, or animations that interrupt scroll?",
+      "Assess observed transitions, layout stability and interruptions. Motion must serve orientation; no extra animation is required. Staff screens should remain quiet. Reduced-motion behaviour requires a capture of that setting. Static frames cannot establish timing, easing, jank or reduced-motion support: return score null for motion when only frames are supplied.",
   },
   {
     key: "copy_voice",
@@ -51,13 +53,13 @@ export const RUBRIC_CATEGORIES = [
     key: "conversion_friction",
     label: "Conversion friction",
     prompt:
-      "Time-poor urban professional, 25-45, wants to start the form in <10 seconds. Count visible friction points: extra clicks before the form, missing price anchor, unclear next step, modal interruptions, premature identity gates, lack of trust signals at CTA proximity. The merchandised promise 'Full refund if our doctor can't help' should appear at conversion points.",
+      `Assess the observed path: unclear next steps, redundant entry, missing prices, obscured controls, validation and recovery. The approved refund wording is '${GUARANTEE}'. Clinical identity and safety requirements are not optional friction. On staff screens, assess safe review, prescribing and return to the same request instead of patient conversion.`,
   },
   {
     key: "signature_devices",
     label: "Signature brand devices",
     prompt:
-      "Five distinctive devices: live wait-counter ('Average med cert today: 14 minutes from form to inbox'), doctor's handwritten signature (mark only on marketing), 'what we won't do' page link, name-first emails, 'while you wait' specificity. Which devices are visible in this capture? Which are missing where they should be?",
+      "Assess existing brand devices only on captured surfaces where they are appropriate. A wait counter needs real evidence; never suggest a made-up time or delivery guarantee. Emails and confirmation screens cannot be assessed when absent from the capture. Do not ask for every device on every screen or add decoration to clinical work. Return score null when this category is not applicable.",
   },
 ] as const
 

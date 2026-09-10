@@ -64,12 +64,12 @@ export function PriorityReviewToggle({
         aria-hidden
         className={cn(
           "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors",
-          checked ? "bg-success" : "bg-muted-foreground/25",
+          checked ? "bg-success" : "bg-muted-foreground",
         )}
       >
         <SwitchPrimitive.Thumb
           className={cn(
-            "pointer-events-none mt-0.5 block h-4 w-4 translate-x-0.5 rounded-full bg-white shadow-sm",
+            "pointer-events-none mt-0.5 block h-4 w-4 translate-x-0.5 rounded-full bg-white dark:bg-background shadow-sm",
             "transition-transform duration-200 ease-out data-[state=checked]:translate-x-[18px]",
           )}
         />

@@ -1,7 +1,7 @@
 /**
  * IntakeResumeChip smoke spec.
  *
- * The homepage renders `<IntakeResumeChip />` above the navbar. It inspects
+ * The homepage and certificate landing render `<IntakeResumeChip />`. It inspects
  * localStorage for unfinished `/request` drafts (keys prefixed
  * `instantmed-draft-`) and surfaces a resume CTA for the most recent one.
  * It self-dismisses for 6 hours when the user closes it.
@@ -44,9 +44,24 @@ async function seedDraft(
 test.describe("IntakeResumeChip", () => {
   test.beforeEach(async ({ context }) => {
     await context.clearCookies()
+    // Resume is a browser-only check. Never persist a synthetic anonymous draft
+    // to the shared backend, including the beacon sent when the page closes.
+    await context.route("**/api/draft**", async (route) => {
+      if (route.request().method() === "POST") {
+        const body = route.request().postDataJSON() as { sessionId: string }
+        await route.fulfill({ json: {
+          sessionId: body.sessionId,
+          updatedAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+        } })
+      } else {
+        await route.fulfill({ status: 404, json: { error: "Not found" } })
+      }
+    })
   })
 
   test("does not render when no draft exists", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
     await page.goto("/", { waitUntil: "domcontentloaded" })
     await page.evaluate(() => {
       // Clear any service draft keys + the dismissal flag
@@ -59,16 +74,31 @@ test.describe("IntakeResumeChip", () => {
       page.getByText(/Pick up your .* request\?/i),
       "chip should be hidden when no draft",
     ).not.toBeVisible()
+    const navigation = await page.getByRole("navigation", { name: "Main navigation", exact: true }).boundingBox()
+    const availability = await page.locator("main .hero-availability-enter").first().boundingBox()
+    expect(availability!.y, "fresh homepage content must clear fixed navigation")
+      .toBeGreaterThanOrEqual(navigation!.y + navigation!.height)
   })
 
-  test("renders for an unfinished med-cert draft with Continue CTA", async ({ page }) => {
-    await seedDraft(page, "med-cert")
-    await expect(page.getByText("Pick up your medical certificate request?")).toBeVisible({
-      timeout: 5_000,
-    })
-    const continueLink = page.getByRole("link", { name: /Continue/i }).first()
-    await expect(continueLink).toHaveAttribute("href", "/request?service=med-cert")
-  })
+  for (const width of [375, 1440]) {
+    for (const path of ["/", "/medical-certificate"]) {
+      test(`resume link clears navigation and opens the draft at ${width} on ${path}`, async ({ page }, testInfo) => {
+        await page.setViewportSize({ width, height: 900 })
+        await seedDraft(page, "med-cert")
+        if (path !== "/") await page.goto(path, { waitUntil: "domcontentloaded" })
+        await expect(page.getByText("Pick up your medical certificate request?")).toBeVisible()
+        const continueLink = page.getByRole("link", { name: /^Continue$/i }).first()
+        await expect(continueLink).toHaveAttribute("href", "/request?service=med-cert")
+        const navigation = await page.getByRole("navigation", { name: "Main navigation", exact: true }).boundingBox()
+        const action = await continueLink.boundingBox()
+        expect(action!.y).toBeGreaterThanOrEqual(navigation!.y + navigation!.height)
+        expect(action!.height).toBeGreaterThanOrEqual(44)
+        await page.screenshot({ path: testInfo.outputPath(`resume-${width}.png`) })
+        await continueLink.click()
+        await expect(page).toHaveURL(/\/request\?service=med-cert/)
+      })
+    }
+  }
 
   test("dismissing sets the 6h suppression flag and hides the chip", async ({ page }) => {
     await seedDraft(page, "prescription")

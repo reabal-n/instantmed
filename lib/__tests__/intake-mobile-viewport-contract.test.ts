@@ -259,7 +259,7 @@ describe("intake mobile viewport contract", () => {
   it("keeps repeat-prescription identity details compact and visually restrained", () => {
     const source = readProjectFile("components/request/steps/patient-details-step.tsx")
 
-    expect(source).toContain('<QuestionCard compact className="space-y-4">')
+    expect(source).toMatch(/<QuestionCard compact className="space-y-4(?: [^"]*)?">/)
     expect(source).toContain("grid-cols-[minmax(0,1fr)_4.5rem]")
     expect(source).toContain("For your medical record and eScript.")
     expect(source).toContain("border-primary bg-primary/5 text-foreground")

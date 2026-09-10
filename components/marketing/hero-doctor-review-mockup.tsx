@@ -2,15 +2,13 @@
 
 import { motion, useAnimationControls } from "framer-motion"
 import {
-  CheckCircle2,
   FileText,
-  Loader2,
   Pill,
   RefreshCcw,
   ShieldCheck,
   Stethoscope,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING_DISPLAY } from "@/lib/constants"
@@ -18,16 +16,10 @@ import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { cn } from "@/lib/utils"
 
 const REVIEW_STEPS = [
-  { id: "identity", label: "Identity verified" },
+  { id: "identity", label: "Identity check" },
   { id: "assessment", label: "Clinical assessment" },
   { id: "decision", label: "Decision" },
 ] as const
-
-type FloatPosition =
-  | "top-left"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-right"
 
 interface FloatingCard {
   icon: typeof FileText
@@ -36,16 +28,6 @@ interface FloatingCard {
   title: string
   status: string
   statusClass: string
-  position: FloatPosition
-}
-
-// Asymmetric placement so the four corners don't read as a grid.
-// Each float has its own offset, keeping the composition organic.
-const FLOATING_POSITIONS: Record<FloatPosition, string> = {
-  "top-left": "-top-3 -left-6 sm:-left-10 lg:-left-12",
-  "top-right": "-top-2 -right-4 sm:-right-8 lg:-right-10",
-  "bottom-left": "-bottom-2 -left-4 sm:-left-8 lg:-left-12",
-  "bottom-right": "-bottom-3 -right-5 sm:-right-10 lg:-right-14",
 }
 
 const PRIMARY_CARD_VARIANTS = {
@@ -68,7 +50,6 @@ const FLOATS: FloatingCard[] = [
     title: "Medical certificate",
     status: "Approved",
     statusClass: "text-emerald-700 dark:text-emerald-300",
-    position: "top-left",
   },
   {
     icon: Pill,
@@ -77,7 +58,6 @@ const FLOATS: FloatingCard[] = [
     title: "eScript",
     status: getApprovedClaim("prescription_escript_sent"),
     statusClass: "text-primary",
-    position: "top-right",
   },
   {
     icon: RefreshCcw,
@@ -96,7 +76,6 @@ const FLOATS: FloatingCard[] = [
     // (icon + tint keep the bright signature --brand-coral). #FF6B5B as text
     // was ~2.8:1; the siblings already use their dark -700 shade for text.
     statusClass: "text-brand-coral-strong",
-    position: "bottom-left",
   },
   {
     icon: Stethoscope,
@@ -105,39 +84,17 @@ const FLOATS: FloatingCard[] = [
     title: "Doctor plan",
     status: "Reviewed",
     statusClass: "text-amber-700 dark:text-amber-300",
-    position: "bottom-right",
   },
 ]
 
-const CYCLE_MS = 1800
-const REST_AT_END_MS = 1400
-
 /**
- * Hero mockup — doctor-led, multi-output, sequenced.
- *
- * Replaces the previous kitchen-sink hero composition.
- *
- * Structure:
- *   - Primary card: "Your GP — reviewing now" with a 3-state progress
- *     sequence (Identity → Clinical assessment → Decision). The animation
- *     loops with a small rest at the end so it never feels frantic.
- *   - Four static floating output cards (cert, eScript, repeat Rx,
- *     treatment plan) at asymmetric corners. They mount in once with a
- *     stagger and stay still — no continuous motion noise.
- *
- * Anti-cert-mill positioning: the doctor IS the hero. Floating cards
- * prove platform breadth so the page reads as primary-care telehealth,
- * not a single-service mill.
- *
- * Constraints:
- *   - No real doctor name (CLAUDE.md: "Never advertise individual doctor names").
- *   - Reduced-motion users see the end state with no animation.
- *   - Parent must allow `overflow-visible` (floats clip otherwise).
+ * A static example of doctor review with possible outputs beneath it.
+ * Normal document flow keeps every label readable at narrow widths.
+ * Entrance motion never simulates an active clinical request.
  */
 export function HeroDoctorReviewMockup() {
   const prefersReducedMotion = useReducedMotion()
   const entranceControls = useAnimationControls()
-  const [activeIndex, setActiveIndex] = useState(REVIEW_STEPS.length - 1)
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -149,34 +106,10 @@ export function HeroDoctorReviewMockup() {
     void entranceControls.start("visible")
   }, [entranceControls, prefersReducedMotion])
 
-  useEffect(() => {
-    if (prefersReducedMotion) return
-    let timeout: ReturnType<typeof setTimeout>
-
-    const tick = () => {
-      setActiveIndex((current) => {
-        const next = current + 1
-        if (next >= REVIEW_STEPS.length) {
-          // Hold at the final state for a beat before looping back, so the
-          // sequence feels resolved, not relentless.
-          timeout = setTimeout(() => setActiveIndex(0), REST_AT_END_MS)
-          return REVIEW_STEPS.length - 1
-        }
-        timeout = setTimeout(tick, CYCLE_MS)
-        return next
-      })
-    }
-
-    timeout = setTimeout(tick, CYCLE_MS)
-    return () => clearTimeout(timeout)
-  }, [prefersReducedMotion])
-
   const animate = !prefersReducedMotion
-  // For reduced motion: render the final state so the user sees the resolved sequence.
-  const displayedIndex = animate ? activeIndex : REVIEW_STEPS.length - 1
 
   return (
-    <div className="relative w-[280px] lg:w-[320px] xl:w-[340px]">
+    <div className="relative w-full max-w-[360px]" aria-label="Example of doctor review">
       {/* Primary card */}
       <motion.div
         data-reduced-motion-final="doctor-card"
@@ -199,79 +132,36 @@ export function HeroDoctorReviewMockup() {
             >
               <Stethoscope className="h-5 w-5" />
             </span>
-            <span
-              aria-hidden="true"
-              className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-card"
-            />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground leading-tight">
               Doctor review
             </p>
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1 leading-tight mt-0.5">
+            <p className="text-xs text-muted-foreground flex items-center gap-1 leading-tight mt-1">
               <ShieldCheck className="w-3 h-3 text-primary" aria-hidden="true" />
               AHPRA registered
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full border border-[#047857]/20 bg-[#DCFCE7] px-2 py-0.5 text-[10px] font-medium text-[#064E3B] dark:border-[#6EE7B7]/30 dark:bg-[#052E1B] dark:text-[#D1FAE5]">
-            <span
-              className="w-1.5 h-1.5 rounded-full bg-[#059669] dark:bg-[#6EE7B7]"
-              style={{ animation: animate ? "pulse 2.5s ease-in-out infinite" : undefined }}
-              aria-hidden="true"
-            />
-            Reviewing
+          <span className="rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+            Example
           </span>
         </div>
 
         {/* Steps */}
-        <div className="px-5 py-4 space-y-3">
-          {REVIEW_STEPS.map((step, i) => {
-            const isComplete = i < displayedIndex
-            const isActive = i === displayedIndex
-            return (
-              <div
-                key={step.id}
-                className={cn(
-                  "flex items-center gap-3 transition-opacity duration-300",
-                  !isActive && !isComplete && "opacity-40",
-                )}
-              >
-                <span className="shrink-0 w-5 h-5 flex items-center justify-center">
-                  {isComplete ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500" aria-hidden="true" />
-                  ) : isActive ? (
-                    <Loader2
-                      className="w-4 h-4 text-primary"
-                      style={{
-                        animation: animate ? "spin 1.4s linear infinite" : undefined,
-                      }}
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground/30" aria-hidden="true" />
-                  )}
-                </span>
-                <span
-                  className={cn(
-                    "text-sm font-medium transition-colors duration-300",
-                    isActive ? "text-foreground" : isComplete ? "text-foreground/70" : "text-muted-foreground",
-                  )}
-                >
-                  {step.label}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Footer hairline */}
-        <div className="px-5 py-3 bg-muted/30 dark:bg-white/[0.03] border-t border-border/30 flex items-center justify-between">
-          <span className="text-[10px] text-muted-foreground">Doctor review</span>
-          <span className="text-[10px] font-mono text-muted-foreground tracking-wider">IM-2026</span>
-        </div>
+        <ol className="px-5 py-4 space-y-3">
+          {REVIEW_STEPS.map((step, i) => (
+            <li key={step.id} className="flex items-center gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary" aria-hidden="true">
+                {i + 1}
+              </span>
+              <span className="text-sm font-medium text-foreground">{step.label}</span>
+            </li>
+          ))}
+        </ol>
       </motion.div>
 
-      {/* Floating outputs */}
+      {/* Outputs stay clear of the review content at every viewport. */}
+      <div className="mt-3 grid grid-cols-2 gap-3">
       {FLOATS.map((card, i) => {
         const Icon = card.icon
         return (
@@ -279,9 +169,8 @@ export function HeroDoctorReviewMockup() {
             key={card.title}
             data-reduced-motion-final="doctor-float"
             className={cn(
-              "absolute z-10 inline-flex items-center gap-2.5 whitespace-nowrap rounded-xl bg-white px-3 py-2 shadow-lg shadow-primary/[0.06] pointer-events-none",
+              "min-w-0 flex items-center gap-2 rounded-xl bg-white px-3 py-3 shadow-sm shadow-primary/[0.06] pointer-events-none",
               "border border-border/50 dark:border-white/15 dark:bg-card dark:shadow-none",
-              FLOATING_POSITIONS[card.position],
             )}
             variants={FLOAT_VARIANTS}
             initial={animate ? "hidden" : "reduced"}
@@ -302,16 +191,17 @@ export function HeroDoctorReviewMockup() {
               <Icon className={cn("w-3.5 h-3.5", card.iconClass)} />
             </span>
             <div className="leading-tight">
-              <p className="text-[11px] font-semibold text-foreground">
+              <p className="text-xs font-semibold text-foreground">
                 {card.title}
               </p>
-              <p className={cn("text-[10px] font-medium", card.statusClass)}>
+              <p className={cn("mt-1 text-xs font-medium", card.statusClass)}>
                 {card.status}
               </p>
             </div>
           </motion.div>
         )
       })}
+      </div>
     </div>
   )
 }

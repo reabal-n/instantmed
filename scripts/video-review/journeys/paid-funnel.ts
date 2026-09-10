@@ -1,13 +1,13 @@
 /**
  * Paid-funnel journey: the money path.
  *
- * Homepage hero → tap "Medical certificate" CTA → walk the /request flow
+ * Homepage hero → Get started → service hub → Medical certificate → /request flow
  * for a 1-day cert, fill the form fields with throw-away data, advance to
  * the checkout step (do NOT submit payment).
  *
  * What the rubric should see:
  *   - Brand spine on the hero (TAGLINE + PROP_PHRASE)
- *   - Trust strip + signature wait counter
+ *   - Trust strip and labelled review example
  *   - Service hub card design
  *   - Intake step transitions (animation, layout consistency)
  *   - Mobile sticky primary-action bar behaviour
@@ -20,7 +20,7 @@ import type { Journey } from "./index"
 
 export const paidFunnel: Journey = {
   name: "paid-funnel",
-  label: "Paid funnel (homepage → /request med-cert → checkout)",
+  label: "Paid funnel (homepage → service chooser → med-cert → Review & pay; payment not submitted)",
   targetSeconds: 75,
   async postCapture(page, baseUrl) {
     // The journey enters an email, which intentionally creates the same
@@ -58,20 +58,18 @@ export const paidFunnel: Journey = {
   async run(page, baseUrl) {
     await page.goto(baseUrl, { waitUntil: "networkidle", timeout: 30000 })
 
-    await page.waitForTimeout(2000)
-    await page.evaluate(() => window.scrollTo({ top: 600, behavior: "smooth" }))
-    await page.waitForTimeout(2000)
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }))
-    await page.waitForTimeout(1500)
+    // Each stage stays visible for a complete still-frame capture interval.
+    await page.waitForTimeout(4200)
 
-    await page.goto(`${baseUrl}/request?service=med-cert`, {
-      waitUntil: "networkidle",
-      timeout: 30000,
-    })
+    await page.getByRole("link", { name: /^Get started$/i }).first().click()
+    await page.getByRole("heading", { name: /What brings you in today/i })
+      .waitFor({ state: "visible", timeout: 15000 })
+    await page.waitForTimeout(4200)
+    await page.getByRole("button", { name: /^Medical certificate$/i }).click()
     await page
       .getByRole("heading", { name: /Certificate details/i })
       .waitFor({ state: "visible", timeout: 15000 })
-    await page.waitForTimeout(1200)
+    await page.waitForTimeout(4200)
 
     const oneDayChip = page
       .getByRole("radio", { name: /1 day|1-day|one day/i })
@@ -94,6 +92,7 @@ export const paidFunnel: Journey = {
     await page
       .getByRole("heading", { name: /What is stopping you today/i })
       .waitFor({ state: "visible", timeout: 15000 })
+    await page.waitForTimeout(4200)
 
     const symptomStarter = page.getByRole("button", { name: /^Cold or flu$/i }).first()
     await symptomStarter.waitFor({ state: "visible", timeout: 15000 })
@@ -110,13 +109,16 @@ export const paidFunnel: Journey = {
       .getByRole("heading", { name: /Your details/i })
       .last()
       .waitFor({ state: "visible", timeout: 15000 })
+    await page.waitForTimeout(4200)
 
     await page.getByRole("textbox", { name: /First name/i }).fill("Test")
     await page.getByRole("textbox", { name: /Last name/i }).fill("Patient")
     await page.getByRole("textbox", { name: /Email/i }).fill("test@example.com")
     await page.getByRole("textbox", { name: /Date of birth/i }).fill("01/01/1990")
     await page.keyboard.press("Tab")
-    await page.waitForTimeout(1200)
+    // Capture entered values as well as empty fields so a still-frame reviewer
+    // can distinguish the input examples from the patient's review summary.
+    await page.waitForTimeout(4200)
 
     const mobileCta3 = page.locator("[data-intake-mobile-action-bar='true'] button").last()
     await mobileCta3.click()
@@ -124,6 +126,9 @@ export const paidFunnel: Journey = {
     await page
       .getByRole("heading", { name: /One last check/i })
       .waitFor({ state: "visible", timeout: 15000 })
+    // Hold the review header and answers before consent scrolls into view.
+    // Periodic still capture must see the whole step, not only its pay area.
+    await page.waitForTimeout(4200)
     await page.getByRole("checkbox", { name: /Confirm request and payment terms/i }).click()
     await page.getByRole("button", { name: /Pay \$24\.95/i }).waitFor({ state: "visible", timeout: 15000 })
 

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import { RUBRIC_CATEGORIES } from "../rubric-categories"
-import { buildGeminiResponseSchema, CritiqueSchema } from "../schema"
+import { normalizeClaudeCritique } from "../claude-critique"
+import { buildGeminiResponseSchema, CritiqueSchema, FrameCritiqueSchema } from "../schema"
 
 const VALID_CRITIQUE = {
   summary:
@@ -56,17 +57,45 @@ describe("CritiqueSchema", () => {
     expect(CritiqueSchema.safeParse(tooHigh).success).toBe(false)
   })
 
-  it("requires exactly three top actions", () => {
+  it("accepts only the actions supported by evidence, up to three", () => {
     const twoActions = {
       ...VALID_CRITIQUE,
       top_three_actions: VALID_CRITIQUE.top_three_actions.slice(0, 2),
     }
-    expect(CritiqueSchema.safeParse(twoActions).success).toBe(false)
+    expect(CritiqueSchema.safeParse(twoActions).success).toBe(true)
+    expect(CritiqueSchema.safeParse({ ...VALID_CRITIQUE, top_three_actions: [] }).success).toBe(true)
     const fourActions = {
       ...VALID_CRITIQUE,
       top_three_actions: [...VALID_CRITIQUE.top_three_actions, VALID_CRITIQUE.top_three_actions[0]],
     }
     expect(CritiqueSchema.safeParse(fourActions).success).toBe(false)
+  })
+
+  it("keeps unobserved categories unscored instead of inventing a rating", () => {
+    const unobservedMotion = {
+      ...VALID_CRITIQUE,
+      categories: {
+        ...VALID_CRITIQUE.categories,
+        motion: {
+          score: null,
+          observation: "Still frames cannot establish transition quality or reduced-motion behaviour.",
+          findings: [],
+        },
+      },
+    }
+    const result = CritiqueSchema.safeParse(unobservedMotion)
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.categories.motion.score).toBeNull()
+  })
+
+  it("rejects a motion rating based only on still frames", () => {
+    expect(FrameCritiqueSchema.safeParse(VALID_CRITIQUE).success).toBe(false)
+  })
+
+  it("does not repair an omitted score into an invented rating", () => {
+    const incomplete = structuredClone(VALID_CRITIQUE)
+    delete (incomplete.categories.motion as { score?: number }).score
+    expect(CritiqueSchema.safeParse(normalizeClaudeCritique(incomplete)).success).toBe(false)
   })
 
   it("rejects estimated_impact values outside the enum", () => {
