@@ -204,7 +204,7 @@ async function completeMedicalHistoryStep(page: Page) {
  * Complete the Review step.
  *
  * Safety consent is now merged into the review step. We tick the checkbox
- * before clicking Continue (the button uses aria-disabled when unchecked).
+ * before payment (the initial action focuses the confirmation checkbox).
  */
 async function completeReviewStep(page: Page) {
   await waitForStep(page, /One last check/i)

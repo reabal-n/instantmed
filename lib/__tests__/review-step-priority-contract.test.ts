@@ -16,7 +16,7 @@ describe("review-step priority checkout contract", () => {
     expect(source).toContain('serviceType === "prescription" || serviceType === "repeat-script"')
     expect(source).toContain("const totalDue = price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)")
     expect(source).toContain('id="review-priority-review-toggle"')
-    expect(source).toContain('Pay ${totalDue.toFixed(2)}')
+    expect(source).toContain('`Pay $${totalDue.toFixed(2)}`')
     expect(source).toContain("isPriority,")
     expect(source).not.toContain("Express Review")
     expect(source).not.toContain("express_review_opted_in")
@@ -27,12 +27,12 @@ describe("review-step priority checkout contract", () => {
 
     // Consult now pays on review-step (the separate checkout-step was retired), so
     // checkout_viewed fires for every service (no consult double-count guard), and
-    // the priority toggle + a single "Pay $X" CTA show for all — no more
+    // the priority toggle + a single "Pay $X" CTA after consent show for all — no more
     // review-only "Continue to payment" hand-off.
     expect(source).not.toContain("if (!isPrescriptionCheckout) return")
     expect(source).not.toContain('"Continue to payment"')
     expect(source).toContain('id="review-priority-review-toggle"')
-    expect(source).toContain('data-intake-primary-label={`Pay $${totalDue.toFixed(2)}`}')
+    expect(source).toContain('data-intake-primary-label={primaryActionLabel}')
   })
 
   it("keeps the consent control a large visible checkbox card, not a tiny control", () => {

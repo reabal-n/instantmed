@@ -187,9 +187,26 @@ for (const theme of ["light", "dark"] as const) {
 
     const consent = page.getByRole("checkbox", { name: /Confirm request and payment terms/i })
     await consent.uncheck()
-    await actionBar.getByRole("button", { name: /Pay \$24\.95/ }).click()
+    const confirmAction = actionBar.getByRole("button", { name: "Review & confirm" })
+    await expect(confirmAction).toBeEnabled()
+    await expect(actionBar.getByRole("button", { name: /Pay \$/ })).toHaveCount(0)
+    await page.screenshot({ path: testInfo.outputPath(`confirm-mobile-${theme}.png`) })
+    await confirmAction.click()
     await expect(consent).toBeFocused()
     expect(blockedCheckoutAttempts).toBe(0)
+
+    // The desktop action has the same available confirmation behavior and
+    // must not announce itself as disabled to keyboard/screen-reader users.
+    await page.setViewportSize({ width: 1280, height: 900 })
+    const desktopConfirm = page.locator('[data-intake-primary-action="true"]')
+    await expect(desktopConfirm).toHaveText("Review & confirm")
+    await expect(desktopConfirm).toBeEnabled()
+    await expect(desktopConfirm).not.toHaveAttribute("aria-disabled", "true")
+    await page.screenshot({ path: testInfo.outputPath(`confirm-desktop-${theme}.png`), fullPage: true })
+    await desktopConfirm.click()
+    await expect(consent).toBeFocused()
+    expect(blockedCheckoutAttempts).toBe(0)
+    await page.setViewportSize({ width: 375, height: 812 })
 
     await consent.check()
     await actionBar.getByRole("button", { name: /Pay \$24\.95/ }).click()

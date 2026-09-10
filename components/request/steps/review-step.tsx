@@ -312,6 +312,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   // midnight keeps their selection — the 3h breach auto-refund backstops it.
   const [priorityOffered] = useState(() => isPriorityReviewOffered())
   const totalDue = price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)
+  const primaryActionLabel = safetyConfirmed ? `Pay $${totalDue.toFixed(2)}` : "Review & confirm"
 
   // review-step is the single review+pay step for EVERY service (the unification
   // retired the separate consult checkout-step + med-cert checkout-step on
@@ -343,7 +344,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const handlePayment = async () => {
     if (isProcessing || checkoutBlocked) return
     if (!safetyConfirmed) {
-      handleDisabledClick()
+      handleReviewConfirmation()
       return
     }
 
@@ -455,7 +456,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     window.location.assign(`/request?${params.toString()}`)
   }
 
-  const handleDisabledClick = () => {
+  const handleReviewConfirmation = () => {
     consentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     // Focus the checkbox to make the requirement visually obvious
     consentRef.current?.querySelector('button')?.focus()
@@ -1148,18 +1149,18 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         </div>
 
         {/*
-          Button stays focusable + clickable even when consent is missing so keyboard users get
-          the same "scroll to consent" affordance as mouse users. aria-disabled communicates the
-          state to screen readers; disabled={false} keeps the event handlers live.
+          Before consent, the available action reviews the confirmation and focuses its checkbox.
+          Only explicit consent changes the action to payment; blocked or processing checkout
+          remains disabled in both the desktop button and its mobile mirror.
         */}
         <Button
           data-intake-primary-action="true"
-          data-intake-primary-label={`Pay $${totalDue.toFixed(2)}`}
-          data-intake-primary-ready={safetyConfirmed && !checkoutBlocked ? "true" : "false"}
-          onClick={checkoutBlocked ? undefined : safetyConfirmed ? handlePayment : handleDisabledClick}
-          variant={safetyConfirmed ? "default" : "secondary"}
+          data-intake-primary-label={primaryActionLabel}
+          data-intake-primary-ready={!checkoutBlocked ? "true" : "false"}
+          onClick={checkoutBlocked ? undefined : safetyConfirmed ? handlePayment : handleReviewConfirmation}
+          variant="default"
           className="w-full h-12 max-sm:hidden"
-          aria-disabled={!safetyConfirmed || isProcessing || checkoutBlocked}
+          aria-disabled={isProcessing || checkoutBlocked}
           aria-describedby={!safetyConfirmed ? 'safety-consent-warning' : undefined}
           disabled={isProcessing || checkoutBlocked}
         >
@@ -1170,8 +1171,8 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             </>
           ) : (
             <>
-              <CreditCard className="h-4 w-4" />
-              Pay ${totalDue.toFixed(2)}
+              {safetyConfirmed && <CreditCard className="h-4 w-4" />}
+              {primaryActionLabel}
             </>
           )}
         </Button>
