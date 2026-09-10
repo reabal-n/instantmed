@@ -17,6 +17,7 @@ import { ReturningPatientBanner } from '@/components/shared/returning-patient-ba
 import { getWaitState } from '@/lib/brand/wait-counter'
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { isMaintenanceMode } from '@/lib/feature-flags'
+import { homeH1Font } from '@/lib/fonts/home-h1'
 import { faqItems } from '@/lib/marketing/homepage'
 import { PROP_PHRASE, TAGLINE } from '@/lib/marketing/voice'
 
@@ -140,7 +141,7 @@ export default async function HomePage() {
           <Hero
             className="pt-6 sm:pt-6 lg:pt-6"
             title={TAGLINE}
-            titleClassName="min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5"
+            titleClassName={`${homeH1Font.className} min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5`}
             liveWait={waitState}
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
@@ -151,7 +152,7 @@ export default async function HomePage() {
               </>
             )}
           >
-            <h2 className="font-display text-xl sm:text-2xl lg:text-3xl text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-4 sm:mb-6 leading-snug font-normal tracking-tight">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-4 sm:mb-6 leading-snug font-normal tracking-tight">
               {PROP_PHRASE}
             </h2>
             <p className="text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed text-balance">

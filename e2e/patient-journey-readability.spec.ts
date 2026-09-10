@@ -1,6 +1,72 @@
+import { writeFile } from "node:fs/promises"
+
 import { expect, type Locator, test } from "@playwright/test"
 
 import { paidFunnel } from "../scripts/video-review/journeys/paid-funnel"
+
+for (const width of [375, 1440]) {
+  test(`homepage renders the intended fonts after a slow cold load at ${width}px`, async ({ page, browserName }, testInfo) => {
+    test.skip(browserName !== "chromium", "Rendered-font inspection uses Chrome DevTools Protocol")
+    await page.setViewportSize({ width, height: 844 })
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await page.context().route("**/api/draft**", route => route.abort())
+    await page.route("**/*.woff2", async route => {
+      // Exceed font-display:optional's short window so a loaded-but-unused
+      // webfont cannot masquerade as proof of the rendered brand face.
+      await new Promise(resolve => setTimeout(resolve, 350))
+      await route.continue()
+    })
+    await page.addInitScript(() => {
+      const probe = { cls: 0 }
+      Object.assign(window, { __e2eHomepageFontProbe: probe })
+      new PerformanceObserver(list => {
+        for (const entry of list.getEntries()) {
+          const shift = entry as PerformanceEntry & { value: number; hadRecentInput: boolean }
+          if (!shift.hadRecentInput) probe.cls += shift.value
+        }
+      }).observe({ type: "layout-shift", buffered: true })
+    })
+    await page.goto("/")
+    await page.evaluate(() => document.fonts.ready.then(() => undefined))
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+
+    const cdp = await page.context().newCDPSession(page)
+    try {
+      await cdp.send("DOM.enable")
+      await cdp.send("CSS.enable")
+      const { root } = await cdp.send("DOM.getDocument")
+      const evidence = []
+      for (const [selector, family] of [["h1", "Plus Jakarta Sans"], ["main h2", "Source Sans 3"]] as const) {
+        const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector })
+        expect(nodeId, `${selector} must exist`).toBeGreaterThan(0)
+        const { fonts } = await cdp.send("CSS.getPlatformFontsForNode", { nodeId })
+        evidence.push({ selector, family, fonts })
+      }
+      const cls = await page.evaluate(() => {
+        const probe = (window as typeof window & {
+          __e2eHomepageFontProbe?: { cls: number }
+        }).__e2eHomepageFontProbe
+        if (!probe) throw new Error("Homepage layout-shift probe did not start")
+        return probe.cls
+      })
+      const evidencePath = testInfo.outputPath("rendered-fonts.json")
+      await writeFile(evidencePath, JSON.stringify({ width, cls, evidence }, null, 2))
+      await testInfo.attach("rendered-fonts", { path: evidencePath, contentType: "application/json" })
+      await page.screenshot({ path: testInfo.outputPath(`homepage-fonts-${width}.png`) })
+      for (const { selector, family, fonts } of evidence) {
+        expect(fonts.length, `${selector} must have rendered glyphs`).toBeGreaterThan(0)
+        for (const font of fonts) {
+          expect(font.isCustomFont, `${selector} must not remain in a platform fallback`).toBe(true)
+          expect(font.familyName).toContain(family)
+        }
+      }
+      expect(cls, "Slow fonts must not cause a disruptive homepage layout shift").toBeLessThanOrEqual(0.1)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
+    } finally {
+      await cdp.detach()
+    }
+  })
+}
 
 async function expectReadableContrast(field: Locator, part: "placeholder" | "background" = "placeholder") {
   const ratio = await field.evaluate((element, part) => {
