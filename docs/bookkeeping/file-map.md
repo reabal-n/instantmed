@@ -234,3 +234,4 @@ See [docs/plans/archive/README.md](../plans/archive/README.md) for the retention
 
 - `docs/superpowers/receipts/2026-09-05-friction-release-readiness.md` — local closure commits, release packet boundaries, exact certificate recovery actions, and outstanding external proof.
 - [docs/superpowers/receipts/2026-09-08-specialty-acquisition-repair.md](../superpowers/receipts/2026-09-08-specialty-acquisition-repair.md) — exact Hair/ED keyword repair, campaign cash evidence, approval state, experiment confounding and rollback.
+- [docs/superpowers/receipts/2026-09-10-patient-journey-quality.md](../superpowers/receipts/2026-09-10-patient-journey-quality.md) — bounded quality changes, public/staff browser evidence, original review scores, release records and external acceptance gates.
