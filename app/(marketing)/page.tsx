@@ -2,10 +2,12 @@ import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
+import { GoogleAdsCert } from '@/components/marketing/google-ads-cert'
 import { Hero } from '@/components/marketing/hero'
 import { HeroDoctorReviewMockup } from '@/components/marketing/hero-doctor-review-mockup'
 import { HomeServiceLinks } from '@/components/marketing/home-service-links'
 import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
+import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { PortfolioRouteMap } from '@/components/marketing/portfolio-route-map'
 import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
@@ -15,6 +17,7 @@ import { ReturningPatientBanner } from '@/components/shared/returning-patient-ba
 import { getWaitState } from '@/lib/brand/wait-counter'
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { isMaintenanceMode } from '@/lib/feature-flags'
+import { homeH1Font } from '@/lib/fonts/home-h1'
 import { faqItems } from '@/lib/marketing/homepage'
 import { PROP_PHRASE, TAGLINE } from '@/lib/marketing/voice'
 
@@ -138,12 +141,18 @@ export default async function HomePage() {
           <Hero
             className="pt-6 sm:pt-6 lg:pt-6"
             title={TAGLINE}
-            titleClassName="min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5"
+            titleClassName={`${homeH1Font.className} min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5`}
             liveWait={waitState}
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
+            trustRow={(
+              <>
+                <GoogleAdsCert size="sm" />
+                <LegitScriptSeal size="sm" />
+              </>
+            )}
           >
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-[2.5rem] text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-4 sm:mb-6 leading-tight font-semibold tracking-tight">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-4 sm:mb-6 leading-snug font-normal tracking-tight">
               {PROP_PHRASE}
             </h2>
             <p className="text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed text-balance">

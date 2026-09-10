@@ -90,7 +90,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       >
         <nav
           className={cn(
-            "group relative mx-auto max-w-5xl rounded-2xl p-1 border shadow-lg",
+            "group relative mx-auto max-w-5xl rounded-2xl p-1 border shadow-lg shadow-primary/[0.06]",
             "transition-[border-color,box-shadow,background-color] duration-300",
             scrolled
               ? "bg-background/95 backdrop-blur-xl border-border/60 shadow-xl"

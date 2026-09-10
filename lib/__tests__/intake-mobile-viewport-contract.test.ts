@@ -307,9 +307,10 @@ describe("intake mobile viewport contract", () => {
       "components/request/steps/certificate-step.tsx",
       "components/request/steps/medication-step.tsx",
       "components/request/steps/medical-history-step.tsx",
-      "components/request/steps/review-step.tsx",
     ].map((path) => readProjectFile(path))
 
+    // Review has an available "Review & confirm" action before consent;
+    // browser tests own its focus behavior and prevention of payment.
     for (const source of sources) {
       expect(source).toContain('data-intake-primary-ready=')
       expect(source).toContain('variant={')

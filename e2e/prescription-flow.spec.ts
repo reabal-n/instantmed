@@ -712,15 +712,19 @@ test.describe("Prescription: checkout price verification", () => {
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
     await waitForStep(page, /One last check/i)
-    const checkoutBtn = page.getByRole("button", { name: /^Pay \$/ }).last()
-    await expectPrimaryActionReady(page, checkoutBtn, false)
+    const confirmButton = page.getByRole("button", { name: "Review & confirm" }).last()
+    await expect(confirmButton).toBeEnabled()
+    await expect(page.getByRole("button", { name: /^Pay \$/ })).toHaveCount(0)
+    await confirmButton.click()
 
     // Toggle consent
     const safetyCheckbox = page.locator("#safety-consent")
+    await expect(safetyCheckbox).toBeFocused()
     await safetyCheckbox.scrollIntoViewIfNeeded()
     await safetyCheckbox.click()
 
     // Button should now be enabled
+    const checkoutBtn = page.getByRole("button", { name: /^Pay \$/ }).last()
     await expect(checkoutBtn).toBeEnabled({ timeout: 5000 })
     await expectPrimaryActionReady(page, checkoutBtn, true)
   })

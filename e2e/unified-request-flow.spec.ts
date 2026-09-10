@@ -134,6 +134,7 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
   })
 
   test("explains the absence-only certificate scope before payment", async ({ page }) => {
+    await page.context().route("**/api/draft**", route => route.abort())
     await advanceMedCertToSymptoms(page)
 
     const documentScope = /If approved, the standard certificate confirms the absence dates and does not include a diagnosis or symptom details\./i
@@ -152,7 +153,11 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible()
     const reviewDisclosure = page.locator('[data-med-cert-document-scope="true"]')
     await expect(reviewDisclosure).toContainText(documentScope)
-    await expect(page.getByRole("button", { name: /^Pay \$/ }).last()).toBeVisible()
+    await expect(page.getByRole("button", { name: "Review & confirm", exact: true }).last()).toBeVisible()
+    await expect(page.getByRole("button", { name: /^Pay \$/ })).toHaveCount(0)
+    await page.getByRole("checkbox", { name: /Confirm request and payment terms/i }).check()
+    await expect(reviewDisclosure).toContainText(documentScope)
+    await expect(page.getByRole("button", { name: /^Pay \$/ }).last()).toBeEnabled()
   })
 })
 

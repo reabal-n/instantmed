@@ -308,8 +308,6 @@ let draftWriteTimer: ReturnType<typeof setTimeout> | null = null
 // can send the current state without a lazy import that would never resolve
 // during unload.
 let latestPersistedDraftState: Partial<RequestState> | null = null
-let draftHydrationSavedBefore: number | null = null
-let draftHydrationCutoffToken = 0
 
 type ServerDraftFlush = (payload: {
   serviceType: CanonicalServiceType
@@ -328,17 +326,6 @@ type ServerDraftFlush = (payload: {
 
 type RequestWindow = Window & {
   __instantmedFlushServerDraft?: ServerDraftFlush
-}
-
-export function beginRequestDraftHydrationCutoff(savedBefore: number): number {
-  draftHydrationCutoffToken += 1
-  draftHydrationSavedBefore = savedBefore
-  return draftHydrationCutoffToken
-}
-
-export function clearRequestDraftHydrationCutoff(token: number): void {
-  if (token !== draftHydrationCutoffToken) return
-  draftHydrationSavedBefore = null
 }
 
 function writeDraftToStorage(name: string, value: StorageValue<Partial<RequestState>>): void {
@@ -1263,10 +1250,9 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             const lastSavedAt = parsed.state?.lastSavedAt
             if (lastSavedAt) {
               const savedTime = new Date(lastSavedAt).getTime()
-              if (draftHydrationSavedBefore !== null && savedTime >= draftHydrationSavedBefore) {
-                return null
-              }
-
+              // Only patient work creates a persisted draft. Do not compare
+              // its timestamp with page entry: equal timestamps or a clock
+              // correction can otherwise discard valid work on reload.
               const hoursSinceSave = (Date.now() - savedTime) / (1000 * 60 * 60)
               if (hoursSinceSave >= 24) {
                 localStorage.removeItem(name)

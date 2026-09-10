@@ -28,15 +28,9 @@ const sourceSans = Source_Sans_3({
 // Plus Jakarta Sans is humanist, modern, has character at large sizes.
 // Body text stays Source Sans 3.
 //
-// display: "optional" (not "swap") eliminates the LCP wobble on the hero
-// "Faster than your GP" headline. With swap, the fallback font renders
-// first and Plus Jakarta swaps in on load, causing a visible reflow as
-// the title shifts and re-wraps. With optional, the browser waits ~100ms
-// for the font; if it misses the window, the fallback is kept for the
-// page load. Combined with next/font's adjustFontFallback metrics, the
-// fallback already matches Plus Jakarta's x-height closely so the
-// trade-off (some first-loads see the fallback) is invisible to most
-// users while CLS goes to zero.
+// The full display face keeps its existing optional loading policy. The
+// homepage H1 imports its own small, preloaded swap subset from home-h1.ts
+// so a slow first visit does not keep its headline in the platform fallback.
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-display",
@@ -44,7 +38,7 @@ const plusJakarta = Plus_Jakarta_Sans({
   // The canonical display scale includes 300 as well as 500-700. Loading the
   // variable face keeps those weights honest without duplicating @font-face
   // declarations. The two fixed money-page H1s preload a 5 KB glyph subset
-  // below; the full Latin face remains available without competing for the
+  // on their routes; the full Latin face remains available without competing for the
   // first-paint connection.
   weight: "variable",
   preload: false,

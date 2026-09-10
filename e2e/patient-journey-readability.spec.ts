@@ -1,6 +1,72 @@
+import { writeFile } from "node:fs/promises"
+
 import { expect, type Locator, test } from "@playwright/test"
 
 import { paidFunnel } from "../scripts/video-review/journeys/paid-funnel"
+
+for (const width of [375, 1440]) {
+  test(`homepage renders the intended fonts after a slow cold load at ${width}px`, async ({ page, browserName }, testInfo) => {
+    test.skip(browserName !== "chromium", "Rendered-font inspection uses Chrome DevTools Protocol")
+    await page.setViewportSize({ width, height: 844 })
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await page.context().route("**/api/draft**", route => route.abort())
+    await page.route("**/*.woff2", async route => {
+      // Exceed font-display:optional's short window so a loaded-but-unused
+      // webfont cannot masquerade as proof of the rendered brand face.
+      await new Promise(resolve => setTimeout(resolve, 350))
+      await route.continue()
+    })
+    await page.addInitScript(() => {
+      const probe = { cls: 0 }
+      Object.assign(window, { __e2eHomepageFontProbe: probe })
+      new PerformanceObserver(list => {
+        for (const entry of list.getEntries()) {
+          const shift = entry as PerformanceEntry & { value: number; hadRecentInput: boolean }
+          if (!shift.hadRecentInput) probe.cls += shift.value
+        }
+      }).observe({ type: "layout-shift", buffered: true })
+    })
+    await page.goto("/")
+    await page.evaluate(() => document.fonts.ready.then(() => undefined))
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+
+    const cdp = await page.context().newCDPSession(page)
+    try {
+      await cdp.send("DOM.enable")
+      await cdp.send("CSS.enable")
+      const { root } = await cdp.send("DOM.getDocument")
+      const evidence = []
+      for (const [selector, family] of [["h1", "Plus Jakarta Sans"], ["main h2", "Source Sans 3"]] as const) {
+        const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector })
+        expect(nodeId, `${selector} must exist`).toBeGreaterThan(0)
+        const { fonts } = await cdp.send("CSS.getPlatformFontsForNode", { nodeId })
+        evidence.push({ selector, family, fonts })
+      }
+      const cls = await page.evaluate(() => {
+        const probe = (window as typeof window & {
+          __e2eHomepageFontProbe?: { cls: number }
+        }).__e2eHomepageFontProbe
+        if (!probe) throw new Error("Homepage layout-shift probe did not start")
+        return probe.cls
+      })
+      const evidencePath = testInfo.outputPath("rendered-fonts.json")
+      await writeFile(evidencePath, JSON.stringify({ width, cls, evidence }, null, 2))
+      await testInfo.attach("rendered-fonts", { path: evidencePath, contentType: "application/json" })
+      await page.screenshot({ path: testInfo.outputPath(`homepage-fonts-${width}.png`) })
+      for (const { selector, family, fonts } of evidence) {
+        expect(fonts.length, `${selector} must have rendered glyphs`).toBeGreaterThan(0)
+        for (const font of fonts) {
+          expect(font.isCustomFont, `${selector} must not remain in a platform fallback`).toBe(true)
+          expect(font.familyName).toContain(family)
+        }
+      }
+      expect(cls, "Slow fonts must not cause a disruptive homepage layout shift").toBeLessThanOrEqual(0.1)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
+    } finally {
+      await cdp.detach()
+    }
+  })
+}
 
 async function expectReadableContrast(field: Locator, part: "placeholder" | "background" = "placeholder") {
   const ratio = await field.evaluate((element, part) => {
@@ -34,6 +100,86 @@ async function expectReadableContrast(field: Locator, part: "placeholder" | "bac
   }, part)
   expect(ratio, "field guidance and control states must contrast with their rendered background")
     .toBeGreaterThanOrEqual(part === "placeholder" ? 4.5 : 3)
+}
+
+for (const { storage, rollbackMs } of [
+  { storage: "scoped", rollbackMs: 0 },
+  { storage: "legacy", rollbackMs: 120 },
+] as const) {
+  test(`review draft survives ${storage} hydration after a ${rollbackMs}ms clock rollback`, async ({ page }) => {
+    // A wall-clock comparison cannot determine whether patient work existed
+    // before this document. Reproduce equal timestamps and a small backwards
+    // clock correction while timers keep running, without timing-dependent waits.
+    await page.clock.setFixedTime(new Date("2026-09-10T02:00:00Z"))
+    await page.context().route("**/api/draft**", route => route.abort())
+    await page.goto("/")
+    const description = "Runny nose and a mild headache. I need a day off work to rest."
+    await page.evaluate(({ storage, rollbackMs, description }) => {
+      const draft = {
+        serviceType: "med-cert",
+        currentStepId: "checkout",
+        furthestVisitedStepId: "checkout",
+        answers: { certType: "work", startDate: "2026-09-10", duration: "1", symptomDetails: description },
+        firstName: "Test",
+        lastName: "Patient",
+        email: "draft-clock-check@example.com",
+        dob: "1990-01-01",
+        safetyConfirmed: false,
+        lastSavedAt: new Date(Date.now() + rollbackMs).toISOString(),
+      }
+      localStorage.setItem(
+        storage === "legacy" ? "instantmed-request-draft" : "instantmed-draft-med-cert",
+        JSON.stringify(storage === "legacy" ? { state: draft, version: 0 } : draft),
+      )
+    }, { storage, rollbackMs, description })
+
+    await page.goto("/request?service=med-cert")
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Review & pay")
+    await expect(page.locator("dd").filter({ hasText: description })).toHaveText(description)
+    await expect(page.getByRole("checkbox", { name: /Confirm request and payment terms/i })).not.toBeChecked()
+    await page.reload()
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Review & pay")
+    await expect(page.locator("dd").filter({ hasText: description })).toHaveText(description)
+  })
+}
+
+for (const existingDraft of [false, true]) {
+  test(`clock-safe hydration preserves ${existingDraft ? "existing" : "fresh"} specialty attribution`, async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-09-10T02:00:00Z"))
+    await page.context().route("**/api/draft**", async route => {
+      if (route.request().method() === "POST") {
+        const body = route.request().postDataJSON() as { sessionId: string }
+        await route.fulfill({ json: {
+          sessionId: body.sessionId,
+          updatedAt: "2026-09-10T02:00:00Z",
+          expiresAt: "2026-09-11T02:00:00Z",
+        } })
+      } else {
+        await route.fulfill({ status: 404, json: { error: "Not found" } })
+      }
+    })
+    await page.goto("/")
+    if (existingDraft) {
+      await page.evaluate(() => localStorage.setItem("instantmed-draft-consult", JSON.stringify({
+        serviceType: "consult",
+        flowInstanceId: "cd7e6a00-b25f-4de1-bcd8-f65d5c347d25",
+        growthExperienceVersion: null,
+        currentStepId: "ed-goals",
+        answers: { consultSubtype: "ed", edDuration: "1_to_3_years", edErectionFrequency: 3 },
+        lastSavedAt: new Date(Date.now() + 120).toISOString(),
+      })))
+    }
+    await page.goto("/request?service=consult&subtype=ed&growth_experience_version=spx_e1_20260828")
+    if (existingDraft) {
+      await expect(page.getByRole("radio", { name: "1–3 years", exact: true })).toBeChecked()
+    }
+    const draftWrite = page.waitForRequest(request => request.url().includes("/api/draft")
+      && request.method() === "POST"
+      && request.postDataJSON()?.answers?.edDuration === "3_plus_years")
+    await page.getByRole("radio", { name: "3+ years", exact: true }).click()
+    const saved = (await draftWrite).postDataJSON() as { growthExperienceVersion?: string }
+    expect(saved.growthExperienceVersion ?? null).toBe(existingDraft ? null : "spx_e1_20260828")
+  })
 }
 
 // Browser behaviour only. Keep draft writes and checkout actions inside the
@@ -121,9 +267,26 @@ for (const theme of ["light", "dark"] as const) {
 
     const consent = page.getByRole("checkbox", { name: /Confirm request and payment terms/i })
     await consent.uncheck()
-    await actionBar.getByRole("button", { name: /Pay \$24\.95/ }).click()
+    const confirmAction = actionBar.getByRole("button", { name: "Review & confirm" })
+    await expect(confirmAction).toBeEnabled()
+    await expect(actionBar.getByRole("button", { name: /Pay \$/ })).toHaveCount(0)
+    await page.screenshot({ path: testInfo.outputPath(`confirm-mobile-${theme}.png`) })
+    await confirmAction.click()
     await expect(consent).toBeFocused()
     expect(blockedCheckoutAttempts).toBe(0)
+
+    // The desktop action has the same available confirmation behavior and
+    // must not announce itself as disabled to keyboard/screen-reader users.
+    await page.setViewportSize({ width: 1280, height: 900 })
+    const desktopConfirm = page.locator('[data-intake-primary-action="true"]')
+    await expect(desktopConfirm).toHaveText("Review & confirm")
+    await expect(desktopConfirm).toBeEnabled()
+    await expect(desktopConfirm).not.toHaveAttribute("aria-disabled", "true")
+    await page.screenshot({ path: testInfo.outputPath(`confirm-desktop-${theme}.png`), fullPage: true })
+    await desktopConfirm.click()
+    await expect(consent).toBeFocused()
+    expect(blockedCheckoutAttempts).toBe(0)
+    await page.setViewportSize({ width: 375, height: 812 })
 
     await consent.check()
     await actionBar.getByRole("button", { name: /Pay \$24\.95/ }).click()

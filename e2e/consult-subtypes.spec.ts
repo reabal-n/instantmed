@@ -189,27 +189,28 @@ async function completeConsultDetailsWithTestMedicare(
   await clickContinue(page)
 }
 
-async function expectConsultPayState(page: Page, ready: boolean) {
+async function expectConsultPayState(page: Page, confirmed: boolean) {
   const canonicalPayButton = page.locator('button[data-intake-primary-action="true"]').last()
+  const label = confirmed ? "Pay $49.95" : "Review & confirm"
+  await expect(canonicalPayButton).toHaveText(label)
   await expect(canonicalPayButton).toHaveAttribute(
     "data-intake-primary-ready",
-    ready ? "true" : "false",
+    "true",
   )
   await expect(canonicalPayButton).toHaveAttribute(
     "aria-disabled",
-    ready ? "false" : "true",
+    "false",
   )
 
   const mobileActionBar = page.locator('[data-intake-mobile-action-bar="true"]')
   if (await mobileActionBar.isVisible().catch(() => false)) {
-    const mobilePayButton = mobileActionBar.getByRole("button", { name: /^Pay \$49\.95$/ })
+    const mobilePayButton = mobileActionBar.getByRole("button", { name: label, exact: true })
     await expect(mobilePayButton).toBeVisible()
     await expect(mobilePayButton).toHaveAttribute(
       "data-intake-mobile-action-ready",
-      ready ? "true" : "false",
+      "true",
     )
-    // Even while not ready, the review action stays natively clickable so it
-    // can focus the missing-consent guidance. Readiness is the source of truth.
+    // Before consent, the available action focuses confirmation; it does not pay.
     await expect(mobilePayButton).toBeEnabled()
   } else {
     await expect(canonicalPayButton).toBeVisible()
