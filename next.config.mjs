@@ -77,7 +77,20 @@ const nextConfig = {
   // Explicit tracing root keeps isolated git worktrees from inheriting the
   // parent checkout's lockfile during local builds and Playwright web servers.
   outputFileTracingRoot: projectRoot,
-  webpack(config, { dev, isServer }) {
+  webpack(config, { dev, isServer, webpack }) {
+    if (isServer) {
+      // `ws` treats bufferutil as an optional acceleration package. When Next
+      // bundles the WebSocket route without that native addon, webpack emits an
+      // empty compatibility module; `ws` then calls its missing `unmask()` on
+      // the first Twilio media frame. Force the supported pure-JS path in every
+      // server bundle so Voice remains portable in Vercel's Node runtime.
+      config.plugins.push(
+        new webpack.DefinePlugin({
+          "process.env.WS_NO_BUFFER_UTIL": JSON.stringify("1"),
+        }),
+      )
+    }
+
     // Walk ALL rules (including nested oneOf arrays) and exclude SVGs from
     // any existing rule that would otherwise match them. Next.js 15 may nest
     // the asset/resource SVG rule inside a oneOf array, so a shallow find()

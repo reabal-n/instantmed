@@ -48,7 +48,9 @@ describe("support inbox alert ownership contract", () => {
     expect(security).toContain("request notifications plus bounded operational sends")
     expect(operations).toContain("PHI-free Medical Director voice-message alert")
     expect(security).toContain("PHI-free Medical Director voice-message alert")
-    expect(operations).toContain("Patient identity, date of birth, callback number, and confirmed summary")
+    expect(operations).toContain(
+      "Patient name, callback number when requested, and confirmed summary",
+    )
     expect(operations).toContain("New medical-certificate titles stay neutral")
     expect(security).toContain("New medical-certificate titles stay neutral")
     expect(operations).not.toContain("new paid request notifications only")
