@@ -37,12 +37,6 @@ function formatDateTime(value: string | null): string {
   }).format(new Date(value))
 }
 
-function formatDob(value: string | null): string {
-  if (!value) return "Not captured"
-  const [year, month, day] = value.split("-")
-  return year && month && day ? `${day}/${month}/${year}` : value
-}
-
 export default async function MedicalDirectorVoiceMessagePage({
   params,
 }: PageProps) {
@@ -88,23 +82,17 @@ export default async function MedicalDirectorVoiceMessagePage({
               <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Patient details
               </h2>
-              <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+              <dl className="mt-4">
                 <div>
                   <dt className="text-xs text-muted-foreground">Full name</dt>
                   <dd className="mt-1 text-sm font-semibold">
                     {message.payload.patientFullName || "Not captured"}
                   </dd>
                 </div>
-                <div>
-                  <dt className="text-xs text-muted-foreground">Date of birth</dt>
-                  <dd className="mt-1 text-sm font-semibold">
-                    {formatDob(message.payload.dateOfBirth)}
-                  </dd>
-                </div>
               </dl>
               {!message.patientDetailsComplete ? (
                 <p className="mt-4 text-xs font-medium text-warning">
-                  Lena could not capture both identity details. The confirmed message was retained.
+                  Lena could not capture the patient&apos;s name. The confirmed message was retained.
                 </p>
               ) : null}
             </DashboardCard>
@@ -149,7 +137,7 @@ export default async function MedicalDirectorVoiceMessagePage({
             <DashboardCard padding="md">
               <div className="flex items-center gap-2">
                 <UserRound className="h-4 w-4 text-muted-foreground" aria-hidden />
-                <h2 className="text-sm font-semibold">Patient match</h2>
+                <h2 className="text-sm font-semibold">Patient lookup</h2>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
                 State: {message.patientMatchState}
@@ -165,7 +153,7 @@ export default async function MedicalDirectorVoiceMessagePage({
                 <p className="mt-3 text-sm">No suggested patient</p>
               )}
               <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                Name and date of birth provide a suggestion only. They do not verify caller identity.
+                A name match is a suggestion only. It does not verify caller identity.
               </p>
             </DashboardCard>
 

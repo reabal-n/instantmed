@@ -19,6 +19,7 @@ describe("Twilio OpenAI Realtime voice agent", () => {
 
     expect(event.session.audio.input.format).toEqual({ type: "audio/pcmu" })
     expect(event.session.audio.output.format).toEqual({ type: "audio/pcmu" })
+    expect(event.session.audio.output.voice).toBe("marin")
     expect(event.session.output_modalities).toEqual(["audio"])
     expect(event.session.tools.map((tool) => tool.name)).toEqual([
       "create_medical_director_message",
@@ -32,6 +33,17 @@ describe("Twilio OpenAI Realtime voice agent", () => {
     )
     expect(event.session.instructions).toContain("skip confirmation")
     expect(event.session.instructions).toContain("Do not diagnose, triage")
+    expect(event.session.instructions).toContain(
+      "warm, natural Australian support cadence",
+    )
+    expect(event.session.instructions).toContain(
+      "Do not sound scripted, overly cheerful, or formal",
+    )
+    expect(event.session.instructions.toLowerCase()).not.toContain("date of birth")
+    const messageTool = event.session.tools.find(
+      (tool) => tool.name === "create_medical_director_message",
+    )
+    expect(messageTool?.parameters.properties).not.toHaveProperty("date_of_birth")
     expect(LENA_GREETING).toBe("Hi, this is Lena from InstantMed support. How can I help?")
     expect(LENA_EMERGENCY_DIRECTION).toBe(
       "If you are in immediate danger, hang up and call triple zero now.",
@@ -66,7 +78,6 @@ describe("Twilio OpenAI Realtime voice agent", () => {
       category: "medical_certificate",
       confirmedAt: expect.any(String),
       confirmedSummary: "Please correct the date on my medical certificate.",
-      dateOfBirth: "1990-02-03",
       patientFullName: "Alex Citizen",
     })
     expect(JSON.parse(output)).toEqual({ recorded: true })

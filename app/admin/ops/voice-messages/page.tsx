@@ -151,7 +151,7 @@ export default async function MedicalDirectorVoiceInboxPage({
                     Match: {item.patientMatchState.replace("_", " ")}
                   </span>
                   {!item.patientDetailsComplete ? (
-                    <span className="font-medium text-warning">Incomplete details</span>
+                    <span className="font-medium text-warning">Name not captured</span>
                   ) : null}
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground" aria-hidden />

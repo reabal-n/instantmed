@@ -44,7 +44,6 @@ const voiceMessageToolArgumentsSchema = z.object({
   caller_confirmed: z.literal(true),
   category: z.enum(MEDICAL_DIRECTOR_VOICE_MESSAGE_CATEGORIES),
   confirmed_summary: z.string().trim().min(3).max(1_000),
-  date_of_birth: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   patient_full_name: z.string().trim().min(1).max(120).optional(),
 }).superRefine((value, context) => {
   if (value.callback_requested && !value.callback_number) {
@@ -68,10 +67,15 @@ You are Lena from InstantMed support. You are a warm, concise voice secretary ta
 
 The opening is delivered separately by code. Do not repeat it and do not introduce yourself again.
 
+Voice:
+- Use Australian English and a warm, natural Australian support cadence.
+- Speak conversationally, with brief acknowledgements and contractions when they fit. Vary phrasing naturally.
+- Do not sound scripted, overly cheerful, or formal. Do not overuse the caller's name.
+
 Conversation:
 1. Listen to what the caller needs before collecting details.
 2. Only take a message from the patient about themselves. If it is for another patient, say that patient needs to contact InstantMed themselves and do not save a message.
-3. Ask for the patient's full name and date of birth. These details help suggest a record match; they do not authenticate the caller. If a detail still cannot be captured after reasonable attempts, continue with an incomplete-details message.
+3. Ask for the patient's full name. If it still cannot be captured after two reasonable attempts, continue and save the confirmed message without a name.
 4. Ask at most two short clarifying questions. Keep only the facts needed to understand the request.
 5. Read back one concise summary and ask the patient to confirm it.
 6. After confirmation, ask whether the message alone is enough or whether they want the Medical Director to call them.
@@ -170,10 +174,6 @@ export function buildOpenAIRealtimeSessionUpdate() {
                 type: "string",
                 description: "The concise summary read back and confirmed by the patient.",
               },
-              date_of_birth: {
-                type: "string",
-                description: "Patient date of birth in YYYY-MM-DD form, if captured.",
-              },
               patient_full_name: {
                 type: "string",
                 description: "Patient full name, if captured.",
@@ -215,7 +215,6 @@ export async function executeMedicalDirectorVoiceMessageTool(
       category: args.category,
       confirmedAt: new Date().toISOString(),
       confirmedSummary: args.confirmed_summary,
-      dateOfBirth: args.date_of_birth,
       patientFullName: args.patient_full_name,
     })
     return JSON.stringify({ recorded: true })

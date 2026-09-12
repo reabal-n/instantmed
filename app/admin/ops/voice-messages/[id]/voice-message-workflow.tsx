@@ -37,16 +37,9 @@ interface Props {
 }
 
 interface PatientSearchOption {
-  dateOfBirth: string | null
   email: string | null
   fullName: string
   id: string
-}
-
-function formatDateOfBirth(value: string | null): string {
-  if (!value) return "Date of birth not recorded"
-  const [year, month, day] = value.split("-")
-  return year && month && day ? `Born ${day}/${month}/${year}` : `Born ${value}`
 }
 
 export function VoiceMessageWorkflow({
@@ -105,7 +98,6 @@ export function VoiceMessageWorkflow({
           return
         }
         setPatientMatches(result.data.patients.map((patient) => ({
-          dateOfBirth: patient.date_of_birth,
           email: patient.email,
           fullName: patient.full_name,
           id: patient.id,
@@ -183,7 +175,7 @@ export function VoiceMessageWorkflow({
           Suggested patient match
         </h2>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          Search the private patient directory, then compare the date of birth before selecting. A match is a suggestion only; it does not verify caller identity.
+          Search the private patient directory before selecting. A name match is a suggestion only; it does not verify caller identity.
         </p>
         <form className="flex flex-col gap-2 sm:flex-row sm:items-end" onSubmit={searchPatients}>
           <Input
@@ -225,9 +217,7 @@ export function VoiceMessageWorkflow({
                           {patient.fullName}
                         </span>
                         <span className="block text-[11px] font-normal text-muted-foreground [overflow-wrap:anywhere]">
-                          {[formatDateOfBirth(patient.dateOfBirth), patient.email]
-                            .filter(Boolean)
-                            .join(" · ")}
+                          {patient.email || "Email not recorded"}
                         </span>
                       </span>
                     </Button>
