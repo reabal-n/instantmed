@@ -60,10 +60,20 @@ The primary checkout preserves the comparison gallery, original reports, adjudic
 
 PR #549's three retry-dependent CI cases were independently inspected. The certificate preview was still loading during a 21-second server response; the concise-review request reached the application's 12-second timeout; and the prescribing case first timed out in test login, then on a full-record load taking 29.9 seconds. The later attempts passed, with no confirmed wrong-data or completion-state regression. They remain reliability/evidence limits: a whole-test retry does not prove the displayed in-place Retry action recovered the observed timeout.
 
+## Accessibility follow-up — September 12
+
+Started from `origin/main` at `8937938907b8aeea5d2d2cd0cc83ac9e604d4234`. The prescription illustration now uses the existing muted-text and success-background tokens; the ED safety caption keeps native `figcaption` semantics without an invalid role override. Its warning text and figure association are preserved. The existing contract incorrectly required that role and now guards the native caption instead.
+
+Both public routes were checked at 375px and 1440px in light and dark mode. The five desktop prescription labels reproduced at 4.03–4.37:1 in light mode and now measure 4.79–7.58:1; dark mode measures 6.92–8.32:1. The mobile illustration's two visible labels also pass. Measurements use rendered browser colours composited over the actual card backgrounds because the installed Axe scanner left these contrast results incomplete. The ED role violation reproduced in all four views and is absent after the correction. All eight views returned HTTP 200 with no horizontal page overflow or browser errors. Nineteen focused contracts passed.
+
+The production Parchment token, organisation-validation and SSO smoke passed on September 12. This establishes integration readiness, not a prescription, completion callback or delivery. Dedicated hosted Stripe test credentials and both test Price IDs were absent from the shell and the repository secrets used by the existing manual workflow. No hosted payment was attempted. The operator explicitly deferred the physical-phone check until later.
+
+The primary checkout preserves before/after screenshots, colour measurements, checks and final PR/CI/deployment identifiers under `output/pre-plan5-accessibility/`; `release-state.json` owns the release status. This bounded repair does not replace the original visual scores or provide operator acceptance. Plan 5 remains unstarted.
+
 ## Remaining external acceptance
 
-- Dedicated hosted Stripe test credentials and a real hosted payment/webhook run. Existing browser tests deliberately stop or block before submission.
-- Authorized live Parchment confirmation and physical iPhone/Android keyboard/viewport checks. A responsive Chromium run is not physical-device or provider proof.
+- Dedicated hosted Stripe test credentials (`HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY`, `HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT`, `HOSTED_STRIPE_E2E_STRIPE_PRICE_REPEAT_SCRIPT`) and a real isolated hosted payment/webhook run. Existing browser tests deliberately stop or block before submission.
+- Authorized live Parchment confirmation and physical iPhone/Android keyboard/viewport checks; the operator deferred the phone check on September 12. A responsive Chromium run and API/SSO smoke are not physical-device or prescription-delivery proof.
 - Operator acceptance of the public flow and clinician workspace. No agent or automatic score supplies this decision.
 
 ## Privacy and rollback

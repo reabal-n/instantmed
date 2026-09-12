@@ -104,12 +104,12 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-foreground">eScript Ready</span>
-          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success px-2 py-0.5 rounded-full bg-success/10 border border-success/20">
+          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success px-2 py-0.5 rounded-full bg-success-light border border-success/20">
             Active
           </span>
         </div>
 
-        <p className="text-[11px] text-foreground/60 leading-relaxed mb-3">
+        <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">
           Your electronic prescription is ready. Show this at any pharmacy to collect your medication.
         </p>
 
@@ -175,7 +175,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
               style={{ animation: "hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.20s both" }}
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
-              <span className="text-[11px] text-foreground/60">Request submitted</span>
+              <span className="text-[11px] text-muted-foreground">Request submitted</span>
               <span className="text-[9px] text-muted-foreground ml-auto">5m ago</span>
             </div>
             <div
@@ -183,7 +183,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
               style={{ animation: "hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.25s both" }}
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
-              <span className="text-[11px] text-foreground/60">Doctor reviewed</span>
+              <span className="text-[11px] text-muted-foreground">Doctor reviewed</span>
               <span className="text-[9px] text-muted-foreground ml-auto">Just now</span>
             </div>
             <div
@@ -192,7 +192,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
             >
               <Smartphone className="w-3.5 h-3.5 text-primary shrink-0" />
               <span className="text-[11px] font-medium text-foreground">eScript sent</span>
-              <span className="inline-flex items-center gap-0.5 ml-auto px-1.5 py-0.5 rounded-full bg-success/10 text-[9px] font-medium text-success">
+              <span className="inline-flex items-center gap-0.5 ml-auto px-1.5 py-0.5 rounded-full bg-success-light text-[9px] font-medium text-success">
                 Done
               </span>
             </div>
