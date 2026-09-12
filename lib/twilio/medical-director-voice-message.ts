@@ -9,7 +9,6 @@ import {
   sendMedicalDirectorVoiceReminderViaTelegram,
   type VoiceMessageAlertReceipt,
 } from "@/lib/notifications/telegram"
-import { decryptField } from "@/lib/security/encryption"
 import { type EncryptedPHI, encryptJSONB } from "@/lib/security/phi-encryption"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -47,7 +46,6 @@ export type PatientMatchState = (typeof PATIENT_MATCH_STATES)[number]
 export interface MedicalDirectorVoiceMessagePayload {
   callbackNumber: string | null
   confirmedSummary: string
-  dateOfBirth: string | null
   patientFullName: string | null
 }
 
@@ -61,10 +59,6 @@ const voiceMessageInputSchema = z.object({
   category: z.enum(MEDICAL_DIRECTOR_VOICE_MESSAGE_CATEGORIES),
   confirmedAt: z.string().datetime(),
   confirmedSummary: z.string().trim().min(3).max(1_000),
-  dateOfBirth: optionalText(10).refine(
-    (value) => !value || /^\d{4}-\d{2}-\d{2}$/.test(value),
-    "Date of birth must use YYYY-MM-DD",
-  ),
   patientFullName: optionalText(120),
 }).superRefine((value, context) => {
   if (value.callbackRequested && !value.callbackNumber) {
@@ -85,11 +79,6 @@ const voiceMessageInputSchema = z.object({
 
 export type MedicalDirectorVoiceMessageInput = z.infer<typeof voiceMessageInputSchema>
 
-interface PatientMatch {
-  state: PatientMatchState
-  suggestedPatientId: string | null
-}
-
 interface InsertResult {
   alertAlreadyDelivered?: boolean
   created: boolean
@@ -105,7 +94,6 @@ export interface MedicalDirectorVoiceMessageDependencies {
   fingerprintCallSid: (callSid: string) => string
   insert: (row: Record<string, unknown>) => Promise<InsertResult>
   markAlert: (id: string, receipt: VoiceMessageAlertReceipt) => Promise<void>
-  matchPatient: (fullName?: string, dateOfBirth?: string) => Promise<PatientMatch>
   sendAlert: (
     id: string,
     category: MedicalDirectorVoiceMessageCategory,
@@ -119,68 +107,12 @@ export interface MedicalDirectorVoiceMessageResult {
   id: string
 }
 
-function normalizeName(value: string): string {
-  return value.normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ")
-}
-
-function escapeIlike(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
-}
-
-function readCandidateDateOfBirth(row: Record<string, unknown>): string | null {
-  if (typeof row.date_of_birth_encrypted === "string") {
-    try {
-      return decryptField<string>(row.date_of_birth_encrypted)
-    } catch {
-      return null
-    }
-  }
-  return typeof row.date_of_birth === "string" ? row.date_of_birth : null
-}
-
 function fingerprintTwilioCallSid(callSid: string): string {
   const secret = process.env.TWILIO_VOICE_SESSION_SECRET?.trim()
   if (!secret) throw new Error("TWILIO_VOICE_SESSION_SECRET is not configured")
   return createHmac("sha256", secret)
     .update(`medical-director-voice-message:${callSid}`)
     .digest("hex")
-}
-
-async function findSuggestedPatient(
-  fullName?: string,
-  dateOfBirth?: string,
-): Promise<PatientMatch> {
-  if (!fullName || !dateOfBirth) {
-    return { state: "incomplete", suggestedPatientId: null }
-  }
-
-  const supabase = createServiceRoleClient()
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, full_name, date_of_birth, date_of_birth_encrypted")
-    .eq("role", "patient")
-    .ilike("full_name", escapeIlike(fullName.trim()))
-    .is("merged_into_profile_id", null)
-    .limit(25)
-
-  if (error) {
-    return { state: "unmatched", suggestedPatientId: null }
-  }
-
-  const target = normalizeName(fullName)
-  const matches = (data ?? []).filter((row) =>
-    typeof row.full_name === "string" &&
-      normalizeName(row.full_name) === target &&
-      readCandidateDateOfBirth(row) === dateOfBirth,
-  )
-
-  if (matches.length === 1) {
-    return { state: "suggested", suggestedPatientId: matches[0].id as string }
-  }
-  return {
-    state: matches.length > 1 ? "ambiguous" : "unmatched",
-    suggestedPatientId: null,
-  }
 }
 
 async function insertVoiceMessage(row: Record<string, unknown>): Promise<InsertResult> {
@@ -256,7 +188,6 @@ function defaultDependencies(): MedicalDirectorVoiceMessageDependencies {
     fingerprintCallSid: fingerprintTwilioCallSid,
     insert: insertVoiceMessage,
     markAlert: markAlertReceipt,
-    matchPatient: findSuggestedPatient,
     sendAlert: async (id, category, createdAt) =>
       sendMedicalDirectorVoiceMessageViaTelegram({
         categoryLabel: MEDICAL_DIRECTOR_VOICE_CATEGORY_LABELS[category],
@@ -275,15 +206,13 @@ export async function createMedicalDirectorVoiceMessage(
   dependencies: MedicalDirectorVoiceMessageDependencies = defaultDependencies(),
 ): Promise<MedicalDirectorVoiceMessageResult> {
   const message = voiceMessageInputSchema.parse(input)
-  const patientDetailsComplete = Boolean(message.patientFullName && message.dateOfBirth)
-  const patientMatch = await dependencies.matchPatient(
-    message.patientFullName,
-    message.dateOfBirth,
-  )
+  const patientDetailsComplete = Boolean(message.patientFullName)
+  const patientMatchState: PatientMatchState = message.patientFullName
+    ? "unmatched"
+    : "incomplete"
   const payload: MedicalDirectorVoiceMessagePayload = {
     callbackNumber: message.callbackRequested ? message.callbackNumber ?? null : null,
     confirmedSummary: message.confirmedSummary,
-    dateOfBirth: message.dateOfBirth ?? null,
     patientFullName: message.patientFullName ?? null,
   }
   const encryptedPayload = await dependencies.encrypt(payload)
@@ -293,10 +222,10 @@ export async function createMedicalDirectorVoiceMessage(
     call_sid_fingerprint: dependencies.fingerprintCallSid(message.callSid),
     category: message.category,
     patient_details_complete: patientDetailsComplete,
-    patient_match_state: patientMatch.state,
+    patient_match_state: patientMatchState,
     payload_enc: encryptedPayload,
     status: "new",
-    suggested_patient_id: patientMatch.suggestedPatientId,
+    suggested_patient_id: null,
   })
 
   if (inserted.alertAlreadyDelivered) {

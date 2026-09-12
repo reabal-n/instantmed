@@ -8,7 +8,6 @@ const baseInput = {
   category: "medical_certificate" as const,
   confirmedAt: "2026-08-27T10:00:00.000Z",
   confirmedSummary: "Please fix the date on my medical certificate.",
-  dateOfBirth: "1990-02-03",
   patientFullName: "Alex Citizen",
 }
 
@@ -24,9 +23,9 @@ describe("Medical Director voice messages", () => {
         call_sid_fingerprint: "hashed-call-sid",
         category: "medical_certificate",
         patient_details_complete: true,
-        patient_match_state: "suggested",
+        patient_match_state: "unmatched",
         status: "new",
-        suggested_patient_id: "d50ba27a-34bb-4a51-b8db-dc9dc22cc0aa",
+        suggested_patient_id: null,
       })
       return {
         createdAt: "2026-08-27T10:00:00.000Z",
@@ -54,7 +53,6 @@ describe("Medical Director voice messages", () => {
         expect(payload).toEqual({
           callbackNumber: null,
           confirmedSummary: baseInput.confirmedSummary,
-          dateOfBirth: baseInput.dateOfBirth,
           patientFullName: baseInput.patientFullName,
         })
         return { ciphertext: "encrypted-only" }
@@ -62,10 +60,6 @@ describe("Medical Director voice messages", () => {
       fingerprintCallSid: () => "hashed-call-sid",
       insert,
       markAlert,
-      matchPatient: async () => ({
-        state: "suggested",
-        suggestedPatientId: "d50ba27a-34bb-4a51-b8db-dc9dc22cc0aa",
-      }),
       sendAlert,
     })
 
@@ -88,7 +82,6 @@ describe("Medical Director voice messages", () => {
         fingerprintCallSid: vi.fn(),
         insert,
         markAlert: vi.fn(),
-        matchPatient: vi.fn(),
         sendAlert: vi.fn(),
       },
     )).rejects.toThrow()
@@ -107,7 +100,6 @@ describe("Medical Director voice messages", () => {
         created: true,
       }),
       markAlert: vi.fn(),
-      matchPatient: async () => ({ state: "unmatched", suggestedPatientId: null }),
       sendAlert: async () => {
         throw new Error("Telegram unavailable")
       },

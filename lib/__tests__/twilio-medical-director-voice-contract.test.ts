@@ -60,15 +60,16 @@ describe("Lena Medical Director voice-message contracts", () => {
     )
   })
 
-  it("matches bounded name candidates against encrypted date of birth server-side", () => {
+  it("does not collect date of birth or auto-match from unverified voice data", () => {
+    const realtime = read("lib/twilio/openai-realtime.ts")
     const service = read("lib/twilio/medical-director-voice-message.ts")
+    const detail = read("app/admin/ops/voice-messages/[id]/page.tsx")
 
-    expect(service).toContain(
-      '.select("id, full_name, date_of_birth, date_of_birth_encrypted")',
-    )
-    expect(service).toContain('.ilike("full_name"')
-    expect(service).toContain("decryptField<string>(row.date_of_birth_encrypted)")
-    expect(service).toContain(".limit(25)")
+    expect(realtime).not.toContain("date_of_birth")
+    expect(realtime.toLowerCase()).not.toContain("date of birth")
+    expect(service).not.toContain("dateOfBirth")
+    expect(service).not.toContain('.from("profiles")')
+    expect(detail).not.toContain("message.payload.dateOfBirth")
   })
 
   it("deletes only resolved payloads after the bounded 30-day retention window", () => {
@@ -189,6 +190,9 @@ describe("Lena Medical Director voice-message contracts", () => {
     expect(contact).toContain("24/7 voice message support")
     expect(privacy).toContain("Lena, an automated voice assistant")
     expect(privacy).toContain("We do not retain the raw call audio or a full")
+    expect(privacy).not.toContain(
+      "stores the name, date of birth, callback number",
+    )
     for (const page of schemaPages) {
       expect(page).toContain("telephone: CONTACT_PHONE_TEL")
     }

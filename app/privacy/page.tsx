@@ -39,7 +39,7 @@ export default function PrivacyPage() {
           <CenteredHero
             pill="Legal"
             title="Privacy Policy"
-            subtitle="Last updated: August 2026"
+            subtitle="Last updated: September 2026"
           />
 
           {/* Content card */}
@@ -151,8 +151,8 @@ export default function PrivacyPage() {
                   <p>
                     Our phone message service uses Lena, an automated voice assistant, to speak with you and
                     take one message for our Medical Director. The live call audio is processed to run the
-                    conversation. InstantMed stores the name, date of birth, callback number if requested,
-                    and concise message that you confirm. We do not retain the raw call audio or a full
+                    conversation. InstantMed stores the name, callback number if requested, and concise
+                    message that you confirm. We do not retain the raw call audio or a full
                     transcript.
                   </p>
                 </LegalSection>
