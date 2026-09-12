@@ -387,7 +387,7 @@ function EdSafetyDecisionMap() {
             </div>
           </div>
 
-          <figcaption id="ed-decision-map-warning" role="note" className="border-t border-border/50 bg-muted/30 px-5 py-4 text-sm leading-6 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
+          <figcaption id="ed-decision-map-warning" className="border-t border-border/50 bg-muted/30 px-5 py-4 text-sm leading-6 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
             <span className="font-semibold text-foreground">Safety answers can change the care route.</span>{" "}
             The doctor may ask for non-urgent clarification, decline the online request, or recommend GP, sexual-health, or cardiovascular follow-up. The urgent-care boundary is set out next.
           </figcaption>
