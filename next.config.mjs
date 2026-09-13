@@ -634,6 +634,18 @@ const nextConfig = {
           ].join("; ")
         }])]
       },
+      // The decorative doctor signature must never become a search thumbnail.
+      // Keep it crawlable so Google can read noindex, including previously
+      // indexed Next Image variants (the url query is decoded before matching).
+      {
+        source: "/branding/eSignature.png",
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
+      {
+        source: "/_next/image",
+        has: [{ type: "query", key: "url", value: "/branding/eSignature\\.png" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
       // Transactional capability routes must never be cached or leak their
       // bearer path through a referrer. These override the global defaults for
       // both the one-hop token exchange and the clean request surface.

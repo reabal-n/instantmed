@@ -20,6 +20,7 @@ import { isMaintenanceMode } from '@/lib/feature-flags'
 import { homeH1Font } from '@/lib/fonts/home-h1'
 import { faqItems } from '@/lib/marketing/homepage'
 import { PROP_PHRASE, TAGLINE } from '@/lib/marketing/voice'
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo/social-image"
 
 // All below-fold sections are lazy-loaded to keep framer-motion and client
 // component bundles out of the critical JS path. SSR:true (default) keeps
@@ -60,19 +61,19 @@ export const metadata: Metadata = {
     'hair loss treatment online',
   ],
   openGraph: {
+    images: [DEFAULT_SOCIAL_IMAGE],
     title: 'Faster than your GP. Telehealth without the small talk. | InstantMed',
     description: "Start with a secure form that takes about 3 minutes. AHPRA-registered Australian doctors review medical certificates, repeat medication, and focused ED, hair loss, and women's health assessments.",
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
     siteName: 'InstantMed',
-    // OG image handled by app/opengraph-image.tsx convention file
   },
   twitter: {
+    images: [DEFAULT_SOCIAL_IMAGE],
     card: 'summary_large_image',
     title: 'InstantMed | Faster than your GP. Telehealth without the small talk.',
     description: 'Start with a secure form that takes about 3 minutes. AHPRA-registered Australian doctors review every request.',
-    // Twitter image handled by app/opengraph-image.tsx convention file
   },
   alternates: {
     canonical: 'https://instantmed.com.au',
