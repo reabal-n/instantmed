@@ -70,6 +70,16 @@ The production Parchment token, organisation-validation and SSO smoke passed on 
 
 The primary checkout preserves before/after screenshots, colour measurements, checks and final PR/CI/deployment identifiers under `output/pre-plan5-accessibility/`; `release-state.json` owns the release status. This bounded repair does not replace the original visual scores or provide operator acceptance. Plan 5 remains unstarted.
 
+## Reliability follow-up — September 13
+
+Started from `origin/main` at `783f5d7a1ca5114ce47320f84d8e3969c43511b1`. The previous accessibility release's required CI passed, with three retry-dependent browser scenarios. Their retained traces show an 8.9-second review-data response during note persistence, a timed-out cookie-only test login, and 13–16-second development-chunk/availability responses during mobile navigation. These support development-server stalls as a contributor; they do not establish a clinical-note loss or a provider failure. The follow-up moves those exact scenarios to a compiled app with retries disabled, preserving their assertions and the other suites' provider guards.
+
+The previous production ED scan recorded one React #418 hydration error at 375px in dark mode. Six immediate rechecks and six later stressed production visits did not reproduce it, so its exact cause remains unconfirmed. A separate deterministic regression did establish that the ED FAQ remained hidden without JavaScript: the dynamic import's loading option put it inside a streamed Suspense boundary. Removing that unnecessary option makes the FAQ visible in the server-rendered page while retaining dynamic loading. The new browser test failed before this change and passed afterwards. This demonstrates the rendering repair, not a proven attribution of the original one-off error.
+
+The four selected production-build browser scenarios passed three times each with retries disabled (12 passes), including durable note reads and exact fixture cleanup. Separate ED checks passed at 375px and 1440px in both themes: the FAQ expands, no horizontal overflow occurs, and no browser error was recorded. The production build and documentation audit passed. These controlled runs do not establish zero future flakes.
+
+The primary checkout's `output/pre-plan5-reliability/` retains the original traces, scoped browser results and release ledger. Final CI and deployment receipts belong in `release-state.json`; no old failure or score is overwritten. Dedicated hosted Stripe credentials remain absent, and the Sentry token returned HTTP 403 when issue access was attempted. No provider operation or physical-phone acceptance is inferred from local tests. Plan 5 remains unstarted.
+
 ## Remaining external acceptance
 
 - Dedicated hosted Stripe test credentials (`HOSTED_STRIPE_E2E_STRIPE_SECRET_KEY`, `HOSTED_STRIPE_E2E_STRIPE_PRICE_MEDCERT`, `HOSTED_STRIPE_E2E_STRIPE_PRICE_REPEAT_SCRIPT`) and a real isolated hosted payment/webhook run. Existing browser tests deliberately stop or block before submission.
