@@ -153,9 +153,9 @@ describe("project docs drift contract", () => {
         "`20260905120000_refill_reminder_funnel.sql`",
       )
       expect(source).toContain("were applied in order on 2026-09-05")
-      expect(source).toContain("Newest on-disk migration is `20260913080413_refine_request_closures_and_retire_priority_refunds.sql` (administrative closure recovery and priority refund retirement; pending deployment)")
+      expect(source).toContain("Newest on-disk migration is `20260913080413_refine_request_closures_and_retire_priority_refunds.sql` (administrative closure recovery and priority refund retirement; applied and verified in production on 2026-09-13)")
       expect(source).toContain(
-        "Latest applied/verified production migration is `20260906100000_monitor_observation_state.sql`",
+        "The preceding applied production migration is `20260906100000_monitor_observation_state.sql`",
       )
       expect(source).toContain(
         "`20260903120000_recovery_email_engagement.sql`",
@@ -209,7 +209,7 @@ describe("project docs drift contract", () => {
       "All four pending migrations, including runtime-schema convergence `20260904160000`, were applied in order on 2026-09-05",
     )
     expect(architecture).toContain(
-      "Latest applied/verified production timestamp is `20260906100000`",
+      "Latest applied/verified production timestamp is `20260913080413`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
@@ -228,7 +228,7 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain("`security_definer_acl_violations()` returned zero")
     expect(architecture).toContain("returned zero in both test and live mode")
     expect(wikiArchitecture).toContain(
-      "Latest applied/verified production migration is `20260906100000_monitor_observation_state.sql`",
+      "The preceding applied production migration is `20260906100000_monitor_observation_state.sql`",
     )
     expect(wikiArchitecture).toContain(
       "were applied in order on 2026-09-05",
@@ -238,7 +238,7 @@ describe("project docs drift contract", () => {
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
-      "Linked migration history is aligned through `20260906100000`",
+      "Linked migration history is aligned through `20260913080413`",
     )
     expect(wikiArchitecture).toContain(
       "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied",
