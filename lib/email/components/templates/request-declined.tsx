@@ -18,6 +18,8 @@
 
 import * as React from "react"
 
+import { isAdministrativeClosure } from "@/lib/doctor/constants"
+
 import {
   APP_URL,
   BaseEmail,
@@ -70,6 +72,7 @@ export interface RequestDeclinedEmailProps {
   reason?: string
   /** Structured decline-reason code. Drives the next-step paragraph. */
   reasonCode?: DeclineEmailReasonCode | string
+  refundStatus?: string
   /** Legacy: base app URL. */
   appUrl?: string
   /** New: explicit portal URL override. Falls back to appUrl. */
@@ -112,8 +115,13 @@ function getNextStepCopy(reasonCode: string | undefined): NextStepCopy {
           </>
         ),
       }
-    case "outside_scope":
+    case "usual_clinician_review":
     case "prescribing_guidelines":
+    case "repeat_too_soon":
+      return { body: "Please follow the advice above and contact the clinician managing your treatment to review the next step." }
+    case "patient_cancelled":
+      return { body: "No further action is needed for this request. Contact support if you have any questions." }
+    case "outside_scope":
     case "controlled_substance":
     case "patient_not_eligible":
       return {
@@ -189,11 +197,13 @@ export function RequestDeclinedEmail({
   requestAccessUrl,
   reason,
   reasonCode,
+  refundStatus,
   appUrl = APP_URL,
 }: RequestDeclinedEmailProps) {
   const firstName = resolveFirstName(patientFirstName, patientName)
   const displayService = (serviceLabel || humanizeRequestType(requestType)).trim() || "request"
   const nextStep = getNextStepCopy(reasonCode)
+  const administrative = isAdministrativeClosure(reasonCode)
 
   return (
     <BaseEmail
@@ -202,7 +212,7 @@ export function RequestDeclinedEmail({
     >
       <HeroBlock
         icon="📋"
-        headline="We weren&apos;t able to help this time"
+        headline={administrative ? "Your request has been closed" : "We weren't able to help this time"}
         variant="neutral"
       />
 
@@ -222,7 +232,7 @@ export function RequestDeclinedEmail({
           lineHeight: "1.6",
         }}
         dangerouslySetInnerHTML={{
-          __html:
+          __html: administrative ? "Your request has been closed. The reason is included below." :
             "Thank you for getting in touch with InstantMed. We've reviewed your " +
             "request carefully, and we're unable to issue a " +
             `<strong>${escapeHtml(displayService)}</strong> this time. ` +
@@ -242,7 +252,7 @@ export function RequestDeclinedEmail({
               fontFamily,
             }}
           >
-            Why we declined your request
+            {administrative ? "Why we closed your request" : "Why we declined your request"}
           </p>
           <Text style={{ margin: 0 }}>{reason}</Text>
         </Box>
@@ -253,13 +263,18 @@ export function RequestDeclinedEmail({
         <Text style={{ margin: 0 }}>{nextStep.body}</Text>
       </div>
 
-      <Box variant="success">
-        <Heading as="h3">Full refund guaranteed</Heading>
-        <Text small style={{ margin: 0 }}>
-          Your payment will be refunded in full to your original payment method
-          within 5&ndash;7 business days. No action needed on your end.
-        </Text>
-      </Box>
+      {(refundStatus === "pending" || refundStatus === "succeeded" || refundStatus === "failed") && (
+        <Box variant={refundStatus === "succeeded" ? "success" : "info"}>
+          <Heading as="h3">{refundStatus === "succeeded" ? "Refund processed" : refundStatus === "pending" ? "Refund requested" : "Refund needs attention"}</Heading>
+          <Text small style={{ margin: 0 }}>
+            {refundStatus === "succeeded"
+              ? "Your full payment, including any priority fee, has been refunded to your original payment method. Your bank may take several business days to show it."
+              : refundStatus === "pending"
+                ? "We have requested a refund of your full payment, including any priority fee. It is still being processed. Any earlier refund counts towards this total."
+                : "Your request is closed, but we could not complete the refund. Our team will review it. You can contact support for an update."}
+          </Text>
+        </Box>
+      )}
 
       <p
         style={{
@@ -269,7 +284,7 @@ export function RequestDeclinedEmail({
           lineHeight: "1.6",
         }}
         dangerouslySetInnerHTML={{
-          __html:
+          __html: administrative ? `Look after yourself, ${escapeHtml(firstName)}.` :
             "We're sorry we couldn't help today. " +
             `Look after yourself, ${escapeHtml(firstName)}.`,
         }}

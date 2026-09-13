@@ -23,6 +23,7 @@ import { getStripeLivemode } from "@/lib/config/env"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { logStatusChange } from "@/lib/data/intake-events"
 import { isE2ETestModeEnabled } from "@/lib/dev-only-routes"
+import { isAdministrativeClosure, validateDeclineReason } from "@/lib/doctor/constants"
 import { emailRequestTypeLabel } from "@/lib/email/request-type-label"
 import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import { createLogger } from "@/lib/observability/logger"
@@ -91,7 +92,10 @@ const DECLINABLE_STATUSES = ["paid", "in_review", "pending_info", "escalated", "
  * @returns DeclineResult with status and refund info
  */
 export async function declineIntake(input: DeclineInput): Promise<DeclineResult> {
-  const { intakeId, reason, reasonCode } = input
+  const { intakeId, reasonCode } = input
+  const reason = input.reason?.trim()
+  const administrative = isAdministrativeClosure(reasonCode)
+  const outcomeStatus = administrative ? "cancelled" : "declined"
   let actorId: string
 
   // Add Sentry context
@@ -107,6 +111,8 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     if (!authUser) {
       return { success: false, error: "Only doctors and admins can decline requests" }
     }
+    const validationError = validateDeclineReason(reasonCode, reason)
+    if (validationError) return { success: false, error: validationError }
     actorId = authUser.profile.id
 
     Sentry.setTag("actor_id", actorId)
@@ -144,7 +150,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     }
 
     // Idempotency: already declined
-    if (intake.status === "declined") {
+    if (intake.status === "declined" || (administrative && intake.status === "cancelled")) {
       logger.info("[Decline] Intake already declined", { intakeId })
       return { success: true, alreadyDeclined: true }
     }
@@ -197,7 +203,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     }
 
     // 3. ATOMIC STATUS UPDATE
-    const declineNotes = reason ? `Declined: ${reason}` : "Declined"
+    const declineNotes = reason ? `${administrative ? "Cancelled" : "Declined"}: ${reason}` : "Declined"
     // Dual-write (plaintext + doctor_notes_enc) through the PHI wrapper; a raw
     // { doctor_notes } update here was one of the writers leaking
     // plaintext-only rows past the encryption migration.
@@ -206,9 +212,9 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     const { data: updated, error: updateError } = await supabase
       .from("intakes")
       .update({
-        status: "declined",
+        status: outcomeStatus,
         previous_status: intake.status,
-        decision: "declined",
+        decision: administrative ? null : "declined",
         decline_reason: reason || null,
         decline_reason_code: reasonCode || null,
         decline_reason_note: reason || null,
@@ -216,7 +222,8 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
         reviewed_by: actorId,
         reviewed_at: timestamp,
         decided_at: timestamp,
-        declined_at: timestamp,
+        declined_at: administrative ? null : timestamp,
+        ...(administrative ? { cancelled_at: timestamp } : {}),
         ...(refundObligationLivemode === undefined
           ? {}
           : { refund_obligation_livemode: refundObligationLivemode }),
@@ -245,7 +252,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 
     logger.info("[Decline] Status updated to declined", { intakeId, actorId })
 
-    trackIntakeFunnelStep({
+    if (!administrative) trackIntakeFunnelStep({
       step: "declined",
       intakeId,
       serviceSlug: intake.category || "unknown",
@@ -253,14 +260,11 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     })
 
     // 4. PROCESS REFUND
-    let refundResult: DeclineResult["refund"] = {
+    let refundResult: NonNullable<DeclineResult["refund"]> = {
       status: "not_applicable",
     }
 
-    // `partially_refunded` still owes the patient: the priority breach
-    // auto-refund (lib/stripe/priority-fee-refund.ts) returns only the $9.95
-    // fee before any decision, and decline policy is a FULL refund — so the
-    // decline must top up the remaining balance, not skip it.
+    // A previous partial refund still requires a top-up to the full payment.
     if (isRefundable && isEligible) {
       if (isE2E) {
         // Skip actual Stripe call in E2E mode
@@ -304,7 +308,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 
     if (patient?.email) {
       try {
-        await sendRequestDeclinedEmail({
+        const emailResult = await sendRequestDeclinedEmail({
           to: patient.email,
           patientName: patient.full_name || "there",
           patientId: patient.id,
@@ -314,9 +318,10 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
           requestType: emailRequestTypeLabel(intake.category),
           reason: reason || "Your request could not be approved at this time.",
           reasonCode,
+          refundStatus: refundResult.status,
         })
-        emailSent = true
-        logger.info("[Decline] Decline email sent", { intakeId, emailSent: true })
+        emailSent = emailResult?.success === true
+        logger.info("[Decline] Decline email sent", { intakeId, emailSent })
       } catch (emailError) {
         logger.error("[Decline] Failed to send decline email", { intakeId }, emailError instanceof Error ? emailError : undefined)
         // Don't fail the decline if email fails
@@ -328,7 +333,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
       await logStatusChange(
         intakeId,
         intake.status,
-        "declined",
+        outcomeStatus,
         actorId,
         "doctor",
         {
@@ -345,7 +350,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     // 7. LOG COMPLIANCE EVENT
     try {
       const requestType = getRequestType(intake.category)
-      await logTriageDeclined(intakeId, requestType, actorId, reason || "Declined")
+      if (!administrative) await logTriageDeclined(intakeId, requestType, actorId, reason || "Declined")
     } catch (auditError) {
       logger.warn("[Decline] Failed to log compliance event", { intakeId }, auditError instanceof Error ? auditError : undefined)
     }

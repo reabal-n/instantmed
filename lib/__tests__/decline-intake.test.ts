@@ -55,7 +55,12 @@ vi.mock("@/lib/security/phi-field-wrappers", () => ({
   })),
 }))
 
-import { declineIntake } from "@/app/actions/decline-intake"
+import { declineIntake as declineIntakeAction } from "@/app/actions/decline-intake"
+import { logTriageDeclined } from "@/lib/audit/compliance-audit"
+import { sendRequestDeclinedEmail } from "@/lib/email/senders"
+const declineIntake = (input: Parameters<typeof declineIntakeAction>[0]) => declineIntakeAction({
+  reasonCode: "requires_examination", reason: "Please see your GP for an in-person assessment.", ...input,
+})
 
 type UpdateChain = Record<string, ReturnType<typeof vi.fn>>
 
@@ -456,5 +461,26 @@ describe("declineIntake", () => {
         expect(mocks.processRefund).toHaveBeenCalledOnce()
       },
     )
+  })
+})
+
+
+describe("closure validation and classification", () => {
+  beforeEach(() => { resetAllMocks(); mockActor(); mocks.getStripeLivemode.mockReturnValue(false); mocks.processRefund.mockResolvedValue({ status: "pending" }) })
+  it.each(["duplicate_request", "patient_cancelled"])("records %s as an administrative cancellation with a full refund obligation", async reasonCode => {
+    mockDeclineFlow(makeIntakeRow())
+    const result = await declineIntake({ intakeId: "intake-123", reasonCode, reason: "This request has been closed." })
+    expect(result.success).toBe(true)
+    expect(updateEntries().some(entry => entry.payload.status === "cancelled" && entry.payload.decision === null && entry.payload.refund_obligation_livemode === false)).toBe(true)
+    expect(mocks.processRefund).toHaveBeenCalledOnce()
+    expect(logTriageDeclined).not.toHaveBeenCalled()
+    expect(sendRequestDeclinedEmail).toHaveBeenCalledWith(expect.objectContaining({ reasonCode, refundStatus: "pending" }))
+  })
+  it.each([{ reasonCode: "", reason: "Details" }, { reasonCode: "other", reason: "[Add details]" }, { reasonCode: "other", reason: " " }])("rejects incomplete patient copy before mutation", async input => {
+    mockDeclineFlow(makeIntakeRow())
+    const result = await declineIntake({ intakeId: "intake-123", ...input })
+    expect(result.success).toBe(false)
+    expect(updateEntries()).toEqual([])
+    expect(mocks.processRefund).not.toHaveBeenCalled()
   })
 })

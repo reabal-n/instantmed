@@ -49,7 +49,7 @@ export const VALID_STATUS_TRANSITIONS: Record<IntakeStatus, IntakeStatus[]> = {
   pending_payment: ["paid", "checkout_failed", "cancelled", "expired"],
   checkout_failed: ["pending_payment", "paid", "cancelled"], // Retry, pay on retry, or abandon
   paid: ["in_review", "approved", "awaiting_script", "cancelled"],
-  in_review: ["approved", "declined", "pending_info", "escalated", "awaiting_script"],
+  in_review: ["approved", "declined", "pending_info", "escalated", "awaiting_script", "cancelled"],
   pending_info: ["in_review", "paid", "cancelled", "expired"],
   // `approved` is intentionally one-way for ordinary app-layer callers. The DB
   // trigger additionally permits a GUARDED `approved → in_review` reversal, but
@@ -60,9 +60,9 @@ export const VALID_STATUS_TRANSITIONS: Record<IntakeStatus, IntakeStatus[]> = {
   // validation that the DB then rejects — the wrong (app ⊋ DB) direction the
   // parity contract forbids. See migration 20260711193000.
   approved: ["completed", "awaiting_script"],
-  awaiting_script: ["completed"],
+  awaiting_script: ["completed", "cancelled"],
   declined: [], // Terminal
-  escalated: ["in_review", "approved", "declined"],
+  escalated: ["in_review", "approved", "declined", "cancelled"],
   completed: [], // Terminal
   cancelled: [], // Terminal
   expired: [], // Terminal

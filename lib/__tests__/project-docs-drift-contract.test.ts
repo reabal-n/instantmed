@@ -153,7 +153,7 @@ describe("project docs drift contract", () => {
         "`20260905120000_refill_reminder_funnel.sql`",
       )
       expect(source).toContain("were applied in order on 2026-09-05")
-      expect(source).toContain("Newest on-disk migration is `20260906100000_monitor_observation_state.sql` (additive monitoring CAS; applied and verified in production on 2026-09-06)")
+      expect(source).toContain("Newest on-disk migration is `20260913080413_refine_request_closures_and_retire_priority_refunds.sql` (administrative closure recovery and priority refund retirement; pending deployment)")
       expect(source).toContain(
         "Latest applied/verified production migration is `20260906100000_monitor_observation_state.sql`",
       )
@@ -203,7 +203,7 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Newest timestamp on disk: `20260906100000_monitor_observation_state.sql`",
+      "Newest timestamp on disk: `20260913080413_refine_request_closures_and_retire_priority_refunds.sql`",
     )
     expect(architecture).toContain(
       "All four pending migrations, including runtime-schema convergence `20260904160000`, were applied in order on 2026-09-05",

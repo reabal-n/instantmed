@@ -756,7 +756,13 @@ export function IntakeDetailClient({
             </div>
           )}
           {intake.status === "cancelled" && (
-            <p className="text-sm text-muted-foreground">This request has been cancelled.</p>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>This request has been cancelled.</p>
+              {intake.decline_reason_note ? (
+                <p className="rounded-xl border border-border bg-muted/50 p-3">{intake.decline_reason_note}</p>
+              ) : null}
+              <p>If you have questions, <Link href="/contact" className="underline hover:text-foreground">contact support</Link>.</p>
+            </div>
           )}
         </div>
 

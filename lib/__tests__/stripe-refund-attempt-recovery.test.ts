@@ -88,6 +88,17 @@ function harness(input?: {
 }
 
 describe("recoverStripeRefundAttempt", () => {
+  it("observes legacy priority attempts but never resubmits an overdue fee refund", async () => {
+    const h = harness()
+    const result = await recoverStripeRefundAttempt(
+      { stripe: h.stripe as never, supabase: h.supabase as never },
+      { attempt: attempt({ refund_type: "priority_breach" }), nowMs: NOW },
+    )
+    expect(h.list).toHaveBeenCalledOnce()
+    expect(h.create).not.toHaveBeenCalled()
+    expect(result.status).toBe("manual_review")
+  })
+
   it("retrieves a known Stripe refund without creating another mutation", async () => {
     const known = refund({ id: "re_known" })
     const { create, list, retrieve, stripe, supabase } = harness({ retrieved: known })

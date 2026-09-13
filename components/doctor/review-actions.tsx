@@ -32,7 +32,7 @@ import { playApprovalSound } from "@/lib/audio/approval-sound"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { isClinicalNoteSufficient, resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
-import { DECLINE_REASONS } from "@/lib/doctor/constants"
+import { DECLINE_REASONS, isAdministrativeClosure, validateDeclineReason } from "@/lib/doctor/constants"
 import { createNoteSaveQueue, flushLatestNotes } from "@/lib/doctor/note-save-queue"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
@@ -70,7 +70,7 @@ export interface ReviewActionsState {
   setShowDeclineDialog: (v: boolean) => void
   declineReason: string
   setDeclineReason: (v: string) => void
-  declineReasonCode: DeclineReasonCode
+  declineReasonCode: DeclineReasonCode | ""
   setDeclineReasonCode: (code: DeclineReasonCode) => void
   handleDeclineReasonCodeChange: (code: DeclineReasonCode) => void
 
@@ -183,8 +183,8 @@ export function useReviewActions({
 
   // Decline dialog
   const [showDeclineDialog, setShowDeclineDialog] = useState(false)
-  const [declineReason, setDeclineReason] = useState(DECLINE_REASONS[0].template)
-  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>(DECLINE_REASONS[0].code)
+  const [declineReason, setDeclineReason] = useState("")
+  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode | "">("")
 
   // Certificate preview
   const [showCertPreview, setShowCertPreview] = useState(false)
@@ -200,6 +200,11 @@ export function useReviewActions({
   // Auto-save: debounced 800 ms after last keystroke.
   const intakeId = intake?.id
   const intakeStatus = intake?.status
+
+  useEffect(() => {
+    setDeclineReason("")
+    setDeclineReasonCode("")
+  }, [intakeId, showDeclineDialog])
 
   useEffect(() => {
     if (!intakeId) return
@@ -523,12 +528,13 @@ export function useReviewActions({
   }
 
   const handleDecline = async () => {
-    if (!intake || intake.script_sent === true || !declineReason.trim()) return
+    if (!intake || intake.script_sent === true || validateDeclineReason(declineReasonCode, declineReason)) return
     await runReviewDecision(async () => {
       const result = await declineIntakeAction(intake.id, declineReasonCode, declineReason)
       if (result.success) {
         setShowDeclineDialog(false)
-        toast.success("Case declined and patient notified")
+        toast.success(isAdministrativeClosure(declineReasonCode) ? "Request closed" : "Request declined")
+        if (result.refund?.status === "failed") toast.error("Refund needs attention. Check payment recovery.")
         closeAndRefresh()
       } else {
         toast.error(result.error || "Failed to decline")
