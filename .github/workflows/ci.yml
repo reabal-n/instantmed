@@ -398,6 +398,8 @@ jobs:
     # The complete matrix passed in 45.5m; a slower CI run reached 47m with
     # ~6m of previously measured work left. Allow variance without dropping cases.
     timeout-minutes: 65
+    env:
+      PLAYWRIGHT_PRODUCTION_CASES: 'retains multi-section typing|shows request-versus-profile differences|advances certificate -> symptoms via the sticky bar only|renders ED FAQs before JavaScript'
     # The blocking E2E suite reuses a deterministic Supabase fixture set.
     # Serialize it across branches so one run's teardown cannot remove child
     # records while another run is inside the document/review flow.
@@ -531,6 +533,7 @@ jobs:
           # Run both viewports and preserve a failure from either invocation.
           e2e_status=0
           pnpm exec playwright test --project=chromium \
+            --grep-invert="$PLAYWRIGHT_PRODUCTION_CASES" \
             e2e/unified-request-flow.spec.ts \
             e2e/patient-journey-readability.spec.ts \
             e2e/intake-resume-chip.spec.ts \
@@ -566,6 +569,53 @@ jobs:
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report/checkout-resume
           PLAYWRIGHT_OUTPUT_DIR: test-results/checkout-resume
         run: pnpm exec playwright test --project=chromium e2e/checkout-resume.spec.ts
+
+      # next dev writes .next too. Build only after all development-mode suites.
+      # The webhook suites retain their existing test lane and provider guards.
+      - name: Build production browser regressions
+        id: production_browser_build
+        if: ${{ always() && steps.verify_e2e_secrets.outcome == 'success' }}
+        env:
+          PLAYWRIGHT: '1'
+          NEXT_PUBLIC_PLAYWRIGHT: '1'
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_APP_URL: http://localhost:3001
+        run: |
+          remaining_seconds="$(pnpm exec tsx -e '
+            import { getCiPlaywrightGlobalTimeout } from "./e2e/helpers/ci-time-budget"
+            const remaining = getCiPlaywrightGlobalTimeout()
+            if (remaining === undefined) throw new Error("Missing CI browser deadline")
+            console.log(remaining / 1000)
+          ')"
+          timeout --signal=TERM --kill-after=10s "${remaining_seconds}s" pnpm build
+
+      - name: Run production browser regressions without retries
+        if: ${{ always() && steps.production_browser_build.outcome == 'success' }}
+        env:
+          PLAYWRIGHT_SERVER_MODE: production
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report/production-regressions
+          PLAYWRIGHT_OUTPUT_DIR: test-results/production-regressions
+          PLAYWRIGHT: '1'
+          NEXT_PUBLIC_PLAYWRIGHT: '1'
+          E2E_SECRET: ${{ secrets.E2E_SECRET }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          PHI_ENCRYPTION_ENABLED: 'true'
+          PHI_ENCRYPTION_READ_ENABLED: 'true'
+          PHI_ENCRYPTION_WRITE_ENABLED: 'true'
+          PHI_MASTER_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_APP_URL: http://localhost:3001
+        run: |
+          pnpm exec playwright test --project=chromium --retries=0 \
+            --grep="$PLAYWRIGHT_PRODUCTION_CASES" \
+            e2e/clinical-review-concise.spec.ts \
+            e2e/doctor.prescription-ui.spec.ts \
+            e2e/unified-request-flow.spec.ts \
+            e2e/money-pages-foundations.spec.ts
 
       - name: Upload test results
         uses: actions/upload-artifact@v7.0.1

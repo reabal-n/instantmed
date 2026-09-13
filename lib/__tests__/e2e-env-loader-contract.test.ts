@@ -26,7 +26,7 @@ describe("E2E env loader contract", () => {
 
     expect(config).toContain("process.execPath")
     expect(config).toContain("node_modules/next/dist/bin/next")
-    expect(config).toContain("${NODE_EXECUTABLE} ${NEXT_DEV_BIN} dev --port ${E2E_PORT}")
+    expect(config).toContain('${NODE_EXECUTABLE} ${NEXT_BIN} ${useProductionServer ? "start" : "dev"} --port ${E2E_PORT}')
     expect(config).not.toContain("pnpm dev --port")
   })
 })

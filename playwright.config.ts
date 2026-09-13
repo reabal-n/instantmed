@@ -34,7 +34,8 @@ const LOCAL_WORKERS = Number.isInteger(requestedLocalWorkers) && requestedLocalW
   ? requestedLocalWorkers
   : 2
 const NODE_EXECUTABLE = JSON.stringify(process.execPath)
-const NEXT_DEV_BIN = "node_modules/next/dist/bin/next"
+const NEXT_BIN = "node_modules/next/dist/bin/next"
+const useProductionServer = process.env.PLAYWRIGHT_SERVER_MODE === "production"
 process.env.PLAYWRIGHT_BASE_URL = E2E_BASE_URL
 
 export default defineConfig({
@@ -56,8 +57,8 @@ export default defineConfig({
   // Retry failed tests: 1 locally, 2 on CI
   retries: process.env.CI ? 2 : 1,
   
-  // Workers: Next dev cold-compiles routes; high local parallelism causes
-  // false timeouts and aborted requests before the app can settle.
+  // Keep CI serial for the shared fixtures. Local dev cold-compiles routes,
+  // so high local parallelism also causes false timeouts and aborted requests.
   workers: process.env.CI ? 1 : LOCAL_WORKERS,
   
   // Test timeout
@@ -112,21 +113,21 @@ export default defineConfig({
     },
   ],
 
-  // Run local dev server before starting the tests
-  // Fixed port 3001 ensures no conflict with existing dev server on 3000
+  // The selected CI regressions use a prebuilt bundle so compilation cannot
+  // delay browser assertions, note saves or login. Other suites retain dev mode.
   webServer: {
-    command: `env -u NO_COLOR ${NODE_EXECUTABLE} ${NEXT_DEV_BIN} dev --port ${E2E_PORT}`,
+    command: `env -u NO_COLOR ${NODE_EXECUTABLE} ${NEXT_BIN} ${useProductionServer ? "start" : "dev"} --port ${E2E_PORT}`,
     url: E2E_BASE_URL,
     reuseExistingServer: false, // CRITICAL: Always start fresh for deterministic runs
     timeout: 180 * 1000, // 3 minutes for Next.js cold start
     stdout: "pipe", // Capture server output for debugging
     stderr: "pipe",
-    // Pass through all required env vars to the dev server
+    // Pass through all required env vars to the selected server
     env: {
       ...process.env, // Inherit all env vars from parent process
       PLAYWRIGHT: "1",
       NEXT_PUBLIC_PLAYWRIGHT: "1",
-      NODE_ENV: "test",
+      NODE_ENV: useProductionServer ? "production" : "test",
       // These are typically loaded from .env.local but we ensure they're passed
       // E2E_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY should come from parent
     },

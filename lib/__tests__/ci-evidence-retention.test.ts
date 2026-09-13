@@ -79,8 +79,8 @@ describe("CI diagnostic evidence retention", () => {
     expect(traceUpload).toContain("path: test-results/")
   })
 
-  it("isolates all five invocations and uploads traces after passing retries", () => {
-    for (const suite of ["ops", "medcert", "paid-clinical", "paid-clinical-mobile", "checkout-resume"]) {
+  it("isolates every app invocation and uploads traces after passing retries", () => {
+    for (const suite of ["ops", "medcert", "paid-clinical", "paid-clinical-mobile", "checkout-resume", "production-regressions"]) {
       suitePaths(suite)
     }
     expect(config).toContain('outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR || "test-results"')
