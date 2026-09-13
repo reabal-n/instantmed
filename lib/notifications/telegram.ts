@@ -312,10 +312,11 @@ export async function editTelegramMessageToApproved(
 export async function editTelegramMessageToDeclined(
   messageId: number,
   opts: EditTelegramMessageOptions,
+  administrative = false,
 ): Promise<void> {
   const chatId = getChatId()
   if (!chatId) return
-  await editTelegramMessage(chatId, messageId, buildEditedTitle("✕ Declined", opts))
+  await editTelegramMessage(chatId, messageId, buildEditedTitle(administrative ? "Closed" : "✕ Declined", opts))
 }
 
 /**

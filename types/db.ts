@@ -409,6 +409,9 @@ export type RequestType =
 export type RequestStatus = "pending" | "approved" | "declined" | "needs_follow_up" | "awaiting_prescribe"
 
 export type DeclineReasonCode =
+  | "usual_clinician_review"
+  | "repeat_too_soon"
+  | "patient_cancelled"
   | "requires_examination"      // Clinical - Requires in-person physical examination
   | "not_telehealth_suitable"   // Service - Not available via telehealth
   | "prescribing_guidelines"    // Compliance - Against prescribing guidelines

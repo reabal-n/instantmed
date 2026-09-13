@@ -13,7 +13,7 @@ export interface IntakeDialogState {
   closeDeclineDialog: () => void
   declineReason: string
   setDeclineReason: (val: string) => void
-  declineReasonCode: DeclineReasonCode
+  declineReasonCode: DeclineReasonCode | ""
   onDeclineReasonCodeChange: (code: DeclineReasonCode) => void
 
   // Script
@@ -37,8 +37,8 @@ export interface IntakeDialogState {
 
 export function useIntakeDialogs(initialOpenDecline = false): IntakeDialogState {
   const [showDeclineDialog, setShowDeclineDialog] = useState(initialOpenDecline)
-  const [declineReason, setDeclineReason] = useState(DECLINE_REASONS[0].template)
-  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>(DECLINE_REASONS[0].code)
+  const [declineReason, setDeclineReason] = useState("")
+  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode | "">("")
 
   const [showScriptDialog, setShowScriptDialog] = useState(false)
   const [parchmentReference, setParchmentReference] = useState("")
@@ -50,8 +50,8 @@ export function useIntakeDialogs(initialOpenDecline = false): IntakeDialogState 
   const openDeclineDialog = useCallback(() => setShowDeclineDialog(true), [])
   const closeDeclineDialog = useCallback(() => {
     setShowDeclineDialog(false)
-    setDeclineReason(DECLINE_REASONS[0].template)
-    setDeclineReasonCode(DECLINE_REASONS[0].code)
+    setDeclineReason("")
+    setDeclineReasonCode("")
   }, [])
 
   const onDeclineReasonCodeChange = useCallback((code: DeclineReasonCode) => {

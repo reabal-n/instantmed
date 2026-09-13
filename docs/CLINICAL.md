@@ -562,3 +562,7 @@ Canonical public copy: "We acknowledge complaints within 24 hours. Clinical comp
 **Escalation pathways** disclosed on `/complaints`: AHPRA notifications + 8 state/territory HCCC bodies (NSW HCCC, VIC HCC, QLD Office of the Health Ombudsman, WA HADSCO, SA HCSCC, TAS HCC, ACT HRC, NT HCSCC) + OAIC for privacy.
 
 **Governance framing:** InstantMed supports multiple AHPRA-registered doctors with service-line capability flags. Public surfaces use "AHPRA-registered doctors" without disclosing doctor count or individual names. Use "AHPRA-registered Medical Director" only where the governance role is necessary. Do not advertise FRACGP fellowship, peer review across a cohort, team training, insurance coverage, or monitoring claims unless each claim has a current evidence receipt in `lib/marketing/approved-claims.ts`.
+
+### Request closure reasons
+
+The staff decline form requires a deliberate reason selection and completed patient wording; bracketed drafting instructions cannot be sent. `lib/doctor/constants.ts` owns eight reasons plus Other. Repeat timing decisions require individual supply/timing context, without a universal interval. More information and clinician contact remain pending actions. Duplicate requests and patient-requested cancellations record `cancelled` with no clinical decline decision or triage-declined metric. Urgent advice must include the destination, timeframe and safety-net instructions.

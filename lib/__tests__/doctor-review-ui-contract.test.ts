@@ -86,7 +86,7 @@ describe("doctor review prescribing controls", () => {
       /onDecline: \(\) => \{[\s\S]*?intake\.script_sent !== true[\s\S]*?setShowDeclineDialog\(true\)/,
     )
     expect(reviewActionsSource).toContain(
-      "if (!intake || intake.script_sent === true || !declineReason.trim()) return",
+      "if (!intake || intake.script_sent === true || validateDeclineReason(declineReasonCode, declineReason)) return",
     )
     expect(reviewActionsSource).toContain(
       "showDeclineDialog: showDeclineDialog && intake?.script_sent !== true",

@@ -10,8 +10,8 @@
  *
  * Client + server safe (Intl only, no env access). E2E and unit tests pass an
  * explicit `now`; production callers use the default. If a patient opens the
- * page before midnight and pays after, their opt-in stands — the 3h breach
- * auto-refund (lib/stripe/priority-fee-refund.ts) backstops the promise.
+ * page before midnight and pays after, their opt-in stands and remains available
+ * for opt-out; elapsed time does not trigger a refund.
  */
 
 /** Hidden while the Sydney wall-clock hour is inside [start, end). */

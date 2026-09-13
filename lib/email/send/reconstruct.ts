@@ -14,6 +14,7 @@ import {
   getCertificateById,
   getCertificateForIntake,
 } from "@/lib/data/issued-certificates"
+import { closureRefundStatus } from "@/lib/email/closure-refund-status"
 import {
   buildCheckoutPaymentRecoveryUrl,
   buildExpiredCheckoutStartUrl,
@@ -112,7 +113,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   async function fetchIntakeContext(intakeId: string) {
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("id, patient_id, service_id, category, subtype, reference_number, amount_cents, paid_at, payment_id, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference, guest_email, is_priority, priority_fee_refunded_at")
+      .select("id, patient_id, service_id, category, subtype, reference_number, amount_cents, paid_at, payment_id, decline_reason, decline_reason_code, decline_reason_note, refund_status, payment_status, refund_amount_cents, parchment_reference, guest_email, is_priority, priority_fee_refunded_at")
       .eq("id", intakeId)
       .single()
 
@@ -286,6 +287,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       }),
       reason,
       reasonCode,
+      refundStatus: closureRefundStatus(ctx.intake.payment_status, ctx.intake.refund_status),
       appUrl: env.appUrl,
     })
 

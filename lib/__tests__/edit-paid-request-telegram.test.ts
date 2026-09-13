@@ -130,7 +130,7 @@ describe("editPaidRequestTelegramMessageToDeclined", () => {
       serviceSlug: "consult",
       subtype: "ed",
       serviceDetail: undefined,
-    })
+    }, false)
     expect(mocks.getIntakeAnswers).not.toHaveBeenCalled()
   })
 

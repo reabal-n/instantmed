@@ -121,11 +121,11 @@ describe("critical cron terminal outcome contract", () => {
     )
   })
 
-  it("keeps priority refund retries owned by the dedicated recovery cron", () => {
+  it("never initiates priority refunds from overdue queue monitoring", () => {
     const staleQueue = read("app/api/cron/stale-queue/route.ts")
 
-    expect(staleQueue).toContain('.neq("refund_status", "failed")')
+    expect(staleQueue).not.toContain("refundPriorityFeeOnBreach")
     expect(staleQueue).not.toContain("priority_fee_refund_retry_attempted_at")
-    expect(staleQueue).toContain("refund-reconciliation cron owns")
+    expect(staleQueue).not.toContain("priority-fee-refund")
   })
 })

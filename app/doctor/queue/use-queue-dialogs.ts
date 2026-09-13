@@ -6,9 +6,10 @@ import { toast } from "sonner"
 
 import { getInfoRequestTemplatesAction, requestMoreInfoAction } from "@/app/actions/request-more-info"
 import { capture } from "@/lib/analytics/capture"
+import { isAdministrativeClosure, validateDeclineReason } from "@/lib/doctor/constants"
 import type { IntakeWithPatient } from "@/types/db"
 
-import { declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction, updateStatusAction } from "./actions"
+import { declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
 
 export interface QueueDialogState {
   // Decline
@@ -50,7 +51,7 @@ interface UseQueueDialogsOptions {
   setIntakes: React.Dispatch<React.SetStateAction<IntakeWithPatient[]>>
 }
 
-export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions): QueueDialogState {
+export function useQueueDialogs({ setIntakes }: UseQueueDialogsOptions): QueueDialogState {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
@@ -85,45 +86,27 @@ export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions)
   const handleDeclineTemplateChange = (code: string) => {
     setDeclineReasonCode(code)
     const template = declineTemplates.find((t) => t.code === code)
-    if (template?.description && !declineReasonNote) setDeclineReasonNote(template.description)
+    setDeclineReasonNote(template?.description ?? "")
   }
 
   const handleDecline = async () => {
     if (!declineDialog || !declineReasonCode) return
-    if (requiresNote && !declineReasonNote.trim()) return
+    if (validateDeclineReason(declineReasonCode, declineReasonNote)) return
     const declinedId = declineDialog
     startTransition(async () => {
       const result = await declineIntakeAction(declinedId, declineReasonCode, declineReasonNote || undefined)
       if (result.success) {
-        capture("doctor_decline_submitted", {
+        if (!isAdministrativeClosure(declineReasonCode)) capture("doctor_decline_submitted", {
           intake_id: declinedId,
           reason_code: declineReasonCode,
         })
-        const declinedIntake = intakes.find((r) => r.id === declinedId)
         setIntakes((prev) => prev.filter((r) => r.id !== declinedId))
         setDeclineDialog(null)
         setDeclineReasonCode("")
         setDeclineReasonNote("")
-        toast.success("Case declined and patient notified", {
-          action: declinedIntake
-            ? {
-                label: "Undo",
-                onClick: () => {
-                  startTransition(async () => {
-                    const undoResult = await updateStatusAction(declinedId, "paid")
-                    if (undoResult.success) {
-                      setIntakes((prev) => [declinedIntake, ...prev])
-                      toast.success("Decline reversed - case restored to queue")
-                      router.refresh()
-                    } else {
-                      toast.error(undoResult.error || "Failed to undo decline")
-                    }
-                  })
-                },
-              }
-            : undefined,
-          duration: 8000,
-        })
+        toast.success(isAdministrativeClosure(declineReasonCode) ? "Request closed" : "Request declined")
+        if (result.refund?.status === "failed") toast.error("Refund needs attention. Check payment recovery.")
+        router.refresh()
       } else {
         toast.error(result.error || "Failed to decline")
       }

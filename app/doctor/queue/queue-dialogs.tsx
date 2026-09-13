@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { isAdministrativeClosure, validateDeclineReason } from "@/lib/doctor/constants"
 import { cn } from "@/lib/utils"
 
 import type { QueueDialogState } from "./use-queue-dialogs"
@@ -53,7 +54,7 @@ export function QueueDialogs({ dialogs }: { dialogs: QueueDialogState }) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Decline Request</DialogTitle>
+            <DialogTitle>{isAdministrativeClosure(declineReasonCode) ? "Close request" : "Decline request"}</DialogTitle>
             <DialogDescription>Select a reason. The patient will be notified by email.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -91,6 +92,9 @@ export function QueueDialogs({ dialogs }: { dialogs: QueueDialogState }) {
               </div>
             ) : null}
           </div>
+          {declineReasonCode && validateDeclineReason(declineReasonCode, declineReasonNote) ? (
+            <p role="status" className="text-sm text-muted-foreground">{validateDeclineReason(declineReasonCode, declineReasonNote)}</p>
+          ) : null}
           <DialogFooter>
             <Button
               variant="outline"
@@ -105,9 +109,9 @@ export function QueueDialogs({ dialogs }: { dialogs: QueueDialogState }) {
             <Button
               variant="destructive"
               onClick={handleDecline}
-              disabled={!declineReasonCode || (requiresNote && !declineReasonNote.trim()) || isPending}
+              disabled={Boolean(validateDeclineReason(declineReasonCode, declineReasonNote)) || isPending}
             >
-              Decline & Notify
+              {isAdministrativeClosure(declineReasonCode) ? "Close & notify" : "Decline & notify"}
             </Button>
           </DialogFooter>
         </DialogContent>
