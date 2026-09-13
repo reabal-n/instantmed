@@ -35,7 +35,6 @@ import { getService } from "@/lib/services/service-catalog"
 
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((module) => module.FAQSection),
-  { loading: () => <div className="min-h-[300px]" /> },
 )
 
 const ASSESSMENT_HREF = "/request?service=consult&subtype=ed"

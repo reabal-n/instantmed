@@ -991,6 +991,25 @@ test("Hair H1 preserves unavailable-service behavior", async ({ page }) => {
 })
 
 test.describe("money-page theme foundations", () => {
+  test("renders ED FAQs before JavaScript hydrates the page", async ({ browser }, testInfo) => {
+    const context = await browser.newContext({
+      baseURL: projectBaseURL(testInfo),
+      viewport: { width: 375, height: 844 },
+      javaScriptEnabled: false,
+    })
+    try {
+      const page = await context.newPage()
+      const response = await page.goto("/erectile-dysfunction")
+      expect(response?.status()).toBe(200)
+      // FAQs must arrive in place, not in a hidden streamed container that
+      // depends on a later script moving it while React is hydrating.
+      await expect(page.locator("#faq")).toBeVisible()
+      await expect(page.locator("#faq").getByRole("heading").first()).toBeVisible()
+    } finally {
+      await context.close()
+    }
+  })
+
   test("dark homepage hydrates without a React markup mismatch", async ({ page }) => {
     const hydrationDiagnostics: string[] = []
     const isHydrationMismatch = (message: string) =>
