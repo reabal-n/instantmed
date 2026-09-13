@@ -643,6 +643,20 @@ async function fillHostedStripeCard(page: Page): Promise<void> {
     await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
     cardNumber = await findStripeField(page, cardSelector)
   }
+
+  // Hosted Checkout can default to the CI runner's country and offer converted
+  // currency. Keep the synthetic Australian billing details and exact AUD
+  // payment assertions independent of where the browser runs.
+  const currencyChoice = page.getByRole("group", { name: "Choose currency", exact: true })
+  if (await currencyChoice.isVisible()) {
+    const aud = currencyChoice.getByRole("button", { name: /^AU A\$/ })
+    if (await aud.isEnabled()) await aud.click()
+    await expect(aud).toBeDisabled()
+  }
+  const billingCountry = await findStripeField(page, 'select[name="billingCountry"]')
+  await billingCountry!.selectOption("AU")
+  await expect(billingCountry!).toHaveValue("AU")
+
   const expiry = await findStripeField(
     page,
     'input[name="cardExpiry"], input[autocomplete="cc-exp"], input[placeholder*="MM"]',
