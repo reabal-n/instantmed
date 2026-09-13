@@ -36,6 +36,7 @@ import {
 } from "@/lib/data/intakes"
 import { getDoctorCaseActionError } from "@/lib/doctor/case-action-guard"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
+import { DECLINE_REASONS, isAdministrativeClosure } from "@/lib/doctor/constants"
 import {
   getParchmentPatientSyncEligibility,
   getParchmentScriptCompletionEligibility,
@@ -608,7 +609,7 @@ export async function declineIntakeAction(
 
   // Reconcile the original Telegram notification before this server action
   // completes. The helper remains fail-soft.
-  await editPaidRequestTelegramMessageToDeclined(intakeId)
+  await editPaidRequestTelegramMessageToDeclined(intakeId, isAdministrativeClosure(reasonCode))
 
   return {
     success: true,
@@ -1136,20 +1137,9 @@ export async function getDeclineReasonTemplatesAction(): Promise<{
     return { success: false, error: "Unauthorized" }
   }
 
-  const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
-  const supabase = createServiceRoleClient()
-
-  const { data, error } = await supabase
-    .from("decline_reason_templates")
-    .select("code, label, description, requires_note")
-    .eq("is_active", true)
-    .order("display_order", { ascending: true })
-
-  if (error) {
-    return { success: false, error: "Failed to fetch templates" }
-  }
-
-  return { success: true, templates: data }
+  return { success: true, templates: DECLINE_REASONS.map(reason => ({
+    code: reason.code, label: reason.label, description: reason.template, requires_note: true,
+  })) }
 }
 
 /**

@@ -52,7 +52,7 @@ export async function processRefund(
   },
   actorId: string,
   _declineUpdatedAt: string,
-): Promise<DeclineResult["refund"]> {
+): Promise<NonNullable<DeclineResult["refund"]>> {
   const supabase = createServiceRoleClient()
 
   try {

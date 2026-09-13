@@ -111,7 +111,7 @@ export interface IntakeReviewContextValue {
   setShowDeclineDialog: (v: boolean) => void
   declineReason: string
   setDeclineReason: (v: string) => void
-  declineReasonCode: DeclineReasonCode
+  declineReasonCode: DeclineReasonCode | ""
   setDeclineReasonCode: (code: DeclineReasonCode) => void
   handleDeclineReasonCodeChange: (code: DeclineReasonCode) => void
 

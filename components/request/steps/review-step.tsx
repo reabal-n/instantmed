@@ -309,7 +309,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const [isPriority, setIsPriority] = useState(false)
   // Quiet hours (silent, no explanatory copy): the upsell simply does not
   // render overnight. Captured once per mount; a patient who opted in before
-  // midnight keeps their selection — the 3h breach auto-refund backstops it.
+  // midnight keeps their selection and can still opt out.
   const [priorityOffered] = useState(() => isPriorityReviewOffered())
   const totalDue = price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)
   const primaryActionLabel = safetyConfirmed ? `Pay $${totalDue.toFixed(2)}` : "Review & confirm"

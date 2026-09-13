@@ -87,6 +87,10 @@ export async function requestStripeRefund(
   deps: RefundAttemptDependencies,
   request: StripeRefundAttemptRequest,
 ): Promise<StripeRefundAttemptResult> {
+  if (request.refundType === "priority_breach") {
+    return { status: "failed", error: "automatic_priority_refunds_disabled" }
+  }
+
   const requestError = validateRequest(request)
   if (requestError) {
     return { error: requestError, status: "failed" }

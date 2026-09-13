@@ -53,20 +53,22 @@ test.describe("Doctor Review - Decline Flow", () => {
     const quickDrafts = dialog.locator("button[aria-pressed]")
 
     await expect(patientDetails).toBeVisible()
-    await expect(quickDrafts).toHaveCount(3)
+    await expect(patientDetails).toHaveValue("")
+    await expect(dialog.getByRole("button", { name: "Decline request", exact: true })).toBeDisabled()
+    await expect(quickDrafts).toHaveCount(9)
     await expect(
-      dialog.getByRole("button", { name: "Not suitable online" }),
+      dialog.getByRole("button", { name: "In-person assessment needed" }),
     ).toBeVisible()
     await expect(
-      dialog.getByRole("button", { name: "Frequent requests" }),
+      dialog.getByRole("button", { name: "Repeat requested too soon" }),
     ).toBeVisible()
     await expect(
-      dialog.getByRole("button", { name: "Urgent care" }),
+      dialog.getByRole("button", { name: "Urgent assessment needed" }),
     ).toBeVisible()
 
-    await dialog.getByRole("button", { name: "Frequent requests" }).click()
-    await expect(patientDetails).toHaveValue(/number and frequency/)
-    await expect(patientDetails).toHaveValue(/full refund/)
+    await dialog.getByRole("button", { name: "Repeat requested too soon" }).click()
+    await expect(patientDetails).toHaveValue(/recent prescription/)
+    await expect(dialog.getByRole("button", { name: "Decline request", exact: true })).toBeDisabled()
 
     const desktopBoxes = await quickDrafts.evaluateAll((buttons) =>
       buttons.map((button) => {
@@ -76,7 +78,7 @@ test.describe("Doctor Review - Decline Flow", () => {
     )
     expect(desktopBoxes[0]?.top).toBe(desktopBoxes[1]?.top)
     expect(desktopBoxes[2]?.top).toBeGreaterThan(desktopBoxes[0]?.top ?? 0)
-    expect(desktopBoxes[2]?.width).toBeGreaterThan(desktopBoxes[0]?.width ?? 0)
+    expect(desktopBoxes[8]?.width).toBeGreaterThan(desktopBoxes[0]?.width ?? 0)
 
     await page.setViewportSize({ width: 390, height: 844 })
     await expect(dialog).toBeVisible()
@@ -117,7 +119,7 @@ test.describe("Doctor Review - Decline Flow", () => {
 
     const dialog = page.getByRole("alertdialog", { name: /decline request/i })
     await expect(dialog).toBeVisible()
-    await dialog.getByRole("button", { name: "Not suitable online" }).click()
+    await dialog.getByRole("button", { name: "In-person assessment needed" }).click()
     await dialog
       .getByLabel(/details for the patient/i)
       .fill("Not appropriate for telehealth consultation")

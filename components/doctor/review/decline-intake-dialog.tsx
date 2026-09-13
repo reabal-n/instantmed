@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { DECLINE_REASONS } from "@/lib/doctor/constants"
+import { DECLINE_REASONS, isAdministrativeClosure, validateDeclineReason } from "@/lib/doctor/constants"
 import { formatCurrency } from "@/lib/format"
 import { isFulfilmentEntitledPaymentStatus } from "@/lib/stripe/fulfilment-entitlement"
 import { cn } from "@/lib/utils"
@@ -43,7 +43,9 @@ export function DeclineIntakeDialog() {
   } = useIntakeReview()
 
   const [typedConfirm, setTypedConfirm] = useState("")
-  const requiresTypedConfirm = TYPED_CONFIRM_REASONS.has(declineReasonCode)
+  const requiresTypedConfirm = declineReasonCode !== "" && TYPED_CONFIRM_REASONS.has(declineReasonCode)
+  const validationError = validateDeclineReason(declineReasonCode, declineReason)
+  const administrative = isAdministrativeClosure(declineReasonCode)
   const typedConfirmValid =
     !requiresTypedConfirm || typedConfirm.trim().toUpperCase() === "DECLINE"
 
@@ -55,7 +57,7 @@ export function DeclineIntakeDialog() {
 
   const handleConfirmDecline = (event: React.MouseEvent) => {
     event.preventDefault()
-    if (!typedConfirmValid) return
+    if (!typedConfirmValid || validationError) return
     setTypedConfirm("")
     handleDecline()
   }
@@ -68,9 +70,9 @@ export function DeclineIntakeDialog() {
 
   return (
     <AlertDialog open={showDeclineDialog} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="max-w-lg">
+      <AlertDialogContent className="max-w-xl max-h-[90dvh] overflow-y-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle>Decline request</AlertDialogTitle>
+          <AlertDialogTitle>{administrative ? "Close request" : "Decline request"}</AlertDialogTitle>
           <AlertDialogDescription>
             Pick a reason and add details. The patient will be notified and,
             if they paid, refunded automatically.
@@ -99,14 +101,14 @@ export function DeclineIntakeDialog() {
                       setTypedConfirm("")
                     }}
                     className={cn(
-                      "inline-flex h-11 items-center justify-start gap-2 rounded-md border px-3 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 sm:h-9",
+                      "inline-flex min-h-11 items-center justify-start gap-2 rounded-md border px-3 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 py-2",
                       spansRow && "sm:col-span-2",
                       active
                         ? "border-primary/60 bg-primary/10 text-primary-strong"
                         : "border-border bg-card text-foreground hover:bg-muted",
                     )}
                   >
-                    <span className="truncate">{reason.label}</span>
+                    <span>{reason.label}</span>
                   </button>
                 )
               })}
@@ -127,12 +129,17 @@ export function DeclineIntakeDialog() {
             />
           </div>
 
+          {validationError && declineReasonCode ? (
+            <p role="status" className="text-sm text-muted-foreground">{validationError}</p>
+          ) : null}
+          {administrative ? <p className="text-sm text-muted-foreground">This records an administrative cancellation, rather than a clinical decline.</p> : null}
+
           {isPaid ? (
             <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
               <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden="true" />
               <span>
-                This is a paid intake. Confirming decline will issue a full
-                Stripe refund to the patient{remainingRefund > 0 ? ` (${formatCurrency(remainingRefund)} remaining)` : ""}.
+                This is a paid intake. Confirming will request a full
+                refund to the patient{remainingRefund > 0 ? ` (${formatCurrency(remainingRefund)} remaining)` : ""}.
               </span>
             </div>
           ) : null}
@@ -157,7 +164,7 @@ export function DeclineIntakeDialog() {
                 spellCheck={false}
               />
               <p className="text-[11px] text-muted-foreground">
-                This reason is operator judgment, so we slow down the click.
+                Confirm the care destination, timeframe and safety advice are complete.
               </p>
             </div>
           ) : null}
@@ -167,11 +174,11 @@ export function DeclineIntakeDialog() {
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirmDecline}
-            disabled={!declineReason.trim() || !typedConfirmValid || isPending}
+            disabled={Boolean(validationError) || !typedConfirmValid || isPending}
             className="bg-destructive hover:bg-destructive/90"
           >
             {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />}
-            Decline request
+            {administrative ? "Close request" : "Decline request"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

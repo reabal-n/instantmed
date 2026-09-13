@@ -302,3 +302,21 @@ describe("Stripe refund recovery migration", () => {
     )
   })
 })
+
+
+describe("operator-authorized closure refunds", () => {
+  const sql = readFileSync(join(process.cwd(), "supabase/migrations/20260913080413_refine_request_closures_and_retire_priority_refunds.sql"), "utf8")
+  it("rejects new priority reservations and removes automatic priority successors", () => {
+    expect(sql).toContain("IF p_refund_type = 'priority_breach' THEN")
+    expect(sql).toContain("RAISE EXCEPTION 'automatic_priority_refunds_disabled'")
+    expect(sql).not.toContain("obligation.refund_type IN ('decline', 'priority_breach')")
+    expect(sql).toContain("obligation.refund_type = 'decline'")
+  })
+  it("recovers only explicit administrative cancellations alongside clinical declines", () => {
+    const predicate = "intake.status = 'cancelled' AND intake.decline_reason_code IN ('duplicate_request', 'patient_cancelled')"
+    expect(sql.split(predicate)).toHaveLength(3)
+    expect(sql).toContain("AND payment_status IN ('paid', 'partially_refunded')")
+    expect(sql).toContain("refund_obligation_livemode_conflict")
+    expect(sql).toContain("FOR UPDATE SKIP LOCKED")
+  })
+})

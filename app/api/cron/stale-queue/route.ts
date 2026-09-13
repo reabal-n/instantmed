@@ -247,67 +247,7 @@ export async function GET(request: NextRequest) {
       logger.error("Error in patient delay email block", {}, delayEmailError as Error)
     }
 
-    // ── Priority breach auto-refund (operator decision 2026-08-03) ──────────
-    // A priority intake still undecided PRIORITY_BREACH_HOURS after payment
-    // gets its $9.95 fee refunded automatically + a breach email, so overnight
-    // patients hear the honest outcome while no operator is awake. This route
-    // initiates generation 1 only; the refund-reconciliation cron owns exact
-    // same-key recovery and the one bounded successor. The later approval
-    // email acknowledges the refund (med-cert-patient / script-sent).
-    let priorityBreachRefundRequests = 0
-    try {
-      const { PRIORITY_BREACH_HOURS, refundPriorityFeeOnBreach } = await import(
-        "@/lib/stripe/priority-fee-refund"
-      )
-      const breachThreshold = new Date(now.getTime() - PRIORITY_BREACH_HOURS * 60 * 60 * 1000)
-      const { data: breachCandidates, error: breachCandidatesError } = await filterSeededE2EIntakes(
-        supabase
-          .from("intakes")
-          .select(`
-            id, category, subtype, is_priority, payment_status, amount_cents,
-            refund_amount_cents, refund_status, refund_stripe_id,
-            priority_fee_refunded_at, stripe_payment_intent_id, payment_id, patient_id,
-            updated_at,
-            patient:profiles!patient_id(full_name, email)
-          `)
-          .eq("is_priority", true)
-          .eq("payment_status", "paid")
-          .neq("refund_status", "pending")
-          .neq("refund_status", "failed")
-          // paid/in_review only: a decision (approved/declined/awaiting_script)
-          // or a doctor info-request means the review engaged inside the window.
-          .in("status", ["paid", "in_review"])
-          .is("priority_fee_refunded_at", null)
-          .lt("paid_at", breachThreshold.toISOString())
-          .not("patient_id", "is", null)
-          .limit(10),
-      )
-      if (breachCandidatesError) {
-        throw new Error(`Priority-breach candidate query failed: ${breachCandidatesError.message}`)
-      }
-
-      if (breachCandidates && breachCandidates.length > 0) {
-        const { stripe } = await import("@/lib/stripe/client")
-
-        for (const intake of breachCandidates) {
-          const result = await refundPriorityFeeOnBreach({ stripe, supabase }, intake)
-          if (result.status !== "pending") {
-            if (result.status === "failed") {
-              handledFailures++
-              logger.error("Priority breach refund failed", { intakeId: intake.id, error: result.error })
-            }
-            continue
-          }
-
-          // Exact balance evidence owns the durable refund stamp, metric, and
-          // patient notification. Creation alone can still be pending/fail.
-          priorityBreachRefundRequests++
-        }
-      }
-    } catch (breachError) {
-      handledFailures++
-      logger.error("Error in priority breach refund block", {}, breachError as Error)
-    }
+    // Priority delays trigger alerts and updates, never automatic refunds.
 
     // ── Stuck awaiting_script intakes (48h) ─────────────────────────────────
     const AWAITING_SCRIPT_THRESHOLD_HOURS = 48
@@ -344,7 +284,6 @@ export async function GET(request: NextRequest) {
       success: true,
       stale_count: totalStale,
       delay_emails_sent: delayEmailsSent,
-      priority_breach_refund_requests: priorityBreachRefundRequests,
       stuck_awaiting_script: stuckScriptCount ?? 0,
       checked_at: now.toISOString(),
     })

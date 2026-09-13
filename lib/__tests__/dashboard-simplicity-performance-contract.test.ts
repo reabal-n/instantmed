@@ -415,7 +415,7 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(actionButtonsSource).toContain("data-shortcut-hint")
     expect(actionButtonsSource).toContain("Decline with reason")
     expect(actionButtonsSource).not.toContain("Full refund if you decline")
-    expect(read("components/doctor/review/decline-intake-dialog.tsx")).toContain("Stripe refund to the patient")
+    expect(read("components/doctor/review/decline-intake-dialog.tsx")).toContain("Confirming will request a full")
     expect(actionButtonsSource).not.toContain("refundConsequenceLabel")
     expect(actionButtonsSource).not.toContain("data-refund-consequence")
     expect(actionButtonsSource).not.toContain("gets ${refundShortLabel} back.")

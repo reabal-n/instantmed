@@ -279,6 +279,17 @@ describe("issueRefundAction", () => {
     expect(revalidatePatient).toHaveBeenCalledWith({ intakeId: INTAKE_ID })
   })
 
+  it("includes the priority fee in an operator-authorized full refund", async () => {
+    mockActor("admin")
+    mockIntake(makeIntakeRow({ amount_cents: 3_990, is_priority: true }))
+    mockDurableReservation(3_990)
+    mockStripeAccepted("re_priority_full", 3_990)
+    const result = await issueRefundAction(INTAKE_ID)
+    expect(result.success).toBe(true)
+    expect(reserveCalls()[0]?.[1]).toMatchObject({ p_target_total_cents: 3_990, p_refund_type: "standalone" })
+    expect(stripe.refunds.create).toHaveBeenCalledWith(expect.objectContaining({ amount: 3_990 }), expect.anything())
+  })
+
   it("targets the authoritative total while Stripe receives only the top-up remainder", async () => {
     mockActor("admin")
     mockIntake(makeIntakeRow({
