@@ -48,6 +48,16 @@ const rows: CaseRowData[] = [
 ]
 
 describe("CaseTable", () => {
+  it("renders column headings without enabling sorting", () => {
+    const html = render(<CaseTable rows={rows} density="comfortable" />)
+    expect(html.match(/role="columnheader"/g)).toHaveLength(4)
+    for (const label of ["Patient", "Service", "Status", "Time"]) {
+      expect(html).toContain(label)
+    }
+    expect(html).not.toContain("aria-sort=")
+    expect(html).not.toMatch(/<button[^>]*role="columnheader"/)
+  })
+
   it("renders all rows", () => {
     const html = render(<CaseTable rows={rows} density="comfortable" />)
     expect(html).toContain("Ava Approved")
@@ -139,5 +149,6 @@ describe("CaseTable", () => {
     // 3 rows, 3 action buttons
     const matches = html.match(/data-testid="row-action"/g) ?? []
     expect(matches.length).toBe(3)
+    expect(html).not.toContain("opacity-0")
   })
 })

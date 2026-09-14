@@ -698,7 +698,7 @@ export function IntakeReviewPanel({
                     }}
                   >
                     <User className="h-3.5 w-3.5" />
-                    View profile
+                    Patient details
                   </Button>
                   <Button
                     asChild
@@ -714,7 +714,7 @@ export function IntakeReviewPanel({
                       router.push(fullCaseHref)
                     }}>
                       <ExternalLink className="h-3.5 w-3.5" />
-                      Open full record
+                      Request record
                     </Link>
                   </Button>
                 </>

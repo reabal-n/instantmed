@@ -310,9 +310,9 @@ export function CaseRow({
         {relativeTime}
       </div>
 
-      {/* Actions: hover-revealed, real buttons (siblings of the link). */}
+      {/* Actions: always visible, real buttons (siblings of the link). */}
       {actions ? (
-        <div className="relative z-[2] flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+        <div className="relative z-[2] flex items-center justify-end gap-1">
           {actions}
         </div>
       ) : (

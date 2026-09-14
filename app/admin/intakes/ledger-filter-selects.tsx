@@ -31,9 +31,9 @@ export function LedgerFilterSelects({
   status,
 }: LedgerFilterSelectsProps) {
   return (
-    <div className="grid grid-cols-2 gap-2 lg:mb-[35px] lg:flex">
+    <div className="grid gap-3">
       <Select value={service} onValueChange={onServiceChange}>
-        <SelectTrigger className="min-h-10 min-w-0 lg:w-[190px]" aria-label="Service filter">
+        <SelectTrigger className="min-h-11 w-full" aria-label="Service filter">
           <SelectValue placeholder="All services" />
         </SelectTrigger>
         <SelectContent>
@@ -44,7 +44,7 @@ export function LedgerFilterSelects({
       </Select>
 
       <Select value={status} onValueChange={onStatusChange}>
-        <SelectTrigger className="min-h-10 min-w-0 lg:w-[175px]" aria-label="Status filter">
+        <SelectTrigger className="min-h-11 w-full" aria-label="Status filter">
           <SelectValue placeholder="All statuses" />
         </SelectTrigger>
         <SelectContent>

@@ -87,6 +87,13 @@ describe("QuickFilterChip", () => {
 })
 
 describe("FilterBar", () => {
+  it("consolidates controls under one Filters trigger with a readable summary", () => {
+    const html = render(<FilterBar searchValue="" onSearchChange={() => {}} density="comfortable" onDensityChange={() => {}} filterControls={<span>Service controls</span>} filterSummary="All services · All statuses" />)
+    expect(html).toContain('aria-label="Filters"')
+    expect(html).toContain("All services · All statuses")
+    expect(html).not.toContain('role="radiogroup"')
+  })
+
   it("renders a labelled search input", () => {
     const html = render(
       <FilterBar

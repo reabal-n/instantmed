@@ -1,6 +1,6 @@
 "use client"
 
-import { Ban, ChevronLeft, ChevronRight, Copy, Loader2, RotateCcw, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
@@ -14,6 +14,7 @@ import {
   searchAdminLedgerAction,
 } from "@/app/admin/intakes/search-actions"
 import { issueRefundAction } from "@/app/doctor/queue/actions"
+import { type CaseAction, CaseActionsMenu } from "@/components/operator/cases/case-actions-menu"
 import { CaseMobileList } from "@/components/operator/cases/case-mobile-list"
 import { CaseTable } from "@/components/operator/cases/case-table"
 import { FilterBar, type QuickFilter } from "@/components/operator/cases/filter-bar"
@@ -36,6 +37,7 @@ import {
   formatRenewalMatchTitle,
   type RenewalMatch,
 } from "@/lib/doctor/renewal-format"
+import { formatIntakeStatus } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import type { CaseRowAttribution } from "@/lib/operator/cases/case-attribution"
 import { getPaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
@@ -45,6 +47,7 @@ import {
 } from "@/lib/operator/cases/types"
 import { useDensity } from "@/lib/operator/cases/use-density"
 import {
+  ADMIN_SERVICE_FILTER_OPTIONS,
   type AdminServiceFilterValue,
   getServicePresentation,
 } from "@/lib/services/service-presentation"
@@ -170,13 +173,13 @@ const FailedCheckoutCloseDialog = dynamic<LazyFailedCheckoutCloseDialogProps>(
 function LedgerFilterSelectsLoading() {
   return (
     <div
-      className="grid grid-cols-2 gap-2 lg:mb-[35px] lg:flex"
+      className="grid gap-3"
       aria-label="Loading service and status filters"
       role="status"
     >
       <span className="sr-only">Loading filters</span>
-      <span className="min-h-10 rounded-md border border-border bg-muted/40 motion-safe:animate-pulse lg:w-[190px]" />
-      <span className="min-h-10 rounded-md border border-border bg-muted/40 motion-safe:animate-pulse lg:w-[175px]" />
+      <span className="min-h-10 rounded-md border border-border bg-muted/40 motion-safe:animate-pulse" />
+      <span className="min-h-10 rounded-md border border-border bg-muted/40 motion-safe:animate-pulse" />
     </div>
   )
 }
@@ -583,7 +586,7 @@ export function AdminIntakesLedgerClient({
       : rows.length === 0
         ? `${total.toLocaleString("en-AU")} requests`
         : `${firstVisible.toLocaleString("en-AU")}–${lastVisible.toLocaleString("en-AU")} of ${total.toLocaleString("en-AU")}`
-  const hasNextPage = total === null ? rows.length === pageSize : lastVisible < total
+  const hasNextPage = total === null ? rows.length === pageSize : page * pageSize < total
   const hasFilters = Boolean(
     sanitizeAdminLedgerSearchTerm(searchQuery) ||
     (initialFilters?.service && initialFilters.service !== "all") ||
@@ -591,6 +594,24 @@ export function AdminIntakesLedgerClient({
     (initialFilters?.workLane && initialFilters.workLane !== "all") ||
     activeChips.size > 0,
   )
+  const renderRowActions = (row: CaseRowData) => {
+    const actions: CaseAction[] = []
+    if (row.paymentRecoveryIndicator === "payment_pending" || row.paymentRecoveryIndicator === "payment_retry") {
+      actions.push({
+        label: isPaymentRescuePending && paymentRescueTargetId === row.id ? "Preparing payment reply…" : "Copy payment reply",
+        disabled: isPaymentRescuePending,
+        onSelect: () => { handleCopyPaymentRescue(row) },
+      })
+    }
+    if (canCloseFailedCheckout(row)) {
+      actions.push({ label: "Close request", onSelect: () => setFailedCheckoutCloseTarget(row) })
+    }
+    if (row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded") {
+      actions.push({ label: "Issue refund", onSelect: () => setRefundTarget(row) })
+    }
+    return actions.length > 0 ? <CaseActionsMenu requestRef={row.intakeRef} actions={actions} /> : null
+  }
+
   const isLedgerPending = isFilterPending || isSearchPending
   const clearFilters = () => {
     searchRequestSequenceRef.current += 1
@@ -649,13 +670,20 @@ export function AdminIntakesLedgerClient({
           activeFilters={activeChips}
           onToggleFilter={toggleChip}
           totalLabel={totalLabel}
-        />
-
-        <LedgerFilterSelects
-          service={initialFilters?.service ?? "all"}
-          status={initialFilters?.status ?? "all"}
-          onServiceChange={(value) => replaceParams({ service: value === "all" ? null : value })}
-          onStatusChange={(value) => replaceParams({ status: value === "all" ? null : value })}
+          filterSummary={[
+            ADMIN_SERVICE_FILTER_OPTIONS.find((option) => option.value === (initialFilters?.service ?? "all"))?.label ?? "All services",
+            initialFilters?.status && initialFilters.status !== "all" ? formatIntakeStatus(initialFilters.status) : "All statuses",
+            ADMIN_WORK_LANE_FILTER_OPTIONS.find((option) => option.value === (initialFilters?.workLane ?? "all"))?.label,
+            ...QUICK_FILTERS.filter((filter) => activeChips.has(filter.id as AdminLedgerQuickFilterValue)).map((filter) => filter.label),
+          ].filter(Boolean).join(" · ")}
+          filterControls={
+            <LedgerFilterSelects
+              service={initialFilters?.service ?? "all"}
+              status={initialFilters?.status ?? "all"}
+              onServiceChange={(value) => replaceParams({ service: value === "all" ? null : value })}
+              onStatusChange={(value) => replaceParams({ status: value === "all" ? null : value })}
+            />
+          }
         />
       </div>
 
@@ -673,67 +701,7 @@ export function AdminIntakesLedgerClient({
               groupByTime
               onRowPrimary={isAdmin ? openCaseSlideover : undefined}
               selectedRowId={isAdmin ? selectedRowId : null}
-              rowActions={(row) => {
-                const canRefund = row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
-                const canCopyPaymentRescue = row.paymentRecoveryIndicator === "payment_pending" || row.paymentRecoveryIndicator === "payment_retry"
-                const canClose = canCloseFailedCheckout(row)
-                if (!canRefund && !canCopyPaymentRescue && !canClose) return null
-                return (
-                  <>
-                    {canCopyPaymentRescue ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="min-h-11 flex-1 px-3 text-sm"
-                        aria-label={`Copy payment recovery reply for ${row.patientName}`}
-                        disabled={isPaymentRescuePending}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          handleCopyPaymentRescue(row)
-                        }}
-                      >
-                        {isPaymentRescuePending && paymentRescueTargetId === row.id
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : <Copy className="h-4 w-4" />}
-                        Copy payment reply
-                      </Button>
-                    ) : null}
-                    {canClose ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="min-h-11 flex-1 px-3 text-sm"
-                        aria-label={`Close failed checkout ${row.intakeRef}`}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          setFailedCheckoutCloseTarget(row)
-                        }}
-                      >
-                        <Ban className="h-4 w-4" />
-                        Close request
-                      </Button>
-                    ) : null}
-                    {canRefund ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="min-h-11 flex-1 px-3 text-sm"
-                        aria-label={`Issue refund for ${row.patientName}`}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          setRefundTarget(row)
-                        }}
-                      >
-                        <RotateCcw className="h-4 w-4" />
-                        Issue refund
-                      </Button>
-                    ) : null}
-                  </>
-                )
-              }}
+              rowActions={renderRowActions}
               emptyState={{
                 title: hasFilters ? "No matching requests" : "No recent requests",
                 body: hasFilters
@@ -756,64 +724,7 @@ export function AdminIntakesLedgerClient({
               className="min-w-[760px]"
               onRowPrimary={isAdmin ? openCaseSlideover : undefined}
               selectedRowId={isAdmin ? selectedRowId : null}
-              rowActions={(row) => {
-                const canRefund = row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
-                const canCopyPaymentRescue = row.paymentRecoveryIndicator === "payment_pending" || row.paymentRecoveryIndicator === "payment_retry"
-                const canClose = canCloseFailedCheckout(row)
-                if (!canRefund && !canCopyPaymentRescue && !canClose) return null
-                return (
-                  <>
-                    {canCopyPaymentRescue ? (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-11 w-11 sm:h-8 sm:w-8"
-                        title="Copy payment reply"
-                        aria-label={`Copy payment recovery reply for ${row.patientName}`}
-                        disabled={isPaymentRescuePending}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          handleCopyPaymentRescue(row)
-                        }}
-                      >
-                        {isPaymentRescuePending && paymentRescueTargetId === row.id
-                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          : <Copy className="h-3.5 w-3.5" />}
-                      </Button>
-                    ) : null}
-                    {canClose ? (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-11 w-11 sm:h-8 sm:w-8"
-                        title="Close failed checkout"
-                        aria-label={`Close failed checkout ${row.intakeRef}`}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          setFailedCheckoutCloseTarget(row)
-                        }}
-                      >
-                        <Ban className="h-3.5 w-3.5" />
-                      </Button>
-                    ) : null}
-                    {canRefund ? (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-11 w-11 sm:h-8 sm:w-8"
-                        title="Issue refund"
-                        aria-label={`Issue refund for ${row.patientName}`}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          setRefundTarget(row)
-                        }}
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                      </Button>
-                    ) : null}
-                  </>
-                )
-              }}
+              rowActions={renderRowActions}
               emptyState={{
                 title: hasFilters ? "No matching requests" : "No recent requests",
                 body: hasFilters

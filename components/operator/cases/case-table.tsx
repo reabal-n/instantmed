@@ -125,12 +125,11 @@ export function CaseTable({
         className,
       )}
     >
-      {sortable ? (
-        <SortableHeader
-          sortState={sortState}
-          onSortChange={onSortChange}
-        />
-      ) : null}
+      <SortableHeader
+        sortable={sortable}
+        sortState={sortState}
+        onSortChange={onSortChange}
+      />
 
       <div role="rowgroup">
         {groups.map((group, gi) => (
@@ -166,9 +165,11 @@ export function CaseTable({
 }
 
 function SortableHeader({
+  sortable,
   sortState,
   onSortChange,
 }: {
+  sortable: boolean
   sortState?: SortState
   onSortChange?: (sort: SortState) => void
 }) {
@@ -200,6 +201,10 @@ function SortableHeader({
               : "asc"
             : DEFAULT_DIRECTION_FOR_FIELD[h.field]
           onSortChange({ field: h.field, direction: nextDirection })
+        }
+
+        if (!sortable) {
+          return <div key={h.field} role="columnheader" className={cn("text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground", h.align === "right" && "text-right")}>{h.label}</div>
         }
 
         return (
