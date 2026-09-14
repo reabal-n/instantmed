@@ -10,7 +10,7 @@
 
 **Spec/design brief:** [ROADMAP](../../ROADMAP.md), rank 2; [DESIGN](../../../DESIGN.md); [staff operations](../../OPERATIONS.md); [Sessions 3](2026-09-06-03-concise-clinical-review.md) and [4](2026-09-06-04-parchment-prescribing-workspace.md).
 
-**Status:** Implementation started September 14 under the later operator instruction recorded below. Work only Queue and Requests navigation.
+**Status:** Queue and Requests navigation is implemented on the isolated Plan 5 branch; integrated verification and final review are in progress. PR #561 is merged and included. No Plan 5 production release or owner acceptance is claimed.
 
 ## Later operator instruction — start now
 
@@ -22,7 +22,7 @@ The operator subsequently said “just start plan 5” after repeated reports th
 
 **Preparation baseline:** `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. Read-only inspection found PR #561 open on head `a6c799666cbcabd8b2b4a9bc6fc59d7d3b73c9aa`; build passed, E2E and Lighthouse were running. This is a dated observation, not the implementation base or a release receipt. The existing pre-Plan 5 readiness task owns that PR's CI diagnosis, merge and monitoring follow-up.
 
-- [ ] Read PR #561's current state, head, required checks and merge commit. An open or closed-unmerged PR does not satisfy the dependency. Do not merge it from this task or change its test selection to accelerate Plan 5.
+- [x] Read PR #561's current state, head, required checks and merge commit. An open or closed-unmerged PR does not satisfy the dependency. Do not merge it from this task or change its test selection to accelerate Plan 5.
 - [ ] Require the actual merge and its ancestry before choosing the implementation base:
 
 ```bash
@@ -88,10 +88,10 @@ These evidence gates remain visible without expanding Plan 5 into phone testing,
 **Interfaces:** Consume existing queue rows/counts, `recentlyCompleted`, `historyTruncated`, current filter callbacks, actor/capability props and `onBeforeLeaveChange`. Produce the same actions and data semantics in a bounded layout. No query, ownership, approval or provider contract changes.
 
 - [ ] Capture active, empty/caught-up, loading/degraded and multi-owner queue states at laptop/mobile sizes.
-- [ ] Consolidate the header into search/filter controls, availability and a compact operational status control. Move turnaround detail into its existing operational summary; show oldest wait once.
-- [ ] Move the admin test-data control into a labelled admin menu while retaining a conspicuous banner whenever test data is active. Preserve its server authorization and reporting exclusions.
-- [ ] Make each row read patient → specific request → next task, with wait/age and exceptions supporting it. Keep clinical risk, purchased priority and another doctor's ownership distinct.
-- [ ] Collapse Approved today into an expandable footer while preserving actor-scoped results and its visibility on the caught-up dashboard.
+- [x] Consolidate the header into search/filter controls, availability and a compact operational status control. Move turnaround detail into its existing operational summary; show oldest wait once.
+- [x] Move the admin test-data control into a labelled admin menu while retaining a conspicuous banner whenever test data is active. Preserve its server authorization and reporting exclusions.
+- [x] Make each row read patient → specific request → next task, with wait/age and exceptions supporting it. Keep clinical risk, purchased priority and another doctor's ownership distinct.
+- [x] Collapse Approved today into an expandable footer while preserving actor-scoped results and its visibility on the caught-up dashboard.
 - [ ] Check realtime updates: a newly completed/claimed/changed request must not steal focus, lose a draft or activate stale actions.
 - [ ] Extend `dashboard-review-history.test.ts`, `doctor-queue-state.test.ts`, `doctor-queue-contract.test.ts` and relevant browser coverage before changing the corresponding behavior. Verify the collapsed heading/count, expand/collapse keyboard behavior, degraded/truncated labels and actor/protocol distinctions. Run the focused tests, inspect the rendered before/after states, review the diff and commit this task with its source documentation.
 
@@ -101,10 +101,10 @@ These evidence gates remain visible without expanding Plan 5 into phone testing,
 
 **Interface:** Separate visible column headings from sorting capability. The current caller does not pass `sortable`, so headings must not depend on enabling sorting or new server queries. Preserve existing server filtering and pagination semantics.
 
-- [ ] Keep the existing work lanes/filter presets, search and one Filters control with a readable active-filter summary. Consolidate service/status and density controls rather than stacking a second toolbar. User-configurable saved-view creation and new persistence are outside this scope.
-- [ ] Always display useful column headings, with explicit sorting controls only for actually supported sort fields.
-- [ ] Provide a labelled action menu for recovery/refund operations, keyboard and touch reachable without hover discovery. Retain all current authorization, payment-state and confirmation checks.
-- [ ] Use Patient details and Request record for ambiguous destination labels without renaming underlying canonical URLs.
+- [x] Keep the existing work lanes/filter presets, search and one Filters control with a readable active-filter summary. Consolidate service/status and density controls rather than stacking a second toolbar. User-configurable saved-view creation and new persistence are outside this scope.
+- [x] Always display useful column headings, with explicit sorting controls only for actually supported sort fields.
+- [x] Provide a labelled action menu for recovery/refund operations, keyboard and touch reachable without hover discovery. Retain all current authorization, payment-state and confirmation checks.
+- [x] Use Patient details and Request record for ambiguous destination labels without renaming underlying canonical URLs.
 - [ ] Test empty results, server query failure, stale pagination and a changed record. Failed reads remain visibly degraded, not an empty healthy list.
 - [ ] Add the following regression inside the existing `CaseTable` describe block before changing headings. Its existing `rows` and `render` helpers supply owned synthetic data:
 
@@ -174,4 +174,8 @@ Complete the shared release protocol. Close implemented plan items, preserve sti
 
 ### Implementation in progress — September 14
 
-The operator’s later “just start plan 5” instruction was applied to an isolated branch from fetched `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. PR #561 remained open at the start and is owned by the separate readiness task; this branch does not merge it or accept its monitoring gates. Queue presentation is implemented through `7107b9128` with independent task review and focused checks. Requests presentation is committed at `bcdab3b03`, with independent review in progress. Navigation-return implementation and integrated browser verification remain pending. The security/checkout audit, physical-phone check, owner visual acceptance and monitoring/alert-delivery evidence remain separate.
+The operator’s later “just start plan 5” instruction was applied to an isolated branch from fetched `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. PR #561 subsequently merged at September 14 **08:14:14 UTC**, commit `90beaaeab69b3173ec410484cd02058449a8e93b`; it was fetched and merged cleanly into this branch before return-state implementation. Live read-back confirms its build, E2E and Lighthouse checks succeeded. This task did not merge #561 or change its readiness evidence.
+
+Queue presentation and Requests controls passed their independent task reviews. Return-state implementation through `6d30f1ae2` passed scoped review after correcting native history indexing, pending-search navigation and selection-commit races. The final browser suite uses a production-built app with disposable local Supabase, synthetic rows and discarded provider access. Its complete result and the independent whole-branch review remain pending.
+
+The inherited readiness receipt identifies the existing production application at `1215e8e1a58be571e0884abeffd71893241748b7`; this is carried-forward release context, not a fresh Plan 5 deployment observation. The security/checkout audit, physical-phone check, owner visual acceptance and monitoring/alert-delivery evidence remain separate.
