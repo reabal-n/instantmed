@@ -86,9 +86,17 @@ The operator authorized credential setup. A restricted test key and two matching
 
 The first [hosted GitHub run](https://github.com/reabal-n/instantmed/actions/runs/34749076482) reached Checkout but timed out before returning to account completion. Its sandbox Session remained open and unpaid. A separate browser reproduction showed that the helper's Australian postcode `2000` is rejected when Stripe's billing country is United States. The helper now explicitly selects Australia and, when offered, AUD before entering the test card. This removes dependence on the runner's location without changing application checkout policy or the exact amount, signed-webhook and cleanup assertions. The failed CI run did not retain its selected country, so that precise failure attribution remains an inference. Subsequent source-bound local and GitHub results are retained in `output/pre-plan5-reliability/release-state.json`.
 
+## Production evidence refresh — September 14
+
+Read-only production queries at 04:33–04:43 UTC joined records before returning counts. In the September 10 00:00 UTC to observation window, **46 reportable paid/partially-refunded prescribing requests** have completed status, durable `script_sent`, a prescription matching the request/patient/Parchment reference, a callback audit matching that same request/patient/reference, and a delivered/opened `script_sent` notification for the same request and patient. None of those 46 lacked a matching receipt. Seeded profiles, excluded reporting rows and explicit E2E markers were filtered. This establishes recorded production continuity; it does not supply clinical approval, visual acceptance or physical-device proof.
+
+The same window contains **seven live refunds across six reportable requests**. Each has succeeded cash evidence without reversal, a finalized durable attempt and an exact-refund delivered/opened notice. All six intake cash totals and payment states agree with the latest refund ledger. Three refunds were created since September 13; none since September 14 00:00 UTC. These are existing persisted provider receipts, not a new live refund exercise or a fresh Stripe API reconciliation. No patient record, refund, prescribing outcome or notification was changed.
+
+Authenticated Sentry issue and event reads now succeed through the connected Sentry plugin. The query `environment:production source:browser-monitor` returned existing ingestion receipts. The old local build token still returned 403 for issue access; it was not replaced. Monitoring release and cadence evidence belong in [Plan 1's September 14 follow-up](../plans/2026-09-06-01-checkout-data-reliability.md#dependable-browser-monitoring-follow-up--september-14). Plan 5 remains unstarted.
+
 ## Remaining external acceptance
 
-- Authorized live Parchment confirmation and physical iPhone/Android keyboard/viewport checks; the operator deferred the phone check on September 12. A responsive Chromium run and API/SSO smoke are not physical-device or prescription-delivery proof.
+- Physical iPhone/Android keyboard/viewport checks; the operator deferred the phone check on September 12. Recorded live prescription/callback/notification continuity is verified above, separately from physical-device and visual acceptance.
 - Operator acceptance of the public flow and clinician workspace. No agent or automatic score supplies this decision.
 
 ## Privacy and rollback
