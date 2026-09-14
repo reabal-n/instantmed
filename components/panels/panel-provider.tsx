@@ -33,7 +33,7 @@ export interface Panel {
 interface PanelContextValue {
   activePanel: Panel | null
   openPanel: (panel: Panel) => void
-  closePanel: () => void
+  closePanel: () => Promise<boolean>
   updatePanel: (updates: Partial<Panel>) => void
   isPanelOpen: boolean
 }
@@ -118,11 +118,12 @@ export function PanelProvider({ children }: { children: ReactNode }) {
   }, [activePanel, navigation])
 
   const closePanel = useCallback(async () => {
-    if (navigation && !await navigation.permit()) return
+    if (navigation && !await navigation.permit()) return false
     if (activePanel) {
       activePanel.onClose?.()
     }
     setActivePanel(null)
+    return true
   }, [activePanel, navigation])
 
   const updatePanel = useCallback((updates: Partial<Panel>) => {

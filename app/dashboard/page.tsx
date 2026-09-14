@@ -287,7 +287,7 @@ export default async function StaffDashboardPage({
                           <span>Median time to inbox</span>
                           <span className="font-semibold tabular-nums text-foreground">{formToInboxLabel}</span>
                         </div>
-                      ) : null}
+                      ) : <p className="text-xs text-muted-foreground">Turnaround data is not available yet.</p>}
                     </PopoverContent>
                   </Popover>
                   {isAdmin && !onlyTestData ? <SystemHealthPill initial={systemHealth} /> : null}

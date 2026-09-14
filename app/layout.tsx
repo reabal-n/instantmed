@@ -6,7 +6,7 @@ import { JetBrains_Mono, Plus_Jakarta_Sans, Source_Sans_3 } from "next/font/goog
 import { ThemeProvider } from "next-themes"
 import type React from "react"
 
-import { StaffListNavigationBoundary } from "@/components/operator/staff-list-navigation-provider"
+import { StaffListNavigationBoundary } from "@/components/operator/staff-list-navigation-boundary"
 import { AttributionCapture } from "@/components/providers/attribution-capture"
 import { DraftDiscardRetry } from "@/components/providers/draft-discard-retry"
 import { GlobalDeferredClients } from "@/components/providers/global-deferred-clients"

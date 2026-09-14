@@ -699,7 +699,7 @@ export function IntakeReviewPanel({
                             admin={profileMode === "admin"}
                             onReturnToRequest={!inline ? () => openPanel({
                               id: `intake-review-${intakeId}`, type: "sheet",
-                              component: <IntakeReviewPanel intakeId={intakeId} profileMode={profileMode} onBeforeLeaveChange={onBeforeLeaveChange} onActionComplete={onActionComplete} onNextCase={onNextCase} onPrevCase={onPrevCase} />,
+                              component: <IntakeReviewPanel intakeId={intakeId} profileMode={profileMode} onBeforeLeaveChange={onBeforeLeaveChange} onActionComplete={onActionComplete} onNextCase={onNextCase} onPrevCase={onPrevCase} caseIndex={caseIndex} totalCases={totalCases} />,
                             }) : undefined}
                           />
                         ),
