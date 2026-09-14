@@ -149,11 +149,12 @@ describe("project docs drift contract", () => {
     for (const source of [agents, claude]) {
       const migrationCount = readdirSync(join(root, "supabase/migrations")).filter((name) => name.endsWith(".sql")).length
       expect(source).toContain(`Current count on disk: **${migrationCount} migration files**`)
+      expect(source).toContain("Newest on-disk migration is `20260914103317_restore_weight_management_checkout_catalog.sql` (guarded canonical catalog repair; production application pending approval)")
       expect(source).toContain(
         "`20260905120000_refill_reminder_funnel.sql`",
       )
       expect(source).toContain("were applied in order on 2026-09-05")
-      expect(source).toContain("Newest on-disk migration is `20260913080413_refine_request_closures_and_retire_priority_refunds.sql` (administrative closure recovery and priority refund retirement; applied and verified in production on 2026-09-13)")
+      expect(source).toContain("Latest applied production migration is `20260913080413_refine_request_closures_and_retire_priority_refunds.sql` (administrative closure recovery and priority refund retirement; applied and verified in production on 2026-09-13)")
       expect(source).toContain(
         "The preceding applied production migration is `20260906100000_monitor_observation_state.sql`",
       )
@@ -203,7 +204,7 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Newest timestamp on disk: `20260913080413_refine_request_closures_and_retire_priority_refunds.sql`",
+      "Latest applied production migration: `20260913080413_refine_request_closures_and_retire_priority_refunds.sql`",
     )
     expect(architecture).toContain(
       "All four pending migrations, including runtime-schema convergence `20260904160000`, were applied in order on 2026-09-05",
