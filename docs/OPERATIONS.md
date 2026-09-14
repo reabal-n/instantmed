@@ -7,6 +7,12 @@
 
 ## Incident Response
 
+### September 14 checkout identity and catalog repair
+
+The confirmed catalog mismatch affects authenticated weight-management checkout before Stripe creation: `weight-management` is absent while the legacy `weight-loss` row is inactive. Guest checkout must use the same canonical resolver. Apply the guarded catalog migration only after explicit recovery approval; verify one active canonical row at 8,995 cents and age 18, the unchanged inactive legacy row, and authenticated/guest routing. Current production was read back as `90beaaeab69b3173ec410484cd02058449a8e93b`; repository changes are not deployed recovery.
+
+A separate reproduced draft issue lets complete account-profile flags skip Details while explicit recovery deliberately preserves a draft missing Medicare/IHI answers. Keep those answers untouched and server identity validation intact; require Details when stepping through that restored flow and expose an edit-details action after a recoverable checkout error. A support report alone does not prove which draft the patient used. No patient-specific data repair or support reply is part of the code fix.
+
 ### Stripe Outage
 
 **Symptoms:** Payment webhook failures in DLQ, checkout sessions timing out, payment status not updating.

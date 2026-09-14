@@ -78,6 +78,8 @@ Scope is live but deliberately narrow: UTI symptoms and new/switch contraceptive
 
 ## Weight Management (launched 2026-08-10)
 
+**September 14 checkout incident:** the production catalog has no `weight-management` row, although authenticated checkout resolves that canonical slug. The legacy `weight-loss` row remains inactive. Guest checkout used a separate generic-consult fallback. The repair shares the canonical resolver and adds the approved $89.95, 18+ assessment row through `20260914103317_restore_weight_management_checkout_catalog.sql`; application is pending explicit production recovery approval and verification. The migration preserves the legacy row and rejects conflicting existing configuration. This restores the launched service; it does not authorize a new service, paid advertising, prescribing outcomes or subscriptions.
+
 Scope is deliberately narrow: a one-off, form-first, GLP-1-focused doctor assessment (operator decisions D-A..D-E, `docs/plans/2026-08-07-weight-loss-launch-plan.md`). Phentermine is excluded at launch; continuation is a new consult, never a subscription. **No paid advertising** — `docs/ADVERTISING_COMPLIANCE.md` requires its own approval for any weight campaign.
 
 | Gate | Requirement | Failure mode prevented |
