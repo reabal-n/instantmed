@@ -4,10 +4,12 @@ import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
 import type { PatientTimelinePrescription } from "@/lib/doctor/prescription-history-types"
+import { getFeatureFlags } from "@/lib/feature-flags"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface ReviewPrescriptionHistory {
   prescriptions: PatientTimelinePrescription[]
+  canRefresh?: boolean
   hasMore: boolean
   error: string | null
 }
@@ -23,6 +25,7 @@ export async function getReviewPrescriptionHistory(patientId: string): Promise<R
     if (!hasAdminAccess(auth.profile) && !await doctorCanAccessPatient(auth.profile.id, patientId, supabase)) {
       return unavailable("Prescription history requires clinical patient access. Claim this request or open a patient you have reviewed.")
     }
+    const canRefresh = Boolean(auth.profile.parchment_user_id?.trim()) && (await getFeatureFlags()).parchment_embedded_prescribing
     const { data, error } = await supabase
       .from("prescriptions")
       .select("id, medication_name, medication_strength, dosage_instructions, quantity_prescribed, repeats_allowed, status, issued_date, created_at, parchment_reference, intake_id")
@@ -46,6 +49,7 @@ export async function getReviewPrescriptionHistory(patientId: string): Promise<R
         request_id: row.intake_id,
       })),
       hasMore: (data?.length ?? 0) > 20,
+      canRefresh,
       error: null,
     }
   } catch {

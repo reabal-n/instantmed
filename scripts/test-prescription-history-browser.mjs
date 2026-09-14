@@ -18,7 +18,7 @@ await mkdir(outputRoot, { recursive: true })
 // Each invocation owns a fresh directory; never remove another suite's evidence.
 const scratch = await mkdtemp(join(outputRoot, 'instantmed-prescription-history-'))
 const aliases = {
-  '@/app/actions/manual-patient': 'export async function refreshPatientParchmentPrescriptionsAction() { await new Promise(r => setTimeout(r, 100)); return new URLSearchParams(location.search).has("provider-error") ? { success: false, error: "Synthetic provider unavailable" } : { success: true } }',
+  '@/app/actions/manual-patient': 'export async function refreshPatientParchmentPrescriptionsAction() { window.providerRefreshCount = (window.providerRefreshCount || 0) + 1; await new Promise(r => setTimeout(r, 100)); return new URLSearchParams(location.search).has("provider-error") ? { success: false, error: "Synthetic provider unavailable" } : { success: true } }',
   '@/app/doctor/queue/actions': 'export async function issueRefundAction() { throw new Error("Not used") }',
   'next/link': 'export default function Link({ children, prefetch, ...props }) { return <a {...props}>{children}</a> }',
   'next/navigation': 'export function useRouter() { return { refresh() {} } }',
@@ -77,6 +77,10 @@ try {
       await page.getByRole('button', { name: 'Refresh from Parchment' }).click()
       await page.getByRole('status').getByText(failure === 'provider-error' ? 'Synthetic provider unavailable' : 'Could not reload prescription history. Showing the previously loaded records.').waitFor()
     }
+    await page.goto('http://127.0.0.1:3060/?unavailable')
+    await page.getByRole('button', { name: 'Reload history' }).click()
+    await page.getByRole('status').getByText('Prescription history refreshed.', { exact: true }).waitFor()
+    assert.equal(await page.evaluate(() => window.providerRefreshCount || 0), 0)
     assert.deepEqual(errors, [])
     await context.close()
     console.log(`PASS ${width} ${dark ? 'dark' : 'light'}: directions, pagination, refresh, errors, overflow`)

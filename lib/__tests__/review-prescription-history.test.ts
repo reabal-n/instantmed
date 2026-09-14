@@ -2,10 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { getReviewPrescriptionHistory } from "@/lib/data/review-prescription-history"
 
-const mocks = vi.hoisted(() => ({ auth: vi.fn(), access: vi.fn(), from: vi.fn() }))
+const mocks = vi.hoisted(() => ({ auth: vi.fn(), access: vi.fn(), from: vi.fn(), flags: vi.fn() }))
 vi.mock("@/lib/auth/helpers", () => ({ requireRoleOrNull: mocks.auth }))
 vi.mock("@/lib/doctor/patient-access", () => ({ doctorCanAccessPatient: mocks.access }))
 vi.mock("@/lib/supabase/service-role", () => ({ createServiceRoleClient: () => ({ from: mocks.from }) }))
+vi.mock("@/lib/feature-flags", () => ({ getFeatureFlags: mocks.flags }))
 const patientId = "11111111-1111-4111-8111-111111111111"
 let rows: Record<string, unknown>[]
 let error: unknown
@@ -13,6 +14,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mocks.auth.mockResolvedValue({ profile: { id: "doctor", role: "admin" } })
   mocks.access.mockResolvedValue(false)
+  mocks.flags.mockResolvedValue({ parchment_embedded_prescribing: true })
   rows = []
   error = null
   mocks.from.mockImplementation((table: string) => {
@@ -56,5 +58,13 @@ describe("review prescription history", () => {
     const result = await getReviewPrescriptionHistory(patientId)
     expect(result.prescriptions).toHaveLength(20)
     expect(result.hasMore).toBe(true)
+  })
+})
+
+ describe("Parchment refresh availability", () => {
+  it.each([[true, "linked", true], [false, "linked", false], [true, null, false]] as const)("requires enabled integration and linked account (%s, %s)", async (enabled, link, expected) => {
+    mocks.auth.mockResolvedValue({ profile: { id: "doctor", role: "admin", parchment_user_id: link } })
+    mocks.flags.mockResolvedValue({ parchment_embedded_prescribing: enabled })
+    expect((await getReviewPrescriptionHistory(patientId)).canRefresh).toBe(expected)
   })
 })

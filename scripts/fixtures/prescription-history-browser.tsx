@@ -10,10 +10,10 @@ const prescriptions: ReviewPrescriptionHistory["prescriptions"] = Array.from({ l
   request_id: "11111111-1111-4111-8111-111111111111",
 }))
 function Fixture() {
-  const [history, setHistory] = useState<ReviewPrescriptionHistory>({ prescriptions, error: null, hasMore: false })
+  const [history, setHistory] = useState<ReviewPrescriptionHistory>({ prescriptions, error: null, hasMore: false, canRefresh: !new URLSearchParams(location.search).has("unavailable") })
   const reload = async () => {
     if (new URLSearchParams(location.search).has("reload-error")) return null
-    const next = { prescriptions: [{ ...prescriptions[0], id: "refreshed", medication_name: "Refreshed synthetic medicine" }], error: null, hasMore: false }
+    const next = { prescriptions: [{ ...prescriptions[0], id: "refreshed", medication_name: "Refreshed synthetic medicine" }], error: null, hasMore: false, canRefresh: true }
     setHistory(next)
     return next
   }
