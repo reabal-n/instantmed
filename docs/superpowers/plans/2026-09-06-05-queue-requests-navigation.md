@@ -10,7 +10,11 @@
 
 **Spec/design brief:** [ROADMAP](../../ROADMAP.md), rank 2; [DESIGN](../../../DESIGN.md); [staff operations](../../OPERATIONS.md); [Sessions 3](2026-09-06-03-concise-clinical-review.md) and [4](2026-09-06-04-parchment-prescribing-workspace.md).
 
-**Status:** Prepared September 14; implementation has not started. The operator authorizes this Queue and Requests work after PR #561 merges. Confirm the merge, fetch again and base implementation on the then-current `origin/main`. Preparing this document does not satisfy that gate.
+**Status:** Implementation started September 14 under the later operator instruction recorded below. Work only Queue and Requests navigation.
+
+## Later operator instruction — start now
+
+The operator subsequently said “just start plan 5” after repeated reports that #561 remained open. This supersedes the merge-wait prerequisite below and authorizes implementation now from freshly fetched `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. The documentation branch was rebased/verified against that base before runtime edits. The merge-wait heartbeat is paused. PR #561 and its readiness owner remain independent; reconcile its merged CI changes before the Plan 5 release if it merges during this work. No phone, visual, monitoring, payment or clinical evidence gate is waived. The entry checklist below records the original dependency rather than an active wait.
 
 ## September 14 preparation and entry gate
 
