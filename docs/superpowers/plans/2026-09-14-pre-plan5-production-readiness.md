@@ -30,9 +30,9 @@
 
 **Interfaces:** Consume the existing `PLAYWRIGHT_PRODUCTION_CASES` selector and `PLAYWRIGHT_SERVER_MODE=production`. Produce passing first-attempt results for all three cases and a minimal, guarded CI change when justified.
 
-- [ ] Read the prior failed traces and record the strongest hypothesis. The empty-profile trace had unrelated responses taking 24–28 seconds; the other two captured no response. Do not label this a proven product defect.
-- [ ] Verify local/CI environment and fixture safety, inspect each selected test's build-mode dependencies, and check no shared-fixture CI run is active before a local run.
-- [ ] Build the local test app with `PLAYWRIGHT=1 NEXT_PUBLIC_PLAYWRIGHT=1`, matching public app/Supabase build settings and existing protected local E2E environment loading. Never print secret values. Run the following selection with existing secrets available only in process environment:
+- [x] Read the prior failed traces and record the strongest hypothesis. The empty-profile trace had unrelated responses taking 24–28 seconds; the other two captured no response. Do not label this a proven product defect.
+- [x] Verify local/CI environment and fixture safety, inspect each selected test's build-mode dependencies, and check no shared-fixture CI run is active before a local run.
+- [x] Build the local test app with `PLAYWRIGHT=1 NEXT_PUBLIC_PLAYWRIGHT=1`, matching public app/Supabase build settings and existing protected local E2E environment loading. Never print secret values. Run the following selection with existing secrets available only in process environment:
 
 ```bash
 PLAYWRIGHT_SERVER_MODE=production PLAYWRIGHT_WORKERS=1 \
@@ -41,9 +41,9 @@ PLAYWRIGHT_SERVER_MODE=production PLAYWRIGHT_WORKERS=1 \
   e2e/medcert.auto-approval.spec.ts e2e/doctor.prescription-ui.spec.ts e2e/parchment-webhook.spec.ts
 ```
 
-- [ ] If a case fails, isolate its cause and add the smallest reproducer before changing runtime code. Load the matching clinical/security workflow before such an edit. A missing test-only environment variable is an environment fix, not permission to weaken the production guard.
-- [ ] If all cases pass compiled and evidence supports the existing development compilation failure pattern, extend the existing no-retry compiled group. Add them to its selector/files and required signing environment; exclude only the moved cases from their former development groups. Keep all other webhook cases in their current mode. First add a contract that fails on the current selection/environment, then implement the smallest workflow adjustment. Verify actual test discovery counts so a selector cannot silently omit a case.
-- [ ] Run the existing four plus the three new compiled cases, serially and without retries; require seven executed passes and zero skips. Use one bounded repeat of the three newly moved cases only to check the observed intermittency.
+- [x] If a case fails, isolate its cause and add the smallest reproducer before changing runtime code. Load the matching clinical/security workflow before such an edit. A missing test-only environment variable is an environment fix, not permission to weaken the production guard.
+- [x] If all cases pass compiled and evidence supports the existing development compilation failure pattern, extend the existing no-retry compiled group. Add them to its selector/files and required signing environment; exclude only the moved cases from their former development groups. Keep all other webhook cases in their current mode. First add a contract that fails on the current selection/environment, then implement the smallest workflow adjustment. Verify actual test discovery counts so a selector cannot silently omit a case.
+- [x] Run the existing four plus the three new compiled cases, serially and without retries; require seven executed passes and zero skips. Use one bounded repeat of the three newly moved cases only to check the observed intermittency.
 - [ ] Run focused workflow/config contracts, lint, typecheck and doc audit. Review the exact diff, commit and send it for independent task review. Full required CI owns the release boundary.
 
 ## Task 2: Verify automatic monitoring and downstream delivery
@@ -71,4 +71,15 @@ PLAYWRIGHT_SERVER_MODE=production PLAYWRIGHT_WORKERS=1 \
 
 ## Execution Receipt
 
-Planned September 14 from `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. Implementation not yet started. Existing production deployment is READY at application commit `1215e8e1a58be571e0884abeffd71893241748b7`; the three flaky cases and downstream evidence remain open at plan creation.
+Planned September 14 from `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. Implementation is in progress; Task 1 has passed local compiled verification and is awaiting independent review and required CI. Existing production deployment is READY at application commit `1215e8e1a58be571e0884abeffd71893241748b7`; the three flaky cases and downstream evidence remain open at plan creation.
+
+
+### Local engineering evidence
+
+The initial compiled run executed all three cases successfully without retries: empty profile 4.2s, merged duplicate certificate worker 2.7s, missing-signature rejection 9ms. The full group executed seven passes without retries or skips in 40.6s; a bounded repeat executed the three new cases successfully in 17.9s. The workflow contract failed before the selector change and passed afterward. These observations support moving the cases out of the development compilation path; they do not establish a production application defect or the exact cause of the historical connection reset.
+
+### Provider routing finding
+
+Sentry received the real `browser_stale active` event at **September 14 05:10:08.805 UTC**, under [INSTANTMED-BY](https://reys-projects.sentry.io/issues/INSTANTMED-BY). The issue remained ongoing with High priority. The existing new-issue and high-priority notification rules last triggered September 13; the payment/email rules have unrelated message filters. Their history contains no trigger for this September 14 recurrence. This is a provider routing gap, beyond the previously unverified inbox receipt.
+
+A narrowly scoped rule is prepared but **not saved**: InstantMed production; event/activity captured; exact tags `source=browser-monitor` and `incident_status=active`; notify the existing owner member; 30-minute per-issue throttle. The new notification subscription is awaiting explicit owner approval under the browser confirmation policy. No test notification was sent. The owner phone review and full 24-hour cadence window remain open.
