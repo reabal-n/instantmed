@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createContext, type ReactNode,useCallback, useContext, useEffect, useMemo, useRef } from 'react'
 
 import type { ListOrigin, ListReturnSnapshot, ListReturnState } from '@/lib/operator/cases/list-return-state'
-import { createGuardedHistoryTraversal } from '@/lib/operator/cases/list-return-state'
+import { createGuardedHistoryTraversal, preserveStaffHistoryEntry } from '@/lib/operator/cases/list-return-state'
 import { useAuth } from '@/lib/supabase/auth-provider'
 
 type Guard = () => Promise<boolean>
@@ -86,7 +86,7 @@ export function StaffListNavigationProvider({ children, store, scope }: { childr
       controller.commit(index)
     }
     const replaceTracked: History['replaceState'] = function (data, unused, url) {
-      replace.call(window.history, active ? withIndex(data, controller.currentIndex()) : data, unused, url)
+      replace.call(window.history, active ? preserveStaffHistoryEntry(data, window.history.state, controller.currentIndex()) : data, unused, url)
     }
     window.history.pushState = pushTracked
     window.history.replaceState = replaceTracked

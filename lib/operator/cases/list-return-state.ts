@@ -123,3 +123,15 @@ export function createGuardedHistoryTraversal({ initialIndex, traverse, permit }
     },
   }
 }
+
+// Shared with the native history adapter so replacement ordering is testable.
+export function preserveStaffHistoryEntry(data: unknown, currentEntry: unknown, fallbackIndex: number) {
+  // Native traversal changes the selected entry before popstate consumers run.
+  // Next may replace its RSC state in that gap; the controller still describes
+  // the old rendered entry, so it must not relabel the newly selected one.
+  const existing = currentEntry && typeof currentEntry === 'object'
+    ? (currentEntry as Record<string, unknown>).__imStaffHistoryIndex
+    : null
+  const index = typeof existing === 'number' && Number.isSafeInteger(existing) ? existing : fallbackIndex
+  return { ...(data && typeof data === 'object' ? data : {}), __imStaffHistoryIndex: index }
+}

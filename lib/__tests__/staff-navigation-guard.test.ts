@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 
-import { createGuardedHistoryTraversal } from '@/lib/operator/cases/list-return-state'
+import { createGuardedHistoryTraversal, preserveStaffHistoryEntry } from '@/lib/operator/cases/list-return-state'
 
 function historyHarness() {
   const entries = ['before', 'queue', 'request', 'after']
@@ -63,4 +63,28 @@ it('keeps the same pending save during repeated Back attempts and preserves Forw
   history.guard(false); history.go(1)
   expect(history.view()).toEqual({ index: 3, rendered: 'after' })
   expect(history.entries).toEqual(['before', 'queue', 'request', 'after'])
+})
+
+it('preserves native entry identity when Next replaces state before pop notification', async () => {
+  // Real chronology from the browser trace: native pointer moves first; Next
+  // replaces RSC history state while the controller still knows the old entry.
+  const entries = [null, { __imStaffHistoryIndex: 0 }, { __imStaffHistoryIndex: 1 }]
+  let pointer = 2
+  let guarded = false
+  const scheduled: number[] = []
+  const controller = createGuardedHistoryTraversal({ initialIndex: 1, traverse: delta => { scheduled.push(delta) }, permit: async () => true })
+  const nativePop = (delta: number) => {
+    pointer += delta
+    if (pointer === 0) throw new Error('Internal correction escaped to about:blank')
+    const index = entries[pointer]!.__imStaffHistoryIndex
+    entries[pointer] = preserveStaffHistoryEntry({ __NA: true }, entries[pointer], controller.currentIndex())
+    controller.pop(index, guarded)
+  }
+  nativePop(-1)
+  guarded = true
+  nativePop(1)
+  while (scheduled.length) { nativePop(scheduled.shift()!); await Promise.resolve() }
+  expect(pointer).toBe(2)
+  expect(entries.map(entry => entry?.__imStaffHistoryIndex ?? null)).toEqual([null, 0, 1])
+  expect(scheduled).toEqual([])
 })
