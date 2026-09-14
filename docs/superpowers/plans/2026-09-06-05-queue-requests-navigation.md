@@ -10,7 +10,7 @@
 
 **Spec/design brief:** [ROADMAP](../../ROADMAP.md), rank 2; [DESIGN](../../../DESIGN.md); [staff operations](../../OPERATIONS.md); [Sessions 3](2026-09-06-03-concise-clinical-review.md) and [4](2026-09-06-04-parchment-prescribing-workspace.md).
 
-**Status:** Queue and Requests navigation is implemented on the isolated Plan 5 branch; integrated verification and final review are in progress. PR #561 is merged and included. No Plan 5 production release or owner acceptance is claimed.
+**Status:** Queue and Requests navigation is implemented on the isolated Plan 5 branch; local release checks and independent review pass; browser verification has remaining limits and the branch is for draft review. PR #561 is merged and included. No Plan 5 production release or owner acceptance is claimed.
 
 ## Later operator instruction — start now
 
@@ -179,3 +179,13 @@ The operator’s later “just start plan 5” instruction was applied to an iso
 Queue presentation and Requests controls passed their independent task reviews. Return-state implementation through `6d30f1ae2` passed scoped review after correcting native history indexing, pending-search navigation and selection-commit races. The final browser suite uses a production-built app with disposable local Supabase, synthetic rows and discarded provider access. Its complete result and the independent whole-branch review remain pending.
 
 The inherited readiness receipt identifies the existing production application at `1215e8e1a58be571e0884abeffd71893241748b7`; this is carried-forward release context, not a fresh Plan 5 deployment observation. The security/checkout audit, physical-phone check, owner visual acceptance and monitoring/alert-delivery evidence remain separate.
+
+### Draft review handoff — September 14
+
+Runtime commit `cd5705828` passed independent final review. `release:check` passed after test-only correction `22802b4bb`: 782 test files, 7,806 tests passed, 122 skipped; lint, types, dependency/security/dead-code checks, production build and unchanged bundle budgets passed. Dashboard is 400/401 kB and Requests 236/260 kB. The later merge of `origin/main` (`ec532de32`, PR #562) changed readiness documentation only and preserves its outstanding gates. Documentation audit passed.
+
+The 26-case disposable production-built browser run passed 22 cases, including failed-note Back, mobile navigation denial, account switching, removed selection, private search gating, scroll/focus, and mocked completion failure/success. Three failures were test selectors or an incorrect expected admin URL. One rapid Back before the record finished mounting left the list URL with late record content; attribution remains unresolved and is a release blocker. Corrected settled-navigation tests are running separately; passing them does not resolve that rapid-navigation edge.
+
+After the operator raised time/token cost, verification expansion stopped. Selected existing keyboard/queue/clinical/prescription groups and live realtime delivery remain unverified in this run. Local production CSP blocks disposable Supabase realtime. The account-switch test alone bypasses CSP in its synthetic browser context; it does not prove production CSP compatibility. No production release, real clinical completion, owner visual acceptance, phone acceptance, monitoring-window acceptance or recipient delivery is claimed.
+
+Decisions: real account/new-session changes reload the protected document to avoid old server-rendered data; ordinary token refresh retains the workspace. Private search remains memory-only. The initial merge-wait interpretation and its unmet before-first-edit condition are recorded above. The security/checkout audit remains separate. Keep this PR draft until the rapid-navigation concern and remaining required evidence are resolved.
