@@ -223,6 +223,7 @@ describe("CI workflow contract", () => {
     expect(productionStep).toContain("e2e/doctor.prescription-ui.spec.ts")
     expect(productionStep).toContain("e2e/parchment-webhook.spec.ts")
     expect(productionStep).toContain("PARCHMENT_WEBHOOK_SECRET: ${{ secrets.PARCHMENT_WEBHOOK_SECRET }}")
+    expect(productionStep).toContain("INTERNAL_API_SECRET: ${{ secrets.E2E_SECRET }}")
     expect(medCertReadinessSource).toContain('PLAYWRIGHT_PRODUCTION_CASES')
     expect(medCertReadinessSource).toContain('--grep-invert "$development_case_exclusions"')
   })
