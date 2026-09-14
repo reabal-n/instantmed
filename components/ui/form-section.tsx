@@ -3,17 +3,10 @@
 import { motion } from 'framer-motion'
 import * as React from 'react'
 
+import { FormGroupContext } from '@/components/ui/form-group-context'
 import { useReducedMotion } from '@/components/ui/motion'
 import { spring } from '@/lib/motion'
 import { cn } from '@/lib/utils'
-
-// Context to pass aria-describedby from FormGroup to child inputs
-const FormGroupContext = React.createContext<string | undefined>(undefined)
-
-/** Hook for child inputs to read the FormGroup's aria-describedby value */
-export function useFormGroupDescribedBy() {
-  return React.useContext(FormGroupContext)
-}
 
 // =============================================================================
 // FORM SECTION - solid-depth wrapper for form groups

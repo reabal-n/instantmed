@@ -49,3 +49,15 @@ describe("applyQueueRealtimeUpdate", () => {
     expect(result.intakes).toBe(intakes)
   })
 })
+
+
+describe("realtime ownership and completion", () => {
+  it("updates changed ownership without replacing an untouched row or reordering the queue", () => {
+    const first = { ...row("a"), claimed_by: "me", status: "paid" }
+    const second = { ...row("b"), claimed_by: null, status: "paid" }
+    const result = applyQueueRealtimeUpdate([first, second], { id: "b", claimed_by: "other" })
+    expect(result.intakes[0]).toBe(first)
+    expect(result.intakes.map((item) => item.id)).toEqual(["a", "b"])
+    expect(result.intakes[1].claimed_by).toBe("other")
+  })
+})

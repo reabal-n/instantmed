@@ -75,10 +75,15 @@ export type CaseRowData = {
 
 export type Density = "compact" | "comfortable" | "spacious"
 
+// Shared non-intrinsic tracks keep independent header and row grids aligned,
+// including rows with no actions or several status flags.
+export const CASE_GRID_TEMPLATE =
+  "grid-cols-[28px_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.2fr)_90px_100px]"
+
 export const ROW_HEIGHT: Record<Density, string> = {
-  compact: "h-10",
-  comfortable: "h-14",
-  spacious: "h-[72px]",
+  compact: "min-h-10",
+  comfortable: "min-h-14",
+  spacious: "min-h-[72px]",
 }
 
 export const ROW_VERTICAL_PADDING: Record<Density, string> = {

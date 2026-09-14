@@ -26,6 +26,7 @@ import {
 } from "@/components/doctor/review/utils"
 import { useReviewActions } from "@/components/doctor/review-actions"
 import { SlaChip } from "@/components/doctor/sla-chip"
+import { useStaffLeaveGuard, useStaffNavigation } from "@/components/operator/staff-list-navigation-provider"
 import { usePanel } from "@/components/panels/panel-provider"
 import { SheetPanel } from "@/components/panels/sheet-panel"
 import { Badge } from "@/components/ui/badge"
@@ -265,6 +266,8 @@ export function IntakeReviewPanel({
     onActionComplete,
   })
   const { flushNotes } = actions
+  useStaffLeaveGuard(flushNotes)
+  const staffNavigation = useStaffNavigation()
   navigationGuardRef.current = flushNotes
 
   useEffect(() => {
@@ -684,6 +687,8 @@ export function IntakeReviewPanel({
                     className="border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground"
                     onClick={async () => {
                       if (!await flushNotes()) return
+                      const origin = window.location.pathname === "/admin/intakes" ? "requests" : "queue"
+                      staffNavigation?.store.bind(staffNavigation.scope, origin, `/doctor/patients/${intake.patient.id}`)
                       openPanel({
                         id: `${profileMode}-patient-profile-${intake.patient.id}`,
                         type: "drawer",
@@ -692,13 +697,17 @@ export function IntakeReviewPanel({
                             patient={intake.patient}
                             currentRequestId={intake.id}
                             admin={profileMode === "admin"}
+                            onReturnToRequest={!inline ? () => openPanel({
+                              id: `intake-review-${intakeId}`, type: "sheet",
+                              component: <IntakeReviewPanel intakeId={intakeId} profileMode={profileMode} onBeforeLeaveChange={onBeforeLeaveChange} onActionComplete={onActionComplete} onNextCase={onNextCase} onPrevCase={onPrevCase} caseIndex={caseIndex} totalCases={totalCases} />,
+                            }) : undefined}
                           />
                         ),
                       })
                     }}
                   >
                     <User className="h-3.5 w-3.5" />
-                    View profile
+                    Patient details
                   </Button>
                   <Button
                     asChild
@@ -714,7 +723,7 @@ export function IntakeReviewPanel({
                       router.push(fullCaseHref)
                     }}>
                       <ExternalLink className="h-3.5 w-3.5" />
-                      Open full record
+                      Request record
                     </Link>
                   </Button>
                 </>

@@ -52,6 +52,8 @@ async function openQueueCase(page: Page, intakeId: string): Promise<Locator> {
   expect(prewarm.ok(), "Synthetic review-data prewarm must succeed").toBe(true)
   await page.goto(SEED_ONLY_QUEUE)
   const row = page.getByTestId(`queue-row-${intakeId}`)
+  // Let the responsive queue finish replacing its initial server layout.
+  await expect(row).toHaveCount(1)
   await expect(row).toBeVisible({ timeout: 30_000 })
   await row.getByRole("button", { name: /Open case for/i }).click()
   const panel = page.getByTestId("intake-review-panel")
@@ -405,7 +407,7 @@ test.describe("Concise clinical review", () => {
     await panel.getByRole("button", { name: /Draft note/ }).first().click()
     subjective = await openNote(panel)
     await expect(subjective).toHaveValue(text)
-    await panel.getByRole("button", { name: "View profile", exact: true }).click()
+    await panel.getByRole("button", { name: "Patient details", exact: true }).click()
     const profile = page.getByRole("dialog", { name: "Patient profile" })
     await expect(profile).toBeVisible()
     await page.keyboard.press("Escape")
@@ -675,7 +677,7 @@ test.describe("Concise clinical review", () => {
     const text = "Clinical reasoning before a held completion.  "
     try {
       await subjective.fill(text)
-      await panel.getByRole("link", { name: "Open full record", exact: true }).click()
+      await panel.getByRole("link", { name: "Request record", exact: true }).click()
       await expect.poll(() => firstSaveStarted).toBe(true)
       await panel.getByRole("button", { name: "Complete request", exact: true }).click()
       await expect(subjective).toHaveAttribute("readonly", "")
@@ -683,9 +685,9 @@ test.describe("Concise clinical review", () => {
       await expect.poll(() => decisionStarted).toBe(true)
       expect(await persistedNote(page, intakeId)).toBe(SOAP.replace("Synthetic patient reports an unchanged regimen.", text))
       await expect(subjective).toHaveAttribute("readonly", "")
-      await panel.getByRole("button", { name: "View profile", exact: true }).click()
+      await panel.getByRole("button", { name: "Patient details", exact: true }).click()
       await expect(page.getByRole("dialog", { name: "Patient profile", exact: true })).toBeHidden()
-      await panel.getByRole("link", { name: "Open full record", exact: true }).click()
+      await panel.getByRole("link", { name: "Request record", exact: true }).click()
       await expect(page).toHaveURL(/dashboard\?/)
       await subjective.focus()
       await subjective.pressSequentially("Typing must stay unavailable")
@@ -727,7 +729,7 @@ test.describe("Concise clinical review", () => {
       await note.pressSequentially("Retain spaces ")
       const authored = `${text}Retain spaces `
       const saved = SOAP.replace("Synthetic patient reports an unchanged regimen.", authored)
-      await panel.getByRole("button", { name: "View profile", exact: true }).click()
+      await panel.getByRole("button", { name: "Patient details", exact: true }).click()
       const profile = page.getByRole("dialog", { name: "Patient profile", exact: true })
       await expect(profile.getByRole("status")).toHaveText("Patient profile could not be loaded.")
       expect(await persistedNote(page, intakeId)).toBe(saved)

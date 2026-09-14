@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 
 import { STAFF_NAV_ICONS } from "@/components/admin/staff-nav-icons"
+import { useStaffNavigation } from "@/components/operator/staff-list-navigation-provider"
 import {
   PATIENT_DASHBOARD_HREF,
   PATIENT_DOCUMENTS_HREF,
@@ -122,6 +123,7 @@ export function DoctorMobileNav({ className, isAdmin = false }: { className?: st
 export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, className }: MobileNavProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const staffNavigation = useStaffNavigation()
   const searchParams = useSearchParams()
   const { signOut } = useAuth()
   const [moreOpen, setMoreOpen] = useState(false)
@@ -177,6 +179,13 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
 
   const isMoreActive = moreMenuItemsWithBadges.some((item) => isNavItemActive(item))
 
+  const navigateTo = async (item: NavItem, isActive: boolean) => {
+    if (isActive) { setMoreOpen(false); return }
+    if (!isPatientShell && staffNavigation && !await staffNavigation.permit()) return
+    setMoreOpen(false)
+    router.push(item.href)
+  }
+
   return (
     <>
       {/* More drawer overlay */}
@@ -209,11 +218,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                 return (
                   <button
                     key={item.href}
-                    onClick={() => {
-                      setMoreOpen(false)
-                      if (isActive) return
-                      router.push(item.href)
-                    }}
+                    onClick={() => navigateTo(item, isActive)}
                     className={cn(
                       "flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-colors",
                       isActive
@@ -270,9 +275,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                   if (isMore) {
                     setMoreOpen(!moreOpen)
                   } else {
-                    setMoreOpen(false)
-                    if (isActive) return
-                    router.push(item.href)
+                    return navigateTo(item, isActive)
                   }
                 }}
                 aria-current={isActive && !isMore ? "page" : undefined}

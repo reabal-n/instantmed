@@ -57,6 +57,23 @@ describe("queue pressure signal", () => {
     expect(filterSource).toContain('value: "text-slate-700 dark:text-muted-foreground"')
   })
 
+  it("keeps the compact operational wait visibly labelled on mobile", () => {
+    const html = renderToStaticMarkup(React.createElement(QueuePressureSignal, {
+      initialNowMs: new Date("2026-08-24T12:00:00Z").getTime(),
+      oldestWaitingMinutes: 130,
+      compact: true,
+      showLabelOnMobile: true,
+      showTarget: false,
+      jumpToOldestOnClick: true,
+    }))
+    expect(html).toContain('data-queue-pressure="urgent"')
+    const label = html.match(/<span class="([^"]*)">Oldest wait<\/span>/)
+    expect(label).not.toBeNull()
+    expect(label?.[1]).not.toContain("hidden")
+    expect(html.match(/data-live-wait-counter/g)).toHaveLength(1)
+    expect(html).toContain("Open oldest waiting case.")
+  })
+
   it("renders waits over an hour with minutes but no seconds", () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date("2026-08-24T12:00:00Z"))

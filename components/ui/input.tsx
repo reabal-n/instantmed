@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { useFormGroupDescribedBy } from "@/components/ui/form-section"
+import { useFormGroupDescribedBy } from "@/components/ui/form-group-context"
 import { cn } from "@/lib/utils"
 
 export interface InputProps

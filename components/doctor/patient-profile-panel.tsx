@@ -24,6 +24,7 @@ interface PatientProfilePanelProps {
   patient: PatientSnapshotInput
   currentRequestId: string
   admin?: boolean
+  onReturnToRequest?: () => void
 }
 
 interface PatientSummaryResponse {
@@ -106,6 +107,7 @@ export function PatientProfilePanel({
   patient,
   currentRequestId,
   admin = false,
+  onReturnToRequest,
 }: PatientProfilePanelProps) {
   const canLoadSummary = UUID_RE.test(patient.id)
   const snapshot = buildPatientSnapshot(patient)
@@ -157,7 +159,7 @@ export function PatientProfilePanel({
     : []
 
   return (
-    <DrawerPanel title="Patient profile" width={440}>
+    <DrawerPanel onClose={onReturnToRequest ? () => { setTimeout(onReturnToRequest, 0) } : undefined} title="Patient profile" width={440}>
       <div className="space-y-4 px-5 py-5">
         <section className="rounded-xl border border-border/60 bg-muted/25 p-4">
           <p className="truncate text-lg font-semibold text-foreground">{patient.full_name || "Patient"}</p>

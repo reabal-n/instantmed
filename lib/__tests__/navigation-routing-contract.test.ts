@@ -69,7 +69,7 @@ describe("navigation routing contracts", () => {
     const mobileNav = readFileSync(path.join(root, "components/ui/mobile-nav.tsx"), "utf8")
     const leftRail = readFileSync(path.join(root, "components/shell/left-rail.tsx"), "utf8")
 
-    expect(mobileNav).toContain("if (isActive) return")
+    expect(mobileNav).toMatch(/if \(isActive\) \{ setMoreOpen\(false\); return \}/)
     expect(leftRail).toContain("handleCurrentRouteClick")
     expect(leftRail).toContain("event.preventDefault()")
     expect(leftRail).toContain("patientOverviewActive")
