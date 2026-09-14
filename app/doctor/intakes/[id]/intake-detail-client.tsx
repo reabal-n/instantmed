@@ -28,6 +28,7 @@ import {
   isConcerningValue,
 } from "@/components/doctor/review/utils"
 import { useReviewActions } from "@/components/doctor/review-actions"
+import { useStaffLeaveGuard, useStaffReturnDestination } from "@/components/operator/staff-list-navigation-provider"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -205,6 +206,7 @@ function CockpitIntakeDetailClient({
       router.push(STAFF_DASHBOARD_HREF)
     },
   })
+  useStaffLeaveGuard(actions.flushNotes)
 
   const shouldRefreshPendingFulfilment =
     reviewData.intake.script_sent !== true &&
@@ -399,11 +401,13 @@ function CockpitIntakeDetailClient({
 }
 
 export function IntakeDetailClient(props: IntakeDetailClientProps) {
+  const destination = useStaffReturnDestination()
+  const contextualProps = destination ? { ...props, backHref: destination.href, backLabel: destination.origin === 'queue' ? 'Back to Queue' : 'Back to Requests' } : props
   if (props.compact) {
-    return <CockpitIntakeDetailClient {...props} />
+    return <CockpitIntakeDetailClient {...contextualProps} />
   }
 
-  return <LegacyIntakeDetailClient {...props} />
+  return <LegacyIntakeDetailClient {...contextualProps} />
 }
 
 function LegacyIntakeDetailClient({

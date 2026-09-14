@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { toast } from "sonner"
 
 import { OperatorSplitPane } from "@/components/operator/operator-page"
+import { initiatingListAction, restoreListFocus, useStaffListReturn } from "@/components/operator/staff-list-navigation-provider"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,6 +31,7 @@ import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
+import { resolveReturnedSelection } from "@/lib/operator/cases/list-return-state"
 import { cn } from "@/lib/utils"
 import type {
   IntakeStatus,
@@ -244,12 +246,19 @@ export function QueueClient({
   // the queue to reach the inline review pane.
   const isDesktop = useIsDesktop()
   const explicitStatusFilterRef = useRef(hasExplicitStatusFilter)
+  const listReturn = useStaffListReturn("queue")
+  const { capture: captureListReturn } = listReturn
+  const initiatingActionRef = useRef("action:0")
+  const pendingReturn = useRef(listReturn.restored)
+  const initialReturnRows = useRef(initialIntakes)
+  useEffect(() => { if (listReturn.restored && !listReturn.restored.query) router.refresh() }, [listReturn.restored, router])
+  const [returnAnnouncement, setReturnAnnouncement] = useState("")
   const queueRegionRef = useRef<HTMLDivElement>(null)
 
   const openIntakeId = activePanel?.id.startsWith("intake-review-")
     ? activePanel.id.replace("intake-review-", "")
     : null
-  const [intakes, setIntakes] = useState(initialIntakes)
+  const [intakes, setIntakes] = useState(listReturn.restored ? [] : initialIntakes)
   const intakesRef = useRef(intakes)
   const [activeSearchView, setActiveSearchView] = useState<ActiveQueueSearchView | null>(null)
   const activeSearchViewRef = useRef<ActiveQueueSearchView | null>(null)
@@ -260,7 +269,13 @@ export function QueueClient({
   // useState(initialIntakes) only reads the prop on mount, so without this effect
   // the 60s background refresh never updates what's shown in the queue.
   useEffect(() => {
-    if (!activeSearchViewRef.current) setIntakes(initialIntakes)
+    let current = true
+    void (async () => {
+      if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
+      if (pendingReturn.current && (pendingReturn.current.query || initialIntakes === initialReturnRows.current)) return
+      if (current && !activeSearchViewRef.current) setIntakes(initialIntakes)
+    })()
+    return () => { current = false }
   }, [initialIntakes])
 
   useEffect(() => {
@@ -274,6 +289,7 @@ export function QueueClient({
   }, [])
   const selectReviewedIntake = useCallback(async (intakeId: string | null) => {
     if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return false
+    if (intakeId) initiatingActionRef.current = initiatingListAction(intakeId)
     setExpandedId(intakeId)
     return true
   }, [])
@@ -289,7 +305,7 @@ export function QueueClient({
     setLastOpenedIntakeId(intakeId)
   }, [])
 
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(listReturn.restored?.query ?? "")
   const debouncedSearch = useDebounce(searchQuery, 350)
   const [statusFilter, setStatusFilter] = useState<QueueStatusFilter>(initialStatusFilter)
   const [priorityModeActive, setPriorityModeActive] = useState(false)
@@ -345,6 +361,8 @@ export function QueueClient({
     const normalizedQuery = sanitizeQueueSearchQuery(query)
     if (!normalizedQuery) return
 
+    if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
+    const scope = listReturn.navigation?.scope
     const sequence = ++searchRequestSequenceRef.current
     const requestedPage = options.page ?? 1
     const pageSize = visiblePagination?.pageSize ?? 50
@@ -380,7 +398,7 @@ export function QueueClient({
         }
       }
 
-      if (sequence !== searchRequestSequenceRef.current) return
+      if (sequence !== searchRequestSequenceRef.current || (listReturn.navigation && !listReturn.navigation.store.isCurrent(scope ?? null))) return
 
       startQueueSearchTransition(() => {
         if (result.success) {
@@ -420,7 +438,7 @@ export function QueueClient({
         })
       })
     } catch {
-      if (sequence !== searchRequestSequenceRef.current) return
+      if (sequence !== searchRequestSequenceRef.current || (listReturn.navigation && !listReturn.navigation.store.isCurrent(scope ?? null))) return
       startQueueSearchTransition(() => {
         setIntakes([])
         setActiveSearchView({
@@ -440,6 +458,7 @@ export function QueueClient({
       }
     }
   }, [
+    listReturn.navigation,
     allowSeededSearch,
     onlySeededSearch,
     startQueueSearchTransition,
@@ -453,6 +472,7 @@ export function QueueClient({
     lastSearchEffectKeyRef.current = effectKey
 
     if (!normalizedSearch) {
+      if (pendingReturn.current && initialIntakes === initialReturnRows.current) return
       searchRequestSequenceRef.current += 1
       desiredSearchIntentRef.current = null
       setIsQueueSearchPending(false)
@@ -461,7 +481,7 @@ export function QueueClient({
       return
     }
 
-    void runQueueSearch(normalizedSearch, { statusFilter, page: 1 })
+    void runQueueSearch(normalizedSearch, { statusFilter, page: pendingReturn.current?.query === normalizedSearch ? pendingReturn.current.page : 1 })
   }, [debouncedSearch, initialIntakes, runQueueSearch, statusFilter])
 
   const refreshQueue = useCallback((options: QueueRefreshOptions = {}) => {
@@ -536,7 +556,8 @@ export function QueueClient({
     }
   }, [refreshQueue])
 
-  const handleStatusFilterChange = useCallback((value: QueueStatusFilter) => {
+  const handleStatusFilterChange = useCallback(async (value: QueueStatusFilter) => {
+    if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
     setStatusFilter(value)
     explicitStatusFilterRef.current = value !== "all"
 
@@ -646,7 +667,8 @@ export function QueueClient({
     }, 1500)
   }, [reconcileRealtimeQueue])
 
-  const handleUpdate = useCallback((updated: Partial<IntakeWithPatient> & { id: string }) => {
+  const handleUpdate = useCallback(async (updated: Partial<IntakeWithPatient> & { id: string }) => {
+    if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
     const reconciled = applyQueueRealtimeUpdate(intakesRef.current, updated)
     if (!reconciled.matched) {
       // Draft intakes enter the actionable queue through an UPDATE to `paid`.
@@ -660,7 +682,8 @@ export function QueueClient({
     if (activeSearchViewRef.current) refreshQueue()
   }, [reconcileRealtimeQueue, refreshQueue])
 
-  const handleDelete = useCallback((id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
+    if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
     setIntakes((prev) => prev.filter((r) => r.id !== id))
     if (activeSearchViewRef.current) refreshQueue()
   }, [refreshQueue])
@@ -782,6 +805,24 @@ export function QueueClient({
       ),
     })
   }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete, registerBeforeReviewLeave, selectReviewedIntake])
+
+  useEffect(() => {
+    const snapshot = pendingReturn.current
+    if (snapshot && !snapshot.query && (initialIntakes === initialReturnRows.current || intakes !== initialIntakes)) return
+    if (!snapshot || (snapshot.query && (queueSearchPending || committedSearchQuery !== snapshot.query))) return
+    pendingReturn.current = null
+    const restored = resolveReturnedSelection(snapshot.selectedId, intakes.map(row => row.id))
+    setReturnAnnouncement(visibleQueueDegraded ? "The list could not be refreshed. Retry before continuing." : restored.announcement)
+    if (restored.selectedId) void openReviewPanel(restored.selectedId)
+    restoreListFocus(snapshot, Boolean(restored.selectedId), queueRegionRef.current)
+  }, [committedSearchQuery, initialIntakes, intakes, openReviewPanel, queueSearchPending, visibleQueueDegraded])
+
+  useEffect(() => {
+    if (pendingReturn.current) return
+    captureListReturn({ href: `${baseHref}?${searchParams.toString()}`, query: searchQuery,
+      page: visiblePagination?.page ?? 1, selectedId: expandedId, focusId: initiatingActionRef.current,
+      scrollTop: 0, windowY: 0 })
+  }, [baseHref, expandedId, captureListReturn, searchParams, searchQuery, visiblePagination?.page])
 
   const primeReviewPanelCode = useCallback(() => {
     void loadIntakeReviewPanel()
@@ -925,8 +966,9 @@ export function QueueClient({
     openReviewPanel(next.id)
   }, [openReviewPanel, rememberOpenedCase])
 
-  const handleJumpToOldestWait = useCallback(() => {
+  const handleJumpToOldestWait = useCallback(async () => {
     if (!oldestWaitingIntakeId) return
+    if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
 
     setSearchQuery("")
     if (statusFilter !== "all") handleStatusFilterChange("all")
@@ -1058,6 +1100,7 @@ export function QueueClient({
         "focus:outline-none",
       )}
     >
+      {returnAnnouncement && <p role="status" className="text-sm text-muted-foreground">{returnAnnouncement}</p>}
       {/* Priority inbox banner */}
       {priorityModeActive && (
         <div
@@ -1142,7 +1185,7 @@ export function QueueClient({
         <QueueFilters
           controls={controls}
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={async (query) => { if (!beforeReviewLeaveRef.current || await beforeReviewLeaveRef.current()) setSearchQuery(query) }}
           onRefresh={() => refreshQueue({ force: true })}
           onOpenSingleMatch={
             committedSearchQuery

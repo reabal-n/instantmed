@@ -1,0 +1,62 @@
+import { describe, expect, it } from 'vitest'
+
+import { createListReturnState, resolveReturnedSelection,safeListHref, sessionScope, testSessionScope } from '@/lib/operator/cases/list-return-state'
+
+const snapshot = { origin: 'queue' as const, href: '/dashboard?status=review&page=2&q=private', query: 'E2E Navigation Patient', page: 2, selectedId: 'request-a', focusId: 'queue-row-request-a', scrollTop: 30, windowY: 0 }
+const token = (id: string) => `a.${btoa(JSON.stringify({ session_id: id }))}.c`
+describe('staff list return intent', () => {
+  it('keeps only safe public navigation values in copied URLs', () => {
+    expect(safeListHref('queue', snapshot.href)).toBe('/dashboard?status=review&page=2')
+    expect(safeListHref('queue', '//evil.test?q=private')).toBe('/dashboard')
+    expect(safeListHref('queue', '/dashboard?status=private&page=NaN&returnTo=https://evil.test')).toBe('/dashboard')
+  })
+  it('retains same-session refresh and clears account changes and new logins', () => {
+    const state = createListReturnState()
+    state.setScope('a:s1'); state.write('a:s1', snapshot)
+    state.setScope('a:s1'); expect(state.read('a:s1', 'queue')?.query).toBe(snapshot.query)
+    state.setScope('a:s2'); expect(state.read('a:s2', 'queue')).toBeNull()
+    state.write('a:s2', snapshot); state.setScope('b:s2'); expect(state.read('b:s2', 'queue')).toBeNull()
+  })
+  it('rejects late writes and results after signout or unknown sessions', () => {
+    const state = createListReturnState(); state.setScope('a:s1'); state.write('a:s1', snapshot)
+    state.setScope(null); state.write('a:s1', snapshot)
+    expect(state.read('a:s1', 'queue')).toBeNull(); expect(state.isCurrent('a:s1')).toBe(false)
+    expect(sessionScope({ user: { id: 'a' }, access_token: 'invalid' })).toBeNull()
+    expect(sessionScope({ user: { id: 'a' }, access_token: token('s1') })).toBe('a:s1')
+  })
+  it('binds return intent to its exact destination and excludes clinical payloads', () => {
+    const state = createListReturnState(); state.setScope('a:s1')
+    state.write('a:s1', { ...snapshot, notes: 'private note', rows: ['clinical'] } as typeof snapshot)
+    state.bind('a:s1', 'queue', '/doctor/intakes/request-a')
+    expect(state.destination('a:s1', '/doctor/intakes/request-b')).toBeNull()
+    expect(state.destination('a:s1', '/doctor/intakes/request-a')?.origin).toBe('queue')
+    expect(state.read('a:s1', 'queue')).not.toHaveProperty('notes')
+    expect(state.read('a:s1', 'queue')).not.toHaveProperty('rows')
+  })
+  it('never silently selects another patient when the original has moved', () => {
+    expect(resolveReturnedSelection('a', ['b'])).toEqual({ selectedId: null, announcement: 'The previous request is no longer in this view. The list is up to date.' })
+    expect(resolveReturnedSelection('a', ['a', 'b']).selectedId).toBe('a')
+  })
+  it('requires both compiled test mode and loopback for cookie-based test scopes', () => {
+    expect(testSessionScope(false, 'localhost', 'run', 'doctor', false)).toBeNull()
+    expect(testSessionScope(true, 'instantmed.com.au', 'run', 'doctor', false)).toBeNull()
+    expect(testSessionScope(true, 'localhost', '', 'doctor', false)).toBeNull()
+    expect(testSessionScope(true, 'localhost', 'run', 'doctor', false)).not.toBe(testSessionScope(true, 'localhost', 'run', 'doctor', true))
+  })
+})
+
+describe('asynchronous session ownership', () => {
+  it('does not apply an old search when its response arrives after signout', async () => {
+    const state = createListReturnState(); state.setScope('a:s1')
+    let complete!: (value: string[]) => void
+    const response = new Promise<string[]>(resolve => { complete = resolve })
+    let rows: string[] = []
+    const apply = response.then(result => { if (state.isCurrent('a:s1')) rows = result })
+    state.setScope(null); complete(['old patient']); await apply
+    expect(rows).toEqual([])
+  })
+  it('partitions a new same-account session but keeps refreshed access tokens', () => {
+    expect(sessionScope({ user: { id: 'a' }, access_token: token('session-one') })).toBe(sessionScope({ user: { id: 'a' }, access_token: `${token('session-one')}new-signature` }))
+    expect(sessionScope({ user: { id: 'a' }, access_token: token('session-one') })).not.toBe(sessionScope({ user: { id: 'a' }, access_token: token('session-two') }))
+  })
+})

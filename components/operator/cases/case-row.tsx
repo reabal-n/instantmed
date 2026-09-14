@@ -153,6 +153,7 @@ export function CaseRow({
       {row.href ? (
         <Link
           href={row.href}
+          data-staff-local-action={onPrimary ? "true" : undefined}
           prefetch={false}
           onClick={(event) => {
             if (!onPrimary) return

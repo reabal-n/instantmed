@@ -18,6 +18,7 @@ import { type CaseAction, CaseActionsMenu } from "@/components/operator/cases/ca
 import { CaseMobileList } from "@/components/operator/cases/case-mobile-list"
 import { CaseTable } from "@/components/operator/cases/case-table"
 import { FilterBar, type QuickFilter } from "@/components/operator/cases/filter-bar"
+import { initiatingListAction, restoreListFocus, useStaffListReturn } from "@/components/operator/staff-list-navigation-provider"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
@@ -40,6 +41,7 @@ import {
 import { formatIntakeStatus } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import type { CaseRowAttribution } from "@/lib/operator/cases/case-attribution"
+import { resolveReturnedSelection } from "@/lib/operator/cases/list-return-state"
 import { getPaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 import {
   type CaseRowData,
@@ -81,6 +83,7 @@ type AdminIntakesLedgerClientProps = {
 }
 
 type LazyIntakeReviewPanelProps = {
+  onBeforeLeaveChange?: (guard: (() => Promise<boolean>) | null) => void
   intakeId: string
   caseIndex?: number
   totalCases?: number
@@ -294,6 +297,8 @@ function mapToCaseRow(
   }
 }
 
+const EMPTY_RETURN_ROWS: AdminIntakesLedgerClientProps["rows"] = []
+
 export function AdminIntakesLedgerClient({
   rows: initialRows,
   total: initialTotal,
@@ -308,13 +313,22 @@ export function AdminIntakesLedgerClient({
   const router = useRouter()
   const searchParams = useSearchParams()
   const { openPanel } = usePanel()
+  const listReturn = useStaffListReturn("requests")
+  const { capture: captureListReturn } = listReturn
+  const initiatingActionRef = useRef("action:0")
+  const pendingReturn = useRef(listReturn.restored)
+  const initialReturnRows = useRef(initialRows)
+  useEffect(() => { if (listReturn.restored && !listReturn.restored.query) router.refresh() }, [listReturn.restored, router])
+  const [returnAnnouncement, setReturnAnnouncement] = useState("")
+  const beforeReviewLeaveRef = useRef<(() => Promise<boolean>) | null>(null)
+  const registerBeforeReviewLeave = useCallback((guard: (() => Promise<boolean>) | null) => { beforeReviewLeaveRef.current = guard }, [])
   const searchRef = useRef<HTMLInputElement>(null)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(listReturn.restored?.query ?? "")
   const debouncedSearch = useDebounce(searchQuery, 350)
   const [activeSearchView, setActiveSearchView] = useState<ActiveAdminLedgerSearchView | null>(null)
   const [isSearchPending, setIsSearchPending] = useState(false)
   const searchRequestSequenceRef = useRef(0)
-  const previousDebouncedQueryRef = useRef("")
+  const previousDebouncedQueryRef = useRef(listReturn.restored?.query ?? "")
   const lastSearchEffectKeyRef = useRef("")
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
   const [refundTarget, setRefundTarget] = useState<CaseRowData | null>(null)
@@ -326,7 +340,7 @@ export function AdminIntakesLedgerClient({
   const [isFilterPending, startFilterTransition] = useTransition()
   const [density, setDensity] = useDensity()
   const isAdmin = viewerRole === "admin"
-  const rows = activeSearchView?.data ?? initialRows
+  const rows = activeSearchView?.data ?? (pendingReturn.current && initialRows === initialReturnRows.current ? EMPTY_RETURN_ROWS : initialRows)
   const total = activeSearchView ? activeSearchView.total : initialTotal
   const page = activeSearchView?.page ?? initialPage
   const pageSize = activeSearchView?.pageSize ?? initialPageSize
@@ -345,10 +359,11 @@ export function AdminIntakesLedgerClient({
     [rows, viewerRole],
   )
 
-  const replaceParams = useCallback((
+  const replaceParams = useCallback(async (
     updates: Record<string, string | null>,
     options: { resetPage?: boolean } = {},
   ) => {
+    if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
     const params = new URLSearchParams(searchParams.toString())
     params.delete("q")
     for (const [key, value] of Object.entries(updates)) {
@@ -368,19 +383,26 @@ export function AdminIntakesLedgerClient({
     const normalizedQuery = sanitizeAdminLedgerSearchTerm(query)
     if (!normalizedQuery) return
 
+    if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
+    const scope = listReturn.navigation?.scope
     const sequence = ++searchRequestSequenceRef.current
     setIsSearchPending(true)
     try {
-      const result = await searchAdminLedgerAction({
+      const requestPage = (page: number) => searchAdminLedgerAction({
         query: normalizedQuery,
-        page: requestedPage,
+        page,
         pageSize: initialPageSize,
         service: initialFilters?.service,
         status: initialFilters?.status,
         workLane: initialFilters?.workLane,
         chips: initialFilters?.chips,
       })
-      if (sequence !== searchRequestSequenceRef.current) return
+      let result = await requestPage(requestedPage)
+      if (result.success && !result.data.degraded && result.data.total !== null) {
+        const lastPage = Math.max(1, Math.ceil(result.data.total / result.data.pageSize))
+        if (result.data.page > lastPage) result = await requestPage(lastPage)
+      }
+      if (sequence !== searchRequestSequenceRef.current || (listReturn.navigation && !listReturn.navigation.store.isCurrent(scope ?? null))) return
 
       if (result.success) {
         setActiveSearchView({ ...result.data, query: normalizedQuery })
@@ -399,7 +421,7 @@ export function AdminIntakesLedgerClient({
       })
       toast.error(result.error)
     } catch {
-      if (sequence !== searchRequestSequenceRef.current) return
+      if (sequence !== searchRequestSequenceRef.current || (listReturn.navigation && !listReturn.navigation.store.isCurrent(scope ?? null))) return
       setActiveSearchView({
         query: normalizedQuery,
         data: [],
@@ -415,6 +437,7 @@ export function AdminIntakesLedgerClient({
       if (sequence === searchRequestSequenceRef.current) setIsSearchPending(false)
     }
   }, [
+    listReturn.navigation,
     initialFilters?.chips,
     initialFilters?.service,
     initialFilters?.status,
@@ -522,8 +545,10 @@ export function AdminIntakesLedgerClient({
     replaceParams({ chips: next.size > 0 ? [...next].join(",") : null })
   }, [activeChips, replaceParams])
 
-  const openCaseSlideover = useCallback((intakeId: string) => {
+  const openCaseSlideover = useCallback(async (intakeId: string) => {
     if (!isAdmin) return
+    if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
+    initiatingActionRef.current = initiatingListAction(intakeId)
     const currentIndex = caseRows.findIndex((row) => row.id === intakeId)
     setSelectedRowId(intakeId)
     openPanel({
@@ -532,6 +557,7 @@ export function AdminIntakesLedgerClient({
       component: (
         <IntakeReviewPanel
           intakeId={intakeId}
+          onBeforeLeaveChange={registerBeforeReviewLeave}
           caseIndex={currentIndex >= 0 ? currentIndex : undefined}
           totalCases={caseRows.length || undefined}
           profileMode="admin"
@@ -542,7 +568,24 @@ export function AdminIntakesLedgerClient({
         />
       ),
     })
-  }, [caseRows, isAdmin, openPanel, router])
+  }, [caseRows, isAdmin, openPanel, registerBeforeReviewLeave, router])
+
+  useEffect(() => {
+    const snapshot = pendingReturn.current
+    if (snapshot && !snapshot.query && initialRows === initialReturnRows.current) return
+    if (!snapshot || (snapshot.query && (isSearchPending || activeSearchView?.query !== snapshot.query))) return
+    pendingReturn.current = null
+    const restored = resolveReturnedSelection(snapshot.selectedId, rows.map(row => row.id))
+    setSelectedRowId(restored.selectedId)
+    setReturnAnnouncement(degraded ? "The list could not be refreshed. Retry before continuing." : restored.announcement)
+    restoreListFocus(snapshot, Boolean(restored.selectedId), document.querySelector<HTMLElement>("h1") ?? searchRef.current)
+  }, [activeSearchView, degraded, initialRows, isSearchPending, rows])
+
+  useEffect(() => {
+    if (pendingReturn.current) return
+    captureListReturn({ href: `${STAFF_LEDGER_HREF}?${searchParams.toString()}`, query: searchQuery,
+      page, selectedId: selectedRowId, focusId: initiatingActionRef.current, scrollTop: 0, windowY: 0 })
+  }, [captureListReturn, page, searchParams, searchQuery, selectedRowId])
 
   useEffect(() => {
     if (!isAdmin) return
@@ -612,8 +655,9 @@ export function AdminIntakesLedgerClient({
     return actions.length > 0 ? <CaseActionsMenu requestRef={row.intakeRef} actions={actions} /> : null
   }
 
-  const isLedgerPending = isFilterPending || isSearchPending
-  const clearFilters = () => {
+  const isLedgerPending = isFilterPending || isSearchPending || Boolean(pendingReturn.current?.query && activeSearchView?.query !== pendingReturn.current.query)
+  const clearFilters = async () => {
+    if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
     searchRequestSequenceRef.current += 1
     setSearchQuery("")
     setActiveSearchView(null)
@@ -623,6 +667,7 @@ export function AdminIntakesLedgerClient({
 
   return (
     <div className="flex flex-col gap-3">
+      {returnAnnouncement && <p role="status" className="text-sm text-muted-foreground">{returnAnnouncement}</p>}
       {patientSearchSaturated ? (
         <div className="rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning" role="status">
           <p className="font-medium">Too many patient profiles match this search.</p>
@@ -659,7 +704,7 @@ export function AdminIntakesLedgerClient({
         <FilterBar
           className="min-w-0 flex-1"
           searchValue={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={async (query) => { if (!beforeReviewLeaveRef.current || await beforeReviewLeaveRef.current()) setSearchQuery(query) }}
           searchInputRef={searchRef}
           searchPlaceholder={isAdmin
             ? "Search patient, request ID, email, suburb, or state..."

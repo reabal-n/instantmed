@@ -6,6 +6,7 @@ import { JetBrains_Mono, Plus_Jakarta_Sans, Source_Sans_3 } from "next/font/goog
 import { ThemeProvider } from "next-themes"
 import type React from "react"
 
+import { StaffListNavigationBoundary } from "@/components/operator/staff-list-navigation-provider"
 import { AttributionCapture } from "@/components/providers/attribution-capture"
 import { DraftDiscardRetry } from "@/components/providers/draft-discard-retry"
 import { GlobalDeferredClients } from "@/components/providers/global-deferred-clients"
@@ -175,6 +176,7 @@ export default function RootLayout({
         style={{ backgroundColor: "var(--background, #F8F7F4)" }}
       >
         <SupabaseAuthProvider>
+          <StaffListNavigationBoundary>
           <OrganizationSchema />
           <WebSiteSchema />
           <AttributionCapture />
@@ -190,6 +192,7 @@ export default function RootLayout({
                 </ServiceAvailabilityProvider>
           </ThemeProvider>
           </PostHogLoader>
+          </StaffListNavigationBoundary>
         </SupabaseAuthProvider>
       </body>
     </html>

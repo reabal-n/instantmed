@@ -31,6 +31,7 @@ import {
 } from "@/app/actions/patient-profile-merge"
 import { AttributionChip, ParchmentPrescribePanel } from "@/components/doctor"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
+import { useStaffReturnDestination } from "@/components/operator/staff-list-navigation-provider"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -234,6 +235,7 @@ export function PatientDetailClient({
   firstTouchAttribution,
   lastTouchAttribution,
 }: PatientDetailClientProps) {
+  const returnDestination = useStaffReturnDestination()
   const router = useRouter()
   const { openPanel } = usePanel()
   const [isNotePending, startNoteTransition] = useTransition()
@@ -448,9 +450,9 @@ export function PatientDetailClient({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-3">
           <Button variant="ghost" className="px-0 text-muted-foreground hover:bg-transparent hover:text-foreground" asChild>
-            <Link href={STAFF_DOCTOR_PATIENTS_HREF}>
+            <Link href={returnDestination?.href ?? STAFF_DOCTOR_PATIENTS_HREF}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Patients
+              {returnDestination ? (returnDestination.origin === "queue" ? "Back to Queue" : "Back to Requests") : "Back to Patients"}
             </Link>
           </Button>
           <div>

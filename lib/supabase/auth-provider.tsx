@@ -11,6 +11,7 @@ import {
   AUTH_HANDOFF_STORAGE_KEY,
   createAuthHandoffRefreshGuard,
 } from '@/lib/navigation/auth-handoff'
+import { createListReturnState, sessionScope, testSessionScope } from '@/lib/operator/cases/list-return-state'
 import { clearInstantMedBrowserCaches } from '@/lib/security/browser-cache-cleanup'
 import { resolveInitialAuthLoadPlan } from '@/lib/supabase/auth-cookie'
 
@@ -44,6 +45,7 @@ function readCookie(name: string): string | null {
 }
 
 function buildE2EClientUser(): User | null {
+  if (process.env.NEXT_PUBLIC_PLAYWRIGHT !== '1' || !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) return null
   const role = readCookie('__e2e_auth_role')
   if (!role) return null
 
@@ -78,6 +80,8 @@ interface AuthContext {
   isSignedIn: boolean
   /** Sign out and redirect to home */
   signOut: () => Promise<void>
+  navigationStore: ReturnType<typeof createListReturnState>
+  navigationScope: string | null
 }
 
 const AuthCtx = createContext<AuthContext | null>(null)
@@ -93,6 +97,14 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const router = useRouter()
+  const navigationStore = useRef(createListReturnState()).current
+  const [navigationScope, setNavigationScope] = useState<string | null>(null)
+  const authRevision = useRef(0)
+  const signingOutRef = useRef(false)
+  const syncNavigationScope = useCallback((next: string | null) => {
+    navigationStore.setScope(next)
+    setNavigationScope(next)
+  }, [navigationStore])
   // Tracks the prior auth user id so we only router.refresh() on a real identity
   // transition (see the onAuthStateChange handler below).
   const prevUserIdRef = useRef<string | null>(null)
@@ -160,6 +172,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
     // Skip Supabase session check to prevent SIGNED_OUT → router.refresh() redirect chain.
     const e2eUser = buildE2EClientUser()
     if (e2eUser) {
+      syncNavigationScope(testSessionScope(process.env.NEXT_PUBLIC_PLAYWRIGHT === '1', window.location.hostname, readCookie('__e2e_run_id'), readCookie('__e2e_auth_role'), readCookie('__e2e_auth_is_admin') === 'true'))
       setUser(e2eUser)
       setIsLoaded(true)
       return
@@ -175,6 +188,9 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
           const supabase = createClient()
           const { data } = supabase.auth.onAuthStateChange(
             (_event, newSession) => {
+              if (cancelled || (signingOutRef.current && newSession)) return
+              authRevision.current += 1
+              syncNavigationScope(sessionScope(newSession))
               setSession(newSession)
               setUser(newSession?.user ?? null)
               setIsLoaded(true)
@@ -210,9 +226,12 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
 
           subscription = data.subscription
 
+          const revision = authRevision.current
           const { data: { session: initialSession } } = await supabase.auth.getSession()
           if (cancelled) return
 
+          if (revision !== authRevision.current) { initialAuthResolvedRef.current = true; return }
+          syncNavigationScope(sessionScope(initialSession))
           setSession(initialSession)
           setUser(initialSession?.user ?? null)
           prevUserIdRef.current = initialSession?.user?.id ?? null
@@ -258,9 +277,12 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
       window.removeEventListener(AUTH_HANDOFF_EVENT, suppressAuthRefreshForHandoff)
       subscription?.unsubscribe()
     }
-  }, [router])
+  }, [router, syncNavigationScope])
 
   const signOut = useCallback(async () => {
+    signingOutRef.current = true
+    authRevision.current += 1
+    syncNavigationScope(null)
     // Always clear local state and navigate, even if the network revoke fails.
     // - scope: 'local' clears this device only and skips the revoke RPC, so an
     //   expired/invalid refresh token can't 401 us into a stuck UI.
@@ -286,7 +308,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
         router.refresh()
       }
     }
-  }, [router])
+  }, [router, syncNavigationScope])
 
   const value = useMemo<AuthContext>(() => ({
     user,
@@ -294,7 +316,9 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
     isLoaded,
     isSignedIn: !!user,
     signOut,
-  }), [user, session, isLoaded, signOut])
+    navigationStore,
+    navigationScope,
+  }), [user, session, isLoaded, signOut, navigationStore, navigationScope])
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
 }
