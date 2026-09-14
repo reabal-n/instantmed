@@ -168,6 +168,10 @@ Complete the shared release protocol. Close implemented plan items, preserve sti
 
 ## Execution receipt
 
-Preparation only, September 14. ROADMAP, Plan 4's final release handoff, the current navigation owners and PR #561's branch receipt were inspected. No application code, clinical fixture, provider configuration, payment or audit remediation was changed. The preparation branch contains documentation only. Record planning verification below, then add implementation/navigation/role/browser and release evidence only when performed after the verified merge gate.
+**Original preparation receipt, before the later start instruction.** ROADMAP, Plan 4's final release handoff, the current navigation owners and PR #561's branch receipt were inspected. No application code, clinical fixture, provider configuration, payment or audit remediation was changed. The preparation branch contains documentation only. The later start instruction above supersedes the original merge wait; implementation and verification receipts follow separately.
 
 **Planning verification:** `corepack pnpm doc:audit` passed on Node 24.15.0/pnpm 10.23.0: 10 documentation contract files, 124 tests; document count and references passed. `git diff --check` passed. Source review confirmed file/callback names and the admin/support Requests boundary. Runtime and browser checks are deliberately unrun before the dependency merge; no application behavior or visual acceptance is claimed.
+
+### Implementation in progress — September 14
+
+The operator’s later “just start plan 5” instruction was applied to an isolated branch from fetched `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. PR #561 remained open at the start and is owned by the separate readiness task; this branch does not merge it or accept its monitoring gates. Queue presentation is implemented through `7107b9128` with independent task review and focused checks. Requests presentation is committed at `bcdab3b03`, with independent review in progress. Navigation-return implementation and integrated browser verification remain pending. The security/checkout audit, physical-phone check, owner visual acceptance and monitoring/alert-delivery evidence remain separate.
