@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 
 import { BreadcrumbSchema } from "@/components/seo"
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo/social-image"
 
 import { ContactClient } from "./contact-client"
 
@@ -10,11 +11,13 @@ export const metadata: Metadata = {
   title: { absolute: "Contact InstantMed Support | Requests, Payments & Accounts" },
   description: SEARCH_DESCRIPTION,
   openGraph: {
+    images: [DEFAULT_SOCIAL_IMAGE],
     title: "Contact InstantMed Support",
     description: SEARCH_DESCRIPTION,
     url: "https://instantmed.com.au/contact",
   },
   twitter: {
+    images: [DEFAULT_SOCIAL_IMAGE],
     card: "summary_large_image",
     title: "Contact InstantMed Support",
     description: SEARCH_DESCRIPTION,

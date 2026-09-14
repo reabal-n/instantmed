@@ -30,6 +30,7 @@ import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo/social-image"
 
 const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
@@ -60,6 +61,7 @@ export const metadata: Metadata = {
     "telehealth consultation australia",
   ],
   openGraph: {
+    images: [DEFAULT_SOCIAL_IMAGE],
     title: "Telehealth in Australia | Costs, Rules & Care Options | InstantMed",
     description: SEARCH_DESCRIPTION,
     url: CANONICAL,
@@ -68,6 +70,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: [DEFAULT_SOCIAL_IMAGE],
     card: "summary_large_image",
     title: "Telehealth in Australia | InstantMed",
     description: SEARCH_DESCRIPTION,

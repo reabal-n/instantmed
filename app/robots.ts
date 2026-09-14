@@ -18,7 +18,8 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         // Keep public /_next/ scripts, styles and image assets crawlable for rendering.
-        allow: "/",
+        // Blog metadata uses /api/og; let Google crawl these preview images.
+        allow: ["/", "/api/og"],
         disallow: [
           "/patient/",      // Patient dashboard
           "/doctor/",       // Doctor dashboard
