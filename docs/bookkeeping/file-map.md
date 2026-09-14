@@ -142,7 +142,7 @@ September 10 added [profit-growth execution](../audits/2026-09-10-profit-growth-
 
 Root plan files preserve implementation detail only. They are not active merely because they remain outside the archive; `docs/ROADMAP.md` is the sole queue.
 
-## docs/superpowers/plans/ — 21
+## docs/superpowers/plans/ — 22
 
 | File | Purpose |
 |------|---------|
@@ -167,6 +167,7 @@ Root plan files preserve implementation detail only. They are not active merely 
 | [docs/superpowers/plans/2026-09-06-03-concise-clinical-review.md](../superpowers/plans/2026-09-06-03-concise-clinical-review.md) | Session 3: concise clinical facts, visible prescribing regimen, clarification and readable preserved notes |
 | [docs/superpowers/plans/2026-09-06-04-parchment-prescribing-workspace.md](../superpowers/plans/2026-09-06-04-parchment-prescribing-workspace.md) | Session 4: enlarge Parchment around the accepted reference, preserving mobile/recovery/return behavior |
 | [docs/superpowers/plans/2026-09-06-05-queue-requests-navigation.md](../superpowers/plans/2026-09-06-05-queue-requests-navigation.md) | Session 5: compact queue, consolidated Requests controls and safe list-state navigation |
+| [docs/superpowers/plans/2026-09-14-pre-plan5-production-readiness.md](../superpowers/plans/2026-09-14-pre-plan5-production-readiness.md) | Pre-Plan 5 closure: first-attempt CI reliability, automatic monitoring and alert evidence, and deferred owner phone acceptance |
 
 ## docs/superpowers/specs/ — 2
 
