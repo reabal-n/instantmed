@@ -265,7 +265,7 @@ Those paid destinations should avoid prescription drug names and follow `docs/AD
 
 ## 7. Schema And Metadata
 
-`app/robots.ts` must allow crawling of public Next.js scripts, styles, and image assets under `/_next/` so search engines can render public pages. Keep private patient, staff, and API route exclusions intact. Auth pages intentionally remain crawlable for Google to read their `noindex` metadata; authentication and authorisation own access control. Verify the generated robots rules after changes. Crawl access does not guarantee indexing or rankings.
+`app/robots.ts` must allow crawling of public Next.js scripts, styles, and image assets under `/_next/` so search engines can render public pages. Keep private patient, staff, and API route exclusions intact. Auth pages intentionally remain crawlable for Google to read their `noindex` metadata; authentication and authorisation own access control. Verify the generated robots rules after changes. Crawl access does not guarantee indexing or rankings. The public `/api/og` preview endpoint is explicitly crawlable. The decorative signature and its Next Image variants remain crawlable with an image-specific `X-Robots-Tag: noindex` response; homepage, contact and telehealth metadata explicitly select the existing branded Open Graph card.
 
 Educational pages may use neutral article/FAQ metadata.
 
