@@ -37,7 +37,7 @@ test.beforeAll(async () => {
   const { error: nameError } = await db.from("profiles").update({ full_name: query }).eq("id", patient)
   if (nameError) throw nameError
 })
-test.afterAll(async () => {
+async function cleanupOwnedIntakes() {
   for (const [table, column] of [["intake_events", "intake_id"], ["document_drafts", "intake_id"], ["email_outbox", "intake_id"], ["intake_answers", "intake_id"], ["intakes", "id"]]) {
     const { error } = await db.from(table).delete().in(column, intakeIds)
     if (error) throw new Error(`Synthetic ${table} cleanup failed: ${error.message}`)
@@ -45,7 +45,8 @@ test.afterAll(async () => {
   const { count, error } = await db.from("intakes").select("id", { count: "exact", head: true }).in("id", intakeIds)
   if (error) throw error
   expect(count).toBe(0)
-})
+}
+test.afterAll(cleanupOwnedIntakes)
 test.beforeEach(async ({ page }) => {
   const leaks: string[] = []
   privateLeaks.set(page, leaks)
@@ -466,37 +467,6 @@ test("pending private search blocks pointer pagination and keyboard case actions
   await expect(page.getByRole("button", { name: /next page/i })).toBeEnabled()
 })
 
-test("Approved today starts collapsed and separates current actor and protocol history", async ({ page }) => {
-  const historyIds: string[] = []
-  try {
-    for (const kind of ["actor", "other", "protocol"] as const) {
-      const seeded = await seedTestIntake({ status: "in_review" })
-      expect(seeded.success, seeded.error).toBe(true)
-      const id = seeded.intakeId!
-      historyIds.push(id)
-      intakeIds.push(id)
-      const updated = await db.from("intakes").update({ status: "approved", reviewed_by: kind === "other" ? "e2e00000-0000-0000-0000-000000000003" : operator, reviewed_at: new Date().toISOString(), approved_at: new Date().toISOString(), ai_approved: kind === "protocol", ai_approved_at: kind === "protocol" ? new Date().toISOString() : null }).eq("id", id)
-      expect(updated.error).toBeNull()
-    }
-    await page.goto("/dashboard?showTestData=1&onlyTestData=1")
-    const history = page.locator("[data-approved-today]:visible")
-    await expect(history).toBeVisible()
-    await expect(history).not.toHaveAttribute("open", "")
-    const summary = history.locator("summary")
-    await summary.focus()
-    await page.keyboard.press("Enter")
-    await expect(history).toHaveAttribute("open", "")
-    await expect(history.locator(`a[href$="/${historyIds[0]}"]`)).toBeVisible()
-    await expect(history.locator(`a[href$="/${historyIds[1]}"]`)).toHaveCount(0)
-    await expect(history.locator(`a[href$="/${historyIds[2]}"]`)).toBeVisible()
-    await expect(summary).toContainText("1 yours · 1 auto-issued")
-    await page.keyboard.press("Space")
-    await expect(history).not.toHaveAttribute("open", "")
-  } finally {
-    // Exact run-owned IDs are removed by the suite's audited child-first teardown.
-    await page.goto("/admin/intakes?pageSize=10")
-  }
-})
 
 for (const surface of ["queue", "requests"] as const) {
   test(`${surface} distinguishes failed search, empty search and recovered results`, async ({ page }) => {
@@ -633,4 +603,41 @@ test("Requests completion response failure retains the sheet and success closes 
     expect(persisted.error).toBeNull()
     expect(persisted.data?.status).toBe("awaiting_script")
   } finally { await page.unroute("**/*", mockCompletion) }
+})
+
+test("a genuinely caught-up Queue retains collapsed actor and protocol history", async ({ page }) => {
+  // Runs last: remove only this suite's exact disposable records, not a status backfill.
+  await cleanupOwnedIntakes()
+  const historyIds: string[] = []
+  try {
+    for (const kind of ["actor", "other", "protocol"] as const) {
+      const seeded = await seedTestIntake({ status: "in_review" })
+      expect(seeded.success, seeded.error).toBe(true)
+      const id = seeded.intakeId!
+      historyIds.push(id)
+      intakeIds.push(id)
+      const updated = await db.from("intakes").update({ status: "approved", reviewed_by: kind === "other" ? "e2e00000-0000-0000-0000-000000000003" : operator, reviewed_at: new Date().toISOString(), approved_at: new Date().toISOString(), ai_approved: kind === "protocol", ai_approved_at: kind === "protocol" ? new Date().toISOString() : null }).eq("id", id)
+      expect(updated.error).toBeNull()
+    }
+    await page.goto("/dashboard?showTestData=1&onlyTestData=1")
+    await expect(page.getByText("All caught up.", { exact: true })).toBeVisible()
+    await expect(page.locator('[data-testid^="queue-row-"]')).toHaveCount(0)
+    const history = page.locator("[data-approved-today]:visible")
+    await expect(history).toBeVisible()
+    await expect(history).not.toHaveAttribute("open", "")
+    const summary = history.locator("summary")
+    await summary.focus()
+    await page.keyboard.press("Enter")
+    await expect(history).toHaveAttribute("open", "")
+    await expect(history.locator(`a[href$="/${historyIds[0]}"]`)).toBeVisible()
+    await expect(history.locator(`a[href$="/${historyIds[1]}"]`)).toHaveCount(0)
+    await expect(history.locator(`a[href$="/${historyIds[2]}"]`)).toBeVisible()
+    await expect(summary).toContainText("1 yours · 1 auto-issued")
+    await page.keyboard.press("Space")
+    await expect(history).not.toHaveAttribute("open", "")
+    await page.screenshot({ path: `${output}/queue-caught-up-history.png`, animations: "disabled" })
+  } finally {
+    // Exact run-owned IDs are removed by the suite's audited child-first teardown.
+    await page.goto("/admin/intakes?pageSize=10")
+  }
 })
