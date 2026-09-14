@@ -49,8 +49,9 @@ fi
 
 if [ "$MEDCERT_READINESS_BROWSER" = "1" ]; then
   echo "== Med cert readiness: browser and webhook contracts =="
+  development_case_exclusions="${PLAYWRIGHT_PRODUCTION_CASES:+$PLAYWRIGHT_PRODUCTION_CASES|}invalid certType is ignored"
   pnpm exec playwright test --project=chromium \
-    --grep-invert "invalid certType is ignored" \
+    --grep-invert "$development_case_exclusions" \
     e2e/medcert.auto-approval.spec.ts \
     e2e/medcert.approval.spec.ts \
     e2e/medcert.auto-issued-revoke.spec.ts \

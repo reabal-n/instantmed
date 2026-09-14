@@ -399,7 +399,7 @@ jobs:
     # ~6m of previously measured work left. Allow variance without dropping cases.
     timeout-minutes: 65
     env:
-      PLAYWRIGHT_PRODUCTION_CASES: 'retains multi-section typing|shows request-versus-profile differences|advances certificate -> symptoms via the sticky bar only|renders ED FAQs before JavaScript'
+      PLAYWRIGHT_PRODUCTION_CASES: 'retains multi-section typing|shows request-versus-profile differences|advances certificate -> symptoms via the sticky bar only|renders ED FAQs before JavaScript|post-payment worker ignores a duplicate profile already merged into the current patient|shows an explicit empty saved-profile state without inventing differences|rejects request with missing signature header'
     # The blocking E2E suite reuses a deterministic Supabase fixture set.
     # Serialize it across branches so one run's teardown cannot remove child
     # records while another run is inside the document/review flow.
@@ -609,11 +609,14 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_APP_URL: http://localhost:3001
+          PARCHMENT_WEBHOOK_SECRET: ${{ secrets.PARCHMENT_WEBHOOK_SECRET }}
         run: |
           pnpm exec playwright test --project=chromium --retries=0 \
             --grep="$PLAYWRIGHT_PRODUCTION_CASES" \
             e2e/clinical-review-concise.spec.ts \
             e2e/doctor.prescription-ui.spec.ts \
+            e2e/medcert.auto-approval.spec.ts \
+            e2e/parchment-webhook.spec.ts \
             e2e/unified-request-flow.spec.ts \
             e2e/money-pages-foundations.spec.ts
 
