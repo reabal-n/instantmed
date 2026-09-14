@@ -1,25 +1,66 @@
 import { expect, it } from 'vitest'
 
-import { guardHistoryReturn } from '@/lib/operator/cases/list-return-state'
+import { createGuardedHistoryTraversal } from '@/lib/operator/cases/list-return-state'
 
-it('restores the current URL before awaiting a rejected note flush, without leaving the editor', async () => {
-  const history = ['/dashboard', '/doctor/intakes/a']
-  let editor = 'unsaved synthetic note'
-  let settle!: (allowed: boolean) => void
-  history.pop()
-  const pending = guardHistoryReturn({
-    restore: () => { history.push('/doctor/intakes/a') },
-    permit: () => new Promise<boolean>(resolve => { settle = resolve }),
-    leave: () => { history.push('/dashboard'); editor = '' },
+function historyHarness() {
+  const entries = ['before', 'queue', 'request', 'after']
+  let index = 2
+  let rendered = entries[index]
+  let guarded = true
+  let allow = true
+  let settle: ((result: boolean) => void) | undefined
+  let deferred = false
+  const controller = createGuardedHistoryTraversal({
+    initialIndex: index,
+    traverse(delta) { index += delta; if (!controller.pop(index, guarded)) rendered = entries[index] },
+    permit: () => deferred ? new Promise<boolean>(resolve => { settle = resolve }) : Promise.resolve(allow),
   })
-  expect(history.at(-1)).toBe('/doctor/intakes/a')
-  expect(editor).toBe('unsaved synthetic note')
-  settle(false); await pending
-  expect(history.at(-1)).toBe('/doctor/intakes/a')
-  expect(editor).toBe('unsaved synthetic note')
+  return {
+    entries,
+    go(delta: number) { index += delta; if (!controller.pop(index, guarded)) rendered = entries[index] },
+    view: () => ({ index, rendered }),
+    guard(value: boolean) { guarded = value },
+    defer() { deferred = true },
+    resolve(value: boolean) { settle?.(value) },
+    deny() { allow = false },
+  }
+}
+it('keeps repeated allowed Back and Forward on the original entries and indices', async () => {
+  const history = historyHarness()
+  history.go(-1); await Promise.resolve()
+  expect(history.view()).toEqual({ index: 1, rendered: 'queue' })
+  history.go(-1); await Promise.resolve()
+  expect(history.view()).toEqual({ index: 0, rendered: 'before' })
+  history.go(1); await Promise.resolve()
+  expect(history.view()).toEqual({ index: 1, rendered: 'queue' })
+  history.go(1); await Promise.resolve()
+  expect(history.view()).toEqual({ index: 2, rendered: 'request' })
+  expect(history.entries).toEqual(['before', 'queue', 'request', 'after'])
 })
-it('permits the intended destination only after a successful flush', async () => {
-  let destination = 'editor'
-  await guardHistoryReturn({ restore: () => { destination = 'editor' }, permit: async () => true, leave: () => { destination = 'requests' } })
-  expect(destination).toBe('requests')
+it('restores the original index and preserves editor and forward entries when save fails', async () => {
+  const history = historyHarness(); history.defer()
+  history.go(-1)
+  expect(history.view()).toEqual({ index: 2, rendered: 'request' })
+  history.resolve(false); await Promise.resolve()
+  expect(history.view()).toEqual({ index: 2, rendered: 'request' })
+  history.go(1)
+  expect(history.view()).toEqual({ index: 2, rendered: 'request' })
+  history.resolve(true); await Promise.resolve()
+  expect(history.view()).toEqual({ index: 3, rendered: 'after' })
+  expect(history.entries).toHaveLength(4)
+})
+it('restores multi-entry traversal without pushing a replacement destination', async () => {
+  const history = historyHarness(); history.go(-2); await Promise.resolve()
+  expect(history.view()).toEqual({ index: 0, rendered: 'before' })
+  history.go(2); await Promise.resolve()
+  expect(history.view()).toEqual({ index: 2, rendered: 'request' })
+})
+it('keeps the same pending save during repeated Back attempts and preserves Forward', async () => {
+  const history = historyHarness(); history.defer()
+  history.go(-1); history.go(-1)
+  expect(history.view()).toEqual({ index: 2, rendered: 'request' })
+  history.resolve(false); await Promise.resolve()
+  history.guard(false); history.go(1)
+  expect(history.view()).toEqual({ index: 3, rendered: 'after' })
+  expect(history.entries).toEqual(['before', 'queue', 'request', 'after'])
 })

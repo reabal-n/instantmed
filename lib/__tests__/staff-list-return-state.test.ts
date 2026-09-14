@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createListReturnState, resolveReturnedSelection,safeListHref, sessionScope, testSessionScope } from '@/lib/operator/cases/list-return-state'
+import { createListReturnState, createSessionDocumentBoundary, resolveReturnedSelection,safeListHref, sessionScope, testSessionScope } from '@/lib/operator/cases/list-return-state'
 
 const snapshot = { origin: 'queue' as const, href: '/dashboard?status=review&page=2&q=private', query: 'E2E Navigation Patient', page: 2, selectedId: 'request-a', focusId: 'queue-row-request-a', scrollTop: 30, windowY: 0 }
 const token = (id: string) => `a.${btoa(JSON.stringify({ session_id: id }))}.c`
@@ -58,5 +58,46 @@ describe('asynchronous session ownership', () => {
   it('partitions a new same-account session but keeps refreshed access tokens', () => {
     expect(sessionScope({ user: { id: 'a' }, access_token: token('session-one') })).toBe(sessionScope({ user: { id: 'a' }, access_token: `${token('session-one')}new-signature` }))
     expect(sessionScope({ user: { id: 'a' }, access_token: token('session-one') })).not.toBe(sessionScope({ user: { id: 'a' }, access_token: token('session-two') }))
+  })
+})
+
+describe('normalized return queries', () => {
+  it.each(['queue', 'requests'] as const)('restores %s search identity and page after whitespace and punctuation normalization', origin => {
+    const state = createListReturnState(); state.setScope('a:s1')
+    state.write('a:s1', { ...snapshot, origin, href: origin === 'queue' ? '/dashboard?page=2' : '/admin/intakes?page=2', query: '  E2E   Navigation !! Patient  ' })
+    const returned = state.read('a:s1', origin)
+    expect(returned?.query).toBe('E2E Navigation Patient')
+    expect(returned?.page).toBe(2)
+    expect(returned?.href).toContain('page=2')
+  })
+  it('recognizes an input that normalizes to empty as an unsearched return', () => {
+    const state = createListReturnState(); state.setScope('a:s1')
+    state.write('a:s1', { ...snapshot, query: ' !!! ' })
+    expect(state.read('a:s1', 'queue')?.query).toBe('')
+  })
+})
+
+
+describe('session document authority', () => {
+  it('never republishes unchanged old RSC rows during account or session replacement', () => {
+    const boundary = createSessionDocumentBoundary()
+    const oldServerRows = ['previous account clinical row']
+    boundary.observe('a:one')
+    expect(boundary.canRender()).toBe(true)
+    boundary.observe('b:two')
+    expect(boundary.canRender() ? oldServerRows : []).toEqual([])
+    boundary.observe('b:two')
+    expect(boundary.canRender() ? oldServerRows : []).toEqual([])
+  })
+  it('retains bootstrap and same-session refresh but blocks signout and same-account new login', () => {
+    const boundary = createSessionDocumentBoundary()
+    boundary.observe(null); expect(boundary.canRender()).toBe(true)
+    boundary.observe('a:one'); boundary.observe('a:one'); expect(boundary.canRender()).toBe(true)
+    boundary.observe(null); expect(boundary.canRender()).toBe(false)
+    boundary.observe('a:two'); expect(boundary.canRender()).toBe(false)
+    const sameAccount = createSessionDocumentBoundary()
+    sameAccount.observe('a:one'); sameAccount.observe('a:two'); expect(sameAccount.canRender()).toBe(false)
+    const freshDocument = createSessionDocumentBoundary()
+    freshDocument.observe('a:two'); expect(freshDocument.canRender()).toBe(true)
   })
 })

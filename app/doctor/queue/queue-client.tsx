@@ -173,7 +173,7 @@ function QueueIdlePanel({
   const showNextUp = filteredCount > 0
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FBF8F2_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
+    <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FBF8F2_0%,#FFFEFB_100%)] dark:bg-card dark:bg-none motion-safe:animate-[fade-in_180ms_ease-out]">
       {showNextUp ? (
         <div className="border-b border-border/45 px-5 py-3">
           <p className="text-xs font-medium leading-relaxed text-slate-500 dark:text-muted-foreground">

@@ -1,6 +1,6 @@
-import { ADMIN_LEDGER_QUICK_FILTER_OPTIONS } from '@/lib/dashboard/admin-ledger-filters'
+import { ADMIN_LEDGER_QUICK_FILTER_OPTIONS, sanitizeAdminLedgerSearchTerm } from '@/lib/dashboard/admin-ledger-filters'
 import { ADMIN_INTAKE_STATUS_FILTER_OPTIONS, ADMIN_WORK_LANE_FILTER_OPTIONS } from '@/lib/dashboard/admin-work-lanes'
-import { QUEUE_STATUS_FILTERS, STAFF_DASHBOARD_HREF, STAFF_LEDGER_HREF } from '@/lib/dashboard/routes'
+import { QUEUE_STATUS_FILTERS, sanitizeQueueSearchQuery, STAFF_DASHBOARD_HREF, STAFF_LEDGER_HREF } from '@/lib/dashboard/routes'
 import { ADMIN_SERVICE_FILTER_OPTIONS } from '@/lib/services/service-presentation'
 
 export type ListOrigin = 'queue' | 'requests'
@@ -62,7 +62,7 @@ export function createListReturnState() {
       const href = new URL(safeListHref(data.origin, data.href), 'https://navigation.invalid')
       if (data.page > 1) href.searchParams.set('page', String(data.page))
       else href.searchParams.delete('page')
-      entries[data.origin] = { origin: data.origin, href: `${href.pathname}${href.search}${href.hash}`, query: data.query.slice(0, 200), page: Math.max(1, data.page), selectedId: data.selectedId, focusId: data.focusId, scrollTop: data.scrollTop, windowY: data.windowY }
+      entries[data.origin] = { origin: data.origin, href: `${href.pathname}${href.search}${href.hash}`, query: data.origin === 'queue' ? sanitizeQueueSearchQuery(data.query) : sanitizeAdminLedgerSearchTerm(data.query), page: Math.max(1, data.page), selectedId: data.selectedId, focusId: data.focusId, scrollTop: data.scrollTop, windowY: data.windowY }
     },
     bind(expected: string | null, origin: ListOrigin, path: string) {
       if (!expected || scope !== expected || !entries[origin] || !/^\/(doctor\/(patients|intakes)|admin\/intakes)\/[^/?#]+$/.test(path)) return
@@ -75,11 +75,51 @@ export function createListReturnState() {
 }
 export type ListReturnState = ReturnType<typeof createListReturnState>
 
-export async function guardHistoryReturn({ restore, permit, leave }: {
-  restore: () => void
+/** A new authenticated document is required after a post-bootstrap transition.
+ * Re-keying unchanged RSC children cannot make their previous rows authoritative. */
+export function createSessionDocumentBoundary() {
+  let priorScope: string | null = null
+  let ready = true
+  return {
+    observe(next: string | null) { if (priorScope && priorScope !== next) ready = false; priorScope = next },
+    canRender() { return ready },
+  }
+}
+
+/** Bounce a native traversal to the current entry while saving, then replay
+ * the same delta. Never push or replace an entry to implement Back/Forward. */
+export function createGuardedHistoryTraversal({ initialIndex, traverse, permit }: {
+  initialIndex: number
+  traverse: (delta: number) => void
   permit: () => Promise<boolean>
-  leave: () => void
-}): Promise<void> {
-  restore()
-  try { if (await permit()) leave() } catch { /* Keep the current editor on save failure. */ }
+}) {
+  let current = initialIndex
+  let pending: { from: number; to: number; phase: 'restoring' | 'saving' | 'replaying' } | null = null
+  return {
+    currentIndex() { return current },
+    commit(index: number) { current = index; pending = null },
+    pop(index: number, guarded: boolean): boolean {
+      if (pending) {
+        if (pending.phase === 'replaying' && index === pending.to) {
+          current = index; pending = null; return false
+        }
+        if (index !== pending.from) { traverse(pending.from - index); return true }
+        if (pending.phase === 'restoring') {
+          const attempt = pending
+          attempt.phase = 'saving'
+          void permit().then(allowed => {
+            if (pending !== attempt) return
+            if (!allowed) { pending = null; return }
+            attempt.phase = 'replaying'
+            traverse(attempt.to - attempt.from)
+          }, () => { if (pending === attempt) pending = null })
+        }
+        return true
+      }
+      if (!guarded || index === current) { current = index; return false }
+      pending = { from: current, to: index, phase: 'restoring' }
+      traverse(current - index)
+      return true
+    },
+  }
 }

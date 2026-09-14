@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createContext, type ReactNode,useCallback, useContext, useEffect, useMemo, useRef } from 'react'
 
 import type { ListOrigin, ListReturnSnapshot, ListReturnState } from '@/lib/operator/cases/list-return-state'
-import { guardHistoryReturn } from '@/lib/operator/cases/list-return-state'
+import { createGuardedHistoryTraversal } from '@/lib/operator/cases/list-return-state'
 import { useAuth } from '@/lib/supabase/auth-provider'
 
 type Guard = () => Promise<boolean>
@@ -35,8 +35,6 @@ export function StaffListNavigationProvider({ children, store, scope }: { childr
   }, [scope, store])
 
   useEffect(() => {
-    let currentHref = window.location.href
-    let currentState: unknown = window.history.state
     const rememberDestination = (path: string) => {
       const origin = pathname === '/dashboard' ? 'queue' : pathname === '/admin/intakes' ? 'requests' : null
       if (!origin) return
@@ -50,8 +48,6 @@ export function StaffListNavigationProvider({ children, store, scope }: { childr
     }
     const click = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-      currentHref = window.location.href
-      currentState = window.history.state
       const anchor = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[href]')
       if (!anchor || anchor.dataset.staffLocalAction === 'true' || anchor.target === '_blank' || anchor.hasAttribute('download')) return
       const destination = new URL(anchor.href, window.location.href)
@@ -62,25 +58,52 @@ export function StaffListNavigationProvider({ children, store, scope }: { childr
       event.stopImmediatePropagation()
       void permit().then(allowed => { if (allowed) router.push(`${destination.pathname}${destination.search}${destination.hash}`) })
     }
-    const pop = (event: PopStateEvent) => {
-      if (!guards.current.size) { currentHref = window.location.href; currentState = window.history.state; return }
-      // Cancel Next's pop handler before it can unmount the editor. Replace the
-      // destination entry with the current editor while its durable save settles.
-      event.stopImmediatePropagation()
-      const destination = window.location.href
-      void guardHistoryReturn({
-        restore: () => window.history.pushState(currentState, '', currentHref),
-        permit,
-        leave: () => router.push(destination),
-      })
-    }
     document.addEventListener('click', click, true)
-    window.addEventListener('popstate', pop, true)
     return () => {
       document.removeEventListener('click', click, true)
-      window.removeEventListener('popstate', pop, true)
     }
   }, [pathname, permit, router, scope, store])
+
+  useEffect(() => {
+    const marker = '__imStaffHistoryIndex'
+    const indexOf = (state: unknown): number | null => {
+      const index = state && typeof state === 'object' ? (state as Record<string, unknown>)[marker] : null
+      return typeof index === 'number' && Number.isSafeInteger(index) ? index : null
+    }
+    const controller = createGuardedHistoryTraversal({
+      initialIndex: indexOf(window.history.state) ?? 0,
+      traverse: delta => window.history.go(delta),
+      permit,
+    })
+    const push = window.history.pushState
+    const replace = window.history.replaceState
+    let active = true
+    const withIndex = (data: unknown, index: number) => ({ ...(data && typeof data === 'object' ? data : {}), [marker]: index })
+    const pushTracked: History['pushState'] = function (data, unused, url) {
+      if (!active) { push.call(window.history, data, unused, url); return }
+      const index = controller.currentIndex() + 1
+      push.call(window.history, withIndex(data, index), unused, url)
+      controller.commit(index)
+    }
+    const replaceTracked: History['replaceState'] = function (data, unused, url) {
+      replace.call(window.history, active ? withIndex(data, controller.currentIndex()) : data, unused, url)
+    }
+    window.history.pushState = pushTracked
+    window.history.replaceState = replaceTracked
+    replaceTracked.call(window.history, window.history.state, '', window.location.href)
+    const pop = (event: PopStateEvent) => {
+      const index = indexOf(event.state)
+      // Entries outside this document use the existing beforeunload protection.
+      if (index !== null && controller.pop(index, guards.current.size > 0)) event.stopImmediatePropagation()
+    }
+    window.addEventListener('popstate', pop, true)
+    return () => {
+      active = false
+      if (window.history.pushState === pushTracked) window.history.pushState = push
+      if (window.history.replaceState === replaceTracked) window.history.replaceState = replace
+      window.removeEventListener('popstate', pop, true)
+    }
+  }, [permit])
 
   const value = useMemo(() => ({ store, scope, register, permit }), [store, scope, register, permit])
   return <Context.Provider value={value}>{children}</Context.Provider>
@@ -123,7 +146,14 @@ export function restoreListFocus(snapshot: ListReturnSnapshot, exists: boolean, 
 }
 
 export function StaffListNavigationBoundary({ children }: { children: ReactNode }) {
-  const { navigationStore, navigationScope } = useAuth()
+  const { navigationStore, navigationScope, navigationDocumentReady } = useAuth()
+  const pathname = usePathname()
+  const protectedWorkspace = /^\/(dashboard|doctor|admin)(?:\/|$)/.test(pathname)
+  const needsFreshDocument = protectedWorkspace && !navigationDocumentReady
+  useEffect(() => {
+    if (needsFreshDocument && navigationScope) window.location.replace(window.location.href)
+  }, [needsFreshDocument, navigationScope])
+  if (needsFreshDocument) return <div role="status" className="p-6 text-sm text-muted-foreground">Session changed. Reloading workspace…</div>
   return <StaffListNavigationProvider key={navigationScope ?? 'anonymous'} store={navigationStore} scope={navigationScope}>{children}</StaffListNavigationProvider>
 }
 

@@ -11,7 +11,7 @@ import {
   AUTH_HANDOFF_STORAGE_KEY,
   createAuthHandoffRefreshGuard,
 } from '@/lib/navigation/auth-handoff'
-import { createListReturnState, sessionScope, testSessionScope } from '@/lib/operator/cases/list-return-state'
+import { createListReturnState, createSessionDocumentBoundary, sessionScope, testSessionScope } from '@/lib/operator/cases/list-return-state'
 import { clearInstantMedBrowserCaches } from '@/lib/security/browser-cache-cleanup'
 import { resolveInitialAuthLoadPlan } from '@/lib/supabase/auth-cookie'
 
@@ -82,6 +82,7 @@ interface AuthContext {
   signOut: () => Promise<void>
   navigationStore: ReturnType<typeof createListReturnState>
   navigationScope: string | null
+  navigationDocumentReady: boolean
 }
 
 const AuthCtx = createContext<AuthContext | null>(null)
@@ -98,13 +99,17 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   const [isLoaded, setIsLoaded] = useState(false)
   const router = useRouter()
   const navigationStore = useRef(createListReturnState()).current
+  const sessionDocument = useRef(createSessionDocumentBoundary()).current
+  const [navigationDocumentReady, setNavigationDocumentReady] = useState(true)
   const [navigationScope, setNavigationScope] = useState<string | null>(null)
   const authRevision = useRef(0)
   const signingOutRef = useRef(false)
   const syncNavigationScope = useCallback((next: string | null) => {
+    sessionDocument.observe(next)
+    setNavigationDocumentReady(sessionDocument.canRender())
     navigationStore.setScope(next)
     setNavigationScope(next)
-  }, [navigationStore])
+  }, [navigationStore, sessionDocument])
   // Tracks the prior auth user id so we only router.refresh() on a real identity
   // transition (see the onAuthStateChange handler below).
   const prevUserIdRef = useRef<string | null>(null)
@@ -318,7 +323,8 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
     signOut,
     navigationStore,
     navigationScope,
-  }), [user, session, isLoaded, signOut, navigationStore, navigationScope])
+    navigationDocumentReady,
+  }), [user, session, isLoaded, signOut, navigationStore, navigationScope, navigationDocumentReady])
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
 }
