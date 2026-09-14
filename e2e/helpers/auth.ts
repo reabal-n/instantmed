@@ -8,6 +8,8 @@
  * - E2E_SECRET: Secret key for test auth endpoint
  */
 
+import { randomUUID } from "node:crypto"
+
 import type { Page } from "@playwright/test"
 
 const E2E_SECRET = process.env.E2E_SECRET || "e2e-test-secret-local"
@@ -29,7 +31,9 @@ export async function loginAsTestUser(
         "X-E2E-SECRET": E2E_SECRET,
         "Content-Type": "application/json",
       },
-      data: { userType },
+      // The web server starts before global setup sets the worker run ID.
+      // Send it explicitly so client navigation gets the same test-session scope.
+      data: { userType, e2eRunId: process.env.E2E_RUN_ID || randomUUID() },
     })
 
     if (!response.ok()) {
@@ -52,6 +56,13 @@ export async function loginAsTestUser(
       return {
         success: false,
         error: "E2E login response succeeded but auth cookie was not installed in the browser context",
+      }
+    }
+
+    if (!browserCookies.some(cookie => cookie.name === "__e2e_run_id" && cookie.value)) {
+      return {
+        success: false,
+        error: "E2E login did not install the navigation session cookie",
       }
     }
 

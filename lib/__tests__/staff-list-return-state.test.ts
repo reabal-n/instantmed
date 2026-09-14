@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import type { Page } from '@playwright/test'
+import { describe, expect, it, vi } from 'vitest'
 
+import { loginAsOperator } from '@/e2e/helpers/auth'
 import { commitReturnedSelection, createListReturnState, createSessionDocumentBoundary, resolveReturnedSelection, sessionScope, testSessionScope } from '@/lib/operator/cases/list-return-state'
 
 const snapshot = { origin: 'queue' as const, href: '/dashboard?status=review&page=2&q=private', query: 'E2E Navigation Patient', page: 2, selectedId: 'request-a', focusId: 'queue-row-request-a', scrollTop: 30, windowY: 0 }
@@ -121,5 +123,33 @@ describe('return selection commit', () => {
   })
   it('does not release the snapshot when selection is refused', () => {
     expect(commitReturnedSelection('request-a', null, () => {})).toBe(false)
+  })
+})
+
+
+describe('browser fixture session ownership', () => {
+  it.each([undefined, 'ci-run'])('passes a navigation session to the separately started test server (%s)', async runId => {
+    vi.stubEnv('E2E_RUN_ID', runId)
+    const cookies: { name: string; value: string }[] = []
+    const page = {
+      request: {
+        post: async (_url: string, options: { data: { e2eRunId?: string } }) => {
+          cookies.push({ name: '__e2e_auth_user_id', value: 'operator' })
+          if (options.data.e2eRunId) cookies.push({ name: '__e2e_run_id', value: options.data.e2eRunId })
+          return { ok: () => true }
+        },
+        storageState: async () => ({ cookies }),
+      },
+      context: () => ({ clearCookies: async () => {}, addCookies: async () => {}, cookies: async () => cookies }),
+    } as unknown as Page
+    try {
+      expect(await loginAsOperator(page)).toEqual({ success: true })
+      const run = cookies.find(cookie => cookie.name === '__e2e_run_id')?.value ?? null
+      const scope = testSessionScope(true, 'localhost', run, 'doctor', true)
+      const store = createListReturnState()
+      store.setScope(scope)
+      expect(store.isCurrent(scope)).toBe(true)
+      if (runId) expect(run).toBe(runId)
+    } finally { vi.unstubAllEnvs() }
   })
 })
