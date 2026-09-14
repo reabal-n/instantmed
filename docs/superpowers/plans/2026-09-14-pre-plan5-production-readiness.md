@@ -44,7 +44,7 @@ PLAYWRIGHT_SERVER_MODE=production PLAYWRIGHT_WORKERS=1 \
 - [x] If a case fails, isolate its cause and add the smallest reproducer before changing runtime code. Load the matching clinical/security workflow before such an edit. A missing test-only environment variable is an environment fix, not permission to weaken the production guard.
 - [x] If all cases pass compiled and evidence supports the existing development compilation failure pattern, extend the existing no-retry compiled group. Add them to its selector/files and required signing environment; exclude only the moved cases from their former development groups. Keep all other webhook cases in their current mode. First add a contract that fails on the current selection/environment, then implement the smallest workflow adjustment. Verify actual test discovery counts so a selector cannot silently omit a case.
 - [x] Run the existing four plus the three new compiled cases, serially and without retries; require seven executed passes and zero skips. Use one bounded repeat of the three newly moved cases only to check the observed intermittency.
-- [ ] Run focused workflow/config contracts, lint, typecheck and doc audit. Review the exact diff, commit and send it for independent task review. Full required CI owns the release boundary.
+- [x] Run focused workflow/config contracts, lint, typecheck and doc audit. Review the exact diff, commit and send it for independent task review. Full required CI owns the release boundary.
 
 ## Task 2: Verify automatic monitoring and downstream delivery
 
@@ -71,12 +71,14 @@ PLAYWRIGHT_SERVER_MODE=production PLAYWRIGHT_WORKERS=1 \
 
 ## Execution Receipt
 
-Planned September 14 from `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. Implementation is in progress; Task 1 has passed local compiled verification and is awaiting independent review and required CI. Existing production deployment is READY at application commit `1215e8e1a58be571e0884abeffd71893241748b7`; the three flaky cases and downstream evidence remain open at plan creation.
+Planned September 14 from `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. Task 1 passed local compiled verification, independent task review and whole-branch review; required CI remains pending. Existing production deployment is READY at application commit `1215e8e1a58be571e0884abeffd71893241748b7`; downstream evidence remains open.
 
 
 ### Local engineering evidence
 
 The initial compiled run executed all three cases successfully without retries: empty profile 4.2s, merged duplicate certificate worker 2.7s, missing-signature rejection 9ms. The full group executed seven passes without retries or skips in 40.6s; a bounded repeat executed the three new cases successfully in 17.9s. The workflow contract failed before the selector change and passed afterward. These observations support moving the cases out of the development compilation path; they do not establish a production application defect or the exact cause of the historical connection reset.
+
+Focused contracts passed 41/41, with lint, typecheck and documentation audit also passing. The full unit suite passed **7,739 tests**, with 122 explicit skips. An initial release launcher incorrectly exported build-only Sentry settings into Vitest; rerunning with the normal file-based environment loading resolved those mock-import failures without changing application or test code. Independent task and whole-branch reviewers reported no actionable findings.
 
 ### Provider routing finding
 
