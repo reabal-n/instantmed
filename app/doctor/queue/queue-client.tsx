@@ -1001,6 +1001,9 @@ export function QueueClient({
       // the inline selection here silently killed keyboard triage after the
       // first keypress. Gate on the slide-over only.
       if (slideOverOpenRef.current) return
+      // Visible rows still belong to the previous search until the typed query
+      // settles. Match pointer actions; retain the guarded Escape close path.
+      if (queueSearchPending && e.key !== "Escape") return
 
       const currentIndex = expandedId ? filteredIntakes.findIndex((r) => r.id === expandedId) : -1
 
@@ -1054,7 +1057,7 @@ export function QueueClient({
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [expandedId, filteredIntakes, openReviewPanel, handleApprove, dialogs, selectReviewedIntake])
+  }, [expandedId, filteredIntakes, openReviewPanel, handleApprove, dialogs, selectReviewedIntake, queueSearchPending])
 
   // Auto-scroll the keyboard-focused row into view. Uses the row's
   // `data-testid` attribute (set by QueueTable) to locate the element
