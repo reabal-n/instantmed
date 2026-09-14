@@ -7,6 +7,7 @@ import type { AttributionSourceGroup } from "@/lib/analytics/source-classificati
 import type { PaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import {
+  CASE_GRID_TEMPLATE,
   type CaseRowData,
   type Density,
   type RefundIndicator,
@@ -135,13 +136,13 @@ export function CaseRow({
       data-density={density}
       data-selected={selected ? "true" : undefined}
       className={cn(
-        "group relative grid items-center gap-3 px-4",
+        "group relative grid items-center gap-3 px-4 py-1",
         // Columns: avatar | identity | service+ref | status+flags | time | actions
-        "grid-cols-[28px_minmax(160px,1.5fr)_minmax(160px,1fr)_minmax(140px,auto)_90px_auto]",
+        CASE_GRID_TEMPLATE,
         "border-b border-border/40 transition-colors",
         "hover:bg-muted/30",
         "data-[selected=true]:bg-primary/[0.04] data-[selected=true]:ring-1 data-[selected=true]:ring-inset data-[selected=true]:ring-primary/30",
-        ROW_HEIGHT[density],
+        actions && density === "compact" ? "min-h-12" : ROW_HEIGHT[density],
         className,
       )}
     >
@@ -227,7 +228,7 @@ export function CaseRow({
       </div>
 
       {/* Status + flags */}
-      <div className="relative z-[1] pointer-events-none flex min-w-0 items-center gap-2">
+      <div className="relative z-[1] pointer-events-none flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
         <StatusDot status={row.status} />
         {row.intakeFlags ? <IntakeFlagsBadge flags={row.intakeFlags} /> : null}
         {row.isPriority ? (

@@ -7,6 +7,7 @@ import {
   type TimeGroup,
 } from "@/lib/operator/cases/time-grouping"
 import {
+  CASE_GRID_TEMPLATE,
   type CaseRowData,
   type Density,
   type SortDirection,
@@ -46,14 +47,6 @@ type CaseTableProps = {
   selectedRowId?: string | null
   className?: string
 }
-
-/**
- * Layout grid shared between the header row and CaseRow itself. Keep these
- * column definitions in sync — they MUST match so the header chevrons
- * align with their data cells.
- */
-const GRID_TEMPLATE =
-  "grid-cols-[28px_minmax(160px,1.5fr)_minmax(160px,1fr)_minmax(140px,auto)_90px_auto]"
 
 /**
  * Default direction when a column is first activated.
@@ -178,7 +171,7 @@ function SortableHeader({
       role="row"
       className={cn(
         "grid items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-2",
-        GRID_TEMPLATE,
+        CASE_GRID_TEMPLATE,
       )}
     >
       {/* avatar column: blank */}
