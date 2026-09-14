@@ -140,6 +140,14 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(intakeIndexSource).not.toContain("getTodayEarnings")
   })
 
+  it("keeps one live global wait outside the collapsed operational details", () => {
+    const source = read("app/dashboard/page.tsx")
+    expect(source.match(/<QueuePressureSignal/g)).toHaveLength(1)
+    expect(source.indexOf("<QueuePressureSignal")).toBeLessThan(source.indexOf("<Popover>"))
+    expect(source).toContain("showLabelOnMobile")
+    expect(source.slice(source.indexOf("<PopoverContent"), source.indexOf("</PopoverContent>"))).not.toContain("QueuePressureSignal")
+  })
+
   it("keeps the doctor queue header focused on current operational pressure", () => {
     const dashboardPageSource = read("app/dashboard/page.tsx")
     const queueClientSource = read("app/doctor/queue/queue-client.tsx")

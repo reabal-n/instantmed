@@ -259,6 +259,20 @@ export default async function StaffDashboardPage({
               controls={(
                 <div className="flex flex-wrap items-center gap-2" data-queue-operational-controls>
                   <DoctorAvailabilityToggle initialAvailable={doctorAvailable} compact />
+                  <div data-operational-wait>
+                    <QueuePressureSignal
+                      initialNowMs={nowMs}
+                      oldestWaitingMinutes={oldestWaitingMinutes}
+                      oldestWaitingEnteredAt={oldestWaitingEnteredAt}
+                      waitingCaseCount={globalWaitingCaseCount}
+                      showIcon={false}
+                      showLabelOnMobile
+                      showTarget={false}
+                      className="h-11 sm:h-8"
+                      jumpToOldestOnClick
+                      compact
+                    />
+                  </div>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="min-h-11 gap-1.5 sm:min-h-8" aria-label="Operational summary">
@@ -268,17 +282,6 @@ export default async function StaffDashboardPage({
                     </PopoverTrigger>
                     <PopoverContent align="end" className="w-72 space-y-3 p-3">
                       <p className="text-sm font-semibold">Operational summary</p>
-                      <div data-operational-wait>
-                        <QueuePressureSignal
-                          initialNowMs={nowMs}
-                          oldestWaitingMinutes={oldestWaitingMinutes}
-                          oldestWaitingEnteredAt={oldestWaitingEnteredAt}
-                          waitingCaseCount={globalWaitingCaseCount}
-                          showIcon={false}
-                          jumpToOldestOnClick
-                          compact
-                        />
-                      </div>
                       {formToInboxLabel ? (
                         <div data-dashboard-median-tile className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                           <span>Median time to inbox</span>
