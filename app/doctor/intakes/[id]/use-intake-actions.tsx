@@ -23,6 +23,7 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildDoctorIntakeHref, buildStaffPatientHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
+import { isAdministrativeClosure, validateDeclineReason } from "@/lib/doctor/constants"
 import { logIntakeViewDuration, preloadViewDurationLogging } from "@/lib/doctor/log-view-duration-client"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY } from "@/lib/doctor/queue-focus"
@@ -365,12 +366,13 @@ export function useIntakeActions({
   }, [intake.id, advanceToNext, resolveDecisionNote])
 
   const handleDecline = useCallback(async () => {
-    if (!dialogs.declineReason.trim()) return
+    if (validateDeclineReason(dialogs.declineReasonCode, dialogs.declineReason)) return
     startTransition(async () => {
       const result = await declineIntakeAction(intake.id, dialogs.declineReasonCode, dialogs.declineReason)
       if (result.success) {
         dialogs.closeDeclineDialog()
-        toast.success("Case declined and patient notified")
+        toast.success(isAdministrativeClosure(dialogs.declineReasonCode) ? "Request closed" : "Request declined")
+        if (result.refund?.status === "failed") toast.error("Refund needs attention. Check payment recovery.")
         setTimeout(advanceToNext, 1000)
       } else {
         toast.error(result.error || "Failed to decline")

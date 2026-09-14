@@ -70,11 +70,11 @@ export async function editPaidRequestTelegramMessageToApproved(intakeId: string)
   }
 }
 
-export async function editPaidRequestTelegramMessageToDeclined(intakeId: string): Promise<void> {
+export async function editPaidRequestTelegramMessageToDeclined(intakeId: string, administrative = false): Promise<void> {
   try {
     const loaded = await loadIntakeForEdit(intakeId)
     if (!loaded) return
-    await editTelegramMessageToDeclined(loaded.messageId, loaded.opts)
+    await editTelegramMessageToDeclined(loaded.messageId, loaded.opts, administrative)
   } catch (error) {
     log.warn("Failed to edit Telegram message to declined (non-fatal)", {
       intakeId,

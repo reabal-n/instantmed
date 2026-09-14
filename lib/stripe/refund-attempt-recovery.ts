@@ -126,6 +126,11 @@ export async function recoverStripeRefundAttempt(
     }
   }
 
+  // Reconcile historical cash, but never create/replay the retired automatic fee refund.
+  if (attempt.refund_type === "priority_breach") {
+    return failUnknown(deps.supabase, attempt, "Automatic priority refunds are disabled; operator review required", "manual_review")
+  }
+
   const createdAtMs = Date.parse(attempt.created_at)
   if (
     !Number.isFinite(createdAtMs) ||

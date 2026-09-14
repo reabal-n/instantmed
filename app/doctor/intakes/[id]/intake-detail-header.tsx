@@ -50,6 +50,7 @@ import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
+import { validateDeclineReason } from "@/lib/doctor/constants"
 import { DECLINE_REASONS } from "@/lib/doctor/decline-reasons"
 import {
   buildPatientSnapshot,
@@ -534,7 +535,7 @@ export function IntakeDetailHeader({
               <Label>Reason</Label>
               <Select value={dialogs.declineReasonCode} onValueChange={(v) => dialogs.onDeclineReasonCodeChange(v as DeclineReasonCode)}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Choose a reason" />
                 </SelectTrigger>
                 <SelectContent>
                   {DECLINE_REASONS.map((r) => (
@@ -559,7 +560,7 @@ export function IntakeDetailHeader({
                 e.preventDefault()
                 onDecline()
               }}
-              disabled={!dialogs.declineReason.trim() || isPending}
+              disabled={Boolean(validateDeclineReason(dialogs.declineReasonCode, dialogs.declineReason)) || isPending}
               className="bg-destructive hover:bg-destructive/90"
             >
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

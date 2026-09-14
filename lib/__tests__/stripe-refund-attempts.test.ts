@@ -72,6 +72,17 @@ const request = {
 }
 
 describe("durable Stripe refund attempts", () => {
+  it("rejects automatic priority refunds before reserving or moving money", async () => {
+    const h = refundHarness()
+    const result = await requestStripeRefund(
+      { stripe: h.stripe as never, supabase: h.supabase as never },
+      { ...request, refundType: "priority_breach" },
+    )
+    expect(result).toEqual({ status: "failed", error: "automatic_priority_refunds_disabled" })
+    expect(h.rpc).not.toHaveBeenCalled()
+    expect(h.refundCreate).not.toHaveBeenCalled()
+  })
+
   it("reserves the exact remaining amount and submits canonical Stripe parameters before CAS completion", async () => {
     const { from, refundCreate, rpc, stripe, supabase } = refundHarness()
 
