@@ -484,11 +484,16 @@ for (const surface of ["queue", "requests"] as const) {
       await search.fill(query)
       await expect(page.getByText(surface === "queue" ? "Search unavailable" : "Some ledger evidence could not be read. Visible rows are preserved, but totals may be unavailable.", { exact: true }).first()).toBeVisible()
       await expect(page.getByTestId("intake-review-panel")).toBeHidden()
+      if (surface === "requests") await expect(page.getByText("No matching requests", { exact: true }).and(page.locator(":visible"))).toBeHidden()
     } finally { await page.unroute("**/*", reject) }
     const emptyQuery = `NoSuchSyntheticPatient${randomUUID().replaceAll("-", "")}`
+    const emptyResponse = page.waitForResponse(response => response.request().method() === "POST" && (response.request().postData() ?? "").includes(emptyQuery))
     await search.fill(emptyQuery)
+    await emptyResponse
     await expect(page.getByText(surface === "queue" ? "No matches for this filter" : "No matching requests", { exact: true }).and(page.locator(":visible"))).toBeVisible()
+    const recoveredResponse = page.waitForResponse(response => response.request().method() === "POST" && (response.request().postData() ?? "").includes(query))
     await search.fill(query)
+    await recoveredResponse
     if (surface === "queue") await expect(page.getByText("52 matches", { exact: true })).toBeVisible()
     else {
       await expect(page.getByRole("link", { name: /^Open case / }).first()).toBeVisible()
@@ -522,6 +527,9 @@ test("Requests clamps a vanished private last page and announces the removed sel
     expect((await db.from("intakes").update({ patient_id: patient }).in("id", removedIds)).error).toBeNull()
     await page.goBack()
     await expect(search).toHaveValue("E2E Last Page Patient")
+    // Restoring a vanished page reads its new total, then fetches the clamped page.
+    // The isolated Redis fallback adds about 4.3 seconds to each action.
+    await expect(page.getByText("Searching ledger…", { exact: true })).toBeHidden({ timeout: 15_000 })
     await expect(page.locator("[data-row-id]:visible")).toHaveCount(10)
     await expect(page.getByRole("status").filter({ hasText: /previous request.*no longer/i })).toBeVisible()
     await expect(page.getByRole("heading", { name: "Request ledger", exact: true })).toBeFocused()
@@ -530,6 +538,44 @@ test("Requests clamps a vanished private last page and announces the removed sel
     expect((await db.from("intakes").update({ patient_id: patient }).in("id", owned)).error).toBeNull()
     expect((await db.from("profiles").delete().eq("id", lastPagePatient)).error).toBeNull()
   }
+})
+
+test("Requests rapid Back keeps list content when the record has not finished mounting", async ({ page }) => {
+  let releaseRecordChunk!: () => void
+  const recordChunkReady = new Promise<void>(resolve => { releaseRecordChunk = resolve })
+  await page.route("**/_next/static/chunks/**", async route => {
+    if (decodeURIComponent(route.request().url()).includes("/app/admin/intakes/[id]/page-")) {
+      await recordChunkReady
+    }
+    await route.continue()
+  })
+  await page.goto("/admin/intakes?pageSize=10")
+  const search = page.getByRole("searchbox", { name: "Search cases" })
+  const searched = page.waitForResponse(response => response.request().method() === "POST" && (response.request().postData() ?? "").includes(query))
+  await search.fill(query)
+  await searched
+  await page.getByRole("button", { name: /^Next/ }).click()
+  await expect(page).toHaveURL(/page=2/)
+  await expect(page.getByText("Searching ledger…", { exact: true })).toBeHidden({ timeout: 15_000 })
+  await page.getByRole("link", { name: /^Open case / }).first().click()
+  await page.getByTestId("intake-review-panel").getByRole("link", { name: "Request record", exact: true }).click()
+  try {
+    await expect(page).toHaveURL(/\/admin\/intakes\//)
+    await expect(page.getByRole("region", { name: "Request packet" })).toBeHidden()
+  } catch (error) {
+    releaseRecordChunk()
+    throw error
+  }
+  // Intentionally traverse at the URL change, before waiting for Request packet.
+  const restoredSearch = page.waitForResponse(response => response.request().method() === "POST" && (response.request().postData() ?? "").includes(query), { timeout: 15_000 })
+  await page.goBack()
+  releaseRecordChunk()
+  await expect(page).toHaveURL(/\/admin\/intakes\?pageSize=10&page=2/)
+  await expect(search).toHaveValue(query)
+  await restoredSearch
+  await expect(page.getByText("Searching ledger…", { exact: true })).toBeHidden({ timeout: 15_000 })
+  await expect(page.locator("[data-row-id]:visible")).toHaveCount(10)
+  await expect(page.getByRole("region", { name: "Request packet" })).toBeHidden()
 })
 
 test("mobile full-record tabs and More retain a rejected note save", async ({ page }) => {

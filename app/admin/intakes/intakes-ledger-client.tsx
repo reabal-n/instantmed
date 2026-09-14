@@ -655,7 +655,9 @@ export function AdminIntakesLedgerClient({
     return actions.length > 0 ? <CaseActionsMenu requestRef={row.intakeRef} actions={actions} /> : null
   }
 
-  const isLedgerPending = isFilterPending || isSearchPending || Boolean(pendingReturn.current?.query && activeSearchView?.query !== pendingReturn.current.query)
+  const isLedgerPending = isFilterPending || isSearchPending
+    || sanitizeAdminLedgerSearchTerm(searchQuery) !== sanitizeAdminLedgerSearchTerm(debouncedSearch)
+    || Boolean(pendingReturn.current?.query && activeSearchView?.query !== pendingReturn.current.query)
   const clearFilters = async () => {
     if (beforeReviewLeaveRef.current && !await beforeReviewLeaveRef.current()) return
     searchRequestSequenceRef.current += 1
@@ -738,7 +740,7 @@ export function AdminIntakesLedgerClient({
         </div>
       ) : null}
 
-      {!patientSearchSaturated ? (
+      {!patientSearchSaturated && (rows.length > 0 || (!degraded && !isLedgerPending)) ? (
         <>
           <div className="sm:hidden">
             <CaseMobileList
