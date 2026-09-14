@@ -1,8 +1,9 @@
 name: Production Request Flow Synthetic
 
 on:
+  # Best-effort fallback remains independent if the Vercel app is unavailable.
   schedule:
-    - cron: "17 */2 * * *"
+    - cron: "47 */2 * * *"
   workflow_dispatch:
 
 jobs:

@@ -5,6 +5,7 @@ import { checkBrowserObserver } from "@/lib/monitoring/browser-observer"
 import { type BrowserState, browserStateSchema, type Evidence } from "@/lib/monitoring/monitor-state"
 
 const mocks = vi.hoisted(() => ({ capture: vi.fn(), client: vi.fn(), cron: vi.fn(), heartbeat: vi.fn() }))
+vi.mock("@/lib/monitoring/browser-dispatch", () => ({ readScheduledBrowserRunIds: async () => new Set() }))
 vi.mock("@sentry/nextjs", () => ({ captureMessage: mocks.capture, flush: vi.fn().mockResolvedValue(true) }))
 vi.mock("@/lib/api/cron-auth", () => ({ verifyCronRequest: () => null }))
 vi.mock("@/lib/monitoring/cron-heartbeat", () => ({ checkCronHeartbeats: mocks.cron, recordCronHeartbeat: mocks.heartbeat }))

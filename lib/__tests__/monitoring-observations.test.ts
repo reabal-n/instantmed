@@ -6,12 +6,20 @@ import { advanceIncidents } from "@/lib/monitoring/incident-state"
 const now = Date.parse("2026-09-06T12:00:00Z")
 const completion = (number: number, outcome: number, completed = now) => ({ event: 0, id: number, number, attempt: 1, created: completed - 60000, started: completed - 30000, completed, outcome, status: 2 })
 describe("ordered monitoring evidence", () => {
-  it.each([359, 360, 365])("silence at %i minutes uses completed browser time", minutes => {
+  it.each([149, 150, 155])("silence at %i minutes uses completed browser time", minutes => {
     const health = browserHealth({ enabledAt: now - 86400000, latest: completion(1, 1, now - minutes * 60000) }, now)
-    expect(health.stale).toBe(minutes >= 360)
+    expect(health.stale).toBe(minutes >= 150)
   })
   it("never-run grace is durable", () => {
-    expect(browserHealth({ enabledAt: now - 360 * 60000 }, now).stale).toBe(true)
+    expect(browserHealth({ enabledAt: now - 150 * 60000 }, now).stale).toBe(true)
+  })
+  it("accepts only receipted first-attempt dispatches as scheduled coverage", () => {
+    const manual = { ...completion(12, 1), event: 1 }
+    const state = { enabledAt: now - 86400000, latest: manual }
+    expect(browserHealth(state, now).stale).toBeNull()
+    expect(browserHealth(state, now, new Set([12])).stale).toBe(false)
+    expect(browserHealth(state, now, new Set([11])).stale).toBeNull()
+    expect(browserHealth({ ...state, latest: { ...manual, attempt: 2 } }, now, new Set([12])).stale).toBeNull()
   })
   it("late older success cannot recover a newer failed run", () => {
     expect(mergeCompletion(completion(2, 2), completion(1, 1, now + 1))).toMatchObject({ number: 2, outcome: 2 })

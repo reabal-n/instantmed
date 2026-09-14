@@ -10,7 +10,7 @@ const BROWSER_WORKFLOW = {
   job: "request-flow-synthetic",
   step: "Run production request-flow synthetic",
 } as const
-const FRESHNESS_MS = 360 * 60000
+const FRESHNESS_MS = 150 * 60000
 const integer = z.number().int().positive().max(Number.MAX_SAFE_INTEGER)
 const runSchema = z.object({ id: integer, run_number: integer, run_attempt: integer,
   event: z.enum(["schedule", "workflow_dispatch"]), head_branch: z.literal("main"), path: z.literal(`.github/workflows/${BROWSER_WORKFLOW.file}`),
@@ -39,13 +39,14 @@ export function mergeBrowserCache(...caches: Evidence[][]): Evidence[] {
 export function mergeCompletion(old: Evidence | undefined, next: Evidence): Evidence {
   return !old || compareBrowserEvidence(next, old) > 0 ? next : old
 }
-export function browserHealth(state: Pick<BrowserState, "enabledAt" | "latest" | "completedAt"> & Partial<Pick<BrowserState, "cache" | "success" | "failure">>, now: number) {
+export function browserHealth(state: Pick<BrowserState, "enabledAt" | "latest" | "completedAt"> & Partial<Pick<BrowserState, "cache" | "success" | "failure">>, now: number, scheduledRunIds: ReadonlySet<number> = new Set()) {
   const evidence = [...(state.cache ?? []), state.latest, state.success, state.failure]
   // GitHub reruns retain the original event. Their later completion proves
   // browser execution, but only the first attempt proves scheduled cadence.
-  const scheduledAt = Math.max(0, ...evidence.map(item => item?.event === 0 && item.attempt === 1 ? item.completed : 0))
+  const scheduledAt = Math.max(0, ...evidence.map(item => item && (item.event === 0 || (item.event === 1 && scheduledRunIds.has(item.id))) && item.attempt === 1 ? item.completed : 0))
   const hasCompletion = !!state.completedAt || evidence.some(item => !!item?.completed)
-  // Manual execution can prove browser availability, never scheduled cadence.
+  // Unreceipted manual execution never proves scheduled cadence. Cron dispatch
+  // IDs come from GitHub and durable server receipts; trigger/attempt stay intact.
   // If its bounded window evicts all scheduled proof (or old evidence has no
   // event), cadence is unknown. Keep prior stale incidents until proof returns.
   const stale = scheduledAt ? now - scheduledAt >= FRESHNESS_MS
@@ -71,7 +72,7 @@ async function getJson(path: string, now: number): Promise<unknown> {
   return response.json()
 }
 
-export async function collectBrowserEvidence(previous: BrowserState, now: number): Promise<{ state: BrowserState; completions: Evidence[]; sourceInvocation?: Evidence; unavailableReason?: UnavailableReason }> {
+export async function collectBrowserEvidence(previous: BrowserState, now: number, scheduledRunIds: ReadonlySet<number> = new Set()): Promise<{ state: BrowserState; completions: Evidence[]; sourceInvocation?: Evidence; unavailableReason?: UnavailableReason }> {
   const state: BrowserState = { ...previous, checkedAt: now, cache: [...previous.cache], observerOk: false }
   const completions: Evidence[] = []
   let sourceInvocation: Evidence | undefined
@@ -137,7 +138,7 @@ export async function collectBrowserEvidence(previous: BrowserState, now: number
     if (evidence.outcome === 1) state.success = mergeCompletion(state.success, evidence)
     else state.failure = mergeCompletion(state.failure, evidence)
   }
-  if (browserHealth(state, now).stale === null) {
+  if (browserHealth(state, now, scheduledRunIds).stale === null) {
     state.observerOk = false
     unavailableReason ??= "cadence_unknown"
   }
