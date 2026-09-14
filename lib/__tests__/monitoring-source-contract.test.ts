@@ -4,8 +4,9 @@ import { describe, expect, it } from "vitest"
 
 const read = (path: string) => readFileSync(path, "utf8")
 describe("production probe coverage and monitor contract", () => {
-  it("requests two-hour off-hour browser cadence", () => {
-    expect(read(".github/workflows/prod-request-flow-synthetic.yml")).toContain('cron: "17 */2 * * *"')
+  it("uses the existing Vercel scheduler for two-hour browser dispatch", () => {
+    expect(JSON.parse(read("vercel.json")).crons).toContainEqual({ path: "/api/cron/browser-check", schedule: "17 */2 * * *" })
+    expect(read(".github/workflows/prod-request-flow-synthetic.yml")).toContain('cron: "47 */2 * * *"')
   })
   it("matches the observer's exact workflow, effective job name and executing browser step", () => {
     // The provider-boundary tests use these exact identities too, so a change
@@ -24,13 +25,13 @@ describe("production probe coverage and monitor contract", () => {
     const command = browserSteps[0].match(/^ {8}run: >\n((?: {10}.+\n?)+)/m)?.[1].trim().replace(/\s+/g, " ")
     expect(command).toBe("pnpm exec playwright test --fail-on-flaky-tests --config=playwright.preview.config.ts --project=chromium e2e/prod-request-flow-synthetic.spec.ts")
   })
-  it("retains the independent five-minute observer and six-hour freshness threshold", () => {
+  it("retains the independent five-minute observer and 150-minute freshness threshold", () => {
     const config = JSON.parse(read("vercel.json"))
     expect(config.crons).toContainEqual({
       path: "/api/cron/health-check",
       schedule: "*/5 * * * *",
     })
-    expect(read("lib/monitoring/browser-evidence.ts")).toContain("const FRESHNESS_MS = 360 * 60000")
+    expect(read("lib/monitoring/browser-evidence.ts")).toContain("const FRESHNESS_MS = 150 * 60000")
     expect(read(".github/workflows/prod-request-flow-synthetic.yml")).toContain("timeout-minutes: 8")
   })
   it("retains seven entry-flow cases and local draft/analytics isolation", () => {

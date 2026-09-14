@@ -56,6 +56,7 @@ function parseClaimedOutageKeys(
  * Set to ~2x the schedule interval to account for cold starts and jitter.
  */
 export const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number }> = {
+  "browser-check": { schedule: "17 */2 * * *", maxDelayMinutes: 150 },
   "email-dispatcher":       { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "telegram-notifications":  { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "retry-auto-approval":    { schedule: "*/3 * * * *",   maxDelayMinutes: 10 },

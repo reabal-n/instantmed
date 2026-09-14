@@ -16,6 +16,7 @@
     }
   ],
   "crons": [
+    { "path": "/api/cron/browser-check", "schedule": "17 */2 * * *" },
     {
       "path": "/api/cron/abandoned-checkouts",
       "schedule": "*/20 * * * *"

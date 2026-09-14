@@ -1,29 +1,32 @@
 import "server-only"
 
+import { readScheduledBrowserRunIds } from "@/lib/monitoring/browser-dispatch"
 import { browserHealth, collectBrowserEvidence, compareBrowserEvidence, mergeBrowserCache, mergeCompletion } from "@/lib/monitoring/browser-evidence"
 import { advanceIncidents, captureIncident } from "@/lib/monitoring/incident-state"
 import { appendMonitorState, type BrowserState, browserStateSchema, readMonitorState } from "@/lib/monitoring/monitor-state"
 
 const BROWSER_INCIDENTS = ["browser_failed", "browser_stale", "observer_unavailable"]
 
-function classify(state: BrowserState, now: number) {
-  const health = browserHealth(state, now)
+function classify(state: BrowserState, now: number, scheduledRunIds: ReadonlySet<number>) {
+  const health = browserHealth(state, now, scheduledRunIds)
   return [health.failed, health.stale, !state.observerOk || health.stale === null].flatMap((active, metric) => active ? [{ metric, severity: 2, count: 1 }] : [])
 }
 
 export async function checkBrowserObserver() {
   const now = Date.now()
   let verified: BrowserState | undefined
+  let scheduledRunIds = new Set<number>()
   let discoveredFailure = false
   try {
     const initial = await readMonitorState("browser_observer_state", browserStateSchema)
     verified = initial.state
-    const collected = await collectBrowserEvidence(initial.state, now)
+    scheduledRunIds = await readScheduledBrowserRunIds()
+    const collected = await collectBrowserEvidence(initial.state, now, scheduledRunIds)
     discoveredFailure = collected.completions.some(evidence => evidence.outcome === 2)
     for (let retry = 0; retry < 3; retry++) {
       const current = retry === 0 ? initial : await readMonitorState("browser_observer_state", browserStateSchema)
       verified = current.state
-      if (current.state.checkedAt >= now) return { healthy: classify(current.state, now).length === 0, ...current.state }
+      if (current.state.checkedAt >= now) return { healthy: classify(current.state, now, scheduledRunIds).length === 0, ...current.state }
       const state = { ...collected.state, completedAt: Math.max(collected.state.completedAt ?? 0, current.state.completedAt ?? 0), incidents: current.state.incidents }
       state.cache = mergeBrowserCache(current.state.cache, collected.state.cache)
       if (current.state.backoffUntil > now) {
@@ -43,7 +46,7 @@ export async function checkBrowserObserver() {
       for (const field of ["latest", "success", "failure", "invocation"] as const) {
         if (current.state[field]) state[field] = mergeCompletion(state[field], current.state[field]!)
       }
-      const health = browserHealth(state, now)
+      const health = browserHealth(state, now, scheduledRunIds)
       let unavailableReason: typeof collected.unavailableReason | "newer_window_unavailable" = collected.unavailableReason
       // Cadence availability is derived from the merged proof. A competing
       // poll may have restored scheduled evidence or evicted its last receipt.
@@ -78,17 +81,17 @@ export async function checkBrowserObserver() {
         events.push(...transition.events)
       }
       const known = health.stale === null ? [0, 2] : [0, 1, 2]
-      const result = advanceIncidents(state.incidents, classify(state, now), known, now)
+      const result = advanceIncidents(state.incidents, classify(state, now, scheduledRunIds), known, now)
       state.incidents = result.incidents
       events.push(...result.events)
       verified = state
       if (!await appendMonitorState("browser_observer_state", current.version, state)) continue
       for (const event of events) captureIncident("browser-monitor", BROWSER_INCIDENTS[event.metric], event)
-      return { healthy: classify(state, now).length === 0, ...state, unavailableReason }
+      return { healthy: classify(state, now, scheduledRunIds).length === 0, ...state, unavailableReason }
     }
     throw new Error("browser_observer_claim_unavailable")
   } catch {
-    const health = verified ? browserHealth(verified, now) : { stale: true, failed: false }
+    const health = verified ? browserHealth(verified, now, scheduledRunIds) : { stale: true, failed: false }
     for (const metric of ["observer_unavailable", ...(health.stale ? ["browser_stale"] : []), ...(health.failed || discoveredFailure ? ["browser_failed"] : [])]) {
       captureIncident("browser-monitor", metric, { active: true, severity: 2, count: 1 })
     }
