@@ -14,7 +14,7 @@
 
 ## Later operator instruction — start now
 
-The operator subsequently said “just start plan 5” after repeated reports that #561 remained open. This supersedes the merge-wait prerequisite below and authorizes implementation now from freshly fetched `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. The documentation branch was rebased/verified against that base before runtime edits. The merge-wait heartbeat is paused. PR #561 and its readiness owner remain independent; reconcile its merged CI changes before the Plan 5 release if it merges during this work. No phone, visual, monitoring, payment or clinical evidence gate is waived. The entry checklist below records the original dependency rather than an active wait.
+The operator subsequently said “just start plan 5” after repeated reports that #561 remained open. The implementing agent interpreted that as lifting the merge wait and started initial Queue/Requests work from freshly fetched `origin/main` at `79e1d8b837dac0d54a1944227608b3807a5351da`. The documentation branch was rebased/verified against that base before runtime edits. The merge-wait heartbeat is paused. PR #561 and its readiness owner remain independent; reconcile its merged CI changes before the Plan 5 release if it merges during this work. No phone, visual, monitoring, payment or clinical evidence gate is waived. That interpretation was not an explicit user waiver of the original merge condition: initial presentation work preceded the merge. The dependency was integrated before return-state implementation; the original before-first-edit gate was therefore not met and is not retroactively marked complete.
 
 ## September 14 preparation and entry gate
 
@@ -168,7 +168,7 @@ Complete the shared release protocol. Close implemented plan items, preserve sti
 
 ## Execution receipt
 
-**Original preparation receipt, before the later start instruction.** ROADMAP, Plan 4's final release handoff, the current navigation owners and PR #561's branch receipt were inspected. No application code, clinical fixture, provider configuration, payment or audit remediation was changed. The preparation branch contains documentation only. The later start instruction above supersedes the original merge wait; implementation and verification receipts follow separately.
+**Original preparation receipt, before the later start instruction.** ROADMAP, Plan 4's final release handoff, the current navigation owners and PR #561's branch receipt were inspected. No application code, clinical fixture, provider configuration, payment or audit remediation was changed. The preparation branch contains documentation only. The agent interpreted the later start instruction as lifting the original merge wait; the timing and unmet original before-first-edit gate are recorded above. Implementation and verification receipts follow separately.
 
 **Planning verification:** `corepack pnpm doc:audit` passed on Node 24.15.0/pnpm 10.23.0: 10 documentation contract files, 124 tests; document count and references passed. `git diff --check` passed. Source review confirmed file/callback names and the admin/support Requests boundary. Runtime and browser checks are deliberately unrun before the dependency merge; no application behavior or visual acceptance is claimed.
 
