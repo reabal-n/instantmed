@@ -343,7 +343,7 @@ test.describe("Doctor keyboard shortcut safety", () => {
     await firstRow.getByRole("button", { name: /Open case/ }).click()
 
     const panel = page.getByTestId("intake-review-panel")
-    const fullRecordLink = panel.getByRole("link", { name: "Open full record" })
+    const fullRecordLink = panel.getByRole("link", { name: "Request record" })
     const firstNote = await openDraftNote(panel)
     await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${firstIntakeId}$`))
 
@@ -380,7 +380,7 @@ test.describe("Doctor keyboard shortcut safety", () => {
     await firstRow.getByRole("button", { name: /Open case/ }).click()
 
     const panel = page.getByTestId("intake-review-panel")
-    const fullRecordLink = panel.getByRole("link", { name: "Open full record" })
+    const fullRecordLink = panel.getByRole("link", { name: "Request record" })
     const firstNote = await openDraftNote(panel)
     await expect(fullRecordLink).toHaveAttribute("href", new RegExp(`${firstIntakeId}$`))
     await placeCaretAtEnd(firstNote)
@@ -453,7 +453,7 @@ test.describe("Doctor keyboard shortcut safety", () => {
     await expect(secondRow).toBeVisible({ timeout: 15_000 })
 
     const panel = page.getByTestId("intake-review-panel")
-    const fullRecordLink = panel.getByRole("link", { name: "Open full record" })
+    const fullRecordLink = panel.getByRole("link", { name: "Request record" })
 
     // Select the first case with a real click. Clicking auto-waits for the row
     // to be actionable (hydrated + listeners attached), so the subsequent
@@ -567,7 +567,7 @@ test.describe("Doctor queue realtime notification policy", () => {
 
     await existingRow.getByRole("button", { name: /Open case/ }).click()
     const reviewPanel = page.getByTestId("intake-review-panel")
-    const fullRecordLink = reviewPanel.getByRole("link", { name: "Open full record" })
+    const fullRecordLink = reviewPanel.getByRole("link", { name: "Request record" })
     await expect(reviewPanel).toBeVisible({ timeout: 15_000 })
     await expect(fullRecordLink).toHaveAttribute(
       "href",

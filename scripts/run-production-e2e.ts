@@ -5,7 +5,7 @@ import { createServer } from "node:net"
 import { tmpdir } from "node:os"
 import { basename, join, resolve } from "node:path"
 
-const EXPECTED_SPEC = "e2e/certificate-resend-render.spec.ts"
+const ALLOWED_SPECS = ["e2e/certificate-resend-render.spec.ts", "e2e/plan5-navigation.spec.ts"]
 const LOCAL_PORTS = [3060, 55320, 55321, 55322, 55323, 55324, 55325, 55326, 55329]
 const PROVIDER_BLOCK_MESSAGE = "E2E provider blocked before external delivery"
 const activeChildren = new Set<ChildProcess>()
@@ -250,8 +250,9 @@ function testEnvironment(
 async function main() {
   const args = process.argv.slice(2).filter((arg) => arg !== "--")
   const specArg = args.find((arg) => arg.startsWith("--spec="))
-  if (args.length !== 1 || specArg !== `--spec=${EXPECTED_SPEC}`) {
-    throw new Error(`Use exactly --spec=${EXPECTED_SPEC}`)
+  const spec = specArg?.slice("--spec=".length)
+  if (args.length !== 1 || !spec || !ALLOWED_SPECS.includes(spec)) {
+    throw new Error(`Use exactly one --spec from: ${ALLOWED_SPECS.join(", ")}`)
   }
 
   const root = resolve(process.cwd())
@@ -396,13 +397,13 @@ async function main() {
       stream: true,
     })
 
-    process.stdout.write("Running the certificate resend production-server spec...\n")
+    process.stdout.write(`Running the isolated production-server spec ${spec}...\n`)
     await run(process.execPath, [
       join(root, "node_modules/@playwright/test/cli.js"),
       "test",
       "--config=playwright.production.config.ts",
       "--project=chromium",
-      EXPECTED_SPEC,
+      spec,
     ], env, { stream: true })
   } catch (error) {
     primaryError = error
