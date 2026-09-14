@@ -10,6 +10,7 @@ function read(path: string): string {
 }
 
 const terminalAnchors: Record<string, string> = {
+  "browser-check": "await dispatchBrowserCheck()",
   "business-alerts": "const fulfilment = prescriptionFulfilment",
   "daily-reconciliation": "Daily reconciliation clean",
   "email-dispatcher": "Email dispatcher cron completed",
@@ -52,7 +53,7 @@ describe("critical cron terminal outcome contract", () => {
     ).sort()
 
     expect(registeredJobs).toEqual(Object.keys(terminalAnchors).sort())
-    expect(registeredJobs).toHaveLength(17)
+    expect(registeredJobs).toHaveLength(18)
   })
 
   it.each(Object.entries(terminalAnchors))(

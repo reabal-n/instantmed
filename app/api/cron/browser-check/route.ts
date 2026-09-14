@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     await recordCronHeartbeat("browser-check", { status: "ok", durationMs: Date.now() - startedAt })
     return NextResponse.json({ status: "dispatched" })
   } catch {
-    await recordCronHeartbeat("browser-check", { status: "partial_failure", durationMs: Date.now() - startedAt })
+    await recordCronHeartbeat("browser-check", { status: "error", durationMs: Date.now() - startedAt })
     Sentry.captureMessage("Production browser dispatch failed", { level: "error", fingerprint: ["browser-dispatch-failed"] })
     await Sentry.flush(2000)
     return NextResponse.json({ status: "dispatch_failed" }, { status: 503 })

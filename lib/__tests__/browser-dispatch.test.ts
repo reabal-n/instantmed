@@ -40,7 +40,7 @@ describe("existing browser workflow dispatch", () => {
     expect((await GET(request())).status).toBe(503)
     expect(fetcher).toHaveBeenCalledTimes(1)
     expect(mocks.insert).not.toHaveBeenCalled()
-    expect(mocks.heartbeat).toHaveBeenCalledWith("browser-check", expect.objectContaining({ status: "partial_failure" }))
+    expect(mocks.heartbeat).toHaveBeenCalledWith("browser-check", expect.objectContaining({ status: "error" }))
   })
   it("reports persistence failure instead of claiming success", async () => {
     mocks.insert.mockResolvedValue({ error: { message: "private provider diagnostic" } })
