@@ -596,6 +596,7 @@ async function ensureE2EPatientProfile(
         full_name: "E2E Test Patient",
         email: "e2e-test-patient@instantmed-e2e.test",
         date_of_birth: "1990-06-20",
+        sex: "M",
         role: "patient",
         email_verified: true,
         email_verified_at: new Date().toISOString(),

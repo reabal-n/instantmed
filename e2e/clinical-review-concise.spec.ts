@@ -52,6 +52,8 @@ async function openQueueCase(page: Page, intakeId: string): Promise<Locator> {
   expect(prewarm.ok(), "Synthetic review-data prewarm must succeed").toBe(true)
   await page.goto(SEED_ONLY_QUEUE)
   const row = page.getByTestId(`queue-row-${intakeId}`)
+  // Let the responsive queue finish replacing its initial server layout.
+  await expect(row).toHaveCount(1)
   await expect(row).toBeVisible({ timeout: 30_000 })
   await row.getByRole("button", { name: /Open case for/i }).click()
   const panel = page.getByTestId("intake-review-panel")
