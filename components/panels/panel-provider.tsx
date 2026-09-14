@@ -3,6 +3,8 @@
 import { usePathname } from 'next/navigation'
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
 
+import { useStaffNavigation } from '@/components/operator/staff-list-navigation-provider'
+
 /**
  * Panel System - Core interaction model
  * 
@@ -31,7 +33,7 @@ export interface Panel {
 interface PanelContextValue {
   activePanel: Panel | null
   openPanel: (panel: Panel) => void
-  closePanel: () => void
+  closePanel: () => Promise<boolean>
   updatePanel: (updates: Partial<Panel>) => void
   isPanelOpen: boolean
 }
@@ -57,6 +59,7 @@ function focusPanelBoundary(edge: 'first' | 'last') {
 export function PanelProvider({ children }: { children: ReactNode }) {
   const [activePanel, setActivePanel] = useState<Panel | null>(null)
   const pathname = usePathname()
+  const navigation = useStaffNavigation()
 
   // Close panel on route change so it doesn't persist across soft navigations.
   // Intentionally uses pathname (not the full URL) so query-only changes (pagination,
@@ -105,20 +108,23 @@ export function PanelProvider({ children }: { children: ReactNode }) {
     }
   }, [activePanel])
 
-  const openPanel = useCallback((panel: Panel) => {
+  const openPanel = useCallback(async (panel: Panel) => {
+    if (activePanel && navigation && !await navigation.permit()) return
     // Only one panel at a time - close existing before opening new
     if (activePanel) {
       activePanel.onClose?.()
     }
     setActivePanel(panel)
-  }, [activePanel])
+  }, [activePanel, navigation])
 
-  const closePanel = useCallback(() => {
+  const closePanel = useCallback(async () => {
+    if (navigation && !await navigation.permit()) return false
     if (activePanel) {
       activePanel.onClose?.()
     }
     setActivePanel(null)
-  }, [activePanel])
+    return true
+  }, [activePanel, navigation])
 
   const updatePanel = useCallback((updates: Partial<Panel>) => {
     if (activePanel) {

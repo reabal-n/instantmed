@@ -254,19 +254,23 @@ export function useReviewActions({
 
   // React 18 transitions do not hold pending across awaits. Keep this clinical
   // decision boundary explicit: freeze editing, flush, then run the existing action.
-  const runReviewDecision = async (decision: () => Promise<void>) => {
+  const runReviewDecision = async (decision: () => Promise<boolean | void>) => {
     if (decisionPendingRef.current) return
     decisionPendingRef.current = true
     setIsPending(true)
+    let completed = false
     try {
       if (!await flushCurrentNotes()) return
-      await decision()
+      completed = await decision() === true
     } catch {
       toast.error("Could not confirm the decision. Check this request’s status before trying again.")
     } finally {
       decisionPendingRef.current = false
       setIsPending(false)
     }
+    // Completion owns this close, but it still uses the normal leave guard.
+    // Settle the decision first so that guard does not reject its own success.
+    if (completed) await closeAndRefresh()
   }
 
   useEffect(() => {
@@ -282,8 +286,8 @@ export function useReviewActions({
 
   // ---- Helpers ----
 
-  const closeAndRefresh = useCallback(() => {
-    closePanel()
+  const closeAndRefresh = useCallback(async () => {
+    if (!await closePanel()) return
     if (onActionComplete) {
       onActionComplete({ advance: true })
     }
@@ -401,6 +405,7 @@ export function useReviewActions({
         consultDate: editedData.consultDate,
       })
       if (result.success) {
+        setDoctorNotes(decisionNote)
         setShowCertPreview(false)
         playApprovalSound()
 
@@ -424,7 +429,7 @@ export function useReviewActions({
               : "Certificate approved. Email will be sent shortly."
           toast.success(emailNote)
         }
-        closeAndRefresh()
+        return true
       } else {
         toast.error(result.error || "Failed to approve certificate")
       }
@@ -468,7 +473,7 @@ export function useReviewActions({
           playApprovalSound()
         }
         toast.success(status === "approved" ? "Case approved" : "Case updated")
-        closeAndRefresh()
+        return true
       } else {
         toast.error(result.error || "Failed to update status")
       }
@@ -520,7 +525,7 @@ export function useReviewActions({
               ? "Prescription approved. Patient notification needs follow-up."
               : "Prescription approved",
         )
-        closeAndRefresh()
+        return true
       } else {
         toast.error(result.error || "Failed to approve prescription")
       }
@@ -535,7 +540,7 @@ export function useReviewActions({
         setShowDeclineDialog(false)
         toast.success(isAdministrativeClosure(declineReasonCode) ? "Request closed" : "Request declined")
         if (result.refund?.status === "failed") toast.error("Refund needs attention. Check payment recovery.")
-        closeAndRefresh()
+        return true
       } else {
         toast.error(result.error || "Failed to decline")
       }

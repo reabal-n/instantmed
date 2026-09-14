@@ -2,7 +2,7 @@ import "../staff.css"
 
 import type { Metadata } from "next"
 
-import { OperatorShell } from "@/components/operator"
+import { OperatorShell } from "@/components/operator/operator-shell"
 import { requireRole } from "@/lib/auth/helpers"
 import { getStaffDisplayRole } from "@/lib/auth/staff-capabilities"
 import { EMPTY_STAFF_NAV_COUNTS, getStaffNav } from "@/lib/dashboard/staff-navigation"

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 import type { QueueStatusFilter } from "@/lib/dashboard/routes"
 import type { QueueStatusCounts } from "@/lib/doctor/queue-utils"
 import type {
@@ -11,6 +13,7 @@ export type { PaginationInfo }
 export type QueueSearchState = "idle" | "ready" | "unavailable" | "too_broad"
 
 export interface QueueClientProps {
+  controls?: ReactNode
   intakes: IntakeWithPatient[]
   doctorId: string
   identityComplete?: boolean

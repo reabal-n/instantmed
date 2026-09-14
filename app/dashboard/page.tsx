@@ -1,3 +1,4 @@
+import { Activity } from "lucide-react"
 import type { Metadata } from "next"
 import nextDynamic from "next/dynamic"
 import { redirect } from "next/navigation"
@@ -12,9 +13,11 @@ import {
 } from "@/components/operator/operator-page"
 import { QueuePressureSignal } from "@/components/operator/queue-pressure-signal"
 import {
+  TestDataAdminMenu,
   TestDataBanner,
-  TestDataToggleButton,
 } from "@/components/operator/test-data-banner"
+import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { requireRole } from "@/lib/auth/helpers"
 import {
   doctorHasCapability,
@@ -44,7 +47,6 @@ import {
 import { EMPTY_SYSTEM_HEALTH, getSystemHealth, UNKNOWN_SYSTEM_HEALTH } from "@/lib/data/system-health"
 import { formatMinutes } from "@/lib/format/dates"
 import { createLogger } from "@/lib/observability/logger"
-import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
 
 const log = createLogger("staff-dashboard")
@@ -204,9 +206,6 @@ export default async function StaffDashboardPage({
       : formatMinutes(formToInboxStats.medianMinutes)
     : null
   const globalWaitingCaseCount = queueResult.globalStatusCounts?.all ?? null
-  const showHeaderOperationalSummary =
-    (typeof globalWaitingCaseCount === "number" && globalWaitingCaseCount > 1) ||
-    (globalWaitingCaseCount === 0 && Boolean(formToInboxLabel))
 
   results.forEach((result, index) => {
     if (result.status === "rejected") {
@@ -233,51 +232,7 @@ export default async function StaffDashboardPage({
 
   return (
       <OperatorPage>
-        <OperatorPageHeader
-          title="Dashboard"
-          actions={(
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <div className="flex flex-wrap items-center gap-2 border-r border-border/60 pr-2">
-                {showHeaderOperationalSummary ? (
-                  <div
-                    data-dashboard-wait-strip
-                    className={cn(
-                      "hidden flex-none items-center gap-2 2xl:flex",
-                      formToInboxLabel ? "min-w-[420px]" : "min-w-[220px]",
-                    )}
-                  >
-                    {formToInboxLabel ? (
-                      <div
-                        data-dashboard-median-tile
-                        className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/60 bg-white px-3 text-xs font-medium text-muted-foreground shadow-sm shadow-primary/[0.03] dark:bg-card"
-                      >
-                        <span>Median time to inbox</span>
-                        <span className="text-base font-semibold tabular-nums text-foreground">{formToInboxLabel}</span>
-                        <span className="rounded-full border border-success-border bg-success-light px-1.5 py-0.5 text-[10px] font-semibold leading-none text-success">
-                          target &lt;2h
-                        </span>
-                      </div>
-                    ) : null}
-                    <QueuePressureSignal
-                      initialNowMs={nowMs}
-                      oldestWaitingMinutes={oldestWaitingMinutes}
-                      oldestWaitingEnteredAt={oldestWaitingEnteredAt}
-                      waitingCaseCount={globalWaitingCaseCount ?? 0}
-                      showIcon={false}
-                      jumpToOldestOnClick
-                      className="bg-white shadow-sm shadow-primary/[0.03]"
-                    />
-                  </div>
-                ) : null}
-                {isAdmin && !onlyTestData ? <SystemHealthPill initial={systemHealth} /> : null}
-              </div>
-              <div className="flex items-center gap-2">
-                {isAdmin && !onlyTestData ? <TestDataToggleButton active={showTestData} /> : null}
-                <DoctorAvailabilityToggle initialAvailable={doctorAvailable} compact />
-              </div>
-            </div>
-          )}
-        />
+        <OperatorPageHeader title="Dashboard" />
 
         <OperatorScrollArea className="flex flex-col gap-3 space-y-0">
           {showTestData ? <TestDataBanner /> : null}
@@ -301,6 +256,44 @@ export default async function StaffDashboardPage({
 
           <section id="doctor-queue" className="min-h-0 flex-1">
             <QueueClient
+              controls={(
+                <div className="flex flex-wrap items-center gap-2" data-queue-operational-controls>
+                  <DoctorAvailabilityToggle initialAvailable={doctorAvailable} compact />
+                  <div data-operational-wait>
+                    <QueuePressureSignal
+                      initialNowMs={nowMs}
+                      oldestWaitingMinutes={oldestWaitingMinutes}
+                      oldestWaitingEnteredAt={oldestWaitingEnteredAt}
+                      waitingCaseCount={globalWaitingCaseCount}
+                      showIcon={false}
+                      showLabelOnMobile
+                      showTarget={false}
+                      className="h-11 sm:h-8"
+                      jumpToOldestOnClick
+                      compact
+                    />
+                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="min-h-11 gap-1.5 sm:min-h-8" aria-label="Operational summary">
+                        <Activity className="h-3.5 w-3.5" aria-hidden />
+                        Operations
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-72 space-y-3 p-3">
+                      <p className="text-sm font-semibold">Operational summary</p>
+                      {formToInboxLabel ? (
+                        <div data-dashboard-median-tile className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                          <span>Median time to inbox</span>
+                          <span className="font-semibold tabular-nums text-foreground">{formToInboxLabel}</span>
+                        </div>
+                      ) : <p className="text-xs text-muted-foreground">Turnaround data is not available yet.</p>}
+                    </PopoverContent>
+                  </Popover>
+                  {isAdmin && !onlyTestData ? <SystemHealthPill initial={systemHealth} /> : null}
+                  {isAdmin && !onlyTestData ? <TestDataAdminMenu active={showTestData} /> : null}
+                </div>
+              )}
               intakes={queueResult.data}
               doctorId={profile.id}
               identityComplete={isDoctorIdentityComplete(doctorIdentity)}

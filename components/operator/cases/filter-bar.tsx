@@ -1,8 +1,10 @@
 "use client"
 
-import { Search } from "lucide-react"
+import { Search, SlidersHorizontal } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { Density } from "@/lib/operator/cases/types"
 import { cn } from "@/lib/utils"
 
@@ -24,6 +26,8 @@ type FilterBarProps = {
   onToggleFilter?: (id: string) => void
   density: Density
   onDensityChange: (next: Density) => void
+  filterControls?: React.ReactNode
+  filterSummary?: string
   rightSlot?: React.ReactNode
   className?: string
   totalLabel?: string
@@ -32,8 +36,7 @@ type FilterBarProps = {
 
 /**
  * Composed bar above a CaseTable: search input + quick filter chips +
- * density toggle. Saved-view tabs are intentionally absent: copying the
- * URL is the saved view in v1.
+ * optional consolidated filters. Private search terms stay in local component state.
  */
 export function FilterBar({
   searchValue,
@@ -45,6 +48,8 @@ export function FilterBar({
   density,
   onDensityChange,
   rightSlot,
+  filterControls,
+  filterSummary,
   totalLabel,
   searchInputRef,
   className,
@@ -74,10 +79,27 @@ export function FilterBar({
           </span>
         ) : null}
 
-        <DensityToggle value={density} onValueChange={onDensityChange} />
+        {filterControls ? (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button type="button" variant="outline" className="min-h-11 shrink-0" aria-label="Filters">
+                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" /> Filters
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" aria-label="Request filters" className="space-y-4 bg-card dark:bg-card backdrop-blur-none dark:backdrop-blur-none">
+              {filterControls}
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Row density</p>
+                <DensityToggle value={density} onValueChange={onDensityChange} className="[&_button]:h-11 [&_button]:w-11" />
+              </div>
+            </PopoverContent>
+          </Popover>
+        ) : <DensityToggle value={density} onValueChange={onDensityChange} />}
 
         {rightSlot}
       </div>
+
+      {filterSummary ? <p className="text-xs text-muted-foreground" aria-label="Active filters">{filterSummary}</p> : null}
 
       {quickFilters.length > 0 ? (
         <div className="flex flex-wrap items-center gap-1.5">

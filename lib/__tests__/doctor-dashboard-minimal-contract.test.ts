@@ -79,7 +79,7 @@ describe("doctor dashboard minimalism contract", () => {
   it("/dashboard page header keeps the three earning-pixels surfaces (test, system health, availability)", () => {
     // Subtraction is the change. These three stay; they each do one job.
     const source = read("app/dashboard/page.tsx")
-    expect(source).toContain("TestDataToggleButton")
+    expect(source).toContain("TestDataAdminMenu")
     expect(source).toContain("SystemHealthPill")
     expect(source).toContain("DoctorAvailabilityToggle")
   })

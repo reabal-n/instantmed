@@ -596,6 +596,7 @@ async function ensureE2EPatientProfile(
         full_name: "E2E Test Patient",
         email: "e2e-test-patient@instantmed-e2e.test",
         date_of_birth: "1990-06-20",
+        sex: "M",
         role: "patient",
         email_verified: true,
         email_verified_at: new Date().toISOString(),
@@ -1303,7 +1304,6 @@ export async function cleanupTestIntake(intakeId: string): Promise<void> {
   await deleteRows("intake_events", "intake_id")
   await deleteCertificateApprovalArtifactsForIntake(supabase, intakeId)
   await deleteRows("document_drafts", "intake_id")
-  await deleteRows("document_drafts", "request_id")
   await deleteRows("email_outbox", "intake_id")
   await deleteRows("intake_answers", "intake_id")
 

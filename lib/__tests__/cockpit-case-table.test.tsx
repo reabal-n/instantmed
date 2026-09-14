@@ -2,6 +2,7 @@ import * as React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
+import { CaseActionsMenu } from "@/components/operator/cases/case-actions-menu"
 import { CaseTable } from "@/components/operator/cases/case-table"
 import type { CaseRowData } from "@/lib/operator/cases/types"
 
@@ -48,6 +49,35 @@ const rows: CaseRowData[] = [
 ]
 
 describe("CaseTable", () => {
+  it("renders column headings without enabling sorting", () => {
+    const html = render(<CaseTable rows={rows} density="comfortable" />)
+    expect(html.match(/role="columnheader"/g)).toHaveLength(4)
+    for (const label of ["Patient", "Service", "Status", "Time"]) {
+      expect(html).toContain(label)
+    }
+    expect(html).not.toContain("aria-sort=")
+    expect(html).not.toMatch(/<button[^>]*role="columnheader"/)
+  })
+
+  it("gives compact action rows space for the 44px menu target", () => {
+    const html = render(<CaseTable rows={rows} density="compact" rowActions={(row) => <CaseActionsMenu requestRef={row.intakeRef} actions={[{ label: "Issue refund", onSelect: () => {} }]} />} />)
+    const rowTags = html.match(/<div role="row" data-row-id=[^>]+>/g) ?? []
+    expect(rowTags).toHaveLength(3)
+    for (const tag of rowTags) {
+      expect(tag).toContain("min-h-12")
+      expect(tag).not.toMatch(/(?: |&quot;)h-10(?: |&quot;)/)
+    }
+  })
+
+  it("reserves identical non-intrinsic tracks for headings and mixed action rows", () => {
+    const html = render(<CaseTable rows={rows} density="comfortable" rowActions={(row) => row.id === "a" ? <CaseActionsMenu requestRef={row.intakeRef} actions={[{ label: "Issue refund", onSelect: () => {} }]} /> : null} />)
+    const tracks = html.match(/grid-cols-\[[^\]]+\]/g) ?? []
+    expect(tracks).toHaveLength(4)
+    expect(new Set(tracks).size).toBe(1)
+    expect(tracks[0]).not.toContain("auto")
+    expect(tracks[0]).toContain("_90px_100px]")
+  })
+
   it("renders all rows", () => {
     const html = render(<CaseTable rows={rows} density="comfortable" />)
     expect(html).toContain("Ava Approved")
@@ -139,5 +169,6 @@ describe("CaseTable", () => {
     // 3 rows, 3 action buttons
     const matches = html.match(/data-testid="row-action"/g) ?? []
     expect(matches.length).toBe(3)
+    expect(html).not.toContain("opacity-0")
   })
 })

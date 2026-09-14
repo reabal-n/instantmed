@@ -151,6 +151,28 @@ const e2eResetMigrationSource = readFileSync(
 )
 
 describe("doctor queue production contract", () => {
+  it("groups availability and operational controls with the queue filters", () => {
+    expect(queueClientSource).toContain("controls={controls}")
+    expect(queueFiltersSource).toContain("{controls}")
+    const page = readFileSync(join(process.cwd(), "app/dashboard/page.tsx"), "utf8")
+    expect(page).toContain('aria-label="Operational summary"')
+    expect(page).toContain("TestDataAdminMenu")
+    expect(page).not.toContain("TestDataToggleButton")
+  })
+
+  it("keeps history available on mobile active and caught-up queues", () => {
+    expect(queueClientSource).toContain("historyDegraded={recentlyCompletedDegraded}")
+    expect(queueClientSource).not.toContain("compactShell && filteredIntakes.length === 0 ? (")
+  })
+
+  it("distinguishes ownership from purchased priority and shows age beside the patient", () => {
+    expect(queueTableSource).toContain('data-queue-request')
+    expect(queueTableSource).toContain('data-queue-next-task')
+    expect(queueTableSource).toContain('data-queue-ownership')
+    expect(queueTableSource).toContain('Priority review')
+    expect(queueTableSource).toContain('patientSnapshot.age != null')
+  })
+
   it("keeps the server queue aligned with all fulfilment-entitled payment statuses", () => {
     expect(queriesSource).toContain("QUEUE_REVIEW_STATUSES")
     expect(queriesSource).toContain('.in("payment_status", [...FULFILMENT_ENTITLED_PAYMENT_STATUSES])')
@@ -395,7 +417,7 @@ describe("doctor queue production contract", () => {
     expect(queueClientSource).toContain("compactShell && filteredIntakes.length === 0")
 
     expect(queueTableSource).toContain("data-queue-taxonomy-chip")
-    expect(queueTableSource).toContain("data-queue-action-chip")
+    expect(queueTableSource).toContain("data-queue-next-task")
     expect(queueTableSource).toContain("resolveStaffCaseActionLabel")
     expect(queueTableSource).toContain("Next action:")
     expect(queueTableSource).toContain("compactTaxonomyChipClass")
@@ -651,5 +673,17 @@ describe("doctor queue production contract", () => {
     expect(intakeReviewPanelSource).toContain("const fallbackDraftNote = buildClinicalCaseSummary")
     expect(intakeReviewPanelSource).toContain("const resolvedDraftNote = formatted?.trim() ? formatted : fallbackDraftNote")
     expect(intakeReviewPanelSource).toContain("actions.setInitialNotes(resolvedDraftNote, resolvedDraftNote, false)")
+  })
+})
+
+
+describe('pending private search navigation', () => {
+  it('blocks pagination and row navigation until typed search and its response settle', () => {
+    const client = readFileSync(join(process.cwd(), 'app/doctor/queue/queue-client.tsx'), 'utf8')
+    const table = readFileSync(join(process.cwd(), 'app/doctor/queue/queue-table.tsx'), 'utf8')
+    expect(client).toContain('isPending={dialogs.isPending || isApprovePending || queueSearchPending}')
+    expect(client).toContain('if (queueSearchPending) return')
+    expect(table).toContain('<fieldset disabled={isPending}')
+    expect(table).toContain('if (isPending) return')
   })
 })

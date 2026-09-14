@@ -1,5 +1,6 @@
 "use client"
 
+import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 
 import { buildDoctorIntakeHref } from "@/lib/dashboard/routes"
@@ -23,42 +24,54 @@ export function ApprovedTodayList({
   intakes,
   className,
   historyTruncated = false,
+  historyDegraded = false,
 }: {
   intakes: RecentlyCompletedIntake[]
   className?: string
   historyTruncated?: boolean
+  historyDegraded?: boolean
 }) {
   const approved = intakes.filter((intake) => APPROVED_STATUSES.has(intake.status))
-  if (approved.length === 0) return null
+  if (approved.length === 0 && !historyDegraded) return null
 
   const now = new Date()
   const autoIssuedCount = approved.filter(
     (intake) => intake.activity_provenance === "auto_issued",
   ).length
   const clinicianCount = approved.length - autoIssuedCount
-  const heading = historyTruncated ? "Latest approvals" : "Approved today"
+  const partial = historyTruncated || historyDegraded
+  const heading = historyDegraded && approved.length === 0
+    ? "Approval history unavailable"
+    : partial ? "Latest approvals" : "Approved today"
 
   return (
-    <section
+    <details
+      data-approved-today
       aria-label={heading}
       className={cn(
-        "mt-2 flex max-h-[40%] min-h-0 shrink-0 flex-col rounded-2xl border border-border/50 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card",
+        "group mt-2 min-h-0 shrink-0 overflow-hidden rounded-xl border border-border/50 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card",
         className,
       )}
     >
-      <div className="flex items-center gap-2 border-b border-border/50 px-4 py-2.5">
-        <span className="h-2 w-2 rounded-full bg-success" aria-hidden />
+      <summary className="flex min-h-11 cursor-pointer list-none flex-wrap items-center gap-2 px-4 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40 [&::-webkit-details-marker]:hidden">
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-open:rotate-180" aria-hidden />
+        <span className={cn("h-2 w-2 rounded-full", historyDegraded ? "bg-warning" : "bg-success")} aria-hidden />
         <span className="text-sm font-semibold text-foreground">{heading}</span>
         <span className="text-xs tabular-nums text-muted-foreground">
-          {historyTruncated ? `${approved.length} shown` : approved.length}
+          {historyDegraded && approved.length === 0 ? null : partial ? `${approved.length} shown` : approved.length}
         </span>
         {autoIssuedCount > 0 ? (
           <span className="ml-auto text-xs text-muted-foreground">
             {clinicianCount} yours · {autoIssuedCount} auto-issued
           </span>
         ) : null}
-      </div>
-      <ul className="min-h-0 flex-1 divide-y divide-border/40 overflow-y-auto">
+      </summary>
+      {historyDegraded ? (
+        <p role="status" className="border-t border-border/50 px-4 py-2 text-xs text-warning">
+          History may be incomplete. Refresh to try again.
+        </p>
+      ) : null}
+      <ul className="max-h-[min(240px,30vh)] divide-y divide-border/40 overflow-y-auto border-t border-border/50">
         {approved.map((intake) => {
           const patientName = intake.patient.full_name.trim() || "Unnamed patient"
           const serviceShortLabel =
@@ -104,6 +117,6 @@ export function ApprovedTodayList({
           )
         })}
       </ul>
-    </section>
+    </details>
   )
 }

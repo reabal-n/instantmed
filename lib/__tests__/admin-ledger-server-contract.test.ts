@@ -11,6 +11,22 @@ const filterSelects = read("app/admin/intakes/ledger-filter-selects.tsx")
 const queries = read("lib/data/intakes/queries.ts")
 
 describe("admin ledger server contract", () => {
+  it("shares a labelled recovery menu across desktop and mobile", () => {
+    expect(client.match(/rowActions={renderRowActions}/g)).toHaveLength(2)
+    expect(client).toContain("<CaseActionsMenu")
+    expect(client).toContain("setRefundTarget(row)")
+    expect(client).toContain("setFailedCheckoutCloseTarget(row)")
+    expect(client).toContain("handleCopyPaymentRescue(row)")
+  })
+
+  it("names patient and request destinations explicitly", () => {
+    const panel = read("components/doctor/intake-review-panel.tsx")
+    expect(panel).toContain("Patient details")
+    expect(panel).toContain("Request record")
+    expect(panel).not.toContain("View profile")
+    expect(panel).not.toContain("Open full record")
+  })
+
   it("passes every URL filter and pagination value into the server query", () => {
     for (const value of ["page", "pageSize"]) {
       expect(pageSource).toContain(`firstParam(params.${value})`)

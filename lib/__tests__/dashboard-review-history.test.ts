@@ -77,3 +77,15 @@ describe("dashboard review history", () => {
     })).toBe("Your reviews today: 1 · last reviewed 10m ago · 1 auto-issued certificate today")
   })
 })
+
+
+it("does not attribute protocol-only activity to the actor", () => {
+  const summary = reviewHistoryUtils.buildReviewHistorySummary?.({
+    reviews: [{ activity_at: "2026-07-29T01:55:00.000Z", activity_provenance: "auto_issued" }],
+    truncated: false,
+    now: new Date("2026-07-29T02:00:00.000Z"),
+  })
+  expect(summary).toContain("Your reviews today: 0")
+  expect(summary).toContain("1 auto-issued certificate today")
+  expect(summary).not.toContain("last reviewed")
+})

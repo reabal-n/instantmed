@@ -1,7 +1,7 @@
 "use client"
 
 /**
- * Test-data visibility banner + admin toggle.
+ * Test-data visibility banner + labelled admin menu.
  *
  * Renders a warning strip across the dashboard when `?showTestData=1`
  * is active so the operator can never confuse test rows with real
@@ -20,12 +20,13 @@
  * here — they're outside the token system.
  */
 
-import { Beaker, EyeOff, X } from "lucide-react"
+import { Beaker, ChevronDown, EyeOff, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 
 import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 function withTestDataParam(
@@ -66,7 +67,7 @@ function TestDataBannerInner() {
         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-warning" aria-hidden />
         <span className="font-medium">Test mode.</span>
         <span className="truncate text-warning/90">
-          Real patients are hidden.
+          Test patients are included.
         </span>
       </div>
       <Button
@@ -93,51 +94,43 @@ export function TestDataBanner() {
 }
 
 /**
- * Toggle button rendered in the dashboard header. When inactive it
+ * Test-data menu item rendered in queue controls. When inactive it
  * adds `?showTestData=1`; when active it removes the param. Always
  * preserves the rest of the URL state. Admin-only: the parent page
  * is responsible for not rendering this for non-admin roles.
  */
-function TestDataToggleButtonInner({ active }: { active: boolean }) {
+function TestDataAdminMenuInner({ active }: { active: boolean }) {
   const pathname = usePathname() ?? STAFF_DASHBOARD_HREF
   const params = useSearchParams()
   const searchParams = new URLSearchParams(params?.toString() ?? "")
   const href = withTestDataParam(pathname, searchParams, !active)
 
   return (
-    <Button
-      asChild
-      variant="outline"
-      size="sm"
-      className={
-        active
-          ? "border-border/70 bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-          : "border-dashed text-muted-foreground hover:text-foreground"
-      }
-      title={active ? "Hide test patients" : "Show test patients in the queue"}
-    >
-      <Link href={href}>
-        {active ? (
-          <>
-            <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-warning" aria-hidden />
-            <EyeOff className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-            Test mode
-          </>
-        ) : (
-          <>
-            <Beaker className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-            Test mode
-          </>
-        )}
-      </Link>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="min-h-11 gap-1.5 sm:min-h-8" aria-label="Admin menu">
+          Admin
+          {active ? <span className="h-1.5 w-1.5 rounded-full bg-warning" aria-label="Test data active" /> : null}
+          <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Admin controls</DropdownMenuLabel>
+        <DropdownMenuItem asChild>
+          <Link href={href}>
+            {active ? <EyeOff className="mr-2 h-4 w-4" aria-hidden /> : <Beaker className="mr-2 h-4 w-4" aria-hidden />}
+            {active ? "Hide test patients" : "Show test patients"}
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
-export function TestDataToggleButton({ active }: { active: boolean }) {
+export function TestDataAdminMenu({ active }: { active: boolean }) {
   return (
     <Suspense fallback={null}>
-      <TestDataToggleButtonInner active={active} />
+      <TestDataAdminMenuInner active={active} />
     </Suspense>
   )
 }

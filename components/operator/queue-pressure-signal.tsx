@@ -95,6 +95,7 @@ interface QueuePressureSignalProps {
   showTarget?: boolean
   showIcon?: boolean
   showLabel?: boolean
+  showLabelOnMobile?: boolean
   softenWhenReviewOpen?: boolean
   jumpToOldestOnClick?: boolean
   prominent?: boolean
@@ -111,6 +112,7 @@ export function QueuePressureSignal({
   showTarget = true,
   showIcon = true,
   showLabel = true,
+  showLabelOnMobile = false,
   softenWhenReviewOpen = false,
   jumpToOldestOnClick = false,
   prominent = false,
@@ -278,7 +280,7 @@ export function QueuePressureSignal({
         data-live-wait-dot
       />
       {showLabel ? (
-        <span className={cn("hidden font-semibold sm:inline", compact ? "text-[11px]" : "text-xs")}>
+        <span className={cn("font-semibold", !showLabelOnMobile && "hidden sm:inline", compact ? "text-[11px]" : "text-xs")}>
           {state.label}
         </span>
       ) : null}

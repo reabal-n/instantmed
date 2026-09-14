@@ -140,6 +140,14 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(intakeIndexSource).not.toContain("getTodayEarnings")
   })
 
+  it("keeps one live global wait outside the collapsed operational details", () => {
+    const source = read("app/dashboard/page.tsx")
+    expect(source.match(/<QueuePressureSignal/g)).toHaveLength(1)
+    expect(source.indexOf("<QueuePressureSignal")).toBeLessThan(source.indexOf("<Popover>"))
+    expect(source).toContain("showLabelOnMobile")
+    expect(source.slice(source.indexOf("<PopoverContent"), source.indexOf("</PopoverContent>"))).not.toContain("QueuePressureSignal")
+  })
+
   it("keeps the doctor queue header focused on current operational pressure", () => {
     const dashboardPageSource = read("app/dashboard/page.tsx")
     const queueClientSource = read("app/doctor/queue/queue-client.tsx")
@@ -150,9 +158,9 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     const userCardSource = read("components/uix/user-card.tsx")
 
     expect(dashboardPageSource).toContain("QueuePressureSignal")
-    expect(dashboardPageSource).toContain("data-dashboard-wait-strip")
-    expect(dashboardPageSource).toContain('"hidden flex-none items-center gap-2 2xl:flex"')
-    expect(dashboardPageSource).toContain("showHeaderOperationalSummary")
+    expect(dashboardPageSource).toContain("data-operational-wait")
+    expect(dashboardPageSource).toContain('aria-label="Operational summary"')
+    expect(dashboardPageSource).toContain("controls={(")
     expect(dashboardPageSource).toContain("data-dashboard-median-tile")
     expect(dashboardPageSource).toContain("Median time to inbox")
     expect(queuePressureSource).toContain("Target: under 2h")
@@ -235,7 +243,7 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(dashboardPageSource).toContain(
       "const globalWaitingCaseCount = queueResult.globalStatusCounts?.all ?? null"
     )
-    expect(dashboardPageSource).toContain("waitingCaseCount={globalWaitingCaseCount ?? 0}")
+    expect(dashboardPageSource).toContain("waitingCaseCount={globalWaitingCaseCount}")
     expect(dashboardPageSource).not.toContain("waitingCaseCount={queueResult.total}")
     expect(read("lib/doctor/queue-pressure.ts")).toContain("No one waiting")
     expect(queueClientSource).not.toContain("Open it from the row")
@@ -326,7 +334,8 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(operatorPageSource).toContain('mode?: "idle" | "reviewing" | "dense"')
     expect(operatorPageSource).toContain("cubic-bezier(0.16,1,0.3,1)")
     expect(operatorPageSource).not.toContain("transition-[grid-template-columns]")
-    expect(queueTableSource).toContain("min-w-fit whitespace-nowrap")
+    expect(queueTableSource).toContain("data-queue-request")
+    expect(queueTableSource).toContain("data-queue-next-task")
     expect(queueTableSource).toContain("showInlineWaitTime")
     expect(queueTableSource).toContain("showInlineWaitTime = true")
     expect(queueTableSource).toContain("displayWaitLabel")
@@ -374,8 +383,8 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(reviewPanelSource).not.toContain("formatCaseAnchorLine")
     expect(reviewPanelSource).not.toContain("data-case-anchor-line")
     expect(decisionStripSource).not.toContain("First visit")
-    expect(reviewPanelSource).toContain("View profile")
-    expect(reviewPanelSource).toContain("Open full record")
+    expect(reviewPanelSource).toContain("Patient details")
+    expect(reviewPanelSource).toContain("Request record")
     expect(reviewPanelSource).toContain("formatPreviewAgeDob")
     expect(reviewPanelSource).toContain("formatPreviewLocation")
     expect(reviewDataHookSource).toContain("Review details took too long to load")
