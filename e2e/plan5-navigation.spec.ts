@@ -208,19 +208,8 @@ for (const viewport of [{ width: 1366, height: 768 }, { width: 1440, height: 900
 
 
 test("failed note saves retain the draft across record links, rows, list switching and browser Back", async ({ page }) => {
-  await page.addInitScript(() => {
-    const snapshots: { label: string; path: string; index: unknown }[] = []
-    Object.assign(window, { __plan5History: snapshots })
-    addEventListener("popstate", event => snapshots.push({ label: "popstate", path: location.pathname, index: event.state?.__imStaffHistoryIndex }))
-  })
-  const captureHistory = (label: string) => page.evaluate(label => {
-    const snapshots = (window as unknown as { __plan5History: unknown[] }).__plan5History
-    snapshots.push({ label, path: location.pathname, index: history.state?.__imStaffHistoryIndex })
-  }, label)
   await page.goto("/admin/intakes?pageSize=10")
-  await captureHistory("Requests before Queue navigation")
   await page.locator('a[href="/dashboard"]:visible').first().click()
-  await captureHistory("after Queue navigation click")
   const row = page.locator('[data-testid^="queue-row-"]').first()
   await row.getByRole("button", { name: /^Open case for/ }).click()
   const panel = page.getByTestId("intake-review-panel")
@@ -253,7 +242,6 @@ test("failed note saves retain the draft across record links, rows, list switchi
       () => page.evaluate(() => history.back()),
     ]) {
       const before = denied
-      await captureHistory(`before leave attempt ${before}`)
       await leave()
       await expect.poll(() => denied).toBeGreaterThan(before)
       await expect(page).toHaveURL(origin)
@@ -262,7 +250,6 @@ test("failed note saves retain the draft across record links, rows, list switchi
       await expect(panel.getByText("Save failed", { exact: true })).toBeVisible()
     }
   } finally {
-    await writeFile(`${output}/denied-note-history.json`, JSON.stringify(await page.evaluate(() => (window as unknown as { __plan5History: unknown[] }).__plan5History), null, 2))
     await page.unroute("**/*", reject)
   }
   await panel.getByRole("button", { name: /Retry save/ }).click()
