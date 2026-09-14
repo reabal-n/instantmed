@@ -137,6 +137,7 @@ const ApprovedTodayList = dynamic<{
   intakes: RecentlyCompletedIntake[]
   className?: string
   historyTruncated?: boolean
+  historyDegraded?: boolean
 }>(() => import("@/components/doctor/approved-today-list").then((mod) => mod.ApprovedTodayList), {
   loading: () => null,
 })
@@ -224,6 +225,7 @@ export function QueueClient({
   allowSeededSearch = false,
   onlySeededSearch = false,
   compactShell = false,
+  controls,
 }: QueueClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -1138,6 +1140,7 @@ export function QueueClient({
         )}
       >
         <QueueFilters
+          controls={controls}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onRefresh={() => refreshQueue({ force: true })}
@@ -1216,6 +1219,7 @@ export function QueueClient({
               <ApprovedTodayList
                 intakes={recentlyCompleted}
                 historyTruncated={recentlyCompletedTruncated}
+                historyDegraded={recentlyCompletedDegraded}
               />
             </div>
           )}
@@ -1297,11 +1301,11 @@ export function QueueClient({
             compactShell={compactShell}
             searchQuery={committedSearchQuery}
           />
-          {compactShell && filteredIntakes.length === 0 ? (
+          {compactShell ? (
             <ApprovedTodayList
               intakes={recentlyCompleted}
-              className="max-h-[min(360px,45vh)]"
               historyTruncated={recentlyCompletedTruncated}
+              historyDegraded={recentlyCompletedDegraded}
             />
           ) : null}
         </div>

@@ -31,6 +31,26 @@ describe("ApprovedTodayList", () => {
     vi.setSystemTime(new Date("2026-07-29T02:00:00.000Z"))
   })
 
+  it("starts collapsed with a native keyboard-operable summary and count", () => {
+    const html = renderToStaticMarkup(<ApprovedTodayList intakes={[clinicianRow]} />)
+    expect(html).toMatch(/<details[^>]*data-approved-today/)
+    expect(html).not.toMatch(/<details[^>]* open/)
+    expect(html).toMatch(/<summary[^>]*>[\s\S]*Approved today[\s\S]*1[\s\S]*<\/summary>/)
+  })
+
+  it("keeps unavailable history visible even without approvals", () => {
+    const html = renderToStaticMarkup(<ApprovedTodayList intakes={[]} historyDegraded />)
+    expect(html).toContain("Approval history unavailable")
+    expect(html).not.toContain("0 yours")
+  })
+
+  it("labels partial degraded rows without claiming a complete count", () => {
+    const html = renderToStaticMarkup(<ApprovedTodayList intakes={[clinicianRow]} historyDegraded />)
+    expect(html).toContain("Latest approvals")
+    expect(html).toContain("1 shown")
+    expect(html).toContain("History may be incomplete")
+  })
+
   it("renders the day's approvals with the decision timestamp", () => {
     const html = renderToStaticMarkup(<ApprovedTodayList intakes={[clinicianRow]} />)
 

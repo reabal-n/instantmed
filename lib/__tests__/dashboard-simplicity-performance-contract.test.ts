@@ -150,9 +150,9 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     const userCardSource = read("components/uix/user-card.tsx")
 
     expect(dashboardPageSource).toContain("QueuePressureSignal")
-    expect(dashboardPageSource).toContain("data-dashboard-wait-strip")
-    expect(dashboardPageSource).toContain('"hidden flex-none items-center gap-2 2xl:flex"')
-    expect(dashboardPageSource).toContain("showHeaderOperationalSummary")
+    expect(dashboardPageSource).toContain("data-operational-wait")
+    expect(dashboardPageSource).toContain('aria-label="Operational summary"')
+    expect(dashboardPageSource).toContain("controls={(")
     expect(dashboardPageSource).toContain("data-dashboard-median-tile")
     expect(dashboardPageSource).toContain("Median time to inbox")
     expect(queuePressureSource).toContain("Target: under 2h")
@@ -235,7 +235,7 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(dashboardPageSource).toContain(
       "const globalWaitingCaseCount = queueResult.globalStatusCounts?.all ?? null"
     )
-    expect(dashboardPageSource).toContain("waitingCaseCount={globalWaitingCaseCount ?? 0}")
+    expect(dashboardPageSource).toContain("waitingCaseCount={globalWaitingCaseCount}")
     expect(dashboardPageSource).not.toContain("waitingCaseCount={queueResult.total}")
     expect(read("lib/doctor/queue-pressure.ts")).toContain("No one waiting")
     expect(queueClientSource).not.toContain("Open it from the row")
@@ -326,7 +326,8 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(operatorPageSource).toContain('mode?: "idle" | "reviewing" | "dense"')
     expect(operatorPageSource).toContain("cubic-bezier(0.16,1,0.3,1)")
     expect(operatorPageSource).not.toContain("transition-[grid-template-columns]")
-    expect(queueTableSource).toContain("min-w-fit whitespace-nowrap")
+    expect(queueTableSource).toContain("data-queue-request")
+    expect(queueTableSource).toContain("data-queue-next-task")
     expect(queueTableSource).toContain("showInlineWaitTime")
     expect(queueTableSource).toContain("showInlineWaitTime = true")
     expect(queueTableSource).toContain("displayWaitLabel")

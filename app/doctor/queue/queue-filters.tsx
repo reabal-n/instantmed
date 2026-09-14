@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowRight, Keyboard, RefreshCw, Search, X } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { type ReactNode, useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,6 +42,7 @@ const pressureClasses: Record<QueuePressureSeverity, { root: string; dot: string
 }
 
 export interface QueueFiltersProps {
+  controls?: ReactNode
   searchQuery: string
   onSearchChange: (value: string) => void
   onRefresh: () => void
@@ -69,6 +70,7 @@ export interface QueueFiltersProps {
 }
 
 export function QueueFilters({
+  controls,
   searchQuery,
   onSearchChange,
   onRefresh,
@@ -161,7 +163,7 @@ export function QueueFilters({
   return (
     <>
       {/* Header + Search */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between" data-testid="queue-header">
+      <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between" data-testid="queue-header">
         <div className="min-w-0">
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
             <h2
@@ -194,8 +196,8 @@ export function QueueFilters({
             )}
           </div>
         </div>
-        <div className="flex w-full flex-col items-stretch gap-1 sm:w-auto sm:items-end">
-          <div className="flex w-full items-center gap-2 sm:w-auto">
+        <div className="flex w-full flex-col items-stretch gap-1 xl:w-auto xl:items-end">
+          <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto">
             {showNextCaseAction ? (
               <Button
                 type="button"
@@ -208,7 +210,7 @@ export function QueueFilters({
                 <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             ) : null}
-            <div className="relative flex flex-1 items-center sm:flex-none">
+            <div className="relative flex min-w-40 flex-1 items-center">
               <Input
                 ref={searchRef}
                 aria-label="Search active requests"
@@ -294,6 +296,7 @@ export function QueueFilters({
             >
               <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
             </Button>
+            {controls}
           </div>
           {(hasActiveSearch || showRefreshReceipt) && (
             <p

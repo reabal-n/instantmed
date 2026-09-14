@@ -351,10 +351,7 @@ export function QueueTable({
             const waitTargetState = getWaitTargetState(queueEnteredAt)
             const showWaitTarget = waitTargetState.tone !== "normal"
             const compactTaxonomyChipClass = "border-border/60 bg-background text-muted-foreground"
-            const compactActionChipClass =
-              intake.status === "pending_info"
-                ? "border-warning-border bg-warning-light text-warning"
-                : "border-primary/25 bg-primary/[0.06] text-primary shadow-none dark:border-primary/35 dark:bg-primary/15 dark:text-primary"
+
             return (
               <div
                 key={intake.id}
@@ -395,9 +392,7 @@ export function QueueTable({
                     name={patientSnapshot.name}
                     highlight={plainSearchHighlight}
                     description={
-                      compactShell
-                        ? undefined
-                        : patientSnapshot.age != null ? `${patientSnapshot.age}y` : "DOB missing"
+                      patientSnapshot.age != null ? `${patientSnapshot.age}y` : "DOB missing"
                     }
                     size="sm"
                     className={cn(compactShell && isOpen && "opacity-60")}
@@ -409,29 +404,23 @@ export function QueueTable({
                   "col-span-2 col-start-1 row-start-2 flex min-w-0 flex-wrap items-center gap-1.5 sm:col-span-1 sm:col-start-2 sm:row-start-1",
                   compactShell && "sm:col-span-2 sm:col-start-1 sm:row-start-2",
                 )}>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-xs",
-                      compactShell && `min-w-fit whitespace-nowrap ${compactTaxonomyChipClass}`,
-                    )}
-                    data-queue-taxonomy-chip
-                  >
-                    {serviceBadgeLabel}
-                  </Badge>
                   {compactShell ? (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "min-w-fit whitespace-nowrap text-xs font-semibold",
-                        compactActionChipClass,
-                      )}
-                      aria-label={`Next action: ${nextActionLabel}`}
-                      title={`Next action: ${nextActionLabel}`}
-                      data-queue-action-chip
-                    >
-                      {nextActionLabel}
+                    <span className="basis-full text-sm font-medium text-foreground" data-queue-request>
+                      {serviceBadgeLabel}
+                    </span>
+                  ) : (
+                    <Badge variant="outline" className={cn("text-xs", compactTaxonomyChipClass)} data-queue-taxonomy-chip>
+                      {serviceBadgeLabel}
                     </Badge>
+                  )}
+                  {compactShell ? (
+                    <span
+                      className={cn("basis-full text-xs", intake.status === "pending_info" ? "text-warning" : "text-muted-foreground")}
+                      aria-label={`Next action: ${nextActionLabel}`}
+                      data-queue-next-task
+                    >
+                      Next: {nextActionLabel}
+                    </span>
                   ) : null}
                   {showRoutineStatus && (
                     <Badge
@@ -452,7 +441,7 @@ export function QueueTable({
                   ) : null}
                   {intake.is_priority && (
                     <Badge className="bg-warning-light text-warning border-warning-border">
-                      <Zap className="w-3 h-3 mr-1" />Priority
+                      <Zap className="w-3 h-3 mr-1" />Priority review
                     </Badge>
                   )}
                   <QueueClinicalStatusBadges
@@ -502,26 +491,26 @@ export function QueueTable({
                       the visual layer that prevents wasted clicks. */}
                   {claimedByOther && (
                     <Badge
-                      variant={compactShell ? "default" : "outline"}
+                      variant="outline"
                       className={cn(
                         "text-xs",
                         compactShell
-                          ? "border-warning bg-warning text-white dark:border-warning/40 dark:bg-warning/20 dark:text-warning"
+                          ? "border-border/70 bg-muted/50 text-muted-foreground"
                           : "border-warning-border bg-warning-light text-warning",
                       )}
+                      data-queue-ownership="other"
                       title={`${claimantName ?? "Another doctor"} is reviewing this case. The DB lock will release after 10 minutes of inactivity.`}
                       data-queue-status-chip
                     >
                       <Eye className="h-3 w-3 mr-1" />
-                      {compactShell
-                        ? (claimantName ?? "Reviewing")
-                        : `Reviewing: ${claimantName ?? "Another doctor"}`}
+                      Reviewing: {claimantName ?? "Another doctor"}
                     </Badge>
                   )}
                   {claimedByMe && (
                     <Badge
                       variant="outline"
                       className="border-primary/30 bg-primary/10 text-xs text-primary"
+                      data-queue-ownership="you"
                       title="You're holding the review claim on this case."
                       aria-label="Reviewing: you. You hold the active review claim on this case."
                       data-queue-status-chip

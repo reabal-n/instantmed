@@ -85,13 +85,20 @@ describe("test-data toggle contract", () => {
     expect(source).toContain("isAdmin && params.showTestData === \"1\"")
     expect(source).toContain('process.env.PLAYWRIGHT === "1"')
     // Toggle button + banner both wired.
-    expect(source).toContain("TestDataToggleButton")
+    expect(source).toContain("TestDataAdminMenu")
     expect(source).toContain("TestDataBanner")
     // The queue fetch receives the allowSeeded flag.
     expect(source).toContain("allowSeeded: showTestData")
     expect(source).toContain("onlySeeded: onlyTestData")
     expect(source).toContain("!onlyTestData ? <SystemHealthPill")
-    expect(source).toContain("isAdmin && !onlyTestData ? <TestDataToggleButton")
+    expect(source).toContain("isAdmin && !onlyTestData ? <TestDataAdminMenu")
+  })
+
+  it("labels admin tools and never claims mixed test data hides real patients", () => {
+    const source = read("components/operator/test-data-banner.tsx")
+    expect(source).toContain('aria-label="Admin menu"')
+    expect(source).toContain("Test patients are included.")
+    expect(source).not.toContain("Real patients are hidden.")
   })
 
   it("test-data toggle UI preserves the rest of the query string", () => {
