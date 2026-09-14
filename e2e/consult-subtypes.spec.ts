@@ -414,7 +414,10 @@ test.describe("Consult Sub-Services", () => {
     await expect(page.locator("[data-coming-soon-strip='true']")).toHaveCount(0)
   })
 
-  test("weight management flow: assessment screens, honest BMI hint, review shows $89.95", async ({ page }) => {
+  test("weight management flow: assessment screens, honest BMI hint, review shows $89.95", async ({ page }, testInfo) => {
+    const errors = collectBrowserErrors(page)
+    await page.setViewportSize({ width: 390, height: 900 })
+    await page.emulateMedia({ colorScheme: "light" })
     await page.goto("/request?service=consult&subtype=weight_loss")
     await waitForPageLoad(page)
 
@@ -443,10 +446,21 @@ test.describe("Consult Sub-Services", () => {
     await page.getByPlaceholder(/Describe what you hope to achieve/i)
       .fill("Lose weight steadily for long-term health and better energy.")
 
-    await page.getByRole("button", { name: /^Continue$/i }).first().click()
-
-    // Medical history step follows (the common consult tail).
-    await expect(page.getByText(/Any allergies/i)).toBeVisible({ timeout: 15000 })
+    await clickContinue(page)
+    await completeConsultMedicalHistory(page)
+    await completeConsultDetailsWithTestMedicare(page, "Male")
+    await expect(page.getByText(/One last check/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText("Total today")).toBeVisible()
+    await expect(page.getByText("$89.95").first()).toBeVisible()
+    await page.locator("#safety-consent").click()
+    const pay = page.locator('[data-intake-mobile-action-bar="true"]')
+      .getByRole("button", { name: "Pay $89.95", exact: true })
+    await expect(pay).toBeVisible()
+    await expect(pay).toHaveAttribute("data-intake-mobile-action-ready", "true")
+    await expect(pay).toBeEnabled()
+    await page.screenshot({ path: testInfo.outputPath("weight-review-price.png"), fullPage: true })
+    expect(errors).toEqual([])
+    // Stop before payment: no Stripe session or provider delivery is attempted.
   })
 
   for (const { intent, selectedLabel, neutralLabel } of [

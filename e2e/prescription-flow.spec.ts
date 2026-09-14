@@ -738,6 +738,65 @@ test.describe("Prescription: dedicated-service routing", () => {
   const steerCta = /Continue in Erectile Dysfunction/i
   const keepAsRepeat = /keep as repeat/i
 
+  for (const appearance of [
+    { name: "mobile-light", viewport: { width: 390, height: 900 }, colorScheme: "light" },
+    { name: "desktop-dark", viewport: { width: 1280, height: 900 }, colorScheme: "dark" },
+  ] as const) {
+    for (const medicine of ["Mounjaro", "Monjaro", "Wegovy", "Ozempic", "Duromine"]) {
+      test(`weight medicine ${medicine} hard-routes in ${appearance.name}`, async ({ page }, testInfo) => {
+        const errors = collectBrowserErrors(page)
+        await page.setViewportSize(appearance.viewport)
+        await page.emulateMedia({ colorScheme: appearance.colorScheme })
+        await page.addInitScript((theme) => localStorage.setItem("theme", theme), appearance.colorScheme)
+        await page.goto("/request?service=repeat-script")
+        await waitForPageLoad(page)
+        await dismissOverlays(page)
+        await waitForStep(page, /Your medication/i)
+        await expect(page.locator("html")).toHaveClass(new RegExp(appearance.colorScheme))
+
+        await page.locator("#medication-name-0").fill(medicine)
+        const alert = page.getByRole("alert").filter({ hasText: /Weight Management has a dedicated service/i })
+        await expect(alert).toBeVisible()
+        await expect(page.getByRole("button", { name: /keep as repeat/i })).toHaveCount(0)
+        await expect(page.getByText(/What do you take this medicine for/i)).toHaveCount(0)
+        await expect(page.getByRole("radio", { name: /Type 2 diabetes/i })).toHaveCount(0)
+        if (medicine === "Duromine") {
+          await expect(alert).toContainText("not offered through this service")
+        }
+
+        // Fill every ordinary requirement so the medicine route alone blocks advance.
+        await page.locator("#medication-strength-0").fill("5 mg")
+        await clickChip(page, /Within 12 months/i)
+        await enterRegimen(page)
+        await confirmUnchangedRegimen(page)
+        await page.getByPlaceholder(/e\.g\. asthma/i).fill("type 2 diabetes")
+        await confirmNoSideEffects(page)
+        const action = appearance.colorScheme === "light"
+          ? page.locator('[data-intake-mobile-action-bar="true"]').getByRole("button", { name: "Continue", exact: true })
+          : page.locator('[data-intake-primary-action="true"]').last()
+        await expect(action).toHaveAttribute(
+          appearance.viewport.width < 640 ? "data-intake-mobile-action-ready" : "data-intake-primary-ready",
+          "false",
+        )
+        await action.click()
+        await expect(page.locator("#medication-name-0")).toBeVisible()
+        await expect(page.getByText(/Anything the doctor should know/i)).toHaveCount(0)
+        if (medicine === "Duromine") {
+          await expect(page.getByText(/This medicine is prescribed through/i)).toHaveCount(0)
+        }
+        await alert.scrollIntoViewIfNeeded()
+        await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+        await page.screenshot({ path: testInfo.outputPath("weight-steer.png"), fullPage: false })
+
+        await page.getByRole("button", { name: /Continue in Weight Management/i }).click()
+        await expect(page).toHaveURL(/service=consult&subtype=weight_loss.*from=repeat-steer/)
+        await expect(page.getByText(/Current weight/i)).toBeVisible({ timeout: 15000 })
+        await page.screenshot({ path: testInfo.outputPath("weight-assessment.png"), fullPage: false })
+        expect(errors).toEqual([])
+      })
+    }
+  }
+
   test("a PDE5 inhibitor hard-steers into the ED service with no escape", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
