@@ -14,6 +14,10 @@ const prescriptionE2ESource = readFileSync(
   join(process.cwd(), "e2e/doctor.prescription-ui.spec.ts"),
   "utf8",
 )
+const medCertReadinessSource = readFileSync(
+  join(process.cwd(), "scripts/check-medcert-readiness.sh"),
+  "utf8",
+)
 
 function classifyE2EScope(eventName: string, changedFiles: string[]): string {
   const result = spawnSync(
@@ -190,5 +194,37 @@ describe("CI workflow contract", () => {
     expect(medCertStep).not.toContain("continue-on-error")
     expect(paidStep).toContain("e2e/parchment-webhook.spec.ts")
     expect(paidStep).not.toContain("continue-on-error")
+  })
+
+  it("runs all seven selected cases once from the compiled browser lane", () => {
+    const selectorMatch = ciWorkflowSource.match(/PLAYWRIGHT_PRODUCTION_CASES: '([^']+)'/)
+    const expectedCases = [
+      "retains multi-section typing",
+      "shows request-versus-profile differences",
+      "advances certificate -> symptoms via the sticky bar only",
+      "renders ED FAQs before JavaScript",
+      "post-payment worker ignores a duplicate profile already merged into the current patient",
+      "shows an explicit empty saved-profile state without inventing differences",
+      "rejects request with missing signature header",
+    ]
+
+    expect(selectorMatch).not.toBeNull()
+    expect(selectorMatch?.[1].split("|")).toEqual(expectedCases)
+
+    const productionStepStart = ciWorkflowSource.indexOf("Run production browser regressions without retries")
+    const uploadStepStart = ciWorkflowSource.indexOf("Upload test results")
+    const productionStep = ciWorkflowSource.slice(productionStepStart, uploadStepStart)
+
+    expect(productionStepStart).toBeGreaterThan(-1)
+    expect(uploadStepStart).toBeGreaterThan(productionStepStart)
+    expect(productionStep).toContain("--retries=0")
+    expect(productionStep).toContain('--grep="$PLAYWRIGHT_PRODUCTION_CASES"')
+    expect(productionStep).toContain("e2e/medcert.auto-approval.spec.ts")
+    expect(productionStep).toContain("e2e/doctor.prescription-ui.spec.ts")
+    expect(productionStep).toContain("e2e/parchment-webhook.spec.ts")
+    expect(productionStep).toContain("PARCHMENT_WEBHOOK_SECRET: ${{ secrets.PARCHMENT_WEBHOOK_SECRET }}")
+    expect(productionStep).toContain("INTERNAL_API_SECRET: ${{ secrets.E2E_SECRET }}")
+    expect(medCertReadinessSource).toContain('PLAYWRIGHT_PRODUCTION_CASES')
+    expect(medCertReadinessSource).toContain('--grep-invert "$development_case_exclusions"')
   })
 })
