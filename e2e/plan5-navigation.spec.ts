@@ -109,6 +109,7 @@ for (const surface of ["queue", "requests"] as const) {
       } else {
         await review.getByRole("link", { name: /^Request record$/ }).click()
         await expect(page).toHaveURL(/\/intakes\//)
+        await expect(page.getByRole("region", { name: "Request packet" })).toBeVisible()
       }
       const recordUrl = page.url()
       await page.goBack()
@@ -138,6 +139,7 @@ for (const surface of ["queue", "requests"] as const) {
       await page.screenshot({ path: `${output}/${surface}-${destination}-returned.png` })
       await page.goForward()
       await expect(page).toHaveURL(recordUrl)
+      if (destination === "request") await expect(page.getByRole("region", { name: "Request packet" })).toBeVisible()
       await page.goBack()
       await expect(search).toHaveValue(query)
       if (surface === "requests") await expect(page).toHaveURL(/page=2/)
@@ -485,7 +487,7 @@ for (const surface of ["queue", "requests"] as const) {
     } finally { await page.unroute("**/*", reject) }
     const emptyQuery = `NoSuchSyntheticPatient${randomUUID().replaceAll("-", "")}`
     await search.fill(emptyQuery)
-    await expect(page.getByText(surface === "queue" ? "No matches for this filter" : "No matching requests", { exact: true }).first()).toBeVisible()
+    await expect(page.getByText(surface === "queue" ? "No matches for this filter" : "No matching requests", { exact: true }).and(page.locator(":visible"))).toBeVisible()
     await search.fill(query)
     if (surface === "queue") await expect(page.getByText("52 matches", { exact: true })).toBeVisible()
     else {
@@ -515,7 +517,8 @@ test("Requests clamps a vanished private last page and announces the removed sel
     const removedIds = await lastRows.evaluateAll(rows => rows.map(row => row.getAttribute("data-row-id")!))
     await lastRows.first().getByRole("link", { name: /^Open case / }).click()
     await page.getByTestId("intake-review-panel").getByRole("link", { name: "Request record", exact: true }).click()
-    await expect(page).toHaveURL(/\/doctor\/intakes\//)
+    await expect(page).toHaveURL(/\/admin\/intakes\//)
+    await expect(page.getByRole("region", { name: "Request packet" })).toBeVisible()
     expect((await db.from("intakes").update({ patient_id: patient }).in("id", removedIds)).error).toBeNull()
     await page.goBack()
     await expect(search).toHaveValue("E2E Last Page Patient")
@@ -620,7 +623,7 @@ test("a genuinely caught-up Queue retains collapsed actor and protocol history",
       expect(updated.error).toBeNull()
     }
     await page.goto("/dashboard?showTestData=1&onlyTestData=1")
-    await expect(page.getByText("All caught up.", { exact: true })).toBeVisible()
+    await expect(page.getByText("All caught up.", { exact: true }).and(page.locator(":visible"))).toBeVisible()
     await expect(page.locator('[data-testid^="queue-row-"]')).toHaveCount(0)
     const history = page.locator("[data-approved-today]:visible")
     await expect(history).toBeVisible()
