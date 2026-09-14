@@ -17,6 +17,7 @@ const operator = "e2e00000-0000-0000-0000-000000000001"
 const patient = "e2e00000-0000-0000-0000-000000000002"
 const query = "E2E Navigation Patient"
 const intakeIds: string[] = []
+const privateLeaks = new WeakMap<Page, string[]>()
 const output = "output/plan5-navigation/after"
 test.describe.configure({ mode: "default" })
 
@@ -46,11 +47,22 @@ test.afterAll(async () => {
   expect(count).toBe(0)
 })
 test.beforeEach(async ({ page }) => {
+  const leaks: string[] = []
+  privateLeaks.set(page, leaks)
+  page.on("request", request => {
+    const privateValues = [query, "E2E Last Page Patient"]
+    const decodedUrl = decodeURIComponent(request.url())
+    const referer = decodeURIComponent(request.headers().referer ?? "")
+    if (privateValues.some(value => decodedUrl.includes(value))) leaks.push("private query in request URL")
+    if (privateValues.some(value => referer.includes(value))) leaks.push("private query in referrer")
+    if (/posthog|sentry|google-analytics|vercel-insights/i.test(request.url()) && privateValues.some(value => (request.postData() ?? "").includes(value))) leaks.push("private query in telemetry body")
+  })
   const login = await loginAsOperator(page)
   expect(login.success, login.error).toBe(true)
   await page.setViewportSize({ width: 1440, height: 900 })
 })
 test.afterEach(async ({ page }) => {
+  expect(privateLeaks.get(page) ?? [], "Private searches stay out of URLs, referrers and telemetry").toEqual([])
   await logoutTestUser(page)
 })
 
@@ -64,10 +76,11 @@ for (const surface of ["queue", "requests"] as const) {
       const typedQuery = destination === "patient" ? `  ${query}!!!  ` : query
       const initialSearch = page.waitForResponse(response => response.request().method() === "POST" && Boolean(response.request().headers()["next-action"]) && (response.request().postData() ?? "").includes(query))
       await search.fill(typedQuery)
-      await (await initialSearch).finished()
+      await initialSearch
       const row = surface === "queue" ? page.locator('[data-testid^="queue-row-"]').first() : page.getByRole("link", { name: /^Open case / }).first()
       await expect(row).toBeVisible()
       if (surface === "queue") await expect(page.getByText("52 matches", { exact: true })).toBeVisible()
+      else await expect(page.getByText("Searching ledger…", { exact: true })).toBeHidden()
       if (surface === "requests") {
         await page.getByRole("button", { name: /^Next/ }).click()
         await expect(page).toHaveURL(/page=2/)
@@ -109,6 +122,7 @@ for (const surface of ["queue", "requests"] as const) {
       expect(privateStorage).not.toContain(query)
       expect(page.url()).not.toContain(encodeURIComponent(query))
       expect(new URL(page.url()).searchParams.has("q")).toBe(false)
+      expect(await page.locator("a[href]").evaluateAll(links => links.map(link => decodeURIComponent((link as HTMLAnchorElement).href)).join("\n"))).not.toContain(query)
       const returnedQuery = await search.inputValue()
       await writeFile(`${output}/${surface}-${destination}.json`, JSON.stringify({ surface, destination, returnedQuery, url: page.url(), expectedQuery: query, lostPrivateSearch: returnedQuery !== query }, null, 2))
       expect(returnedQuery, "Return retains the private search in current authenticated memory").toBe(query)
@@ -116,7 +130,7 @@ for (const surface of ["queue", "requests"] as const) {
         await expect(review).toBeVisible({ timeout: 30_000 })
         await expect(review.getByRole("link", { name: "Request record", exact: true })).toHaveAttribute("href", selectedRecordHref!)
       } else {
-        const restoredRow = page.locator(`[data-row-id="${selectedRecordHref!.split("/").pop()}"]`)
+        const restoredRow = page.locator(`[data-row-id="${selectedRecordHref!.split("/").pop()}"]:visible`)
         await expect(restoredRow).toHaveAttribute("data-selected", "true")
         await expect(restoredRow.getByRole("link", { name: /^Open case / })).toBeFocused()
       }
@@ -134,12 +148,12 @@ for (const surface of ["queue", "requests"] as const) {
         await expect(review).toBeVisible({ timeout: 30_000 })
         await expect(review.getByRole("link", { name: "Request record", exact: true })).toHaveAttribute("href", selectedRecordHref!)
       } else {
-        const restoredRow = page.locator(`[data-row-id="${selectedRecordHref!.split("/").pop()}"]`)
+        const restoredRow = page.locator(`[data-row-id="${selectedRecordHref!.split("/").pop()}"]:visible`)
         await expect(restoredRow).toHaveAttribute("data-selected", "true")
         await expect(restoredRow.getByRole("link", { name: /^Open case / })).toBeFocused()
       }
       if (surface === "requests") {
-        await page.locator(`[data-row-id="${selectedRecordHref!.split("/").pop()}"]`).getByRole("link", { name: /^Open case / }).click()
+        await page.locator(`[data-row-id="${selectedRecordHref!.split("/").pop()}"]:visible`).getByRole("link", { name: /^Open case / }).click()
         await expect(review.getByRole("link", { name: "Request record", exact: true })).toHaveAttribute("href", selectedRecordHref!)
       }
     })
@@ -194,8 +208,19 @@ for (const viewport of [{ width: 1366, height: 768 }, { width: 1440, height: 900
 
 
 test("failed note saves retain the draft across record links, rows, list switching and browser Back", async ({ page }) => {
+  await page.addInitScript(() => {
+    const snapshots: { label: string; path: string; index: unknown }[] = []
+    Object.assign(window, { __plan5History: snapshots })
+    addEventListener("popstate", event => snapshots.push({ label: "popstate", path: location.pathname, index: event.state?.__imStaffHistoryIndex }))
+  })
+  const captureHistory = (label: string) => page.evaluate(label => {
+    const snapshots = (window as unknown as { __plan5History: unknown[] }).__plan5History
+    snapshots.push({ label, path: location.pathname, index: history.state?.__imStaffHistoryIndex })
+  }, label)
   await page.goto("/admin/intakes?pageSize=10")
+  await captureHistory("Requests before Queue navigation")
   await page.locator('a[href="/dashboard"]:visible').first().click()
+  await captureHistory("after Queue navigation click")
   const row = page.locator('[data-testid^="queue-row-"]').first()
   await row.getByRole("button", { name: /^Open case for/ }).click()
   const panel = page.getByTestId("intake-review-panel")
@@ -228,6 +253,7 @@ test("failed note saves retain the draft across record links, rows, list switchi
       () => page.evaluate(() => history.back()),
     ]) {
       const before = denied
+      await captureHistory(`before leave attempt ${before}`)
       await leave()
       await expect.poll(() => denied).toBeGreaterThan(before)
       await expect(page).toHaveURL(origin)
@@ -235,7 +261,10 @@ test("failed note saves retain the draft across record links, rows, list switchi
       await expect(record).toHaveAttribute("href", href!)
       await expect(panel.getByText("Save failed", { exact: true })).toBeVisible()
     }
-  } finally { await page.unroute("**/*", reject) }
+  } finally {
+    await writeFile(`${output}/denied-note-history.json`, JSON.stringify(await page.evaluate(() => (window as unknown as { __plan5History: unknown[] }).__plan5History), null, 2))
+    await page.unroute("**/*", reject)
+  }
   await panel.getByRole("button", { name: /Retry save/ }).click()
   await expect(panel.getByText("Saved", { exact: true }).first()).toBeVisible()
 })
@@ -245,7 +274,7 @@ test("contextual return retains search but a hard reload clears private memory",
   const search = page.getByRole("textbox", { name: "Search active requests" })
   const searched = page.waitForResponse(response => response.request().method() === "POST" && (response.request().postData() ?? "").includes(query))
   await search.fill(query)
-  await (await searched).finished()
+  await searched
   await expect(page.getByText("52 matches", { exact: true })).toBeVisible()
   await page.locator('[data-testid^="queue-row-"]').first().getByRole("button", { name: /^Open case for/ }).click()
   const panel = page.getByTestId("intake-review-panel")
@@ -306,27 +335,30 @@ test("a removed selection announces the changed view and focuses the list headin
   }
 })
 
-test("another doctor's active claim remains locked when opening its exact queue row", async ({ page }) => {
+test("another doctor's active claim remains locked on an exact doctor record", async ({ page }) => {
   const id = intakeIds[0]
-  const doctor = "e2e00000-0000-0000-0000-000000000003"
-  const claim = await db.from("intakes").update({ claimed_by: doctor, claimed_at: new Date().toISOString() }).eq("id", id)
+  const claim = await db.from("intakes").update({ claimed_by: operator, claimed_at: new Date().toISOString() }).eq("id", id)
   expect(claim.error).toBeNull()
   try {
-    await page.goto("/dashboard?showTestData=1&onlyTestData=1")
-    await page.getByTestId(`queue-row-${id}`).getByRole("button", { name: /^Open case for/ }).click()
-    const panel = page.getByTestId("intake-review-panel")
-    await expect(panel.getByText(/is reviewing|Already claimed by/i).first()).toBeVisible({ timeout: 30_000 })
+    expect((await loginAsDoctor(page)).success).toBe(true)
+    await page.goto(`/doctor/intakes/${id}`)
+    await expect(page.getByRole("region", { name: "Request packet" })).toBeVisible()
+    await expect(page.getByText(/(?:claimed|reviewed|locked).*another doctor|another doctor.*(?:claim|review)/i).first()).toBeVisible()
     const result = await db.from("intakes").select("claimed_by").eq("id", id).single()
     expect(result.error).toBeNull()
-    expect(result.data?.claimed_by).toBe(doctor)
-    await expect(panel.getByRole("button", { name: /Approve certificate|Complete request/ }).first()).toBeDisabled()
+    expect(result.data?.claimed_by).toBe(operator)
+    await expect(page.getByRole("button", { name: "Approve certificate", exact: true })).toBeDisabled()
   } finally {
     const release = await db.from("intakes").update({ claimed_by: null, claimed_at: null }).eq("id", id)
     expect(release.error).toBeNull()
   }
 })
 
-test("an actual SDK account switch discards the old protected document and private search", async ({ page, context }) => {
+test("an actual SDK account switch discards the old protected document and private search", async ({ browser }) => {
+  // Production CSP intentionally excludes local Supabase. Only this owned local
+  // SDK-session test bypasses CSP; it does not verify production CSP behavior.
+  const context = await browser.newContext({ baseURL: process.env.PLAYWRIGHT_BASE_URL, bypassCSP: true })
+  const page = await context.newPage()
   const accounts: { id: string; email: string; password: string }[] = []
   const tokens: string[] = []
   const sibling = await context.newPage()
@@ -359,7 +391,7 @@ test("an actual SDK account switch discards the old protected document and priva
     const search = page.getByRole("textbox", { name: "Search active requests" })
     const response = page.waitForResponse(result => result.request().method() === "POST" && (result.request().postData() ?? "").includes(query))
     await search.fill(query)
-    await (await response).finished()
+    await response
     await expect(search).toHaveValue(query)
     let freshDocuments = 0
     page.on("request", request => { if (request.isNavigationRequest() && request.frame() === page.mainFrame()) freshDocuments++ })
@@ -379,6 +411,7 @@ test("an actual SDK account switch discards the old protected document and priva
       const user = await db.auth.admin.deleteUser(account.id)
       expect(user.error).toBeNull()
     }
+    await context.close()
   }
 })
 
@@ -396,6 +429,7 @@ test("Queue return restores nonzero internal scroll and the exact initiating act
   })
   expect(scrollBefore).toBeGreaterThan(0)
   await page.getByTestId("intake-review-panel").getByRole("link", { name: "Request record", exact: true }).click()
+  await expect(page).toHaveURL(new RegExp(`/doctor/intakes/${id}$`))
   await page.goBack()
   const returnedRow = page.getByTestId(`queue-row-${id}`)
   await expect(returnedRow.getByRole("button", { name: /^Open case for/ })).toBeFocused({ timeout: 30_000 })
@@ -413,11 +447,16 @@ test("pending private search blocks pointer pagination and keyboard case actions
   let release!: () => void
   const held = new Promise<void>(resolve => { release = resolve })
   let started = false
+  let continued!: () => void
+  const completedRoute = new Promise<void>(resolve => { continued = resolve })
   const holdSearch = async (route: Route) => {
     const request = route.request()
     if (request.method() === "POST" && request.headers()["next-action"] && (request.postData() ?? "").includes(query)) {
       started = true
       await held
+      await route.continue()
+      continued()
+      return
     }
     await route.continue()
   }
@@ -433,6 +472,7 @@ test("pending private search blocks pointer pagination and keyboard case actions
     await expect(page.getByRole("button", { name: "Page 1", exact: true })).toHaveAttribute("aria-current", "page")
   } finally {
     release()
+    if (started) await completedRoute
     await page.unroute("**/*", holdSearch)
   }
   await expect(page.getByText("52 matches", { exact: true })).toBeVisible({ timeout: 30_000 })
@@ -452,7 +492,7 @@ test("Approved today starts collapsed and separates current actor and protocol h
       expect(updated.error).toBeNull()
     }
     await page.goto("/dashboard?showTestData=1&onlyTestData=1")
-    const history = page.locator("[data-approved-today]")
+    const history = page.locator("[data-approved-today]:visible")
     await expect(history).toBeVisible()
     await expect(history).not.toHaveAttribute("open", "")
     const summary = history.locator("summary")
@@ -469,4 +509,141 @@ test("Approved today starts collapsed and separates current actor and protocol h
     // Exact run-owned IDs are removed by the suite's audited child-first teardown.
     await page.goto("/admin/intakes?pageSize=10")
   }
+})
+
+for (const surface of ["queue", "requests"] as const) {
+  test(`${surface} distinguishes failed search, empty search and recovered results`, async ({ page }) => {
+    await page.goto(surface === "queue" ? "/dashboard?showTestData=1&onlyTestData=1" : "/admin/intakes?pageSize=10")
+    const search = surface === "queue" ? page.getByRole("textbox", { name: "Search active requests" }) : page.getByRole("searchbox", { name: "Search cases" })
+    const reject = async (route: Route) => {
+      const request = route.request()
+      if (request.method() === "POST" && request.headers()["next-action"] && (request.postData() ?? "").includes(query)) await route.abort("failed")
+      else await route.continue()
+    }
+    await page.route("**/*", reject)
+    try {
+      await search.fill(query)
+      await expect(page.getByText(surface === "queue" ? "Search unavailable" : "Some ledger evidence could not be read. Visible rows are preserved, but totals may be unavailable.", { exact: true }).first()).toBeVisible()
+      await expect(page.getByTestId("intake-review-panel")).toBeHidden()
+    } finally { await page.unroute("**/*", reject) }
+    const emptyQuery = `NoSuchSyntheticPatient${randomUUID().replaceAll("-", "")}`
+    await search.fill(emptyQuery)
+    await expect(page.getByText(surface === "queue" ? "No matches for this filter" : "No matching requests", { exact: true }).first()).toBeVisible()
+    await search.fill(query)
+    if (surface === "queue") await expect(page.getByText("52 matches", { exact: true })).toBeVisible()
+    else {
+      await expect(page.getByRole("link", { name: /^Open case / }).first()).toBeVisible()
+      await expect(page.getByText("Searching ledger…", { exact: true })).toBeHidden()
+    }
+  })
+}
+
+test("Requests clamps a vanished private last page and announces the removed selected record", async ({ page }) => {
+  const lastPagePatient = randomUUID()
+  const owned = intakeIds.slice(0, 12)
+  const profile = await db.from("profiles").insert({ id: lastPagePatient, referral_code: `NAV${randomUUID().slice(0, 8)}`, role: "patient", full_name: "E2E Last Page Patient", email: `last-page-${lastPagePatient}@example.test` })
+  expect(profile.error).toBeNull()
+  try {
+    expect((await db.from("intakes").update({ patient_id: lastPagePatient }).in("id", owned)).error).toBeNull()
+    await page.goto("/admin/intakes?pageSize=10")
+    const search = page.getByRole("searchbox", { name: "Search cases" })
+    const searched = page.waitForResponse(response => response.request().method() === "POST" && (response.request().postData() ?? "").includes("E2E Last Page Patient"))
+    await search.fill("E2E Last Page Patient")
+    await searched
+    await expect(page.getByText("Searching ledger…", { exact: true })).toBeHidden()
+    await page.getByRole("button", { name: /^Next/ }).click()
+    await expect(page).toHaveURL(/page=2/)
+    const lastRows = page.locator("[data-row-id]:visible")
+    await expect(lastRows).toHaveCount(2)
+    const removedIds = await lastRows.evaluateAll(rows => rows.map(row => row.getAttribute("data-row-id")!))
+    await lastRows.first().getByRole("link", { name: /^Open case / }).click()
+    await page.getByTestId("intake-review-panel").getByRole("link", { name: "Request record", exact: true }).click()
+    await expect(page).toHaveURL(/\/doctor\/intakes\//)
+    expect((await db.from("intakes").update({ patient_id: patient }).in("id", removedIds)).error).toBeNull()
+    await page.goBack()
+    await expect(search).toHaveValue("E2E Last Page Patient")
+    await expect(page.locator("[data-row-id]:visible")).toHaveCount(10)
+    await expect(page.getByRole("status").filter({ hasText: /previous request.*no longer/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Request ledger", exact: true })).toBeFocused()
+    await expect(page.getByRole("button", { name: /^Next/ })).toBeDisabled()
+  } finally {
+    expect((await db.from("intakes").update({ patient_id: patient }).in("id", owned)).error).toBeNull()
+    expect((await db.from("profiles").delete().eq("id", lastPagePatient)).error).toBeNull()
+  }
+})
+
+test("mobile full-record tabs and More retain a rejected note save", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const id = intakeIds[0]
+  await page.goto(`/doctor/intakes/${id}`)
+  await expect(page.getByRole("region", { name: "Request packet" })).toBeVisible()
+  const disclosure = page.getByRole("button", { name: /Draft note/ }).first()
+  if (await disclosure.getAttribute("aria-expanded") !== "true") await disclosure.click()
+  const note = page.getByRole("textbox", { name: /^Draft clinical note(?: Subjective)?$/ }).first()
+  const draft = "Synthetic mobile navigation note must remain recoverable."
+  const reject = async (route: Route) => {
+    const request = route.request()
+    if (request.method() === "POST" && request.headers()["next-action"] && (request.postData() ?? "").includes(id) && (request.postData() ?? "").includes(draft)) await route.abort("failed")
+    else await route.continue()
+  }
+  await page.route("**/*", reject)
+  try {
+    await note.fill(draft)
+    await expect(page.getByText("Save failed", { exact: true })).toBeVisible()
+    const origin = page.url()
+    await page.getByRole("button", { name: /^Queue(?:,.*)?$/ }).click()
+    await expect(page).toHaveURL(origin)
+    await expect(note).toHaveValue(draft)
+    await page.getByRole("button", { name: "More", exact: true }).click()
+    const more = page.getByRole("dialog", { name: "More navigation options" })
+    await more.getByRole("button", { name: "Operations", exact: true }).click()
+    await expect(more).toBeVisible()
+    await expect(page).toHaveURL(origin)
+    await expect(note).toHaveValue(draft)
+  } finally { await page.unroute("**/*", reject) }
+})
+
+test("Requests completion response failure retains the sheet and success closes it without a real clinical completion", async ({ page }) => {
+  const seeded = await seedTestIntake({ status: "awaiting_script", category: "prescription", claimed_by: operator })
+  expect(seeded.success, seeded.error).toBe(true)
+  const id = seeded.intakeId!
+  intakeIds.push(id)
+  expect((await db.from("profiles").update({ sex: "M" }).eq("id", patient)).error).toBeNull()
+  expect((await db.from("intakes").update({ doctor_notes: "Synthetic completed review note for response-boundary verification.", script_sent: true, script_sent_at: new Date().toISOString(), script_notes: "Record sent script: synthetic UI response fixture", parchment_reference: "E2E-NAV-MOCK" }).eq("id", id)).error).toBeNull()
+  expect((await db.from("intake_answers").insert({ intake_id: id, answers: { medicationName: "Atorvastatin", medicationStrength: "20 mg", medicationForm: "tablet", currentDose: "Take one tablet at night", prescriptionHistory: "Previously prescribed by regular GP", hasSideEffects: false, hasAllergies: false, hasConditions: false, hasOtherMedications: false, isPregnantOrBreastfeeding: "no", hasAdverseMedicationReactions: "no", doseChanged: false } })).error).toBeNull()
+  let succeed = false
+  let mockedCompletions = 0
+  const mockCompletion = async (route: Route) => {
+    const request = route.request()
+    if (request.method() !== "POST" || !request.headers()["next-action"] || !(request.postData() ?? "").includes(id)) return route.continue()
+    let args: unknown
+    try { args = request.postDataJSON() } catch { args = null }
+    if (Array.isArray(args) && args.length === 2 && args[0] === id && typeof args[1] === "string") return route.continue() // owned note save only
+    if (Array.isArray(args) && args.length === 1 && args[0] === id) {
+      mockedCompletions++
+      const result = succeed ? { success: true } : { success: false, error: "Synthetic completion refused" }
+      // Next Flight action envelope; no completion request reaches the server.
+      return route.fulfill({ status: 200, contentType: "text/x-component", body: `0:{"a":"$@1","f":[],"b":"e2e-response-boundary"}\n1:${JSON.stringify(result)}\n` })
+    }
+    return route.abort("failed")
+  }
+  await page.route("**/*", mockCompletion)
+  try {
+    await page.goto("/admin/intakes?pageSize=10")
+    await page.locator(`[data-row-id="${id}"]:visible`).getByRole("link", { name: /^Open case / }).click()
+    const panel = page.getByTestId("intake-review-panel")
+    const complete = panel.getByRole("button", { name: "Complete request", exact: true })
+    await expect(complete).toBeEnabled()
+    await complete.click()
+    await expect.poll(() => mockedCompletions).toBe(1)
+    await expect(page.getByText("Synthetic completion refused", { exact: true })).toBeVisible()
+    await expect(panel).toBeVisible()
+    succeed = true
+    await complete.click()
+    await expect.poll(() => mockedCompletions).toBe(2)
+    await expect(panel).toBeHidden()
+    const persisted = await db.from("intakes").select("status").eq("id", id).single()
+    expect(persisted.error).toBeNull()
+    expect(persisted.data?.status).toBe("awaiting_script")
+  } finally { await page.unroute("**/*", mockCompletion) }
 })
