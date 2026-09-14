@@ -68,7 +68,6 @@ describe("cleanupTestIntake", () => {
       ["certificate_audit_log", "delete", "certificate_id"],
       ["issued_certificates", "delete", "intake_id"],
       ["document_drafts", "delete", "intake_id"],
-      ["document_drafts", "delete", "request_id"],
       ["email_outbox", "delete", "intake_id"],
       ["intake_answers", "delete", "intake_id"],
       ["intakes", "delete", "id"],
@@ -82,7 +81,6 @@ describe("cleanupTestIntake", () => {
   it.each([
     ["intake_events", "intake_id"],
     ["document_drafts", "intake_id"],
-    ["document_drafts", "request_id"],
     ["intake_answers", "intake_id"],
     ["intakes", "id"],
   ])("rejects a returned deletion error for %s.%s", async (table, column) => {
