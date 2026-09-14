@@ -134,6 +134,3 @@ export function TestDataAdminMenu({ active }: { active: boolean }) {
     </Suspense>
   )
 }
-
-// Preserve the operator barrel export for existing consumers.
-export const TestDataToggleButton = TestDataAdminMenu

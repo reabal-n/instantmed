@@ -21,7 +21,7 @@ const values: Record<string, readonly string[]> = {
   chips: ADMIN_LEDGER_QUICK_FILTER_OPTIONS.map(option => option.value),
   showTestData: ['1'], onlyTestData: ['1'],
 }
-export function safeListHref(origin: ListOrigin, href: string): string {
+function safeListHref(origin: ListOrigin, href: string): string {
   const base = origin === 'queue' ? STAFF_DASHBOARD_HREF : STAFF_LEDGER_HREF
   if (!href.startsWith(`${base}?`) && href !== base && !href.startsWith(`${base}#`)) return base
   const input = new URL(href, 'https://navigation.invalid')
@@ -134,4 +134,16 @@ export function preserveStaffHistoryEntry(data: unknown, currentEntry: unknown, 
     : null
   const index = typeof existing === 'number' && Number.isSafeInteger(existing) ? existing : fallbackIndex
   return { ...(data && typeof data === 'object' ? data : {}), __imStaffHistoryIndex: index }
+}
+
+// State setters (including guarded async selection) do not change the current
+// React render. Keep the saved metadata until that selection actually renders.
+export function commitReturnedSelection(
+  selectedId: string | null,
+  renderedId: string | null,
+  select: (id: string | null) => unknown,
+): boolean {
+  if (selectedId === renderedId) return true
+  void select(selectedId)
+  return false
 }

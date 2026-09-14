@@ -17,7 +17,7 @@ interface NavigationContext {
 const Context = createContext<NavigationContext | null>(null)
 
 /** Navigation metadata only. Page-local authenticated reads still own every row. */
-export function StaffListNavigationProvider({ children, store, scope }: { children: ReactNode; store: ListReturnState; scope: string | null }) {
+function StaffListNavigationProvider({ children, store, scope }: { children: ReactNode; store: ListReturnState; scope: string | null }) {
   const guards = useRef(new Set<Guard>())
   const router = useRouter()
   const pathname = usePathname()

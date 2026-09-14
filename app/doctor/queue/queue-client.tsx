@@ -31,7 +31,7 @@ import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import { isEditableOrInteractiveKeyboardTarget } from "@/lib/hooks/use-doctor-shortcuts"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
-import { resolveReturnedSelection } from "@/lib/operator/cases/list-return-state"
+import { commitReturnedSelection, resolveReturnedSelection } from "@/lib/operator/cases/list-return-state"
 import { cn } from "@/lib/utils"
 import type {
   IntakeStatus,
@@ -748,6 +748,7 @@ export function QueueClient({
   // to the slide-over so the detail doesn't stack below the queue. In
   // legacy non-compact mode it always opens the slide-over.
   const openReviewPanel = useCallback(async (intakeId: string): Promise<void> => {
+    if (queueSearchPending) return
     if (!await selectReviewedIntake(intakeId)) return
 
     if (compactShell && isDesktop) {
@@ -804,18 +805,18 @@ export function QueueClient({
         />
       ),
     })
-  }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete, registerBeforeReviewLeave, selectReviewedIntake])
+  }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete, registerBeforeReviewLeave, selectReviewedIntake, queueSearchPending])
 
   useEffect(() => {
     const snapshot = pendingReturn.current
     if (snapshot && !snapshot.query && (initialIntakes === initialReturnRows.current || intakes !== initialIntakes)) return
     if (!snapshot || (snapshot.query && (queueSearchPending || committedSearchQuery !== snapshot.query))) return
-    pendingReturn.current = null
     const restored = resolveReturnedSelection(snapshot.selectedId, intakes.map(row => row.id))
+    if (!commitReturnedSelection(restored.selectedId, expandedId, id => id ? openReviewPanel(id) : selectReviewedIntake(null))) return
+    pendingReturn.current = null
     setReturnAnnouncement(visibleQueueDegraded ? "The list could not be refreshed. Retry before continuing." : restored.announcement)
-    if (restored.selectedId) void openReviewPanel(restored.selectedId)
     restoreListFocus(snapshot, Boolean(restored.selectedId), queueRegionRef.current)
-  }, [committedSearchQuery, initialIntakes, intakes, openReviewPanel, queueSearchPending, visibleQueueDegraded])
+  }, [committedSearchQuery, expandedId, initialIntakes, intakes, openReviewPanel, queueSearchPending, selectReviewedIntake, visibleQueueDegraded])
 
   useEffect(() => {
     if (pendingReturn.current) return
@@ -1235,7 +1236,7 @@ export function QueueClient({
                   doctorId={doctorId}
                   lastOpenedIntakeId={lastOpenedIntakeId}
                   onRememberOpenedCase={rememberOpenedCase}
-                  isPending={dialogs.isPending || isApprovePending}
+                  isPending={dialogs.isPending || isApprovePending || queueSearchPending}
                   identityComplete={identityComplete}
                   onApprove={handleApprove}
                   hasClinicalRisk={hasClinicalRisk}
@@ -1323,7 +1324,7 @@ export function QueueClient({
             doctorId={doctorId}
             lastOpenedIntakeId={lastOpenedIntakeId}
             onRememberOpenedCase={rememberOpenedCase}
-            isPending={dialogs.isPending || isApprovePending}
+            isPending={dialogs.isPending || isApprovePending || queueSearchPending}
             identityComplete={identityComplete}
             onApprove={handleApprove}
             hasClinicalRisk={hasClinicalRisk}

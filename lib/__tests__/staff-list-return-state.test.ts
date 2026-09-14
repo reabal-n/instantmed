@@ -1,14 +1,18 @@
 import { describe, expect, it } from 'vitest'
 
-import { createListReturnState, createSessionDocumentBoundary, resolveReturnedSelection,safeListHref, sessionScope, testSessionScope } from '@/lib/operator/cases/list-return-state'
+import { commitReturnedSelection, createListReturnState, createSessionDocumentBoundary, resolveReturnedSelection, sessionScope, testSessionScope } from '@/lib/operator/cases/list-return-state'
 
 const snapshot = { origin: 'queue' as const, href: '/dashboard?status=review&page=2&q=private', query: 'E2E Navigation Patient', page: 2, selectedId: 'request-a', focusId: 'queue-row-request-a', scrollTop: 30, windowY: 0 }
 const token = (id: string) => `a.${btoa(JSON.stringify({ session_id: id }))}.c`
 describe('staff list return intent', () => {
   it('keeps only safe public navigation values in copied URLs', () => {
-    expect(safeListHref('queue', snapshot.href)).toBe('/dashboard?status=review&page=2')
-    expect(safeListHref('queue', '//evil.test?q=private')).toBe('/dashboard')
-    expect(safeListHref('queue', '/dashboard?status=private&page=NaN&returnTo=https://evil.test')).toBe('/dashboard')
+    const state = createListReturnState(); state.setScope('a:s1')
+    state.write('a:s1', snapshot)
+    expect(state.read('a:s1', 'queue')?.href).toBe('/dashboard?status=review&page=2')
+    for (const href of ['//evil.test?q=private', '/dashboard?status=private&page=NaN&returnTo=https://evil.test']) {
+      state.write('a:s1', { ...snapshot, href, page: 1 })
+      expect(state.read('a:s1', 'queue')?.href).toBe('/dashboard')
+    }
   })
   it('retains same-session refresh and clears account changes and new logins', () => {
     const state = createListReturnState()
@@ -99,5 +103,23 @@ describe('session document authority', () => {
     sameAccount.observe('a:one'); sameAccount.observe('a:two'); expect(sameAccount.canRender()).toBe(false)
     const freshDocument = createSessionDocumentBoundary()
     freshDocument.observe('a:two'); expect(freshDocument.canRender()).toBe(true)
+  })
+})
+
+// A restored selection schedules React state; the old null render must not
+// overwrite authenticated return metadata before the new render commits.
+describe('return selection commit', () => {
+  it('retains the complete snapshot across the asynchronous null render', async () => {
+    const state = createListReturnState(); state.setScope('a:s1'); state.write('a:s1', snapshot)
+    let rendered: string | null = null
+    let requested: string | null = null
+    const select = async (id: string | null) => { await Promise.resolve(); requested = id }
+    if (commitReturnedSelection('request-a', rendered, select)) state.write('a:s1', { ...snapshot, selectedId: rendered })
+    expect(state.read('a:s1', 'queue')?.selectedId).toBe('request-a')
+    await Promise.resolve(); rendered = requested
+    expect(commitReturnedSelection('request-a', rendered, select)).toBe(true)
+  })
+  it('does not release the snapshot when selection is refused', () => {
+    expect(commitReturnedSelection('request-a', null, () => {})).toBe(false)
   })
 })

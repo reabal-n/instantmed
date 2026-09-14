@@ -341,6 +341,7 @@ export function QueueTable({
             const isReturning = returningPatientIds.has(intake.patient_id)
             const justArrived = newlyArrivedIds?.has(intake.id) ?? false
             const openCaseFromPrimaryAction = () => {
+              if (isPending) return
               rememberOpenedCase(intake.id)
               openReviewPanel(intake.id)
             }
@@ -376,6 +377,7 @@ export function QueueTable({
                   justArrived && "bg-primary/[0.035] ring-1 ring-inset ring-primary/20"
                 )}
                 onClick={() => {
+                  if (isPending) return
                   rememberOpenedCase(intake.id)
                   capture("doctor_case_opened", {
                     intake_id: intake.id,
@@ -836,22 +838,25 @@ export function QueueTable({
             {(currentPage - 1) * pagination.pageSize + 1} –{" "}
             {Math.min(currentPage * pagination.pageSize, pagination.total)} of {pagination.total}
           </div>
-          <Pagination
-            total={totalPages}
-            page={currentPage}
-            onChange={(page) => {
-              if (onPageChange) {
-                onPageChange(page)
-                return
-              }
-              const params = new URLSearchParams(window.location.search)
-              params.delete("q")
-              params.set("page", String(page))
-              router.push(`${baseHref}?${params.toString()}`)
-            }}
-            showControls
-            size="sm"
-          />
+          <fieldset disabled={isPending} className="min-w-0 border-0 p-0">
+            <Pagination
+              total={totalPages}
+              page={currentPage}
+              onChange={(page) => {
+                if (isPending) return
+                if (onPageChange) {
+                  onPageChange(page)
+                  return
+                }
+                const params = new URLSearchParams(window.location.search)
+                params.delete("q")
+                params.set("page", String(page))
+                router.push(`${baseHref}?${params.toString()}`)
+              }}
+              showControls
+              size="sm"
+            />
+          </fieldset>
         </div>
       )}
 

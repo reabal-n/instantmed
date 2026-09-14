@@ -675,3 +675,15 @@ describe("doctor queue production contract", () => {
     expect(intakeReviewPanelSource).toContain("actions.setInitialNotes(resolvedDraftNote, resolvedDraftNote, false)")
   })
 })
+
+
+describe('pending private search navigation', () => {
+  it('blocks pagination and row navigation until typed search and its response settle', () => {
+    const client = readFileSync(join(process.cwd(), 'app/doctor/queue/queue-client.tsx'), 'utf8')
+    const table = readFileSync(join(process.cwd(), 'app/doctor/queue/queue-table.tsx'), 'utf8')
+    expect(client).toContain('isPending={dialogs.isPending || isApprovePending || queueSearchPending}')
+    expect(client).toContain('if (queueSearchPending) return')
+    expect(table).toContain('<fieldset disabled={isPending}')
+    expect(table).toContain('if (isPending) return')
+  })
+})

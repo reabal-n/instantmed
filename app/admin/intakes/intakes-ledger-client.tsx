@@ -41,7 +41,7 @@ import {
 import { formatIntakeStatus } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import type { CaseRowAttribution } from "@/lib/operator/cases/case-attribution"
-import { resolveReturnedSelection } from "@/lib/operator/cases/list-return-state"
+import { commitReturnedSelection, resolveReturnedSelection } from "@/lib/operator/cases/list-return-state"
 import { getPaymentRecoveryIndicator } from "@/lib/operator/cases/payment-recovery-indicator"
 import {
   type CaseRowData,
@@ -574,12 +574,12 @@ export function AdminIntakesLedgerClient({
     const snapshot = pendingReturn.current
     if (snapshot && !snapshot.query && initialRows === initialReturnRows.current) return
     if (!snapshot || (snapshot.query && (isSearchPending || activeSearchView?.query !== snapshot.query))) return
-    pendingReturn.current = null
     const restored = resolveReturnedSelection(snapshot.selectedId, rows.map(row => row.id))
-    setSelectedRowId(restored.selectedId)
+    if (!commitReturnedSelection(restored.selectedId, selectedRowId, setSelectedRowId)) return
+    pendingReturn.current = null
     setReturnAnnouncement(degraded ? "The list could not be refreshed. Retry before continuing." : restored.announcement)
     restoreListFocus(snapshot, Boolean(restored.selectedId), document.querySelector<HTMLElement>("h1") ?? searchRef.current)
-  }, [activeSearchView, degraded, initialRows, isSearchPending, rows])
+  }, [activeSearchView, degraded, initialRows, isSearchPending, rows, selectedRowId])
 
   useEffect(() => {
     if (pendingReturn.current) return
