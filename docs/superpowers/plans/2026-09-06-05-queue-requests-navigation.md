@@ -10,7 +10,7 @@
 
 **Spec/design brief:** [ROADMAP](../../ROADMAP.md), rank 2; [DESIGN](../../../DESIGN.md); [staff operations](../../OPERATIONS.md); [Sessions 3](2026-09-06-03-concise-clinical-review.md) and [4](2026-09-06-04-parchment-prescribing-workspace.md).
 
-**Status:** Queue and Requests navigation is implemented on the isolated Plan 5 branch; local release checks and independent review pass; browser verification has remaining limits and the branch is for draft review. PR #561 is merged and included. No Plan 5 production release or owner acceptance is claimed.
+**Status:** Queue and Requests navigation is implemented on the isolated Plan 5 branch; local release checks pass and the focused browser blockers are addressed; final follow-up review and required CI own merge readiness. PR #561 is merged and included. No Plan 5 production release or owner acceptance is claimed.
 
 ## Later operator instruction — start now
 
@@ -191,3 +191,11 @@ The 26-case disposable production-built browser run passed 22 cases, including f
 After the operator raised time/token cost, verification expansion stopped. Selected existing keyboard/queue/clinical/prescription groups and live realtime delivery remain unverified in this run. Local production CSP blocks disposable Supabase realtime. The account-switch test alone bypasses CSP in its synthetic browser context; it does not prove production CSP compatibility. No production release, real clinical completion, owner visual acceptance, phone acceptance, monitoring-window acceptance or recipient delivery is claimed.
 
 Decisions: real account/new-session changes reload the protected document to avoid old server-rendered data; ordinary token refresh retains the workspace. Private search remains memory-only. The initial merge-wait interpretation and its unmet before-first-edit condition are recorded above. The security/checkout audit remains separate. Keep this PR draft until the rapid-navigation concern and remaining required evidence are resolved.
+
+### Focused blocker closure — September 14
+
+Commit `3145c6fd9` removes empty-success messaging while Requests search is degraded, pending or awaiting debounce. The failed recovery test had accepted that stale empty heading before its new query ran. The stale-page test stopped during the second server read needed to clamp the vanished page; it now waits for the actual response sequence. Three focused production-built browser cases passed in 58.4 seconds. A separate forced pre-mount Back case held the record page chunk, asserted the packet was absent before traversal, released it afterwards and verified fresh list rows with no record packet; it passed in 22.4 seconds without a history implementation change. The earlier rapid-race attribution remains unproven, but the previously missing pre-mount regression now passes.
+
+Focused units (28), typecheck and lint passed. The full release check remains the earlier 7,806-test receipt; no new full-suite pass is claimed. Required CI and scoped final review on this follow-up own merge readiness. The additional patient checkout/identity/catalog incident is on a separate branch and does not enter Plan 5.
+
+Read-only monitoring refresh: observer version 2296 reports healthy, no coverage gap and no active incidents; natural first-attempt completions include September 14 06:19:01, 08:18:49 and 10:18:42 UTC. These partial-day observations do not close the fixed September 15 06:19:01 UTC endpoint or recipient-delivery/phone gates. No monitor reset, manual trigger or test notification was performed.
