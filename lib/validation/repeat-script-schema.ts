@@ -7,7 +7,7 @@ import {
   containsControlledMedicationTerm,
   CONTROLLED_SUBSTANCE_TERMS,
 } from "@/lib/clinical/controlled-substances"
-import { detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
+import { type DedicatedServiceSubtype, detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import {
   getRepeatRxDoseMissingFields,
@@ -173,6 +173,39 @@ export interface ValidationResult {
   requiresConsult?: boolean
 }
 
+/** Shared by first checkout and saved-payment recovery; historical answers do not exempt routing. */
+export function getRepeatScriptRoutingBlock(answers: Record<string, unknown>): {
+  subtype: DedicatedServiceSubtype
+  error: string
+} | null {
+  const routingIndication = typeof answers.indication === "string" ? answers.indication : ""
+  // The structured "what do I take this for" answer. The detector normalises
+  // and validates it; unknown values fail toward routing.
+  const routingContext = answers.routing_context ?? answers.routingContext
+  for (const medication of extractRepeatScriptMedications(answers)) {
+    const routingMatch = detectDedicatedServiceForMedication(
+      buildRepeatScriptMedicationValidationText(medication),
+      routingIndication,
+      routingContext,
+    )
+    if (routingMatch?.enforcement === "hard") {
+      const serviceCopy = routingMatch.subtype === "ed"
+        ? "our Erectile Dysfunction service, which includes the required heart and medication safety check"
+        : routingMatch.subtype === "weight_loss"
+          ? "our Weight Management assessment, which includes the required eligibility and safety screening"
+          : "our Hair Loss service, which includes the right safety screening"
+      return {
+        subtype: routingMatch.subtype,
+        error: routingMatch.requestedMedicineOutsideScope
+          ? "This medicine is not offered through our service and cannot continue as a repeat prescription. You can request a Weight Management assessment to discuss other options, or contact your regular GP."
+          : `This request must go through ${serviceCopy}. Please start that request instead.`,
+      }
+    }
+  }
+
+  return null
+}
+
 /**
  * Validate repeat script medication payload
  * Returns validation result with error message if invalid
@@ -330,33 +363,9 @@ export function validateRepeatScriptPayload(
     }
   }
 
-  // Dedicated-service hard routing (operator decision 2026-08-05). PDE5
-  // inhibitors and hair-loss medicines are prescribed through their own
-  // services, which run screening this flow never asks for — ED in particular
-  // owns the nitrate contraindication and cardiac checks. Enforced here so a
-  // stale client, a restored draft, or a direct payload can't pay through the
-  // gap. The scan includes the stated indication, which is also how a BPH/PAH
-  // patient keeps their legitimate repeat (that match is flag_only).
-  const routingIndication = typeof answers.indication === "string" ? answers.indication : ""
-  // The structured "what do I take this for" answer. The detector normalises
-  // and validates it; unknown values fail toward routing.
-  const routingContext = answers.routing_context ?? answers.routingContext
-  for (const medication of medications) {
-    const routingMatch = detectDedicatedServiceForMedication(
-      buildRepeatScriptMedicationValidationText(medication),
-      routingIndication,
-      routingContext,
-    )
-    if (routingMatch?.enforcement === "hard") {
-      const serviceCopy = routingMatch.subtype === "ed"
-        ? "our Erectile Dysfunction service, which includes the required heart and medication safety check"
-        : "our Hair Loss service, which includes the right safety screening"
-      return {
-        valid: false,
-        error: `This medicine is prescribed through ${serviceCopy}. Please start that request instead — it only takes a few minutes.`,
-        requiresConsult: true,
-      }
-    }
+  const routingBlock = getRepeatScriptRoutingBlock(answers)
+  if (routingBlock) {
+    return { valid: false, requiresConsult: true, error: routingBlock.error }
   }
 
   // Keep the repeat-Rx contract one medicine per request. The dose/history step

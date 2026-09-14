@@ -7,6 +7,16 @@
 
 ## Incident Response
 
+### September 14 checkout identity and catalog repair
+
+The confirmed catalog mismatch was repaired with operator approval on 2026-09-14 through `20260914105558_restore_weight_management_checkout_catalog.sql`. Fresh production read-back confirmed one active `weight-management` row: type `weight_loss`, category `consult`, price 8,995 cents, minimum age 18, `requires_id_verification=false`, and `requires_medicare=false`. The inactive legacy `weight-loss` row remains unchanged: type `weight_loss`, null category, price 4,900 cents, `requires_id_verification=true`, `requires_medicare=false`, and null minimum age. No patient records changed. These catalog flags do not replace the server-enforced Medicare-or-IHI prescribing identity requirement.
+
+The application repair shares the canonical resolver between authenticated and guest checkout. The additional September 14 operator decision routes GLP-1 requests and phentermine/Duromine requests to the weight assessment and refuses repeat-Rx checkout; it does not authorize phentermine prescribing. Production application code was last read back as `90beaaeab69b3173ec410484cd02058449a8e93b`; the application changes are not yet deployed, and hosted payment through the repaired paths remains unverified.
+
+The same application review reproduced two server gaps before repair. Signed guest payment resume and duplicate guest checkout recovery did not reapply dedicated-medicine routing to stored answers before reusing a payment session; both now use the shared repeat routing guard. The actual weight form stores measurement strings, while BMI safety derivation previously accepted numbers only. Safety evaluation now parses finite numeric measurements, rejects implausible ranges through completeness validation, requires an explicit boolean comorbidity answer below BMI 30, and enforces typed contraindication answers before payment. Focused server regressions own these checks; the local browser journey stops at the consent-ready $89.95 review and does not prove payment recovery or hosted payment. These additional application changes remain undeployed at this receipt.
+
+A separate reproduced draft issue lets complete account-profile flags skip Details while explicit recovery deliberately preserves a draft missing Medicare/IHI answers. Keep those answers untouched and server identity validation intact; require Details when stepping through that restored flow and expose an edit-details action after a recoverable checkout error. A support report alone does not prove which draft the patient used. No patient-specific data repair or support reply is part of the code fix.
+
 ### Stripe Outage
 
 **Symptoms:** Payment webhook failures in DLQ, checkout sessions timing out, payment status not updating.

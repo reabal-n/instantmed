@@ -74,6 +74,7 @@ export interface RequestState {
   // Auth context (for step skipping logic)
   authContext: {
     isAuthenticated: boolean
+    allowProfileDetailsSkip?: boolean
     hasProfile: boolean
     /** True when profile has complete identity (incl. date_of_birth). */
     hasCompleteIdentity?: boolean
@@ -107,6 +108,7 @@ export interface IdentityData {
 
 export interface AuthContext {
   isAuthenticated: boolean
+  allowProfileDetailsSkip?: boolean
   hasProfile: boolean
   /** True when profile has complete identity (incl. date_of_birth) - mirrors RequestFlow prop */
   hasCompleteIdentity?: boolean
@@ -1109,8 +1111,11 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         const state = get()
         const answers = isPlainRecord(record.answers) ? record.answers : {}
+        // The recovered draft owns identity; account completeness cannot hide
+        // fields that were deliberately not prefilled into this request.
+        const authContext = { ...state.authContext, allowProfileDetailsSkip: false }
         const context = {
-          ...state.authContext,
+          ...authContext,
           serviceType,
           answers,
         }
@@ -1137,6 +1142,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
         set({
           serviceType,
+          authContext,
           flowInstanceId: ensureFlowInstanceId(record.flowInstanceId),
           growthExperienceVersion: normalizePersistedGrowthExperienceVersion(
             record.growthExperienceVersion,

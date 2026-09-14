@@ -1,11 +1,12 @@
 import { expect, type Page, test } from "@playwright/test"
 
+import { installProductionSyntheticIsolation } from "./helpers/production-synthetic-isolation"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 async function clickReadyPrimaryAction(page: Page) {
   const stickyBar = page.locator('[data-intake-mobile-action-bar="true"]')
   if (await stickyBar.isVisible().catch(() => false)) {
-    const stickyAction = stickyBar.getByRole("button", { name: /^Continue( to payment)?$/i }).last()
+    const stickyAction = stickyBar.getByRole("button", { name: /^(Continue( to payment)?|Review your request)$/i }).last()
     await expect(stickyAction).toHaveAttribute("data-intake-mobile-action-ready", "true")
     await stickyAction.click()
     return
@@ -524,6 +525,87 @@ test.describe("Unified Request Flow - Draft Persistence", () => {
       name: "This request is no longer active",
     })).toBeVisible()
   })
+
+  for (const { width, theme } of [{ width: 390, theme: "light" }, { width: 1280, theme: "dark" }] as const) {
+    test(`recovered prescription checkout can correct identity at ${width}px in ${theme} mode`, async ({ page }, testInfo) => {
+      await page.setViewportSize({ width, height: 900 })
+      await page.emulateMedia({ colorScheme: theme })
+      await page.addInitScript((mode) => localStorage.setItem("theme", mode), theme)
+      await installProductionSyntheticIsolation(page)
+      const sessionId = "77777777-7777-4777-8777-777777777777"
+      const flowInstanceId = "88888888-8888-4888-8888-888888888888"
+      const answers = {
+        medications: [{ name: "Synthetic medicine", strength: "10 mg" }],
+        addressLine1: "12 Test Street", suburb: "Sydney", state: "NSW", postcode: "2000", sex: "M",
+      }
+      await page.route("**/api/draft**", async (route) => {
+        if (route.request().method() !== "GET") {
+          await route.fulfill({ json: {
+            sessionId, updatedAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+          } })
+          return
+        }
+        await route.fulfill({ json: {
+          sessionId, flowInstanceId, serviceType: "prescription", currentStepId: "review", answers,
+          identity: { firstName: "Synthetic", lastName: "Patient", email: "synthetic@example.com", phone: "0400000000", dob: "1990-01-01" },
+          updatedAt: new Date(Date.now() - 60_000).toISOString(),
+          expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+        } })
+      })
+      let interceptedActions = 0
+      // Return only a Next 15 action result, with no route patch. Every
+      // action stays inside the browser: no intake, account or payment write.
+      await page.route("**/*", async (route) => {
+        if (!route.request().headers()["next-action"]) {
+          await route.fallback()
+          return
+        }
+        interceptedActions += 1
+        await route.fulfill({ contentType: "text/x-component", body: `0:${JSON.stringify({
+          a: { success: false, error: "Medicare number or IHI is required for prescription requests.", failureCode: "clinical_or_input_validation" },
+          f: [],
+        })}\n` })
+      })
+
+      await page.goto(`/request?service=repeat-script&d=${sessionId}`)
+      await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible()
+      await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`))
+      await page.getByRole("checkbox", { name: /Confirm request and payment terms/i }).check()
+      await page.getByRole("button", { name: /^Pay \$/ }).last().click()
+      const alert = page.getByRole("alert").filter({ hasText: "Medicare number or IHI is required" })
+      await expect(alert).toBeVisible()
+      const editDetails = alert.getByRole("button", { name: "Edit your details", exact: true })
+      await editDetails.click({ trial: true })
+      await page.screenshot({ path: testInfo.outputPath("checkout-identity-error.png") })
+      await editDetails.click()
+
+      // Assert real editable fields, not only navigation labels. The account
+      // profile case is covered by the store test without a shared DB fixture.
+      const medicare = page.getByPlaceholder("10 digits", { exact: true })
+      await expect(medicare).toBeVisible()
+      await expect(medicare).toHaveValue("")
+      await expect(page.locator("#medicare-irn")).toHaveValue("")
+      await medicare.click()
+      await page.screenshot({ path: testInfo.outputPath("checkout-identity-details.png") })
+      await expect(page.getByRole("textbox", { name: /First name/i })).toHaveValue("Synthetic")
+      await expect(page.getByRole("textbox", { name: /Email/i }).first()).toHaveValue("synthetic@example.com")
+      await medicare.fill("2428778132")
+      await page.locator("#medicare-irn").fill("2")
+      await clickReadyPrimaryAction(page)
+
+      await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible()
+      await expect(page.getByText("Synthetic medicine", { exact: false }).first()).toBeVisible()
+      await expect(page.getByRole("checkbox", { name: /Confirm request and payment terms/i })).not.toBeChecked()
+      expect(interceptedActions).toBe(1)
+      const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("instantmed-draft-prescription") || "null"))
+      expect(stored).toMatchObject({
+        firstName: "Synthetic", email: "synthetic@example.com",
+        answers: { ...answers, medicareNumber: "2428778132", medicareIrn: "2" },
+      })
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
+    })
+  }
 
   test("shows Start over after an explicit recovery-link restore", async ({ page }) => {
     const sessionId = "77777777-7777-4777-8777-777777777777"

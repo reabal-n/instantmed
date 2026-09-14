@@ -25,6 +25,7 @@ import {
   isMissingSafetyInformationPaymentLock,
 } from "@/lib/stripe/payment-safety-lock"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { getRepeatScriptRoutingBlock } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
 
 import {
@@ -437,6 +438,27 @@ export async function resolveGuestCheckoutResume(
       })
       if (hold !== "state_changed") revalidateHeldIntake(intake)
       return missingInformationDestination(supabase, hold, intake)
+    }
+
+    const routingBlock = isRepeatPrescriptionRequest(intake.category, intake.subtype)
+      ? getRepeatScriptRoutingBlock(answers)
+      : null
+    if (routingBlock) {
+      await recordSafetyEvaluationForOperators({
+        answers,
+        context: "guest_resume",
+        requestId: intake.id,
+        serviceSlug: serviceSlugForSafety,
+        result: {
+          isAllowed: false,
+          outcome: "DECLINE",
+          riskTier: "medium",
+          blockReason: routingBlock.error,
+          requiresCall: false,
+          triggeredRuleIds: ["repeat_script_requires_consult"],
+        },
+      })
+      return `/request?service=consult&subtype=${routingBlock.subtype}&from=repeat-steer`
     }
 
     // Re-evaluate the safety rules so a signed resume link (7-day TTL) cannot

@@ -78,7 +78,9 @@ Scope is live but deliberately narrow: UTI symptoms and new/switch contraceptive
 
 ## Weight Management (launched 2026-08-10)
 
-Scope is deliberately narrow: a one-off, form-first, GLP-1-focused doctor assessment (operator decisions D-A..D-E, `docs/plans/2026-08-07-weight-loss-launch-plan.md`). Phentermine is excluded at launch; continuation is a new consult, never a subscription. **No paid advertising** — `docs/ADVERTISING_COMPLIANCE.md` requires its own approval for any weight campaign.
+**September 14 checkout incident:** the missing canonical `weight-management` catalog row was restored with operator approval through `20260914105558_restore_weight_management_checkout_catalog.sql`. Fresh production read-back confirmed the active $89.95, 18+ assessment row and the unchanged inactive legacy `weight-loss` row; no patient records changed. The application repair shares the canonical resolver between authenticated and guest checkout, but application deployment and hosted payment remain unverified. The migration rejects conflicting existing configuration. This restores the launched service; it does not authorize a new service, paid advertising, prescribing outcomes or subscriptions.
+
+Scope is deliberately narrow: a one-off, form-first, GLP-1-focused doctor assessment (operator decisions D-A..D-E, `docs/plans/2026-08-07-weight-loss-launch-plan.md`). Phentermine prescribing remains excluded; routing a phentermine request into the assessment does not authorize prescribing it. Continuation is a new consult, never a subscription. **No paid advertising** — `docs/ADVERTISING_COMPLIANCE.md` requires its own approval for any weight campaign.
 
 | Gate | Requirement | Failure mode prevented |
 |------|-------------|------------------------|
@@ -86,7 +88,7 @@ Scope is deliberately narrow: a one-off, form-first, GLP-1-focused doctor assess
 | Absolute contraindications | Pregnancy/breastfeeding, MEN2/medullary thyroid cancer, and pancreatitis are required answers and DECLINE at checkout via the `weight-management` safety slug (`consult:weight_loss` in the checkout slugMap — the canonical slug, or every rule silently unfilters). | A contraindicated GLP-1 request takes payment. |
 | Call-required histories | Eating-disorder and cardiac history soft-escalate (`requiresCall`) and the doctor surface plans `needs_call` — no asynchronous decision before phone contact. | Sensitive cases decided without the promised conversation. |
 | Capability | Non-admin doctors need `can_review_weight_loss` (default FALSE) + Medical Director sign-off before reviewing this line. | An unverified doctor reviews weight cases. |
-| Repeat-lane routing | Dual-indication GLP-1s ask the structured weight-vs-diabetes question; weight-only brands hard-route; phentermine/orlistat flag for decline-to-GP. Diabetic repeats are never walled out. | The $29.95 lane resumes serving unscreened weight requests, or diabetics lose access. |
+| Repeat-lane routing | September 14 operator decision: GLP-1s (including Mounjaro/monjaro, Wegovy and Ozempic) and phentermine (Duromine/Metermine) hard-route to the weight assessment and cannot proceed through repeat-Rx. A diabetes answer does not exempt a GLP-1 request. Phentermine prescribing remains excluded; orlistat stays flag-only for decline-to-GP. | Dedicated weight requests bypass assessment through the $29.95 repeat lane, or routing is mistaken for authorization to prescribe an excluded medicine. |
 | Kill switch | `disable_weight_loss` stops this line alone; `disable_consults` still stops every consult subtype. | The new line cannot be stopped without taking down ED/hair/WH. |
 | Outcome review | Every prescribing request receives an individual doctor outcome. Review unsuitable requests, declines and doctor-call patterns to improve eligibility and copy. Any future paid proposal follows the revenue model and needs separate authorisation. | Unsupported demand is missed or an unapproved paid campaign starts. |
 

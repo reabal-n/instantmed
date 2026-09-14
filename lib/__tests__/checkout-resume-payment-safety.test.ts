@@ -260,6 +260,30 @@ describe("signed guest checkout resume payment safety", () => {
     }))
   })
 
+  it.each(["Mounjaro", "Monjaro", "Wegovy", "Ozempic", "Duromine"].flatMap(name => ["cs_previous", null].map(paymentId => ({ name, paymentId }))))("routes a saved weight repeat before reusing or creating payment: %j", async ({ name, paymentId }) => {
+    const { supabase } = createResumeSupabaseMock({
+      category: "prescription",
+      subtype: "repeat",
+      service: { slug: "common-scripts", type: "common_scripts" },
+      payment_id: paymentId,
+      stripe_price_id: "price_repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+      medications: [{ name, strength: "1mg", form: "tablet", pbsCode: "MANUAL" }],
+      routing_context: "type_2_diabetes",
+    })
+    await expect(resolveGuestCheckoutResume("intake-1")).resolves.toBe(
+      "/request?service=consult&subtype=weight_loss&from=repeat-steer",
+    )
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(mocks.recordSafetyEvaluationForOperators).toHaveBeenCalledWith(expect.objectContaining({
+      context: "guest_resume",
+      result: expect.objectContaining({ isAllowed: false, triggeredRuleIds: ["repeat_script_requires_consult"] }),
+    }))
+  })
+
   it("loads encrypted-first answers and atomically locks a high-stakes payment before closing it", async () => {
     const events: string[] = []
     const { supabase, updateRecords } = createResumeSupabaseMock({}, { events })
