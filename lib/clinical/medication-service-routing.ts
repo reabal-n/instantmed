@@ -121,6 +121,8 @@ export interface DedicatedServiceMatch {
    * single-indication brands (no question to ask).
    */
   contextOptions?: ReadonlyArray<RoutingContext>
+  /** Route to assessment without suggesting the requested product is offered. */
+  requestedMedicineOutsideScope?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -278,48 +280,31 @@ const INDICATION_ONLY_SIGNALS: ReadonlyArray<{ subtype: DedicatedServiceSubtype;
 ]
 
 // ---------------------------------------------------------------------------
-// Weight-management family (service LAUNCHED 2026-08-07 — GLP-1-focused,
-// D-B in docs/plans/2026-08-07-weight-loss-launch-plan.md).
-//
-// GLP-1s are genuinely dual-indication: Ozempic/Victoza/Mounjaro/Rybelsus are
-// type-2-diabetes products widely taken for weight, while Wegovy/Saxenda/
-// Zepbound exist only as weight products. A diabetic's repeat must never be
-// walled out (the original D2 concern, now handled by the structured chips),
-// so ambiguous GLP-1s ask the question and a type_2_diabetes selection keeps
-// the repeat — always doctor-flagged, like every attestation.
-//
-// Weight-ONLY non-GLP-1 medicines (phentermine/Duromine, orlistat/Xenical)
-// are flag_only, not steered: the launched service is GLP-1-focused, so
-// steering them into an $89.95 consult that would decline the requested
-// medicine is pay-to-be-refused churn. The doctor sees the flag and declines
-// to GP in the cheap lane instead (full refund on decline).
-const WEIGHT_DEFINITE_BRANDS: ReadonlyArray<RegExp> = [
+// Weight-management routing (operator decision 2026-09-14): GLP-1 medicines
+// and phentermine requests cannot use repeats, including a previously saved
+// diabetes context. Routing is an assessment boundary, not approval to prescribe
+// the requested product. Phentermine remains outside the service's scope.
+const WEIGHT_BRANDS: ReadonlyArray<RegExp> = [
   /\bwegovy\b/i,
   /\bsaxenda\b/i,
   /\bzepbound\b/i,
-]
-const GLP1_AMBIGUOUS_BRANDS: ReadonlyArray<RegExp> = [
   /\bozempic\b/i,
   /\bvictoza\b/i,
-  /\bmounjaro\b/i,
+  /\bmo(?:u)?njaro\b/i, // Includes the reported "monjaro" spelling.
   /\brybelsus\b/i,
 ]
-const GLP1_AMBIGUOUS_INGREDIENTS: ReadonlyArray<string> = [
+const WEIGHT_INGREDIENTS: ReadonlyArray<string> = [
   "semaglutide",
   "tirzepatide",
   "liraglutide",
 ]
-const WEIGHT_ONLY_OUT_OF_SCOPE: ReadonlyArray<RegExp> = [
-  /\bphentermine\b/i,
+const PHENTERMINE_BRANDS: ReadonlyArray<RegExp> = [
   /\bduromine\b/i,
   /\bmetermine\b/i,
+]
+const WEIGHT_ONLY_OUT_OF_SCOPE: ReadonlyArray<RegExp> = [
   /\borlistat\b/i,
   /\bxenical\b/i,
-]
-
-const GLP1_CONTEXT_OPTIONS: ReadonlyArray<RoutingContext> = [
-  "weight_management",
-  "type_2_diabetes",
 ]
 
 /**
@@ -342,7 +327,24 @@ export function detectDedicatedServiceForMedication(
   if (!medicine.trim() && !indication.trim()) return null
   const routingContext = normalizeRoutingContext(routingContextInput)
 
-  // Women's health (OCP) first — pill brands are unambiguous and never overlap
+  // Weight-management family: no context token can reopen the repeat lane.
+  const phentermineRequest = PHENTERMINE_BRANDS.some((pattern) => pattern.test(medicine))
+    || textMatchesTermFuzzily(medicine, "phentermine")
+  if (phentermineRequest
+    || WEIGHT_BRANDS.some((pattern) => pattern.test(medicine))
+    || WEIGHT_INGREDIENTS.some((term) => textMatchesTermFuzzily(medicine, term))) {
+    return {
+      subtype: "weight_loss",
+      serviceLabel: "Weight Management",
+      reason: phentermineRequest
+        ? "Phentermine request requires weight-management assessment; the requested medicine remains outside prescribing scope"
+        : "Weight-management medicine requires the dedicated eligibility and safety assessment",
+      enforcement: "hard",
+      ...(phentermineRequest ? { requestedMedicineOutsideScope: true } : {}),
+    }
+  }
+
+  // Women's health (OCP) — pill brands are unambiguous and never overlap
   // with the hair-loss / prostate 5α-reductase inhibitors.
   if (OCP_PATTERNS.some((pattern) => pattern.test(medicine))) {
     return {
@@ -433,36 +435,6 @@ export function detectDedicatedServiceForMedication(
     }
   }
 
-  // Weight-management family.
-  if (WEIGHT_DEFINITE_BRANDS.some((pattern) => pattern.test(medicine))) {
-    return {
-      subtype: "weight_loss",
-      serviceLabel: "Weight Management",
-      reason: "Weight-management medicine — has a dedicated weight-management pathway",
-      enforcement: "hard",
-    }
-  }
-  const glp1Ambiguous =
-    GLP1_AMBIGUOUS_BRANDS.some((pattern) => pattern.test(medicine))
-    || GLP1_AMBIGUOUS_INGREDIENTS.some((term) => textMatchesTermFuzzily(medicine, term))
-  if (glp1Ambiguous) {
-    if (routingContext === "type_2_diabetes") {
-      return {
-        subtype: "weight_loss",
-        serviceLabel: "Weight Management",
-        reason: "GLP-1 kept as a repeat — patient selected Type 2 diabetes",
-        enforcement: "flag_only",
-        contextOptions: GLP1_CONTEXT_OPTIONS,
-      }
-    }
-    return {
-      subtype: "weight_loss",
-      serviceLabel: "Weight Management",
-      reason: "GLP-1 medicine — prescribed through the weight-management service (eligibility + safety screening)",
-      enforcement: "hard",
-      contextOptions: GLP1_CONTEXT_OPTIONS,
-    }
-  }
   if (WEIGHT_ONLY_OUT_OF_SCOPE.some((pattern) => pattern.test(medicine))) {
     return {
       subtype: "weight_loss",

@@ -48,6 +48,7 @@ import {
 } from "@/lib/safety/evaluate"
 import { getServiceSlug } from "@/lib/stripe/checkout/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { getRepeatScriptRoutingBlock } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
 
 import {
@@ -932,6 +933,27 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
               "auth_or_session",
               "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
             )
+          }
+
+          const routingBlock = isRepeatPrescriptionRequest(existingIntake.category, existingIntake.subtype)
+            ? getRepeatScriptRoutingBlock(storedAnswersForSafety)
+            : null
+          if (routingBlock) {
+            await recordSafetyEvaluationForOperators({
+              answers: storedAnswersForSafety,
+              context: "guest_resume",
+              requestId: existingIntake.id,
+              serviceSlug: storedServiceSlugForSafety,
+              result: {
+                isAllowed: false,
+                outcome: "DECLINE",
+                riskTier: "medium",
+                blockReason: routingBlock.error,
+                requiresCall: false,
+                triggeredRuleIds: ["repeat_script_requires_consult"],
+              },
+            })
+            return checkoutFailure("clinical_or_input_validation", routingBlock.error)
           }
 
           const storedSafetyCheck = checkSafetyForServer(

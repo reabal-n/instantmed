@@ -267,22 +267,30 @@ describe("weight-management routing (service live 2026-08-07)", () => {
     }
   })
 
-  it("asks the weight-vs-diabetes question for dual-indication GLP-1s", () => {
+  it("routes GLP-1 medicines without a repeat-lane exemption", () => {
     for (const name of ["Ozempic 1mg", "Victoza", "Mounjaro", "Rybelsus", "semaglutide", "tirzepatide", "liraglutide"]) {
       const match = detectDedicatedServiceForMedication(name)
       expect(match?.subtype, name).toBe("weight_loss")
       expect(match?.enforcement, name).toBe("hard")
-      expect(match?.contextOptions, name).toEqual(["weight_management", "type_2_diabetes"])
+      expect(match?.contextOptions, name).toBeUndefined()
     }
   })
 
-  it("keeps a diabetic's GLP-1 repeat via the structured token — always flagged", () => {
-    // The original D2 concern: Ozempic-for-diabetes must never be walled out.
-    const match = detectDedicatedServiceForMedication("Ozempic 1mg", "type 2 diabetes", "type_2_diabetes")
-    expect(match?.enforcement).toBe("flag_only")
-    expect(match?.reason).toContain("Type 2 diabetes")
-    // Free text alone does NOT exempt — the token does.
-    expect(detectDedicatedServiceForMedication("Ozempic 1mg", "type 2 diabetes")?.enforcement).toBe("hard")
+  it("cannot reopen repeats through a stale diabetes answer or unrelated context", () => {
+    for (const name of ["Mounjaro", "Monjaro", "Wegovy", "Ozempic", "Duromine", "Phentermine 30mg", "Metermine"]) {
+      for (const context of [undefined, "type_2_diabetes", "weight_management", "prostate_bph"]) {
+        const match = detectDedicatedServiceForMedication(name, "type 2 diabetes", context)
+        expect(match, `${name}: ${context}`).toMatchObject({ subtype: "weight_loss", enforcement: "hard" })
+        expect(match?.contextOptions).toBeUndefined()
+      }
+    }
+  })
+
+  it("cannot hide a weight medicine behind another service's exemption in one field", () => {
+    for (const name of ["Levlen + Mounjaro", "Revatio + Ozempic", "Finasteride 5mg + Wegovy", "Loniten + Duromine"]) {
+      expect(detectDedicatedServiceForMedication(name, undefined, "prostate_bph"), name)
+        .toMatchObject({ subtype: "weight_loss", enforcement: "hard" })
+    }
   })
 
   it("catches GLP-1 ingredient typos", () => {
@@ -291,10 +299,8 @@ describe("weight-management routing (service live 2026-08-07)", () => {
     }
   })
 
-  it("flags but never steers weight-only out-of-scope medicines (D-B)", () => {
-    // Steering phentermine into a consult that would decline it is
-    // pay-to-be-refused churn; the doctor declines in the cheap lane instead.
-    for (const name of ["Phentermine 30mg", "Duromine", "Metermine", "Orlistat", "Xenical"]) {
+  it("preserves the separate orlistat policy", () => {
+    for (const name of ["Orlistat", "Xenical"]) {
       const match = detectDedicatedServiceForMedication(name)
       expect(match?.subtype, name).toBe("weight_loss")
       expect(match?.enforcement, name).toBe("flag_only")

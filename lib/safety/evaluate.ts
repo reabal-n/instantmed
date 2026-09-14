@@ -2,6 +2,7 @@ import {
   isControlledMedicationName,
   isControlledSubstance,
 } from '@/lib/clinical/intake-validation'
+import { computeBmi, WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY } from '@/lib/clinical/weight-loss-eligibility'
 import {
   isExactStringValue,
   PILL_PREGNANCY_STATUS_VALUES,
@@ -23,6 +24,14 @@ import type {
 // ============================================
 // DERIVED VALUE CALCULATORS
 // ============================================
+
+// Intake number inputs persist strings; stored server payloads may use numbers.
+// Never coerce empty strings, booleans, arrays or objects into measurements.
+function numericMeasurement(value: unknown): number | null {
+  if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) return null
+  const number = Number(value)
+  return Number.isFinite(number) ? number : null
+}
 
 function calculateBMI(weight: number, heightCm: number): number {
   const heightM = heightCm / 100
@@ -102,11 +111,13 @@ function getDerivedValue(
   const val2 = field2 === 'today' ? 'today' : answers[field2]
 
   switch (derivedFrom.type) {
-    case 'bmi':
-      if (typeof val1 === 'number' && typeof val2 === 'number') {
-        return calculateBMI(val1, val2)
-      }
-      return null
+    case 'bmi': {
+      const weight = numericMeasurement(val1)
+      const height = numericMeasurement(val2)
+      return weight !== null && height !== null && weight > 0 && height > 0
+        ? calculateBMI(weight, height)
+        : null
+    }
 
     case 'duration_days':
       if (typeof val1 === 'string' && typeof val2 === 'string') {
@@ -529,6 +540,15 @@ export function validateSafetyFieldsPresent(
     (fieldId) => !hasAnsweredSafetyField(fieldId, answers[fieldId]),
   )
 
+  if (config.serviceSlug === 'weight-management' && computeBmi(
+    numericMeasurement(answers.weightKg) ?? NaN,
+    numericMeasurement(answers.heightCm) ?? NaN,
+  ) === null) {
+    for (const field of ['weightKg', 'heightCm']) {
+      if (!missingFields.includes(field)) missingFields.push(field)
+    }
+  }
+
   return {
     valid: missingFields.length === 0,
     missingFields,
@@ -536,6 +556,13 @@ export function validateSafetyFieldsPresent(
 }
 
 function hasAnsweredSafetyField(fieldId: string, value: unknown): boolean {
+  if (fieldId === 'weight_men2_thyroid_cancer' || fieldId === 'weight_pancreatitis' || fieldId === 'wlHasWeightComorbidity') {
+    return typeof value === 'boolean'
+  }
+  if (fieldId === 'weight_pregnancy_status' || fieldId === 'eatingDisorderHistory') {
+    return value === 'yes' || value === 'no'
+  }
+
   if (fieldId === 'hasSideEffects') {
     return typeof value === 'boolean'
   }
@@ -632,6 +659,13 @@ function getRequiredSafetyFields(
     fields.add('weight_pregnancy_status')
     fields.add('weight_men2_thyroid_cancer')
     fields.add('weight_pancreatitis')
+    const weight = numericMeasurement(answers.weightKg)
+    const height = numericMeasurement(answers.heightCm)
+    if (weight !== null && height !== null && height > 0
+      && calculateBMI(weight, height) < WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY) {
+      fields.add('wlHasWeightComorbidity')
+    }
+
   }
 
   return Array.from(fields)
