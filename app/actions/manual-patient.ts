@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { encryptProfilePhi, getProfileById } from "@/lib/data/profiles"
 import {
@@ -12,6 +13,7 @@ import {
   type ManualPatientFormValues,
 } from "@/lib/doctor/manual-patient"
 import { checkParchmentPrescribingCapability } from "@/lib/doctor/parchment-prescribing-capability"
+import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getSsoUrl, validateIntegration } from "@/lib/parchment/client"
@@ -547,6 +549,9 @@ export async function refreshPatientParchmentPrescriptionsAction(
 
   try {
     const supabase = createServiceRoleClient()
+    if (!hasAdminAccess(authResult.profile) && !await doctorCanAccessPatient(authResult.profile.id, patientId, supabase)) {
+      return { success: false, error: "Prescription refresh requires clinical patient access." }
+    }
     const callerParchmentUserId = await getCallerParchmentUserId(supabase, authResult.profile.id)
     if (!callerParchmentUserId) {
       return {

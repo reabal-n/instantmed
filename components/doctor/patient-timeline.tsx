@@ -40,6 +40,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { buildAdminIntakeHref, buildDoctorIntakeHref } from "@/lib/dashboard/routes"
+import type { PatientTimelinePrescription } from "@/lib/doctor/prescription-history-types"
+export type { PatientTimelinePrescription } from "@/lib/doctor/prescription-history-types"
+
 import { isProviderTerminalDeliveryStatus } from "@/lib/email/delivery-status"
 import { formatDateTime } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
@@ -81,19 +84,6 @@ export interface PatientTimelineNote {
   created_by_name?: string | null
 }
 
-export interface PatientTimelinePrescription {
-  id: string
-  source: "parchment" | "instantmed_request"
-  medication_name: string
-  medication_strength?: string | null
-  dosage_instructions?: string | null
-  quantity_prescribed?: number | null
-  repeats_allowed?: number | null
-  status: string
-  recorded_at: string
-  parchment_reference?: string | null
-  request_id?: string | null
-}
 
 export interface PatientTimelineEmail {
   id: string
@@ -521,20 +511,23 @@ const TimelineRow = memo(function TimelineRow({ item, admin }: { item: TimelineI
       if (rx.quantity_prescribed != null) meta.push(`Qty ${rx.quantity_prescribed}`)
       if (rx.repeats_allowed != null) meta.push(`Repeats ${rx.repeats_allowed}`)
       if (rx.parchment_reference) meta.push(`SCID ${rx.parchment_reference}`)
-      const sourceLabel = rx.source === "parchment" ? "Parchment" : "InstantMed request"
+      const sourceLabel = rx.source === "parchment" ? "Parchment" : rx.source === "instantmed" ? "InstantMed prescription record" : "InstantMed request"
 
       return (
         <li className={baseClass}>
           <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">{titleParts}</p>
-            {rx.dosage_instructions && (
-              <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{rx.dosage_instructions}</p>
-            )}
+            <p className="break-words text-sm font-semibold text-foreground">{titleParts}</p>
+            <p className="mt-1 whitespace-pre-wrap break-words text-sm text-foreground">
+              {rx.source === "instantmed_request" ? "Reported directions: " : "Dose and frequency: "}
+              {rx.dosage_instructions?.trim() ? rx.dosage_instructions : "Not recorded"}
+            </p>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
               <span>{sourceLabel}</span>
               <span aria-hidden>·</span>
-              <span>{formatDateTime(rx.recorded_at)}</span>
+              <span>{/^\d{4}-\d{2}-\d{2}$/.test(rx.recorded_at)
+                ? new Date(`${rx.recorded_at}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })
+                : formatDateTime(rx.recorded_at)}</span>
               {meta.map((label) => (
                 <span key={label} className="font-mono">
                   {label}
@@ -543,6 +536,7 @@ const TimelineRow = memo(function TimelineRow({ item, admin }: { item: TimelineI
               {rx.request_id && (
                 <Link
                   href={admin ? buildAdminIntakeHref(rx.request_id) : buildDoctorIntakeHref(rx.request_id)}
+                  prefetch={false}
                   className="text-primary hover:underline"
                 >
                   View request
