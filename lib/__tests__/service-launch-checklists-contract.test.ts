@@ -34,4 +34,18 @@ describe("service launch checklists", () => {
     expect(checklist).toContain("Numeric refund, contact-rate, queue-time, sample-size and score thresholds are advisory")
     expect(checklist).not.toContain("Below 90, do not scale")
   })
+
+  it("keeps weight routing separate from excluded prescribing and removes the diabetes escape", () => {
+    const clinical = readProjectFile("docs/CLINICAL.md")
+    const checklist = readProjectFile("docs/SERVICE_LAUNCH_CHECKLISTS.md")
+    for (const source of [readProjectFile("CLAUDE.md"), readProjectFile("AGENTS.md"), clinical, checklist]) {
+      expect(source).toContain("does not exempt a GLP-1 request")
+      expect(source.toLowerCase()).toContain("phentermine prescribing remains excluded")
+      expect(source).toContain("Duromine")
+      expect(source).toContain("Metermine")
+      expect(source).not.toContain("a `type_2_diabetes` selection keeps the repeat")
+      expect(source).not.toContain("Diabetic repeats are never walled out")
+    }
+    expect(clinical).toContain("orlistat stays flag-only for decline-to-GP")
+  })
 })

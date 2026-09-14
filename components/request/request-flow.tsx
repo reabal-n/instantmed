@@ -644,6 +644,7 @@ export function RequestFlow({
 
         const restoredState = useRequestStore.getState()
         restoredState.setAuthContext({
+          allowProfileDetailsSkip: false,
           isAuthenticated,
           hasProfile,
           hasCompleteIdentity: hasCompleteIdentity ?? hasProfile,
@@ -704,8 +705,8 @@ export function RequestFlow({
 
   // Initialize auth context in store for step navigation
   useEffect(() => {
-    setAuthContext({ isAuthenticated, hasProfile, hasCompleteIdentity: hasCompleteIdentity ?? hasProfile, hasMedicare, hasAddress, hasPhone, hasSex })
-  }, [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, hasSex, setAuthContext])
+    setAuthContext({ allowProfileDetailsSkip: !hasExplicitRecovery, isAuthenticated, hasProfile, hasCompleteIdentity: hasCompleteIdentity ?? hasProfile, hasMedicare, hasAddress, hasPhone, hasSex })
+  }, [hasExplicitRecovery, isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, hasSex, setAuthContext])
 
   // If this exact flow is retired in another tab, by a same-document 410, or
   // while this page sits in the back-forward cache, persistence correctly
@@ -885,6 +886,7 @@ export function RequestFlow({
 
   // Build step context with auth state
   const stepContext: StepContext = useMemo(() => ({
+    allowProfileDetailsSkip: !hasExplicitRecovery,
     isAuthenticated,
     hasProfile,
     hasCompleteIdentity: hasCompleteIdentity ?? hasProfile,
@@ -894,7 +896,7 @@ export function RequestFlow({
     hasSex,
     serviceType: effectiveService || 'med-cert',
     answers: resolvedStepAnswers,
-  }), [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, hasSex, effectiveService, resolvedStepAnswers])
+  }), [hasExplicitRecovery, isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, hasSex, effectiveService, resolvedStepAnswers])
 
   // Get active steps for current service
   const activeSteps = useMemo(() => {

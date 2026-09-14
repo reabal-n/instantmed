@@ -64,7 +64,7 @@ function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[]
     if (dedicatedService) {
       flags.push(makeIntakeFlag("dedicated_service_medication", {
         source: "clinical",
-        detail: dedicatedService.enforcement === "flag_only"
+        detail: dedicatedService.enforcement === "flag_only" || dedicatedService.requestedMedicineOutsideScope
           ? `${medication.displayName || medication.name} — ${dedicatedService.reason}`
           : `${medication.displayName || medication.name} → ${dedicatedService.serviceLabel}`,
       }))

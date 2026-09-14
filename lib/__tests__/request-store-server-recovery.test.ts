@@ -77,6 +77,32 @@ describe("request store server-draft recovery", () => {
     expect(useRequestStore.getState().answers).not.toHaveProperty("staleLocalAnswer")
   })
 
+  it("keeps recovered identity editable even when the signed-in profile is complete", () => {
+    useRequestStore.getState().setAuthContext({
+      isAuthenticated: true, hasProfile: true, hasCompleteIdentity: true,
+      hasMedicare: true, hasAddress: true, hasPhone: true, hasSex: true,
+    })
+    const recovered = record({ currentStepId: "medical-history" })
+    useRequestStore.getState().restoreServerDraft(recovered, "repeat-script")
+    useRequestStore.getState().nextStep()
+
+    expect(useRequestStore.getState().currentStepId).toBe("details")
+    expect(useRequestStore.getState().answers).toEqual(recovered.answers)
+    expect(useRequestStore.getState().email).toBe(recovered.identity?.email)
+    expect(useRequestStore.getState().answers).not.toHaveProperty("medicareNumber")
+  })
+
+  it("returns a recovered pay-step draft to its own details for correction", () => {
+    useRequestStore.getState().setAuthContext({
+      isAuthenticated: true, hasProfile: true, hasCompleteIdentity: true,
+      hasMedicare: true, hasAddress: true, hasPhone: true, hasSex: true,
+    })
+    useRequestStore.getState().restoreServerDraft(record({ currentStepId: "review" }), "repeat-script")
+    expect(useRequestStore.getState().currentStepId).toBe("review")
+    useRequestStore.getState().prevStep()
+    expect(useRequestStore.getState().currentStepId).toBe("details")
+  })
+
   // A server draft is the cross-device recovery path, so it can be older than
   // the deploy that merged `medication-history` into `medication` (P2.1). It
   // must resume on the merged step, NOT be silently bounced to step 1 by the

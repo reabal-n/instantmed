@@ -586,7 +586,9 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     // silently doing nothing.
     if (steerActive && serviceSteer) {
       setBlockedReasons([
-        `This medicine is prescribed through our ${serviceSteer.serviceLabel} service — use the button above to continue there.`,
+        serviceSteer.requestedMedicineOutsideScope
+          ? `The medicine you entered is not offered and cannot continue as a repeat. Use Continue in ${serviceSteer.serviceLabel} to discuss other options, or contact your regular GP.`
+          : `This request needs the ${serviceSteer.serviceLabel} assessment. Use Continue in ${serviceSteer.serviceLabel} to start it.`,
       ])
       // focus() rather than a smooth scroll: it brings the alert into view
       // without animation (the project motion rule requires honouring
@@ -696,7 +698,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         </Alert>
       )}
 
-      {/* Dedicated-service steer (ED / hair loss / women's health) */}
+      {/* Dedicated-service steer (ED / hair loss / women's health / weight management) */}
       {steerActive && serviceSteer && (
         <div ref={steerAlertRef} tabIndex={-1} className="outline-none">
         <Alert>
@@ -716,7 +718,9 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                 : serviceSteer.subtype === "ed"
                   ? "This medicine is prescribed through our Erectile Dysfunction service, which asks the heart and medication safety questions we need first. If you take it for something else, choose it below and you can continue here."
                   : serviceSteer.subtype === "weight_loss"
-                    ? "This medicine is prescribed through our Weight Management service, which checks eligibility and safety first. If you take it for type 2 diabetes, choose that below and you can continue here."
+                    ? serviceSteer.requestedMedicineOutsideScope
+                      ? "The medicine you entered is not offered through this service and cannot continue as a repeat. You can request a Weight Management assessment to discuss other options, or contact your regular GP."
+                      : "This request needs a Weight Management assessment, which checks eligibility and safety before a doctor decides on treatment. It cannot continue as a repeat prescription. For diabetes care, contact your regular GP."
                     : "This medicine is prescribed through our Hair Loss service, which includes the right safety screening."}
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">

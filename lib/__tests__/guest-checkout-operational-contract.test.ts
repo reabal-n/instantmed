@@ -37,6 +37,11 @@ const cancelledPageSource = readFileSync(
 )
 
 describe("guest checkout operational contract", () => {
+  it("uses the authenticated canonical service mapping for guest checkout and retries", () => {
+    expect(guestCheckoutSource).toContain('import { getServiceSlug } from "@/lib/stripe/checkout/helpers"')
+    expect(guestCheckoutSource).not.toContain('function getServiceSlug(')
+  })
+
   it("preserves failed guest checkout intakes for operator visibility", () => {
     const paymentSection = guestCheckoutSource.slice(
       guestCheckoutSource.indexOf("// 5. Validate price ID"),

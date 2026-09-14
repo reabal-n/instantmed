@@ -37,6 +37,8 @@ export interface StepDefinition {
 
 export interface StepContext {
   isAuthenticated: boolean
+  /** Recovered drafts keep their own identity and must not skip details using account data. */
+  allowProfileDetailsSkip?: boolean
   hasProfile: boolean
   /** True when profile has complete identity (incl. date_of_birth) - details step can be skipped */
   hasCompleteIdentity?: boolean
@@ -75,7 +77,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       shortLabel: 'Details',
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
-      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile),
+      canSkip: (ctx) => ctx.allowProfileDetailsSkip !== false && ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile),
       required: true,
     },
     {
@@ -124,7 +126,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
       // Prescriptions require Medicare-or-IHI + address - only skip if all are present
-      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasAddress && ctx.hasPhone === true && ctx.hasSex === true,
+      canSkip: (ctx) => ctx.allowProfileDetailsSkip !== false && ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasAddress && ctx.hasPhone === true && ctx.hasSex === true,
       required: true,
     },
     {
@@ -162,7 +164,8 @@ const CONSULT_REVIEW_TAIL: StepDefinition[] = [
         subtype: ctx.answers.consultSubtype as string | undefined,
       })
 
-      return ctx.isAuthenticated
+      return ctx.allowProfileDetailsSkip !== false
+        && ctx.isAuthenticated
         && (ctx.hasCompleteIdentity ?? ctx.hasProfile)
         && ctx.hasMedicare
         && ctx.hasPhone === true

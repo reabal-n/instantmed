@@ -46,7 +46,9 @@ import {
   checkSafetyForServer,
   validateSafetyFieldsPresent,
 } from "@/lib/safety/evaluate"
+import { getServiceSlug } from "@/lib/stripe/checkout/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { getRepeatScriptRoutingBlock } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
 
 import {
@@ -217,28 +219,6 @@ function buildGuestProfileIdentityUpdate(
   }
 
   return updates
-}
-
-// Map category to service slug
-function getServiceSlug(category: ServiceCategory, subtype: string): string {
-  const slugMap: Record<string, string> = {
-    "medical_certificate:work": "med-cert-sick",
-    "medical_certificate:study": "med-cert-sick",
-    "medical_certificate:carer": "med-cert-carer",
-    "prescription:repeat": "common-scripts",
-    "prescription:chronic_review": "common-scripts",
-    "prescription:new": "consult",
-    "consult:general": "consult",
-  }
-
-  // Category-level fallbacks (when subtype combo isn't found)
-  const categoryFallback: Record<string, string> = {
-    medical_certificate: "med-cert-sick",
-    prescription: "common-scripts",
-    consult: "consult",
-  }
-
-  return slugMap[`${category}:${subtype}`] || categoryFallback[category] || "consult"
 }
 
 /**
@@ -953,6 +933,27 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
               "auth_or_session",
               "This payment cannot be resumed safely right now. If you completed payment, contact support before trying again.",
             )
+          }
+
+          const routingBlock = isRepeatPrescriptionRequest(existingIntake.category, existingIntake.subtype)
+            ? getRepeatScriptRoutingBlock(storedAnswersForSafety)
+            : null
+          if (routingBlock) {
+            await recordSafetyEvaluationForOperators({
+              answers: storedAnswersForSafety,
+              context: "guest_resume",
+              requestId: existingIntake.id,
+              serviceSlug: storedServiceSlugForSafety,
+              result: {
+                isAllowed: false,
+                outcome: "DECLINE",
+                riskTier: "medium",
+                blockReason: routingBlock.error,
+                requiresCall: false,
+                triggeredRuleIds: ["repeat_script_requires_consult"],
+              },
+            })
+            return checkoutFailure("clinical_or_input_validation", routingBlock.error)
           }
 
           const storedSafetyCheck = checkSafetyForServer(

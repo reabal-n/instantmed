@@ -1238,8 +1238,16 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             </Alert>
           ) : (
             <Alert variant="destructive" role="alert">
-              <AlertDescription className="space-y-1">
+              <AlertDescription className="space-y-3">
                 <p>{error}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11 w-full"
+                  onClick={() => goToStep("details")}
+                >
+                  Edit your details
+                </Button>
                 <p className="text-base opacity-90">
                   <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium underline">
                     Contact support

@@ -519,29 +519,21 @@ describe("repeat script schema — dedicated-service routing", () => {
     }))).toEqual({ valid: true })
   })
 
-  it("routes GLP-1 repeats through the live weight service unless diabetes is selected", () => {
-    // Service live 2026-08-07: no token (or a weight token) hard-routes...
-    expect(validateRepeatScriptPayload(repeatFor({
-      medication_name: "Ozempic",
-      medication_display: "Ozempic",
-      medication_strength: "1 mg",
-      indication: "weight loss",
-    }))).toMatchObject({ valid: false, requiresConsult: true })
-    // ...while the structured Type 2 diabetes selection keeps the repeat
-    // (the original D2 concern — diabetics must never be walled out).
-    expect(validateRepeatScriptPayload(repeatFor({
-      medication_name: "Ozempic",
-      medication_display: "Ozempic",
-      medication_strength: "1 mg",
-      indication: "type 2 diabetes",
-      routing_context: "type_2_diabetes",
-    }))).toEqual({ valid: true })
-    // Weight-only out-of-scope medicines stay flag-only, never blocked (D-B).
-    expect(validateRepeatScriptPayload(repeatFor({
-      medication_name: "Phentermine",
-      medication_display: "Phentermine",
-      medication_strength: "30 mg",
-    }))).toEqual({ valid: true })
+  it("refuses weight medicines at checkout even with stale diabetes exemptions", () => {
+    for (const name of ["Mounjaro", "Monjaro", "Wegovy", "Ozempic", "Duromine", "Phentermine", "Metermine", "semaglutide", "tirzepatide"]) {
+      for (const contextKey of ["routing_context", "routingContext"]) {
+        const result = validateRepeatScriptPayload(repeatFor({
+          medication_name: name,
+          medication_display: name,
+          medication_strength: "1 mg",
+          indication: "type 2 diabetes",
+          [contextKey]: "type_2_diabetes",
+        }))
+        expect(result, `${name}: ${contextKey}`).toMatchObject({ valid: false, requiresConsult: true })
+        expect(result.error).toMatch(/weight management/i)
+        expect(result.error).not.toMatch(/hair loss/i)
+      }
+    }
   })
 
   it("ACCEPTS an unrelated repeat whose indication merely mentions a condition", () => {
