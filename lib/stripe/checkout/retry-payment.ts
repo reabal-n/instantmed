@@ -172,19 +172,6 @@ export async function retryPaymentForIntakeAction(
       return checkoutFailure("persistence", RETRY_PAYMENT_STATE_ERROR)
     }
 
-    if (!await hasDurableCheckoutConsent(supabase, intake.id)) {
-      if (intake.payment_id) {
-        const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, {
-          intakeStatus: intake.status, paymentStatus: intake.payment_status, storedPaymentId: intake.payment_id,
-        })
-        if (invalidation === "payment_in_flight") {
-          return { success: true, checkoutUrl: `/patient/intakes/${intake.id}`, intakeId: intake.id }
-        }
-        if (invalidation !== "invalidated") return checkoutFailure("persistence", RETRY_PAYMENT_STATE_ERROR)
-      }
-      return checkoutFailure("clinical_or_input_validation", CONSENT_EVIDENCE_ERROR)
-    }
-
     const isMedicalCertificate = isMedicalCertificateIntake(categoryForSafety, serviceForSafety)
     const highStakesBlock = isMedicalCertificate
       ? getHighStakesCheckoutBlock(intakeAnswers)
@@ -341,6 +328,21 @@ export async function retryPaymentForIntakeAction(
           safetyCheck.blockReason ||
           "This request cannot be processed online. Please see your regular doctor.",
       )
+    }
+
+    // Clinical classification and durable safety holds precede consent recovery.
+    // A valid receipt remains mandatory before any payable URL or new Session.
+    if (!await hasDurableCheckoutConsent(supabase, intake.id)) {
+      if (intake.payment_id) {
+        const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, {
+          intakeStatus: intake.status, paymentStatus: intake.payment_status, storedPaymentId: intake.payment_id,
+        })
+        if (invalidation === "payment_in_flight") {
+          return { success: true, checkoutUrl: `/patient/intakes/${intake.id}`, intakeId: intake.id }
+        }
+        if (invalidation !== "invalidated") return checkoutFailure("persistence", RETRY_PAYMENT_STATE_ERROR)
+      }
+      return checkoutFailure("clinical_or_input_validation", CONSENT_EVIDENCE_ERROR)
     }
 
     const service = intake.service as { slug: string; price_cents: number } | null

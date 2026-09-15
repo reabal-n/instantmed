@@ -336,7 +336,8 @@ describe("signed guest checkout resume payment safety", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
-  it("loads encrypted-first answers and atomically locks a high-stakes payment before closing it", async () => {
+  it.each([true, false])("loads encrypted-first answers and locks high-stakes payment with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const events: string[] = []
     const { supabase, updateRecords } = createResumeSupabaseMock({}, { events })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
@@ -389,7 +390,8 @@ describe("signed guest checkout resume payment safety", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
-  it("routes a captured high-stakes session with payment in flight to account completion", async () => {
+  it.each([true, false])("routes high-stakes payment in flight to completion with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const { supabase, updateRecords } = createResumeSupabaseMock({}, {
       refetchedIntakes: [{ checkout_error: "safety_blocked_high_stakes" }],
     })
@@ -520,7 +522,8 @@ describe("signed guest checkout resume payment safety", () => {
     )
   })
 
-  it("withholds even a live open Session when the safety rules engine now blocks the answers", async () => {
+  it.each([true, false])("withholds unsafe open Session with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     // Identical fixture to the safe-open-session test above; ONLY the rules
     // verdict differs — pins that the re-evaluation runs before the
     // open-session reuse branch, so tightened rules beat a 7-day resume link.
@@ -694,7 +697,8 @@ describe("signed guest checkout resume payment safety", () => {
     })
   })
 
-  it("holds and invalidates an incomplete repeat-Rx Session before returning any URL", async () => {
+  it.each([true, false])("holds incomplete repeat-Rx Session with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const incompleteAnswers = { ...explicitConsent,
       dose_changed: false,
       emergency_symptoms: [],

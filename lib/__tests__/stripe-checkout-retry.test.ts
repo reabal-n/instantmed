@@ -329,6 +329,7 @@ const explicitConsent = { agreedToTerms: true, confirmedAccuracy: true, teleheal
 describe("retryPaymentForIntakeAction", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(true)
     mocks.checkServerActionRateLimit.mockResolvedValue({ success: true })
     mocks.cookies.mockResolvedValue({ get: vi.fn(() => null) })
     mocks.createReferralCouponIfEligible.mockResolvedValue(null)
@@ -1096,7 +1097,8 @@ describe("retryPaymentForIntakeAction", () => {
     })
   })
 
-  it("holds a marked repeat retry with a frequency-only current regimen", async () => {
+  it.each([true, false])("holds frequency-only repeat retry with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const authoritativeAnswers = { ...explicitConsent,
       medicationName: "Sertraline",
       medicationStrength: "100 mg",
@@ -1256,7 +1258,8 @@ describe("retryPaymentForIntakeAction", () => {
     })
   })
 
-  it("blocks retry payment for a stored high-stakes medical-certificate request", async () => {
+  it.each([true, false])("blocks stored high-stakes medical-certificate retry with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const events: string[] = []
     const { supabase, updateRecords } = createRetrySupabaseMock(
       { answers: [{ answers: { symptomDetails: "Migraine and need to defer my exam tomorrow" } }] },
@@ -1385,7 +1388,8 @@ describe("retryPaymentForIntakeAction", () => {
     )
   })
 
-  it("preserves webhook recovery when the captured session is complete or processing", async () => {
+  it.each([true, false])("preserves high-stakes webhook recovery with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const { supabase, updateRecords } = createRetrySupabaseMock({
       answers: [{ answers: { symptomDetails: "Need to defer my exam" } }],
     })

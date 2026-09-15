@@ -371,16 +371,6 @@ export async function resolveGuestCheckoutResume(
       )
       return PAYMENT_STATE_UNRESOLVED_DESTINATION
     }
-    if (!await hasDurableCheckoutConsent(supabase, intake.id)) {
-      if (intake.payment_id) {
-        const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, {
-          intakeStatus: intake.status, paymentStatus: intake.payment_status, storedPaymentId: intake.payment_id,
-        })
-        if (invalidation === "payment_in_flight") return accountCompletionDestination(intake.id, intake.payment_id)
-        if (invalidation !== "invalidated") return PAYMENT_STATE_UNRESOLVED_DESTINATION
-      }
-      return MORE_INFORMATION_REQUIRED_DESTINATION
-    }
     const highStakesBlock = isMedicalCertificateIntake(intake.category, intake.service)
       ? getHighStakesCheckoutBlock(answers)
       : null
@@ -496,6 +486,18 @@ export async function resolveGuestCheckoutResume(
       return SAFETY_BLOCKED_DESTINATION
     }
 
+    // Clinical classification and durable safety holds precede consent recovery.
+    // A valid receipt remains mandatory before any payable URL or new Session.
+    if (!await hasDurableCheckoutConsent(supabase, intake.id)) {
+      if (intake.payment_id) {
+        const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, {
+          intakeStatus: intake.status, paymentStatus: intake.payment_status, storedPaymentId: intake.payment_id,
+        })
+        if (invalidation === "payment_in_flight") return accountCompletionDestination(intake.id, intake.payment_id)
+        if (invalidation !== "invalidated") return PAYMENT_STATE_UNRESOLVED_DESTINATION
+      }
+      return MORE_INFORMATION_REQUIRED_DESTINATION
+    }
     let canRebuild = !intake.payment_id
     if (intake.payment_id) {
       const inspection = await inspectCheckoutSession(intake.payment_id, intake.id, {
