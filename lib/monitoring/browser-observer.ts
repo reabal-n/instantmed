@@ -86,7 +86,7 @@ export async function checkBrowserObserver() {
       events.push(...result.events)
       verified = state
       if (!await appendMonitorState("browser_observer_state", current.version, state)) continue
-      for (const event of events) captureIncident("browser-monitor", BROWSER_INCIDENTS[event.metric], event)
+      for (const event of events) captureIncident("browser-monitor", BROWSER_INCIDENTS[event.metric], event, unavailableReason)
       return { healthy: classify(state, now, scheduledRunIds).length === 0, ...state, unavailableReason }
     }
     throw new Error("browser_observer_claim_unavailable")
