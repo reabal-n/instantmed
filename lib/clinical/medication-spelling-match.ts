@@ -3,7 +3,7 @@ import "server-only"
 import { generateText } from "ai"
 import { z } from "zod"
 
-import { getAIApiKey, getModelWithConfig } from "@/lib/ai/provider"
+import { getModelWithConfig } from "@/lib/ai/provider"
 import { type MedicationCatalogRow, resolveGenericMedicationNameFromRows } from "@/lib/clinical/generic-medication-resolver"
 import { findPriorMedicationMatch, normalizeMedicationNameForComparison } from "@/lib/clinical/prior-medication-match"
 
@@ -18,12 +18,19 @@ export async function resolveMedicationSpelling(
   patientEntry: string,
   rows: readonly MedicationCatalogRow[],
 ): Promise<string | null> {
-  if (!getAIApiKey()) return null
+  // The shared clinical model uses the direct Anthropic endpoint. A gateway
+  // credential is not valid there; do not attempt it as a fallback.
+  if (!process.env.ANTHROPIC_API_KEY) return null
   const normalized = normalizeMedicationNameForComparison(patientEntry)
   if (!/^[a-z][a-z ]{3,59}$/.test(normalized) || normalized.split(" ").length > 4) return null
   const names = rows.flatMap(row => [row.name, ...(row.brand_names ?? [])])
     .filter((name): name is string => typeof name === "string" && Boolean(name.trim()))
-  const match = findPriorMedicationMatch(normalized, names)
+  const match = findPriorMedicationMatch(normalized, names, name => {
+    const resolved = resolveGenericMedicationNameFromRows(name, rows)
+    return resolved.status === "resolved"
+      ? `generic:${resolved.genericName.toLowerCase()}`
+      : `name:${normalizeMedicationNameForComparison(name)}`
+  })
   if (!match || match.kind !== "likely_typo") return null
   // Extra words may be directions or narrative, even when edit distance is small.
   const candidateTokens = normalizeMedicationNameForComparison(match.medicationName).split(" ")

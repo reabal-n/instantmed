@@ -1,9 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-const mocks = vi.hoisted(() => ({ generate: vi.fn(), key: vi.fn() }))
+const mocks = vi.hoisted(() => ({ generate: vi.fn() }))
 vi.mock("ai", () => ({ generateText: mocks.generate }))
 vi.mock("@/lib/ai/provider", () => ({
-  getAIApiKey: mocks.key,
   getModelWithConfig: () => ({ model: "synthetic-model" }),
 }))
 
@@ -19,9 +18,11 @@ const rows = [
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mocks.key.mockReturnValue("synthetic-key")
+  vi.stubEnv("ANTHROPIC_API_KEY", "synthetic-key")
   mocks.generate.mockResolvedValue({ text: '{"sameMedication":true}' })
 })
+
+afterEach(() => vi.unstubAllEnvs())
 
 describe("catalogue-backed AI spelling check", () => {
   it("returns only the catalogue generic name for a confirmed narrow typo", async () => {
@@ -60,6 +61,20 @@ describe("catalogue-backed AI spelling check", () => {
     },
   )
 
+  it("groups competing brand spellings under the same generic identity", async () => {
+    expect(await resolveMedicationSpelling("Effxor", [
+      { name: "Venlafaxine", brand_names: ["Efexor", "Effexor"] },
+    ])).toBe("Venlafaxine")
+    expect(mocks.generate).toHaveBeenCalledOnce()
+  })
+
+  it("does not send a gateway-only credential to the direct provider", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "")
+    vi.stubEnv("VERCEL_AI_GATEWAY_API_KEY", "synthetic-gateway-key")
+    expect(await resolveMedicationSpelling("Sertralne", rows)).toBeNull()
+    expect(mocks.generate).not.toHaveBeenCalled()
+  })
+
   it("keeps residual directions out of the provider prompt", async () => {
     expect(await resolveMedicationSpelling("hydrochlorothiazide qd", [
       { name: "Hydrochlorothiazide", brand_names: [] },
@@ -71,7 +86,7 @@ describe("catalogue-backed AI spelling check", () => {
     mocks.generate.mockRejectedValue(new Error("private provider detail"))
     expect(await resolveMedicationSpelling("Sertralne", rows)).toBeNull()
     mocks.generate.mockClear()
-    mocks.key.mockReturnValue(undefined)
+    vi.stubEnv("ANTHROPIC_API_KEY", "")
     expect(await resolveMedicationSpelling("Sertralne", rows)).toBeNull()
     expect(mocks.generate).not.toHaveBeenCalled()
   })
