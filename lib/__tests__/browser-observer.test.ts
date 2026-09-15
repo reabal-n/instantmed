@@ -70,6 +70,48 @@ function store(initial = state(), fail = false) {
 beforeEach(() => { vi.clearAllMocks(); vi.useFakeTimers(); vi.setSystemTime(now) })
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
 describe("bounded public GitHub observer", () => {
+  it("does not reopen completed history outside a proven ten-run window", async () => {
+    const cache = Array.from({ length: 10 }, (_, i) => evidence(20 - i))
+    const initial = { ...state(), cache, latest: cache[0], success: cache[0], invocation: cache[0], observerOk: true }
+    const db = store(initial)
+    const window = { total_count: 20, workflow_runs: Array.from({ length: 10 }, (_, i) => run(17 - i)) }
+    for (const offset of [0, 300000, 151 * 60000]) {
+      vi.setSystemTime(now + offset)
+      const fetcher = replies(window, jobs(10), jobs(9))
+      const result = await checkBrowserObserver()
+      expect(result.observerOk).toBe(true)
+      expect(result.healthy).toBe(offset < 150 * 60000)
+      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(db.read().cache).toEqual(cache)
+      expect(db.read().latest).toEqual(initial.latest)
+    }
+    expect(mocks.capture.mock.calls.filter(call => call[1].fingerprint[1] === "observer_unavailable")).toHaveLength(0)
+  })
+  it.each(["incomplete", "gap", "unavailable", "coverage", "invocation"])("keeps old pending work without a proven window: %s", async mode => {
+    const cache = Array.from({ length: 10 }, (_, i) => evidence(20 - i))
+    const previous = { ...state(), cache, latest: cache[0], success: cache[0], invocation: cache[0], observerOk: true }
+    if (mode === "incomplete") previous.cache = cache.slice(0, 9)
+    if (mode === "gap") previous.cache = [...cache.slice(0, 9), evidence(9)]
+    if (mode === "unavailable") previous.observerOk = false
+    if (mode === "coverage") previous.coverageGap = true
+    if (mode === "invocation") previous.invocation = evidence(21)
+    const window = { total_count: 20, workflow_runs: Array.from({ length: 10 }, (_, i) => run(17 - i)) }
+    const pending = window.workflow_runs.filter(item => !previous.cache.some(cached => cached.id === item.id))
+    const fetcher = replies(window, ...pending.slice(0, 2).map(item => jobs(item.id)))
+    expect((await collectBrowserEvidence(previous, now)).state.observerOk).toBe(false)
+    expect(fetcher).toHaveBeenCalledTimes(3)
+  })
+  it.each(["inside", "rerun"])("still inspects an unknown %s failure in an older list", async mode => {
+    const cache = Array.from({ length: 10 }, (_, i) => evidence(20 - i))
+    const previous = { ...state(), cache, latest: cache[0], success: cache[0], invocation: cache[0], observerOk: true }
+    const metadata = mode === "inside" ? { ...run(15), id: 150 } : run(10, "completed", 2)
+    const job = jobs(metadata.id, "failure", metadata.run_attempt)
+    const fetcher = replies({ total_count: 20, workflow_runs: [run(17), metadata] }, job)
+    const result = await collectBrowserEvidence(previous, now)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(result.completions).toContainEqual(expect.objectContaining({ id: metadata.id, outcome: 2 }))
+    expect(result.state.latest).toEqual(previous.latest)
+  })
   it("uses the named browser step timestamps and caches immutable attempts", async () => {
     const fetcher = replies({ total_count: 1, workflow_runs: [run()] }, jobs())
     const first = await collectBrowserEvidence(state(), now)

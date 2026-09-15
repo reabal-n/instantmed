@@ -28,6 +28,21 @@ function timestamp(value: string | null, now: number, nullable = false): number 
   return parsed as number
 }
 export function compareBrowserEvidence(a: Evidence, b: Evidence) { return a.number - b.number || a.attempt - b.attempt }
+// A complete contiguous current window establishes a bounded lookback floor.
+// Older API responses must not repeatedly reopen first attempts beyond it.
+// Unknown attempts inside the window and older reruns remain observable.
+function completedWindowFloor(previous: BrowserState, source: Evidence | undefined, now: number): number | undefined {
+  if (!previous.observerOk || previous.coverageGap || previous.backoffUntil > now
+    || !previous.invocation || !source || compareBrowserEvidence(source, previous.invocation) >= 0
+    || previous.cache.length !== 10) return undefined
+  const ordered = [...previous.cache].sort((a, b) => compareBrowserEvidence(b, a))
+  const newest = ordered[0]
+  if (newest.id !== previous.invocation.id || newest.attempt !== previous.invocation.attempt
+    || newest.number !== previous.invocation.number
+    || ordered.some((item, index) => item.number !== newest.number - index
+      || item.status !== 2 || !item.completed || (item.outcome !== 1 && item.outcome !== 2))) return undefined
+  return ordered[ordered.length - 1].number
+}
 export function mergeBrowserCache(...caches: Evidence[][]): Evidence[] {
   const unique = new Map<string, Evidence>()
   for (const evidence of caches.flat()) {
@@ -98,7 +113,10 @@ export async function collectBrowserEvidence(previous: BrowserState, now: number
     state.coverageGap = !!previous.invocation && runs.length === 10 && runs.every(run => compareBrowserEvidence(run, previous.invocation!) > 0)
     state.invocation = runs[0] ? mergeCompletion(previous.invocation, runs[0]) : previous.invocation
     state.running = runs.find(run => run.status !== 2)
-    const pending = runs.filter(run => run.status === 2 && !state.cache.some(cached => cached.id === run.id && cached.attempt === run.attempt))
+    const floor = completedWindowFloor(previous, sourceInvocation, now)
+    const observableRuns = floor === undefined ? runs : runs.filter(run =>
+      !(run.status === 2 && run.attempt === 1 && run.number < floor))
+    const pending = observableRuns.filter(run => run.status === 2 && !state.cache.some(cached => cached.id === run.id && cached.attempt === run.attempt))
     // At most one list + two job reads per poll (36/hour worst case, normally12).
     for (const run of pending.slice(0, 2)) {
       const jobs = jobsSchema.parse(await getJson(`runs/${run.id}/attempts/${run.attempt}/jobs?per_page=10`, now))
@@ -121,7 +139,7 @@ export async function collectBrowserEvidence(previous: BrowserState, now: number
       // the poll ends, and its partial evidence/backoff must still persist.
       state.cache = mergeBrowserCache(state.cache, [evidence])
     }
-    const newestCompleted = runs.find(run => run.status === 2)
+    const newestCompleted = observableRuns.find(run => run.status === 2)
     const newestProof = newestCompleted && state.cache.find(run => run.id === newestCompleted.id && run.attempt === newestCompleted.attempt)
     state.observerOk = pending.length <= 2 && (!newestCompleted || !!newestProof?.completed) && !state.coverageGap
     if (!state.observerOk) unavailableReason = state.coverageGap ? "coverage_gap"
