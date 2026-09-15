@@ -417,6 +417,8 @@ Production Telegram is an operator pager, not a clinical record or general monit
 
 **Internal draft hashing:** `lib/data/intake-answer-hash.ts` is server-only and is not exported as a server action. Its privileged answer read is consumed by the existing guarded draft approval and staleness actions; possession of a patient session must not expose an arbitrary intake digest endpoint.
 
+**Draft mutation access:** Approval, rejection and regeneration re-read the intake using its actual claim fields and the shared clinical review action guard. Doctors need a current claim and the service capability; a historical reviewer alone is insufficient. Lookup errors or missing intakes block every role, while an admin retains the claim/capability override for an existing intake. Authorization runs before draft writes, note sync, audit or regeneration. The obsolete `assigned_doctor_id` intake lookup is forbidden.
+
 **Future-doctor patient boundary (2026-05-13):** Admin remains the only broad operator. Non-admin doctors are scoped in app-layer service-role reads by `lib/doctor/patient-access.ts`; patient directory, patient detail, patient summary/health-profile APIs, the global command-palette search (`/api/search`, scoped via `getDoctorAccessiblePatientIds` for non-admins — fixed 2026-06-07; previously returned the full roster to any non-admin doctor), and doctor analytics only include patients/cases tied to a concrete doctor relationship (`claimed_by`, `reviewing_doctor_id`, `reviewed_by`, `script_tasks.doctor_id`, `issued_certificates.doctor_id`, or `patient_notes.created_by`). Return 404 for direct patient API/profile access outside this relationship to avoid patient enumeration.
 
 Capability helpers live in `lib/auth/staff-capabilities.ts`:
