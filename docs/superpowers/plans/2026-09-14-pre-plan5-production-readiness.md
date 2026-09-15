@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Work only this readiness follow-up. Plan 5 remains unstarted.
+- Work only this readiness follow-up. The original pre-Plan 5 sequencing is historical: Plan 5 shipped in PR #563 on September 14 and must not be restarted.
 - Preserve stack pins, clinical outcomes, provider authentication, assertions and individual test deadlines. Do not introduce a service, dashboard, migration or patient-facing feature.
 - Never run synthetic webhook calls against production or create live payments, prescriptions, refunds or patient notifications for evidence.
 - Use existing owned local/CI fixtures and their cleanup; keep credentials, patient data and raw provider payloads out of logs and committed receipts.
@@ -55,8 +55,8 @@ PLAYWRIGHT_SERVER_MODE=production PLAYWRIGHT_WORKERS=1 \
 - [x] Read current deployment and numeric monitor state. The first eligible post-release Vercel slot is September 14 06:17 UTC (16:17 Sydney), with native GitHub backup at minute 47.
 - [x] After the natural slot, correlate the stored dispatch run ID with the exact GitHub workflow run and successful browser step, then confirm a later observer poll accepts it and records stale recovery. Manual dispatches and reruns do not establish cadence.
 - [x] Inspect the existing Sentry notification configuration and provider delivery evidence for the real stale/recovery event. Record ingestion separately from recipient delivery; if only the operator can confirm receipt, leave that explicit human/evidence gate. Do not send a test message or add an alert route merely to obtain evidence.
-- [ ] Measure a full 24-hour window from the first accepted scheduled completion: list eligible completions, maximum internal gap and trailing age against the 150-minute requirement. A shorter window is partial evidence. Arrange one bounded follow-up if the observation window outlasts implementation; it must inspect existing evidence and stay quiet unless completion, failure or human input is meaningful.
-- [ ] Review the evidence against each acceptance rule; record any real runtime failure for diagnosis under the incident workflow, without expanding product scope.
+- [x] Measure a full 24-hour window from the first accepted scheduled completion: list eligible completions, maximum internal gap and trailing age against the 150-minute requirement. A shorter window is partial evidence. Arrange one bounded follow-up if the observation window outlasts implementation; it must inspect existing evidence and stay quiet unless completion, failure or human input is meaningful.
+- [x] Review the evidence against each acceptance rule; record any real runtime failure for diagnosis under the incident workflow, without expanding product scope.
 
 ## Task 3: Release the engineering fix and preserve owner acceptance
 
@@ -67,7 +67,7 @@ PLAYWRIGHT_SERVER_MODE=production PLAYWRIGHT_WORKERS=1 \
 - [x] Run the appropriate release checks, independent whole-branch review and required GitHub `build`/`e2e` checks. Inspect failed attempts as well as the final CI status. Merge through normal PR rules only after required checks pass.
 - [x] For any runtime change, verify the deployed source and targeted production smoke. For test/docs-only changes, identify the existing production application as unchanged and avoid an unnecessary redeployment.
 - [ ] Retain the deferred owner phone check: Dashboard → existing request → open Prescribe → close; verify readable compact context, usable keyboard/viewport, sufficient iframe space and return to the same request, without issuing a prescription. Machine viewport checks cannot mark this accepted.
-- [ ] Update ROADMAP and the receipt with completed work, precise pending evidence and the next allowed action. Leave Plan 5 unstarted; delete only merged owned branches/worktrees after retaining local evidence.
+- [x] Update ROADMAP and the receipt with completed work, precise pending evidence and the next allowed action. Plan 5 subsequently shipped separately; do not restart it. Delete only merged owned branches/worktrees after retaining local evidence.
 
 ## Execution Receipt
 
@@ -101,3 +101,34 @@ At 07:10 UTC the observer recorded one unavailable poll (version2255). The new S
 The protected merge completed as `90beaaeab69b3173ec410484cd02058449a8e93b`. This test/docs-only release changes no application runtime. A fresh Vercel read confirmed production remains READY on `dpl_Di2Ck4zPcFJus8LgpBAzLKmUobwQ`, application commit `1215e8e1a58be571e0884abeffd71893241748b7`; no redeployment was requested. Rollback is a normal revert of PR #561, restoring the former test grouping. No production secret or database migration changed.
 
 The CI/merge gate for starting Plan 5 is closed. The fixed 24-hour monitoring assessment remains due September 15 06:19:01 UTC; actual email receipt and the deferred physical-phone review remain separate evidence/owner gates. This follow-up does not start Plan 5 or include the later security/checkout audit backlog.
+
+
+### Fixed monitoring window assessed — September 15
+
+The original **September 14 06:19:01 UTC → September 15 06:19:01 UTC** window passes the scheduled-completion cadence criterion. Thirteen Vercel cron dispatch receipts correlate to first-attempt GitHub runs; four additional native `schedule` runs also completed successfully. All **17 first-attempt browser steps passed**, with no manual unreceipted dispatch or rerun counted. The maximum internal gap was **120 minutes 14 seconds** (September 14 16:18:39 → 18:18:53 UTC), below the 150-minute limit. The first completion equals the window start, and the final completion at September 15 06:18:46 UTC leaves **15 seconds trailing age**. The window was neither reset nor extended.
+
+| UTC browser-step completion | GitHub run | Scheduled source |
+|---|---|---|
+| 2026-09-14T06:19:01Z | [34812819875](https://github.com/reabal-n/instantmed/actions/runs/34812819875) | Vercel receipt |
+| 2026-09-14T08:18:49Z | [34821958923](https://github.com/reabal-n/instantmed/actions/runs/34821958923) | Vercel receipt |
+| 2026-09-14T10:18:42Z | [34832418587](https://github.com/reabal-n/instantmed/actions/runs/34832418587) | Vercel receipt |
+| 2026-09-14T12:18:46Z | [34842606450](https://github.com/reabal-n/instantmed/actions/runs/34842606450) | Vercel receipt |
+| 2026-09-14T13:22:30Z | [34848706534](https://github.com/reabal-n/instantmed/actions/runs/34848706534) | GitHub schedule |
+| 2026-09-14T14:19:01Z | [34854636426](https://github.com/reabal-n/instantmed/actions/runs/34854636426) | Vercel receipt |
+| 2026-09-14T16:18:39Z | [34867652137](https://github.com/reabal-n/instantmed/actions/runs/34867652137) | Vercel receipt |
+| 2026-09-14T18:18:53Z | [34879879344](https://github.com/reabal-n/instantmed/actions/runs/34879879344) | Vercel receipt |
+| 2026-09-14T19:37:11Z | [34887832252](https://github.com/reabal-n/instantmed/actions/runs/34887832252) | GitHub schedule |
+| 2026-09-14T20:18:56Z | [34891997311](https://github.com/reabal-n/instantmed/actions/runs/34891997311) | Vercel receipt |
+| 2026-09-14T22:18:46Z | [34903343911](https://github.com/reabal-n/instantmed/actions/runs/34903343911) | Vercel receipt |
+| 2026-09-14T23:29:26Z | [34908995792](https://github.com/reabal-n/instantmed/actions/runs/34908995792) | GitHub schedule |
+| 2026-09-15T00:18:40Z | [34912557001](https://github.com/reabal-n/instantmed/actions/runs/34912557001) | Vercel receipt |
+| 2026-09-15T02:18:39Z | [34920597562](https://github.com/reabal-n/instantmed/actions/runs/34920597562) | Vercel receipt |
+| 2026-09-15T04:18:33Z | [34928248418](https://github.com/reabal-n/instantmed/actions/runs/34928248418) | Vercel receipt |
+| 2026-09-15T05:23:05Z | [34932414032](https://github.com/reabal-n/instantmed/actions/runs/34932414032) | GitHub schedule |
+| 2026-09-15T06:18:46Z | [34936270589](https://github.com/reabal-n/instantmed/actions/runs/34936270589) | Vercel receipt |
+
+This does **not** establish uninterrupted observer availability. The window contains 288 persisted five-minute observer polls, including **13 unavailable polls** and zero recorded coverage gaps. Sentry records recovery transitions after these interruptions; the root cause remains unconfirmed. The current implementation returns an `unavailableReason`, but the incident event reviewed carries only a count, so the event does not distinguish transport, source, job or step failures. Do not suppress these incidents or label them patient-flow failures without further evidence. A September 15 09:15 UTC refresh showed observer version 2568 healthy; a later 09:20 alert confirms recurrence outside the fixed window.
+
+[Sentry rule 3987742](https://reys-projects.sentry.io/monitors/alerts/3987742/) remains enabled with production and exact active/browser-monitor filters, an active owner email action and a 30-minute throttle. Its UI showed 13 total triggers as of September 15 09:20 UTC. This lifetime rule count is separate from the window's 13 unavailable polls. The configured recipient is the owner's personal account, not the InstantMed support inbox; no matching alert was found in the authorized InstantMed inbox. Recipient delivery remains unverified pending access to the configured destination. No test notification or configuration mutation was made.
+
+The deferred physical-phone and owner visual acceptance remain open. Existing machine viewport/browser evidence does not substitute for the owner's device and acceptance. Plan 5 is already shipped and is not reopened by this assessment. The remaining server-action access/consent audit is a separate verification-and-planning task; its historical findings are not accepted as current implementation gaps without checking current source and reachability.
