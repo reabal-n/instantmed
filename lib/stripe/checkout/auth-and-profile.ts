@@ -11,6 +11,7 @@ import { CONTACT_EMAIL } from "@/lib/constants"
 import { updateProfile } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
+import { CHECKOUT_CONSENT_ERROR, hasCheckoutConsent } from "@/lib/stripe/checkout/consent"
 
 import {
   buildPrescribingProfileUpdates,
@@ -156,7 +157,7 @@ export async function runAuthAndProfile(
     input.answers.terms_agreed === true || input.answers.agreedToTerms === true
   const hasAccuracyConsent =
     input.answers.accuracy_confirmed === true || input.answers.confirmedAccuracy === true
-  if (!hasTermsConsent || !hasAccuracyConsent) {
+  if (!hasCheckoutConsent(input.answers)) {
     logger.warn("Checkout blocked: missing consent fields", {
       patientId,
       hasTermsConsent,
@@ -165,7 +166,7 @@ export async function runAuthAndProfile(
     })
     return stepFail(
       "clinical_or_input_validation",
-      "Please agree to the terms of service and confirm your information is accurate before proceeding.",
+      CHECKOUT_CONSENT_ERROR,
     )
   }
 

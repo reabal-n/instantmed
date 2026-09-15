@@ -170,8 +170,8 @@ describe("specialty experience clinical and no-friction invariants", () => {
     const reviewStep = read("components/request/steps/review-step.tsx")
     expect(reviewStep).toContain('setConsent("agreedToTerms", checked)')
     expect(reviewStep).toContain('setConsent("confirmedAccuracy", checked)')
-    expect(reviewStep).toContain("agreedToTerms: true")
-    expect(reviewStep).toContain("confirmedAccuracy: true")
+    expect(reviewStep).toContain("agreedToTerms: safetyConfirmed")
+    expect(reviewStep).toContain("confirmedAccuracy: safetyConfirmed")
 
     // The wider prescribing identity bundle (Medicare-or-IHI + sex + phone +
     // structured address) is owned by prescribing-identity-gate-contract.test.ts

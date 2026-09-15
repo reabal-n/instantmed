@@ -13,13 +13,13 @@
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
+import { computeIntakeHash } from "@/lib/data/intake-answer-hash"
 import { createLogger } from "@/lib/observability/logger"
 import { prepareDocumentDraftEditedContentWrite } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { logAuditEvent } from "./drafts/audit-log"
 import { syncClinicalNoteToIntake } from "./drafts/clinical-note-sync"
-import { computeIntakeHash } from "./drafts/draft-validation"
 import type { DraftApprovalResult } from "./drafts/types"
 
 // ── Re-exports for backward compatibility ──────────────────────────────

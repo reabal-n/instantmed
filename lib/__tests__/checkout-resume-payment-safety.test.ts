@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+
 const mocks = vi.hoisted(() => ({
   checkSafetyForServer: vi.fn(),
   createServiceRoleClient: vi.fn(),
@@ -220,11 +222,13 @@ function createResumeSupabaseMock(
   return { intake, supabase, updateRecords }
 }
 
+const explicitConsent = { agreedToTerms: true, confirmedAccuracy: true, telehealthConsentVersion: TELEHEALTH_CONSENT_VERSION, telehealthConsentGiven: true }
+
 describe("signed guest checkout resume payment safety", () => {
   beforeEach(() => {
     vi.resetAllMocks()
     mocks.getAppUrl.mockReturnValue("https://instantmed.example")
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({ symptomDetails: "A cold since yesterday" })
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({ ...explicitConsent, symptomDetails: "A cold since yesterday" })
     mocks.getOptionalStripePriceEnv.mockReturnValue(null)
     mocks.getPriceIdForRequest.mockReturnValue("price_med_cert")
     mocks.validateSafetyFieldsPresent.mockReturnValue({ missingFields: [], valid: true })
@@ -269,7 +273,7 @@ describe("signed guest checkout resume payment safety", () => {
       stripe_price_id: "price_repeat",
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent,
       medications: [{ name, strength: "1mg", form: "tablet", pbsCode: "MANUAL" }],
       routing_context: "type_2_diabetes",
     })
@@ -284,11 +288,39 @@ describe("signed guest checkout resume payment safety", () => {
     }))
   })
 
+  it.each([undefined, false, "true"])("blocks signed resume without explicit telehealth consent %s before Stripe", async value => {
+    const { supabase } = createResumeSupabaseMock({ payment_id: null })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: value })
+    await expect(resolveGuestCheckoutResume("intake-1")).resolves.toBe("/checkout/cancelled?reason=more_information_required")
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it.each(["paid", "unpaid"])("preserves Stripe-complete %s recovery when consent is missing", async paymentStatus => {
+    const { supabase } = createResumeSupabaseMock({ payment_id: "cs_previous", status: "pending_payment", payment_status: "pending" })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: false })
+    mocks.stripeSessionRetrieve.mockResolvedValueOnce({ id: "cs_previous", metadata: { intake_id: "intake-1" }, status: "complete", payment_status: paymentStatus })
+    const result = await resolveGuestCheckoutResume("intake-1")
+    expect(result).toBe("/auth/complete-account?intake_id=intake-1&session_id=cs_previous")
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+  it("expires the owned open session before requiring new consent", async () => {
+    const { supabase } = createResumeSupabaseMock({ payment_id: "cs_previous" })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: false })
+    await resolveGuestCheckoutResume("intake-1")
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
   it("loads encrypted-first answers and atomically locks a high-stakes payment before closing it", async () => {
     const events: string[] = []
     const { supabase, updateRecords } = createResumeSupabaseMock({}, { events })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent,
       symptomDetails: "Migraine and need to defer my exam tomorrow",
     })
     mocks.stripeSessionExpire.mockImplementationOnce(async () => {
@@ -329,7 +361,7 @@ describe("signed guest checkout resume payment safety", () => {
   it("uses the service relation to classify a legacy med-cert row with no category", async () => {
     const { supabase } = createResumeSupabaseMock({ category: null })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ symptomDetails: "Need to defer an exam" })
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, symptomDetails: "Need to defer an exam" })
 
     const destination = await resolveGuestCheckoutResume("intake-1")
 
@@ -342,7 +374,7 @@ describe("signed guest checkout resume payment safety", () => {
       refetchedIntakes: [{ checkout_error: "safety_blocked_high_stakes" }],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ symptomDetails: "Need to defer an exam" })
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, symptomDetails: "Need to defer an exam" })
     mocks.stripeSessionExpire.mockRejectedValueOnce(new Error("Session already complete"))
     mocks.stripeSessionRetrieve
       .mockResolvedValueOnce({
@@ -374,7 +406,7 @@ describe("signed guest checkout resume payment safety", () => {
   it("routes unresolved high-stakes invalidation to honest payment recovery", async () => {
     const { supabase, updateRecords } = createResumeSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ symptomDetails: "Need to defer an exam" })
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, symptomDetails: "Need to defer an exam" })
     mocks.stripeSessionExpire.mockRejectedValueOnce(new Error("Stripe unavailable"))
 
     const destination = await resolveGuestCheckoutResume("intake-1")
@@ -396,7 +428,7 @@ describe("signed guest checkout resume payment safety", () => {
       updateResults: [{ data: [], error: null }],
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ symptomDetails: "Need to defer an exam" })
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, symptomDetails: "Need to defer an exam" })
 
     const destination = await resolveGuestCheckoutResume("intake-1")
 
@@ -502,7 +534,7 @@ describe("signed guest checkout resume payment safety", () => {
   })
 
   it("withholds a recovered Hair Session when persisted reproductive answers are contraindicating", async () => {
-    const hairAnswers = {
+    const hairAnswers = { ...explicitConsent,
       consultSubtype: "hair_loss",
       emergency_symptoms: [],
       hairReproductive: "yes",
@@ -643,7 +675,7 @@ describe("signed guest checkout resume payment safety", () => {
   })
 
   it("holds and invalidates an incomplete repeat-Rx Session before returning any URL", async () => {
-    const incompleteAnswers = {
+    const incompleteAnswers = { ...explicitConsent,
       dose_changed: false,
       emergency_symptoms: [],
     }
@@ -711,7 +743,7 @@ describe("signed guest checkout resume payment safety", () => {
       subtype: "repeat",
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent,
       medicationName: "Sertraline",
       medicationStrength: "100 mg",
       currentDose: "Once daily",
@@ -1144,7 +1176,7 @@ describe("signed guest checkout resume payment safety", () => {
   it("does not expire a high-stakes Session owned by another intake", async () => {
     const { supabase } = createResumeSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent,
       symptomDetails: "Need to defer an exam",
     })
     mocks.stripeSessionRetrieve.mockResolvedValueOnce({

@@ -3,6 +3,8 @@ import { join } from "node:path"
 
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+
 const mocks = vi.hoisted(() => ({
   checkHighStakesUseCase: vi.fn(),
   checkSafetyForServer: vi.fn(),
@@ -321,6 +323,8 @@ function createRetrySupabaseMock(
   return { supabase, updateRecords }
 }
 
+const explicitConsent = { agreedToTerms: true, confirmedAccuracy: true, telehealthConsentVersion: TELEHEALTH_CONSENT_VERSION, telehealthConsentGiven: true }
+
 describe("retryPaymentForIntakeAction", () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -332,7 +336,7 @@ describe("retryPaymentForIntakeAction", () => {
       profile: { id: "patient-1", stripe_customer_id: null },
       user: { email: "patient@example.test", id: "user-1" },
     })
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({ symptom: "test" })
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({ ...explicitConsent, symptom: "test" })
     mocks.getOptionalStripePriceEnv.mockReturnValue("price_priority")
     mocks.getPriceIdForRequest.mockReturnValue("price_med_cert")
     mocks.stripePriceRetrieve.mockResolvedValue({
@@ -363,6 +367,35 @@ describe("retryPaymentForIntakeAction", () => {
     mocks.validateRepeatScriptPayload.mockReturnValue({ valid: true })
     mocks.validateSafetyFieldsPresent.mockReturnValue({ missingFields: [], valid: true })
     mocks.checkSafetyForServer.mockReturnValue({ isAllowed: true })
+  })
+
+  it.each([undefined, false, "true"])("blocks retry without explicit telehealth consent %s before Stripe", async value => {
+    const { supabase } = createRetrySupabaseMock({ payment_id: null })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: value })
+    const result = await retryPaymentForIntakeAction("intake-1")
+    expect(result).toMatchObject({ success: false, error: expect.stringContaining("telehealth agreement") })
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
+  it.each(["paid", "unpaid"])("preserves Stripe-complete %s recovery when consent is missing", async paymentStatus => {
+    const { supabase } = createRetrySupabaseMock({ payment_id: "cs_previous", status: "pending_payment", payment_status: "pending" })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: false })
+    mocks.stripeSessionRetrieve.mockResolvedValueOnce({ id: "cs_previous", metadata: { intake_id: "intake-1" }, status: "complete", payment_status: paymentStatus })
+    const result = await retryPaymentForIntakeAction("intake-1")
+    expect(result).toMatchObject({ success: true, checkoutUrl: "/patient/intakes/intake-1" })
+    expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+  it("expires the owned open session before requiring new consent", async () => {
+    const { supabase } = createRetrySupabaseMock({ payment_id: "cs_previous" })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: false })
+    await retryPaymentForIntakeAction("intake-1")
+    expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
   it("resets failed checkout retries to the new pending Stripe session", async () => {
@@ -481,7 +514,7 @@ describe("retryPaymentForIntakeAction", () => {
   })
 
   it("does not inspect, reuse, or create Stripe state for a contraindicating persisted Hair retry", async () => {
-    const hairAnswers = {
+    const hairAnswers = { ...explicitConsent,
       consultSubtype: "hair_loss",
       emergency_symptoms: [],
       hairReproductive: "yes",
@@ -974,7 +1007,7 @@ describe("retryPaymentForIntakeAction", () => {
     _case,
     sideEffectAnswers,
   ) => {
-    const authoritativeAnswers = {
+    const authoritativeAnswers = { ...explicitConsent,
       emergency_symptoms: [],
       dose_changed: false,
       ...sideEffectAnswers,
@@ -1040,7 +1073,7 @@ describe("retryPaymentForIntakeAction", () => {
   })
 
   it("holds a marked repeat retry with a frequency-only current regimen", async () => {
-    const authoritativeAnswers = {
+    const authoritativeAnswers = { ...explicitConsent,
       medicationName: "Sertraline",
       medicationStrength: "100 mg",
       currentDose: "Once daily",
@@ -1087,7 +1120,7 @@ describe("retryPaymentForIntakeAction", () => {
       subtype: "repeat",
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent,
       medicationName: "Sertraline",
       currentDose: "Once daily",
     })
@@ -1099,7 +1132,7 @@ describe("retryPaymentForIntakeAction", () => {
   })
 
   it("blocks a repeat retry when canonical repeat payload validation fails", async () => {
-    const authoritativeAnswers = {
+    const authoritativeAnswers = { ...explicitConsent,
       medicationName: "Sertraline",
       medicationStrength: "100 mg",
       currentDose: "100 mg once daily",
@@ -1206,7 +1239,7 @@ describe("retryPaymentForIntakeAction", () => {
       { events },
     )
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent,
       symptomDetails: "Migraine and need to defer my exam tomorrow",
     })
     mocks.stripeSessionExpire.mockImplementationOnce(async () => {
