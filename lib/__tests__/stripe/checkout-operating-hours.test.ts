@@ -1816,6 +1816,7 @@ describe("checkout operating hours", () => {
       checkoutSubmissionKey: originalKey, flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
     }
     beforeEach(async () => {
+      expect(vi.isMockFunction(ensureCheckoutConsentEvidence)).toBe(false)
       const fixtureUrl = process.env.CHECKOUT_FIXTURE_URL!
       if (!/^http:\/\/127\.0\.0\.1:\d+$/.test(fixtureUrl)) throw new Error("Guest checkout DB fixtures require a disposable loopback endpoint")
       const { createClient } = await vi.importActual<typeof import("@supabase/supabase-js")>("@supabase/supabase-js")
@@ -1831,7 +1832,7 @@ describe("checkout operating hours", () => {
       expect((await db.from("intake_answers").delete().not("intake_id", "is", null)).error).toBeNull()
       expect((await db.from("intakes").delete().not("id", "is", null)).error).toBeNull()
       expect((await db.from("intakes").insert({
-        id: intakeId, patient_id: "fixture-owner", guest_email: "fixture@example.test", service_id: "fixture-service",
+        id: intakeId, patient_id: "41414141-1111-4111-8111-111111111111", guest_email: "fixture@example.test", service_id: "fixture-service",
         status: "paid", payment_status: "paid", payment_id: "cs_fixture", checkout_error: null,
         category: "medical_certificate", subtype: "work", flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID, idempotency_key: originalKey,
       })).error).toBeNull()
@@ -1839,8 +1840,10 @@ describe("checkout operating hours", () => {
         session_id: SPECIALTY_DRAFT_SESSION_ID, flow_instance_id: SPECIALTY_FLOW_INSTANCE_ID,
         service_type: "med-cert", email: "fixture@example.test", converted_to_intake_id: intakeId, expires_at: "2099-01-01T00:00:00Z",
       })).error).toBeNull()
+      expect((await db.from("intake_answers").insert({ intake_id: intakeId, answers: input.answers })).error).toBeNull()
       mocks.createServiceRoleClient.mockReturnValue(db)
-      mocks.getIntakeAnswersForPaymentSafety.mockResolvedValue({})
+      const actualAnswers = await vi.importActual<typeof import("@/lib/data/intake-answers")>("@/lib/data/intake-answers")
+      mocks.getIntakeAnswersForPaymentSafety.mockImplementation(actualAnswers.getIntakeAnswersForPaymentSafety)
       mocks.stripeSessionRetrieve.mockResolvedValue({ id: "cs_fixture", metadata: { intake_id: intakeId }, status: "expired", payment_status: "unpaid", payment_intent: null })
     })
 
@@ -1853,7 +1856,7 @@ describe("checkout operating hours", () => {
           : proof === "foreign_intake" ? { converted_to_intake_id: "46464646-4646-4646-8646-464646464646" }
           : proof === "unconverted" ? { converted_to_intake_id: null } : null
         if (draftChanges) expect((await db.from("partial_intakes").update(draftChanges).eq("session_id", SPECIALTY_DRAFT_SESSION_ID)).error).toBeNull()
-        if (proof === "foreign_profile") expect((await db.from("intakes").update({ patient_id: "foreign-owner" }).eq("id", intakeId)).error).toBeNull()
+        if (proof === "foreign_profile") expect((await db.from("intakes").update({ patient_id: "41414141-2222-4222-8222-222222222222" }).eq("id", intakeId)).error).toBeNull()
         const intakeChanges = proof === "missing_intake_flow" ? { flow_instance_id: null }
           : proof === "wrong_intake_flow" ? { flow_instance_id: "46464646-4646-4646-8646-464646464646" }
           : proof === "missing_intake_email" ? { guest_email: null }
@@ -1889,6 +1892,10 @@ describe("checkout operating hours", () => {
           : { success: false, requiresFreshRequest: true })
       }
       expect(rpc.mock.calls.filter(([operation]) => operation === "claim_partial_intake_draft_for_checkout")).toHaveLength(2)
+      const receipts = await db.from("checkout_consent_receipts").select("id").eq("intake_id", intakeId)
+      expect(receipts.error).toBeNull()
+      expect(receipts.data).toHaveLength(status === "pending_payment" ? 1 : 0)
+      expect(rpc.mock.calls.filter(([operation]) => operation === "record_checkout_consent")).toHaveLength(status === "pending_payment" ? 2 : 0)
       expect((await db.from("intakes").select("id, status, payment_status, idempotency_key"))).toMatchObject({ data: [{ id: intakeId, status, payment_status: paymentStatus, idempotency_key: originalKey }], error: null })
       expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
       expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()
@@ -1913,7 +1920,7 @@ describe("checkout operating hours", () => {
       const otherId = "47474747-4747-4747-8747-474747474747"
       expect((await db.from("intakes").update({ idempotency_key: "proved-request-key" }).eq("id", intakeId)).error).toBeNull()
       expect((await db.from("intakes").insert({
-        id: otherId, patient_id: "fixture-owner", guest_email: "fixture@example.test", service_id: "fixture-service",
+        id: otherId, patient_id: "41414141-1111-4111-8111-111111111111", guest_email: "fixture@example.test", service_id: "fixture-service",
         status: "paid", payment_status: "paid", payment_id: "cs_other", category: "medical_certificate", subtype: "work",
         flow_instance_id: "48484848-4848-4848-8848-484848484848", idempotency_key: originalKey,
       })).error).toBeNull()
@@ -1969,7 +1976,9 @@ describe("checkout operating hours", () => {
   })
 })
 
-vi.mock("@/lib/stripe/checkout/consent-evidence", () => ({
+vi.mock("@/lib/stripe/checkout/consent-evidence", async (importOriginal) => process.env.CHECKOUT_FIXTURE_URL
+  ? await importOriginal<typeof import("@/lib/stripe/checkout/consent-evidence")>()
+  : ({
   hasDurableCheckoutConsent: vi.fn(async () => true),
   ensureCheckoutConsentEvidence: vi.fn(async () => ({ ok: true })),
   CONSENT_EVIDENCE_ERROR: "Consent evidence unavailable",
