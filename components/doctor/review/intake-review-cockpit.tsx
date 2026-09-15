@@ -12,6 +12,7 @@ import { IntakeActionButtons } from "@/components/doctor/review/intake-action-bu
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { IntakeSecondaryDisclosure } from "@/components/doctor/review/intake-secondary-disclosure"
 import { PatientMessageThread } from "@/components/doctor/review/patient-message-thread"
+import { PrescriptionHistoryCard } from "@/components/doctor/review/prescription-history-card"
 import { RequestInfoCard } from "@/components/doctor/review/request-info-card"
 import { ReviewBlockersStrip } from "@/components/doctor/review/review-blockers-strip"
 import {
@@ -142,7 +143,7 @@ export function IntakeReviewCockpit({
 }: IntakeReviewCockpitProps) {
   const router = useRouter()
   const review = useIntakeReview()
-  const { data, intake, answers, service } = review
+  const { data, intake, answers, service, reloadReviewData } = review
   // Server-resolved by default; the prop is an explicit override for callers
   // that render without the review-data payload. Either way it fails closed.
   const mayRevokeAutoIssued = canRevokeAutoIssued ?? data.viewerCanRevokeAutoIssued ?? false
@@ -329,6 +330,12 @@ export function IntakeReviewCockpit({
             ) : null}
             <CertificateDeliveryCard />
 
+            <PrescriptionHistoryCard
+              key={intake.id}
+              patientId={intake.patient.id}
+              history={data.prescriptionHistory}
+              reload={async () => (await reloadReviewData({ background: true }))?.prescriptionHistory ?? null}
+            />
             <IntakeSecondaryDisclosure
               totalOtherRequestCount={data.previousIntakeCount ?? data.previousIntakes?.length ?? 0}
               visibleOtherRequestCount={data.previousIntakes?.length ?? 0}

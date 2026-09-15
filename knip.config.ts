@@ -19,6 +19,8 @@ const config: KnipConfig = {
     "scripts/test-checkout-restored-browser.mjs",
     "scripts/fixtures/checkout-restored-browser.tsx",
     "scripts/test-parchment-workspace-browser.mjs",
+    "scripts/test-prescription-history-browser.mjs",
+    "scripts/fixtures/prescription-history-browser.tsx",
     "scripts/fixtures/parchment-workspace-browser.tsx",
   ],
   project: [

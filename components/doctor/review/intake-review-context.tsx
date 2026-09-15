@@ -4,6 +4,7 @@ import { createContext, type RefObject, useContext } from "react"
 
 import type { AIDraft } from "@/app/actions/draft-approval"
 import type { PatientThreadMessage } from "@/lib/data/patient-messages"
+import type { ReviewPrescriptionHistory } from "@/lib/data/review-prescription-history"
 import type { ClinicalReviewActionAccess } from "@/lib/doctor/case-action-guard"
 import type { RenewalMatch } from "@/lib/doctor/renewal-format"
 import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails, IntakeWithPatient, PatientNote } from "@/types/db"
@@ -18,6 +19,7 @@ export interface ReviewData {
   /** True prior-request total for the patient — not the capped 5-row page. */
   previousIntakeCount?: number
   patientNotes?: PatientNote[]
+  prescriptionHistory?: ReviewPrescriptionHistory
   draftId: string | null
   certificate?: {
     id: string

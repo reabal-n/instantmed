@@ -9,6 +9,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientNotes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
+import { getReviewPrescriptionHistory } from "@/lib/data/review-prescription-history"
 import { getClinicalReviewActionAccess } from "@/lib/doctor/case-action-guard"
 import { buildPreviousIntakeContext } from "@/lib/doctor/intake-medication-label"
 import { isConsultServiceType } from "@/lib/doctor/service-types"
@@ -49,7 +50,7 @@ export default async function DoctorIntakeDetailPage({
 
   // Fetch all supplementary data in parallel — patientHistory moved into the batch
   // to match the admin page pattern and save ~60ms sequential round-trip.
-  const [previousIntakeContext, aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags, patientMessages, patientNotes] = await Promise.all([
+  const [previousIntakeContext, aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags, patientMessages, patientNotes, prescriptionHistory] = await Promise.all([
     buildPreviousIntakeContext({ patientId: intake.patient.id, currentIntakeId: id }),
     getAIDraftsForIntake(id),
     getNextQueueIntakeId(id),
@@ -61,6 +62,7 @@ export default async function DoctorIntakeDetailPage({
     getFeatureFlags(),
     getPatientMessagesForIntake(id),
     getPatientNotes(intake.patient.id, undefined, 5),
+    getReviewPrescriptionHistory(intake.patient.id),
   ])
 
   // Phase 3: fetch follow-ups for ED/hair-loss consults
@@ -103,6 +105,7 @@ export default async function DoctorIntakeDetailPage({
       parchmentEnabled={featureFlags.parchment_embedded_prescribing}
       patientMessages={patientMessages}
       patientNotes={patientNotes}
+      prescriptionHistory={prescriptionHistory}
       compact
     />
   )

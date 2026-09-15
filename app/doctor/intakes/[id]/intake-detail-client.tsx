@@ -83,6 +83,7 @@ interface IntakeDetailClientProps {
   viewerActionAccess?: ReviewData["viewerActionAccess"]
   patientMessages?: PatientThreadMessage[]
   patientNotes?: PatientNote[]
+  prescriptionHistory?: ReviewData["prescriptionHistory"]
   backHref?: string
   backLabel?: string
   supplementaryActions?: ReactNode
@@ -131,6 +132,7 @@ function CockpitIntakeDetailClient({
   viewerActionAccess,
   patientMessages = [],
   patientNotes = [],
+  prescriptionHistory,
   initialAction,
   backHref = STAFF_DASHBOARD_HREF,
   backLabel = "Back to queue",
@@ -149,6 +151,7 @@ function CockpitIntakeDetailClient({
     previousIntakes,
     previousIntakeCount: previousIntakeCount ?? previousIntakes.length,
     patientNotes,
+    prescriptionHistory,
     patientMessages,
     draftId: draftId ?? null,
     certificate: mapCertDeliveryToReviewCertificate(intake.id, certDelivery),
@@ -166,6 +169,7 @@ function CockpitIntakeDetailClient({
     patientAge,
     patientMessages,
     patientNotes,
+    prescriptionHistory,
     previousIntakes,
     previousIntakeCount,
   ])
@@ -426,6 +430,7 @@ function LegacyIntakeDetailClient({
   parchmentEnabled = false,
   patientMessages = [],
   patientNotes = [],
+  prescriptionHistory,
   backHref = STAFF_DASHBOARD_HREF,
   backLabel = "Back to queue",
   supplementaryActions,
@@ -440,6 +445,7 @@ function LegacyIntakeDetailClient({
     previousIntakes,
     previousIntakeCount: previousIntakeCount ?? previousIntakes.length,
     patientNotes,
+    prescriptionHistory,
     patientMessages,
     draftId: draftId ?? null,
     certificate: mapCertDeliveryToReviewCertificate(initialIntake.id, certDelivery),
@@ -453,6 +459,7 @@ function LegacyIntakeDetailClient({
     patientAge,
     patientMessages,
     patientNotes,
+    prescriptionHistory,
     previousIntakes,
     previousIntakeCount,
   ])

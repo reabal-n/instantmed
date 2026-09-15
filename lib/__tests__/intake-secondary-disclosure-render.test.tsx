@@ -81,3 +81,26 @@ describe("PatientTimeline request labels", () => {
     expect(html).toContain("Repeat prescription · Sertraline")
   })
 })
+
+describe("Prescription directions", () => {
+  it("shows full directions without visual truncation", () => {
+    const html = renderToStaticMarkup(<PatientTimeline prescriptions={[{
+      id: "synthetic-rx", source: "parchment", medication_name: "Synthetic medicine",
+      medication_strength: "10 mg", dosage_instructions: "Take one tablet daily.\nOnly on the specified days; stop if instructed by your doctor.",
+      status: "cancelled", recorded_at: "2026-09-01",
+    }]} />)
+    expect(html).toContain("Dose and frequency")
+    expect(html).toContain("Only on the specified days")
+    expect(html).not.toContain("line-clamp-2")
+    expect(html).toContain("Cancelled")
+    expect(html).not.toContain("10:00 am")
+  })
+
+  it("makes missing prescribed directions explicit", () => {
+    const html = renderToStaticMarkup(<PatientTimeline prescriptions={[{
+      id: "synthetic-rx", source: "parchment", medication_name: "Synthetic medicine",
+      status: "active", recorded_at: "2026-09-01",
+    }]} />)
+    expect(html).toContain("Dose and frequency: Not recorded")
+  })
+})

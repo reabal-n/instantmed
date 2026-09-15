@@ -8,6 +8,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientNotes } from "@/lib/data/intakes"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
+import { getReviewPrescriptionHistory } from "@/lib/data/review-prescription-history"
 import { getClinicalReviewActionAccess } from "@/lib/doctor/case-action-guard"
 import { buildPreviousIntakeContext } from "@/lib/doctor/intake-medication-label"
 import { detectRenewalsForIntakes } from "@/lib/doctor/renewal-detection"
@@ -57,7 +58,7 @@ export async function GET(
   // count) comes from the shared builder so this route and the intake detail
   // page can never drift apart (2026-08-11: two repeat scripts 6 minutes
   // apart read as duplicates because history rows carried no medicine).
-  const [aiDrafts, nextIntakeId, medCertDraft, certificate, previousIntakeContext, patientMessages, patientNotes] = await Promise.all([
+  const [aiDrafts, nextIntakeId, medCertDraft, certificate, previousIntakeContext, patientMessages, patientNotes, prescriptionHistory] = await Promise.all([
     getAIDraftsForIntake(intakeId),
     getNextQueueIntakeId(intakeId),
     serviceType === "med_certs"
@@ -69,6 +70,7 @@ export async function GET(
     buildPreviousIntakeContext({ patientId: intake.patient.id, currentIntakeId: intakeId }),
     getPatientMessagesForIntake(intakeId),
     getPatientNotes(intake.patient.id, undefined, 5),
+    getReviewPrescriptionHistory(intake.patient.id),
   ])
 
   // Compute patient age
@@ -116,6 +118,7 @@ export async function GET(
     previousIntakes: previousIntakeContext.previousIntakes,
     previousIntakeCount: previousIntakeContext.previousIntakeCount,
     patientNotes,
+    prescriptionHistory,
     patientMessages,
     reviewingClinician: {
       fullName: auth.profile.full_name ?? null,

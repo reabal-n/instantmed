@@ -25,6 +25,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
+import { getReviewPrescriptionHistory } from "@/lib/data/review-prescription-history"
 import { getClinicalReviewActionAccess } from "@/lib/doctor/case-action-guard"
 import { isConsultServiceType } from "@/lib/doctor/service-types"
 import { getFeatureFlags } from "@/lib/feature-flags"
@@ -74,6 +75,7 @@ export default async function AdminIntakeDetailPage({
     featureFlags,
     patientMessages,
     patientNotes,
+    prescriptionHistory,
   ] = await Promise.all([
     getPatientIntakes(intake.patient.id, { pageSize: 6, scope: "clinical_history" }),
     getAIDraftsForIntake(id),
@@ -86,6 +88,7 @@ export default async function AdminIntakeDetailPage({
     getFeatureFlags(),
     getPatientMessagesForIntake(id),
     getPatientNotes(intake.patient.id, undefined, 5),
+    getReviewPrescriptionHistory(intake.patient.id),
   ])
 
   let followups: DoctorFollowupRow[] = []
@@ -129,6 +132,7 @@ export default async function AdminIntakeDetailPage({
         parchmentEnabled={featureFlags.parchment_embedded_prescribing}
         patientMessages={patientMessages}
         patientNotes={patientNotes}
+        prescriptionHistory={prescriptionHistory}
         backHref={isHistoricalReview
           ? ADMIN_HISTORICAL_AUTO_ISSUED_REVIEW_HREF
           : STAFF_DASHBOARD_HREF}
