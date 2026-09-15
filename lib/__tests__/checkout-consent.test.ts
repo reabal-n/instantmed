@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 
 import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+import { transformAnswersForUnifiedCheckout } from "@/lib/request/unified-checkout"
 import { hasCheckoutConsent } from "@/lib/stripe/checkout/consent"
 
 describe("explicit checkout consent", () => {
@@ -19,6 +20,13 @@ describe("explicit checkout consent", () => {
   })
   it.each(["agreedToTerms", "confirmedAccuracy"])("requires %s independently", key => {
     expect(hasCheckoutConsent({ ...consent, [key]: false })).toBe(false)
+  })
+  it.each([
+    ["terms_agreed", false], ["accuracy_confirmed", "true"],
+    ["telehealth_consent_given", false], ["telehealth_consent_version", "2026-02"],
+  ])("rejects conflicting canonical alias %s", (key, value) => {
+    expect(hasCheckoutConsent({ ...consent, [key]: value })).toBe(false)
+    expect(hasCheckoutConsent(transformAnswersForUnifiedCheckout("med-cert", { ...consent, [key]: value }))).toBe(false)
   })
   it.each([
     "lib/stripe/checkout/auth-and-profile.ts", "lib/stripe/guest-checkout.ts",

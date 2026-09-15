@@ -10,6 +10,7 @@ import { create } from 'zustand'
 import { persist, type StorageValue } from 'zustand/middleware'
 
 import { capture } from '@/lib/analytics/capture'
+import { TELEHEALTH_CONSENT_VERSION } from '@/lib/constants'
 import {
   ensureFlowInstanceId,
   normalizeFlowInstanceId,
@@ -588,6 +589,8 @@ function normalizePersistedState(state: Partial<RequestState> | undefined): Part
   if (!state) return {}
 
   const persisted = state as PersistedRequestState
+  const restoreConfirmedAttestation = state.safetyConfirmed === true
+    && persisted.answers?.telehealthConsentVersion === TELEHEALTH_CONSENT_VERSION
 
   // A draft written before a registry change can name a step that no longer
   // exists. resolveStepId maps a retired id onto its successor (see
@@ -614,8 +617,8 @@ function normalizePersistedState(state: Partial<RequestState> | undefined): Part
     email: typeof state.email === 'string' ? state.email : '',
     phone: typeof state.phone === 'string' ? state.phone : '',
     dob: typeof state.dob === 'string' ? state.dob : '',
-    safetyConfirmed: typeof state.safetyConfirmed === 'boolean' ? state.safetyConfirmed : false,
-    safetyTimestamp: typeof state.safetyTimestamp === 'string' ? state.safetyTimestamp : null,
+    safetyConfirmed: restoreConfirmedAttestation,
+    safetyTimestamp: restoreConfirmedAttestation && typeof state.safetyTimestamp === 'string' ? state.safetyTimestamp : null,
     furthestVisitedStepId: resolveStepId(state.furthestVisitedStepId)
       ?? resolvedCurrentStepId
       ?? state.currentStepId
@@ -627,9 +630,9 @@ function normalizePersistedState(state: Partial<RequestState> | undefined): Part
             .filter((stepId): stepId is UnifiedStepId => stepId !== null),
         ))
       : [],
-    agreedToTerms: typeof state.agreedToTerms === 'boolean' ? state.agreedToTerms : false,
-    confirmedAccuracy: typeof state.confirmedAccuracy === 'boolean' ? state.confirmedAccuracy : false,
-    telehealthConsent: typeof state.telehealthConsent === 'boolean' ? state.telehealthConsent : false,
+    agreedToTerms: restoreConfirmedAttestation,
+    confirmedAccuracy: restoreConfirmedAttestation,
+    telehealthConsent: restoreConfirmedAttestation,
   }
 }
 
@@ -681,7 +684,9 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           const canonical = canonicalizeServiceType(type)
           const scopedDraft = canonical ? getDraft(canonical) : null
           const restoreConfirmedAttestation = Boolean(
-            scopedDraft?.safetyConfirmed && draftIdentityMatchesCurrentState(scopedDraft, currentState),
+            scopedDraft?.safetyConfirmed === true
+              && scopedDraft.answers?.telehealthConsentVersion === TELEHEALTH_CONSENT_VERSION
+              && draftIdentityMatchesCurrentState(scopedDraft, currentState),
           )
 
           const restoredAnswers = isPlainRecord(scopedDraft?.answers) ? scopedDraft.answers : {}
