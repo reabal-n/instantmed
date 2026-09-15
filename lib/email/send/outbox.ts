@@ -1,10 +1,9 @@
-"use server"
+import "server-only"
 
 /**
  * Email outbox database operations.
  * Two-phase write pattern: create pending row before send, update after.
  */
-
 import { isProviderTerminalDeliveryStatus } from "@/lib/email/delivery-status"
 import { REVIEW_CLICK_KEY_HASH_METADATA_KEY } from "@/lib/email/review-click-key"
 import { logger } from "@/lib/observability/logger"

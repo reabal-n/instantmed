@@ -1,4 +1,4 @@
-"use server"
+import "server-only"
 
 /**
  * Intake Events Data Access
@@ -6,7 +6,6 @@
  * Helper functions for logging intake status transitions and events.
  * Used for audit trail and SLA monitoring.
  */
-
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"

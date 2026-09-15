@@ -1,4 +1,4 @@
-"use server"
+import "server-only"
 
 import { capturePersonlessPostHogEvent } from "@/lib/analytics/posthog-server"
 import { buildPatientIntakeHref } from "@/lib/dashboard/routes"

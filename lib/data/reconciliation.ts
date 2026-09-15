@@ -1,4 +1,4 @@
-"use server"
+import "server-only"
 
 /**
  * Payments Reconciliation Data Access
@@ -6,7 +6,6 @@
  * Server-side queries for identifying mismatches between
  * Stripe payment and delivery outcome.
  */
-
 import * as Sentry from "@sentry/nextjs"
 
 import { getPaymentTraceabilityIssue } from "@/lib/data/reconciliation-helpers"
