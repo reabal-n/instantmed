@@ -11,7 +11,28 @@ const internalModules = new Set([
   "app/actions/drafts/generate-med-cert.ts", "app/actions/drafts/generate-repeat-rx.ts",
   "app/actions/generate-drafts.ts", "lib/data/intake-answer-hash.ts",
 ])
-const internalNames = new Set(["computeIntakeHash", "generateDraftsForIntake"])
+// Also reject re-exports through a different action facade.
+const internalNames = new Set([
+  "getEmailOutboxList", "getEmailOutboxById", "getEmailOutboxStats", "getDistinctEmailTypes",
+  "getReconciliationRecords", "getDistinctCategories",
+  "getStuckIntakes", "getDistinctServiceTypes",
+  "logIntakeEvent", "logStatusChange", "logPaymentReceived", "logDocumentGenerated", "logEmailSent", "logEmailFailed", "logScriptSent", "logRefundProcessed", "getIntakeEvents",
+  "reconstructEmailContent",
+  "createPendingOutbox", "persistFrozenProviderPayload", "persistPartialRecoveryTrackingId", "claimOutboxRow", "updateOutboxStatus", "cancelSendingOutboxRow", "deferOutboxRow", "logToOutbox",
+  "sendViaResend", "sendCriticalEmail",
+  "sendRequestDeclinedEmail",
+  "findAbandonedCheckouts", "sendAbandonedCheckoutEmail", "sendStrandedCheckoutRecoveryEmail", "findAbandonedFollowups", "sendAbandonedFollowupEmail", "processAbandonedCheckouts",
+  "processPartialIntakeRecoveries",
+  "createNotification", "notifyRequestStatusChange", "notifyPaymentReceived",
+  "logAuditEvent",
+  "syncClinicalNoteToIntake",
+  "generateClinicalNoteDraft",
+  "generateConsultDraft",
+  "generateMedCertDraft",
+  "generateRepeatRxDraft",
+  "generateDraftsForIntake",
+  "computeIntakeHash",
+])
 const isRecord = value => value !== null && typeof value === "object" && !Array.isArray(value)
 
 try {

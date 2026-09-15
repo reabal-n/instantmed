@@ -43,6 +43,9 @@ describe("internal server action boundaries", () => {
   it("rejects the hash even if re-exported from the previous mixed module", () => {
     expect(check({ node: { secret: action("app/actions/drafts/draft-validation.ts", "computeIntakeHash") }, edge: {} }).status).toBe(1)
   })
+  it("rejects an internal outbox helper re-exported by an action facade", () => {
+    expect(check({ node: { secret: action("app/actions/email-operations.ts", "getEmailOutboxList") }, edge: {} }).status).toBe(1)
+  })
   it("accepts deliberate actions and reports only classification metadata", () => {
     const result = check({ node: { "private-action-token": action() }, edge: {}, encryptionKey: "private-encryption-key" })
     expect(result.status).toBe(0)
