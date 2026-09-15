@@ -202,7 +202,8 @@ describe("doctor capability gating contract", () => {
     expect(existsSync(join(root, "app/api/doctor/scripts/route.ts"))).toBe(false)
 
     expect(scriptUpdateRouteSource).toContain("hasAdminAccess(profile)")
-    expect(draftApprovalSource).toContain("hasAdminAccess(auth.profile)")
+    expect(draftApprovalSource).toContain("getClinicalReviewActionAccess(profile, { ...intake, service })")
+    expect(draftApprovalSource).not.toContain("assigned_doctor_id")
     expect(certificateDownloadSource).toContain("hasDoctorAccess(profile)")
     expect(certificateDownloadSource).toContain("hasAdminAccess(profile)")
   })

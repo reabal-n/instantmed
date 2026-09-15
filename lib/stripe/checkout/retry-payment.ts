@@ -27,6 +27,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
+import { CHECKOUT_CONSENT_ERROR, hasCheckoutConsent } from "@/lib/stripe/checkout/consent"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
@@ -170,6 +171,19 @@ export async function retryPaymentForIntakeAction(
         new Error("Authoritative intake answer read failed"),
       )
       return checkoutFailure("persistence", RETRY_PAYMENT_STATE_ERROR)
+    }
+
+    if (!hasCheckoutConsent(intakeAnswers)) {
+      if (intake.payment_id) {
+        const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, {
+          intakeStatus: intake.status, paymentStatus: intake.payment_status, storedPaymentId: intake.payment_id,
+        })
+        if (invalidation === "payment_in_flight") {
+          return { success: true, checkoutUrl: `/patient/intakes/${intake.id}`, intakeId: intake.id }
+        }
+        if (invalidation !== "invalidated") return checkoutFailure("persistence", RETRY_PAYMENT_STATE_ERROR)
+      }
+      return checkoutFailure("clinical_or_input_validation", CHECKOUT_CONSENT_ERROR)
     }
 
     const isMedicalCertificate = isMedicalCertificateIntake(categoryForSafety, serviceForSafety)

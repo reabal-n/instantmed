@@ -205,6 +205,11 @@ const ED_AMBIGUOUS_INGREDIENTS: ReadonlyArray<string> = [
   "vardenafil",
   "avanafil",
 ]
+// Routing-only alias for the reported multi-edit spelling. Keep exact word
+// boundaries and the same structured indication question as sildenafil. This
+// is not a verified medicine identity and must not enter the prescribing catalogue.
+const PDE5_ROUTING_TYPO = /\bsedenfil\b/i
+
 const ED_AMBIGUOUS_BRANDS: ReadonlyArray<RegExp> = [
   /\bcialis\b/i,
   /\blevitra\b/i,
@@ -366,7 +371,8 @@ export function detectDedicatedServiceForMedication(
   }
   const edDefinite = ED_DEFINITE_BRANDS.some((pattern) => pattern.test(medicine))
   const edAmbiguous =
-    ED_AMBIGUOUS_BRANDS.some((pattern) => pattern.test(medicine))
+    PDE5_ROUTING_TYPO.test(medicine)
+    || ED_AMBIGUOUS_BRANDS.some((pattern) => pattern.test(medicine))
     || ED_AMBIGUOUS_INGREDIENTS.some((term) => textMatchesTermFuzzily(medicine, term))
   if (edDefinite || edAmbiguous) {
     if (!edDefinite && (routingContext === "pulmonary_hypertension" || routingContext === "prostate_bph")) {

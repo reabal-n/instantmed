@@ -46,6 +46,7 @@ import {
   checkSafetyForServer,
   validateSafetyFieldsPresent,
 } from "@/lib/safety/evaluate"
+import { CHECKOUT_CONSENT_ERROR, hasCheckoutConsent } from "@/lib/stripe/checkout/consent"
 import { getServiceSlug } from "@/lib/stripe/checkout/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getRepeatScriptRoutingBlock } from "@/lib/validation/repeat-script-schema"
@@ -512,7 +513,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     // CLINICAL AUDIT: Validate consent fields are present (CLINICAL.md §Consent Requirements)
     const hasTermsConsent = input.answers.terms_agreed === true || input.answers.agreedToTerms === true
     const hasAccuracyConsent = input.answers.accuracy_confirmed === true || input.answers.confirmedAccuracy === true
-    if (!hasTermsConsent || !hasAccuracyConsent) {
+    if (!hasCheckoutConsent(input.answers)) {
       logger.warn("Guest checkout blocked: missing consent fields", {
         hasTermsConsent,
         hasAccuracyConsent,
@@ -520,7 +521,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       })
       return checkoutFailure(
         "clinical_or_input_validation",
-        "Please agree to the terms of service and confirm your information is accurate before proceeding.",
+        CHECKOUT_CONSENT_ERROR,
       )
     }
 

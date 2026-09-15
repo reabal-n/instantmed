@@ -11,15 +11,15 @@
  */
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
-import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
+import { computeIntakeHash } from "@/lib/data/intake-answer-hash"
+import { getClinicalReviewActionAccess } from "@/lib/doctor/case-action-guard"
 import { createLogger } from "@/lib/observability/logger"
 import { prepareDocumentDraftEditedContentWrite } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { logAuditEvent } from "./drafts/audit-log"
 import { syncClinicalNoteToIntake } from "./drafts/clinical-note-sync"
-import { computeIntakeHash } from "./drafts/draft-validation"
 import type { DraftApprovalResult } from "./drafts/types"
 
 // ── Re-exports for backward compatibility ──────────────────────────────
@@ -29,6 +29,24 @@ import type { DraftApprovalResult } from "./drafts/types"
 export type { AIDraft, AuditEventParams, ClinicalNoteContent, DraftApprovalResult } from "./drafts/types"
 
 const log = createLogger("draft-approval")
+
+// Keep authorization private to this module: it must not become a server action.
+async function draftAccessError(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  intakeId: string,
+  profile: Parameters<typeof getClinicalReviewActionAccess>[0],
+): Promise<string | null> {
+  const { data: intake, error } = await supabase
+    .from("intakes")
+    .select("claimed_by, reviewing_doctor_id, reviewed_by, subtype, service:services!service_id(type)")
+    .eq("id", intakeId)
+    .single()
+
+  if (error || !intake) return "Unable to verify access to this request. Refresh and try again."
+
+  const service = Array.isArray(intake.service) ? intake.service[0] : intake.service
+  return getClinicalReviewActionAccess(profile, { ...intake, service }).reason
+}
 
 // ── Actions ────────────────────────────────────────────────────────────
 
@@ -59,24 +77,8 @@ export async function approveDraft(
     return { success: false, error: "Draft not found" }
   }
 
-  // Verify doctor is assigned to this intake (or is admin)
-  if (!hasAdminAccess(auth.profile)) {
-    const { data: intake } = await supabase
-      .from("intakes")
-      .select("assigned_doctor_id")
-      .eq("id", draft.intake_id)
-      .single()
-
-    if (intake?.assigned_doctor_id && intake.assigned_doctor_id !== auth.profile.id) {
-      log.warn("Doctor not assigned to intake", {
-        draftId,
-        intakeId: draft.intake_id,
-        doctorId: auth.profile.id,
-        assignedDoctorId: intake.assigned_doctor_id,
-      })
-      return { success: false, error: "You are not assigned to this intake" }
-    }
-  }
+  const accessError = await draftAccessError(supabase, draft.intake_id, auth.profile)
+  if (accessError) return { success: false, error: accessError }
 
   // Check if already approved or rejected
   if (draft.approved_at) {
@@ -191,24 +193,8 @@ export async function rejectDraft(
     return { success: false, error: "Draft not found" }
   }
 
-  // Verify doctor is assigned to this intake (or is admin)
-  if (!hasAdminAccess(auth.profile)) {
-    const { data: intake } = await supabase
-      .from("intakes")
-      .select("assigned_doctor_id")
-      .eq("id", draft.intake_id)
-      .single()
-
-    if (intake?.assigned_doctor_id && intake.assigned_doctor_id !== auth.profile.id) {
-      log.warn("Doctor not assigned to intake", {
-        draftId,
-        intakeId: draft.intake_id,
-        doctorId: auth.profile.id,
-        assignedDoctorId: intake.assigned_doctor_id,
-      })
-      return { success: false, error: "You are not assigned to this intake" }
-    }
-  }
+  const accessError = await draftAccessError(supabase, draft.intake_id, auth.profile)
+  if (accessError) return { success: false, error: accessError }
 
   if (draft.approved_at) {
     return { success: false, error: "Cannot reject an already approved draft" }
@@ -268,23 +254,8 @@ export async function regenerateDrafts(intakeId: string): Promise<DraftApprovalR
 
   const supabase = createServiceRoleClient()
 
-  // Verify doctor is assigned to this intake (or is admin)
-  if (!hasAdminAccess(auth.profile)) {
-    const { data: intake } = await supabase
-      .from("intakes")
-      .select("assigned_doctor_id")
-      .eq("id", intakeId)
-      .single()
-
-    if (intake?.assigned_doctor_id && intake.assigned_doctor_id !== auth.profile.id) {
-      log.warn("Doctor not assigned to intake for regeneration", {
-        intakeId,
-        doctorId: auth.profile.id,
-        assignedDoctorId: intake.assigned_doctor_id,
-      })
-      return { success: false, error: "You are not assigned to this intake" }
-    }
-  }
+  const accessError = await draftAccessError(supabase, intakeId, auth.profile)
+  if (accessError) return { success: false, error: accessError }
 
   // Get current draft version
   const { data: existingDrafts } = await supabase

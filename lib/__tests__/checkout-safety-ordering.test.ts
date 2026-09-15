@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest"
 
+import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+
 // ---------------------------------------------------------------------------
 // CLAUDE.md invariant (checkout safety enforcement):
 //   "Authenticated, guest, and retry-payment checkout paths must call
@@ -93,7 +95,7 @@ function medCertInput() {
       symptoms_description: "head cold, sore throat and fatigue, need one day off",
       symptom_duration: "today",
       start_date: new Date().toISOString().slice(0, 10),
-      telehealth_consent_given: true,
+      telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
       accuracy_confirmed: true,
       terms_agreed: true,
     },
@@ -287,6 +289,7 @@ describe("retry-payment path (retryPaymentForIntakeAction)", () => {
       profile: { id: "pat-1", stripe_customer_id: null },
     })
     mock(getIntakeAnswersForPaymentSafety).mockResolvedValue({
+      terms_agreed: true, accuracy_confirmed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
       certificate_type: "work",
       duration: "1",
     })

@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Work only this readiness follow-up. Plan 5 remains unstarted.
+- Work only this readiness follow-up. The original pre-Plan 5 sequencing is historical: Plan 5 shipped in PR #563 on September 14 and must not be restarted.
 - Preserve stack pins, clinical outcomes, provider authentication, assertions and individual test deadlines. Do not introduce a service, dashboard, migration or patient-facing feature.
 - Never run synthetic webhook calls against production or create live payments, prescriptions, refunds or patient notifications for evidence.
 - Use existing owned local/CI fixtures and their cleanup; keep credentials, patient data and raw provider payloads out of logs and committed receipts.
@@ -55,8 +55,8 @@ PLAYWRIGHT_SERVER_MODE=production PLAYWRIGHT_WORKERS=1 \
 - [x] Read current deployment and numeric monitor state. The first eligible post-release Vercel slot is September 14 06:17 UTC (16:17 Sydney), with native GitHub backup at minute 47.
 - [x] After the natural slot, correlate the stored dispatch run ID with the exact GitHub workflow run and successful browser step, then confirm a later observer poll accepts it and records stale recovery. Manual dispatches and reruns do not establish cadence.
 - [x] Inspect the existing Sentry notification configuration and provider delivery evidence for the real stale/recovery event. Record ingestion separately from recipient delivery; if only the operator can confirm receipt, leave that explicit human/evidence gate. Do not send a test message or add an alert route merely to obtain evidence.
-- [ ] Measure a full 24-hour window from the first accepted scheduled completion: list eligible completions, maximum internal gap and trailing age against the 150-minute requirement. A shorter window is partial evidence. Arrange one bounded follow-up if the observation window outlasts implementation; it must inspect existing evidence and stay quiet unless completion, failure or human input is meaningful.
-- [ ] Review the evidence against each acceptance rule; record any real runtime failure for diagnosis under the incident workflow, without expanding product scope.
+- [x] Measure a full 24-hour window from the first accepted scheduled completion: list eligible completions, maximum internal gap and trailing age against the 150-minute requirement. A shorter window is partial evidence. Arrange one bounded follow-up if the observation window outlasts implementation; it must inspect existing evidence and stay quiet unless completion, failure or human input is meaningful.
+- [x] Review the evidence against each acceptance rule; record any real runtime failure for diagnosis under the incident workflow, without expanding product scope.
 
 ## Task 3: Release the engineering fix and preserve owner acceptance
 
@@ -66,8 +66,8 @@ PLAYWRIGHT_SERVER_MODE=production PLAYWRIGHT_WORKERS=1 \
 
 - [x] Run the appropriate release checks, independent whole-branch review and required GitHub `build`/`e2e` checks. Inspect failed attempts as well as the final CI status. Merge through normal PR rules only after required checks pass.
 - [x] For any runtime change, verify the deployed source and targeted production smoke. For test/docs-only changes, identify the existing production application as unchanged and avoid an unnecessary redeployment.
-- [ ] Retain the deferred owner phone check: Dashboard → existing request → open Prescribe → close; verify readable compact context, usable keyboard/viewport, sufficient iframe space and return to the same request, without issuing a prescription. Machine viewport checks cannot mark this accepted.
-- [ ] Update ROADMAP and the receipt with completed work, precise pending evidence and the next allowed action. Leave Plan 5 unstarted; delete only merged owned branches/worktrees after retaining local evidence.
+- [x] Release boundary resolved by the operator on September 15: use [automated prescribing verification](#automated-prescribing-verification--september-15) instead of the deferred physical-phone check. No physical-phone test is claimed.
+- [x] Update ROADMAP and the receipt with completed work, precise pending evidence and the next allowed action. Plan 5 subsequently shipped separately; do not restart it. Delete only merged owned branches/worktrees after retaining local evidence.
 
 ## Execution Receipt
 
@@ -101,3 +101,59 @@ At 07:10 UTC the observer recorded one unavailable poll (version2255). The new S
 The protected merge completed as `90beaaeab69b3173ec410484cd02058449a8e93b`. This test/docs-only release changes no application runtime. A fresh Vercel read confirmed production remains READY on `dpl_Di2Ck4zPcFJus8LgpBAzLKmUobwQ`, application commit `1215e8e1a58be571e0884abeffd71893241748b7`; no redeployment was requested. Rollback is a normal revert of PR #561, restoring the former test grouping. No production secret or database migration changed.
 
 The CI/merge gate for starting Plan 5 is closed. The fixed 24-hour monitoring assessment remains due September 15 06:19:01 UTC; actual email receipt and the deferred physical-phone review remain separate evidence/owner gates. This follow-up does not start Plan 5 or include the later security/checkout audit backlog.
+
+
+### Fixed monitoring window assessed — September 15
+
+The original **September 14 06:19:01 UTC → September 15 06:19:01 UTC** window passes the scheduled-completion cadence criterion. Thirteen Vercel cron dispatch receipts correlate to first-attempt GitHub runs; four additional native `schedule` runs also completed successfully. All **17 first-attempt browser steps passed**, with no manual unreceipted dispatch or rerun counted. The maximum internal gap was **120 minutes 14 seconds** (September 14 16:18:39 → 18:18:53 UTC), below the 150-minute limit. The first completion equals the window start, and the final completion at September 15 06:18:46 UTC leaves **15 seconds trailing age**. The window was neither reset nor extended.
+
+| UTC browser-step completion | GitHub run | Scheduled source |
+|---|---|---|
+| 2026-09-14T06:19:01Z | [34812819875](https://github.com/reabal-n/instantmed/actions/runs/34812819875) | Vercel receipt |
+| 2026-09-14T08:18:49Z | [34821958923](https://github.com/reabal-n/instantmed/actions/runs/34821958923) | Vercel receipt |
+| 2026-09-14T10:18:42Z | [34832418587](https://github.com/reabal-n/instantmed/actions/runs/34832418587) | Vercel receipt |
+| 2026-09-14T12:18:46Z | [34842606450](https://github.com/reabal-n/instantmed/actions/runs/34842606450) | Vercel receipt |
+| 2026-09-14T13:22:30Z | [34848706534](https://github.com/reabal-n/instantmed/actions/runs/34848706534) | GitHub schedule |
+| 2026-09-14T14:19:01Z | [34854636426](https://github.com/reabal-n/instantmed/actions/runs/34854636426) | Vercel receipt |
+| 2026-09-14T16:18:39Z | [34867652137](https://github.com/reabal-n/instantmed/actions/runs/34867652137) | Vercel receipt |
+| 2026-09-14T18:18:53Z | [34879879344](https://github.com/reabal-n/instantmed/actions/runs/34879879344) | Vercel receipt |
+| 2026-09-14T19:37:11Z | [34887832252](https://github.com/reabal-n/instantmed/actions/runs/34887832252) | GitHub schedule |
+| 2026-09-14T20:18:56Z | [34891997311](https://github.com/reabal-n/instantmed/actions/runs/34891997311) | Vercel receipt |
+| 2026-09-14T22:18:46Z | [34903343911](https://github.com/reabal-n/instantmed/actions/runs/34903343911) | Vercel receipt |
+| 2026-09-14T23:29:26Z | [34908995792](https://github.com/reabal-n/instantmed/actions/runs/34908995792) | GitHub schedule |
+| 2026-09-15T00:18:40Z | [34912557001](https://github.com/reabal-n/instantmed/actions/runs/34912557001) | Vercel receipt |
+| 2026-09-15T02:18:39Z | [34920597562](https://github.com/reabal-n/instantmed/actions/runs/34920597562) | Vercel receipt |
+| 2026-09-15T04:18:33Z | [34928248418](https://github.com/reabal-n/instantmed/actions/runs/34928248418) | Vercel receipt |
+| 2026-09-15T05:23:05Z | [34932414032](https://github.com/reabal-n/instantmed/actions/runs/34932414032) | GitHub schedule |
+| 2026-09-15T06:18:46Z | [34936270589](https://github.com/reabal-n/instantmed/actions/runs/34936270589) | Vercel receipt |
+
+This does **not** establish uninterrupted observer availability. The window contains 288 persisted five-minute observer polls, including **13 unavailable polls** and zero recorded coverage gaps. Sentry records recovery transitions after these interruptions; the root cause remains unconfirmed. The current implementation returns an `unavailableReason`, but the incident event reviewed carries only a count, so the event does not distinguish transport, source, job or step failures. Do not suppress these incidents or label them patient-flow failures without further evidence. A September 15 09:15 UTC refresh showed observer version 2568 healthy; a later 09:20 alert confirms recurrence outside the fixed window.
+
+[Sentry rule 3987742](https://reys-projects.sentry.io/monitors/alerts/3987742/) remains enabled with production and exact active/browser-monitor filters, an active owner email action and a 30-minute throttle. Its UI showed 13 total triggers as of September 15 09:20 UTC. This lifetime rule count is separate from the window's 13 unavailable polls. The configured recipient is the owner's personal account, not the InstantMed support inbox; no matching alert was found in the authorized InstantMed inbox. On September 15 the operator approved a Sentry-only search of the configured recipient inbox. No prior matching alert was found. The account default for issue alerts was Off; an InstantMed-only On override was saved, leaving other projects unchanged. Sentry's built-in test notification was received in the intended inbox at 10:08:43 UTC with SPF, DKIM and DMARC passing. The synthetic issue [INSTANTMED-CF](https://reys-projects.sentry.io/issues/INSTANTMED-CF) was then resolved. The received message identifies the test Issue Stream; the later real-rule receipt below separately closes actual browser-monitor alert delivery.
+
+For this release, the operator explicitly selected automated mobile checks instead of a physical-phone check on September 15. The real ReviewStep/store regression passed 32 desktop/mobile light/dark views, including stale-consent clearing, explicit reconfirmation and payment recovery across Back/remount/reload, with zero external requests. This is the accepted release boundary; no physical-device test is claimed. Plan 5 is already shipped and is not reopened by this assessment. The separate server-action access/consent review confirmed browser-callable hashing, draft-mutation ownership checks using an invalid column, and missing/current-version telehealth agreement enforcement. PR #573 implements those confirmed repairs alongside the ED typo correction and bounded observer diagnostics. The final combined unit suite passes 7,959 tests (122 skipped); production rollout evidence is recorded separately below.
+
+
+### Automated prescribing verification — September 15
+
+The current combined release passed all 30 loopback-only Parchment workspace scenarios, including 360px/390px light/dark layouts, long content, mobile viewport/keyboard handling, provider entry/return, session replacement and failed-session recovery. The real prescription-history component passed desktop/mobile light/dark checks for directions, older-item disclosure, refresh, errors and overflow. These use synthetic cases and a local provider substitute; no prescription was issued. The authenticated production dashboard was also visually checked at 390×844 with an empty queue. This does not claim a populated production case or a physical-phone check.
+
+The temporary ten-minute Codex release heartbeat was deleted on September 15. The product’s scheduled production monitors remain enabled.
+
+
+### Real observer alert and bounded repair — September 15
+
+An authorized manual call to the production health-check captured `pending_evidence` at 10:51:51 UTC. Persisted snapshots 2597 (healthy), 2598 (unavailable) and 2599 (healthy) retained the same ten completed results, run numbers 3688–3679, and the same latest invocation, without backoff or coverage gaps. A regression reproduces an older API window repeatedly fetching and immediately evicting older first attempts. PR #573 now excludes completed first attempts below a proven contiguous current ten-run floor when the fetched head is older. Unknown in-window IDs/attempts and older reruns remain inspected; incomplete/unavailable windows, concurrency protection and scheduled freshness remain guarded. This is a bounded current-window repair, not a claim about every historical failure.
+
+The corresponding real `INSTANTMED-BV` email reached the approved recipient at 10:52:45 UTC. Its links identify `alert_rule_id=3987742` and the configured `Notify rey` rule; SPF, DKIM and DMARC passed. This closes configured-rule recipient delivery for an actual monitor failure, beyond the earlier test Issue Stream. The triggering observation was an authorized manual health-check invocation, not a synthetic injected failure or proof of a scheduled invocation. The next scheduled observer poll recovered at 10:55 UTC.
+
+
+### Combined engineering release — September 15
+
+PR [#573](https://github.com/reabal-n/instantmed/pull/573) merged as `381d5521c4b972cf7cbdb47b8d0553ee35925cb6` after required CI [34961142478](https://github.com/reabal-n/instantmed/actions/runs/34961142478) passed on head `fcee68f6b80db6f9f3d2a8739f8248401656038d`. It incorporates the superseded ED #570 and diagnostics #572 changes alongside the confirmed draft-access/consent repairs and stale-window fix. Neither superseded PR is a separate outstanding release.
+
+The final local suite passed 7,959 tests with 122 skipped; typecheck, lint and documentation audit passed. CI passed its build/integration gates, Lighthouse, eight staff cases (one skipped), certificate readiness (76 ordinary passes and two retry-dependent cases), paid flows (118 ordinary passes and one retry-dependent case), one hosted payment case, five signed-resume cases and all seven compiled browser cases without retries. A passing required gate does not turn those three retry-dependent development cases into first-attempt proof.
+
+Production deployment was READY at `2026-09-15T12:10:11.908Z`, with `instantmed.com.au` attached and exact source `381d5521c4b972cf7cbdb47b8d0553ee35925cb6`. Production deployment tracking: [381d5521 deployment](https://vercel.com/rey-project/instantmed/HsZxg4eJVs43r1yovnuAMroKAXHq), `dpl_HsZxg4eJVs43r1yovnuAMroKAXHq`. The [PR #573 production verification receipt](https://github.com/reabal-n/instantmed/pull/573) records alias readiness and live routing/monitor checks separately from CI. No environment or database migration is required. Rollback uses the normal reviewed release process; the observer state schema remains unchanged.
+
+Live post-deployment verification reproduced the reported `Sedenfil` spelling: before release, ordinary Continue advanced to prescription notes; after release, ordinary Continue stayed blocked and the dedicated action opened the ED assessment. No identity, payment or prescription was submitted. The production browser observer returned healthy after deployment, and post-deploy smoke [34967309198](https://github.com/reabal-n/instantmed/actions/runs/34967309198) passed on the exact merge. These checks do not assert that unrelated business-health alerts are resolved.

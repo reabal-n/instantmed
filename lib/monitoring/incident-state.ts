@@ -3,6 +3,7 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 
 import type { BusinessAlert } from "@/lib/monitoring/alert-sections"
+import type { UnavailableReason } from "@/lib/monitoring/browser-evidence"
 import { buildGoogleAdsPurchaseImportAlert, type GoogleAdsPurchaseImportHealthSnapshot } from "@/lib/monitoring/google-ads-purchase-import-health"
 import { INCIDENT_METRICS, type IncidentMetric } from "@/lib/monitoring/incident-metrics"
 import { appendMonitorState, businessStateSchema, type Incident, readMonitorState } from "@/lib/monitoring/monitor-state"
@@ -45,10 +46,12 @@ export function advanceIncidents(previous: Incident[], observed: Observation[], 
   return { incidents, events }
 }
 
-export function captureIncident(source: string, metric: string, incident: Pick<Incident, "active" | "severity" | "count">) {
+export function captureIncident(source: string, metric: string, incident: Pick<Incident, "active" | "severity" | "count">, observerReason?: UnavailableReason | "newer_window_unavailable") {
   Sentry.captureMessage(`${source}: ${metric} ${incident.active ? "active" : "recovered"}`, {
     fingerprint: [source, metric], level: !incident.active ? "info" : incident.severity === 2 ? "error" : "warning",
-    tags: { source, incident_status: incident.active ? "active" : "recovered" },
+    tags: { source, incident_status: incident.active ? "active" : "recovered",
+      ...(source === "browser-monitor" && metric === "observer_unavailable" && incident.active && observerReason ? { observer_reason: observerReason } : {}),
+    },
     extra: { count: incident.count },
   })
 }
