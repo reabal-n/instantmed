@@ -2,7 +2,10 @@ import { createHash } from "node:crypto"
 
 import { expect, test } from "@playwright/test"
 import { createClient } from "@supabase/supabase-js"
+import { PDFDocument } from "pdf-lib"
 
+import { planAuthEmailMessages } from "../lib/auth/auth-email-message-planner"
+import { buildPostSignInRedirectHref } from "../lib/navigation/auth-handoff"
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 
 const OPERATOR_ID = "e2e00000-0000-0000-0000-000000000001"
@@ -17,6 +20,7 @@ const STORAGE_PATH = `certificates/${CERTIFICATE_ID}.pdf`
 const STORAGE_VERSION = createHash("sha256").update(STORAGE_PATH).digest("hex").slice(0, 32)
 const PROVIDER_BLOCK_MESSAGE = "E2E provider blocked before external delivery"
 const FROZEN_PROVIDER_PAYLOAD_KEY = "_provider_payload_enc"
+let patientAuthId: string | undefined
 
 const supabaseUrl = process.env.SUPABASE_URL
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -25,7 +29,10 @@ if (!supabaseUrl || !serviceRoleKey || process.env.E2E_ISOLATED_SUPABASE !== "1"
   throw new Error("Certificate resend production E2E requires explicit isolated Supabase credentials")
 }
 
-if (new URL(supabaseUrl).port !== "55321") {
+const isolatedSupabaseUrl = new URL(supabaseUrl)
+if (isolatedSupabaseUrl.protocol !== "http:" ||
+  !["127.0.0.1", "localhost"].includes(isolatedSupabaseUrl.hostname) ||
+  isolatedSupabaseUrl.port !== "55321") {
   throw new Error("Certificate resend production E2E refuses non-isolated Supabase coordinates")
 }
 
@@ -39,6 +46,8 @@ async function mustDelete(table: string, column: string, value: string) {
 }
 
 async function cleanupFixture() {
+  const { error: storageError } = await supabase.storage.from("documents").remove([STORAGE_PATH])
+  if (storageError) throw new Error(`Could not clean synthetic PDF: ${storageError.message}`)
   await mustDelete("certificate_resend_attempts", "certificate_id", CERTIFICATE_ID)
   await mustDelete("email_outbox", "intake_id", INTAKE_ID)
   await mustDelete("certificate_audit_log", "certificate_id", CERTIFICATE_ID)
@@ -47,6 +56,11 @@ async function cleanupFixture() {
   await mustDelete("profiles", "id", PATIENT_ID)
   await mustDelete("services", "id", SERVICE_ID)
   await mustDelete("profiles", "id", OPERATOR_ID)
+  if (patientAuthId) {
+    const { error } = await supabase.auth.admin.deleteUser(patientAuthId)
+    if (error) throw new Error(`Could not clean synthetic auth: ${error.message}`)
+    patientAuthId = undefined
+  }
 }
 
 async function verifyRequiredCleanup() {
@@ -172,6 +186,75 @@ test.describe("certificate resend rendering in the production bundle", () => {
   test.afterAll(async () => {
     await cleanupFixture()
     await verifyRequiredCleanup()
+  })
+
+  test("confirms in a fresh browser and downloads the current certificate with a real patient session", async ({ browser }) => {
+    const origin = "http://127.0.0.1:3060"
+    const destination = buildPostSignInRedirectHref(`/patient/intakes/${INTAKE_ID}`)
+    // generateLink does not send mail. Consume a genuine local Supabase token
+    // through the same scanner-safe confirmation UI used by production emails.
+    const { data, error } = await supabase.auth.admin.generateLink({
+      type: "magiclink", email: "certificate-render-patient@example.test",
+    })
+    expect(error).toBeNull()
+    patientAuthId = data.user?.id
+    expect(patientAuthId).toBeTruthy()
+    const actionType = data.properties?.verification_type
+    if (actionType !== "signup" && actionType !== "magiclink") {
+      throw new Error("Expected a local signup or magic-link confirmation")
+    }
+    const plan = planAuthEmailMessages({
+      user: { id: patientAuthId!, email: "certificate-render-patient@example.test" },
+      email_data: {
+        token: data.properties!.email_otp,
+        token_hash: data.properties!.hashed_token,
+        email_action_type: actionType, site_url: supabaseUrl!,
+        redirect_to: `${origin}/auth/callback?next=${encodeURIComponent(destination)}`,
+      },
+    }, { appUrl: origin })
+    expect(plan.ok).toBe(true)
+    if (!plan.ok) throw new Error("Expected local confirmation email")
+    const pdf = await PDFDocument.create()
+    pdf.addPage().drawText("Synthetic certificate access test")
+    const pdfBytes = Buffer.from(await pdf.save())
+    const upload = await supabase.storage.from("documents").upload(STORAGE_PATH, pdfBytes, {
+      contentType: "application/pdf", upsert: true,
+    })
+    expect(upload.error).toBeNull()
+    // This file refuses anything except the isolated loopback Supabase stack.
+    // Its HTTP Auth endpoint is intentionally outside the deployed HTTPS CSP;
+    // bypass only in this browser context, never alter production headers.
+    const context = await browser.newContext({ baseURL: origin, bypassCSP: true })
+    try {
+      expect(await context.cookies()).toHaveLength(0)
+      const page = await context.newPage()
+      const downloadPath = `/api/patient/certificates/${CERTIFICATE_ID}/download`
+      expect((await context.request.get(downloadPath)).status()).toBe(401)
+      await page.goto(plan.messages[0].confirmationUrl!)
+      await page.getByRole("button", {
+        name: actionType === "signup" ? "Confirm account" : "Continue to sign in", exact: true,
+      }).click()
+      await expect(page).toHaveURL(`${origin}/patient/intakes/${INTAKE_ID}`, { timeout: 60_000 })
+      const downloaded = page.waitForEvent("download")
+      await page.getByRole("button", { name: "Download PDF", exact: true }).click()
+      const download = await downloaded
+      expect(await download.failure()).toBeNull()
+      const stream = await download.createReadStream()
+      const chunks: Buffer[] = []
+      for await (const chunk of stream!) chunks.push(Buffer.from(chunk))
+      expect(Buffer.concat(chunks)).toEqual(pdfBytes)
+      const audit = await supabase.from("certificate_audit_log")
+        .select("actor_id, actor_role, event_data")
+        .eq("certificate_id", CERTIFICATE_ID).eq("event_type", "downloaded")
+      expect(audit.error).toBeNull()
+      expect(audit.data).toEqual(expect.arrayContaining([expect.objectContaining({
+        actor_id: PATIENT_ID, actor_role: "patient",
+        event_data: expect.objectContaining({ endpoint: "certificates_id_download" }),
+      })]))
+      expect((await context.cookies()).some(cookie => cookie.name === "__e2e_auth_user_id")).toBe(false)
+    } finally {
+      await context.close()
+    }
   })
 
   test("renders staff resend and no-frozen email-hub reconstruction without external delivery", async ({ page }) => {
