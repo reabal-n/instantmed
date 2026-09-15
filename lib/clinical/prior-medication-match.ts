@@ -68,7 +68,7 @@ const DOSE_TOKEN = /^\d+(?:\.\d+)?(?:mg|mcg|g|ng|ml|units?|iu|mmol|meq|%)?$/i
  * an advisory comparison against the same patient's prescription history; it
  * must never drive eligibility, safety routing, or prescribing.
  */
-function normalizeMedicationNameForComparison(value: string): string {
+export function normalizeMedicationNameForComparison(value: string): string {
   return value
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -149,6 +149,7 @@ interface ScoredCandidate {
 export function findPriorMedicationMatch(
   patientEntry: string,
   priorMedicationNames: readonly string[],
+  identityForName?: (name: string) => string,
 ): PriorMedicationMatch | null {
   const normalizedEntry = normalizeMedicationNameForComparison(patientEntry)
   if (!normalizedEntry) return null
@@ -188,7 +189,12 @@ export function findPriorMedicationMatch(
   const best = scored[0]
   if (!best) return null
 
-  const runnerUp = scored.find((candidate) => candidate.normalizedName !== best.normalizedName)
+  // Catalogue callers can group brand aliases under one generic identity.
+  // History callers retain the existing distinct-name ambiguity boundary.
+  const bestIdentity = identityForName?.(best.medicationName) ?? best.normalizedName
+  const runnerUp = scored.find((candidate) => (
+    (identityForName?.(candidate.medicationName) ?? candidate.normalizedName) !== bestIdentity
+  ))
   if (runnerUp && runnerUp.distance <= best.distance + 1) return null
 
   return { medicationName: best.medicationName, kind: "likely_typo" }

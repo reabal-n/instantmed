@@ -5,6 +5,16 @@ export interface MedicationCatalogRow {
   brand_names: readonly string[] | null
 }
 
+// Name identities only, not product equivalence, availability or prescribing
+// guidance. These active service names are absent from the legacy DB catalogue.
+// Sources: TGA AusPAR Wegovy (2024-09), and Mounjaro registration (2024).
+// https://www.tga.gov.au/sites/default/files/2024-09/auspar-wegovy-01-240904.pdf
+// https://www.tga.gov.au/resources/prescription-medicines-registrations/mounjaro-eli-lilly-australia-pty-ltd-0
+export const ADDITIONAL_MEDICATION_NAME_REFERENCES: readonly MedicationCatalogRow[] = [
+  { name: "Semaglutide", brand_names: ["Wegovy", "Ozempic"] },
+  { name: "Tirzepatide", brand_names: ["Mounjaro"] },
+]
+
 export type GenericMedicationResolution =
   | {
       status: "resolved"
