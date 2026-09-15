@@ -7,6 +7,12 @@ import {
 } from "@/lib/stripe/prescribing-profile-fields"
 
 describe("buildPrescribingProfileUpdates", () => {
+  it("omits unchanged decrypted identity fields so repeated checkout does not rotate ciphertext and consent", () => {
+    const answers = { medicareNumber: "2123 45670 1", medicareIrn: "2", sex: "M" }
+    const current = { medicare_number: "2123456701", medicare_irn: 2, sex: "M" as const }
+    expect(buildPrescribingProfileUpdates(answers, current)).toEqual({})
+    expect(buildPrescribingProfileUpdates({ ...answers, medicareIrn: "3" }, current)).toEqual({ medicare_irn: 3 })
+  })
   it("extracts prescribing identity fields from unified checkout answers", () => {
     expect(buildPrescribingProfileUpdates({
       medicareNumber: "2123 45670 1",

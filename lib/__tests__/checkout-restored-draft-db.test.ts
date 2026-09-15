@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-const mocks = vi.hoisted(() => ({ retrieve: vi.fn(), expire: vi.fn() }))
+
+import { normalizeAttributionForStorage } from "@/lib/analytics/attribution-storage"
+import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+const mocks = vi.hoisted(() => ({ retrieve: vi.fn(), expire: vi.fn(), serviceClient: vi.fn() }))
+vi.mock("@/lib/supabase/service-role", () => ({ createServiceRoleClient: mocks.serviceClient }))
 vi.mock("@/lib/stripe/client", () => ({ stripe: { checkout: { sessions: { retrieve: mocks.retrieve, expire: mocks.expire } } } }))
 vi.mock("@/lib/analytics/posthog-server", () => ({ trackIntakeFunnelStep: vi.fn() }))
 import { findConvertedPartialIntakeForCheckout } from "@/lib/request/server-draft-conversion"
@@ -19,15 +23,16 @@ const db = createClient(fixtureUrl || "http://127.0.0.1:1", "fixture-only", {
 const flow = "41414141-4141-4141-8141-414141414141"
 const intakeId = "42424242-4242-4242-8242-424242424242"
 const args = {
-  input: { category: "medical_certificate", subtype: "work", type: "med-cert", answers: {}, idempotencyKey: "new-submission-key", flowInstanceId: flow },
-  patientId: "fixture-owner", serviceId: "fixture-service", serviceSlug: "med-cert-sick", isPriority: false,
-  amountCents: 2495, priceId: "fixture-price", attribution: {}, baseUrl: "http://localhost:3060",
-} as CreateIntakeRowInput
-const original = { id: intakeId, guest_email: "fixture@example.test", patient_id: "fixture-owner", category: "medical_certificate", subtype: "work", status: "cancelled", payment_status: "unpaid", payment_id: "cs_fixture", checkout_error: null, flow_instance_id: flow, idempotency_key: "old-submission-key" }
+  input: { category: "medical_certificate", subtype: "work", type: "med-cert", answers: { terms_agreed: true, accuracy_confirmed: true, telehealth_consent_given: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION }, idempotencyKey: "new-submission-key", flowInstanceId: flow },
+  patientId: "41414141-1111-4111-8111-111111111111", serviceId: "fixture-service", serviceSlug: "med-cert-sick", isPriority: false,
+  amountCents: 2495, priceId: "fixture-price", attribution: normalizeAttributionForStorage({}), baseUrl: "http://localhost:3060",
+} satisfies CreateIntakeRowInput
+const original = { id: intakeId, guest_email: "fixture@example.test", patient_id: "41414141-1111-4111-8111-111111111111", category: "medical_certificate", subtype: "work", status: "cancelled", payment_status: "unpaid", payment_id: "cs_fixture", checkout_error: null, flow_instance_id: flow, idempotency_key: "old-submission-key" }
 
 describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/PostgREST", () => {
   beforeEach(async () => {
     vi.clearAllMocks()
+    mocks.serviceClient.mockReturnValue(db)
     expect((await db.from("partial_intakes").delete().not("session_id", "is", null)).error).toBeNull()
     const deletion = await db.from("intakes").delete().eq("id", intakeId)
     expect(deletion.error).toBeNull()
@@ -37,9 +42,9 @@ describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/Po
   it("validates an exact converted bearer and owner using the canonical claim RPC", async () => {
     const sessionId = "43434343-4343-4343-8343-434343434343"
     expect((await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email: "fixture@example.test", converted_to_intake_id: intakeId, expires_at: "2099-01-01T00:00:00Z" })).error).toBeNull()
-    const input = { sessionId, flowInstanceId: flow, serviceType: "med-cert" as const, category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: "fixture-owner", requireGuestProof: false }
-    await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "reusable", intake: { id: intakeId, patientId: "fixture-owner" } })
-    await expect(findConvertedPartialIntakeForCheckout(db, { ...input, patientId: "foreign-owner" })).resolves.toMatchObject({ kind: "blocked" })
+    const input = { sessionId, flowInstanceId: flow, serviceType: "med-cert" as const, category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: "41414141-1111-4111-8111-111111111111", requireGuestProof: false }
+    await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "reusable", intake: { id: intakeId, patientId: "41414141-1111-4111-8111-111111111111" } })
+    await expect(findConvertedPartialIntakeForCheckout(db, { ...input, patientId: "41414141-2222-4222-8222-222222222222" })).resolves.toMatchObject({ kind: "blocked" })
     await expect(findConvertedPartialIntakeForCheckout(db, { ...input, flowInstanceId: "44444444-4444-4444-8444-444444444444" })).resolves.toMatchObject({ kind: "blocked", reason: "request_mismatch" })
     await expect(findConvertedPartialIntakeForCheckout(db, { ...input, serviceType: "consult" })).resolves.toMatchObject({ kind: "service_changed", intake: { id: intakeId } })
     expect(mocks.retrieve).not.toHaveBeenCalled()
@@ -47,8 +52,8 @@ describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/Po
   it.each([true, false])("requires complete guest recovery proof while retaining authenticated legacy access: guest=%s", async (requireGuestProof) => {
     const sessionId = "43434343-4343-4343-8343-434343434343"
     expect((await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email: "fixture@example.test", converted_to_intake_id: intakeId, expires_at: "2099-01-01T00:00:00Z" })).error).toBeNull()
-    const input = { sessionId, flowInstanceId: flow, serviceType: "med-cert" as const, category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: requireGuestProof ? undefined : "fixture-owner", requireGuestProof }
-    await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "reusable", intake: { id: intakeId, patientId: "fixture-owner" } })
+    const input = { sessionId, flowInstanceId: flow, serviceType: "med-cert" as const, category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: requireGuestProof ? undefined : "41414141-1111-4111-8111-111111111111", requireGuestProof }
+    await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "reusable", intake: { id: intakeId, patientId: "41414141-1111-4111-8111-111111111111" } })
     expect((await db.from("partial_intakes").update({ email: null }).eq("session_id", sessionId)).error).toBeNull()
     const missingEmail = await findConvertedPartialIntakeForCheckout(db, input)
     expect(missingEmail).toMatchObject({ kind: requireGuestProof ? "blocked" : "reusable" })
@@ -59,12 +64,12 @@ describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/Po
     if (requireGuestProof) expect(JSON.stringify([missingEmail, missingFlow])).not.toMatch(/42424242|cs_fixture|fixture@example/)
     expect(mocks.retrieve).not.toHaveBeenCalled()
   })
-  it.each([undefined, "fixture-owner"])("returns the original converted service only after exact bearer/flow/owner proof: %s", async (patientId) => {
+  it.each([undefined, "41414141-1111-4111-8111-111111111111"])("returns the original converted service only after exact bearer/flow/owner proof: %s", async (patientId) => {
     const sessionId = "43434343-4343-4343-8343-434343434343"
     await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email: "fixture@example.test", converted_to_intake_id: intakeId, expires_at: "2099-01-01T00:00:00Z" })
     const input = { sessionId, flowInstanceId: flow, serviceType: "consult" as const, category: "consult", subtype: "ed", email: "fixture@example.test", patientId, requireGuestProof: !patientId }
     await expect(findConvertedPartialIntakeForCheckout(db, input)).resolves.toMatchObject({ kind: "service_changed", intake: { id: intakeId, category: "medical_certificate", subtype: "work" } })
-    for (const changed of [{ patientId: "foreign-owner" }, { email: "foreign@example.test" }, { flowInstanceId: "44444444-4444-4444-8444-444444444444" }]) {
+    for (const changed of [{ patientId: "41414141-2222-4222-8222-222222222222" }, { email: "foreign@example.test" }, { flowInstanceId: "44444444-4444-4444-8444-444444444444" }]) {
       const result = await findConvertedPartialIntakeForCheckout(db, { ...input, ...changed })
       expect(result).toMatchObject({ kind: "blocked" })
       expect(JSON.stringify(result)).not.toMatch(/medical_certificate|work|fixture@example|42424242|cs_fixture/)
@@ -82,7 +87,7 @@ describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/Po
     // The draft API permits this shape even after the intake exists. Neither
     // the flow ID nor claimed email can substitute for its missing conversion.
     expect((await db.from("partial_intakes").insert({ session_id: sessionId, flow_instance_id: flow, service_type: "med-cert", email, expires_at: "2099-01-01T00:00:00Z" })).error).toBeNull()
-    await expect(findConvertedPartialIntakeForCheckout(db, { sessionId, flowInstanceId: flow, serviceType: "med-cert", category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: "fixture-owner", requireGuestProof: true })).resolves.toMatchObject({ kind: "none", reason: "not_converted" })
+    await expect(findConvertedPartialIntakeForCheckout(db, { sessionId, flowInstanceId: flow, serviceType: "med-cert", category: "medical_certificate", subtype: "work", email: "fixture@example.test", patientId: "41414141-1111-4111-8111-111111111111", requireGuestProof: true })).resolves.toMatchObject({ kind: "none", reason: "not_converted" })
     expect(mocks.retrieve).not.toHaveBeenCalled()
   })
   it("reproduces the real 23505 flow collision independently of submission key", async () => {
@@ -102,18 +107,21 @@ describe.skipIf(!fixtureUrl)("restored checkout against disposable PostgreSQL/Po
     expect((await db.from("intakes").select("status, payment_status").eq("id", intakeId)).data).toEqual([{ status: "expired", payment_status: "expired" }])
   })
   it("does not disclose a flow owned by another patient", async () => {
-    const result = await createIntakeWithAnswers(db, { ...args, patientId: "different-owner" })
+    const result = await createIntakeWithAnswers(db, { ...args, patientId: "41414141-3333-4333-8333-333333333333" })
     expect(result).toMatchObject({ ok: true, data: { result: { success: false, requiresSupport: true } } })
     expect(JSON.stringify(result)).not.toContain(intakeId)
     expect(mocks.retrieve).not.toHaveBeenCalled()
   })
   it("preserves one pending request on repeated submissions", async () => {
     await db.from("intakes").update({ status: "pending_payment", payment_status: "pending" }).eq("id", intakeId)
-    await db.from("intake_answers").upsert({ intake_id: intakeId, answers: {} })
+    await db.from("intake_answers").upsert({ intake_id: intakeId, answers: args.input.answers })
     for (let retry = 0; retry < 2; retry++) {
       await expect(createIntakeWithAnswers(db, args)).resolves.toMatchObject({ ok: true, data: { kind: "retry_existing", intakeId } })
     }
     expect((await db.from("intakes").select("id").eq("flow_instance_id", flow)).data).toHaveLength(1)
+    const receipts = await db.from("checkout_consent_receipts").select("id").eq("intake_id", intakeId)
+    expect(receipts.error).toBeNull()
+    expect(receipts.data).toHaveLength(1)
   })
   it("blocks fresh recovery when a payment update wins during provider inspection", async () => {
     mocks.retrieve.mockImplementation(async () => {

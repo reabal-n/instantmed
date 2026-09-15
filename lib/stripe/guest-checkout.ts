@@ -4,10 +4,7 @@ import { normalizeAttributionForStorage } from "@/lib/analytics/attribution-stor
 import { trackIntakeFunnelStep, trackOperationalBlock } from "@/lib/analytics/posthog-server"
 import { resolveCheckoutAttribution } from "@/lib/analytics/server-attribution"
 import {
-  logAccuracyAttestationGiven,
   logRequestCreated,
-  logTelehealthConsentGiven,
-  logTermsConsentGiven,
   type RequestType,
 } from "@/lib/audit/compliance-audit"
 import {
@@ -18,7 +15,6 @@ import {
 import { getAppUrl } from "@/lib/config/env"
 import { checkCheckoutBlocked } from "@/lib/config/kill-switches"
 import { CONTACT_EMAIL } from "@/lib/constants"
-import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
 import {
   buildAnswersInsertColumns,
   getIntakeAnswersForPaymentSafety,
@@ -60,6 +56,7 @@ import {
   invalidateCheckoutSessionForSafety,
 } from "./checkout/checkout-session-safety"
 import { runClinicalValidation } from "./checkout/clinical-validation"
+import { CONSENT_EVIDENCE_ERROR, ensureCheckoutConsentEvidence, hasDurableCheckoutConsent } from "./checkout/consent-evidence"
 import { holdCheckoutForMissingSafetyInformation } from "./checkout/missing-safety-payment-hold"
 import { preflightPriorityPriceForRecovery } from "./checkout/priority-price-recovery"
 import { reconcileTerminalDraftCheckout } from "./checkout/restored-draft-recovery"
@@ -77,6 +74,7 @@ import { isPaymentSafetyLock } from "./payment-safety-lock"
 import {
   buildPrescribingProfileUpdates,
   type CheckoutIdentityProfileUpdates,
+  type PrescribingProfileUpdates,
   validateRequiredPrescribingProfileAnswers,
 } from "./prescribing-profile-fields"
 
@@ -157,7 +155,7 @@ interface GuestCheckoutInput {
   checkoutSubmissionKey?: string
 }
 
-interface ExistingGuestProfile {
+interface ExistingGuestProfile extends PrescribingProfileUpdates {
   id: string
   email: string | null
   email_verified: boolean | null
@@ -276,6 +274,7 @@ async function rebuildExpiredGuestSession(
     payment_status: intake.payment_status,
     status: intake.status,
   }
+  if (!await hasDurableCheckoutConsent(supabase, intake.id)) return null
   const replacementClaim = await claimCheckoutSessionReplacement({
     initialState: replacementState,
     intakeId: intake.id,
@@ -314,6 +313,7 @@ async function rebuildExpiredGuestSession(
       subtype: intake.subtype || "",
       guest_checkout: "true",
     })
+    if (!await hasDurableCheckoutConsent(supabase, intake.id)) return null
     const session = await stripe.checkout.sessions.create(
       {
         line_items: lineItems,
@@ -586,6 +586,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       .select(`
         id, auth_user_id, email, email_verified, full_name,
         date_of_birth, date_of_birth_encrypted, phone, phone_encrypted,
+        medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
+        ihi_number, ihi_number_encrypted, address_line1, suburb, state, postcode, sex, onboarding_completed,
         updated_at
       `)
       .eq("email", normalizedEmail)
@@ -666,7 +668,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     }
 
     if (requiresPrescribingIdentityForRequest({ category: input.category, subtype: input.subtype })) {
-      const prescribingUpdates = buildPrescribingProfileUpdates(input.answers)
+      const prescribingUpdates = buildPrescribingProfileUpdates(input.answers, reusableGuestProfile)
       if (Object.keys(prescribingUpdates).length > 0) {
         const updatedProfile = await updateProfile(guestProfileId, prescribingUpdates)
         if (!updatedProfile) {
@@ -1020,6 +1022,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
               },
             )
             if (inspection.state === "open" && inspection.session?.url) {
+              const evidence = await ensureCheckoutConsentEvidence(supabase, { intakeId: existingIntake.id, patientId: guestProfileId, answers: input.answers, identity: { fullName: input.guestName, dateOfBirth: input.guestDateOfBirth, phone: input.guestPhone } })
+              if (!evidence.ok) return checkoutFailure("persistence", CONSENT_EVIDENCE_ERROR)
               const confirmation = await confirmCheckoutSessionStillCurrent({
                 intakeId: existingIntake.id,
                 patientId: guestProfileId,
@@ -1079,6 +1083,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
             canRebuild &&
             canRetryPaymentForIntake(existingIntake.status, existingIntake.payment_status)
           ) {
+            const evidence = await ensureCheckoutConsentEvidence(supabase, { intakeId: existingIntake.id, patientId: guestProfileId, answers: input.answers, identity: { fullName: input.guestName, dateOfBirth: input.guestDateOfBirth, phone: input.guestPhone } })
+            if (!evidence.ok) return checkoutFailure("persistence", CONSENT_EVIDENCE_ERROR)
             const rebuiltUrl = await rebuildExpiredGuestSession(
               supabase,
               existingIntake,
@@ -1226,12 +1232,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       guest: true,
       ...buildAddressAuditMetadata(input.answers),
     })
-    // Per-episode consent evidence (CLINICAL.md)
-    await Promise.all([
-      logTermsConsentGiven(intake.id, requestType, guestProfileId, TERMS_VERSION),
-      logTelehealthConsentGiven(intake.id, requestType, guestProfileId, TELEHEALTH_CONSENT_VERSION),
-      logAccuracyAttestationGiven(intake.id, requestType, guestProfileId),
-    ])
+    const evidence = await ensureCheckoutConsentEvidence(supabase, { intakeId: intake.id, patientId: guestProfileId, answers: input.answers, identity: { fullName: input.guestName, dateOfBirth: input.guestDateOfBirth, phone: input.guestPhone } })
+    if (!evidence.ok) return checkoutFailure("persistence", CONSENT_EVIDENCE_ERROR)
 
     // 5. Validate price ID (already fetched above). A null here means resolution
     // threw — the intake + answers are now persisted (recoverable), so mark it
@@ -1324,6 +1326,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (isPriority && priorityPriceId) {
         lineItems.push({ price: priorityPriceId, quantity: 1 })
       }
+      if (!await hasDurableCheckoutConsent(supabase, intake.id)) return checkoutFailure("persistence", CONSENT_EVIDENCE_ERROR)
       session = await stripe.checkout.sessions.create({
         line_items: lineItems,
         mode: "payment",

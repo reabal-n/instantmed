@@ -204,6 +204,12 @@ jobs:
           STRIPE_PRICE_REPEAT_RX_MONTHLY: price_placeholder_repeat_rx_monthly
         run: pnpm build:release
 
+      - name: Compiled server-action access boundaries (isolated fixtures)
+        run: pnpm exec playwright test --config=playwright.action-access.config.ts
+
+      - name: Checkout consent database invariants (isolated PostgreSQL)
+        run: bash scripts/test-checkout-consent-db.sh
+
       - name: Bundle size gate (shared first-load JS)
         run: bash scripts/check-bundle-size.sh
 

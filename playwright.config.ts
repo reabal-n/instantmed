@@ -40,6 +40,8 @@ process.env.PLAYWRIGHT_BASE_URL = E2E_BASE_URL
 
 export default defineConfig({
   testDir: "./e2e",
+  // This probe requires its own disposable backend and blocked external I/O.
+  testIgnore: "**/server-action-access.spec.ts",
   // Each CI invocation owns its artifacts; later suites must not erase them.
   outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR || "test-results",
   globalTimeout: getCiPlaywrightGlobalTimeout(),

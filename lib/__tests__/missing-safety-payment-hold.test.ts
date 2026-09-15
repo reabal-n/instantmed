@@ -629,3 +629,9 @@ describe("missing safety information payment hold", () => {
     expect(mocks.stripeSessionRetrieve).toHaveBeenCalledWith("cs_new_current")
   })
 })
+
+vi.mock("@/lib/stripe/checkout/consent-evidence", () => ({
+  hasDurableCheckoutConsent: vi.fn(async () => true),
+  ensureCheckoutConsentEvidence: vi.fn(async () => ({ ok: true })),
+  CONSENT_EVIDENCE_ERROR: "Consent evidence unavailable",
+}))

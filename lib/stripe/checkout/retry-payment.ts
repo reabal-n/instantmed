@@ -8,7 +8,6 @@
  * and indirectly by `createIntakeAndCheckoutAction` when an idempotency-key
  * collision points at a still-retryable existing intake.
  */
-
 import { cookies } from "next/headers"
 
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
@@ -27,7 +26,6 @@ import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
-import { CHECKOUT_CONSENT_ERROR, hasCheckoutConsent } from "@/lib/stripe/checkout/consent"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
@@ -48,6 +46,7 @@ import {
   claimCheckoutSessionReplacement,
   invalidateCheckoutSessionForSafety,
 } from "./checkout-session-safety"
+import { CONSENT_EVIDENCE_ERROR, hasDurableCheckoutConsent } from "./consent-evidence"
 import { getBaseUrl, getServiceSlug, isValidUrl } from "./helpers"
 import { getHighStakesCheckoutBlock, isMedicalCertificateIntake } from "./high-stakes-validation"
 import {
@@ -171,19 +170,6 @@ export async function retryPaymentForIntakeAction(
         new Error("Authoritative intake answer read failed"),
       )
       return checkoutFailure("persistence", RETRY_PAYMENT_STATE_ERROR)
-    }
-
-    if (!hasCheckoutConsent(intakeAnswers)) {
-      if (intake.payment_id) {
-        const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, {
-          intakeStatus: intake.status, paymentStatus: intake.payment_status, storedPaymentId: intake.payment_id,
-        })
-        if (invalidation === "payment_in_flight") {
-          return { success: true, checkoutUrl: `/patient/intakes/${intake.id}`, intakeId: intake.id }
-        }
-        if (invalidation !== "invalidated") return checkoutFailure("persistence", RETRY_PAYMENT_STATE_ERROR)
-      }
-      return checkoutFailure("clinical_or_input_validation", CHECKOUT_CONSENT_ERROR)
     }
 
     const isMedicalCertificate = isMedicalCertificateIntake(categoryForSafety, serviceForSafety)
@@ -344,6 +330,21 @@ export async function retryPaymentForIntakeAction(
       )
     }
 
+    // Clinical classification and durable safety holds precede consent recovery.
+    // A valid receipt remains mandatory before any payable URL or new Session.
+    if (!await hasDurableCheckoutConsent(supabase, intake.id)) {
+      if (intake.payment_id) {
+        const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, {
+          intakeStatus: intake.status, paymentStatus: intake.payment_status, storedPaymentId: intake.payment_id,
+        })
+        if (invalidation === "payment_in_flight") {
+          return { success: true, checkoutUrl: `/patient/intakes/${intake.id}`, intakeId: intake.id }
+        }
+        if (invalidation !== "invalidated") return checkoutFailure("persistence", RETRY_PAYMENT_STATE_ERROR)
+      }
+      return checkoutFailure("clinical_or_input_validation", CONSENT_EVIDENCE_ERROR)
+    }
+
     const service = intake.service as { slug: string; price_cents: number } | null
     const storedPriceId = normalizeStripePriceId((intake as { stripe_price_id?: string }).stripe_price_id)
     const storedCategory = intake.category as ServiceCategory | null
@@ -449,6 +450,7 @@ export async function retryPaymentForIntakeAction(
       payment_status: intake.payment_status as string | null,
       status: intake.status as string | null,
     }
+    if (!await hasDurableCheckoutConsent(supabase, intake.id)) return checkoutFailure("persistence", CONSENT_EVIDENCE_ERROR)
     const replacementClaim = await claimCheckoutSessionReplacement({
       initialState: replacementState,
       intakeId: intake.id,
@@ -487,6 +489,7 @@ export async function retryPaymentForIntakeAction(
       // after a successful Stripe create followed by a failed intake attach.
       const retryIdempotencyKey =
         `authenticated-retry-v2_${intake.id}_${intake.payment_id || "initial"}`
+      if (!await hasDurableCheckoutConsent(supabase, intake.id)) return checkoutFailure("persistence", CONSENT_EVIDENCE_ERROR)
       session = await stripe.checkout.sessions.create(sessionParams, {
         idempotencyKey: retryIdempotencyKey,
       })

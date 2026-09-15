@@ -1,4 +1,4 @@
-"use server"
+import "server-only"
 
 /**
  * Clinical Note Sync
@@ -7,7 +7,6 @@
  * Extracted from draft-approval.ts so approval actions stay focused on
  * orchestration rather than content formatting.
  */
-
 import * as Sentry from "@sentry/nextjs"
 
 import { formatClinicalNoteBullets } from "@/lib/doctor/clinical-notes"

@@ -336,10 +336,16 @@ export function transformAnswersForUnifiedCheckout(
   transformed.is_pregnant_or_breastfeeding = answers.isPregnantOrBreastfeeding
   transformed.has_adverse_medication_reactions = answers.hasAdverseMedicationReactions
 
-  transformed.telehealth_consent_given = answers.telehealthConsentGiven
-  transformed.telehealth_consent_version = answers.telehealthConsentVersion
-  transformed.accuracy_confirmed = answers.confirmedAccuracy
-  transformed.terms_agreed = answers.agreedToTerms
+  // Preserve explicitly supplied canonical values, including refusals and stale
+  // versions, so the consent guard can reject contradictory aliases.
+  for (const [canonical, alias] of [
+    ["telehealth_consent_given", "telehealthConsentGiven"],
+    ["telehealth_consent_version", "telehealthConsentVersion"],
+    ["accuracy_confirmed", "confirmedAccuracy"],
+    ["terms_agreed", "agreedToTerms"],
+  ]) {
+    transformed[canonical] = answers[canonical] !== undefined ? answers[canonical] : answers[alias]
+  }
 
   transformed.is_priority = answers.isPriority === true
 

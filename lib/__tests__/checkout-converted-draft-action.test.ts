@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import { inspectCheckoutSession } from "@/lib/stripe/checkout/checkout-session-safety"
+import { ensureCheckoutConsentEvidence } from "@/lib/stripe/checkout/consent-evidence"
 const mocks = vi.hoisted(() => ({ auth: vi.fn(), draft: vi.fn(), reconcile: vi.fn(), create: vi.fn(), guest: vi.fn(), retry: vi.fn() }))
 vi.mock("@/lib/auth/helpers", () => ({ getAuthenticatedUserWithProfile: mocks.auth }))
 vi.mock("@/lib/request/server-draft-conversion", () => ({ findConvertedPartialIntakeForCheckout: mocks.draft }))
@@ -21,6 +24,23 @@ describe("unified converted draft checkout", () => {
     mocks.auth.mockResolvedValue(null)
     mocks.draft.mockResolvedValue({ kind: "reusable", intake })
     mocks.reconcile.mockResolvedValue({ success: false, failureCode: "payment_provider", error: "Provider unresolved" })
+  })
+  it.each(["paid", "payment_in_flight"] as const)("preserves provider %s handoff without writing a new receipt", async state => {
+    mocks.draft.mockResolvedValue({ kind: "reusable", intake: { ...intake, status: "pending_payment", paymentStatus: "unpaid" } })
+    vi.mocked(inspectCheckoutSession).mockResolvedValueOnce({ state, session: null })
+    expect(await createCheckoutFromUnifiedFlow(input())).toMatchObject({ success: true, checkoutUrl: "/resume/fixture-signed" })
+    expect(ensureCheckoutConsentEvidence).not.toHaveBeenCalled()
+  })
+  it("records a fresh explicit receipt before returning guest recovery", async () => {
+    mocks.draft.mockResolvedValue({ kind: "reusable", intake: { ...intake, status: "pending_payment", paymentStatus: "unpaid", paymentId: null } })
+    expect(await createCheckoutFromUnifiedFlow(input())).toMatchObject({ success: true, checkoutUrl: "/resume/fixture-signed" })
+    expect(ensureCheckoutConsentEvidence).toHaveBeenCalledOnce()
+  })
+  it("withholds an unresolved provider obligation before writing consent", async () => {
+    mocks.draft.mockResolvedValue({ kind: "reusable", intake: { ...intake, status: "pending_payment", paymentStatus: "unpaid" } })
+    vi.mocked(inspectCheckoutSession).mockResolvedValueOnce({ state: "unresolved", session: null })
+    expect(await createCheckoutFromUnifiedFlow(input())).toMatchObject({ success: false, failureCode: "payment_provider" })
+    expect(ensureCheckoutConsentEvidence).not.toHaveBeenCalled()
   })
   it.each([false, true])("requires reconciliation rather than a blind restart for authenticated=%s", async (authenticated) => {
     if (authenticated) mocks.auth.mockResolvedValue({ user: { email: "fixture@example.test" }, profile: { id: "owner" } })
@@ -84,3 +104,11 @@ describe("unified converted draft checkout", () => {
     expect(mocks.draft).not.toHaveBeenCalled(); expect(mocks.reconcile).not.toHaveBeenCalled()
   })
 })
+
+vi.mock("@/lib/stripe/checkout/consent-evidence", () => ({
+  hasDurableCheckoutConsent: vi.fn(async () => true),
+  ensureCheckoutConsentEvidence: vi.fn(async () => ({ ok: true })),
+  CONSENT_EVIDENCE_ERROR: "Consent evidence unavailable",
+}))
+
+vi.mock("@/lib/stripe/checkout/checkout-session-safety", () => ({ inspectCheckoutSession: vi.fn(async () => ({ state: "open" })) }))

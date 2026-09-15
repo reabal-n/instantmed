@@ -20,6 +20,7 @@ Object.defineProperty(globalThis, "localStorage", { value: localStorageMock })
 vi.mock("@/lib/analytics/capture", () => ({ capture: vi.fn() }))
 
 import { useRequestStore } from "@/components/request/store"
+import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
 
 const CONFIRMED_AT = "2026-07-14T01:02:03.000Z"
 
@@ -158,13 +159,13 @@ describe("request store attestation invalidation", () => {
       dob: "1990-01-01",
     }
 
-    function seedConfirmedMedCertDraft(): void {
+    function seedConfirmedMedCertDraft(version: string | undefined = TELEHEALTH_CONSENT_VERSION): void {
       localStorage.setItem(
         "instantmed-draft-med-cert",
         JSON.stringify({
           serviceType: "med-cert",
           currentStepId: "checkout",
-          answers: { certType: "work", symptomDetails: "Migraine" },
+          answers: { certType: "work", symptomDetails: "Migraine", telehealthConsentVersion: version },
           ...savedIdentity,
           safetyConfirmed: true,
           safetyTimestamp: CONFIRMED_AT,
@@ -190,6 +191,19 @@ describe("request store attestation invalidation", () => {
         email: "current@example.com",
         answers: { certType: "work", symptomDetails: "Migraine" },
       })
+      expectAttestationCleared()
+    })
+
+    it.each(["2026-02", ""])("clears restored confirmation for disclosure %s", version => {
+      seedConfirmedMedCertDraft(version)
+      useRequestStore.setState({ serviceType: "consult", currentStepId: "ed-goals", ...savedIdentity })
+      useRequestStore.getState().setServiceType("med-cert")
+      expectAttestationCleared()
+    })
+
+    it.each(["2026-02", ""])("clears stale disclosure %s during hydration", async version => {
+      seedConfirmedMedCertDraft(version)
+      await useRequestStore.persist.rehydrate()
       expectAttestationCleared()
     })
 

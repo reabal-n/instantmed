@@ -24,9 +24,11 @@ sed -n '/^create unique index if not exists idx_intakes_flow_instance_id/,/where
 sed -n '/^create or replace function public.claim_partial_intake_draft_for_checkout(/,/^\$\$;/p' \
   "$REPO_ROOT/supabase/migrations/20260722231500_fence_discarded_partial_intake_drafts.sql" \
   | docker exec -i "$FIXTURE_NAME" psql -v ON_ERROR_STOP=1 -U postgres >/dev/null
+# Run the actual durable-receipt storage boundary alongside the canonical bearer claim.
+docker exec -i "$FIXTURE_NAME" psql -v ON_ERROR_STOP=1 -U postgres < "$REPO_ROOT/supabase/migrations/20260915131638_checkout_consent_receipts.sql" >/dev/null
 docker run -d --name "${FIXTURE_NAME}-rest" --network "container:$FIXTURE_NAME" \
   -e PGRST_DB_URI=postgres://postgres:fixture-only@127.0.0.1:5432/postgres \
-  -e PGRST_DB_ANON_ROLE=checkout_fixture -e PGRST_DB_SCHEMAS=public \
+  -e PGRST_DB_ANON_ROLE=service_role -e PGRST_DB_SCHEMAS=public \
   "$POSTGREST_IMAGE" >/dev/null
 readonly FIXTURE_PORT="$(docker port "$FIXTURE_NAME" 3000/tcp | cut -d: -f2)"
 for attempt in {1..50}; do

@@ -1,4 +1,4 @@
-"use server"
+import "server-only"
 
 /**
  * Draft Audit Logging
@@ -6,7 +6,6 @@
  * Writes to the ai_audit_log table for compliance. Used by approval,
  * rejection, and regeneration actions.
  */
-
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 

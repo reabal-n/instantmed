@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+import { hasDurableCheckoutConsent } from "@/lib/stripe/checkout/consent-evidence"
 
 const mocks = vi.hoisted(() => ({
   checkHighStakesUseCase: vi.fn(),
@@ -328,6 +329,7 @@ const explicitConsent = { agreedToTerms: true, confirmedAccuracy: true, teleheal
 describe("retryPaymentForIntakeAction", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(true)
     mocks.checkServerActionRateLimit.mockResolvedValue({ success: true })
     mocks.cookies.mockResolvedValue({ get: vi.fn(() => null) })
     mocks.createReferralCouponIfEligible.mockResolvedValue(null)
@@ -372,9 +374,10 @@ describe("retryPaymentForIntakeAction", () => {
   it.each([undefined, false, "true"])("blocks retry without explicit telehealth consent %s before Stripe", async value => {
     const { supabase } = createRetrySupabaseMock({ payment_id: null })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValueOnce(false)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: value })
     const result = await retryPaymentForIntakeAction("intake-1")
-    expect(result).toMatchObject({ success: false, error: expect.stringContaining("telehealth agreement") })
+    expect(result).toMatchObject({ success: false, error: "Consent evidence unavailable" })
     expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
@@ -382,6 +385,7 @@ describe("retryPaymentForIntakeAction", () => {
   it.each(["paid", "unpaid"])("preserves Stripe-complete %s recovery when consent is missing", async paymentStatus => {
     const { supabase } = createRetrySupabaseMock({ payment_id: "cs_previous", status: "pending_payment", payment_status: "pending" })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValueOnce(false)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: false })
     mocks.stripeSessionRetrieve.mockResolvedValueOnce({ id: "cs_previous", metadata: { intake_id: "intake-1" }, status: "complete", payment_status: paymentStatus })
     const result = await retryPaymentForIntakeAction("intake-1")
@@ -392,6 +396,7 @@ describe("retryPaymentForIntakeAction", () => {
   it("expires the owned open session before requiring new consent", async () => {
     const { supabase } = createRetrySupabaseMock({ payment_id: "cs_previous" })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValueOnce(false)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: false })
     await retryPaymentForIntakeAction("intake-1")
     expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
@@ -1092,7 +1097,8 @@ describe("retryPaymentForIntakeAction", () => {
     })
   })
 
-  it("holds a marked repeat retry with a frequency-only current regimen", async () => {
+  it.each([true, false])("holds frequency-only repeat retry with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const authoritativeAnswers = { ...explicitConsent,
       medicationName: "Sertraline",
       medicationStrength: "100 mg",
@@ -1252,7 +1258,8 @@ describe("retryPaymentForIntakeAction", () => {
     })
   })
 
-  it("blocks retry payment for a stored high-stakes medical-certificate request", async () => {
+  it.each([true, false])("blocks stored high-stakes medical-certificate retry with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const events: string[] = []
     const { supabase, updateRecords } = createRetrySupabaseMock(
       { answers: [{ answers: { symptomDetails: "Migraine and need to defer my exam tomorrow" } }] },
@@ -1381,7 +1388,8 @@ describe("retryPaymentForIntakeAction", () => {
     )
   })
 
-  it("preserves webhook recovery when the captured session is complete or processing", async () => {
+  it.each([true, false])("preserves high-stakes webhook recovery with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const { supabase, updateRecords } = createRetrySupabaseMock({
       answers: [{ answers: { symptomDetails: "Need to defer my exam" } }],
     })
@@ -1553,3 +1561,9 @@ describe("retryPaymentForIntakeAction", () => {
     )
   })
 })
+
+vi.mock("@/lib/stripe/checkout/consent-evidence", () => ({
+  hasDurableCheckoutConsent: vi.fn(async () => true),
+  ensureCheckoutConsentEvidence: vi.fn(async () => ({ ok: true })),
+  CONSENT_EVIDENCE_ERROR: "Consent evidence unavailable",
+}))

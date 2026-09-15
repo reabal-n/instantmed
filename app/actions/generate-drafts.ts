@@ -1,13 +1,12 @@
-"use server"
+import "server-only"
 
 /**
- * Server Action: Generate AI Drafts for Intake
+ * Internal AI Draft Generation for Intake
  *
  * Generates clinical note and service-specific drafts using AI.
  * Idempotent - skips if drafts already exist (unless force=true).
  * Called after payment is confirmed via Stripe webhook.
  */
-
 import { deleteDrafts,draftsExist } from "@/lib/ai/drafts"
 import { getDraftCategory,normalizeServiceType } from "@/lib/constants/service-types"
 
@@ -32,20 +31,6 @@ export async function generateDraftsForIntake(
   log.info("Starting draft generation", { intakeId, force })
 
   try {
-    // AUTH CHECK: Verify caller is doctor/admin when called as server action.
-    // When called from Stripe webhook (no user session), auth will return null - that's OK
-    // because the webhook handler already verified the Stripe signature.
-    try {
-      const { requireRoleOrNull } = await import("@/lib/auth/helpers")
-      const authResult = await requireRoleOrNull(["doctor", "admin"])
-      if (!authResult) {
-        log.info("Draft generation called without doctor session (likely webhook)", { intakeId })
-      }
-    } catch {
-      // Auth module may throw in non-request contexts (cron, webhook) - acceptable
-      log.info("Auth check skipped for non-request context", { intakeId })
-    }
-
     // Check idempotency - skip if drafts already exist
     if (!force) {
       const exists = await draftsExist(intakeId)

@@ -1,10 +1,9 @@
-"use server"
+import "server-only"
 
 /**
  * Email reconstruction logic for the outbox dispatcher.
  * Fetches intake/certificate data and re-renders templates for retry sends.
  */
-
 import * as Sentry from "@sentry/nextjs"
 
 import { buildVerifiedCompleteAccountHref } from "@/lib/auth/complete-account-handoff"

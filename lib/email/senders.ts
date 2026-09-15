@@ -1,4 +1,4 @@
-"use server"
+import "server-only"
 
 /**
  * Convenience wrapper functions for sending specific email types
@@ -6,7 +6,6 @@
  * These functions provide a simpler API for common email sends
  * while still using the centralized sendEmail system.
  */
-
 import { env } from "@/lib/config/env"
 import {
   RequestDeclinedEmail,

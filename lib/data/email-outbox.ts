@@ -1,4 +1,4 @@
-"use server"
+import "server-only"
 
 /**
  * Email Outbox Data Access
@@ -6,7 +6,6 @@
  * Server-side queries for the email_outbox table.
  * Used by the admin email outbox viewer.
  */
-
 import * as Sentry from "@sentry/nextjs"
 
 import { logger } from "@/lib/observability/logger"
