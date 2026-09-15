@@ -4,13 +4,14 @@ import { createHash } from "node:crypto"
 
 import { APP_URL } from "@/lib/constants"
 import { verifyPatientRequestAccessToken } from "@/lib/crypto/patient-request-access-token"
+import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
+import { buildPostSignInRedirectHref } from "@/lib/navigation/auth-handoff"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export type RequestAccessLinkResult = { accepted: true }
 const ACCEPTED: RequestAccessLinkResult = { accepted: true }
-const DESTINATION = "/auth/post-signin?redirect=%2Ftrack%2Frequest"
 
 /** The capability selects a mailbox, never an authenticated session or document. */
 export async function requestAccessMagicLink(input: {
@@ -49,9 +50,14 @@ export async function requestAccessMagicLink(input: {
     }
 
     const callback = new URL("/auth/callback", APP_URL)
-    callback.searchParams.set("next", DESTINATION)
-    // Request-local SSR client stores the PKCE verifier in a request-local cookie.
-    // The existing callback exchanges the provider code and links by verified email.
+    // Email may open in another browser without the original /track cookie.
+    // Carry only the destination, never the capability. The authenticated
+    // request page still verifies ownership before reading clinical content.
+    callback.searchParams.set("next", buildPostSignInRedirectHref(
+      buildPatientIntakeHref(verified.intakeId),
+    ))
+    // The production auth-email hook builds a one-time confirmation link.
+    // The post-sign-in handoff links the profile using the verified email.
     const auth = await createClient()
     await auth.auth.signInWithOtp({
       email,

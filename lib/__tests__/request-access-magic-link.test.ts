@@ -26,6 +26,8 @@ vi.mock("@/lib/supabase/service-role", () => ({
 }))
 
 import { POST } from "@/app/track/request/access-link/route"
+import { consumeAuthEmailConfirmation } from "@/lib/auth/auth-confirmation"
+import { planAuthEmailMessages } from "@/lib/auth/auth-email-message-planner"
 import { requestAccessMagicLink } from "@/lib/auth/request-access-magic-link"
 
 const input = { capabilityCookie: "private-capability", ipKey: "192.0.2.9" }
@@ -45,11 +47,37 @@ beforeEach(() => {
 })
 
 describe("tracker access email", () => {
-  it("sends only to the server-resolved mailbox with a fixed clean PKCE return", async () => {
+  it("preserves the selected request through email confirmation in a browser without the tracker cookie", async () => {
+    await requestAccessMagicLink(input)
+    const redirectTo = mocks.send.mock.calls[0][0].options.emailRedirectTo
+    const plan = planAuthEmailMessages({
+      user: { id: "synthetic-user", email: patient.email },
+      email_data: {
+        token: "123456", token_hash: "synthetic-one-time-hash",
+        redirect_to: redirectTo, email_action_type: "magiclink",
+        site_url: "https://synthetic.supabase.co",
+      },
+    }, { appUrl: "http://localhost:3060" })
+    expect(plan.ok).toBe(true)
+    if (!plan.ok) throw new Error("Expected auth email")
+    const link = new URL(plan.messages[0].confirmationUrl!)
+    const fragment = new URLSearchParams(link.hash.slice(1))
+    const result = await consumeAuthEmailConfirmation({
+      tokenHash: fragment.get("token_hash"),
+      actionType: fragment.get("type"), next: fragment.get("next"),
+    }, async () => ({ error: null }))
+    expect(result).toEqual({
+      success: true,
+      destination: "/auth/post-signin?redirect=%2Fpatient%2Fintakes%2Fprivate-intake",
+    })
+    expect(link.search).toBe("")
+    expect(link.toString()).not.toContain(input.capabilityCookie)
+  })
+  it("sends only to the server-resolved mailbox with an authenticated request return", async () => {
     expect(await requestAccessMagicLink(input)).toEqual(accepted)
     expect(mocks.send).toHaveBeenCalledExactlyOnceWith({ email: patient.email, options: {
       shouldCreateUser: true,
-      emailRedirectTo: "http://localhost:3060/auth/callback?next=%2Fauth%2Fpost-signin%3Fredirect%3D%252Ftrack%252Frequest",
+      emailRedirectTo: "http://localhost:3060/auth/callback?next=%2Fauth%2Fpost-signin%3Fredirect%3D%252Fpatient%252Fintakes%252Fprivate-intake",
     } })
     expect(mocks.limit).toHaveBeenCalledTimes(2)
     const keys = JSON.stringify(mocks.limit.mock.calls)

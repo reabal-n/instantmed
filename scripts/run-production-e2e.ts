@@ -4,9 +4,14 @@ import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promis
 import { createServer } from "node:net"
 import { tmpdir } from "node:os"
 import { basename, join, resolve } from "node:path"
+import { Redis } from "@upstash/redis"
+import { Ratelimit } from "@upstash/ratelimit"
 
 const ALLOWED_SPECS = ["e2e/certificate-resend-render.spec.ts", "e2e/plan5-navigation.spec.ts"]
-const LOCAL_PORTS = [3060, 55320, 55321, 55322, 55323, 55324, 55325, 55326, 55329]
+const LOCAL_PORTS = [3060, 55320, 55321, 55322, 55323, 55324, 55325, 55326, 55329, 55330]
+const REDIS_TOKEN = "production-e2e-local-only"
+const REDIS_IMAGE = "redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf"
+const REDIS_HTTP_IMAGE = "hiett/serverless-redis-http:0.0.10@sha256:65128347949bca511e448fd7238780d624573d74c22b79155a7563db19e9b678"
 const PROVIDER_BLOCK_MESSAGE = "E2E provider blocked before external delivery"
 const activeChildren = new Set<ChildProcess>()
 let receivedSignal: NodeJS.Signals | null = null
@@ -232,8 +237,8 @@ function testEnvironment(
     STRIPE_PRICE_CONSULT_WOMENS_HEALTH: "price_e2e_womens",
     STRIPE_PRICE_CONSULT_WEIGHT_LOSS: "price_e2e_weight",
     STRIPE_PRICE_PRIORITY_FEE: "price_e2e_priority",
-    UPSTASH_REDIS_REST_URL: "http://127.0.0.1:9",
-    UPSTASH_REDIS_REST_TOKEN: "e2e-local-only",
+    UPSTASH_REDIS_REST_URL: "http://127.0.0.1:55330",
+    UPSTASH_REDIS_REST_TOKEN: REDIS_TOKEN,
     CRON_SECRET: randomBytes(32).toString("hex"),
     TELEGRAM_BOT_TOKEN: "e2e-local-only",
     TELEGRAM_CHAT_ID: "0",
@@ -274,11 +279,24 @@ async function main() {
   let primaryError: unknown
   let cleanupError: unknown
   let cleanupPromise: Promise<void> | undefined
+  const redisContainers: string[] = []
 
   function cleanup(): Promise<void> {
     if (cleanupPromise) return cleanupPromise
     cleanupPromise = (async () => {
       for (const child of activeChildren) terminateChild(child)
+      const redisCleanupErrors: unknown[] = []
+      for (const container of redisContainers.reverse()) {
+        try {
+          const existing = await run("docker", ["ps", "-aq", "--filter", `name=^/${container}$`],
+            commandEnv, { allowDuringShutdown: true })
+          if (existing.stdout.trim()) {
+            await run("docker", ["rm", "-f", "-v", container], commandEnv, { allowDuringShutdown: true })
+          }
+        } catch (error) {
+          redisCleanupErrors.push(error)
+        }
+      }
 
       let stopError: unknown
       if (supabaseStartAttempted) {
@@ -313,6 +331,9 @@ async function main() {
       }
 
       await rm(temporaryRoot, { recursive: true, force: true })
+      if (redisCleanupErrors.length) {
+        throw new AggregateError(redisCleanupErrors, "Could not remove all runner-owned Redis containers")
+      }
     })()
     return cleanupPromise
   }
@@ -387,6 +408,32 @@ async function main() {
     const local = parseSupabaseEnv(status.stdout)
     requireLocalSupabaseCoordinates(local)
     const env = testEnvironment(local, providerPreload, temporaryApp)
+
+    // Real local Redis keeps fail-closed download/auth protection enabled.
+    // Names are unique to this runner and removed before its Supabase stack.
+    const redisName = `${supabaseProjectId}-redis`
+    const redisHttpName = `${supabaseProjectId}-redis-http`
+    redisContainers.push(redisName)
+    await run("docker", ["run", "-d", "--name", redisName,
+      REDIS_IMAGE, "redis-server", "--save", "", "--appendonly", "no"], commandEnv)
+    redisContainers.push(redisHttpName)
+    await run("docker", ["run", "-d", "--name", redisHttpName,
+      "--link", `${redisName}:redis`, "-p", "127.0.0.1:55330:80",
+      "-e", "SRH_MODE=env", "-e", `SRH_TOKEN=${REDIS_TOKEN}`,
+      "-e", "SRH_CONNECTION_STRING=redis://redis:6379", REDIS_HTTP_IMAGE], commandEnv)
+    const redis = new Redis({ url: env.UPSTASH_REDIS_REST_URL!, token: REDIS_TOKEN, retry: false })
+    const deadline = Date.now() + 30_000
+    while (true) {
+      try { if (await redis.ping() === "PONG") break } catch { /* bounded startup */ }
+      if (Date.now() >= deadline) throw new Error("Local Redis did not become ready")
+      await new Promise(resolvePromise => setTimeout(resolvePromise, 250))
+    }
+    const limiter = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(1, "1 m"),
+      prefix: "production-e2e-readiness", analytics: false })
+    const first = await limiter.limit("probe")
+    const second = await limiter.limit("probe")
+    await Promise.all([first.pending, second.pending])
+    if (!first.success || second.success) throw new Error("Local Redis did not enforce quota")
 
     process.stdout.write("Building the production Webpack bundle in a dotenv-free temporary app copy...\n")
     await run(process.execPath, [
