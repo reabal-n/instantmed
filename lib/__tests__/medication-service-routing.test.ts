@@ -4,6 +4,22 @@ import { deriveIntakeFlags } from "@/lib/clinical/derive-intake-flags"
 import { detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 
 describe("detectDedicatedServiceForMedication", () => {
+  it("routes the reported sildenafil misspelling without widening fuzzy matching", () => {
+    for (const name of ["Sedenfil", "SEDENFIL 100mg Tablet", "(sedenfil)"]) {
+      expect(detectDedicatedServiceForMedication(name, "Errectile dysfunction"))
+        .toMatchObject({ subtype: "ed", enforcement: "hard" })
+      for (const context of ["pulmonary_hypertension", "prostate_bph"]) {
+        expect(detectDedicatedServiceForMedication(name, "", context))
+          .toMatchObject({ subtype: "ed", enforcement: "flag_only" })
+      }
+    }
+    for (const name of ["Sertraline", "Simvastatin", "Sedenfilxyz", "Xsedenfil"]) {
+      expect(detectDedicatedServiceForMedication(name, "Errectile dysfunction")).toBeNull()
+    }
+    expect(detectDedicatedServiceForMedication("Sertraline", "Sedenfil for erectile dysfunction"))
+      .toMatchObject({ enforcement: "flag_only" })
+  })
+
   it("routes hair-loss medicines to hair_loss", () => {
     for (const name of ["Finasteride", "finasteride 1mg", "Propecia", "Finpecia", "Minoxidil", "Rogaine", "Regaine"]) {
       expect(detectDedicatedServiceForMedication(name)?.subtype).toBe("hair_loss")

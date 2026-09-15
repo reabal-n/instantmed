@@ -337,6 +337,7 @@ export function transformAnswersForUnifiedCheckout(
   transformed.has_adverse_medication_reactions = answers.hasAdverseMedicationReactions
 
   transformed.telehealth_consent_given = answers.telehealthConsentGiven
+  transformed.telehealth_consent_version = answers.telehealthConsentVersion
   transformed.accuracy_confirmed = answers.confirmedAccuracy
   transformed.terms_agreed = answers.agreedToTerms
 

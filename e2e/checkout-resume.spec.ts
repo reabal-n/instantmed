@@ -4,6 +4,7 @@ import { join } from "node:path"
 
 import { expect, type Locator, type Page, test } from "@playwright/test"
 
+import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
 import { signCheckoutResumeToken } from "@/lib/crypto/checkout-resume-token"
 import {
   decryptJSONB,
@@ -20,6 +21,10 @@ import {
 } from "./helpers/db"
 
 const HIGH_STAKES_ANSWERS = {
+  accuracy_confirmed: true,
+  terms_agreed: true,
+  telehealth_consent_given: true,
+  telehealth_consent_version: TELEHEALTH_CONSENT_VERSION,
   certificateType: "study",
   symptomDetails: "I need an exam deferral certificate.",
 }
@@ -440,7 +445,13 @@ test.describe("Signed guest checkout resume safety", () => {
     }
 
     const { error: answersError } = await supabase.from("intake_answers").insert({
-      answers: { emergency_symptoms: [] },
+      answers: {
+        emergency_symptoms: [],
+        accuracy_confirmed: true,
+        terms_agreed: true,
+        telehealth_consent_given: true,
+        telehealth_consent_version: TELEHEALTH_CONSENT_VERSION,
+      },
       intake_id: intakeId,
     })
     if (answersError) {

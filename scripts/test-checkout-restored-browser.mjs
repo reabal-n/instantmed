@@ -98,9 +98,18 @@ try {
             && message.text().includes('503')
           if (message.type() === 'error' && !expectedUnavailable) errors.push(message.text())
         })
+        const callsBeforeConsent = checkoutCalls.length
         await page.goto('http://localhost:3060/request?service=prescription')
         const pay = page.locator('[data-intake-primary-action="true"]')
         await pay.waitFor({ state: 'attached' })
+        // The saved fixture predates the current telehealth disclosure. Its
+        // checked box must be cleared, then the real patient action records
+        // current consent before exercising payment recovery.
+        const consent = page.getByRole('checkbox', { name: 'Confirm request and payment terms' })
+        await page.waitForFunction(() => window.checkoutFixtureStore?.getState().safetyConfirmed === false)
+        assert.equal(await consent.isChecked(), false)
+        assert.equal(checkoutCalls.length, callsBeforeConsent)
+        await consent.check()
         const initialState = await readState(page)
         const submitAndCheck = async () => {
           // Mobile viewport: invoke the actual primary button that the
