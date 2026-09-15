@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+import { hasDurableCheckoutConsent } from "@/lib/stripe/checkout/consent-evidence"
 
 const mocks = vi.hoisted(() => ({
   checkSafetyForServer: vi.fn(),
@@ -307,6 +308,7 @@ describe("signed guest checkout resume payment safety", () => {
   it.each([undefined, false, "true"])("blocks signed resume without explicit telehealth consent %s before Stripe", async value => {
     const { supabase } = createResumeSupabaseMock({ payment_id: null })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValueOnce(false)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: value })
     await expect(resolveGuestCheckoutResume("intake-1")).resolves.toBe("/checkout/cancelled?reason=more_information_required")
     expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
@@ -316,6 +318,7 @@ describe("signed guest checkout resume payment safety", () => {
   it.each(["paid", "unpaid"])("preserves Stripe-complete %s recovery when consent is missing", async paymentStatus => {
     const { supabase } = createResumeSupabaseMock({ payment_id: "cs_previous", status: "pending_payment", payment_status: "pending" })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValueOnce(false)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: false })
     mocks.stripeSessionRetrieve.mockResolvedValueOnce({ id: "cs_previous", metadata: { intake_id: "intake-1" }, status: "complete", payment_status: paymentStatus })
     const result = await resolveGuestCheckoutResume("intake-1")
@@ -326,6 +329,7 @@ describe("signed guest checkout resume payment safety", () => {
   it("expires the owned open session before requiring new consent", async () => {
     const { supabase } = createResumeSupabaseMock({ payment_id: "cs_previous" })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValueOnce(false)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: false })
     await resolveGuestCheckoutResume("intake-1")
     expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
@@ -1288,3 +1292,9 @@ describe("signed guest checkout resume payment safety", () => {
     expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
   })
 })
+
+vi.mock("@/lib/stripe/checkout/consent-evidence", () => ({
+  hasDurableCheckoutConsent: vi.fn(async () => true),
+  ensureCheckoutConsentEvidence: vi.fn(async () => ({ ok: true })),
+  CONSENT_EVIDENCE_ERROR: "Consent evidence unavailable",
+}))

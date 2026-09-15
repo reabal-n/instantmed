@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+import { ensureCheckoutConsentEvidence } from "@/lib/stripe/checkout/consent-evidence"
 
 const mocks = vi.hoisted(() => ({
   checkCheckoutBlocked: vi.fn(),
@@ -1377,6 +1378,25 @@ describe("checkout operating hours", () => {
     })
   })
 
+  it.each(["guest", "authenticated"])("preserves persisted %s intake and creates zero Sessions when durable evidence fails", async kind => {
+    const { deletes, inserts, supabase } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    if (kind === "authenticated") mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
+      user: { id: "user-1", email: "patient@example.test" },
+      profile: { id: "guest-profile-1", date_of_birth: "1985-04-01", full_name: "Test Patient", stripe_customer_id: null },
+    })
+    vi.mocked(ensureCheckoutConsentEvidence).mockResolvedValueOnce({ ok: false })
+    const input = { answers: { terms_agreed: true, accuracy_confirmed: true, telehealth_consent_given: true,
+      telehealth_consent_version: TELEHEALTH_CONSENT_VERSION }, category: "medical_certificate" as const, subtype: "work", type: "med-cert" }
+    const result = kind === "guest"
+      ? await createGuestCheckoutAction({ ...input, guestDateOfBirth: "1985-04-01", guestEmail: "patient@example.test", guestName: "Test Patient" })
+      : await createIntakeAndCheckoutAction({ ...input, idempotencyKey: "synthetic-consent-failure" })
+    expect(result).toMatchObject({ success: false, failureCode: "persistence", error: "Consent evidence unavailable" })
+    expect(inserts.some(entry => entry.table === "intake_answers")).toBe(true)
+    expect(deletes).not.toContain("intakes")
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
   it("preserves guest intakes as checkout_failed when Stripe session creation fails", async () => {
     const { deletes, supabase, updates } = createGuestCheckoutSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
@@ -1948,3 +1968,9 @@ describe("checkout operating hours", () => {
     )
   })
 })
+
+vi.mock("@/lib/stripe/checkout/consent-evidence", () => ({
+  hasDurableCheckoutConsent: vi.fn(async () => true),
+  ensureCheckoutConsentEvidence: vi.fn(async () => ({ ok: true })),
+  CONSENT_EVIDENCE_ERROR: "Consent evidence unavailable",
+}))

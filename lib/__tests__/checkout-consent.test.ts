@@ -30,9 +30,11 @@ describe("explicit checkout consent", () => {
   })
   it.each([
     "lib/stripe/checkout/auth-and-profile.ts", "lib/stripe/guest-checkout.ts",
-    "lib/stripe/checkout/retry-payment.ts", "lib/stripe/checkout/guest-resume.ts",
   ])("enforces the shared consent boundary in %s", file => {
     expect(readFileSync(file, "utf8")).toMatch(/if \(!hasCheckoutConsent\(/)
+  })
+  it.each(["lib/stripe/checkout/retry-payment.ts", "lib/stripe/checkout/guest-resume.ts"])("requires a durable current episode receipt for recovery in %s", file => {
+    expect(readFileSync(file, "utf8")).toContain("if (!await hasDurableCheckoutConsent(supabase, intake.id))")
   })
   it("does not expose internal answer hashing as an action", () => {
     expect(readFileSync("app/actions/drafts/draft-validation.ts", "utf8")).not.toContain("export async function computeIntakeHash")

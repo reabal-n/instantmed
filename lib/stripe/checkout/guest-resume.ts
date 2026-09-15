@@ -14,7 +14,6 @@ import {
   isSupersededDuplicateCheckoutError,
   resolvePaymentRecoveryCanonicality,
 } from "@/lib/stripe/canonical-payment-recovery"
-import { hasCheckoutConsent } from "@/lib/stripe/checkout/consent"
 import { buildGuestCheckoutCancelUrl } from "@/lib/stripe/checkout-recovery-link"
 import { getPriceIdForRequest, stripe } from "@/lib/stripe/client"
 import {
@@ -38,6 +37,7 @@ import {
   inspectCheckoutSession,
   invalidateCheckoutSessionForSafety,
 } from "./checkout-session-safety"
+import { hasDurableCheckoutConsent } from "./consent-evidence"
 import { getServiceSlug } from "./helpers"
 import {
   getHighStakesCheckoutBlock,
@@ -222,6 +222,7 @@ async function rebuildGuestCheckoutSession(
     payment_status: intake.payment_status,
     status: intake.status,
   }
+  if (!await hasDurableCheckoutConsent(supabase, intake.id)) return null
   const replacementClaim = await claimCheckoutSessionReplacement({
     initialState: replacementState,
     intakeId: intake.id,
@@ -236,6 +237,7 @@ async function rebuildGuestCheckoutSession(
     return null
   }
   try {
+    if (!await hasDurableCheckoutConsent(supabase, intake.id)) return null
     const session = await stripe.checkout.sessions.create(
       {
         line_items: lineItems,
@@ -369,7 +371,7 @@ export async function resolveGuestCheckoutResume(
       )
       return PAYMENT_STATE_UNRESOLVED_DESTINATION
     }
-    if (!hasCheckoutConsent(answers)) {
+    if (!await hasDurableCheckoutConsent(supabase, intake.id)) {
       if (intake.payment_id) {
         const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, {
           intakeStatus: intake.status, paymentStatus: intake.payment_status, storedPaymentId: intake.payment_id,
