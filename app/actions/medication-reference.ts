@@ -4,14 +4,17 @@ import { z } from "zod"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import {
+  ADDITIONAL_MEDICATION_NAME_REFERENCES,
   type MedicationCatalogRow,
   resolveGenericMedicationNameFromRows,
 } from "@/lib/clinical/generic-medication-resolver"
+import { resolveMedicationSpelling } from "@/lib/clinical/medication-spelling-match"
 import {
   findPriorMedicationMatch,
   type PriorMedicationMatchKind,
 } from "@/lib/clinical/prior-medication-match"
 import { isParchmentClaimSatisfied } from "@/lib/doctor/parchment-claim"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const MAX_MEDICATION_REFERENCE_LENGTH = 240
@@ -25,7 +28,7 @@ export interface ResolveGenericMedicationNameActionResult {
   data?: {
     status: "resolved" | "ambiguous" | "unsafe" | "unresolved"
     genericName?: string
-    source?: "previous_prescription"
+    source?: "previous_prescription" | "catalogue_spelling"
     matchKind?: PriorMedicationMatchKind
   }
   error?: string
@@ -35,8 +38,10 @@ export interface ResolveGenericMedicationNameActionResult {
  * Doctor/admin-only, first-party lookup for the Parchment handoff. Exact
  * catalog matches are preferred; an unresolved request may be compared with
  * the same patient's prior prescriptions when an intake id is supplied.
- * Patient medicine text is never logged, sent to analytics, or included in a
- * database query. Unknown, ambiguous, unsafe, and unavailable results expose
+ * A final advisory AI spelling check may vet a unique close catalogue name.
+ * Raw patient text is never logged, sent to analytics, or used in a database
+ * query. Only a bounded name fragment reaches the existing AI provider.
+ * Unknown, ambiguous, unsafe, and unavailable results expose
  * no copyable medicine name.
  */
 export async function resolveGenericMedicationNameAction(
@@ -50,6 +55,8 @@ export async function resolveGenericMedicationNameAction(
   if (!parsed.success) {
     return { success: false, error: "Medication reference is invalid" }
   }
+  const validatedEntry = parsed.data
+  const actorId = auth.profile.id
 
   let parsedIntakeId: string | null = null
   if (intakeId !== undefined) {
@@ -70,10 +77,11 @@ export async function resolveGenericMedicationNameAction(
     if (error || !Array.isArray(data)) {
       return { success: false, error: "Medication reference unavailable" }
     }
+    const catalogue = [...data as MedicationCatalogRow[], ...ADDITIONAL_MEDICATION_NAME_REFERENCES]
 
     const resolution = resolveGenericMedicationNameFromRows(
       parsed.data,
-      data as MedicationCatalogRow[],
+      catalogue,
     )
 
     if (resolution.status !== "unresolved" || !parsedIntakeId) {
@@ -120,6 +128,15 @@ export async function resolveGenericMedicationNameAction(
       return { success: true, data: { status: "unresolved" } }
     }
 
+    async function catalogueSpellingFallback(): Promise<ResolveGenericMedicationNameActionResult> {
+      const limit = await checkServerActionRateLimit(`medication-spelling:${actorId}`, "ai")
+      if (!limit.success) return { success: true, data: { status: "unresolved" } }
+      const genericName = await resolveMedicationSpelling(validatedEntry, catalogue)
+      return genericName
+        ? { success: true, data: { status: "resolved", genericName, source: "catalogue_spelling", matchKind: "likely_typo" } }
+        : { success: true, data: { status: "unresolved" } }
+    }
+
     const priorMatch = findPriorMedicationMatch(
       parsed.data,
       prescriptions
@@ -127,12 +144,12 @@ export async function resolveGenericMedicationNameAction(
         .filter((name): name is string => typeof name === "string" && name.trim().length > 0),
     )
     if (!priorMatch) {
-      return { success: true, data: { status: "unresolved" } }
+      return await catalogueSpellingFallback()
     }
 
     const priorResolution = resolveGenericMedicationNameFromRows(
       priorMatch.medicationName,
-      data as MedicationCatalogRow[],
+      catalogue,
     )
     if (priorResolution.status === "resolved") {
       return {
@@ -146,10 +163,7 @@ export async function resolveGenericMedicationNameAction(
       }
     }
 
-    return {
-      success: true,
-      data: { status: "unresolved" },
-    }
+    return await catalogueSpellingFallback()
   } catch {
     return { success: false, error: "Medication reference unavailable" }
   }

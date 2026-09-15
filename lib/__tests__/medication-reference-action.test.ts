@@ -6,7 +6,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
   requireRoleOrNull: vi.fn(),
+  spelling: vi.fn(),
+  limit: vi.fn(),
 }))
+
+vi.mock("@/lib/clinical/medication-spelling-match", () => ({ resolveMedicationSpelling: mocks.spelling }))
+vi.mock("@/lib/rate-limit/redis", () => ({ checkServerActionRateLimit: mocks.limit }))
 
 vi.mock("@/lib/auth/helpers", () => ({
   requireRoleOrNull: mocks.requireRoleOrNull,
@@ -71,6 +76,8 @@ function medicationHistoryClient(input: {
 describe("resolveGenericMedicationNameAction", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.spelling.mockResolvedValue(null)
+    mocks.limit.mockResolvedValue({ success: true })
     mocks.requireRoleOrNull.mockResolvedValue({
       user: { id: "doctor-1" },
       profile: { id: "doctor-1", role: "doctor" },
@@ -248,6 +255,25 @@ describe("resolveGenericMedicationNameAction", () => {
 
     expect(history.from).toHaveBeenCalledTimes(2)
     expect(history.prescriptionEq).not.toHaveBeenCalled()
+    expect(mocks.spelling).not.toHaveBeenCalled()
+  })
+
+  it("automatically checks a catalogue typo for an authorised case without prior prescriptions", async () => {
+    const history = medicationHistoryClient({
+      catalog: { data: [{ name: "Sertraline", brand_names: ["Zoloft"] }], error: null },
+      intake: { data: { patient_id: "patient-1", claimed_by: "doctor-1" }, error: null },
+      prescriptions: { data: [], error: null },
+    })
+    mocks.createServiceRoleClient.mockReturnValue(history.client)
+    mocks.spelling.mockResolvedValue("Sertraline")
+    expect(await resolveGenericMedicationNameAction("Sertralne", "00000000-0000-0000-0000-000000000123"))
+      .toEqual({ success: true, data: { status: "resolved", genericName: "Sertraline", source: "catalogue_spelling", matchKind: "likely_typo" } })
+    expect(mocks.limit).toHaveBeenCalledWith("medication-spelling:doctor-1", "ai")
+    mocks.spelling.mockClear()
+    mocks.limit.mockResolvedValue({ success: false })
+    expect(await resolveGenericMedicationNameAction("Sertralne", "00000000-0000-0000-0000-000000000123"))
+      .toEqual({ success: true, data: { status: "unresolved" } })
+    expect(mocks.spelling).not.toHaveBeenCalled()
   })
 
   it("fails closed when a supplied intake id is invalid", async () => {

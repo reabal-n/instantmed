@@ -42,7 +42,7 @@ type GenericReferenceState =
   | {
       status: "resolved"
       genericName: string
-      source: "request" | "previous_prescription"
+      source: "request" | "previous_prescription" | "catalogue_spelling"
       matchKind?: "exact" | "likely_typo"
     }
 
@@ -147,8 +147,10 @@ export function ParchmentPrescribePanel({
     ? genericReference.matchKind === "likely_typo"
       ? "Likely match from a previous prescription · confirm in Parchment"
       : "Matched from a previous prescription · confirm in Parchment"
+    : genericReference.status === "resolved" && genericReference.source === "catalogue_spelling"
+      ? "AI spelling match from medication catalogue · confirm in Parchment"
     : genericReference.status === "resolving"
-      ? "Checking the request and previous prescriptions…"
+      ? "Checking medication name and previous prescriptions…"
       : genericReference.status === "unresolved"
         ? requestedNameCopyText
           ? "Patient-entered name · confirm the match in Parchment"
@@ -192,9 +194,7 @@ export function ParchmentPrescribePanel({
           setGenericReference({
             status: "resolved",
             genericName: result.data.genericName,
-            source: result.data.source === "previous_prescription"
-              ? "previous_prescription"
-              : "request",
+            source: result.data.source ?? "request",
             matchKind: result.data.matchKind,
           })
           return

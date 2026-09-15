@@ -561,7 +561,7 @@ describe("project docs drift contract", () => {
       expect(source).toMatch(/exact-resolve|exact curated/)
     }
     expect(clinical).toContain("doctor is verified as the current or prior reviewer")
-    expect(operations).toContain("never performs general fuzzy catalog search")
+    expect(operations).toContain("AI may only veto that candidate, never invent a name")
     expect(architecture).toContain("verifies the doctor/intake relationship")
   })
 
