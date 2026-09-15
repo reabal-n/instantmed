@@ -524,6 +524,9 @@ describe("independent health-check classification", () => {
     const response = await GET(new Request("https://example.test/api/cron/health-check") as Parameters<typeof GET>[0])
     const body = await response.json()
     expect(body.checks.browser.unavailableReason).toBe(reason === "transport" ? "transport_error" : reason === "shape" ? "invalid_source" : "step_unavailable")
+    expect(mocks.capture).toHaveBeenCalledWith("browser-monitor: observer_unavailable active", expect.objectContaining({
+      tags: expect.objectContaining({ observer_reason: body.checks.browser.unavailableReason }),
+    }))
     expect(body.healthy).toBe(false)
     expect(db.version()).toBe(2)
     expect(db.read()).not.toHaveProperty("unavailableReason")

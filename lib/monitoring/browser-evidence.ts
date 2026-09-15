@@ -19,7 +19,7 @@ const runSchema = z.object({ id: integer, run_number: integer, run_attempt: inte
 })
 const stepSchema = z.object({ name: z.string(), status: z.string(), conclusion: z.string().nullable(), started_at: z.string().nullable(), completed_at: z.string().nullable() })
 const jobsSchema = z.object({ total_count: integer, jobs: z.array(z.object({ name: z.string(), run_id: integer, run_attempt: integer, status: z.string(), conclusion: z.string().nullable(), steps: z.array(stepSchema) })).max(10) })
-type UnavailableReason = "rate_limited" | "backoff" | "http_error" | "invalid_source" | "job_unavailable" | "step_unavailable" | "transport_error" | "coverage_gap" | "pending_evidence" | "cadence_unknown"
+export type UnavailableReason = "rate_limited" | "backoff" | "http_error" | "invalid_source" | "job_unavailable" | "step_unavailable" | "transport_error" | "coverage_gap" | "pending_evidence" | "cadence_unknown"
 
 function timestamp(value: string | null, now: number, nullable = false): number {
   if (value === null && nullable) return 0
