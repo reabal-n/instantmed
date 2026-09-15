@@ -74,6 +74,10 @@ export async function verifyGuestRequestAccess({ page, browser, evidence, otherO
   expect(submitted.postData()).toBe(null)
   await expect(page.getByRole("status").filter({ hasText: "Check the inbox" })).toBeVisible()
   const link = await readLatestMailpitLink(evidence.email)
+  // The selected request must survive loss of the tracker cookie. Keep this
+  // harness's PKCE verifier: local Mailpit uses the standard provider callback,
+  // while production uses the browser-independent auth confirmation hook.
+  await page.context().clearCookies({ name: "instantmed_patient_request_access" })
   await page.goto(link)
   await expect(page).toHaveURL(`${ORIGIN}/patient/intakes/${evidence.intakeId}`, { timeout: 60_000 })
   const service = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
