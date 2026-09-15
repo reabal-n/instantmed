@@ -15,7 +15,7 @@ describe("durable checkout consent", () => {
   beforeEach(() => { vi.clearAllMocks(); mocks.answers.mockResolvedValue(answers); mocks.profile.mockResolvedValue({ full_name: "Fixture", date_of_birth: "1990-01-01", phone: null }) })
   const client = (...results: unknown[]) => ({ rpc: vi.fn().mockImplementation(async () => results.shift()) })
   it("keeps immutable SQL disclosure and Terms metadata aligned with the shared contract", () => {
-    const sql = readFileSync("supabase/migrations/20260915120000_checkout_consent_receipts.sql", "utf8")
+    const sql = readFileSync("supabase/migrations/20260915131638_checkout_consent_receipts.sql", "utf8")
     expect(sql).toContain(`p_version <> '${TELEHEALTH_CONSENT_VERSION}'`)
     expect(sql).toContain(`'termsVersion','${TERMS_VERSION}'`)
   })

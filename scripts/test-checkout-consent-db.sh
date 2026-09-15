@@ -27,8 +27,8 @@ INSERT INTO public.profiles VALUES('00000000-0000-0000-0000-000000000001','Synth
 INSERT INTO public.intakes VALUES('00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000001','medical_certificate','work',NULL,'pending_payment','unpaid',NULL);
 INSERT INTO public.intake_answers(intake_id,answers) VALUES('00000000-0000-0000-0000-000000000002','{"synthetic":true}');
 SQL
-run_psql < "$REPO_ROOT/supabase/migrations/20260915120000_checkout_consent_receipts.sql" >/dev/null
-run_psql < "$REPO_ROOT/supabase/migrations/20260915120000_checkout_consent_receipts.sql" >/dev/null
+run_psql < "$REPO_ROOT/supabase/migrations/20260915131638_checkout_consent_receipts.sql" >/dev/null
+run_psql < "$REPO_ROOT/supabase/migrations/20260915131638_checkout_consent_receipts.sql" >/dev/null
 run_psql < "$REPO_ROOT/scripts/sql/checkout-consent-db.test.sql" >/dev/null
 # A competing answer change holds the row; a writer using the old revision must
 # wait, then fail instead of recording stale consent after the winner commits.

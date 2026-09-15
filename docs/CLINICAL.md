@@ -408,9 +408,9 @@ Communication preferences remain on by default. `email_preferences.preferences_c
 ### Per-Episode Consent
 
 - Explicit consent checkbox required at each intake submission (not implied by signup). The review checkbox explicitly names telehealth, possible doctor contact and in-person care. Telehealth consent version `2026-09-15` applies to new submissions; historical records are not rewritten.
-- Authenticated and guest checkout require literal-true terms, accuracy and telehealth attestations and the current telehealth disclosure version through `lib/stripe/checkout/consent.ts`. Restored confirmations from older disclosure versions are cleared in Review before payment. Authenticated retries and signed guest resume validate saved attestations; missing consent prevents a new payment session. Existing owned open sessions are expired, paid/in-flight sessions retain their completion handoff, and uncertain payment state stays unresolved. Cookie preferences are independent of these clinical attestations.
-- Consent timestamp must be recorded in compliance audit log per intake
-- Any material answer or identity change invalidates the prior confirmation and timestamp, requiring the patient to confirm again before submission
+- Authenticated and guest checkout require literal-true terms, accuracy and telehealth attestations and the current telehealth disclosure version through `lib/stripe/checkout/consent.ts`. Conflicting aliases are rejected. Restored confirmations from older disclosure versions are cleared before payment.
+- New payment sessions require a durable `checkout_consent_receipts` record for the current intake revision and disclosure version. The service-only `record_checkout_consent` transaction writes the receipt and all three compliance audit events together; failed audit writes prevent checkout. Answer, service and prescribing-identity changes invalidate the revision. Retrying an unchanged confirmation reuses its receipt; historical attestations are not backfilled into evidence.
+- Authenticated retries and signed guest resume require that current receipt. Missing evidence prevents a new payment session. Existing owned open sessions are expired, paid/in-flight sessions retain their completion handoff, and uncertain payment state stays unresolved. This does not revoke a previously issued Stripe URL after a later identity change. Cookie preferences remain independent of clinical attestations.
 - AHPRA expects documented informed consent for each episode of care
 
 ### Required Disclosures (Before Service)

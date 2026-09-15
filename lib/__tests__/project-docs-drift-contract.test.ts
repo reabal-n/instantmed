@@ -149,12 +149,12 @@ describe("project docs drift contract", () => {
     for (const source of [agents, claude]) {
       const migrationCount = readdirSync(join(root, "supabase/migrations")).filter((name) => name.endsWith(".sql")).length
       expect(source).toContain(`Current count on disk: **${migrationCount} migration files**`)
-      expect(source).toContain("Newest on-disk migration is `20260914105558_restore_weight_management_checkout_catalog.sql` (guarded canonical catalog repair; applied and verified in production on 2026-09-14)")
+      expect(source).toContain("Newest on-disk migration is `20260915131638_checkout_consent_receipts.sql` (revision-bound consent receipts; applied and verified in production on 2026-09-15)")
       expect(source).toContain(
         "`20260905120000_refill_reminder_funnel.sql`",
       )
       expect(source).toContain("were applied in order on 2026-09-05")
-      expect(source).toContain("Latest applied production migration is `20260914105558_restore_weight_management_checkout_catalog.sql` (canonical weight-management catalog restored at 8,995 cents and age 18; inactive legacy row preserved; no patient records changed)")
+      expect(source).toContain("Latest applied production migration is `20260915131638_checkout_consent_receipts.sql` (service-only receipt and audit transaction; zero historical receipts at application)")
       expect(source).toContain(
         "The earlier applied production migration is `20260906100000_monitor_observation_state.sql`",
       )
@@ -204,13 +204,13 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest applied production migration: `20260914105558_restore_weight_management_checkout_catalog.sql`",
+      "Latest applied production migration: `20260915131638_checkout_consent_receipts.sql`",
     )
     expect(architecture).toContain(
       "All four pending migrations, including runtime-schema convergence `20260904160000`, were applied in order on 2026-09-05",
     )
     expect(architecture).toContain(
-      "Latest applied/verified production timestamp is `20260914105558`",
+      "Latest applied/verified production timestamp is `20260915131638`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
@@ -239,7 +239,7 @@ describe("project docs drift contract", () => {
     )
     expect(wikiArchitecture).toContain("`20260816101752_harden_stripe_refund_recovery.sql`")
     expect(wikiArchitecture).toContain(
-      "Linked migration history is aligned through `20260914105558`",
+      "Linked migration history is aligned through `20260915131638`",
     )
     expect(wikiArchitecture).toContain(
       "`20260825073433_scope_profiles_realtime_policy_to_authenticated.sql` is also applied",

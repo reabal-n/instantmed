@@ -19,9 +19,8 @@ Object.defineProperty(globalThis, "localStorage", { value: localStorageMock })
 
 vi.mock("@/lib/analytics/capture", () => ({ capture: vi.fn() }))
 
-import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
-
 import { useRequestStore } from "@/components/request/store"
+import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
 
 const CONFIRMED_AT = "2026-07-14T01:02:03.000Z"
 

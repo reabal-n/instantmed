@@ -10,7 +10,6 @@ import { create } from 'zustand'
 import { persist, type StorageValue } from 'zustand/middleware'
 
 import { capture } from '@/lib/analytics/capture'
-import { TELEHEALTH_CONSENT_VERSION } from '@/lib/constants'
 import {
   ensureFlowInstanceId,
   normalizeFlowInstanceId,
@@ -20,6 +19,7 @@ import {
   buildIntakeEngagedProperties,
   INTAKE_ANALYTICS_EVENTS,
 } from '@/lib/analytics/intake-events'
+import { TELEHEALTH_CONSENT_VERSION } from '@/lib/constants'
 import {
   normalizeIncomingGrowthExperienceVersion,
   normalizePersistedGrowthExperienceVersion,

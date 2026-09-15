@@ -1,6 +1,6 @@
 # Server-action access and per-episode consent implementation plan
 
-> **For agentic workers:** Use superpowers:executing-plans to implement this plan task-by-task after implementation is authorized. This document authorizes no application changes or deployment.
+> **For agentic workers:** Use superpowers:executing-plans to implement this plan task-by-task after implementation is authorized. Implementation and governed release were authorized by the operator on September 15 after the unmerged plan was identified.
 
 **Goal:** Close unintended privileged action boundaries and make recorded consent match the patient's explicit, current confirmation.
 
@@ -46,7 +46,7 @@ The same unnecessary boundary exists in `lib/data/email-outbox.ts`, `lib/data/re
 
 ## Global constraints
 
-- Planning only until implementation is authorized. Keep application, provider, clinical-data and release claims separate.
+- Implementation is authorized. Keep application, provider, clinical-data and release claims separate.
 - Preserve current-session payment guards, full decline refunds, recoverable failed intakes, safety checks and existing ownership/canonicality rules.
 - No fabricated, backdated or silently upgraded historic consent. Previously paid requests require an operator/Medical Director decision for any remediation.
 - Never put patient answers, identities, rendered emails, action IDs, tokens or credentials in test reports or review artifacts. Use synthetic fixtures.
@@ -117,3 +117,18 @@ The same unnecessary boundary exists in `lib/data/email-outbox.ts`, `lib/data/re
 ## Plan review
 
 Self-review: three bounded deliverables; no navigation work, dependency changes, production action tests or historic corrections are included. Confirmed source defects are separated from old compiled evidence and unresolved authorization policy. Application tests and a fresh production build were not run during this planning review. Documentation checks and commit evidence belong to the plan handoff.
+
+
+## Execution reconciliation — September 15
+
+Baseline: current main `971502f6f`, merged into this plan branch. The original findings above are a dated diagnosis, not a fresh count of open issues. PR #573 already shipped the internal hash extraction, current-claim draft mutation guard, explicit September 15 disclosure and payment consent validation. Those changes are retained.
+
+- **Task 1:** internal-only consumers verified; 18 remaining modules now use `server-only` without action registration. The existing server-only hash is also protected by a fail-closed compiled-manifest check. Deliberate draft reads retain documented doctor/admin queue-wide read rights; mutation rights remain current-claim based. Exact-build and direct-action evidence follow in the release receipt.
+- **Task 2:** stale/missing disclosure confirmations clear during hydration and scoped restoration; contradictory canonical/camel consent fields remain visible through transformation and are rejected. Eight new regression cases failed before repair; a further four transformer cases failed before that repair. The combined four focused suites pass 83 tests. The existing isolated real ReviewStep/store harness passes 32 desktop/mobile, light/dark scenarios with zero external requests. No disclosure-copy/version change or cookie-policy change.
+- **Task 3:** durable version/revision-bound consent receipts now gate checkout and recovery. Atomic receipt/audit writes, concurrent revision changes and unchanged prescribing-profile writes are covered by regression tests. Missing historical evidence is not backfilled; paid obligations and ongoing payment resolution retain their existing guards.
+
+Independent source review approved the final source and migration, including the corrected Task 2 transformation bypass. Final local production build passes with 151 registered actions and zero forbidden internal helpers. The isolated compiled-action suite passes 39 direct requests across roles, claims and capabilities; this establishes application guards, not RLS. Typecheck, lint, documentation audit, dependency security audit, dead-code ratchet and enforced bundle budgets pass. Required CI, merge and production application verification remain pending.
+
+Schema receipt: `20260915131638_checkout_consent_receipts.sql` applied to the linked InstantMed production database on September 15. Read-back confirms RLS enabled, anon/authenticated table reads and receipt execution denied, service-role execution allowed, and zero receipts created by migration. Disposable PostgreSQL replay, reapplication, partial audit rollback, revision invalidation and concurrency checks pass. Application release remains pending.
+
+Local integration evidence: Stripe prices, Google Ads conversion configuration, Resend domain, Anthropic availability and Parchment configuration pass. Vercel masks the OpenAI review and Twilio voice-session secret values in its local environment export, so the full strict integration command cannot establish those two checks. No production credential failure is inferred and no substitute secret is used. The retained `TERMS_VERSION` constant is checked against SQL audit metadata; its production-only dead-code baseline entry is deliberate.
