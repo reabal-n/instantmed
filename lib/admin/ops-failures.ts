@@ -126,6 +126,7 @@ export interface OperationalFailureOverview {
   openCount: number
   categories: OperationalFailureCategory[]
   recent: OperationalFailureItem[]
+  oldestVisibleByCategory?: Partial<Record<OperationalFailureCategory["id"], string>>
 }
 
 function metadataString(metadata: Record<string, unknown> | null, key: string): string | null {
@@ -307,5 +308,12 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     openCount: categories.reduce((total, category) => total + category.count, 0),
     categories,
     recent: sortByOccurredAtDesc(recent).filter((item) => item.occurredAt).slice(0, 12),
+    // Compute category ages before the global recent-feed cap crowds out older
+    // checkout/email evidence. These are ages within each source's detail read.
+    oldestVisibleByCategory: Object.fromEntries(categories.flatMap(category => {
+      const dates = recent.filter(item => item.categoryId === category.id && item.occurredAt)
+        .map(item => item.occurredAt).sort((a, b) => Date.parse(a) - Date.parse(b))
+      return dates[0] ? [[category.id, dates[0]]] : []
+    })),
   }
 }

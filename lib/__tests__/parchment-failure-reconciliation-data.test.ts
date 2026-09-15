@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { describe, expect, it, vi } from "vitest"
 
 import type { ParchmentStandaloneFailureCandidate } from "@/lib/parchment/failure-reconciliation"
-import { readStandaloneParchmentPrescriptionEvidence } from "@/lib/parchment/failure-reconciliation-data"
+import { readParchmentAuditWindow,readStandaloneParchmentPrescriptionEvidence } from "@/lib/parchment/failure-reconciliation-data"
 
 const recoveredFailure: ParchmentStandaloneFailureCandidate = {
   id: "failure-1",
@@ -45,6 +45,49 @@ function makeSupabase(result: {
 }
 
 describe("standalone Parchment prescription evidence read", () => {
+  it.each(["capped", "changing"])("never reports complete coverage for a %s audit window", async mode => {
+    let pages = 0
+    const client = { from: () => {
+      const query: Record<string, unknown> = {}
+      for (const method of ["select", "eq", "gte", "lte", "contains", "not", "order"]) query[method] = () => query
+      query.range = (start: number) => {
+        pages += 1
+        return Promise.resolve({
+          data: Array.from({ length: 500 }, (_, i) => ({ id: `row-${start + i}` })),
+          error: null, count: mode === "changing" && pages > 1 ? 5002 : 5001,
+        })
+      }
+      return query
+    } } as unknown as SupabaseClient
+    const result = await readParchmentAuditWindow(client, "failures", "2026-09-08T00:00:00Z", "2026-09-15T00:00:00Z")
+    expect(result.count).toBeNull()
+    expect(result.error).not.toBeNull()
+    expect(pages).toBe(mode === "capped" ? 10 : 2)
+  })
+  it("reads failures past the old 50-row window and reports incomplete coverage", async () => {
+    const rows = Array.from({ length: 601 }, (_, i) => ({ id: `failure-${i}` }))
+    const pages: number[] = []
+    const makeClient = (failSecondPage = false) => ({ from: () => {
+      const query: Record<string, unknown> = {}
+      for (const method of ["select", "eq", "gte", "lte", "contains", "not", "order"]) query[method] = () => query
+      query.range = (start: number, end: number) => {
+        pages.push(start)
+        return Promise.resolve(failSecondPage && start > 0
+          ? { data: null, error: { message: "unavailable" }, count: null }
+          : { data: rows.slice(start, end + 1), error: null, count: rows.length })
+      }
+      return query
+    } }) as unknown as SupabaseClient
+    const result = await readParchmentAuditWindow(makeClient(), "failures", "2026-09-08T00:00:00Z", "2026-09-15T00:00:00Z")
+    expect(result.error).toBeNull()
+    expect(result.data).toHaveLength(601)
+    expect(result.data.at(-1)?.id).toBe("failure-600")
+    expect(pages).toEqual([0, 500])
+    const incomplete = await readParchmentAuditWindow(makeClient(true), "retries", "2026-09-08T00:00:00Z", "2026-09-15T00:00:00Z")
+    expect(incomplete.error).not.toBeNull()
+    expect(incomplete.data).toHaveLength(500)
+    expect(incomplete.count).toBeNull()
+  })
   it("reads only exact intake-less SCID evidence", async () => {
     const { calls, supabase } = makeSupabase({
       data: [{

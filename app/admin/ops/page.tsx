@@ -17,7 +17,7 @@ import {
   filterUnresolvedParchmentFailures,
   type ParchmentStandaloneFailureCandidate,
 } from "@/lib/parchment/failure-reconciliation"
-import { readStandaloneParchmentPrescriptionEvidence } from "@/lib/parchment/failure-reconciliation-data"
+import { readParchmentAuditWindow, readStandaloneParchmentPrescriptionEvidence } from "@/lib/parchment/failure-reconciliation-data"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { OpsDashboardClient } from "./ops-client"
@@ -163,25 +163,8 @@ export default async function OpsDashboardPage() {
       .eq("status", "checkout_failed")
       .order("updated_at", { ascending: false })
       .limit(20)),
-    readRows<AuditRow>("Parchment webhooks", supabase
-      .from("audit_logs")
-      .select("id, action, intake_id, created_at, metadata", { count: "exact" })
-      .eq("action", "webhook_failed")
-      .gte("created_at", weekAgo.toISOString())
-      .contains("metadata", { eventType: "parchment:prescription.created" })
-      .not("metadata", "cs", JSON.stringify({ error: "no_awaiting_script_intake" }))
-      .not("metadata", "cs", JSON.stringify({ error: "patient_not_found" }))
-      .not("metadata", "cs", JSON.stringify({ parchment_patient_id: "nonexistent-parchment-patient" }))
-      .order("created_at", { ascending: false })
-      .limit(50)),
-    readRows<AuditRow>("Parchment retry receipts", supabase
-      .from("audit_logs")
-      .select("id, action, intake_id, created_at, metadata", { count: "exact" })
-      .eq("action", "admin_action")
-      .gte("created_at", weekAgo.toISOString())
-      .contains("metadata", { action_type: "parchment_webhook_retry", result: "success" })
-      .order("created_at", { ascending: false })
-      .limit(100)),
+    readRows<AuditRow>("Parchment webhooks", readParchmentAuditWindow(supabase, "failures", weekAgo.toISOString(), now.toISOString())),
+    readRows<AuditRow>("Parchment retry receipts", readParchmentAuditWindow(supabase, "retries", weekAgo.toISOString(), now.toISOString())),
     readRows<StaleScriptRow>("stale script handoffs", supabase
       .from("intakes")
       .select("id, created_at, updated_at, approved_at, category, subtype, status", { count: "exact" })
@@ -283,10 +266,6 @@ export default async function OpsDashboardPage() {
   const actionableParchmentFailures = unrecoveredParchmentFailures
     .filter((row) => !isNonActionableParchmentSandboxError(row))
     .filter((row) => metadataString(row.metadata, "eventType") === "parchment:prescription.created")
-  const resolvedVisibleParchmentFailures = Math.max(
-    0,
-    prescriptionWebhookFailures.data.length - unrecoveredParchmentFailures.length,
-  )
   const nonCertificateEmailFailures = filterNonActionableEmailFailures(emailFailures.data)
     .filter((row) => row.email_type !== "med_cert_patient")
     .slice(0, 20)
@@ -304,10 +283,7 @@ export default async function OpsDashboardPage() {
     stripeDlq: webhookDlq.data,
     exactCounts: {
       checkout: checkoutFailures.totalCount,
-      prescription_delivery: Math.max(
-        0,
-        prescriptionWebhookFailures.totalCount - resolvedVisibleParchmentFailures,
-      ),
+      prescription_delivery: actionableParchmentFailures.length,
       refund_failures: refundFailures.totalCount,
       stale_scripts:
         staleScriptIntakes.totalCount

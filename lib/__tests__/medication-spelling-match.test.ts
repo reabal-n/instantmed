@@ -25,6 +25,12 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs())
 
 describe("catalogue-backed AI spelling check", () => {
+  it("checks a typo against the expanded PBS reference without inventing a name", async () => {
+    const { default: pbs } = await import("@/lib/clinical/pbs-medication-names.json")
+    expect(await resolveMedicationSpelling("Sertralne", pbs.medications)).toBe("Sertraline")
+    expect(await resolveMedicationSpelling("Doryxx", pbs.medications)).toBe("Doxycycline")
+    expect(await resolveMedicationSpelling("completely invented medicine", pbs.medications)).toBeNull()
+  })
   it("returns only the catalogue generic name for a confirmed narrow typo", async () => {
     expect(await resolveMedicationSpelling("Sertralne 100 mg tablet", rows)).toBe("Sertraline")
     const request = mocks.generate.mock.calls[0][0]

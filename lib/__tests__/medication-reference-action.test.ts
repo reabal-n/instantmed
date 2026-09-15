@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
@@ -74,6 +75,15 @@ function medicationHistoryClient(input: {
 }
 
 describe("resolveGenericMedicationNameAction", () => {
+  it("extracts PBS names without losing ambiguous aliases or mixing schedules", () => {
+    expect(() => execFileSync("python3", ["scripts/test-generate-pbs-medication-names.py"], { stdio: "pipe" })).not.toThrow()
+  })
+  it("resolves a verified PBS brand beyond the legacy catalogue", async () => {
+    mocks.createServiceRoleClient.mockReturnValue(medicationCatalogClient({ data: [], error: null }).client)
+    expect(await resolveGenericMedicationNameAction("Doryx")).toEqual({
+      success: true, data: { status: "resolved", genericName: "Doxycycline" },
+    })
+  })
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.spelling.mockResolvedValue(null)

@@ -5,9 +5,30 @@ import {
   filterUnresolvedParchmentFailures,
   getRecoveredStandaloneParchmentFailurePresentation,
   isNonActionableParchmentFailure,
+  isSyntheticParchmentFailure,
 } from "@/lib/parchment/failure-reconciliation"
 
 describe("Parchment failure reconciliation", () => {
+  it("recognises only the complete synthetic webhook fixture identity", () => {
+    const metadata = {
+      eventType: "parchment:prescription.created",
+      scid: "SCID-E2E-12345678-1234-4234-8234-123456789abc",
+      parchment_patient_id: "e2e-shared-12345678-1234-4234-8234-123456789abc",
+      partner_patient_id: "e2e45678-1234-4234-8234-123456789abc",
+      prescriber_user_id: "e2e-parchment-user",
+    }
+    expect(isSyntheticParchmentFailure(metadata)).toBe(true)
+    for (const key of Object.keys(metadata)) {
+      expect(isSyntheticParchmentFailure({ ...metadata, [key]: "real-value" })).toBe(false)
+    }
+    expect(isSyntheticParchmentFailure(null)).toBe(false)
+    expect(isSyntheticParchmentFailure({ ...metadata, scid: "SCID-E2E-real-prescription" })).toBe(false)
+    expect(isSyntheticParchmentFailure({
+      ...metadata,
+      parchment_patient_id: "e2e-other-12345678-1234-4234-8234-123456789abc",
+      prescriber_user_id: "e2e-unlinked-12345678-1234-4234-8234-123456789abc",
+    })).toBe(true)
+  })
   it("removes only failures with a durable successful retry receipt", () => {
     const failures = [
       { id: "failure-resolved", reason: "intake_correlation_mismatch" },

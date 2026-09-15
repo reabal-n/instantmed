@@ -12,7 +12,7 @@ import {
   isNonActionableParchmentFailure,
   type ParchmentStandalonePrescriptionEvidence,
 } from "@/lib/parchment/failure-reconciliation"
-import { readStandaloneParchmentPrescriptionEvidence } from "@/lib/parchment/failure-reconciliation-data"
+import { readParchmentAuditWindow, readStandaloneParchmentPrescriptionEvidence } from "@/lib/parchment/failure-reconciliation-data"
 import { FULFILMENT_ENTITLED_PAYMENT_STATUSES } from "@/lib/stripe/fulfilment-entitlement"
 
 const PARCHMENT_PRESCRIPTION_EVENT = "parchment:prescription.created"
@@ -430,26 +430,6 @@ async function getProfilesById(
   )
 }
 
-function readActionableParchmentFailures(
-  supabase: SupabaseClient,
-  weekAgo: string,
-) {
-  // Filter known non-actionable webhook noise in Postgres before applying the
-  // recovery-list cap. Otherwise a burst of patient_not_found receipts can
-  // crowd an older, retryable failure out of the admin recovery surface.
-  return supabase
-    .from("audit_logs")
-    .select("id, action, intake_id, created_at, description, metadata")
-    .eq("action", "webhook_failed")
-    .gte("created_at", weekAgo)
-    .contains("metadata", { eventType: PARCHMENT_PRESCRIPTION_EVENT })
-    .not("metadata", "cs", JSON.stringify({ error: "no_awaiting_script_intake" }))
-    .not("metadata", "cs", JSON.stringify({ error: "patient_not_found" }))
-    .not("metadata", "cs", JSON.stringify({ parchment_patient_id: "nonexistent-parchment-patient" }))
-    .order("created_at", { ascending: false })
-    .limit(50)
-}
-
 export async function getParchmentOpsDashboard(
   supabase: SupabaseClient,
 ): Promise<ParchmentOpsDashboard> {
@@ -492,7 +472,7 @@ export async function getParchmentOpsDashboard(
       .is("merged_into_profile_id", null)
       .is("parchment_patient_id", null),
 
-    readActionableParchmentFailures(supabase, weekAgo),
+    readParchmentAuditWindow(supabase, "failures", weekAgo, new Date(now).toISOString()),
 
     supabase
       .from("audit_logs")
@@ -503,13 +483,7 @@ export async function getParchmentOpsDashboard(
       .order("created_at", { ascending: false })
       .limit(50),
 
-    supabase
-      .from("audit_logs")
-      .select("action, metadata")
-      .eq("action", "admin_action")
-      .gte("created_at", weekAgo)
-      .contains("metadata", { action_type: "parchment_webhook_retry", result: "success" })
-      .limit(100),
+    readParchmentAuditWindow(supabase, "retries", weekAgo, new Date(now).toISOString()),
 
     supabase
       .from("audit_logs")
@@ -575,6 +549,9 @@ export async function getParchmentOpsDashboard(
       .maybeSingle(),
   ])
 
+  if (actionableFailedWebhooksResult.error || successfulRetriesResult.error) {
+    throw new Error("Parchment monitor coverage incomplete")
+  }
   const successfulRetries = (successfulRetriesResult.data || []) as Array<{
     action: string
     metadata: Record<string, unknown> | null
@@ -587,7 +564,7 @@ export async function getParchmentOpsDashboard(
     .filter((failure): failure is ParchmentFailedWebhook => failure !== null)
   const standaloneEvidenceRead = await readStandaloneParchmentPrescriptionEvidence(
     supabase,
-    historicalFailureCandidates,
+    [...actionableFailureCandidates, ...historicalFailureCandidates],
   )
   const standalonePrescriptions = standaloneEvidenceRead.error ? [] : standaloneEvidenceRead.data
 

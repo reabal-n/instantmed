@@ -223,7 +223,7 @@ function failureIssues(
       href: failureHref(category.id, isAdmin),
       id: `failure:${category.id}`,
       nextAction: FAILURE_NEXT_ACTION[category.id],
-      occurredAt: oldestTimestamp(categoryRows.map((item) => item.occurredAt)),
+      occurredAt: overview.oldestVisibleByCategory?.[category.id] ?? oldestTimestamp(categoryRows.map((item) => item.occurredAt)),
       owner: failureOwner(category.id),
       severity: category.severity,
       title: category.label,

@@ -162,7 +162,7 @@ describe("ops dashboard data contract", () => {
   })
 
   it("surfaces durable webhook_failed audit events in ops recent errors", () => {
-    expect(opsPageSource).toContain('.eq("action", "webhook_failed")')
+    expect(opsPageSource).toContain('readParchmentAuditWindow(supabase, "failures"')
     expect(opsPageSource).toContain("isNonActionableParchmentSandboxError")
     expect(opsPageSource).toContain("no_awaiting_script_intake")
     expect(opsPageSource).toContain("filterRecoveredStandaloneParchmentFailures")
@@ -207,7 +207,7 @@ describe("ops dashboard data contract", () => {
   })
 
   it("uses exact totals for durable unresolved states instead of detail-window lengths", () => {
-    expect(opsPageSource.match(/count: "exact"/g)?.length ?? 0).toBeGreaterThanOrEqual(8)
+    expect(opsPageSource.match(/count: "exact"/g)?.length ?? 0).toBeGreaterThanOrEqual(7)
     expect(opsPageSource).toContain("totalCount")
     expect(opsPageSource).toContain("exactCounts")
     expect(opsPageSource).not.toContain('.gte("updated_at", weekAgo.toISOString())')
