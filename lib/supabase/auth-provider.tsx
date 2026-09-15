@@ -83,6 +83,7 @@ interface AuthContext {
   navigationStore: ReturnType<typeof createListReturnState>
   navigationScope: string | null
   navigationDocumentReady: boolean
+  navigationDocumentGeneration: number
 }
 
 const AuthCtx = createContext<AuthContext | null>(null)
@@ -101,12 +102,14 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   const navigationStore = useRef(createListReturnState()).current
   const sessionDocument = useRef(createSessionDocumentBoundary()).current
   const [navigationDocumentReady, setNavigationDocumentReady] = useState(true)
+  const [navigationDocumentGeneration, setNavigationDocumentGeneration] = useState(0)
   const [navigationScope, setNavigationScope] = useState<string | null>(null)
   const authRevision = useRef(0)
   const signingOutRef = useRef(false)
   const syncNavigationScope = useCallback((next: string | null) => {
     sessionDocument.observe(next)
     setNavigationDocumentReady(sessionDocument.canRender())
+    setNavigationDocumentGeneration(sessionDocument.generation())
     navigationStore.setScope(next)
     setNavigationScope(next)
   }, [navigationStore, sessionDocument])
@@ -324,7 +327,8 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
     navigationStore,
     navigationScope,
     navigationDocumentReady,
-  }), [user, session, isLoaded, signOut, navigationStore, navigationScope, navigationDocumentReady])
+    navigationDocumentGeneration,
+  }), [user, session, isLoaded, signOut, navigationStore, navigationScope, navigationDocumentReady, navigationDocumentGeneration])
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
 }

@@ -80,9 +80,15 @@ export type ListReturnState = ReturnType<typeof createListReturnState>
 export function createSessionDocumentBoundary() {
   let priorScope: string | null = null
   let ready = true
+  let generation = 0
   return {
-    observe(next: string | null) { if (priorScope && priorScope !== next) ready = false; priorScope = next },
+    observe(next: string | null) {
+      if (priorScope && priorScope !== next) { ready = false; generation++ }
+      priorScope = next
+    },
     canRender() { return ready },
+    // Initial auth resolution must not remount the server-rendered subtree.
+    generation() { return generation },
   }
 }
 

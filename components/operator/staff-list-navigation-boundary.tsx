@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/supabase/auth-provider'
 type Guard = () => Promise<boolean>
 
 /** Navigation metadata only. Page-local authenticated reads still own every row. */
-function StaffListNavigationProvider({ children, store, scope }: { children: ReactNode; store: ListReturnState; scope: string | null }) {
+function StaffListNavigationProvider({ children, store, scope, generation }: { children: ReactNode; store: ListReturnState; scope: string | null; generation: number }) {
   const guards = useRef(new Set<Guard>())
   const router = useRouter()
   const pathname = usePathname()
@@ -105,11 +105,11 @@ function StaffListNavigationProvider({ children, store, scope }: { children: Rea
   }, [])
 
   const value = useMemo(() => ({ store, scope, register, permit }), [store, scope, register, permit])
-  return <Context.Provider key={scope ?? 'anonymous'} value={value}>{children}</Context.Provider>
+  return <Context.Provider key={generation} value={value}>{children}</Context.Provider>
 }
 
 export function StaffListNavigationBoundary({ children }: { children: ReactNode }) {
-  const { navigationStore, navigationScope, navigationDocumentReady } = useAuth()
+  const { navigationStore, navigationScope, navigationDocumentReady, navigationDocumentGeneration } = useAuth()
   const pathname = usePathname()
   const protectedWorkspace = /^\/(dashboard|doctor|admin)(?:\/|$)/.test(pathname)
   const needsFreshDocument = protectedWorkspace && !navigationDocumentReady
@@ -117,5 +117,5 @@ export function StaffListNavigationBoundary({ children }: { children: ReactNode 
     if (needsFreshDocument && navigationScope) window.location.replace(window.location.href)
   }, [needsFreshDocument, navigationScope])
   if (needsFreshDocument) return <div role="status" className="p-6 text-sm text-muted-foreground">Session changed. Reloading workspace…</div>
-  return <StaffListNavigationProvider store={navigationStore} scope={navigationScope}>{children}</StaffListNavigationProvider>
+  return <StaffListNavigationProvider store={navigationStore} scope={navigationScope} generation={navigationDocumentGeneration}>{children}</StaffListNavigationProvider>
 }

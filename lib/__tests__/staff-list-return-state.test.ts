@@ -85,6 +85,23 @@ describe('normalized return queries', () => {
 
 
 describe('session document authority', () => {
+  it('preserves the initial subtree generation but changes it after established sessions end', () => {
+    const boundary = createSessionDocumentBoundary()
+    expect(boundary.generation()).toBe(0)
+    for (const scope of [null, null, 'a:one', 'a:one']) {
+      boundary.observe(scope)
+      expect(boundary.generation()).toBe(0)
+      expect(boundary.canRender()).toBe(true)
+    }
+    boundary.observe('a:two')
+    expect(boundary.generation()).toBe(1)
+    expect(boundary.canRender()).toBe(false)
+    boundary.observe(null)
+    expect(boundary.generation()).toBe(2)
+    boundary.observe('b:three')
+    expect(boundary.generation()).toBe(2)
+    expect(boundary.canRender()).toBe(false)
+  })
   it('never republishes unchanged old RSC rows during account or session replacement', () => {
     const boundary = createSessionDocumentBoundary()
     const oldServerRows = ['previous account clinical row']
