@@ -1,6 +1,8 @@
 import * as Sentry from "@sentry/nextjs"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+
 const mocks = vi.hoisted(() => ({
   checkCheckoutBlocked: vi.fn(),
   checkSafetyForServer: vi.fn(),
@@ -209,7 +211,7 @@ function repeatGuestCheckoutInput() {
       sex: "M",
       state: "NSW",
       suburb: "Sydney",
-      terms_agreed: true,
+      terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
       doseChanged: false,
     },
     category: "prescription" as const,
@@ -227,7 +229,7 @@ function hairLossGuestCheckoutInput() {
     flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID,
     serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
     answers: {
-      agreedToTerms: true,
+      agreedToTerms: true, telehealthConsentVersion: TELEHEALTH_CONSENT_VERSION, telehealthConsentGiven: true,
       confirmedAccuracy: true,
       addressLine1: "12 Clinical Way",
       medicareExpiry: "2028-12-01",
@@ -452,6 +454,21 @@ describe("checkout operating hours", () => {
     mocks.validateSafetyFieldsPresent.mockReturnValue({ valid: true, missingFields: [] })
   })
 
+  it.each(["guest", "authenticated"])("requires explicit telehealth consent before %s checkout persistence/payment", async kind => {
+    mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
+      user: { id: "user-1", email: "patient@example.test" },
+      profile: { id: "patient-1", date_of_birth: "1985-04-01", full_name: "Test Patient", stripe_customer_id: null },
+    })
+    const guest = hairLossGuestCheckoutInput()
+    guest.answers.telehealthConsentGiven = false
+    const result = kind === "guest"
+      ? await createGuestCheckoutAction(guest)
+      : await createIntakeAndCheckoutAction({ ...hairLossAuthenticatedCheckoutInput(), answers: guest.answers })
+    expect(result).toMatchObject({ success: false, error: expect.stringContaining("telehealth agreement") })
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+  })
+
   it("does not block checkout when business hours are closed", async () => {
     const result = await createIntakeAndCheckoutAction({
       answers: {},
@@ -483,7 +500,7 @@ describe("checkout operating hours", () => {
 
     const result = await createIntakeAndCheckoutAction({
       answers: {
-        terms_agreed: true,
+        terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
         accuracy_confirmed: true,
       },
       category: "medical_certificate",
@@ -503,7 +520,7 @@ describe("checkout operating hours", () => {
   it("blocks guest checkout when date of birth is missing", async () => {
     const result = await createGuestCheckoutAction({
       answers: {
-        terms_agreed: true,
+        terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
         accuracy_confirmed: true,
       },
       category: "medical_certificate",
@@ -534,7 +551,7 @@ describe("checkout operating hours", () => {
 
     const result = await createIntakeAndCheckoutAction({
       answers: {
-        terms_agreed: true,
+        terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
         accuracy_confirmed: true,
       },
       category: "medical_certificate",
@@ -561,7 +578,7 @@ describe("checkout operating hours", () => {
       const result = await createGuestCheckoutAction({
         answers: {
           accuracy_confirmed: true,
-          terms_agreed: true,
+          terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
         },
         category: "medical_certificate",
         guestDateOfBirth: "1985-04-01",
@@ -590,7 +607,7 @@ describe("checkout operating hours", () => {
   it("keeps guest checkout strictly 18+ after removing duplicate intake attestations", async () => {
     const result = await createGuestCheckoutAction({
       answers: {
-        terms_agreed: true,
+        terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
         accuracy_confirmed: true,
       },
       category: "medical_certificate",
@@ -649,7 +666,7 @@ describe("checkout operating hours", () => {
         serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
         answers: {
           accuracy_confirmed: true,
-          terms_agreed: true,
+          terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
         },
         category: "medical_certificate",
         guestDateOfBirth: "1985-04-01",
@@ -708,7 +725,7 @@ describe("checkout operating hours", () => {
       serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
       answers: {
         accuracy_confirmed: true,
-        terms_agreed: true,
+        terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
       },
       category: "medical_certificate",
       guestDateOfBirth: "1985-04-01",
@@ -1165,7 +1182,7 @@ describe("checkout operating hours", () => {
     await expect(createGuestCheckoutAction({
       answers: {
         accuracy_confirmed: true,
-        terms_agreed: true,
+        terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
       },
       category: "medical_certificate",
       guestDateOfBirth: "1985-04-01",
@@ -1193,7 +1210,7 @@ describe("checkout operating hours", () => {
 
     const result = await createIntakeAndCheckoutAction({
       answers: {
-        agreedToTerms: true,
+        agreedToTerms: true, telehealthConsentVersion: TELEHEALTH_CONSENT_VERSION, telehealthConsentGiven: true,
         confirmedAccuracy: true,
         addressLine1: "12 Manual Entry Road",
         suburb: "Sydney",
@@ -1220,7 +1237,7 @@ describe("checkout operating hours", () => {
 
     const result = await createGuestCheckoutAction({
       answers: {
-        agreedToTerms: true,
+        agreedToTerms: true, telehealthConsentVersion: TELEHEALTH_CONSENT_VERSION, telehealthConsentGiven: true,
         confirmedAccuracy: true,
         medicareNumber: "0000000000",
         medicareIrn: "1",
@@ -1253,7 +1270,7 @@ describe("checkout operating hours", () => {
     const result = await createGuestCheckoutAction({
       answers: {
         accuracy_confirmed: true,
-        terms_agreed: true,
+        terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
       },
       category: "medical_certificate",
       guestDateOfBirth: "1985-04-01",
@@ -1295,7 +1312,7 @@ describe("checkout operating hours", () => {
     const result = await createGuestCheckoutAction({
       answers: {
         accuracy_confirmed: true,
-        terms_agreed: true,
+        terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
       },
       category: "medical_certificate",
       guestDateOfBirth: "1985-04-01",
@@ -1367,7 +1384,7 @@ describe("checkout operating hours", () => {
 
     const result = await createGuestCheckoutAction({
       answers: {
-        terms_agreed: true,
+        terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
         accuracy_confirmed: true,
       },
       category: "medical_certificate",
@@ -1403,7 +1420,7 @@ describe("checkout operating hours", () => {
     try {
       const result = await createGuestCheckoutAction({
         answers: {
-          terms_agreed: true,
+          terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
           accuracy_confirmed: true,
           is_priority: true,
         },
@@ -1444,7 +1461,7 @@ describe("checkout operating hours", () => {
     try {
       const result = await createGuestCheckoutAction({
         answers: {
-          terms_agreed: true,
+          terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
           accuracy_confirmed: true,
           is_priority: true,
         },
@@ -1507,7 +1524,7 @@ describe("checkout operating hours", () => {
     try {
       const result = await createGuestCheckoutAction({
         answers: {
-          terms_agreed: true,
+          terms_agreed: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION, telehealth_consent_given: true,
           accuracy_confirmed: true,
           is_priority: true,
         },
@@ -1771,7 +1788,10 @@ describe("checkout operating hours", () => {
     const originalKey = "fixture-original-key"
     const input = {
       category: "medical_certificate" as const, subtype: "work", type: "med-cert",
-      answers: { accuracy_confirmed: true, terms_agreed: true },
+      answers: {
+        accuracy_confirmed: true, terms_agreed: true,
+        telehealth_consent_given: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION,
+      },
       guestName: "Fixture Patient", guestDateOfBirth: "1985-04-01", guestEmail: "fixture@example.test",
       checkoutSubmissionKey: originalKey, flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
     }

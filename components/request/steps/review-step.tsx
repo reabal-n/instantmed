@@ -22,7 +22,7 @@ import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/l
 import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
-import { CONTACT_EMAIL,PRICING as APP_PRICING } from "@/lib/constants"
+import { CONTACT_EMAIL,PRICING as APP_PRICING, TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { rememberSignInEmailHandoff } from "@/lib/navigation/auth-handoff"
 import { getAddressReviewSummary, getAddressStatusDisplay } from "@/lib/request/address-metadata"
@@ -291,6 +291,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     setSafetyConfirmed,
     getIdentity,
     setConsent,
+    setAnswer,
     discardCurrentDraft,
   } = useRequestStore()
   const posthog = usePostHog()
@@ -333,6 +334,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   }, [error])
 
   const handleConsentChange = (checked: boolean) => {
+    setAnswer("telehealthConsentVersion", checked ? TELEHEALTH_CONSENT_VERSION : null)
     setSafetyConfirmed(checked)
     // review-step is the pay step for every service now, so the single consent
     // tick records the payment terms + accuracy attestation for all of them.
@@ -341,9 +343,18 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     setConsent("telehealthConsent", checked)
   }
 
+  useEffect(() => {
+    if (safetyConfirmed && answers.telehealthConsentVersion !== TELEHEALTH_CONSENT_VERSION) {
+      setSafetyConfirmed(false)
+      setConsent("agreedToTerms", false)
+      setConsent("confirmedAccuracy", false)
+      setConsent("telehealthConsent", false)
+    }
+  }, [safetyConfirmed, answers.telehealthConsentVersion, setSafetyConfirmed, setConsent])
+
   const handlePayment = async () => {
     if (isProcessing || checkoutBlocked) return
-    if (!safetyConfirmed) {
+    if (!safetyConfirmed || answers.telehealthConsentVersion !== TELEHEALTH_CONSENT_VERSION) {
       handleReviewConfirmation()
       return
     }
@@ -376,9 +387,10 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         serviceType,
         answers: {
           ...answers,
-          agreedToTerms: true,
-          confirmedAccuracy: true,
-          telehealthConsentGiven: true,
+          agreedToTerms: safetyConfirmed,
+          confirmedAccuracy: safetyConfirmed,
+          telehealthConsentGiven: safetyConfirmed,
+          telehealthConsentVersion: answers.telehealthConsentVersion,
           isPriority,
         },
         identity,
@@ -1130,7 +1142,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             aria-label="Confirm request and payment terms"
           >
             <span className="block text-base leading-relaxed text-foreground">
-              I confirm this is not a medical emergency, my information is accurate, and I agree to the{" "}
+              I agree to a telehealth assessment. I understand that a doctor may need to call me and may recommend in-person care. I confirm this is not a medical emergency, my information is accurate, and I agree to the{" "}
               <a href="/terms" className="text-primary underline" target="_blank" onClick={(event) => event.stopPropagation()}>
                 Terms
               </a>{" "}

@@ -93,6 +93,17 @@ describe("checkout refusal receipts", () => {
     })
   })
 
+  it("refuses the reported ED medicine typo before payment", async () => {
+    const input = repeatCheckoutInput()
+    const result = await runClinicalValidation({
+      ...input,
+      answers: { ...input.answers, medication_name: "Sedenfil", medication_display: "Sedenfil 100mg Tablet", indication: "Errectile dysfunction" },
+    })
+    expect(result).toMatchObject({ ok: false, error: expect.stringMatching(/erectile dysfunction/i) })
+    expect(receiptCalls).toHaveLength(1)
+    expect(receiptCalls[0].result).toMatchObject({ isAllowed: false, triggeredRuleIds: ["repeat_script_requires_consult"] })
+  })
+
   it.each(["Mounjaro", "Monjaro", "Wegovy", "Ozempic", "Duromine"])("refuses %s before payment and records the dedicated weight route", async (name) => {
     const input = repeatCheckoutInput()
     const result = await runClinicalValidation({

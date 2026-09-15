@@ -159,7 +159,7 @@ export const PRICING_DISPLAY = {
 
 // Consent/terms version for compliance audit (align with Terms page "Last updated")
 export const TERMS_VERSION = "2026-02"
-export const TELEHEALTH_CONSENT_VERSION = "2026-02"
+export const TELEHEALTH_CONSENT_VERSION = "2026-09-15"
 
 // Service types
 export const REQUEST_TYPES = {
