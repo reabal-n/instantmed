@@ -24,6 +24,8 @@ const next = JSON.stringify("node_modules/next/dist/bin/next")
 
 export default defineConfig({
   testDir: "./e2e",
+  // This probe requires its own disposable backend and blocked external I/O.
+  testIgnore: "**/server-action-access.spec.ts",
   fullyParallel: false,
   forbidOnly: true,
   retries: 0,
