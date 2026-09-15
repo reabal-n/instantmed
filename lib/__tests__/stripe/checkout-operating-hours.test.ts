@@ -1788,7 +1788,10 @@ describe("checkout operating hours", () => {
     const originalKey = "fixture-original-key"
     const input = {
       category: "medical_certificate" as const, subtype: "work", type: "med-cert",
-      answers: { accuracy_confirmed: true, terms_agreed: true },
+      answers: {
+        accuracy_confirmed: true, terms_agreed: true,
+        telehealth_consent_given: true, telehealth_consent_version: TELEHEALTH_CONSENT_VERSION,
+      },
       guestName: "Fixture Patient", guestDateOfBirth: "1985-04-01", guestEmail: "fixture@example.test",
       checkoutSubmissionKey: originalKey, flowInstanceId: SPECIALTY_FLOW_INSTANCE_ID, serverDraftSessionId: SPECIALTY_DRAFT_SESSION_ID,
     }
