@@ -271,6 +271,7 @@ describe("signed guest checkout resume payment safety", () => {
     })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+      ...explicitConsent,
       medications: [{ name: "Sedenfil", strength: "100mg", form: "tablet", pbsCode: "MANUAL" }],
       indication: "Errectile dysfunction",
     })
