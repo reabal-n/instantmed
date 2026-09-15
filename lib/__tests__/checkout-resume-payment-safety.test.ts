@@ -264,6 +264,21 @@ describe("signed guest checkout resume payment safety", () => {
     }))
   })
 
+  it.each(["cs_previous", null])("routes a saved ED typo before touching payment: %s", async (paymentId) => {
+    const { supabase } = createResumeSupabaseMock({
+      category: "prescription", subtype: "repeat", service: { slug: "common-scripts", type: "common_scripts" },
+      payment_id: paymentId, stripe_price_id: "price_repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+      medications: [{ name: "Sedenfil", strength: "100mg", form: "tablet", pbsCode: "MANUAL" }],
+      indication: "Errectile dysfunction",
+    })
+    await expect(resolveGuestCheckoutResume("intake-1")).resolves.toBe("/request?service=consult&subtype=ed&from=repeat-steer")
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+  })
+
   it.each(["Mounjaro", "Monjaro", "Wegovy", "Ozempic", "Duromine"].flatMap(name => ["cs_previous", null].map(paymentId => ({ name, paymentId }))))("routes a saved weight repeat before reusing or creating payment: %j", async ({ name, paymentId }) => {
     const { supabase } = createResumeSupabaseMock({
       category: "prescription",

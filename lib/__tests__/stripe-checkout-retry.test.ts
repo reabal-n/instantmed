@@ -398,6 +398,26 @@ describe("retryPaymentForIntakeAction", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
+  it("blocks the reported ED typo using the real validator before retrying Stripe", async () => {
+    const actual = await vi.importActual<typeof import("@/lib/validation/repeat-script-schema")>("@/lib/validation/repeat-script-schema")
+    const { supabase } = createRetrySupabaseMock({
+      category: "prescription", subtype: "repeat", stripe_price_id: "price_repeat",
+      service: { id: "svc-repeat", name: "Repeat prescription", price_cents: 2995, slug: "common-scripts", type: "repeat_rx" },
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({
+      ...explicitConsent, pbs_code: "MANUAL", medication_name: "Sedenfil", medication_display: "Sedenfil 100mg Tablet",
+      medication_strength: "100 mg", medication_form: "tablet", indication: "Errectile dysfunction",
+      prescribed_before: true, doseChanged: false, dose_changed: false, hasSideEffects: false,
+      last_prescribed: "6_to_12_months", current_dose: "100 mg as needed", repeat_rx_dose_contract_version: 1,
+    })
+    mocks.validateRepeatScriptPayload.mockImplementationOnce(actual.validateRepeatScriptPayload)
+    const result = await retryPaymentForIntakeAction("intake-1")
+    expect(result).toMatchObject({ success: false, error: expect.stringMatching(/erectile dysfunction/i) })
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+  })
+
   it("resets failed checkout retries to the new pending Stripe session", async () => {
     const { supabase, updateRecords } = createRetrySupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
