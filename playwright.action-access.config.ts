@@ -13,6 +13,7 @@ const env = {
   PLAYWRIGHT: "1", NEXT_PUBLIC_PLAYWRIGHT: "1", PLAYWRIGHT_SERVER_MODE: "production",
   NEXT_PUBLIC_APP_URL: baseURL, NEXT_PUBLIC_SUPABASE_URL: databaseURL, SUPABASE_URL: databaseURL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-action-anon", SUPABASE_SERVICE_ROLE_KEY: "test-action-service",
+  STRIPE_SECRET_KEY: "action_fixture_not_a_provider_key",
   E2E_SECRET: "test-action-e2e-secret", INTERNAL_API_SECRET: "test-action-internal-secret-long-enough",
   ENCRYPTION_KEY: "a".repeat(64), PHI_MASTER_KEY: Buffer.alloc(32, 1).toString("base64"),
 }

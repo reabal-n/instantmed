@@ -4,11 +4,14 @@ import { readFileSync } from "node:fs"
 import { expect, test } from "@playwright/test"
 import { createClient } from "@supabase/supabase-js"
 
+import { readActionResult } from "../scripts/e2e/action-response"
+
 // This is a compiled, direct-action test. No page-render denial counts as a pass.
 // Keep action IDs and RSC payloads out of Playwright traces and failure artifacts.
 test.use({ trace: "off", video: "off", screenshot: "off" })
 test.describe.configure({ mode: "serial" })
 
+// The response decoder exposes only the action result, never the page payload.
 const SEEDED = {
   doctor: "e2e00000-0000-0000-0000-000000000003",
   admin: "e2e00000-0000-0000-0000-000000000001",
@@ -19,19 +22,6 @@ const loopback = new Set(["localhost", "127.0.0.1", "[::1]"])
 type ActionEntry = { filename: string; exportedName: string; workers: Record<string, unknown> }
 type ActionResult = { success?: boolean; isStale?: boolean; error?: string }
 
-function readActionResult(body: string): unknown {
-  const chunks = new Map<string, unknown>()
-  for (const line of body.split("\n")) {
-    const match = /^([0-9a-f]+):(.*)$/.exec(line)
-    if (!match) continue
-    try { chunks.set(match[1], JSON.parse(match[2])) } catch { /* RSC metadata is not an action result. */ }
-  }
-  const root = chunks.get("0") as { a?: unknown } | undefined
-  if (typeof root?.a !== "string" || !root.a.startsWith("$@")) throw new Error("Direct action did not return an action result")
-  const result = chunks.get(root.a.slice(2))
-  if (result === undefined) throw new Error("Direct action result was missing or rejected")
-  return result
-}
 
 function buildActionCaller(baseURL: string) {
   const manifest = JSON.parse(readFileSync(".next/server/server-reference-manifest.json", "utf8")) as { node: Record<string, ActionEntry> }
