@@ -1,0 +1,7643 @@
+{
+  "effectiveDate": "2026-09-01",
+  "scheduleCode": "4333",
+  "revision": "1",
+  "source": "https://www.pbs.gov.au/browse/publications",
+  "attribution": "PBS Schedule data, Department of Health, Disability and Ageing, Commonwealth of Australia. Names extracted for general reference; no endorsement implied.",
+  "scope": "ATC medicinal groups A-S only. Names and aliases are not evidence of current availability, equivalence, PBS eligibility, dose or prescribing suitability.",
+  "medications": [
+    {
+      "name": "Abacavir",
+      "brand_names": [
+        "Ziagen"
+      ]
+    },
+    {
+      "name": "Abacavir + lamivudine",
+      "brand_names": [
+        "Abacavir/Lamivudine Viatris"
+      ]
+    },
+    {
+      "name": "Abaloparatide",
+      "brand_names": [
+        "Eladynos"
+      ]
+    },
+    {
+      "name": "Abatacept",
+      "brand_names": [
+        "Orencia",
+        "Orencia ClickJect"
+      ]
+    },
+    {
+      "name": "Abemaciclib",
+      "brand_names": [
+        "Verzenio"
+      ]
+    },
+    {
+      "name": "Abiraterone",
+      "brand_names": [
+        "ABIRATERONE VIATRIS",
+        "ARX-ABIRATERONE",
+        "Abiraterone Dr.Reddy''s",
+        "Abiraterone MedTas",
+        "Abiraterone Sandoz",
+        "Abiraterone-Teva",
+        "ZYRON",
+        "Zytiga"
+      ]
+    },
+    {
+      "name": "Acalabrutinib",
+      "brand_names": [
+        "CALQUENCE"
+      ]
+    },
+    {
+      "name": "Acamprosate",
+      "brand_names": [
+        "ACAMPROSATE VIATRIS",
+        "ACAMPROSATE-WGR",
+        "APO-Acamprosate",
+        "Campral"
+      ]
+    },
+    {
+      "name": "Acarbose",
+      "brand_names": [
+        "Acarbose Viatris",
+        "GLYBOSAY"
+      ]
+    },
+    {
+      "name": "Acetazolamide",
+      "brand_names": [
+        "Diamox"
+      ]
+    },
+    {
+      "name": "Aciclovir",
+      "brand_names": [
+        "ACICLOVIR-WGR",
+        "APO-Aciclovir",
+        "ARX-ACICLOVIR",
+        "Aciclovir GH",
+        "Aciclovir Sandoz",
+        "ViruPOS",
+        "XOROX"
+      ]
+    },
+    {
+      "name": "Acitretin",
+      "brand_names": [
+        "Neotigason",
+        "ZETIN"
+      ]
+    },
+    {
+      "name": "Aclidinium",
+      "brand_names": [
+        "Bretaris Genuair"
+      ]
+    },
+    {
+      "name": "Aclidinium + formoterol",
+      "brand_names": [
+        "Brimica Genuair"
+      ]
+    },
+    {
+      "name": "Adalimumab",
+      "brand_names": [
+        "Abrilada",
+        "Amgevita",
+        "Hadlima",
+        "Humira",
+        "Hyrimoz",
+        "Yuflyma"
+      ]
+    },
+    {
+      "name": "Adapalene + benzoyl peroxide",
+      "brand_names": [
+        "Epiduo"
+      ]
+    },
+    {
+      "name": "Adrenaline (epinephrine)",
+      "brand_names": [
+        "Adrenaline Jr Viatris",
+        "Adrenaline Viatris",
+        "Anapen 300",
+        "Anapen 500",
+        "Anapen Junior 150",
+        "EpiPen",
+        "EpiPen Jr.",
+        "Jext",
+        "Jext Jnr",
+        "Link Medical Products Pty Ltd",
+        "neffy"
+      ]
+    },
+    {
+      "name": "Afatinib",
+      "brand_names": [
+        "Giotrif"
+      ]
+    },
+    {
+      "name": "Aflibercept",
+      "brand_names": [
+        "Afqlir",
+        "Eylea"
+      ]
+    },
+    {
+      "name": "Albendazole",
+      "brand_names": [
+        "Eskazole",
+        "Zentel"
+      ]
+    },
+    {
+      "name": "Alectinib",
+      "brand_names": [
+        "Alecensa"
+      ]
+    },
+    {
+      "name": "Alemtuzumab",
+      "brand_names": [
+        "Lemtrada"
+      ]
+    },
+    {
+      "name": "Alendronate",
+      "brand_names": [
+        "ALENDRONATE-WGR",
+        "APO-Alendronate",
+        "Alendronate Sandoz",
+        "Fonat"
+      ]
+    },
+    {
+      "name": "Alendronate + colecalciferol",
+      "brand_names": [
+        "Fosamax Plus",
+        "Fosamax Plus 70 mg/140 mcg"
+      ]
+    },
+    {
+      "name": "Alfuzosin",
+      "brand_names": [
+        "Xatral SR"
+      ]
+    },
+    {
+      "name": "Allopurinol",
+      "brand_names": [
+        "ALLOPURINOL-WGR",
+        "APO-ALLOPURINOL",
+        "Allopurinol Sandoz",
+        "Allosig",
+        "NOUMED ALLOPURINOL",
+        "Progout 100",
+        "Progout 300",
+        "Progout Viatris",
+        "Zyloprim"
+      ]
+    },
+    {
+      "name": "Alogliptin",
+      "brand_names": [
+        "Nesina"
+      ]
+    },
+    {
+      "name": "Alogliptin + metformin",
+      "brand_names": [
+        "Nesina Met 12.5/1000",
+        "Nesina Met 12.5/500",
+        "Nesina Met 12.5/850"
+      ]
+    },
+    {
+      "name": "Alprazolam",
+      "brand_names": [
+        "Alprax 0.5",
+        "Alprax 1",
+        "Kalma 0.25",
+        "Kalma 0.5",
+        "Kalma 1"
+      ]
+    },
+    {
+      "name": "Alprostadil",
+      "brand_names": [
+        "Caverject Impulse"
+      ]
+    },
+    {
+      "name": "Amantadine",
+      "brand_names": [
+        "AMANTAMED",
+        "Symmetrel 100"
+      ]
+    },
+    {
+      "name": "Ambrisentan",
+      "brand_names": [
+        "Ambrisentan Viatris",
+        "Cipla Ambrisentan",
+        "PULMORIS",
+        "Volibris"
+      ]
+    },
+    {
+      "name": "Amifampridine",
+      "brand_names": [
+        "Ruzurgi"
+      ]
+    },
+    {
+      "name": "Amiloride + hydrochlorothiazide",
+      "brand_names": [
+        "Moduretic"
+      ]
+    },
+    {
+      "name": "Amiodarone",
+      "brand_names": [
+        "Amdarone",
+        "Amiodarone Sandoz",
+        "Aratac 100",
+        "Aratac 200",
+        "Cordarone X 100",
+        "Cordarone X 200"
+      ]
+    },
+    {
+      "name": "Amisulpride",
+      "brand_names": [
+        "AMISULPRIDE-WGR",
+        "APO-Amisulpride",
+        "Amisulpride Sandoz Pharma",
+        "Solian 100",
+        "Solian 200",
+        "Solian 400",
+        "Solian Solution",
+        "Sulprix"
+      ]
+    },
+    {
+      "name": "Amitriptyline",
+      "brand_names": [
+        "AMITRIPTYLINE-WGR",
+        "APX-Amitriptyline",
+        "Amitriptyline Lupin",
+        "Amitriptyline Viatris 10",
+        "Amitriptyline Viatris 25",
+        "Amitriptyline Viatris 50",
+        "ENTRIP",
+        "Endep 10",
+        "Endep 25",
+        "Endep 50"
+      ]
+    },
+    {
+      "name": "Amivantamab",
+      "brand_names": [
+        "Rybrevant"
+      ]
+    },
+    {
+      "name": "Amlodipine",
+      "brand_names": [
+        "AMLODIPINE-WGR",
+        "APO-Amlodipine",
+        "APX-AMLODIPINE",
+        "Amlo 10",
+        "Amlo 5",
+        "Amlodipine GH",
+        "Amlodipine Sandoz",
+        "Blooms Amlodipine",
+        "Nordip",
+        "Norvasc",
+        "Pharmacor Amlodipine"
+      ]
+    },
+    {
+      "name": "Amlodipine + atorvastatin",
+      "brand_names": [
+        "Cadivast 10/10",
+        "Cadivast 10/20",
+        "Cadivast 10/40",
+        "Cadivast 10/80",
+        "Cadivast 5/10",
+        "Cadivast 5/20",
+        "Cadivast 5/40",
+        "Cadivast 5/80",
+        "Caduet 10/10",
+        "Caduet 10/20",
+        "Caduet 10/40",
+        "Caduet 10/80",
+        "Caduet 5/40",
+        "Caduet 5/80"
+      ]
+    },
+    {
+      "name": "Amlodipine + valsartan",
+      "brand_names": [
+        "Amlodipine/Valsartan Novartis 10/160",
+        "Amlodipine/Valsartan Novartis 10/320",
+        "Amlodipine/Valsartan Novartis 5/160",
+        "Amlodipine/Valsartan Novartis 5/320",
+        "Amlodipine/Valsartan Novartis 5/80",
+        "Exforge 10/160",
+        "Exforge 10/320",
+        "Exforge 5/160",
+        "Exforge 5/320",
+        "Exforge 5/80"
+      ]
+    },
+    {
+      "name": "Amlodipine + valsartan + hydrochlorothiazide",
+      "brand_names": [
+        "Amlodipine/Valsartan/HCT Novartis 10/160/12.5",
+        "Amlodipine/Valsartan/HCT Novartis 10/160/25",
+        "Amlodipine/Valsartan/HCT Novartis 10/320/25",
+        "Amlodipine/Valsartan/HCT Novartis 5/160/12.5",
+        "Amlodipine/Valsartan/HCT Novartis 5/160/25",
+        "Exforge HCT 10/160/12.5",
+        "Exforge HCT 10/160/25",
+        "Exforge HCT 10/320/25",
+        "Exforge HCT 5/160/12.5",
+        "Exforge HCT 5/160/25"
+      ]
+    },
+    {
+      "name": "Amorolfine",
+      "brand_names": [
+        "Aporyl",
+        "Loceryl",
+        "Myconail",
+        "Pharmacy Action Anti-Fungal Nail Treatment"
+      ]
+    },
+    {
+      "name": "Amoxicillin",
+      "brand_names": [
+        "AMILOXYN",
+        "AMOXICILLIN MEDSURGE",
+        "AMOXICILLIN-WGR",
+        "APO-Amoxycillin",
+        "Alphamox 250",
+        "Alphamox 500",
+        "Amoxil",
+        "Amoxil Forte",
+        "Amoxycillin Sandoz",
+        "Amoxycillin generichealth 500",
+        "Blooms The Chemist Amoxicillin",
+        "Cilamox",
+        "Maxamox"
+      ]
+    },
+    {
+      "name": "Amoxicillin + clavulanic acid",
+      "brand_names": [
+        "AMCLAVOX DUO 500/125",
+        "AMCLAVOX DUO FORTE 875/125",
+        "AMOXICILLIN/CLAVULANIC ACID-WGR 500/125",
+        "AMOXICILLIN/CLAVULANIC ACID-WGR 875/125",
+        "APO-AMOXY/CLAV 500/125",
+        "APO-AMOXY/CLAV 875/125",
+        "APO-Amoxycillin and Clavulanic Acid",
+        "APO-Amoxycillin/ Clavulanic Acid 500/125",
+        "APX-Amoxicillin/Clavulanic Acid",
+        "Alphaclav Duo Forte Viatris",
+        "Alphaclav Duo Viatris",
+        "AmoxyClav generichealth 875/125",
+        "Augmentin Duo",
+        "Augmentin Duo 400",
+        "Augmentin Duo forte",
+        "Blooms The Chemist Amoxicillin/Clavulanic Acid 875/125",
+        "COMOX",
+        "Curam",
+        "Curam Duo",
+        "Curam Duo 500/125",
+        "Curam Duo Forte 875/125"
+      ]
+    },
+    {
+      "name": "Amphotericin B",
+      "brand_names": [
+        "Fungilin"
+      ]
+    },
+    {
+      "name": "Anakinra",
+      "brand_names": [
+        "Kineret"
+      ]
+    },
+    {
+      "name": "Anastrozole",
+      "brand_names": [
+        "ANASTROZOLE-WGR",
+        "APO-Anastrozole",
+        "Anastrozole GH",
+        "Anastrozole Sandoz",
+        "Arianna 1"
+      ]
+    },
+    {
+      "name": "Apalutamide",
+      "brand_names": [
+        "Erlyand"
+      ]
+    },
+    {
+      "name": "Apixaban",
+      "brand_names": [
+        "APIXABAN-WGR",
+        "APO-Apixaban",
+        "Apexa",
+        "Apixaban Lupin",
+        "Apixaban Sandoz",
+        "Apixaban-APX",
+        "Cip Apixaban 2.5",
+        "Cip Apixaban 5",
+        "Eliquis"
+      ]
+    },
+    {
+      "name": "Apomorphine",
+      "brand_names": [
+        "Apomine Intermittent",
+        "Apomine Solution for Infusion",
+        "MOVAPO POD",
+        "Movapo",
+        "Movapo PFS",
+        "Movapo Pen"
+      ]
+    },
+    {
+      "name": "Apremilast",
+      "brand_names": [
+        "Otezla"
+      ]
+    },
+    {
+      "name": "Aprepitant",
+      "brand_names": [
+        "APREPITANT SCP",
+        "Aprepitant APOTEX"
+      ]
+    },
+    {
+      "name": "Aripiprazole",
+      "brand_names": [
+        "APO-Aripiprazole",
+        "ARIPENA",
+        "ARIPIPRAZOLE-WGR",
+        "ARIZOLE",
+        "Abilify",
+        "Abilify Asimtufii",
+        "Abilify Maintena",
+        "Abyraz",
+        "Aripiprazole GH",
+        "Aripiprazole Sandoz"
+      ]
+    },
+    {
+      "name": "Armodafinil",
+      "brand_names": [
+        "Nuvigil"
+      ]
+    },
+    {
+      "name": "Arsenic",
+      "brand_names": [
+        "Arsenic Trioxide Accord",
+        "Arsenic Trioxide Juno",
+        "Phenasen"
+      ]
+    },
+    {
+      "name": "Artemether + lumefantrine",
+      "brand_names": [
+        "Riamet"
+      ]
+    },
+    {
+      "name": "Asenapine",
+      "brand_names": [
+        "Saphris"
+      ]
+    },
+    {
+      "name": "Aspirin",
+      "brand_names": [
+        "Astrix",
+        "Cardasa",
+        "Cardiprin 100",
+        "Cartia",
+        "Pharmacy Action Low Dose Aspirin",
+        "Spren 100",
+        "Trust Aspirin EC 100"
+      ]
+    },
+    {
+      "name": "Aspirin + codeine",
+      "brand_names": [
+        "Aspalgin 40"
+      ]
+    },
+    {
+      "name": "Atenolol",
+      "brand_names": [
+        "APX-Atenolol",
+        "ATENOLOL-WGR",
+        "Atenolol GH",
+        "Atenolol Sandoz",
+        "Atenolol-AFT",
+        "Blooms The Chemist Atenolol",
+        "Noten",
+        "Tenormin",
+        "Tensig"
+      ]
+    },
+    {
+      "name": "Atezolizumab",
+      "brand_names": [
+        "Tecentriq",
+        "Tecentriq SC"
+      ]
+    },
+    {
+      "name": "Atomoxetine",
+      "brand_names": [
+        "APO-Atomoxetine",
+        "Atomoxetine Sandoz"
+      ]
+    },
+    {
+      "name": "Atorvastatin",
+      "brand_names": [
+        "APO-Atorvastatin",
+        "ATOMED",
+        "ATORVASTATIN-WGR",
+        "Atorvachol",
+        "Atorvastatin SZ",
+        "BTC Atorvastatin",
+        "Lipitor",
+        "Lorstat 10",
+        "Lorstat 20",
+        "Lorstat 40",
+        "Lorstat 80",
+        "Pharmacor Atorvastatin",
+        "Trovas"
+      ]
+    },
+    {
+      "name": "Atovaquone",
+      "brand_names": [
+        "ATOVACUE",
+        "Wellvone"
+      ]
+    },
+    {
+      "name": "Atovaquone + proguanil",
+      "brand_names": [
+        "AtovaquoPro Lupin 250/100",
+        "Malarone"
+      ]
+    },
+    {
+      "name": "Auranofin",
+      "brand_names": [
+        "Ridaura"
+      ]
+    },
+    {
+      "name": "Avacopan",
+      "brand_names": [
+        "Tavneos"
+      ]
+    },
+    {
+      "name": "Avanafil",
+      "brand_names": [
+        "Spedra"
+      ]
+    },
+    {
+      "name": "Avatrombopag",
+      "brand_names": [
+        "Doptelet"
+      ]
+    },
+    {
+      "name": "Avelumab",
+      "brand_names": [
+        "Bavencio"
+      ]
+    },
+    {
+      "name": "Axitinib",
+      "brand_names": [
+        "Inlyta"
+      ]
+    },
+    {
+      "name": "Azacitidine",
+      "brand_names": [
+        "Azacitidine Accord",
+        "Azacitidine Dr.Reddy''s",
+        "Azacitidine Juno",
+        "Azacitidine MSN",
+        "Azacitidine SXP",
+        "Onureg"
+      ]
+    },
+    {
+      "name": "Azathioprine",
+      "brand_names": [
+        "APO-Azathioprine",
+        "AZATHIOPRINE-WGR",
+        "Azapin",
+        "Azathioprine Sandoz",
+        "Imazan",
+        "Imuran",
+        "Thioprine 50"
+      ]
+    },
+    {
+      "name": "Azithromycin",
+      "brand_names": [
+        "APO-Azithromycin",
+        "AZITHROMYCIN-WGR",
+        "Azithromycin Mylan",
+        "Azithromycin Sandoz",
+        "Azithromycin Viatris",
+        "Azithromycin-WGR",
+        "ZITHRO",
+        "Zedd 500",
+        "Zithromax"
+      ]
+    },
+    {
+      "name": "Baclofen",
+      "brand_names": [
+        "APO-Baclofen",
+        "Bacthecal",
+        "Clofen 10",
+        "Clofen 25",
+        "Lioresal 10",
+        "Lioresal 25",
+        "Lioresal Intrathecal",
+        "Sintetica Baclofen Intrathecal",
+        "Stelax 10",
+        "Stelax 25"
+      ]
+    },
+    {
+      "name": "Balsalazide",
+      "brand_names": [
+        "Colazide"
+      ]
+    },
+    {
+      "name": "Baricitinib",
+      "brand_names": [
+        "Olumiant"
+      ]
+    },
+    {
+      "name": "Beclometasone",
+      "brand_names": [
+        "Qvar 100",
+        "Qvar 100 Autohaler",
+        "Qvar 50",
+        "Qvar 50 Autohaler"
+      ]
+    },
+    {
+      "name": "Bendamustine",
+      "brand_names": [
+        "BENDAMUSTINE EUGIA",
+        "BENDAMUSTINE HYDROCHLORIDE MEDSURGE",
+        "Bendamustine Sandoz",
+        "Bendamustine Viatris"
+      ]
+    },
+    {
+      "name": "Benralizumab",
+      "brand_names": [
+        "Fasenra Pen"
+      ]
+    },
+    {
+      "name": "Benzathine benzylpenicillin",
+      "brand_names": [
+        "Benzetacil (Spain)",
+        "Benzylpenicillin benzathine (Brancaster Pharma, UK)",
+        "Bicillin L-A",
+        "Lentocilin S 1200 (Portugal)"
+      ]
+    },
+    {
+      "name": "Benzatropine",
+      "brand_names": [
+        "Benzatropine Injection",
+        "Benztrop"
+      ]
+    },
+    {
+      "name": "Benzydamine",
+      "brand_names": [
+        "Difflam"
+      ]
+    },
+    {
+      "name": "Benzylpenicillin",
+      "brand_names": [
+        "BenPen",
+        "PEN G Sandoz"
+      ]
+    },
+    {
+      "name": "Betaine",
+      "brand_names": [
+        "Cystadane"
+      ]
+    },
+    {
+      "name": "Bevacizumab",
+      "brand_names": [
+        "Abevmy",
+        "Mvasi",
+        "Vegzelma"
+      ]
+    },
+    {
+      "name": "Bicalutamide",
+      "brand_names": [
+        "APO-Bicalutamide",
+        "Bicalox",
+        "Calutex",
+        "Cosamide 50",
+        "Cosudex"
+      ]
+    },
+    {
+      "name": "Bimatoprost",
+      "brand_names": [
+        "BIMATOPROST-WGR",
+        "Bimatoprost Sandoz",
+        "Bimprozt",
+        "Lumigan",
+        "Lumigan PF"
+      ]
+    },
+    {
+      "name": "Binimetinib",
+      "brand_names": [
+        "Mektovi"
+      ]
+    },
+    {
+      "name": "Bisacodyl",
+      "brand_names": [
+        "Dulcolax",
+        "Lax-Tab",
+        "Petrus Bisacodyl Suppositories"
+      ]
+    },
+    {
+      "name": "Bisoprolol",
+      "brand_names": [
+        "APO-Bisoprolol",
+        "BISOPROLOL-WGR",
+        "Bicard 10",
+        "Bicard 2.5",
+        "Bicard 5",
+        "Bicor",
+        "Bisoprolol Sandoz",
+        "Bisoprolol generichealth",
+        "Bispro 10",
+        "Bispro 2.5",
+        "Bispro 5"
+      ]
+    },
+    {
+      "name": "Bivalirudin",
+      "brand_names": [
+        "BIVALIRUDIN ARX",
+        "BIVALIRUDIN MEDSURGE"
+      ]
+    },
+    {
+      "name": "Bleomycin",
+      "brand_names": [
+        "DBL Bleomycin Sulfate"
+      ]
+    },
+    {
+      "name": "Blinatumomab",
+      "brand_names": [
+        "Blincyto"
+      ]
+    },
+    {
+      "name": "Bortezomib",
+      "brand_names": [
+        "BORTEZOMIB EUGIA",
+        "BORTEZOMIB MEDSURGE",
+        "BORTRACZO",
+        "Bortezom",
+        "Bortezomib Accord",
+        "Bortezomib Ever Pharma",
+        "Bortezomib Juno",
+        "DBL Bortezomib"
+      ]
+    },
+    {
+      "name": "Bosentan",
+      "brand_names": [
+        "BOSENTAN DR.REDDY''S",
+        "Bosentan APO",
+        "Bosentan GH",
+        "Bosentan RBX",
+        "Bosentan Viatris"
+      ]
+    },
+    {
+      "name": "Botulinum toxin type A",
+      "brand_names": [
+        "Botox"
+      ]
+    },
+    {
+      "name": "Brentuximab vedotin",
+      "brand_names": [
+        "Adcetris"
+      ]
+    },
+    {
+      "name": "Brexpiprazole",
+      "brand_names": [
+        "Rexulti"
+      ]
+    },
+    {
+      "name": "Brigatinib",
+      "brand_names": [
+        "Alunbrig"
+      ]
+    },
+    {
+      "name": "Brimonidine",
+      "brand_names": [
+        "Alphagan",
+        "Enidin"
+      ]
+    },
+    {
+      "name": "Brinzolamide",
+      "brand_names": [
+        "Azopt",
+        "BrinzoQuin"
+      ]
+    },
+    {
+      "name": "Brivaracetam",
+      "brand_names": [
+        "Briviact"
+      ]
+    },
+    {
+      "name": "Brolucizumab",
+      "brand_names": [
+        "Beovu"
+      ]
+    },
+    {
+      "name": "Bromazepam",
+      "brand_names": [
+        "Lexotan"
+      ]
+    },
+    {
+      "name": "Bromocriptine",
+      "brand_names": [
+        "Parlodel"
+      ]
+    },
+    {
+      "name": "Budesonide",
+      "brand_names": [
+        "Budenofalk",
+        "Entocort",
+        "Jorveza",
+        "Pulmicort Respules",
+        "Pulmicort Turbuhaler"
+      ]
+    },
+    {
+      "name": "Budesonide + formoterol",
+      "brand_names": [
+        "Bufomix EASYHALER 200/6",
+        "Bufomix Easyhaler 200/6",
+        "Bufomix Easyhaler 400/12",
+        "Cipla Budesonide + Formoterol 200/6",
+        "DuoResp Spiromax",
+        "Rilast RAPIHALER 100/3",
+        "Rilast RAPIHALER 200/6",
+        "Rilast TURBUHALER 200/6",
+        "Rilast TURBUHALER 400/12",
+        "Symbicort Rapihaler 100/3",
+        "Symbicort Rapihaler 200/6",
+        "Symbicort TURBUHALER 400/12",
+        "Symbicort Turbuhaler 100/6",
+        "Symbicort Turbuhaler 200/6"
+      ]
+    },
+    {
+      "name": "Buprenorphine",
+      "brand_names": [
+        "B-Patch",
+        "Bupredermal",
+        "Buprenorphine Sandoz",
+        "Buvidal Monthly",
+        "Buvidal Weekly",
+        "Norspan",
+        "Sublocade",
+        "Subutex"
+      ]
+    },
+    {
+      "name": "Buprenorphine + naloxone",
+      "brand_names": [
+        "Suboxone Film 2/0.5",
+        "Suboxone Film 8/2"
+      ]
+    },
+    {
+      "name": "Burosumab",
+      "brand_names": [
+        "Crysvita"
+      ]
+    },
+    {
+      "name": "Busulfan",
+      "brand_names": [
+        "Myleran"
+      ]
+    },
+    {
+      "name": "Cabazitaxel",
+      "brand_names": [
+        "Cabazitaxel Accord",
+        "Cabazitaxel Ever Pharma",
+        "Cabazitaxel Juno",
+        "MSN Cabazitaxel"
+      ]
+    },
+    {
+      "name": "Cabergoline",
+      "brand_names": [
+        "Cabaser",
+        "Dostamine",
+        "Dostinex"
+      ]
+    },
+    {
+      "name": "Cabotegravir",
+      "brand_names": [
+        "Vocabria"
+      ]
+    },
+    {
+      "name": "Cabozantinib",
+      "brand_names": [
+        "Cabometyx"
+      ]
+    },
+    {
+      "name": "Calcitonin salmon",
+      "brand_names": [
+        "Miacalcic 100"
+      ]
+    },
+    {
+      "name": "Calcitriol",
+      "brand_names": [
+        "CALITROL",
+        "Calciprox",
+        "Rocaltrol",
+        "Sical"
+      ]
+    },
+    {
+      "name": "Calcium",
+      "brand_names": [
+        "A-WON Calcium 600",
+        "CAL-600",
+        "Cal-500",
+        "Cal-care 600 mg",
+        "Calci-Tab 600"
+      ]
+    },
+    {
+      "name": "Candesartan",
+      "brand_names": [
+        "APO-Candesartan",
+        "Adesan",
+        "Atacand",
+        "BTC Candesartan",
+        "CANDESAN",
+        "CANDESARTAN-WGR",
+        "Candesartan Sandoz"
+      ]
+    },
+    {
+      "name": "Candesartan + hydrochlorothiazide",
+      "brand_names": [
+        "APO-Candesartan HCTZ 16/12.5",
+        "APO-Candesartan HCTZ 32/12.5",
+        "APO-Candesartan HCTZ 32/25",
+        "Adesan HCT 16/12.5",
+        "Adesan HCT 32/12.5",
+        "Adesan HCT 32/25",
+        "Atacand Plus 16/12.5",
+        "Atacand Plus 32/12.5",
+        "Atacand Plus 32/25",
+        "BTC Candesartan HCT",
+        "CANDESAN COMBI 16/12.5",
+        "CANDESAN COMBI 32/12.5",
+        "CANDESAN COMBI 32/25",
+        "CANDESARTAN HCTZ-WGR 16/12.5",
+        "CANDESARTAN HCTZ-WGR 32/12.5",
+        "CANDESARTAN HCTZ-WGR 32/25",
+        "Candesartan/HCT Sandoz"
+      ]
+    },
+    {
+      "name": "Cannabidiol",
+      "brand_names": [
+        "Epidyolex"
+      ]
+    },
+    {
+      "name": "Capecitabine",
+      "brand_names": [
+        "Xelabine"
+      ]
+    },
+    {
+      "name": "Captopril",
+      "brand_names": [
+        "Capoten"
+      ]
+    },
+    {
+      "name": "Carbamazepine",
+      "brand_names": [
+        "AVLOIRE",
+        "Tegretol 100",
+        "Tegretol 200",
+        "Tegretol CR 200",
+        "Tegretol CR 400",
+        "Tegretol Liquid"
+      ]
+    },
+    {
+      "name": "Carbimazole",
+      "brand_names": [
+        "Neo-Mercazole",
+        "THIRAZOL",
+        "WP Carbimazole"
+      ]
+    },
+    {
+      "name": "Carbomer-980",
+      "brand_names": [
+        "Optifresh eye gel",
+        "PAA",
+        "Viscotears",
+        "Viscotears Gel PF"
+      ]
+    },
+    {
+      "name": "Carboplatin",
+      "brand_names": [
+        "Carboplatin Accord"
+      ]
+    },
+    {
+      "name": "Carfilzomib",
+      "brand_names": [
+        "Kyprolis"
+      ]
+    },
+    {
+      "name": "Cariprazine",
+      "brand_names": [
+        "Reagila"
+      ]
+    },
+    {
+      "name": "Carmustine",
+      "brand_names": [
+        "Gliadel"
+      ]
+    },
+    {
+      "name": "Carvedilol",
+      "brand_names": [
+        "APO-Carvedilol",
+        "CARVEDILOL-WGR",
+        "Carvedilol Sandoz",
+        "Carvidol",
+        "Dicarz",
+        "Dilatrend 12.5",
+        "Dilatrend 25",
+        "Dilatrend 6.25",
+        "Vedilol 12.5",
+        "Vedilol 25",
+        "Vedilol 3.125",
+        "Vedilol 6.25",
+        "Volirop 12.5",
+        "Volirop 25",
+        "Volirop 3.125",
+        "Volirop 6.25"
+      ]
+    },
+    {
+      "name": "Cefaclor",
+      "brand_names": [
+        "Ceclor",
+        "Ceclor CD",
+        "Cefaclor SUN",
+        "Keflor",
+        "Keflor CD"
+      ]
+    },
+    {
+      "name": "Cefalexin",
+      "brand_names": [
+        "APO-Cephalexin",
+        "Blooms The Chemist Cefalexin",
+        "CEPHALEXIN-WGR",
+        "Cefalexin Sandoz",
+        "Cefalexin Viatris",
+        "Cephalex 500",
+        "Cephalexin generichealth",
+        "Ibilex 125",
+        "Ibilex 250",
+        "Ibilex 500",
+        "Keflex"
+      ]
+    },
+    {
+      "name": "Cefazolin",
+      "brand_names": [
+        "Cefazolin-AFT",
+        "Cephazolin Viatris"
+      ]
+    },
+    {
+      "name": "Ceftriaxone",
+      "brand_names": [
+        "Ceftriaxone Viatris",
+        "Ceftriaxone-AFT"
+      ]
+    },
+    {
+      "name": "Cefuroxime",
+      "brand_names": [
+        "Pharmacor Cefuroxime",
+        "Zinnat",
+        "Zinnat (UK)"
+      ]
+    },
+    {
+      "name": "Celecoxib",
+      "brand_names": [
+        "APX-Celecoxib",
+        "Blooms Celecoxib",
+        "CELECOXIB-WGR",
+        "Celaxib",
+        "Celebrex",
+        "Celecoxib GH",
+        "Celecoxib Sandoz",
+        "Celexi"
+      ]
+    },
+    {
+      "name": "Cemiplimab",
+      "brand_names": [
+        "Libtayo"
+      ]
+    },
+    {
+      "name": "Ceritinib",
+      "brand_names": [
+        "Zykadia"
+      ]
+    },
+    {
+      "name": "Certolizumab pegol",
+      "brand_names": [
+        "Cimzia"
+      ]
+    },
+    {
+      "name": "Cetirizine",
+      "brand_names": [
+        "Alzene",
+        "Pharmacy Action Cetrelief",
+        "Trust Cetirizine"
+      ]
+    },
+    {
+      "name": "Cetrorelix",
+      "brand_names": [
+        "Cetrotide"
+      ]
+    },
+    {
+      "name": "Cetuximab",
+      "brand_names": [
+        "Erbitux"
+      ]
+    },
+    {
+      "name": "Chlorambucil",
+      "brand_names": [
+        "Leukeran"
+      ]
+    },
+    {
+      "name": "Chloramphenicol",
+      "brand_names": [
+        "Chlorsig"
+      ]
+    },
+    {
+      "name": "Chlorhexidine",
+      "brand_names": [
+        "Plaqacide",
+        "Savacol Mouth and Throat Rinse"
+      ]
+    },
+    {
+      "name": "Chlormethine",
+      "brand_names": [
+        "Ledaga"
+      ]
+    },
+    {
+      "name": "Chlorpromazine",
+      "brand_names": [
+        "Largactil"
+      ]
+    },
+    {
+      "name": "Chlortalidone",
+      "brand_names": [
+        "Hygroton 25"
+      ]
+    },
+    {
+      "name": "Choriogonadotropin alfa",
+      "brand_names": [
+        "Ovidrel",
+        "Ovidrel (USA)"
+      ]
+    },
+    {
+      "name": "Ciclesonide",
+      "brand_names": [
+        "Alvesco 160",
+        "Alvesco 80"
+      ]
+    },
+    {
+      "name": "Ciclosporin",
+      "brand_names": [
+        "APO-Ciclosporin",
+        "CICLOSPORIN-WGR",
+        "Cequa",
+        "Ikervis",
+        "Neoral",
+        "Neoral 10",
+        "Neoral 100",
+        "Neoral 25",
+        "Neoral 50",
+        "Sandimmun"
+      ]
+    },
+    {
+      "name": "Cinacalcet",
+      "brand_names": [
+        "Cinacalcet Viatris",
+        "Pharmacor Cinacalcet"
+      ]
+    },
+    {
+      "name": "Ciprofloxacin",
+      "brand_names": [
+        "APO-Ciprofloxacin",
+        "C-Flox 250",
+        "C-Flox 500",
+        "C-Flox 750",
+        "CIPROFLOXACIN-WGR",
+        "CiloQuin",
+        "Ciloxan",
+        "Ciprofloxacin Sandoz",
+        "Ciprol 250",
+        "Ciprol 500",
+        "Ciprol 750"
+      ]
+    },
+    {
+      "name": "Cisplatin",
+      "brand_names": [
+        "Cisplatin Accord"
+      ]
+    },
+    {
+      "name": "Citalopram",
+      "brand_names": [
+        "APO-Citalopram",
+        "APX-Citalopram",
+        "CITALOPRAM-WGR",
+        "Celapram",
+        "Cipramil",
+        "Citalopram Sandoz",
+        "Talam"
+      ]
+    },
+    {
+      "name": "Cladribine",
+      "brand_names": [
+        "CLADRITAB",
+        "Leustatin",
+        "Litak",
+        "Mavenclad"
+      ]
+    },
+    {
+      "name": "Clarithromycin",
+      "brand_names": [
+        "Clarithro 250",
+        "Clarithromycin Sandoz",
+        "Kalixocin",
+        "Klacid"
+      ]
+    },
+    {
+      "name": "Clindamycin",
+      "brand_names": [
+        "APO-Clindamycin",
+        "CLINDAMYCIN-WGR",
+        "Calindamin",
+        "Clindamycin LU",
+        "Clindamyk",
+        "Dalacin C"
+      ]
+    },
+    {
+      "name": "Clobetasol",
+      "brand_names": [
+        "Clobex",
+        "Xobet"
+      ]
+    },
+    {
+      "name": "Clomifene",
+      "brand_names": [
+        "Clomid"
+      ]
+    },
+    {
+      "name": "Clomipramine",
+      "brand_names": [
+        "APO-Clomipramine",
+        "Anafranil 25",
+        "CLOMIPRAMINE-WGR",
+        "Placil"
+      ]
+    },
+    {
+      "name": "Clonazepam",
+      "brand_names": [
+        "Paxam 0.5",
+        "Paxam 2",
+        "Rivotril"
+      ]
+    },
+    {
+      "name": "Clonidine",
+      "brand_names": [
+        "APO-Clonidine",
+        "Catapres",
+        "Catapres 100",
+        "Clonidine Lupin"
+      ]
+    },
+    {
+      "name": "Clopidogrel",
+      "brand_names": [
+        "Blooms Clopidogrel",
+        "CLOPIDOGREL-WGR",
+        "Clopidogrel Lupin",
+        "Clopidogrel Sandoz Pharma",
+        "Clopidogrel Winthrop",
+        "Clovix 75",
+        "Iscover",
+        "Piax",
+        "Plavicor 75",
+        "Plidogrel"
+      ]
+    },
+    {
+      "name": "Clotrimazole",
+      "brand_names": [
+        "APO-Clotrimazole 3 Day Cream",
+        "APO-Clotrimazole 6 Day Cream",
+        "Clonea",
+        "Clonea 3 Day Cream",
+        "Clonea 6 Day Cream",
+        "Pharmacy Action Anti-Fungal Cream",
+        "Pharmacy Action FemCream",
+        "Pharmacy Action FemCream 3 Day Cream",
+        "Trust Fem V 3 Day Cream",
+        "Trust Fem V 6 Day Cream"
+      ]
+    },
+    {
+      "name": "Clozapine",
+      "brand_names": [
+        "Clopine 100",
+        "Clopine 200",
+        "Clopine 25",
+        "Clopine 50",
+        "Clopine Suspension",
+        "Clozaril 100",
+        "Clozaril 25",
+        "Clozitor",
+        "Versacloz"
+      ]
+    },
+    {
+      "name": "Cobimetinib",
+      "brand_names": [
+        "Cotellic"
+      ]
+    },
+    {
+      "name": "Colchicine",
+      "brand_names": [
+        "ARX-Colchicine",
+        "COLCHICINE-WGR",
+        "Colcine",
+        "Colgout",
+        "Lengout"
+      ]
+    },
+    {
+      "name": "Colestyramine",
+      "brand_names": [
+        "Questran Lite"
+      ]
+    },
+    {
+      "name": "Corifollitropin alfa",
+      "brand_names": [
+        "Elonva"
+      ]
+    },
+    {
+      "name": "Cortisone",
+      "brand_names": [
+        "Cortate"
+      ]
+    },
+    {
+      "name": "Crizotinib",
+      "brand_names": [
+        "Xalkori"
+      ]
+    },
+    {
+      "name": "Cyclophosphamide",
+      "brand_names": [
+        "CYCLOPHOSPHAMIDE-REACH",
+        "Cyclonex",
+        "Cyclophosphamide (NorthStar, USA)",
+        "Cyclophosphamide (Sagent, USA)",
+        "Endoxan"
+      ]
+    },
+    {
+      "name": "Cyproterone",
+      "brand_names": [
+        "ANTERONE 100",
+        "ANTERONE 50",
+        "Androcur",
+        "Androcur-100",
+        "Cyproterone Sandoz"
+      ]
+    },
+    {
+      "name": "Cytarabine",
+      "brand_names": [
+        "Pfizer Australia Pty Ltd"
+      ]
+    },
+    {
+      "name": "Dabigatran",
+      "brand_names": [
+        "ARX-Dabigatran",
+        "Dabigatran Sandoz",
+        "Dabigatran Viatris",
+        "PHARMACOR DABIGATRAN",
+        "Pradaxa"
+      ]
+    },
+    {
+      "name": "Dabrafenib",
+      "brand_names": [
+        "Tafinlar"
+      ]
+    },
+    {
+      "name": "Dantrolene",
+      "brand_names": [
+        "Dantrium"
+      ]
+    },
+    {
+      "name": "Dapagliflozin",
+      "brand_names": [
+        "Forxiga"
+      ]
+    },
+    {
+      "name": "Dapagliflozin + sitagliptin",
+      "brand_names": [
+        "Sidapvia 10/100"
+      ]
+    },
+    {
+      "name": "Dapsone",
+      "brand_names": [
+        "DAPSOMED",
+        "Dapsone Tablets, USP 25 mg (Rising Pharmaceuticals, USA)",
+        "Link Medical Products Pty Ltd"
+      ]
+    },
+    {
+      "name": "Daratumumab",
+      "brand_names": [
+        "Darzalex",
+        "Darzalex SC"
+      ]
+    },
+    {
+      "name": "Darbepoetin alfa",
+      "brand_names": [
+        "Aranesp",
+        "Aranesp SureClick"
+      ]
+    },
+    {
+      "name": "Darolutamide",
+      "brand_names": [
+        "Nubeqa"
+      ]
+    },
+    {
+      "name": "Darunavir",
+      "brand_names": [
+        "Darunavir Juno",
+        "Prezista"
+      ]
+    },
+    {
+      "name": "Darunavir + cobicistat",
+      "brand_names": [
+        "Prezcobix"
+      ]
+    },
+    {
+      "name": "Dasatinib",
+      "brand_names": [
+        "DASATINIB-TEVA",
+        "Dasatinib ARX",
+        "Dasatinib Dr.Reddy''s",
+        "Dasatinib SUN",
+        "Dasatinib Sandoz",
+        "Dasatinib Viatris",
+        "Sprycel"
+      ]
+    },
+    {
+      "name": "Daunorubicin + cytarabine",
+      "brand_names": [
+        "Vyxeos"
+      ]
+    },
+    {
+      "name": "Decitabine + cedazuridine",
+      "brand_names": [
+        "Inqovi 35/100"
+      ]
+    },
+    {
+      "name": "Degarelix",
+      "brand_names": [
+        "Firmagon 120mg",
+        "Firmagon 80mg"
+      ]
+    },
+    {
+      "name": "Denosumab",
+      "brand_names": [
+        "CORORA",
+        "GANVADO",
+        "Jubbonti",
+        "Osenvelt",
+        "Prolia",
+        "Stoboclo",
+        "Wyost",
+        "Xgeva"
+      ]
+    },
+    {
+      "name": "Desmopressin",
+      "brand_names": [
+        "Desmomed",
+        "Desmopressin ADVZ",
+        "Minirin",
+        "Minirin Melt",
+        "Minirin Nasal Spray"
+      ]
+    },
+    {
+      "name": "Desvenlafaxine",
+      "brand_names": [
+        "APO-Desvenlafaxine MR",
+        "BTC Desvenlafaxine",
+        "DESVEN",
+        "DESVENLAFAXINE-WGR XR",
+        "Desfax",
+        "Desvenlafaxine GH XR",
+        "Desvenlafaxine Sandoz",
+        "Desvenlafaxine Sandoz Pharma",
+        "Desvenlafaxine Viatris",
+        "Pristiq"
+      ]
+    },
+    {
+      "name": "Dexamethasone",
+      "brand_names": [
+        "Dexmethsone",
+        "Ozurdex"
+      ]
+    },
+    {
+      "name": "Dexamfetamine",
+      "brand_names": [
+        "Aspen Pharmacare Australia Pty Ltd"
+      ]
+    },
+    {
+      "name": "Dextran-70 + hypromellose",
+      "brand_names": [
+        "Poly-Tears",
+        "Tears Naturale"
+      ]
+    },
+    {
+      "name": "Diazepam",
+      "brand_names": [
+        "APX-Diazepam",
+        "Antenex 2",
+        "Antenex 5",
+        "DIAZEPAM-WGR",
+        "Diazepam Elixir",
+        "Valium",
+        "Valpam 2",
+        "Valpam 5"
+      ]
+    },
+    {
+      "name": "Diclofenac",
+      "brand_names": [
+        "Clonac 25",
+        "Clonac 50",
+        "DICLOFENAC-WGR",
+        "Diclofenac Sandoz",
+        "Dofidaz",
+        "Fenac EC",
+        "Solaraze 3% Gel",
+        "Voltaren 25",
+        "Voltaren 50"
+      ]
+    },
+    {
+      "name": "Dicloxacillin",
+      "brand_names": [
+        "ARX-Dicloxacillin",
+        "DICLOXACILLIN VIATRIS 250",
+        "DICLOXACILLIN VIATRIS 500",
+        "Distaph 250",
+        "Distaph 500"
+      ]
+    },
+    {
+      "name": "Dienogest",
+      "brand_names": [
+        "Dinasane",
+        "Visanne"
+      ]
+    },
+    {
+      "name": "Digoxin",
+      "brand_names": [
+        "Lanoxin",
+        "Lanoxin-PG",
+        "Sigmaxin",
+        "Sigmaxin-PG"
+      ]
+    },
+    {
+      "name": "Diltiazem",
+      "brand_names": [
+        "Cardizem",
+        "Cardizem CD",
+        "Diltiazem Sandoz CD",
+        "Vasocardol",
+        "Vasocardol CD"
+      ]
+    },
+    {
+      "name": "Dimethyl fumarate",
+      "brand_names": [
+        "APO-DIMETHYL FUMARATE",
+        "Dimethyl Fumarate Sandoz",
+        "Pharmacor Dimethyl Fumarate",
+        "Tecfidera",
+        "Trazent"
+      ]
+    },
+    {
+      "name": "Diroximel fumarate",
+      "brand_names": [
+        "Vumerity"
+      ]
+    },
+    {
+      "name": "Disopyramide",
+      "brand_names": [
+        "Rythmodan",
+        "Rythmodan (Japan)",
+        "Rythmodan (UK)"
+      ]
+    },
+    {
+      "name": "Docetaxel",
+      "brand_names": [
+        "Docetaxel Accord"
+      ]
+    },
+    {
+      "name": "Docusate",
+      "brand_names": [
+        "Coloxyl 50"
+      ]
+    },
+    {
+      "name": "Dolutegravir",
+      "brand_names": [
+        "Tivicay"
+      ]
+    },
+    {
+      "name": "Dolutegravir + abacavir + lamivudine",
+      "brand_names": [
+        "Triumeq"
+      ]
+    },
+    {
+      "name": "Dolutegravir + lamivudine",
+      "brand_names": [
+        "Dovato"
+      ]
+    },
+    {
+      "name": "Dolutegravir + rilpivirine",
+      "brand_names": [
+        "Juluca"
+      ]
+    },
+    {
+      "name": "Domperidone",
+      "brand_names": [
+        "APO-DOMPERIDONE",
+        "Motilium"
+      ]
+    },
+    {
+      "name": "Donepezil",
+      "brand_names": [
+        "APO-Donepezil",
+        "Arazil",
+        "Aricept",
+        "Aridon 10",
+        "Aridon 5",
+        "Aridon APN 10",
+        "Aridon APN 5",
+        "DONEPEZIL-WGR",
+        "Donepezil GH",
+        "Donepezil Sandoz"
+      ]
+    },
+    {
+      "name": "Dornase alfa",
+      "brand_names": [
+        "Pulmozyme"
+      ]
+    },
+    {
+      "name": "Dorzolamide",
+      "brand_names": [
+        "Trusamide",
+        "Trusopt"
+      ]
+    },
+    {
+      "name": "Dostarlimab",
+      "brand_names": [
+        "Jemperli"
+      ]
+    },
+    {
+      "name": "Dosulepin (dothiepin)",
+      "brand_names": [
+        "Dosulepin Viatris",
+        "Dosulepin Viatris 75",
+        "Dothep 25",
+        "Dothep 75"
+      ]
+    },
+    {
+      "name": "Doxorubicin",
+      "brand_names": [
+        "Adriamycin",
+        "Doxorubicin ACC"
+      ]
+    },
+    {
+      "name": "Doxycycline",
+      "brand_names": [
+        "APX-Doxycycline",
+        "Blooms The Chemist Doxycycline",
+        "DOXYCYCLINE-WGR",
+        "Doryx",
+        "Doxsig",
+        "Doxycycline Sandoz",
+        "Doxylin 100",
+        "Doxylin 50",
+        "Mayne Pharma Doxycycline"
+      ]
+    },
+    {
+      "name": "Drospirenone",
+      "brand_names": [
+        "Lucinda",
+        "Slinda"
+      ]
+    },
+    {
+      "name": "Drospirenone + ethinylestradiol",
+      "brand_names": [
+        "Bella",
+        "Brooke",
+        "Brooklynn",
+        "Isabelle",
+        "Mila",
+        "Rosalee",
+        "Rosie",
+        "YANA",
+        "Yasmin",
+        "Yaz",
+        "Yelena"
+      ]
+    },
+    {
+      "name": "Dry psyllium husk",
+      "brand_names": [
+        "Fybogel"
+      ]
+    },
+    {
+      "name": "Dulaglutide",
+      "brand_names": [
+        "Trulicity"
+      ]
+    },
+    {
+      "name": "Duloxetine",
+      "brand_names": [
+        "APO-Duloxetine",
+        "Blooms The Chemist Duloxetine",
+        "DULOXETINE-WGR",
+        "DYTREX 30",
+        "DYTREX 60",
+        "Duloxecor",
+        "Duloxetine Sandoz",
+        "Duloxetine Sandoz 30",
+        "Duloxetine Sandoz 60",
+        "Tixol 30",
+        "Tixol 60"
+      ]
+    },
+    {
+      "name": "Dupilumab",
+      "brand_names": [
+        "Dupixent"
+      ]
+    },
+    {
+      "name": "Durvalumab",
+      "brand_names": [
+        "Imfinzi"
+      ]
+    },
+    {
+      "name": "Dutasteride",
+      "brand_names": [
+        "APO-Dutasteride",
+        "Avodart",
+        "Dutacor"
+      ]
+    },
+    {
+      "name": "Dutasteride + tamsulosin",
+      "brand_names": [
+        "DUTASTERIDE-TAMSULOSIN ZPL",
+        "DUTASTERIDE/TAMSULOSIN-WGR",
+        "DUTATAM 500/400",
+        "Doubluts",
+        "Duodart 500ug/400ug",
+        "Dutasteride/Tamsulosin Lupin 500/400",
+        "Dutasteride/Tamsulosin Sandoz 500/400",
+        "Dutasteride/Tamsulosin Viatris 500/400"
+      ]
+    },
+    {
+      "name": "Eculizumab",
+      "brand_names": [
+        "Soliris"
+      ]
+    },
+    {
+      "name": "Edaravone",
+      "brand_names": [
+        "Radicava"
+      ]
+    },
+    {
+      "name": "Eflornithine",
+      "brand_names": [
+        "Ifinwil"
+      ]
+    },
+    {
+      "name": "Elafibranor",
+      "brand_names": [
+        "Iqirvo"
+      ]
+    },
+    {
+      "name": "Eletriptan",
+      "brand_names": [
+        "Relpax"
+      ]
+    },
+    {
+      "name": "Elotuzumab",
+      "brand_names": [
+        "Empliciti"
+      ]
+    },
+    {
+      "name": "Elranatamab",
+      "brand_names": [
+        "Elrexfio"
+      ]
+    },
+    {
+      "name": "Eltrombopag",
+      "brand_names": [
+        "Revolade"
+      ]
+    },
+    {
+      "name": "Empagliflozin",
+      "brand_names": [
+        "Jardiance"
+      ]
+    },
+    {
+      "name": "Empagliflozin + linagliptin",
+      "brand_names": [
+        "Glyxambi"
+      ]
+    },
+    {
+      "name": "Empagliflozin + metformin",
+      "brand_names": [
+        "Jardiamet 12.5 mg/1000 mg",
+        "Jardiamet 12.5 mg/500 mg",
+        "Jardiamet 5 mg/1000 mg",
+        "Jardiamet 5 mg/500 mg"
+      ]
+    },
+    {
+      "name": "Enalapril",
+      "brand_names": [
+        "APO-Enalapril",
+        "Acetec",
+        "ENALAPRIL-WGR",
+        "Enalapril Sandoz",
+        "Malean",
+        "Renitec",
+        "Renitec 20"
+      ]
+    },
+    {
+      "name": "Enalapril + hydrochlorothiazide",
+      "brand_names": [
+        "Enalapril/HCT Sandoz",
+        "Renitec Plus 20/6"
+      ]
+    },
+    {
+      "name": "Encorafenib",
+      "brand_names": [
+        "Braftovi"
+      ]
+    },
+    {
+      "name": "Enfortumab vedotin",
+      "brand_names": [
+        "Padcev"
+      ]
+    },
+    {
+      "name": "Entacapone",
+      "brand_names": [
+        "Comtan"
+      ]
+    },
+    {
+      "name": "Entecavir",
+      "brand_names": [
+        "ENTAC",
+        "ENTECAVIR APO",
+        "ENTECAVIR RBX",
+        "ENTECAVIR-WGR",
+        "Entecavir GH",
+        "Entecavir Sandoz",
+        "Entecavir Viatris"
+      ]
+    },
+    {
+      "name": "Entrectinib",
+      "brand_names": [
+        "Rozlytrek"
+      ]
+    },
+    {
+      "name": "Enzalutamide",
+      "brand_names": [
+        "Xtandi"
+      ]
+    },
+    {
+      "name": "Epcoritamab",
+      "brand_names": [
+        "Epkinly"
+      ]
+    },
+    {
+      "name": "Epirubicin",
+      "brand_names": [
+        "Epirubicin Accord"
+      ]
+    },
+    {
+      "name": "Eplerenone",
+      "brand_names": [
+        "APO-Eplerenone",
+        "ESPLER",
+        "Inpler",
+        "Inspra"
+      ]
+    },
+    {
+      "name": "Epoetin alfa",
+      "brand_names": [
+        "Eprex 1000",
+        "Eprex 10000",
+        "Eprex 20,000",
+        "Eprex 2000",
+        "Eprex 3000",
+        "Eprex 40,000",
+        "Eprex 4000",
+        "Eprex 5000",
+        "Eprex 6000",
+        "Eprex 8000"
+      ]
+    },
+    {
+      "name": "Eprosartan",
+      "brand_names": [
+        "Teveten"
+      ]
+    },
+    {
+      "name": "Eprosartan + hydrochlorothiazide",
+      "brand_names": [
+        "Teveten Plus 600/12.5"
+      ]
+    },
+    {
+      "name": "Eptinezumab",
+      "brand_names": [
+        "Vyepti"
+      ]
+    },
+    {
+      "name": "Eribulin",
+      "brand_names": [
+        "Eribulin Dr.Reddy''s",
+        "Halaven"
+      ]
+    },
+    {
+      "name": "Erlotinib",
+      "brand_names": [
+        "ERLOTINIB ARX",
+        "Erlotinib Sandoz"
+      ]
+    },
+    {
+      "name": "Erythromycin",
+      "brand_names": [
+        "Mayne Pharma Erythromycin"
+      ]
+    },
+    {
+      "name": "Escitalopram",
+      "brand_names": [
+        "APO-Escitalopram",
+        "APX-Escitalopram",
+        "Blooms Escitalopram",
+        "Cilopam-S",
+        "ESCIT",
+        "ESCITALOPRAM-WGR",
+        "Escitalopram GH",
+        "Escitalopram Sandoz",
+        "Lexam 10",
+        "Lexam 20",
+        "Lexapro",
+        "LoxaLate"
+      ]
+    },
+    {
+      "name": "Esketamine",
+      "brand_names": [
+        "Spravato"
+      ]
+    },
+    {
+      "name": "Esomeprazole",
+      "brand_names": [
+        "APO-Esomeprazole",
+        "ESOMEPRAZOLE-WGR",
+        "Esomeprazole GH",
+        "Esomeprazole GxP",
+        "Esomeprazole RBX",
+        "Esomeprazole Viatris",
+        "Esopreze",
+        "Nexazole",
+        "Nexium",
+        "Nexole",
+        "Noxicid Caps"
+      ]
+    },
+    {
+      "name": "Estetrol + drospirenone",
+      "brand_names": [
+        "Nextstellis"
+      ]
+    },
+    {
+      "name": "Estradiol",
+      "brand_names": [
+        "Dermestril 25 (Italy)",
+        "Dermestril 50 (Italy)",
+        "Estraderm MX 100",
+        "Estraderm MX 25",
+        "Estraderm MX 50",
+        "Estradot 100",
+        "Estradot 25",
+        "Estradot 37.5",
+        "Estradot 50",
+        "Estradot 75",
+        "Estramon (Germany, Sandoz)",
+        "Estro-Pess",
+        "Estrogel",
+        "Progynova",
+        "Sandrena",
+        "Vagifem Low",
+        "Zumenon"
+      ]
+    },
+    {
+      "name": "Estriol",
+      "brand_names": [
+        "Ovestin",
+        "Ovestin Ovula"
+      ]
+    },
+    {
+      "name": "Etanercept",
+      "brand_names": [
+        "Brenzys",
+        "Enbrel",
+        "Erelzi",
+        "Nepexto"
+      ]
+    },
+    {
+      "name": "Ethosuximide",
+      "brand_names": [
+        "ZARONTIN",
+        "Zarontin"
+      ]
+    },
+    {
+      "name": "Etonogestrel",
+      "brand_names": [
+        "Implanon NXT"
+      ]
+    },
+    {
+      "name": "Etoposide",
+      "brand_names": [
+        "Etopophos",
+        "Etoposide Ebewe",
+        "Vepesid"
+      ]
+    },
+    {
+      "name": "Etravirine",
+      "brand_names": [
+        "Intelence"
+      ]
+    },
+    {
+      "name": "Everolimus",
+      "brand_names": [
+        "Afinitor",
+        "Certican",
+        "Everocan"
+      ]
+    },
+    {
+      "name": "Evolocumab",
+      "brand_names": [
+        "Repatha"
+      ]
+    },
+    {
+      "name": "Exemestane",
+      "brand_names": [
+        "APO-Exemestane",
+        "Aromasin",
+        "EXEMESTANE-WGR",
+        "Exemestane GH",
+        "Exemestane Sandoz"
+      ]
+    },
+    {
+      "name": "Ezetimibe",
+      "brand_names": [
+        "APO-Ezetimibe",
+        "ARX-EZETIMIBE",
+        "BTC Ezetimibe",
+        "EZEMICHOL",
+        "EZETIMIBE-WGR",
+        "Ezetimibe GH",
+        "Ezetimibe Sandoz",
+        "Ezetrol",
+        "Pharmacor Ezetimibe 10",
+        "Zient 10mg"
+      ]
+    },
+    {
+      "name": "Ezetimibe + atorvastatin",
+      "brand_names": [
+        "Atozet",
+        "Ezetast",
+        "Ezetimibe/Atorvastatin GH 10/10",
+        "Ezetimibe/Atorvastatin GH 10/20",
+        "Ezetimibe/Atorvastatin GH 10/40",
+        "Ezetimibe/Atorvastatin GH 10/80"
+      ]
+    },
+    {
+      "name": "Ezetimibe + simvastatin",
+      "brand_names": [
+        "APO-Ezetimibe/Simvastatin 10/10",
+        "APO-Ezetimibe/Simvastatin 10/20",
+        "APO-Ezetimibe/Simvastatin 10/40",
+        "APO-Ezetimibe/Simvastatin 10/80",
+        "EZETIMIBE/SIMVASTATIN SANDOZ",
+        "EZETIMIBE/SIMVASTATIN-WGR 10/10",
+        "EZETIMIBE/SIMVASTATIN-WGR 10/20",
+        "EZETIMIBE/SIMVASTATIN-WGR 10/40",
+        "EZETIMIBE/SIMVASTATIN-WGR 10/80",
+        "EZETORIN",
+        "Pharmacor Ezetimibe Simvastatin 10/10",
+        "Pharmacor Ezetimibe Simvastatin 10/20",
+        "Pharmacor Ezetimibe Simvastatin 10/40",
+        "Pharmacor Ezetimibe Simvastatin 10/80",
+        "Vytorin",
+        "Zimybe 10/10",
+        "Zimybe 10/20",
+        "Zimybe 10/40",
+        "Zimybe 10/80"
+      ]
+    },
+    {
+      "name": "Famciclovir",
+      "brand_names": [
+        "APO-Famciclovir",
+        "Ezovir",
+        "FAMCICLOVIR-WGR",
+        "Famvir",
+        "Favic 125",
+        "Favic 250",
+        "Favic 500"
+      ]
+    },
+    {
+      "name": "Famotidine",
+      "brand_names": [
+        "Ausfam 20",
+        "Ausfam 40"
+      ]
+    },
+    {
+      "name": "Febuxostat",
+      "brand_names": [
+        "Adenuric",
+        "Febexic"
+      ]
+    },
+    {
+      "name": "Fedratinib",
+      "brand_names": [
+        "Inrebic"
+      ]
+    },
+    {
+      "name": "Felodipine",
+      "brand_names": [
+        "Felodil XR 10",
+        "Felodil XR 2.5",
+        "Felodil XR 5",
+        "Felodur ER 10 mg",
+        "Felodur ER 2.5 mg",
+        "Felodur ER 5 mg",
+        "Plendil ER"
+      ]
+    },
+    {
+      "name": "Fenfluramine",
+      "brand_names": [
+        "Fintepla"
+      ]
+    },
+    {
+      "name": "Fenofibrate",
+      "brand_names": [
+        "APO-Fenofibrate",
+        "ARX-FENOFIBRATE",
+        "BTC Fenofibrate",
+        "FENOFIBRATE RBX",
+        "FENOFIBRATE-WGR",
+        "Fenocol",
+        "Fenofibrate Cipla",
+        "Fenofibrate Lupin",
+        "Fenofibrate Sandoz",
+        "Fenofibrate Viatris",
+        "Lipidil"
+      ]
+    },
+    {
+      "name": "Fentanyl",
+      "brand_names": [
+        "APO-Fentanyl",
+        "Abstral",
+        "Actiq",
+        "Fentanyl Sandoz",
+        "Fentora"
+      ]
+    },
+    {
+      "name": "Ferrous fumarate",
+      "brand_names": [
+        "Ferro-tab"
+      ]
+    },
+    {
+      "name": "Ferrous fumarate + folic acid",
+      "brand_names": [
+        "Ferro-f-tab"
+      ]
+    },
+    {
+      "name": "Ferrous sulfate",
+      "brand_names": [
+        "Ferro-Liquid"
+      ]
+    },
+    {
+      "name": "Fexofenadine",
+      "brand_names": [
+        "Pharmacy Action Fexorelief 120",
+        "Telfast",
+        "Telfast 120",
+        "Trust Fexit 120",
+        "Xergic"
+      ]
+    },
+    {
+      "name": "Filgrastim",
+      "brand_names": [
+        "Nivestim",
+        "Zarzio"
+      ]
+    },
+    {
+      "name": "Finasteride",
+      "brand_names": [
+        "APO-Finasteride",
+        "Finasta",
+        "Finasteride GH 5",
+        "Finasteride Mylan 5",
+        "Finasteride-GA 5",
+        "Finide",
+        "Finnacar",
+        "Finpro",
+        "Pharmacor Finasteride 5",
+        "Proscar"
+      ]
+    },
+    {
+      "name": "Finerenone",
+      "brand_names": [
+        "Kerendia"
+      ]
+    },
+    {
+      "name": "Fingolimod",
+      "brand_names": [
+        "AKM Fingolimod",
+        "FILOSIR",
+        "Fingolimod Dr.Reddy''s",
+        "Fingolimod SUN",
+        "Fingolimod Sandoz",
+        "Fingolimod-Teva",
+        "Fynod",
+        "Gilenya",
+        "Pharmacor Fingolimod"
+      ]
+    },
+    {
+      "name": "Flecainide",
+      "brand_names": [
+        "APO-Flecainide",
+        "Flecainide Sandoz",
+        "Flecatab",
+        "Tambocor"
+      ]
+    },
+    {
+      "name": "Flucloxacillin",
+      "brand_names": [
+        "Flopen",
+        "Flopen Viatris",
+        "Flucil",
+        "Staphylex 250",
+        "Staphylex 500"
+      ]
+    },
+    {
+      "name": "Fluconazole",
+      "brand_names": [
+        "APO-Fluconazole",
+        "Diflucan",
+        "Dizole 100",
+        "Dizole 200",
+        "Dizole 50",
+        "FLUCONAZOLE-WGR",
+        "Fluconazole Sandoz",
+        "Fluzole 200",
+        "Ozole"
+      ]
+    },
+    {
+      "name": "Fludarabine",
+      "brand_names": [
+        "Fludara",
+        "Fludarabine Ebewe",
+        "Fludarabine Juno"
+      ]
+    },
+    {
+      "name": "Fludrocortisone",
+      "brand_names": [
+        "FLUDROCORTISONE MEDSURGE",
+        "Florinef"
+      ]
+    },
+    {
+      "name": "Flunitrazepam",
+      "brand_names": [
+        "Hypnodorm"
+      ]
+    },
+    {
+      "name": "Fluorouracil",
+      "brand_names": [
+        "APOC-5FU",
+        "Efudix",
+        "Fluorouracil Accord",
+        "Fluorouracil Viatris",
+        "MAYNE PHARMA 5FU",
+        "TOLAK 4% ONCE DAILY"
+      ]
+    },
+    {
+      "name": "Fluoxetine",
+      "brand_names": [
+        "APO-Fluoxetine",
+        "Blooms the Chemist Fluoxetine",
+        "FLUOTEX",
+        "FLUOXETINE-WGR",
+        "Fluoxetine Sandoz",
+        "Fluoxetine generichealth",
+        "Zactin",
+        "Zactin Tablet"
+      ]
+    },
+    {
+      "name": "Flutamide",
+      "brand_names": [
+        "Flutamin"
+      ]
+    },
+    {
+      "name": "Fluvoxamine",
+      "brand_names": [
+        "APO-Fluvoxamine",
+        "FLUVOXAMINE-WGR",
+        "Faverin 100",
+        "Faverin 50",
+        "Luvox",
+        "Movox 100",
+        "Movox 50"
+      ]
+    },
+    {
+      "name": "Folic acid",
+      "brand_names": [
+        "Foltabs 500",
+        "Megafol 0.5",
+        "Megafol 5"
+      ]
+    },
+    {
+      "name": "Follitropin alfa",
+      "brand_names": [
+        "Bemfola",
+        "Gonal-f Pen",
+        "Ovaleap"
+      ]
+    },
+    {
+      "name": "Follitropin alfa + lutropin alfa",
+      "brand_names": [
+        "Pergoveris"
+      ]
+    },
+    {
+      "name": "Follitropin beta",
+      "brand_names": [
+        "Puregon 300 IU/0.36 mL",
+        "Puregon 600 IU/0.72 mL",
+        "Puregon 900 IU/1.08 mL"
+      ]
+    },
+    {
+      "name": "Follitropin delta",
+      "brand_names": [
+        "Rekovelle"
+      ]
+    },
+    {
+      "name": "Formoterol",
+      "brand_names": [
+        "Foradile",
+        "Oxis Turbuhaler"
+      ]
+    },
+    {
+      "name": "Fosaprepitant",
+      "brand_names": [
+        "FOSAPREPITANT MEDSURGE",
+        "FOSAPREPITANT MSN",
+        "FOSAPREPITANT-AFT"
+      ]
+    },
+    {
+      "name": "Fosinopril",
+      "brand_names": [
+        "APO-Fosinopril",
+        "Monace 10",
+        "Monace 20"
+      ]
+    },
+    {
+      "name": "Foslevodopa + foscarbidopa",
+      "brand_names": [
+        "Vyalev"
+      ]
+    },
+    {
+      "name": "Fremanezumab",
+      "brand_names": [
+        "Ajovy"
+      ]
+    },
+    {
+      "name": "Fruquintinib",
+      "brand_names": [
+        "Fruzaqla"
+      ]
+    },
+    {
+      "name": "Fulvestrant",
+      "brand_names": [
+        "FULVESTRANT ACCORD",
+        "FULVESTRANT EVER PHARMA",
+        "FULVESTRANT-AFT",
+        "Fulvestrant SXP",
+        "Fulvestrant Sandoz"
+      ]
+    },
+    {
+      "name": "Furosemide",
+      "brand_names": [
+        "APO-Frusemide",
+        "FUROSEMIDE-WGR",
+        "Frusax",
+        "Frusemix",
+        "Frusemix-M",
+        "Lasix",
+        "UREMIDE 20",
+        "Uremide",
+        "Urex-Forte"
+      ]
+    },
+    {
+      "name": "Fusidate",
+      "brand_names": [
+        "Fucidin"
+      ]
+    },
+    {
+      "name": "Futibatinib",
+      "brand_names": [
+        "Lytgobi"
+      ]
+    },
+    {
+      "name": "Gabapentin",
+      "brand_names": [
+        "APX-GABAPENTIN",
+        "APX-Gabapentin",
+        "GABAPENTIN-WGR",
+        "GAPENTIN",
+        "Gabacor",
+        "Gabapentin APOTEX",
+        "Gabapentin Sandoz",
+        "Neurontin",
+        "Nupentin 100",
+        "Nupentin 300",
+        "Nupentin 400",
+        "Pharmacor Gabapentin 600",
+        "Pharmacor Gabapentin 800"
+      ]
+    },
+    {
+      "name": "Galantamine",
+      "brand_names": [
+        "APO-Galantamine MR",
+        "Galantyl",
+        "Gamine XR",
+        "Reminyl"
+      ]
+    },
+    {
+      "name": "Galcanezumab",
+      "brand_names": [
+        "Emgality"
+      ]
+    },
+    {
+      "name": "Ganciclovir",
+      "brand_names": [
+        "Cymevene",
+        "GANCICLOVIR SXP"
+      ]
+    },
+    {
+      "name": "Ganirelix",
+      "brand_names": [
+        "ARX Ganirelix",
+        "GANIRELIX SUN",
+        "Ganirelix Lupin",
+        "Ganirelix Theramex",
+        "Orgalutran"
+      ]
+    },
+    {
+      "name": "Garadacimab",
+      "brand_names": [
+        "Andembry"
+      ]
+    },
+    {
+      "name": "Gefitinib",
+      "brand_names": [
+        "Cipla Gefitinib"
+      ]
+    },
+    {
+      "name": "Gemcitabine",
+      "brand_names": [
+        "DBL Gemcitabine Injection",
+        "GEMCITABINE EUGIA",
+        "Gemcitabine Irem"
+      ]
+    },
+    {
+      "name": "Gemfibrozil",
+      "brand_names": [
+        "Ausgem",
+        "Lipigem"
+      ]
+    },
+    {
+      "name": "Gemtuzumab ozogamicin",
+      "brand_names": [
+        "Mylotarg"
+      ]
+    },
+    {
+      "name": "Gilteritinib",
+      "brand_names": [
+        "Xospata"
+      ]
+    },
+    {
+      "name": "Givosiran",
+      "brand_names": [
+        "Givlaari"
+      ]
+    },
+    {
+      "name": "Glecaprevir + pibrentasvir",
+      "brand_names": [
+        "Maviret"
+      ]
+    },
+    {
+      "name": "Glibenclamide",
+      "brand_names": [
+        "Daonil"
+      ]
+    },
+    {
+      "name": "Gliclazide",
+      "brand_names": [
+        "APO-Gliclazide MR",
+        "APX-Gliclazide",
+        "ARDIX GLICLAZIDE 60mg MR",
+        "ARX-Gliclazide MR",
+        "Diamicron 60mg MR",
+        "Gliclazide Lupin MR",
+        "Gliclazide MR Viatris",
+        "Gliclazide Sandoz MR",
+        "Nidem",
+        "Pharmacor Gliclazide MR"
+      ]
+    },
+    {
+      "name": "Glimepiride",
+      "brand_names": [
+        "ARX-GLIMEPIRIDE",
+        "GLIMEPIRIDE-WGR",
+        "Glimepiride Sandoz"
+      ]
+    },
+    {
+      "name": "Glipizide",
+      "brand_names": [
+        "Melizide",
+        "Minidiab"
+      ]
+    },
+    {
+      "name": "Glofitamab",
+      "brand_names": [
+        "Columvi"
+      ]
+    },
+    {
+      "name": "Glycerol",
+      "brand_names": [
+        "Petrus Pharmaceuticals Pty Ltd"
+      ]
+    },
+    {
+      "name": "Glyceryl trinitrate",
+      "brand_names": [
+        "Minitran 5",
+        "Nitrolingual Pumpspray",
+        "Transiderm-Nitro 25",
+        "Transiderm-Nitro 50"
+      ]
+    },
+    {
+      "name": "Glycopyrronium",
+      "brand_names": [
+        "Axhidrox",
+        "seebri breezhaler"
+      ]
+    },
+    {
+      "name": "Golimumab",
+      "brand_names": [
+        "Simponi"
+      ]
+    },
+    {
+      "name": "Goserelin",
+      "brand_names": [
+        "Zoladex 10.8 Implant",
+        "Zoladex Implant"
+      ]
+    },
+    {
+      "name": "Granisetron",
+      "brand_names": [
+        "Kytril"
+      ]
+    },
+    {
+      "name": "Griseofulvin",
+      "brand_names": [
+        "Grisovin",
+        "Grisovin 500"
+      ]
+    },
+    {
+      "name": "Guselkumab",
+      "brand_names": [
+        "Tremfya"
+      ]
+    },
+    {
+      "name": "Haloperidol",
+      "brand_names": [
+        "HALOPERIDOL MEDSURGE",
+        "Serenace"
+      ]
+    },
+    {
+      "name": "Heparin",
+      "brand_names": [
+        "DBL Heparin Sodium"
+      ]
+    },
+    {
+      "name": "Human chorionic gonadotrophin",
+      "brand_names": [
+        "Brevactid 1500 I.E",
+        "Choriomon 5000 I.E"
+      ]
+    },
+    {
+      "name": "Human menopausal gonadotrophin",
+      "brand_names": [
+        "Menopur 1200",
+        "Menopur 600"
+      ]
+    },
+    {
+      "name": "Hydrochlorothiazide",
+      "brand_names": [
+        "Dithiazide"
+      ]
+    },
+    {
+      "name": "Hydrocortisone",
+      "brand_names": [
+        "Hydrocortisone Viatris 20",
+        "Hydrocortisone Viatris 4",
+        "Hysone 20",
+        "Hysone 4"
+      ]
+    },
+    {
+      "name": "Hydromorphone",
+      "brand_names": [
+        "Dilaudid",
+        "Dilaudid-HP",
+        "HYDROMORPHONE JUNO",
+        "HYDROMORPHONE JUNO-HP",
+        "Hikma",
+        "Hydromorphone hydrochloride oral solution, USP (Medsurge)",
+        "Hydromorphone-hameln",
+        "Hydromorphone-hameln-HP",
+        "MEDSURGE HYDROMORPHONE 2 mg/1 mL",
+        "MEDSURGE HYDROMORPHONE HP 10 mg/1 mL"
+      ]
+    },
+    {
+      "name": "Hydroxocobalamin",
+      "brand_names": [
+        "Cobal-B12",
+        "Hydroxo-B12",
+        "Neo-B12",
+        "Vita-B12"
+      ]
+    },
+    {
+      "name": "Hydroxycarbamide",
+      "brand_names": [
+        "HYDROXYCARBAMIDE MEDSURGE",
+        "Hydrea"
+      ]
+    },
+    {
+      "name": "Hypromellose",
+      "brand_names": [
+        "Evolve Hypromellose",
+        "Methopt",
+        "Revive Tears"
+      ]
+    },
+    {
+      "name": "Ibandronate",
+      "brand_names": [
+        "Bondronat"
+      ]
+    },
+    {
+      "name": "Ibrutinib",
+      "brand_names": [
+        "Imbruvica"
+      ]
+    },
+    {
+      "name": "Ibuprofen",
+      "brand_names": [
+        "APO-Ibuprofen 400",
+        "Brufen",
+        "WGR-IBUPROFEN 400"
+      ]
+    },
+    {
+      "name": "Icatibant",
+      "brand_names": [
+        "Cipla Icatibant",
+        "Fyzant",
+        "Icatibant Lupin"
+      ]
+    },
+    {
+      "name": "Icosapent ethyl",
+      "brand_names": [
+        "Vazkepa"
+      ]
+    },
+    {
+      "name": "Idarubicin",
+      "brand_names": [
+        "Zavedos Solution"
+      ]
+    },
+    {
+      "name": "Idelalisib",
+      "brand_names": [
+        "Zydelig"
+      ]
+    },
+    {
+      "name": "Ifosfamide",
+      "brand_names": [
+        "Holoxan"
+      ]
+    },
+    {
+      "name": "Imatinib",
+      "brand_names": [
+        "ARX-IMATINIB",
+        "Gilmat",
+        "Glivec",
+        "IMATINIB RBX",
+        "IMATINIB-DRLA",
+        "Imanib",
+        "Imatab",
+        "Imatinib GH",
+        "Imatinib Sandoz",
+        "Imatinib-Teva"
+      ]
+    },
+    {
+      "name": "Imipramine",
+      "brand_names": [
+        "Imipramine (Leading)",
+        "Tofranil 10",
+        "Tofranil 25"
+      ]
+    },
+    {
+      "name": "IncobotulinumtoxinA",
+      "brand_names": [
+        "Xeomin"
+      ]
+    },
+    {
+      "name": "Indacaterol",
+      "brand_names": [
+        "Onbrez"
+      ]
+    },
+    {
+      "name": "Indapamide",
+      "brand_names": [
+        "APO-Indapamide SR",
+        "Dapa-Tabs",
+        "Insig",
+        "Natrilix SR",
+        "Odaplix SR"
+      ]
+    },
+    {
+      "name": "Indometacin",
+      "brand_names": [
+        "Arthrexin",
+        "Indocid"
+      ]
+    },
+    {
+      "name": "Infliximab",
+      "brand_names": [
+        "Inflectra",
+        "Ixifi",
+        "Remicade",
+        "Remsima",
+        "Remsima SC",
+        "Renflexis"
+      ]
+    },
+    {
+      "name": "Inotuzumab ozogamicin",
+      "brand_names": [
+        "Besponsa"
+      ]
+    },
+    {
+      "name": "Insulin aspart",
+      "brand_names": [
+        "Fiasp Penfill",
+        "NovoRapid",
+        "NovoRapid FlexPen",
+        "NovoRapid Penfill 3 mL"
+      ]
+    },
+    {
+      "name": "Insulin aspart + insulin aspart protamine",
+      "brand_names": [
+        "NovoMix 30 FlexPen",
+        "NovoMix 30 Penfill 3 mL"
+      ]
+    },
+    {
+      "name": "Insulin degludec",
+      "brand_names": [
+        "Tresiba Penfill"
+      ]
+    },
+    {
+      "name": "Insulin degludec + insulin aspart",
+      "brand_names": [
+        "Ryzodeg Penfill"
+      ]
+    },
+    {
+      "name": "Insulin detemir",
+      "brand_names": [
+        "Levemir FlexPen",
+        "Levemir Penfill"
+      ]
+    },
+    {
+      "name": "Insulin glargine",
+      "brand_names": [
+        "Optisulin",
+        "Optisulin SoloStar",
+        "Toujeo Solostar"
+      ]
+    },
+    {
+      "name": "Insulin glulisine",
+      "brand_names": [
+        "Apidra",
+        "Apidra SoloStar"
+      ]
+    },
+    {
+      "name": "Insulin isophane human",
+      "brand_names": [
+        "Humulin NPH",
+        "Protaphane",
+        "Protaphane Penfill 3 mL"
+      ]
+    },
+    {
+      "name": "Insulin lispro",
+      "brand_names": [
+        "Humalog",
+        "Humalog KwikPen",
+        "Humalog U200 Kwikpen"
+      ]
+    },
+    {
+      "name": "Insulin lispro + insulin lispro protamine",
+      "brand_names": [
+        "Humalog Mix25",
+        "Humalog Mix25 KwikPen",
+        "Humalog Mix50",
+        "Humalog Mix50 KwikPen"
+      ]
+    },
+    {
+      "name": "Insulin neutral human",
+      "brand_names": [
+        "Actrapid",
+        "Actrapid Penfill 3 mL",
+        "Humulin R"
+      ]
+    },
+    {
+      "name": "Interferon beta-1b",
+      "brand_names": [
+        "Betaferon"
+      ]
+    },
+    {
+      "name": "Interferon gamma-1b",
+      "brand_names": [
+        "Imukin"
+      ]
+    },
+    {
+      "name": "Ipilimumab",
+      "brand_names": [
+        "Yervoy"
+      ]
+    },
+    {
+      "name": "Ipratropium",
+      "brand_names": [
+        "Atrovent",
+        "Atrovent Adult",
+        "Cipla Ipratropium"
+      ]
+    },
+    {
+      "name": "Iptacopan",
+      "brand_names": [
+        "Fabhalta"
+      ]
+    },
+    {
+      "name": "Irbesartan",
+      "brand_names": [
+        "APO-Irbesartan",
+        "AVSARTAN",
+        "Abisart 150",
+        "Abisart 300",
+        "Abisart 75",
+        "Avapro",
+        "Blooms Irbesartan",
+        "IRBESARTAN-WGR",
+        "Irbesartan Sandoz",
+        "Karvea"
+      ]
+    },
+    {
+      "name": "Irbesartan + hydrochlorothiazide",
+      "brand_names": [
+        "APO-Irbesartan HCTZ",
+        "AVSARTAN HCT 150/12.5",
+        "AVSARTAN HCT 300/12.5",
+        "AVSARTAN HCT 300/25",
+        "Abisart HCTZ 150/12.5",
+        "Abisart HCTZ 300/12.5",
+        "Abisart HCTZ 300/25",
+        "Avapro HCT 150/12.5",
+        "Avapro HCT 300/12.5",
+        "Avapro HCT 300/25",
+        "IRBESARTAN HCTZ-WGR 150/12.5",
+        "IRBESARTAN HCTZ-WGR 300/12.5",
+        "IRBESARTAN HCTZ-WGR 300/25",
+        "Irbesartan/HCT Sandoz",
+        "Karvezide 150/12.5",
+        "Karvezide 300/12.5",
+        "Karvezide 300/25"
+      ]
+    },
+    {
+      "name": "Irinotecan",
+      "brand_names": [
+        "IRINOTECAN BAXTER",
+        "IRINOTECAN EUGIA",
+        "Irinotecan Accord",
+        "Irinotecan Irem"
+      ]
+    },
+    {
+      "name": "Isoniazid",
+      "brand_names": [
+        "Arrow Pharma Pty Ltd"
+      ]
+    },
+    {
+      "name": "Isosorbide dinitrate",
+      "brand_names": [
+        "Isordil Sublingual"
+      ]
+    },
+    {
+      "name": "Isosorbide mononitrate",
+      "brand_names": [
+        "APO-Isosorbide Mononitrate",
+        "Duride",
+        "ISOBIDE MR",
+        "ISOSORBIDE MR-WGR",
+        "Imdur 120 mg",
+        "Imdur Durule",
+        "Monodur 120 mg"
+      ]
+    },
+    {
+      "name": "Isotretinoin",
+      "brand_names": [
+        "APO-Isotretinoin",
+        "Dermatane",
+        "ISOTRETINOIN-WGR",
+        "Isotretinoin Dr.Reddy''s",
+        "Isotretinoin GX",
+        "Isotretinoin Lupin",
+        "Oratane",
+        "Pharmacor Isotretinoin",
+        "Roaccutane"
+      ]
+    },
+    {
+      "name": "Itraconazole",
+      "brand_names": [
+        "ITRANOX",
+        "Itracap",
+        "Itrazo",
+        "Lozanoc"
+      ]
+    },
+    {
+      "name": "Ivabradine",
+      "brand_names": [
+        "APO-Ivabradine",
+        "Coralan",
+        "IVABRADINE-WGR"
+      ]
+    },
+    {
+      "name": "Ivacaftor",
+      "brand_names": [
+        "Kalydeco"
+      ]
+    },
+    {
+      "name": "Ivermectin",
+      "brand_names": [
+        "GLENMECT",
+        "Stromectol"
+      ]
+    },
+    {
+      "name": "Ivosidenib",
+      "brand_names": [
+        "Tibsovo"
+      ]
+    },
+    {
+      "name": "Ixekizumab",
+      "brand_names": [
+        "Taltz"
+      ]
+    },
+    {
+      "name": "Labetalol",
+      "brand_names": [
+        "Presolol 100"
+      ]
+    },
+    {
+      "name": "Lacosamide",
+      "brand_names": [
+        "LACOMED",
+        "Lacosam",
+        "Lacosamide ARX",
+        "Lacosamide Lupin",
+        "Lacosamide Sandoz",
+        "Vimcosa",
+        "Vimpat"
+      ]
+    },
+    {
+      "name": "Lamivudine",
+      "brand_names": [
+        "3TC",
+        "Lamivudine Viatris",
+        "Zeffix",
+        "Zetlam"
+      ]
+    },
+    {
+      "name": "Lamivudine + zidovudine",
+      "brand_names": [
+        "Combivir",
+        "Lamivudine/Zidovudine Viatris 150/300"
+      ]
+    },
+    {
+      "name": "Lamotrigine",
+      "brand_names": [
+        "APX-Lamotrigine",
+        "LAMITAN",
+        "LAMOTRIGINE-WGR",
+        "Lamictal",
+        "Lamotrigine GH",
+        "Logem",
+        "Reedos 100",
+        "Reedos 200",
+        "Reedos 25",
+        "Reedos 50",
+        "Sandoz Lamotrigine"
+      ]
+    },
+    {
+      "name": "Lanadelumab",
+      "brand_names": [
+        "Takhzyro"
+      ]
+    },
+    {
+      "name": "Lanreotide",
+      "brand_names": [
+        "Mytolac",
+        "Somatuline Autogel"
+      ]
+    },
+    {
+      "name": "Lansoprazole",
+      "brand_names": [
+        "APO-Lansoprazole",
+        "APO-Lansoprazole ODT",
+        "Lansoprazole ODT GH",
+        "Lanzopran",
+        "Zopral",
+        "Zopral ODT",
+        "Zoton FasTabs"
+      ]
+    },
+    {
+      "name": "Lapatinib",
+      "brand_names": [
+        "Tykerb"
+      ]
+    },
+    {
+      "name": "Larotrectinib",
+      "brand_names": [
+        "Vitrakvi"
+      ]
+    },
+    {
+      "name": "Latanoprost",
+      "brand_names": [
+        "APO-Latanoprost",
+        "Latanoprost Sandoz",
+        "Xalaprost",
+        "Xalatan"
+      ]
+    },
+    {
+      "name": "Leflunomide",
+      "brand_names": [
+        "APO-LEFLUNOMIDE",
+        "Arava",
+        "Ataris 10",
+        "Ataris 20",
+        "LEFLUNOMIDE-WGR",
+        "Leflunomide Sandoz",
+        "Leflunomide generichealth",
+        "Lunava 10",
+        "Lunava 20"
+      ]
+    },
+    {
+      "name": "Lenalidomide",
+      "brand_names": [
+        "Lenalide",
+        "Lenalidomide Dr.Reddy''s",
+        "Lenalidomide Sandoz",
+        "Revlimid"
+      ]
+    },
+    {
+      "name": "Lenvatinib",
+      "brand_names": [
+        "Lenvima"
+      ]
+    },
+    {
+      "name": "Lercanidipine",
+      "brand_names": [
+        "ARX-LERCANIDIPINE",
+        "LERCANIDIPINE-WGR",
+        "Lercan",
+        "Zanidip",
+        "Zircol 10",
+        "Zircol 20"
+      ]
+    },
+    {
+      "name": "Letrozole",
+      "brand_names": [
+        "ARX-LETROZOLE",
+        "Femara 2.5 mg",
+        "Femolet",
+        "Gynotril",
+        "LETROZOLE-WGR",
+        "Letrozole GH",
+        "Letrozole Sandoz",
+        "Pharmacor Letrozole 2.5"
+      ]
+    },
+    {
+      "name": "Leuprorelin",
+      "brand_names": [
+        "Eligard 1 month",
+        "Eligard 3 month",
+        "Eligard 4 month",
+        "Eligard 6 month",
+        "Lucrin Depot 3 Month PDS",
+        "Lucrin Depot 4 Month PDS",
+        "Lucrin Depot 6-Month",
+        "Lucrin Depot 7.5mg PDS",
+        "Lucrin Depot Paediatric 30 mg PDS"
+      ]
+    },
+    {
+      "name": "Levetiracetam",
+      "brand_names": [
+        "APO-Levetiracetam",
+        "Keppra",
+        "Kerron",
+        "LEVETIRACETAM-WGR",
+        "Levactam",
+        "Levetiracetam GH",
+        "Levetiracetam Mylan",
+        "Levetiracetam SZ",
+        "Levetiracetam Viatris",
+        "Levetiracetam-AFT",
+        "Levi 1000",
+        "Levi 250",
+        "Levi 500"
+      ]
+    },
+    {
+      "name": "Levodopa + benserazide",
+      "brand_names": [
+        "Madopar",
+        "Madopar 125",
+        "Madopar 62.5",
+        "Madopar HBS",
+        "Madopar Rapid 125",
+        "Madopar Rapid 62.5"
+      ]
+    },
+    {
+      "name": "Levodopa + carbidopa",
+      "brand_names": [
+        "APO-Levodopa/Carbidopa",
+        "Duodopa",
+        "Kinson",
+        "ORIDOPA 100/25",
+        "SINADOPA 100/25",
+        "SINADOPA 250/25",
+        "Sinemet",
+        "Sinemet 100/25",
+        "Sinemet CR"
+      ]
+    },
+    {
+      "name": "Levodopa + carbidopa + entacapone",
+      "brand_names": [
+        "Carlevent",
+        "L.C.E. Sandoz",
+        "Lecteva",
+        "Stalevo 100/25/200mg",
+        "Stalevo 125/31.25/200mg",
+        "Stalevo 150/37.5/200mg",
+        "Stalevo 200/50/200mg",
+        "Stalevo 50/12.5/200mg",
+        "Stalevo 75/18.75/200mg"
+      ]
+    },
+    {
+      "name": "Levonorgestrel",
+      "brand_names": [
+        "Kyleena",
+        "Microlut 28",
+        "Mirena",
+        "Mirolesa"
+      ]
+    },
+    {
+      "name": "Levonorgestrel + ethinylestradiol",
+      "brand_names": [
+        "Eleanor 150/30 ED",
+        "Evelyn 150/30 ED",
+        "Femme-Tab ED 20/100",
+        "Femme-Tab ED 30/150",
+        "LEVETH 150/30 ED",
+        "Lenest 30 ED",
+        "Levlen ED",
+        "Logynon ED",
+        "Microgynon 50 ED",
+        "Micronelle 30 ED",
+        "Trifeme 28",
+        "Triquilar ED"
+      ]
+    },
+    {
+      "name": "Levothyroxine",
+      "brand_names": [
+        "APO-Levothyroxine",
+        "Eltroxin",
+        "Eutroxsig",
+        "LEVOXINE",
+        "Levothox",
+        "Levothyroxine Lup",
+        "Levothyroxine Sandoz",
+        "Oroxine",
+        "Thyrox"
+      ]
+    },
+    {
+      "name": "Lidocaine",
+      "brand_names": [
+        "LIGNOCAINE INJECTION (BRIDGEWEST)",
+        "Xylocaine Viscous",
+        "Xylocard 500"
+      ]
+    },
+    {
+      "name": "Linagliptin",
+      "brand_names": [
+        "Trajenta"
+      ]
+    },
+    {
+      "name": "Linagliptin + metformin",
+      "brand_names": [
+        "Trajentamet"
+      ]
+    },
+    {
+      "name": "Lincomycin",
+      "brand_names": [
+        "LINCOMYCIN SXP"
+      ]
+    },
+    {
+      "name": "Liothyronine",
+      "brand_names": [
+        "Tertroxin"
+      ]
+    },
+    {
+      "name": "Lipegfilgrastim",
+      "brand_names": [
+        "Lonquex"
+      ]
+    },
+    {
+      "name": "Lisdexamfetamine",
+      "brand_names": [
+        "Vyvanse"
+      ]
+    },
+    {
+      "name": "Lisinopril",
+      "brand_names": [
+        "APO-Lisinopril",
+        "Fibsol 10",
+        "Fibsol 20",
+        "Fibsol 5",
+        "LISINOPRIL-WGR",
+        "Lisinopril Sandoz",
+        "Zestril",
+        "Zinopril 10",
+        "Zinopril 20",
+        "Zinopril 5"
+      ]
+    },
+    {
+      "name": "Loperamide",
+      "brand_names": [
+        "A-WON DIARRHOEA RELIEF CAPSULES",
+        "Gastrex",
+        "Gastro-Stop",
+        "Pharmacy Action Diarrhoea Relief"
+      ]
+    },
+    {
+      "name": "Lopinavir + ritonavir",
+      "brand_names": [
+        "Kaletra"
+      ]
+    },
+    {
+      "name": "Loratadine",
+      "brand_names": [
+        "Allereze",
+        "Claratyne",
+        "Pharmacy Action Lorastyne",
+        "Trust Loratadine",
+        "Trust Loratadine Antihistamine"
+      ]
+    },
+    {
+      "name": "Lorlatinib",
+      "brand_names": [
+        "Lorviqua"
+      ]
+    },
+    {
+      "name": "Lumacaftor + ivacaftor",
+      "brand_names": [
+        "Orkambi"
+      ]
+    },
+    {
+      "name": "Lumasiran",
+      "brand_names": [
+        "Oxlumo"
+      ]
+    },
+    {
+      "name": "Lurasidone",
+      "brand_names": [
+        "APO-Lurasidone",
+        "LURASIDONE SUN",
+        "LURASIDONE-WGR",
+        "Lavione",
+        "Lurasidone Lupin",
+        "Lurasidone Sandoz",
+        "Pharmacor Lurasidone"
+      ]
+    },
+    {
+      "name": "Lutropin alfa",
+      "brand_names": [
+        "Luveris"
+      ]
+    },
+    {
+      "name": "METOPROLOL SUCCINATE",
+      "brand_names": [
+        "Metrol-XL 190",
+        "Metrol-XL 23.75",
+        "Metrol-XL 47.5",
+        "Metrol-XL 95",
+        "Minax XL",
+        "Topreloc-XL",
+        "Toprol-XL 190",
+        "Toprol-XL 47.5",
+        "Toprol-XL 95"
+      ]
+    },
+    {
+      "name": "METOPROLOL TARTRATE",
+      "brand_names": [
+        "APO-Metoprolol",
+        "Betaloc",
+        "METOPROLOL-WGR",
+        "Metoprolol Sandoz",
+        "Metrol 100",
+        "Metrol 50",
+        "Minax 100",
+        "Minax 50",
+        "Mistrom"
+      ]
+    },
+    {
+      "name": "Macitentan",
+      "brand_names": [
+        "Opsumit"
+      ]
+    },
+    {
+      "name": "Macitentan + tadalafil",
+      "brand_names": [
+        "Opsynvi"
+      ]
+    },
+    {
+      "name": "Macrogol-3350",
+      "brand_names": [
+        "OsmoLax"
+      ]
+    },
+    {
+      "name": "Magnesium",
+      "brand_names": [
+        "A-WON Magnesium",
+        "Amcal Mag-A",
+        "Mag-Sup",
+        "MagMin (PBS)",
+        "Magmin",
+        "Pharmacy Care Magnesium"
+      ]
+    },
+    {
+      "name": "Mannitol",
+      "brand_names": [
+        "Bronchitol"
+      ]
+    },
+    {
+      "name": "Maraviroc",
+      "brand_names": [
+        "Celsentri",
+        "Maraviroc Waymade"
+      ]
+    },
+    {
+      "name": "Maribavir",
+      "brand_names": [
+        "Livtencity"
+      ]
+    },
+    {
+      "name": "Mebendazole",
+      "brand_names": [
+        "Pharmacy Action Worm Treatment",
+        "Trust Deworm"
+      ]
+    },
+    {
+      "name": "Mebeverine",
+      "brand_names": [
+        "APO-Mebeverine",
+        "Colese",
+        "Colofac"
+      ]
+    },
+    {
+      "name": "Mecasermin",
+      "brand_names": [
+        "Increlex"
+      ]
+    },
+    {
+      "name": "Medroxyprogesterone",
+      "brand_names": [
+        "Depo-Provera",
+        "Provera",
+        "Ralovera"
+      ]
+    },
+    {
+      "name": "Mefenamic acid",
+      "brand_names": [
+        "FEMIN",
+        "Ponstan"
+      ]
+    },
+    {
+      "name": "Melatonin",
+      "brand_names": [
+        "Slenyto"
+      ]
+    },
+    {
+      "name": "Meloxicam",
+      "brand_names": [
+        "APO-Meloxicam",
+        "APX-Meloxicam",
+        "CIPLA MELOXICAM 15",
+        "CIPLA MELOXICAM 7.5",
+        "MELOBIC",
+        "MELOXICAM-WGR",
+        "Meloxibell",
+        "Meloxicam Sandoz",
+        "Meloxicam Viatris",
+        "Mobic",
+        "Movalis 15",
+        "Movalis 7.5",
+        "Moxicam",
+        "Moxicam 15",
+        "Moxicam 7.5"
+      ]
+    },
+    {
+      "name": "Melphalan",
+      "brand_names": [
+        "Alkeran"
+      ]
+    },
+    {
+      "name": "Memantine",
+      "brand_names": [
+        "APO-Memantine",
+        "Ebixa",
+        "Memantine generichealth",
+        "Memanxa"
+      ]
+    },
+    {
+      "name": "Mepolizumab",
+      "brand_names": [
+        "Nucala"
+      ]
+    },
+    {
+      "name": "Mercaptopurine",
+      "brand_names": [
+        "ARX-Mercaptopurine",
+        "Allmercap",
+        "MERCAPTOPURINE-LINK",
+        "Purinethol"
+      ]
+    },
+    {
+      "name": "Mesalazine",
+      "brand_names": [
+        "Asacol",
+        "MESALZ",
+        "MEZTAS",
+        "Mesalazine 1.2 TAKEDA",
+        "Mesasal",
+        "Mezavant",
+        "Pentasa",
+        "Salofalk"
+      ]
+    },
+    {
+      "name": "Metformin",
+      "brand_names": [
+        "APO-Metformin XR 1000",
+        "APO-Metformin XR 500",
+        "APX-METFORMIN",
+        "Blooms Metformin XR",
+        "Blooms The Chemist Metformin 1000 mg",
+        "Blooms The Chemist Metformin 500 mg",
+        "Blooms The Chemist Metformin 850 mg",
+        "Diabex",
+        "Diabex 1000",
+        "Diabex 850",
+        "Diabex XR 1000",
+        "Diabex XR 500",
+        "Diaformin",
+        "Diaformin 1000",
+        "Diaformin 850",
+        "Diaformin Alphapharm XR",
+        "Diaformin Viatris",
+        "Diaformin XR 1000",
+        "FORMET 500",
+        "FORMET 850",
+        "Formet 1000",
+        "Glucobete 1000",
+        "Glucobete 500",
+        "Glucobete 850",
+        "METEX XR",
+        "METFORMIN-WGR",
+        "METFORMIN-WGR XR",
+        "Metex XR",
+        "Metformin GH",
+        "Metformin Lupin XR",
+        "Metformin Sandoz",
+        "Metformin Sandoz XR",
+        "Pharmacor Metformin XR"
+      ]
+    },
+    {
+      "name": "Methadone",
+      "brand_names": [
+        "Aspen Methadone Syrup",
+        "Biodone Forte"
+      ]
+    },
+    {
+      "name": "Methotrexate",
+      "brand_names": [
+        "ARX-Methotrexate",
+        "Chexate",
+        "DBL Methotrexate",
+        "Methoblastin",
+        "Methotrexate Accord",
+        "Methotrexate Ebewe",
+        "Trexject"
+      ]
+    },
+    {
+      "name": "Methoxsalen",
+      "brand_names": [
+        "Uvadex"
+      ]
+    },
+    {
+      "name": "Methoxy polyethylene glycol-epoetin beta",
+      "brand_names": [
+        "Mircera"
+      ]
+    },
+    {
+      "name": "Methoxyflurane",
+      "brand_names": [
+        "Penthrox (Combination Pack)"
+      ]
+    },
+    {
+      "name": "Methyldopa",
+      "brand_names": [
+        "Aldomet",
+        "Hydopa"
+      ]
+    },
+    {
+      "name": "Methylnaltrexone",
+      "brand_names": [
+        "Relistor"
+      ]
+    },
+    {
+      "name": "Methylphenidate",
+      "brand_names": [
+        "ATTORA LA",
+        "Artige",
+        "Atenza (Spain)",
+        "Concerta",
+        "Concerta (Switzerland)",
+        "METHYLPHENIDATE-TEVA XR",
+        "Methylphenidate Sandoz XR",
+        "Methylphenidate XR ARX",
+        "Rinidate",
+        "Ritalin 10",
+        "Ritalin LA",
+        "Rubifen LA"
+      ]
+    },
+    {
+      "name": "Methylprednisolone",
+      "brand_names": [
+        "Advantan",
+        "Advantan (Fatty)",
+        "Depo-Medrol",
+        "Metvant",
+        "Metvant (Fatty)",
+        "Supriad Cream",
+        "Supriad Fatty Ointment",
+        "Supriad Ointment",
+        "Tanilone (Fatty)"
+      ]
+    },
+    {
+      "name": "Metoclopramide",
+      "brand_names": [
+        "APO-Metoclopramide",
+        "EMEXLON",
+        "METOCLOPRAMIDE INJECTION BP",
+        "METOCLOPRAMIDE-WGR",
+        "Maxolon",
+        "Metoclopramide HCl Medsurge",
+        "Pramin"
+      ]
+    },
+    {
+      "name": "Metronidazole",
+      "brand_names": [
+        "Flagyl",
+        "Flagyl S",
+        "METRONIDAMED",
+        "Metrogyl 200",
+        "Metrogyl 400"
+      ]
+    },
+    {
+      "name": "Mianserin",
+      "brand_names": [
+        "Lumin 10",
+        "Lumin 20"
+      ]
+    },
+    {
+      "name": "Miconazole",
+      "brand_names": [
+        "Daktarin",
+        "Daktarin Tincture"
+      ]
+    },
+    {
+      "name": "Midazolam",
+      "brand_names": [
+        "Pfizer Australia Pty Ltd",
+        "Zyamis"
+      ]
+    },
+    {
+      "name": "Midostaurin",
+      "brand_names": [
+        "Rydapt"
+      ]
+    },
+    {
+      "name": "Migalastat",
+      "brand_names": [
+        "Galafold"
+      ]
+    },
+    {
+      "name": "Minocycline",
+      "brand_names": [
+        "Akamin 50",
+        "Minomycin-50"
+      ]
+    },
+    {
+      "name": "Minoxidil",
+      "brand_names": [
+        "Loniten"
+      ]
+    },
+    {
+      "name": "Mirtazapine",
+      "brand_names": [
+        "APX-Mirtazapine",
+        "Avanza",
+        "Axit 15",
+        "Axit 30",
+        "Axit 45",
+        "Blooms The Chemist Mirtazapine",
+        "MIRTANZA",
+        "MIRTANZA ODT",
+        "MIRTAZAPINE-WGR",
+        "Mirtazapine Sandoz"
+      ]
+    },
+    {
+      "name": "Mitozantrone",
+      "brand_names": [
+        "Mitozantrone Ebewe"
+      ]
+    },
+    {
+      "name": "Moclobemide",
+      "brand_names": [
+        "Amira 150",
+        "Amira 300",
+        "Aurorix",
+        "Aurorix 300 mg",
+        "Clobemix",
+        "MOCLOBEMIDE-WGR",
+        "Moclobemide Sandoz"
+      ]
+    },
+    {
+      "name": "Modafinil",
+      "brand_names": [
+        "APO-Modafinil",
+        "MODAFINIL-WGR",
+        "Modafin",
+        "Modafinil GH",
+        "Modafinil Sandoz",
+        "Modafinil Viatris",
+        "Modavigil"
+      ]
+    },
+    {
+      "name": "Mogamulizumab",
+      "brand_names": [
+        "POTELIGEO"
+      ]
+    },
+    {
+      "name": "Molnupiravir",
+      "brand_names": [
+        "Lagevrio"
+      ]
+    },
+    {
+      "name": "Momelotinib",
+      "brand_names": [
+        "Omjjara"
+      ]
+    },
+    {
+      "name": "Mometasone",
+      "brand_names": [
+        "Elocon",
+        "Elocon Alcohol Free",
+        "GLENMARK MOMETASONE",
+        "GLENMARK MOMETASONE Alcohol Free",
+        "Novasone",
+        "Zatamil"
+      ]
+    },
+    {
+      "name": "Montelukast",
+      "brand_names": [
+        "APX-MONTELUKAST",
+        "MONTELAIR 4",
+        "MONTELAIR 5",
+        "MONTELUKAST-WGR",
+        "Montelukast Lupin",
+        "Montelukast Sandoz 4",
+        "Montelukast Sandoz 5",
+        "Montelukast Viatris"
+      ]
+    },
+    {
+      "name": "Morphine",
+      "brand_names": [
+        "Anamorph",
+        "Kapanol",
+        "MORPHINE SULFATE 10 mg/1 mL MEDSURGE",
+        "MORPHINE SULFATE 15 mg/1 mL MEDSURGE",
+        "MORPHINE SULFATE 30 mg/1 mL MEDSURGE",
+        "MS Contin",
+        "MS Mono",
+        "Morphine Juno",
+        "Morphine Phebra",
+        "Ordine 10",
+        "Ordine 2",
+        "Ordine 5",
+        "Sevredol"
+      ]
+    },
+    {
+      "name": "Moxonidine",
+      "brand_names": [
+        "APO-Moxonidine",
+        "ARX-MOXONIDINE",
+        "MOXONIDINE-WGR",
+        "Moxonidine GH",
+        "Moxonidine GX",
+        "Moxonidine Viatris",
+        "Moxotens",
+        "Physiotens"
+      ]
+    },
+    {
+      "name": "Mupirocin",
+      "brand_names": [
+        "APO-Mupirocin",
+        "Bactroban",
+        "MUPIROCIN-WGR",
+        "Medicianz Mupirocin Ointment",
+        "Mupirocin Nasal (Medsurge)",
+        "SUPIROCIN"
+      ]
+    },
+    {
+      "name": "Mycobacterium bovis BCG Danish strain",
+      "brand_names": [
+        "VesiCulture"
+      ]
+    },
+    {
+      "name": "Mycobacterium bovis BCG Tice strain",
+      "brand_names": [
+        "OncoTICE"
+      ]
+    },
+    {
+      "name": "Mycophenolate",
+      "brand_names": [
+        "APO-Mycophenolate",
+        "ARX-MYCOPHENOLATE",
+        "CellCept",
+        "Ceptolate",
+        "MYCOTEX",
+        "Mycophenolate GH",
+        "Mycophenolate Sandoz",
+        "Mycophenolic Acid ARX",
+        "Myfortic",
+        "Pharmacor Mycophenolate",
+        "Pharmacor Mycophenolate 250",
+        "Pharmacor Mycophenolate 500"
+      ]
+    },
+    {
+      "name": "Nafarelin",
+      "brand_names": [
+        "Synarel"
+      ]
+    },
+    {
+      "name": "Naltrexone",
+      "brand_names": [
+        "ARX-NALTREXONE",
+        "Naltrexone GH"
+      ]
+    },
+    {
+      "name": "Naproxen",
+      "brand_names": [
+        "Anaprox 550",
+        "Crysanal",
+        "Naprosyn",
+        "Naprosyn SR1000",
+        "Naprosyn SR750",
+        "Phebra Naproxen Suspension",
+        "Proxen SR 1000",
+        "Proxen SR 750"
+      ]
+    },
+    {
+      "name": "Naratriptan",
+      "brand_names": [
+        "Naramig"
+      ]
+    },
+    {
+      "name": "Natalizumab",
+      "brand_names": [
+        "Tysabri"
+      ]
+    },
+    {
+      "name": "Nebivolol",
+      "brand_names": [
+        "APO-Nebivolol",
+        "NEBIVOLOL-WGR",
+        "Nebaloc",
+        "Nebilet",
+        "Nebivolol Lupin",
+        "Nebivolol Sandoz",
+        "Nebivolol Viatris",
+        "Nepiten"
+      ]
+    },
+    {
+      "name": "Netupitant + palonosetron",
+      "brand_names": [
+        "Akynzeo"
+      ]
+    },
+    {
+      "name": "Nevirapine",
+      "brand_names": [
+        "Nevirapine Viatris",
+        "Viramune"
+      ]
+    },
+    {
+      "name": "Nicorandil",
+      "brand_names": [
+        "APO-Nicorandil",
+        "Ikotab"
+      ]
+    },
+    {
+      "name": "Nicotine",
+      "brand_names": [
+        "Nicabate P",
+        "Nicotinell Step 1",
+        "Nicotinell Step 2",
+        "Nicotinell Step 3",
+        "nicorette 16hr Invisipatch"
+      ]
+    },
+    {
+      "name": "Nifedipine",
+      "brand_names": [
+        "APO-Nifedipine XR"
+      ]
+    },
+    {
+      "name": "Nilotinib",
+      "brand_names": [
+        "Tasigna"
+      ]
+    },
+    {
+      "name": "Nintedanib",
+      "brand_names": [
+        "Ofev"
+      ]
+    },
+    {
+      "name": "Niraparib",
+      "brand_names": [
+        "Zejula"
+      ]
+    },
+    {
+      "name": "Nitisinone",
+      "brand_names": [
+        "Orfadin"
+      ]
+    },
+    {
+      "name": "Nitrazepam",
+      "brand_names": [
+        "Alodorm",
+        "Mogadon"
+      ]
+    },
+    {
+      "name": "Nitrofurantoin",
+      "brand_names": [
+        "ARX-Nitrofurantoin",
+        "Nitrofurantoin BNM"
+      ]
+    },
+    {
+      "name": "Nivolumab",
+      "brand_names": [
+        "Opdivo"
+      ]
+    },
+    {
+      "name": "Nizatidine",
+      "brand_names": [
+        "Nizac",
+        "Tacidine",
+        "Tazac"
+      ]
+    },
+    {
+      "name": "Norethisterone",
+      "brand_names": [
+        "Noriday 28 Day",
+        "Primolut N"
+      ]
+    },
+    {
+      "name": "Norethisterone + ethinylestradiol",
+      "brand_names": [
+        "Norimin 28 Day",
+        "Norimin-1 28 Day"
+      ]
+    },
+    {
+      "name": "Norfloxacin",
+      "brand_names": [
+        "APO-Norfloxacin",
+        "Roxin"
+      ]
+    },
+    {
+      "name": "Nortriptyline",
+      "brand_names": [
+        "Allegron"
+      ]
+    },
+    {
+      "name": "Nusinersen",
+      "brand_names": [
+        "Spinraza"
+      ]
+    },
+    {
+      "name": "Nystatin",
+      "brand_names": [
+        "Mycostatin Oral Drops",
+        "Nilstat",
+        "Pharmacy Action Nystatin Oral Drops",
+        "Trust Nystatin Oral Drops"
+      ]
+    },
+    {
+      "name": "Obeticholic acid",
+      "brand_names": [
+        "Ocaliva"
+      ]
+    },
+    {
+      "name": "Obinutuzumab",
+      "brand_names": [
+        "Gazyva"
+      ]
+    },
+    {
+      "name": "Ocrelizumab",
+      "brand_names": [
+        "Ocrevus",
+        "Ocrevus SC"
+      ]
+    },
+    {
+      "name": "Octreotide",
+      "brand_names": [
+        "Octreotide (SUN)",
+        "Octreotide GH",
+        "Sandostatin 0.05",
+        "Sandostatin 0.1",
+        "Sandostatin 0.5",
+        "Sandostatin LAR"
+      ]
+    },
+    {
+      "name": "Odevixibat",
+      "brand_names": [
+        "Bylvay"
+      ]
+    },
+    {
+      "name": "Ofatumumab",
+      "brand_names": [
+        "Kesimpta"
+      ]
+    },
+    {
+      "name": "Ofloxacin",
+      "brand_names": [
+        "Ocuflox"
+      ]
+    },
+    {
+      "name": "Olanzapine",
+      "brand_names": [
+        "APO-OLANZAPINE",
+        "APO-Olanzapine ODT",
+        "OLANZAPINE ODT-WGR",
+        "Olanzapine RBX",
+        "Olanzapine Sandoz",
+        "Olanzapine Sandoz ODT 10",
+        "Olanzapine Sandoz ODT 15",
+        "Olanzapine Sandoz ODT 20",
+        "Olanzapine Sandoz ODT 5",
+        "Ozin 10",
+        "Ozin 2.5",
+        "Ozin 5",
+        "Ozin 7.5",
+        "PRYZEX",
+        "PRYZEX ODT",
+        "Zypine",
+        "Zypine ODT",
+        "Zyprexa",
+        "Zyprexa Relprevv",
+        "Zyprexa Zydis"
+      ]
+    },
+    {
+      "name": "Olaparib",
+      "brand_names": [
+        "Lynparza"
+      ]
+    },
+    {
+      "name": "Olmesartan",
+      "brand_names": [
+        "APO-Olmesartan",
+        "APX-Olmesartan",
+        "Blooms The Chemist Olmesartan",
+        "OLMERTAN",
+        "OLMESARTAN-WGR",
+        "Olmesartan - MYL",
+        "Olmesartan Sandoz",
+        "Olmetec",
+        "Olsetan",
+        "Pharmacor Olmesartan 20",
+        "Pharmacor Olmesartan 40"
+      ]
+    },
+    {
+      "name": "Olmesartan + amlodipine",
+      "brand_names": [
+        "APO-OLMESARTAN/AMLODIPINE 20/5",
+        "APO-OLMESARTAN/AMLODIPINE 40/10",
+        "APO-OLMESARTAN/AMLODIPINE 40/5",
+        "OLMEKAR",
+        "OLMESARTAN AMLODIPINE-WGR 20/5",
+        "OLMESARTAN AMLODIPINE-WGR 40/10",
+        "OLMESARTAN AMLODIPINE-WGR 40/5",
+        "Olmesartan/Amlodipine - MYL 20/5",
+        "Olmesartan/Amlodipine - MYL 40/10",
+        "Olmesartan/Amlodipine - MYL 40/5",
+        "Olmesartan/Amlodipine Sandoz",
+        "Pharmacor Olmesartan Amlodipine 20/5",
+        "Pharmacor Olmesartan Amlodipine 40/10",
+        "Pharmacor Olmesartan Amlodipine 40/5",
+        "Sevikar 20/5",
+        "Sevikar 40/10",
+        "Sevikar 40/5"
+      ]
+    },
+    {
+      "name": "Olmesartan + amlodipine + hydrochlorothiazide",
+      "brand_names": [
+        "APO-Olmesartan/Amlodipine/HCTZ 20/5/12.5",
+        "APO-Olmesartan/Amlodipine/HCTZ 40/10/12.5",
+        "APO-Olmesartan/Amlodipine/HCTZ 40/10/25",
+        "APO-Olmesartan/Amlodipine/HCTZ 40/5/12.5 tablet",
+        "APO-Olmesartan/Amlodipine/HCTZ 40/5/25 tablet",
+        "Olamlo HCT 20/5/12.5",
+        "Olamlo HCT 40/10/12.5",
+        "Olamlo HCT 40/10/25",
+        "Olamlo HCT 40/5/12.5",
+        "Olamlo HCT 40/5/25",
+        "Sevikar HCT 20/5/12.5",
+        "Sevikar HCT 40/10/12.5",
+        "Sevikar HCT 40/10/25",
+        "Sevikar HCT 40/5/12.5",
+        "Sevikar HCT 40/5/25"
+      ]
+    },
+    {
+      "name": "Olmesartan + hydrochlorothiazide",
+      "brand_names": [
+        "APO-Olmesartan/HCTZ 20/12.5",
+        "APO-Olmesartan/HCTZ 40/12.5",
+        "APO-Olmesartan/HCTZ 40/25",
+        "APX-Olmesartan/HCTZ",
+        "OLMERTAN COMBI 20/12.5",
+        "OLMERTAN COMBI 40/12.5",
+        "OLMERTAN COMBI 40/25",
+        "OLMESARTAN HCTZ-WGR 20/12.5",
+        "OLMESARTAN HCTZ-WGR 40/12.5",
+        "OLMESARTAN HCTZ-WGR 40/25",
+        "Olmesartan HCT - MYL 20/12.5",
+        "Olmesartan HCT - MYL 40/12.5",
+        "Olmesartan HCT - MYL 40/25",
+        "Olmesartan HCT Viatris",
+        "Olmesartan/HCT Sandoz",
+        "Olmetec Plus",
+        "Pharmacor Olmesartan HCTZ 20/12.5",
+        "Pharmacor Olmesartan HCTZ 40/12.5",
+        "Pharmacor Olmesartan HCTZ 40/25"
+      ]
+    },
+    {
+      "name": "Olsalazine",
+      "brand_names": [
+        "Dipentum"
+      ]
+    },
+    {
+      "name": "Omalizumab",
+      "brand_names": [
+        "Omlyclo",
+        "Xolair"
+      ]
+    },
+    {
+      "name": "Omeprazole",
+      "brand_names": [
+        "APO-Omeprazole",
+        "Acimax Tablets",
+        "Losec Tablets",
+        "Maxor",
+        "Maxor EC Tabs",
+        "OMEPRAZOLE CAPS WGR",
+        "OMEPRAZOLE-WGR",
+        "Omepral",
+        "Omeprazole Sandoz",
+        "Ozmep",
+        "Pharmacor Omeprazole 20",
+        "Probitor"
+      ]
+    },
+    {
+      "name": "Onasemnogene abeparvovec",
+      "brand_names": [
+        "Zolgensma"
+      ]
+    },
+    {
+      "name": "Ondansetron",
+      "brand_names": [
+        "APX-Ondansetron",
+        "APX-Ondansetron ODT",
+        "ONDANSETRON ODT-WGR",
+        "ONDANSETRON-AFT",
+        "ONDANSETRON-WGR",
+        "Ondansetron ODT Lupin",
+        "Ondansetron ODT VTRS",
+        "Ondansetron ODT Viatris",
+        "Ondansetron ODT-DRLA",
+        "Ondansetron SZ",
+        "Ondansetron SZ ODT",
+        "Ondansetron Tablets Viatris",
+        "Ondansetron VTRS",
+        "Ondansetron-DRLA",
+        "Zofran",
+        "Zofran Zydis",
+        "Zofran syrup 50 mL",
+        "Zotren 4",
+        "Zotren 8",
+        "Zotren ODT"
+      ]
+    },
+    {
+      "name": "Opicapone",
+      "brand_names": [
+        "Ongentys"
+      ]
+    },
+    {
+      "name": "Orlistat",
+      "brand_names": [
+        "Xenical"
+      ]
+    },
+    {
+      "name": "Osilodrostat",
+      "brand_names": [
+        "Isturisa"
+      ]
+    },
+    {
+      "name": "Osimertinib",
+      "brand_names": [
+        "Tagrisso"
+      ]
+    },
+    {
+      "name": "Oxaliplatin",
+      "brand_names": [
+        "OXALIPLATIN BAXTER",
+        "Oxaliplatin Accord"
+      ]
+    },
+    {
+      "name": "Oxazepam",
+      "brand_names": [
+        "APO-Oxazepam",
+        "Alepam 15",
+        "Alepam 30",
+        "Murelax",
+        "OXAZEPAM-WGR",
+        "Serepax"
+      ]
+    },
+    {
+      "name": "Oxcarbazepine",
+      "brand_names": [
+        "Trileptal"
+      ]
+    },
+    {
+      "name": "Oxybutynin",
+      "brand_names": [
+        "Ditropan",
+        "Oxytrol"
+      ]
+    },
+    {
+      "name": "Oxycodone",
+      "brand_names": [
+        "ENDONE",
+        "Mayne Pharma Oxycodone IR",
+        "OxyContin",
+        "OxyNorm",
+        "OxyNorm Liquid 1mg/mL",
+        "Oxycodone BNM",
+        "Oxycodone Sandoz",
+        "Oxycodone Viatris",
+        "Oxyndone"
+      ]
+    },
+    {
+      "name": "Oxycodone + naloxone",
+      "brand_names": [
+        "ARX-Oxycodone/Naloxone 10/5",
+        "ARX-Oxycodone/Naloxone 15/7.5",
+        "ARX-Oxycodone/Naloxone 2.5/1.25",
+        "ARX-Oxycodone/Naloxone 20/10",
+        "ARX-Oxycodone/Naloxone 30/15",
+        "ARX-Oxycodone/Naloxone 40/20",
+        "ARX-Oxycodone/Naloxone 5/2.5",
+        "ARX-Oxycodone/Naloxone 60/30",
+        "ARX-Oxycodone/Naloxone 80/40",
+        "OXYCODONE NALOXONE ADVZ XR 10/5",
+        "OXYCODONE NALOXONE ADVZ XR 20/10",
+        "OXYCODONE NALOXONE ADVZ XR 30/15",
+        "OXYCODONE NALOXONE ADVZ XR 40/20",
+        "OXYCODONE NALOXONE ADVZ XR 5/2.5",
+        "Targin 10/5mg",
+        "Targin 15/7.5mg",
+        "Targin 2.5/1.25 mg",
+        "Targin 20/10mg",
+        "Targin 30/15 mg",
+        "Targin 40/20mg",
+        "Targin 5/2.5mg",
+        "Targin 60/30",
+        "Targin 80/40"
+      ]
+    },
+    {
+      "name": "Oxymetazoline",
+      "brand_names": [
+        "Drixine",
+        "Logicin Rapid Relief",
+        "Pharmacy Action Nasal Decongestant",
+        "Trust Decongestant Nasal Spray"
+      ]
+    },
+    {
+      "name": "Ozanimod",
+      "brand_names": [
+        "Zeposia"
+      ]
+    },
+    {
+      "name": "Paclitaxel",
+      "brand_names": [
+        "Paclitaxel Accord",
+        "Paclitaxel Ebewe"
+      ]
+    },
+    {
+      "name": "Palbociclib",
+      "brand_names": [
+        "Ibrance"
+      ]
+    },
+    {
+      "name": "Paliperidone",
+      "brand_names": [
+        "Invega",
+        "Invega Hafyera",
+        "Invega Sustenna",
+        "Invega Trinza"
+      ]
+    },
+    {
+      "name": "Palonosetron",
+      "brand_names": [
+        "PALONOSETRON Medsurge",
+        "Palonosetron Dr.Reddy''s",
+        "Palonosetron JN"
+      ]
+    },
+    {
+      "name": "Panitumumab",
+      "brand_names": [
+        "Vectibix"
+      ]
+    },
+    {
+      "name": "Pantoprazole",
+      "brand_names": [
+        "APO-Pantoprazole",
+        "APX-PANTOPRAZOLE",
+        "BTC Pantoprazole",
+        "I-Pantoprazole",
+        "Ozpan",
+        "PANTOPRAZOLE-WGR",
+        "Panthron",
+        "Pantoprazole Sandoz",
+        "Pantoprazole generichealth",
+        "Salpraz",
+        "Somac",
+        "Sozol"
+      ]
+    },
+    {
+      "name": "Paracetamol",
+      "brand_names": [
+        "APO-Paracetamol",
+        "APOHEALTH Osteo Relief Paracetamol 665 mg",
+        "Chemists'' Own Osteo Relief Paracetamol",
+        "Febridol",
+        "Osteomol 665 Paracetamol",
+        "PHARMACY CARE PARACETAMOL",
+        "Panadol",
+        "Panamax",
+        "Panamax 240 Elixir",
+        "Paracetamol (Sandoz)",
+        "Paracetamol Sandoz Pharma",
+        "Paralgin",
+        "Parapane OSTEO",
+        "Pharmacy Action Paracetamol Osteo 665",
+        "Trust for Kids Paracetamol 6 to 12 years",
+        "Wagner Health Paracetamol"
+      ]
+    },
+    {
+      "name": "Paracetamol + codeine",
+      "brand_names": [
+        "APO- Paracetamol/Codeine 500/30",
+        "APX-Paracetamol/Codeine",
+        "Codalgin Forte",
+        "Codapane Forte 500/30",
+        "Comfarol Forte",
+        "Panadeine Forte",
+        "Panamax Co. 40",
+        "Paracetamol/Codeine GH 500/30",
+        "Prodeine Forte"
+      ]
+    },
+    {
+      "name": "Paraffin",
+      "brand_names": [
+        "Poly Visc"
+      ]
+    },
+    {
+      "name": "Paroxetine",
+      "brand_names": [
+        "APX-Paroxetine",
+        "Aropax",
+        "Blooms The Chemist Paroxetine",
+        "Extine 20",
+        "PAROXETINE-WGR",
+        "Paroxetine GH",
+        "Paroxetine Sandoz",
+        "Paxtine"
+      ]
+    },
+    {
+      "name": "Pazopanib",
+      "brand_names": [
+        "Pazopanib ADVZ",
+        "Pazopanib Dr.Reddy''s",
+        "Pazopanib-RZ",
+        "Votrient"
+      ]
+    },
+    {
+      "name": "Pegcetacoplan",
+      "brand_names": [
+        "Empaveli"
+      ]
+    },
+    {
+      "name": "Pegfilgrastim",
+      "brand_names": [
+        "Pelgraz",
+        "Ziextenzo"
+      ]
+    },
+    {
+      "name": "Peginterferon alfa-2a",
+      "brand_names": [
+        "Pegasys",
+        "Pegasys (Ireland)"
+      ]
+    },
+    {
+      "name": "Peginterferon beta-1a",
+      "brand_names": [
+        "Plegridy"
+      ]
+    },
+    {
+      "name": "Pegunigalsidase alfa",
+      "brand_names": [
+        "ELFABRIO"
+      ]
+    },
+    {
+      "name": "Pegvisomant",
+      "brand_names": [
+        "Somavert"
+      ]
+    },
+    {
+      "name": "Pembrolizumab",
+      "brand_names": [
+        "Keytruda"
+      ]
+    },
+    {
+      "name": "Pemetrexed",
+      "brand_names": [
+        "PEMETREXED EUGIA",
+        "Pemetrexed Accord",
+        "Pemetrexed Ever Pharma",
+        "Pemetrexed SUN",
+        "Pemetrexed-AFT"
+      ]
+    },
+    {
+      "name": "Penicillamine",
+      "brand_names": [
+        "D-Penamine"
+      ]
+    },
+    {
+      "name": "Perampanel",
+      "brand_names": [
+        "Fycompa"
+      ]
+    },
+    {
+      "name": "Periciazine",
+      "brand_names": [
+        "Neulactil"
+      ]
+    },
+    {
+      "name": "Perindopril",
+      "brand_names": [
+        "APO-Perindopril",
+        "APO-Perindopril Arginine",
+        "APX-Perindopril Arginine",
+        "Coversyl 10mg",
+        "Coversyl 2.5mg",
+        "Coversyl 5mg",
+        "PERINDOPRIL-WGR",
+        "PERISYL",
+        "PREXUM 10",
+        "PREXUM 2.5",
+        "PREXUM 5",
+        "Perindopril Arginine Sandoz",
+        "Perindopril Arginine-WGR"
+      ]
+    },
+    {
+      "name": "Perindopril + amlodipine",
+      "brand_names": [
+        "APO-Perindopril Arginine/Amlodipine 10/10",
+        "APO-Perindopril Arginine/Amlodipine 10/5",
+        "APO-Perindopril Arginine/Amlodipine 5/10",
+        "APO-Perindopril Arginine/Amlodipine 5/5",
+        "APX-Perindopril Arginine/Amlodipine 10/10",
+        "APX-Perindopril Arginine/Amlodipine 10/5",
+        "APX-Perindopril Arginine/Amlodipine 5/10",
+        "APX-Perindopril Arginine/Amlodipine 5/5",
+        "Coveram 10/10",
+        "Coveram 10/5",
+        "Coveram 5/10",
+        "Coveram 5/5",
+        "Perindopril Arginine/Amlodipine-WGR 10/10",
+        "Perindopril Arginine/Amlodipine-WGR 10/5",
+        "Perindopril Arginine/Amlodipine-WGR 5/10",
+        "Perindopril Arginine/Amlodipine-WGR 5/5",
+        "Reaptan 10/10",
+        "Reaptan 10/5",
+        "Reaptan 5/10",
+        "Reaptan 5/5"
+      ]
+    },
+    {
+      "name": "Perindopril + indapamide",
+      "brand_names": [
+        "APO-Perindopril/Indapamide",
+        "Coversyl Plus 5mg/1.25mg",
+        "Coversyl Plus LD 2.5mg/0.625mg",
+        "GenRx Perindopril/ Indapamide 4/1.25",
+        "PERINDOPRIL/INDAPAMIDE-WGR 4/1.25",
+        "PERISYL COMBI 4/1.25",
+        "PREXUM Combi LD 2.5/0.625",
+        "Prexum Combi 5/1.25"
+      ]
+    },
+    {
+      "name": "Permethrin",
+      "brand_names": [
+        "Lyclear"
+      ]
+    },
+    {
+      "name": "Pertuzumab",
+      "brand_names": [
+        "Perjeta"
+      ]
+    },
+    {
+      "name": "Phenelzine",
+      "brand_names": [
+        "Nardil"
+      ]
+    },
+    {
+      "name": "Phenobarbital",
+      "brand_names": [
+        "Phenobarb",
+        "Phenobarbital Tablets, USP 30 mg (Rising Pharmaceuticals, USA)",
+        "Phenobarbitone Injection (Aspen Pharmacare Australia Pty Ltd)"
+      ]
+    },
+    {
+      "name": "Phenoxybenzamine",
+      "brand_names": [
+        "Amdipharm Mercury (Australia) Pty Limited",
+        "Dibenyline"
+      ]
+    },
+    {
+      "name": "Phenoxymethylpenicillin",
+      "brand_names": [
+        "Aspecillin VK",
+        "Cilicaine V",
+        "Cilicaine VK",
+        "LPV",
+        "Phenoxymethylpenicillin-AFT"
+      ]
+    },
+    {
+      "name": "Phenytoin",
+      "brand_names": [
+        "Dilantin",
+        "Dilantin Infatabs",
+        "Dilantin Sodium"
+      ]
+    },
+    {
+      "name": "Phytomenadione",
+      "brand_names": [
+        "Konakion MM"
+      ]
+    },
+    {
+      "name": "Pilocarpine",
+      "brand_names": [
+        "Isopto Carpine"
+      ]
+    },
+    {
+      "name": "Pimecrolimus",
+      "brand_names": [
+        "Elidel"
+      ]
+    },
+    {
+      "name": "Pioglitazone",
+      "brand_names": [
+        "ARX-PIOGLITAZONE",
+        "Actos",
+        "Vexazone"
+      ]
+    },
+    {
+      "name": "Pirfenidone",
+      "brand_names": [
+        "ARX-Pirfenidone",
+        "Pirfenidet",
+        "Pirfenidone Ameda",
+        "Pirfenidone Dr.Reddy''s",
+        "Pirfenidone Sandoz"
+      ]
+    },
+    {
+      "name": "Piroxicam",
+      "brand_names": [
+        "APO-Piroxicam"
+      ]
+    },
+    {
+      "name": "Pizotifen",
+      "brand_names": [
+        "Sandomigran 0.5"
+      ]
+    },
+    {
+      "name": "Plerixafor",
+      "brand_names": [
+        "PLERIXAFOR EUGIA",
+        "Plerixafor ARX"
+      ]
+    },
+    {
+      "name": "Pomalidomide",
+      "brand_names": [
+        "Pomalidomide Sandoz",
+        "Pomolide"
+      ]
+    },
+    {
+      "name": "Ponatinib",
+      "brand_names": [
+        "Iclusig"
+      ]
+    },
+    {
+      "name": "Posaconazole",
+      "brand_names": [
+        "POSACONAZOLE DR.REDDY''S",
+        "POSACONAZOLE-WGR",
+        "POSMED",
+        "Pharmacor Posaconazole",
+        "Posaconazole ARX",
+        "Posaconazole Juno",
+        "Posaconazole Sandoz"
+      ]
+    },
+    {
+      "name": "Potassium chloride",
+      "brand_names": [
+        "Span-K"
+      ]
+    },
+    {
+      "name": "Povidone-iodine",
+      "brand_names": [
+        "Betadine Antiseptic Liquid"
+      ]
+    },
+    {
+      "name": "Pralatrexate",
+      "brand_names": [
+        "Folotyn"
+      ]
+    },
+    {
+      "name": "Pramipexole",
+      "brand_names": [
+        "APO-Pramipexole",
+        "SIMIPEX XR",
+        "Sifrol",
+        "Sifrol ER",
+        "Simipex 0.125",
+        "Simipex 0.25",
+        "Simipex 1",
+        "Simpral"
+      ]
+    },
+    {
+      "name": "Prasugrel",
+      "brand_names": [
+        "Prasugrel Lupin"
+      ]
+    },
+    {
+      "name": "Pravastatin",
+      "brand_names": [
+        "APX-Pravastatin",
+        "Cholstat 10",
+        "Cholstat 20",
+        "Cholstat 40",
+        "Lipostat 10",
+        "Lipostat 20",
+        "Lipostat 40",
+        "Lipostat 80",
+        "PRAVASTATIN-WGR",
+        "Pravachol",
+        "Pravastatin Sandoz"
+      ]
+    },
+    {
+      "name": "Praziquantel",
+      "brand_names": [
+        "Distocide (Korea)",
+        "Praziquantel Tablets, USP 600 mg (Endo, USA)"
+      ]
+    },
+    {
+      "name": "Prazosin",
+      "brand_names": [
+        "APO-Prazosin",
+        "Minipress",
+        "Prazosin Hydrochloride Capsules, USP 1 mg (Novitium Pharma, USA)"
+      ]
+    },
+    {
+      "name": "Prednisolone",
+      "brand_names": [
+        "Panafcortelone",
+        "Predsolone",
+        "Solone"
+      ]
+    },
+    {
+      "name": "Prednisone",
+      "brand_names": [
+        "Panafcort",
+        "Predsone",
+        "Sone"
+      ]
+    },
+    {
+      "name": "Pregabalin",
+      "brand_names": [
+        "APO-Pregabalin",
+        "BTC Pregabalin",
+        "Lyrica",
+        "Lyzalon",
+        "Neuroccord",
+        "PREGABALIN-DRLA",
+        "PREGABALIN-WGR",
+        "Prebalin",
+        "Pregabalin Lupin",
+        "Pregabalin Sandoz"
+      ]
+    },
+    {
+      "name": "Primidone",
+      "brand_names": [
+        "Mysoline"
+      ]
+    },
+    {
+      "name": "Probenecid",
+      "brand_names": [
+        "Pro-Cid"
+      ]
+    },
+    {
+      "name": "Progesterone",
+      "brand_names": [
+        "Crinone 8%",
+        "Endometrin",
+        "Oripro",
+        "PROGESTERONE-APX",
+        "Progesterone ADVZ 100",
+        "Progesterone BNM 200",
+        "Prometrium",
+        "Utrogestan"
+      ]
+    },
+    {
+      "name": "Propranolol",
+      "brand_names": [
+        "APO-Propranolol",
+        "Deralin 10",
+        "Deralin 40",
+        "Inderal",
+        "PROPRANOLOL-WGR"
+      ]
+    },
+    {
+      "name": "Propylene glycol",
+      "brand_names": [
+        "Systane Balance"
+      ]
+    },
+    {
+      "name": "Propylthiouracil",
+      "brand_names": [
+        "PTU"
+      ]
+    },
+    {
+      "name": "Pseudoephedrine",
+      "brand_names": [
+        "Pharmacy Action Sinus & Nasal Decongestant Relief",
+        "Trust Sinus & Nasal Decongestant"
+      ]
+    },
+    {
+      "name": "Pyrantel",
+      "brand_names": [
+        "Anthel 125",
+        "Anthel 250"
+      ]
+    },
+    {
+      "name": "Pyridostigmine",
+      "brand_names": [
+        "Mestinon",
+        "Mestinon Timespan"
+      ]
+    },
+    {
+      "name": "Quetiapine",
+      "brand_names": [
+        "APX-QUETIAPINE",
+        "APX-Quetiapine XR",
+        "Blooms The Chemist Quetiapine",
+        "Kaptan",
+        "Pharmacor Quetiapine 100",
+        "Pharmacor Quetiapine 200",
+        "Pharmacor Quetiapine 25",
+        "Pharmacor Quetiapine 300",
+        "QUETIAPINE-AS XR",
+        "QUETIAPINE-WGR",
+        "Quetia 100",
+        "Quetia 200",
+        "Quetia 25",
+        "Quetia 300",
+        "Quetia XR",
+        "Quetiapine RBX",
+        "Quetiapine Sandoz Pharma",
+        "Quetiapine Sandoz XR",
+        "Seroquel",
+        "Seroquel XR",
+        "Syquet",
+        "Tevatiapine XR"
+      ]
+    },
+    {
+      "name": "Quinapril",
+      "brand_names": [
+        "ACQUIN",
+        "APO-Quinapril"
+      ]
+    },
+    {
+      "name": "Quinine",
+      "brand_names": [
+        "Quinate"
+      ]
+    },
+    {
+      "name": "Rabeprazole",
+      "brand_names": [
+        "APO-Rabeprazole",
+        "Parbezol",
+        "RABEPRAZOLE-WGR",
+        "Rabeprazole Mylan",
+        "Rabeprazole SUN",
+        "Rabeprazole Sandoz",
+        "Rabeprazole Viatris",
+        "Zabep"
+      ]
+    },
+    {
+      "name": "Raltegravir",
+      "brand_names": [
+        "Isentress",
+        "Isentress HD"
+      ]
+    },
+    {
+      "name": "Raltitrexed",
+      "brand_names": [
+        "Tomudex"
+      ]
+    },
+    {
+      "name": "Ramipril",
+      "brand_names": [
+        "APO-Ramipril",
+        "APX-Ramipril",
+        "Prilace",
+        "RAMIPRIL TABS-WGR",
+        "RAMIPRIL-WGR",
+        "Ramipril Sandoz",
+        "Ramipril Viatris",
+        "Ramipril Winthrop",
+        "Tritace",
+        "Tritace 10 mg",
+        "Tritace 2.5 mg",
+        "Tritace 5 mg",
+        "Tryzan Caps 1.25",
+        "Tryzan Caps 10",
+        "Tryzan Caps 2.5",
+        "Tryzan Caps 5"
+      ]
+    },
+    {
+      "name": "Ramipril + felodipine",
+      "brand_names": [
+        "Triasyn 5.0/5.0"
+      ]
+    },
+    {
+      "name": "Ranibizumab",
+      "brand_names": [
+        "Lucentis"
+      ]
+    },
+    {
+      "name": "Ranitidine",
+      "brand_names": [
+        "APO-Ranitidine",
+        "Zantac 150",
+        "Zantac 300"
+      ]
+    },
+    {
+      "name": "Rasagiline",
+      "brand_names": [
+        "Alziras",
+        "Azilect",
+        "Pharmacor Rasagiline",
+        "Rasagiline Lupin",
+        "Rasagiline-Teva"
+      ]
+    },
+    {
+      "name": "Ravulizumab",
+      "brand_names": [
+        "Ultomiris"
+      ]
+    },
+    {
+      "name": "Reboxetine",
+      "brand_names": [
+        "Edronax"
+      ]
+    },
+    {
+      "name": "Repotrectinib",
+      "brand_names": [
+        "Augtyro"
+      ]
+    },
+    {
+      "name": "Ribociclib",
+      "brand_names": [
+        "Kisqali"
+      ]
+    },
+    {
+      "name": "Rifabutin",
+      "brand_names": [
+        "Mycobutin"
+      ]
+    },
+    {
+      "name": "Rifampicin",
+      "brand_names": [
+        "Rimycin 150",
+        "Rimycin 300"
+      ]
+    },
+    {
+      "name": "Rifaximin",
+      "brand_names": [
+        "Xifaxan"
+      ]
+    },
+    {
+      "name": "Rilpivirine",
+      "brand_names": [
+        "Edurant"
+      ]
+    },
+    {
+      "name": "Riluzole",
+      "brand_names": [
+        "Pharmacor Riluzole",
+        "Rilutek",
+        "Riluzole Sandoz",
+        "Teglutik"
+      ]
+    },
+    {
+      "name": "Riociguat",
+      "brand_names": [
+        "Adempas"
+      ]
+    },
+    {
+      "name": "Ripretinib",
+      "brand_names": [
+        "Qinlock"
+      ]
+    },
+    {
+      "name": "Risankizumab",
+      "brand_names": [
+        "Skyrizi"
+      ]
+    },
+    {
+      "name": "Risdiplam",
+      "brand_names": [
+        "Evrysdi"
+      ]
+    },
+    {
+      "name": "Risperidone",
+      "brand_names": [
+        "APO-Risperidone",
+        "Ozidal",
+        "Rispa",
+        "Risperdal",
+        "Risperdal Consta",
+        "Risperidone Lupin",
+        "Risperidone Sandoz",
+        "Rispernia",
+        "Risvan",
+        "Rixadone"
+      ]
+    },
+    {
+      "name": "Ritonavir",
+      "brand_names": [
+        "Norvir"
+      ]
+    },
+    {
+      "name": "Rituximab",
+      "brand_names": [
+        "Riximyo",
+        "Ruxience",
+        "Truxima"
+      ]
+    },
+    {
+      "name": "Rivaroxaban",
+      "brand_names": [
+        "APO-Rivaroxaban",
+        "ARX-Rivaroxaban 10",
+        "ARX-Rivaroxaban 15",
+        "ARX-Rivaroxaban 20",
+        "RIVAXIB",
+        "RIVOXA",
+        "Relaban",
+        "Rivarelto",
+        "Rivaroxaban Dr.Reddy''s",
+        "Rivaroxaban Lupin",
+        "Rivaroxaban Sandoz",
+        "Rivaroxaban-Teva",
+        "Rivoxa",
+        "TROXA",
+        "XAREMED",
+        "Xarelto",
+        "iXarola"
+      ]
+    },
+    {
+      "name": "Rivastigmine",
+      "brand_names": [
+        "Exelon",
+        "Exelon Patch 10",
+        "Exelon Patch 15",
+        "Exelon Patch 5"
+      ]
+    },
+    {
+      "name": "Rizatriptan",
+      "brand_names": [
+        "APO-RIZATRIPTAN ODT",
+        "Maxalt",
+        "RIXALT",
+        "RIZATRIPTAN ODT-WGR",
+        "Rizatriptan ODT Viatris",
+        "Rizatriptan Wafers-10mg",
+        "Rizatriptan-Au"
+      ]
+    },
+    {
+      "name": "Romidepsin",
+      "brand_names": [
+        "ROMIDEPSIN-REACH"
+      ]
+    },
+    {
+      "name": "Romiplostim",
+      "brand_names": [
+        "Nplate"
+      ]
+    },
+    {
+      "name": "Romosozumab",
+      "brand_names": [
+        "Evenity"
+      ]
+    },
+    {
+      "name": "Rosuvastatin",
+      "brand_names": [
+        "APO-ROSUVASTATIN",
+        "APX-Rosuvastatin",
+        "Blooms Rosuvastatin",
+        "Cavstat",
+        "Crestor",
+        "Crosuva 10",
+        "Crosuva 20",
+        "Crosuva 40",
+        "Crosuva 5",
+        "Pharmacor Rosuvastatin 10",
+        "Pharmacor Rosuvastatin 20",
+        "Pharmacor Rosuvastatin 40",
+        "Pharmacor Rosuvastatin 5",
+        "ROSUVASTATIN-WGR",
+        "Rosuvastatin Lupin",
+        "Rosuvastatin RBX",
+        "Rosuvastatin Sandoz"
+      ]
+    },
+    {
+      "name": "Rotigotine",
+      "brand_names": [
+        "Neupro"
+      ]
+    },
+    {
+      "name": "Roxithromycin",
+      "brand_names": [
+        "APX-Roxithromycin",
+        "ROXITHROMYCIN-WGR",
+        "Roxar 150",
+        "Roxar 300",
+        "Roxithromycin Sandoz"
+      ]
+    },
+    {
+      "name": "Rozanolixizumab",
+      "brand_names": [
+        "Rystiggo"
+      ]
+    },
+    {
+      "name": "Ruxolitinib",
+      "brand_names": [
+        "Jakavi"
+      ]
+    },
+    {
+      "name": "Sacituzumab govitecan",
+      "brand_names": [
+        "Trodelvy"
+      ]
+    },
+    {
+      "name": "Sacubitril + valsartan",
+      "brand_names": [
+        "Entresto",
+        "Omtralo",
+        "Pharmacor Sacubitril/Valsartan",
+        "SACUBITRIL/VALSARTAN-WGR",
+        "Sacubitril/Valsartan Alphapharm",
+        "Sacubitril/Valsartan Lupin 24/26",
+        "Sacubitril/Valsartan Lupin 49/51",
+        "Sacubitril/Valsartan Lupin 97/103",
+        "Valtresto"
+      ]
+    },
+    {
+      "name": "Safinamide",
+      "brand_names": [
+        "ARX-Safinamide",
+        "XAFIMED",
+        "Xadago"
+      ]
+    },
+    {
+      "name": "Salbutamol",
+      "brand_names": [
+        "Airomir Autohaler",
+        "Asmol CFC-Free with dose counter",
+        "Salbutamol (as sulfate) (Accord, UK)",
+        "Salbutamol Cipla",
+        "Ventolin",
+        "Ventolin CFC-Free with dose counter",
+        "Ventolin Nebules",
+        "Zempreon CFC-Free with dose counter"
+      ]
+    },
+    {
+      "name": "Salmeterol",
+      "brand_names": [
+        "Serevent Accuhaler"
+      ]
+    },
+    {
+      "name": "Sapropterin",
+      "brand_names": [
+        "Kuvan"
+      ]
+    },
+    {
+      "name": "Saxagliptin",
+      "brand_names": [
+        "Onglyza"
+      ]
+    },
+    {
+      "name": "Saxagliptin + metformin",
+      "brand_names": [
+        "Kombiglyze XR 2.5/1000",
+        "Kombiglyze XR 5/1000",
+        "Kombiglyze XR 5/500"
+      ]
+    },
+    {
+      "name": "Secukinumab",
+      "brand_names": [
+        "Cosentyx"
+      ]
+    },
+    {
+      "name": "Selegiline",
+      "brand_names": [
+        "Eldepryl"
+      ]
+    },
+    {
+      "name": "Selenium sulfide",
+      "brand_names": [
+        "Selsun"
+      ]
+    },
+    {
+      "name": "Selinexor",
+      "brand_names": [
+        "Xpovio"
+      ]
+    },
+    {
+      "name": "Selpercatinib",
+      "brand_names": [
+        "Retevmo"
+      ]
+    },
+    {
+      "name": "Selumetinib",
+      "brand_names": [
+        "Koselugo"
+      ]
+    },
+    {
+      "name": "Semaglutide",
+      "brand_names": [
+        "Ozempic"
+      ]
+    },
+    {
+      "name": "Sennoside B",
+      "brand_names": [
+        "Senna-Gen",
+        "Senokot"
+      ]
+    },
+    {
+      "name": "Sertraline",
+      "brand_names": [
+        "APO-Sertraline",
+        "Blooms The Chemist Sertraline",
+        "Eleva 100",
+        "Eleva 50",
+        "SERTRALINE-WGR",
+        "Sertra 100",
+        "Sertra 50",
+        "Sertraline Sandoz",
+        "Sertraline generichealth",
+        "Setrona",
+        "Zoloft"
+      ]
+    },
+    {
+      "name": "Sildenafil",
+      "brand_names": [
+        "NOUMED Sildenafil",
+        "Sildenafil APOTEX",
+        "Sildenafil Lupin",
+        "Sildenafil Sandoz",
+        "Vasafil 100",
+        "Vasafil 25",
+        "Vasafil 50",
+        "Vedafil"
+      ]
+    },
+    {
+      "name": "Silodosin",
+      "brand_names": [
+        "Urorec"
+      ]
+    },
+    {
+      "name": "Siltuximab",
+      "brand_names": [
+        "Sylvant"
+      ]
+    },
+    {
+      "name": "Simvastatin",
+      "brand_names": [
+        "APO-Simvastatin",
+        "Lipex 20",
+        "Lipex 40",
+        "SIMVASTATIN-WGR",
+        "Simvar 10",
+        "Simvar 20",
+        "Simvar 40",
+        "Simvar 80",
+        "Simvastatin Sandoz",
+        "Zimstat",
+        "Zocor"
+      ]
+    },
+    {
+      "name": "Siponimod",
+      "brand_names": [
+        "Mayzent"
+      ]
+    },
+    {
+      "name": "Sirolimus",
+      "brand_names": [
+        "Rapamune"
+      ]
+    },
+    {
+      "name": "Sitagliptin",
+      "brand_names": [
+        "Januvia",
+        "Sitagliptin Lupin",
+        "Sitagliptin Mylan",
+        "Sitagliptin SUN",
+        "Sitagliptin Sandoz Pharma",
+        "Sitaglo",
+        "Xelevia"
+      ]
+    },
+    {
+      "name": "Sitagliptin + metformin",
+      "brand_names": [
+        "Blooms The Chemist Sitagliptin/Metformin 50/1000",
+        "Blooms The Chemist Sitagliptin/Metformin 50/500",
+        "Blooms The Chemist Sitagliptin/Metformin 50/850",
+        "Janumet",
+        "Janumet XR",
+        "SITAGLIPTIN/METFORMIN 50/1000 SUN",
+        "SITAGLIPTIN/METFORMIN 50/500 SUN",
+        "SITAGLIPTIN/METFORMIN 50/850 SUN",
+        "SITAGLO-MET",
+        "Sitagliptin/Metformin Mylan 50/1000",
+        "Sitagliptin/Metformin Mylan 50/500",
+        "Sitagliptin/Metformin Mylan 50/850",
+        "Sitagliptin/Metformin Sandoz",
+        "Sitagliptin/Metformin Sandoz XR",
+        "Sitagliptin/Metformin XR KND",
+        "Sitagliptin/Metformin XR Mylan",
+        "Velmetia"
+      ]
+    },
+    {
+      "name": "Sodium chloride",
+      "brand_names": [
+        "Baxter Healthcare Pty Ltd"
+      ]
+    },
+    {
+      "name": "Sofosbuvir + velpatasvir",
+      "brand_names": [
+        "Epclusa"
+      ]
+    },
+    {
+      "name": "Sofosbuvir + velpatasvir + voxilaprevir",
+      "brand_names": [
+        "Vosevi"
+      ]
+    },
+    {
+      "name": "Somapacitan",
+      "brand_names": [
+        "Sogroya"
+      ]
+    },
+    {
+      "name": "Somatropin",
+      "brand_names": [
+        "Genotropin GoQuick",
+        "Genotropin MiniQuick",
+        "Norditropin FlexPro",
+        "Omnitrope Surepal 10",
+        "Omnitrope Surepal 15",
+        "Omnitrope Surepal 5",
+        "Saizen",
+        "SciTropin A",
+        "Scitropin A"
+      ]
+    },
+    {
+      "name": "Sonidegib",
+      "brand_names": [
+        "Odomzo"
+      ]
+    },
+    {
+      "name": "Sorafenib",
+      "brand_names": [
+        "Nexavar"
+      ]
+    },
+    {
+      "name": "Spironolactone",
+      "brand_names": [
+        "Aldactone",
+        "Spiractin 100",
+        "Spiractin 25",
+        "Spironolactone Viatris 100",
+        "Spironolactone Viatris 25"
+      ]
+    },
+    {
+      "name": "Stiripentol",
+      "brand_names": [
+        "Diacomit"
+      ]
+    },
+    {
+      "name": "Sulfasalazine",
+      "brand_names": [
+        "Pyralin EN",
+        "Salazopyrin",
+        "Salazopyrin-EN"
+      ]
+    },
+    {
+      "name": "Sulthiame",
+      "brand_names": [
+        "Ospolot"
+      ]
+    },
+    {
+      "name": "Sumatriptan",
+      "brand_names": [
+        "APO-Sumatriptan",
+        "Imigran",
+        "Imigran FDT",
+        "Iptam",
+        "Pharmacor Sumatriptan 50",
+        "SUMATRIPTAN-WGR",
+        "Sumagraine Migraine Relief",
+        "Sumatran",
+        "Sumatriptan Sandoz",
+        "Sumatriptan generichealth"
+      ]
+    },
+    {
+      "name": "Sunitinib",
+      "brand_names": [
+        "ARX-Sunitinib",
+        "Sunitinib Sandoz",
+        "Sutent"
+      ]
+    },
+    {
+      "name": "Tacrolimus",
+      "brand_names": [
+        "ADVAGRAF XL",
+        "Pacrolim",
+        "Pharmacor Tacrolimus 0.5",
+        "Pharmacor Tacrolimus 1",
+        "Pharmacor Tacrolimus 5",
+        "Prograf",
+        "Tacrograf",
+        "Tacrolimus Sandoz",
+        "Tacrolimus XR Sandoz"
+      ]
+    },
+    {
+      "name": "Tadalafil",
+      "brand_names": [
+        "Apo-Tadalafil",
+        "Cialis",
+        "Cidala",
+        "Cilatil",
+        "Cipla Tadalafil",
+        "TADALAFIL-WGR",
+        "Tadalaccord",
+        "Tadalafil GH",
+        "Tadalafil Sandoz",
+        "Tadalafil Sandoz Pharma"
+      ]
+    },
+    {
+      "name": "Tafamidis",
+      "brand_names": [
+        "Vyndamax"
+      ]
+    },
+    {
+      "name": "Tafasitamab",
+      "brand_names": [
+        "MINJUVI"
+      ]
+    },
+    {
+      "name": "Talazoparib",
+      "brand_names": [
+        "Talzenna"
+      ]
+    },
+    {
+      "name": "Tamoxifen",
+      "brand_names": [
+        "GenRx Tamoxifen",
+        "Genox 20",
+        "Nolvadex-D",
+        "Tamosin",
+        "Tamoxifen Sandoz"
+      ]
+    },
+    {
+      "name": "Tamsulosin",
+      "brand_names": [
+        "Apo-Tamsulosin SR",
+        "BTC Tamsulosin SR",
+        "Flomaxtra",
+        "Flosix",
+        "TAMSULOSIN-WGR SR",
+        "Tamsulosin Lupin SR",
+        "Tamsulosin Sandoz SR"
+      ]
+    },
+    {
+      "name": "Tapentadol",
+      "brand_names": [
+        "Palexia SR"
+      ]
+    },
+    {
+      "name": "Teduglutide",
+      "brand_names": [
+        "Revestive"
+      ]
+    },
+    {
+      "name": "Telmisartan",
+      "brand_names": [
+        "APO-Telmisartan",
+        "Micardis",
+        "Mizart",
+        "Pharmacor Telmisartan 40",
+        "Pharmacor Telmisartan 80",
+        "TELMISARTAN-WGR",
+        "Telmisartan Sandoz",
+        "Teltartan"
+      ]
+    },
+    {
+      "name": "Telmisartan + amlodipine",
+      "brand_names": [
+        "ARX-Telmisartan/Amlodipine",
+        "Telmisartan/Amlodipine Viatris",
+        "Twilem 40/10",
+        "Twilem 40/5",
+        "Twilem 80/10",
+        "Twilem 80/5"
+      ]
+    },
+    {
+      "name": "Telmisartan + hydrochlorothiazide",
+      "brand_names": [
+        "APO-Telmisartan HCTZ 40/12.5",
+        "APO-Telmisartan HCTZ 80/12.5",
+        "APO-Telmisartan HCTZ 80/25",
+        "Micardis Plus 40/12.5 mg",
+        "Micardis Plus 80/12.5 mg",
+        "Micardis Plus 80/25 mg",
+        "Mizart HCT 40/12.5 mg",
+        "Mizart HCT 80/12.5 mg",
+        "Mizart HCT 80/25 mg",
+        "TELMISARTAN HCTZ-WGR 40/12.5",
+        "TELMISARTAN HCTZ-WGR 80/12.5",
+        "TELMISARTAN HCTZ-WGR 80/25",
+        "Telmisartan/HCT Sandoz",
+        "Teltartan HCT 40/12.5",
+        "Teltartan HCT 80/12.5",
+        "Teltartan HCT 80/25"
+      ]
+    },
+    {
+      "name": "Temazepam",
+      "brand_names": [
+        "APO-Temazepam",
+        "Normison",
+        "TEMAZEPAM-WGR",
+        "Temaze",
+        "Temtabs"
+      ]
+    },
+    {
+      "name": "Temozolomide",
+      "brand_names": [
+        "APO-Temozolomide",
+        "Temizole 100",
+        "Temizole 140",
+        "Temizole 20",
+        "Temizole 250",
+        "Temizole 5",
+        "Temozolomide Juno"
+      ]
+    },
+    {
+      "name": "Tepotinib",
+      "brand_names": [
+        "Tepmetko"
+      ]
+    },
+    {
+      "name": "Terbinafine",
+      "brand_names": [
+        "APO-Terbinafine",
+        "Lamisil",
+        "Lamisil DermGel",
+        "Pharmacy Action Pharmisil",
+        "TERBINAFINE-WGR",
+        "Tamsil",
+        "Terbinafine Sandoz",
+        "Terbinafine-DRLA",
+        "Tinasil",
+        "Trust Terbinafine Cream"
+      ]
+    },
+    {
+      "name": "Terbutaline",
+      "brand_names": [
+        "Bricanyl",
+        "Bricanyl Turbuhaler"
+      ]
+    },
+    {
+      "name": "Teriflunomide",
+      "brand_names": [
+        "APO-TERIFLUNOMIDE",
+        "Pharmacor Teriflunomide",
+        "TERIFLAGIO",
+        "Teriflunomide Dr.Reddy''s",
+        "Teriflunomide GH",
+        "Teriflunomide Sandoz",
+        "Terimide"
+      ]
+    },
+    {
+      "name": "Teriparatide",
+      "brand_names": [
+        "Ritosa",
+        "Teriparatide Lupin",
+        "Terrosa"
+      ]
+    },
+    {
+      "name": "Testosterone",
+      "brand_names": [
+        "AndroForte 5",
+        "Testavan",
+        "Testogel"
+      ]
+    },
+    {
+      "name": "Tetrabenazine",
+      "brand_names": [
+        "Tetrabenazine SUN",
+        "iNova Pharmaceuticals (Australia) Pty Ltd"
+      ]
+    },
+    {
+      "name": "Tetracosactide",
+      "brand_names": [
+        "Synacthen Depot 1 mg/1 mL"
+      ]
+    },
+    {
+      "name": "Tezepelumab",
+      "brand_names": [
+        "Tezspire"
+      ]
+    },
+    {
+      "name": "Thalidomide",
+      "brand_names": [
+        "Thalomid"
+      ]
+    },
+    {
+      "name": "Theophylline",
+      "brand_names": [
+        "Nuelin",
+        "Nuelin-SR 200",
+        "Nuelin-SR 250",
+        "Nuelin-SR 300"
+      ]
+    },
+    {
+      "name": "Thiamine",
+      "brand_names": [
+        "Betavit"
+      ]
+    },
+    {
+      "name": "Thyrotropin alfa",
+      "brand_names": [
+        "Thyrogen"
+      ]
+    },
+    {
+      "name": "Tiagabine",
+      "brand_names": [
+        "Gabitril"
+      ]
+    },
+    {
+      "name": "Ticagrelor",
+      "brand_names": [
+        "ARX-TICAGRELOR",
+        "Brilinta",
+        "Pharmacor Ticagrelor",
+        "TICALOR",
+        "Ticagrelor Dr.Reddy''s",
+        "Ticagrelor Lupin",
+        "Ticagrelor SUN",
+        "Ticagrelor Sandoz",
+        "Ticagrelor Viatris",
+        "Tirela"
+      ]
+    },
+    {
+      "name": "Tildrakizumab",
+      "brand_names": [
+        "Ilumya"
+      ]
+    },
+    {
+      "name": "Timolol",
+      "brand_names": [
+        "TIMOEYE",
+        "Timoptol",
+        "Timoptol XE"
+      ]
+    },
+    {
+      "name": "Tioguanine",
+      "brand_names": [
+        "Lanvis"
+      ]
+    },
+    {
+      "name": "Tiotropium",
+      "brand_names": [
+        "Braltus",
+        "Spiriva",
+        "Spiriva Respimat",
+        "Tiotropium Lupin"
+      ]
+    },
+    {
+      "name": "Tiotropium + olodaterol",
+      "brand_names": [
+        "Spiolto Respimat"
+      ]
+    },
+    {
+      "name": "Tirofiban",
+      "brand_names": [
+        "Aggrastat",
+        "Tirofiban Juno"
+      ]
+    },
+    {
+      "name": "Tobramycin",
+      "brand_names": [
+        "Pfizer Australia Pty Ltd",
+        "TOBI podhaler",
+        "TOBRAMYCIN SUN",
+        "TOBRAMYCIN WKT",
+        "Tobi",
+        "Tobra-Day",
+        "Tobramycin Viatris"
+      ]
+    },
+    {
+      "name": "Tocilizumab",
+      "brand_names": [
+        "Actemra",
+        "Actemra ACTPen",
+        "Actemra Subcutaneous Injection"
+      ]
+    },
+    {
+      "name": "Tofacitinib",
+      "brand_names": [
+        "Xeljanz"
+      ]
+    },
+    {
+      "name": "Tolnaftate",
+      "brand_names": [
+        "Tinaderm"
+      ]
+    },
+    {
+      "name": "Tolvaptan",
+      "brand_names": [
+        "Jinarc",
+        "Tolvaptan Lupin"
+      ]
+    },
+    {
+      "name": "Topiramate",
+      "brand_names": [
+        "APO-Topiramate",
+        "Epiramax 100",
+        "Epiramax 200",
+        "Epiramax 25",
+        "Epiramax 50",
+        "RBX Topiramate",
+        "TOPIRAMATE-WGR",
+        "Tamate",
+        "Topamax Sprinkle",
+        "Topiramate Sandoz"
+      ]
+    },
+    {
+      "name": "Topotecan",
+      "brand_names": [
+        "Hycamtin",
+        "Topotecan Accord"
+      ]
+    },
+    {
+      "name": "Toripalimab",
+      "brand_names": [
+        "Zytorvi"
+      ]
+    },
+    {
+      "name": "Trabectedin",
+      "brand_names": [
+        "Yondelis"
+      ]
+    },
+    {
+      "name": "Tramadol",
+      "brand_names": [
+        "APO-Tramadol",
+        "APO-Tramadol SR",
+        "TRAMADOL-WGR",
+        "TRAMADOL-WGR SR",
+        "Tramadol AN",
+        "Tramadol SR generichealth",
+        "Tramadol Sandoz",
+        "Tramadol Sandoz SR",
+        "Tramal",
+        "Tramal 100",
+        "Tramal SR 100",
+        "Tramal SR 150",
+        "Tramal SR 200",
+        "Tramal SR 50",
+        "Tramedo",
+        "Tramedo SR",
+        "Zydol",
+        "Zydol SR 100",
+        "Zydol SR 150",
+        "Zydol SR 200"
+      ]
+    },
+    {
+      "name": "Trametinib",
+      "brand_names": [
+        "Mekinist"
+      ]
+    },
+    {
+      "name": "Trandolapril",
+      "brand_names": [
+        "Dolapril 0.5",
+        "Dolapril 1",
+        "Dolapril 2",
+        "Dolapril 4",
+        "Gopten",
+        "Tranalpha",
+        "Trandolapril Viatris"
+      ]
+    },
+    {
+      "name": "Trandolapril + verapamil",
+      "brand_names": [
+        "Tarka 2/180",
+        "Tarka 4/240"
+      ]
+    },
+    {
+      "name": "Tranexamic acid",
+      "brand_names": [
+        "APO-Tranexamic Acid",
+        "Cyklokapron",
+        "Tranexamic Acid Lupin",
+        "Tranexamic Acid Waymade"
+      ]
+    },
+    {
+      "name": "Tranylcypromine",
+      "brand_names": [
+        "Parnate",
+        "TRANYLMED"
+      ]
+    },
+    {
+      "name": "Trastuzumab",
+      "brand_names": [
+        "Herceptin SC",
+        "Herzuma",
+        "Kanjinti",
+        "Ogivri",
+        "Trazimera"
+      ]
+    },
+    {
+      "name": "Trastuzumab deruxtecan",
+      "brand_names": [
+        "Enhertu"
+      ]
+    },
+    {
+      "name": "Trastuzumab emtansine",
+      "brand_names": [
+        "Kadcyla"
+      ]
+    },
+    {
+      "name": "Travoprost",
+      "brand_names": [
+        "Travatan"
+      ]
+    },
+    {
+      "name": "Triamcinolone",
+      "brand_names": [
+        "Aristocort 0.02%",
+        "Kenacort-A10",
+        "Tricortone"
+      ]
+    },
+    {
+      "name": "Trientine",
+      "brand_names": [
+        "Trientine Dr. Reddy''s",
+        "Trientine Waymade"
+      ]
+    },
+    {
+      "name": "Trifluridine + tipiracil",
+      "brand_names": [
+        "Lonsurf 15/6.14",
+        "Lonsurf 20/8.19"
+      ]
+    },
+    {
+      "name": "Trihexyphenidyl",
+      "brand_names": [
+        "Artane"
+      ]
+    },
+    {
+      "name": "Trimethoprim",
+      "brand_names": [
+        "Alprim",
+        "TRIMETHOPRIM-WGR",
+        "Trimethoprim Viatris",
+        "Triprim"
+      ]
+    },
+    {
+      "name": "Trimethoprim + sulfamethoxazole",
+      "brand_names": [
+        "Bactrim DS",
+        "Resprim Forte",
+        "Septrin",
+        "Septrin Forte"
+      ]
+    },
+    {
+      "name": "Triptorelin",
+      "brand_names": [
+        "Decapeptyl",
+        "Diphereline"
+      ]
+    },
+    {
+      "name": "Ublituximab",
+      "brand_names": [
+        "Briumvi"
+      ]
+    },
+    {
+      "name": "Umeclidinium",
+      "brand_names": [
+        "Incruse Ellipta"
+      ]
+    },
+    {
+      "name": "Upadacitinib",
+      "brand_names": [
+        "Rinvoq"
+      ]
+    },
+    {
+      "name": "Urea",
+      "brand_names": [
+        "Aquacare H.P.",
+        "Urederm"
+      ]
+    },
+    {
+      "name": "Ursodeoxycholic acid",
+      "brand_names": [
+        "APO-Ursodeoxycholic acid",
+        "ARX-URSODEOXYCHOLIC ACID",
+        "Ursodox GH",
+        "Ursofalk",
+        "Ursosan"
+      ]
+    },
+    {
+      "name": "Ustekinumab",
+      "brand_names": [
+        "Stelara",
+        "Steqeyma",
+        "Wezlana"
+      ]
+    },
+    {
+      "name": "Valaciclovir",
+      "brand_names": [
+        "APX-Valaciclovir",
+        "Shilova 500",
+        "VALACICLOVIR-WGR",
+        "Vaclovir",
+        "Valaciclovir RBX",
+        "Valaciclovir SZ",
+        "Valaciclovir Sandoz",
+        "Valtrex",
+        "Zelitrex"
+      ]
+    },
+    {
+      "name": "Valganciclovir",
+      "brand_names": [
+        "Valcyte",
+        "Valganciclovir Sandoz",
+        "Valganciclovir Viatris"
+      ]
+    },
+    {
+      "name": "Valsartan",
+      "brand_names": [
+        "Dilart",
+        "Diovan"
+      ]
+    },
+    {
+      "name": "Valsartan + hydrochlorothiazide",
+      "brand_names": [
+        "Co-Diovan 160/12.5",
+        "Co-Diovan 160/25",
+        "Co-Diovan 320/12.5",
+        "Co-Diovan 320/25",
+        "Co-Diovan 80/12.5",
+        "Dilart HCT 160/12.5",
+        "Dilart HCT 160/25",
+        "Dilart HCT 320/12.5",
+        "Dilart HCT 320/25",
+        "Dilart HCT 80/12.5"
+      ]
+    },
+    {
+      "name": "Vancomycin",
+      "brand_names": [
+        "VANCOMYCIN MEDSURGE",
+        "VANCOR",
+        "Vancocin",
+        "Vancomycin BNM 125mg",
+        "Vancomycin BNM 250mg",
+        "Vancomycin Juno",
+        "Vancomycin Viatris"
+      ]
+    },
+    {
+      "name": "Vanzacaftor + tezacaftor + deutivacaftor",
+      "brand_names": [
+        "Alyftrek"
+      ]
+    },
+    {
+      "name": "Varenicline",
+      "brand_names": [
+        "PHARMACOR VARENICLINE",
+        "VARENAPIX",
+        "Varenicline Lupin",
+        "Varenicline Sandoz",
+        "Varenicline Viatris"
+      ]
+    },
+    {
+      "name": "Vedolizumab",
+      "brand_names": [
+        "Entyvio"
+      ]
+    },
+    {
+      "name": "Vemurafenib",
+      "brand_names": [
+        "Zelboraf"
+      ]
+    },
+    {
+      "name": "Venetoclax",
+      "brand_names": [
+        "Venclexta"
+      ]
+    },
+    {
+      "name": "Venlafaxine",
+      "brand_names": [
+        "APO-Venlafaxine XR",
+        "BTC Venlafaxine XR",
+        "Efexor-XR",
+        "Elaxine SR 150",
+        "Elaxine SR 37.5",
+        "Elaxine SR 75",
+        "Enlafax-XR",
+        "Sandoz Venlafaxine XR",
+        "VENLAFAXINE XR-WGR",
+        "Venlafaxine generichealth XR"
+      ]
+    },
+    {
+      "name": "Verapamil",
+      "brand_names": [
+        "Anpec 80",
+        "Cordilox 180 SR",
+        "Cordilox SR",
+        "Isoptin",
+        "Isoptin 180 SR",
+        "Isoptin SR"
+      ]
+    },
+    {
+      "name": "Vericiguat",
+      "brand_names": [
+        "Verquvo"
+      ]
+    },
+    {
+      "name": "Vigabatrin",
+      "brand_names": [
+        "Sabril"
+      ]
+    },
+    {
+      "name": "Vildagliptin",
+      "brand_names": [
+        "Galvus"
+      ]
+    },
+    {
+      "name": "Vildagliptin + metformin",
+      "brand_names": [
+        "ARX-Vildagliptin/Metformin 50/1000",
+        "ARX-Vildagliptin/Metformin 50/500",
+        "ARX-Vildagliptin/Metformin 50/850",
+        "Galvumet 50/1000",
+        "Galvumet 50/500",
+        "Galvumet 50/850"
+      ]
+    },
+    {
+      "name": "Vinblastine",
+      "brand_names": [
+        "DBL Vinblastine"
+      ]
+    },
+    {
+      "name": "Vincristine",
+      "brand_names": [
+        "DBL Vincristine Sulfate"
+      ]
+    },
+    {
+      "name": "Vinorelbine",
+      "brand_names": [
+        "Velabine",
+        "Vinorelbine Ebewe"
+      ]
+    },
+    {
+      "name": "Vismodegib",
+      "brand_names": [
+        "Erivedge"
+      ]
+    },
+    {
+      "name": "Vorasidenib",
+      "brand_names": [
+        "Voranigo"
+      ]
+    },
+    {
+      "name": "Voriconazole",
+      "brand_names": [
+        "Vfend",
+        "Voriconazole Sandoz",
+        "Vttack",
+        "Vzole"
+      ]
+    },
+    {
+      "name": "Vorinostat",
+      "brand_names": [
+        "Zolinza"
+      ]
+    },
+    {
+      "name": "Vutrisiran",
+      "brand_names": [
+        "Amvuttra"
+      ]
+    },
+    {
+      "name": "Warfarin",
+      "brand_names": [
+        "Coumadin",
+        "Marevan"
+      ]
+    },
+    {
+      "name": "Zanubrutinib",
+      "brand_names": [
+        "Brukinsa"
+      ]
+    },
+    {
+      "name": "Zidovudine",
+      "brand_names": [
+        "Retrovir"
+      ]
+    },
+    {
+      "name": "Zilucoplan",
+      "brand_names": [
+        "Zilbrysq"
+      ]
+    },
+    {
+      "name": "Ziprasidone",
+      "brand_names": [
+        "ZIPROX",
+        "Zeldox",
+        "Ziprasidone GH"
+      ]
+    },
+    {
+      "name": "Zoledronic acid",
+      "brand_names": [
+        "APO-Zoledronic Acid",
+        "Aclasta",
+        "DEZTRON",
+        "Osteovan",
+        "Zoledasta",
+        "Zoledronate-DRLA 4",
+        "Zoledronate-RDY 5",
+        "Zoledronic Acid Accord",
+        "Zometa"
+      ]
+    },
+    {
+      "name": "Zolmitriptan",
+      "brand_names": [
+        "APO-Zolmitriptan",
+        "Zoltrip",
+        "Zomig"
+      ]
+    },
+    {
+      "name": "Zonisamide",
+      "brand_names": [
+        "Zonegran"
+      ]
+    },
+    {
+      "name": "Zopiclone",
+      "brand_names": [
+        "APO-Zopiclone",
+        "Imoclone",
+        "Imovane",
+        "Imrest",
+        "Pharmacor Zopiclone",
+        "Zopiclone GH"
+      ]
+    },
+    {
+      "name": "abiraterone (&) methylprednisolone",
+      "brand_names": [
+        "Yonsa Mpred"
+      ]
+    },
+    {
+      "name": "abiraterone (&) prednisolone",
+      "brand_names": [
+        "ANDRIGA-10"
+      ]
+    },
+    {
+      "name": "anifrolumab",
+      "brand_names": [
+        "Saphnelo"
+      ]
+    },
+    {
+      "name": "asciminib",
+      "brand_names": [
+        "Scemblix"
+      ]
+    },
+    {
+      "name": "atropine sulfate",
+      "brand_names": [
+        "Atropine Injection (Bridgewest)",
+        "Atropt"
+      ]
+    },
+    {
+      "name": "beclometasone + formoterol",
+      "brand_names": [
+        "Cipla Beclometasone/Formoterol 100/6",
+        "Cipla Beclometasone/Formoterol 200/6",
+        "Fostair",
+        "Fostair 200/6"
+      ]
+    },
+    {
+      "name": "beclometasone + formoterol + glycopyrronium",
+      "brand_names": [
+        "Trimbow"
+      ]
+    },
+    {
+      "name": "belzutifan",
+      "brand_names": [
+        "Welireg"
+      ]
+    },
+    {
+      "name": "betamethasone acetate + betamethasone sodium phosphate",
+      "brand_names": [
+        "Celestone Chronodose"
+      ]
+    },
+    {
+      "name": "betamethasone dipropionate",
+      "brand_names": [
+        "DIPROVANT",
+        "Diprosone",
+        "Eleuphrat"
+      ]
+    },
+    {
+      "name": "betamethasone valerate",
+      "brand_names": [
+        "Antroquoril",
+        "Betnovate",
+        "Betnovate 1/2",
+        "Betnovate 1/5",
+        "Celestone-M",
+        "Cortival 1/2",
+        "Cortival 1/5"
+      ]
+    },
+    {
+      "name": "bictegravir + emtricitabine + tenofovir alafenamide",
+      "brand_names": [
+        "Biktarvy"
+      ]
+    },
+    {
+      "name": "bimekizumab",
+      "brand_names": [
+        "Bimzelx"
+      ]
+    },
+    {
+      "name": "brinzolamide + brimonidine",
+      "brand_names": [
+        "Simbrinza 1%/0.2%"
+      ]
+    },
+    {
+      "name": "brinzolamide + timolol",
+      "brand_names": [
+        "Azarga"
+      ]
+    },
+    {
+      "name": "budesonide + glycopyrronium + formoterol",
+      "brand_names": [
+        "Breztri Aerosphere"
+      ]
+    },
+    {
+      "name": "calcipotriol + betamethasone dipropionate",
+      "brand_names": [
+        "Actobet 50/500",
+        "Calcipotriol/Betamethasone Sandoz 50/500",
+        "Daivobet",
+        "Enstilar",
+        "Klarvanta",
+        "Wynzora 50/500"
+      ]
+    },
+    {
+      "name": "capivasertib",
+      "brand_names": [
+        "Truqap"
+      ]
+    },
+    {
+      "name": "carmellose sodium",
+      "brand_names": [
+        "Evolve Carmellose"
+      ]
+    },
+    {
+      "name": "citric acid + lauryl sulfoacetate sodium + sorbitol",
+      "brand_names": [
+        "Micolette"
+      ]
+    },
+    {
+      "name": "clopidogrel + aspirin",
+      "brand_names": [
+        "APX-Clopidogrel/Aspirin 75/100",
+        "DuoCover",
+        "DuoPlidogrel",
+        "Piax Plus Aspirin"
+      ]
+    },
+    {
+      "name": "clostridium botulinum type A toxin-haemagglutinin complex",
+      "brand_names": [
+        "Dysport"
+      ]
+    },
+    {
+      "name": "coal tar solution + salicylic acid",
+      "brand_names": [
+        "Ionil-T"
+      ]
+    },
+    {
+      "name": "dapagliflozin + metformin",
+      "brand_names": [
+        "Xigduo XR 10/1000",
+        "Xigduo XR 10/500",
+        "Xigduo XR 5/1000"
+      ]
+    },
+    {
+      "name": "darunavir + cobicistat + emtricitabine + tenofovir alafenamide",
+      "brand_names": [
+        "Symtuza"
+      ]
+    },
+    {
+      "name": "deucravacitinib",
+      "brand_names": [
+        "Sotyktu"
+      ]
+    },
+    {
+      "name": "diphenoxylate + atropine sulfate",
+      "brand_names": [
+        "Lofenoxal",
+        "Lomotil"
+      ]
+    },
+    {
+      "name": "diphtheria + tetanus vaccine",
+      "brand_names": [
+        "ADT Booster"
+      ]
+    },
+    {
+      "name": "docusate + sennoside B",
+      "brand_names": [
+        "Chemists'' Own Laxative with Senna",
+        "Co-Senna",
+        "Coloxyl with Senna",
+        "Pharmacy Action Colox-Senna",
+        "Trust Coloxease"
+      ]
+    },
+    {
+      "name": "doxorubicin hydrochloride (as pegylated liposomal)",
+      "brand_names": [
+        "Caelyx",
+        "Liposomal Doxorubicin SUN"
+      ]
+    },
+    {
+      "name": "elexacaftor + tezacaftor + ivacaftor (&) ivacaftor",
+      "brand_names": [
+        "Trikafta"
+      ]
+    },
+    {
+      "name": "emtricitabine + rilpivirine + tenofovir alafenamide",
+      "brand_names": [
+        "Odefsey"
+      ]
+    },
+    {
+      "name": "emtricitabine + tenofovir alafenamide",
+      "brand_names": [
+        "Descovy"
+      ]
+    },
+    {
+      "name": "enoxaparin sodium",
+      "brand_names": [
+        "Clexane Forte Safety-Lock",
+        "Clexane Safety-Lock",
+        "Enoxaject Safety-Lock",
+        "Exarane",
+        "Exarane Forte",
+        "Exarane Forte Safety-Lock",
+        "Exarane Safety-Lock"
+      ]
+    },
+    {
+      "name": "epoetin lambda",
+      "brand_names": [
+        "Novicrit"
+      ]
+    },
+    {
+      "name": "erythromycin ethylsuccinate",
+      "brand_names": [
+        "E-Mycin 200",
+        "E-Mycin 400"
+      ]
+    },
+    {
+      "name": "esomeprazole (&) clarithromycin (&) amoxicillin",
+      "brand_names": [
+        "ESOMEPRAZOLE SANDOZ Hp7",
+        "Nexium Hp7"
+      ]
+    },
+    {
+      "name": "estradiol (&) estradiol + dydrogesterone",
+      "brand_names": [
+        "Femoston 1/10",
+        "Femoston 2/10"
+      ]
+    },
+    {
+      "name": "estradiol (&) estradiol + norethisterone acetate",
+      "brand_names": [
+        "Estalis sequi 50/140",
+        "Estalis sequi 50/250"
+      ]
+    },
+    {
+      "name": "estradiol + norethisterone acetate",
+      "brand_names": [
+        "Estalis continuous 50/140",
+        "Estalis continuous 50/250"
+      ]
+    },
+    {
+      "name": "etonogestrel + ethinylestradiol",
+      "brand_names": [
+        "NuvaRing"
+      ]
+    },
+    {
+      "name": "etrasimod",
+      "brand_names": [
+        "Velsipity"
+      ]
+    },
+    {
+      "name": "ezetimibe (&) rosuvastatin",
+      "brand_names": [
+        "Ezalo Composite Pack 10mg+10mg",
+        "Ezalo Composite Pack 10mg+20mg",
+        "Ezalo Composite Pack 10mg+40mg",
+        "Ezalo Composite Pack 10mg+5mg",
+        "Ezetimibe - Rosuvastatin Sandoz 10 mg/10 mg",
+        "Ezetimibe - Rosuvastatin Sandoz 10 mg/20 mg",
+        "Ezetimibe - Rosuvastatin Sandoz 10 mg/40 mg",
+        "Ezetimibe - Rosuvastatin Sandoz 10 mg/5 mg",
+        "Pharmacor Ezetimibe Rosuvastatin Composite Pack",
+        "Rosuzet Composite Pack"
+      ]
+    },
+    {
+      "name": "faricimab",
+      "brand_names": [
+        "Vabysmo"
+      ]
+    },
+    {
+      "name": "flupentixol decanoate",
+      "brand_names": [
+        "Fluanxol Concentrated Depot",
+        "Fluanxol Depot"
+      ]
+    },
+    {
+      "name": "fluticasone furoate",
+      "brand_names": [
+        "Arnuity Ellipta"
+      ]
+    },
+    {
+      "name": "fluticasone furoate + umeclidinium + vilanterol",
+      "brand_names": [
+        "Trelegy Ellipta 100/62.5/25",
+        "Trelegy Ellipta 200/62.5/25"
+      ]
+    },
+    {
+      "name": "fluticasone furoate + vilanterol",
+      "brand_names": [
+        "Breo Ellipta 100/25",
+        "Breo Ellipta 200/25"
+      ]
+    },
+    {
+      "name": "fluticasone propionate",
+      "brand_names": [
+        "Axotide",
+        "Axotide Accuhaler",
+        "Axotide Junior",
+        "Axotide Junior Accuhaler",
+        "Flixotide",
+        "Flixotide Accuhaler",
+        "Flixotide Junior",
+        "Flixotide Junior Accuhaler",
+        "Fluticasone Cipla Inhaler"
+      ]
+    },
+    {
+      "name": "fluticasone propionate + formoterol",
+      "brand_names": [
+        "flutiform 125/5",
+        "flutiform 250/10",
+        "flutiform 50/5"
+      ]
+    },
+    {
+      "name": "fluticasone propionate + salmeterol",
+      "brand_names": [
+        "Evocair MDI",
+        "Fluticasone + Salmeterol Cipla 125/25",
+        "Fluticasone + Salmeterol Cipla 250/25",
+        "Fluticasone Salmeterol Ciphaler 250/50",
+        "Fluticasone Salmeterol Ciphaler 500/50",
+        "PAVTIDE ACCUHALER 100/50",
+        "PAVTIDE ACCUHALER 250/50",
+        "PAVTIDE ACCUHALER 500/50",
+        "PAVTIDE MDI 50/25",
+        "Pavtide",
+        "Salflumix Easyhaler 250/50",
+        "Salflumix Easyhaler 500/50",
+        "SalplusF DPI 250/50",
+        "SalplusF DPI 500/50",
+        "SalplusF Inhaler 125/25",
+        "SalplusF Inhaler 250/25",
+        "Seretide Accuhaler 100/50",
+        "Seretide Accuhaler 250/50",
+        "Seretide Accuhaler 500/50",
+        "Seretide MDI 125/25",
+        "Seretide MDI 250/25",
+        "Seretide MDI 50/25"
+      ]
+    },
+    {
+      "name": "fondaparinux",
+      "brand_names": [
+        "Arixtra"
+      ]
+    },
+    {
+      "name": "framycetin sulfate + gramicidin + dexamethasone",
+      "brand_names": [
+        "Otodex",
+        "Sofradex"
+      ]
+    },
+    {
+      "name": "glatiramer acetate",
+      "brand_names": [
+        "Copaxone",
+        "Glatira"
+      ]
+    },
+    {
+      "name": "glucagon hydrochloride",
+      "brand_names": [
+        "GlucaGen Hypokit"
+      ]
+    },
+    {
+      "name": "haloperidol decanoate",
+      "brand_names": [
+        "Haldol decanoate"
+      ]
+    },
+    {
+      "name": "hyaluronate sodium",
+      "brand_names": [
+        "Hylo-Forte",
+        "Hylo-Fresh"
+      ]
+    },
+    {
+      "name": "hydrocortisone acetate",
+      "brand_names": [
+        "Cortic-DS 1%",
+        "Hycor",
+        "Pharmacy Action Hydrocortisone Cream 1%",
+        "Sigmacort",
+        "Trust HydroCortic Cream"
+      ]
+    },
+    {
+      "name": "hydrocortisone sodium succinate",
+      "brand_names": [
+        "Solu-Cortef"
+      ]
+    },
+    {
+      "name": "hydroxyethyl starch 130/0.4 + sodium chloride",
+      "brand_names": [
+        "Voluven 6%"
+      ]
+    },
+    {
+      "name": "hyoscine butylbromide",
+      "brand_names": [
+        "Buscopan",
+        "HYOSCINE BUTYLBROMIDE MEDSURGE",
+        "HYOSCINE BUTYLBROMIDE SXP",
+        "HYOSCINE BUTYLBROMIDE-AFT"
+      ]
+    },
+    {
+      "name": "inclisiran",
+      "brand_names": [
+        "Leqvio"
+      ]
+    },
+    {
+      "name": "indacaterol + glycopyrronium",
+      "brand_names": [
+        "ultibro breezhaler 110/50"
+      ]
+    },
+    {
+      "name": "indacaterol + glycopyrronium + mometasone",
+      "brand_names": [
+        "Enerzair Breezhaler"
+      ]
+    },
+    {
+      "name": "indacaterol + mometasone",
+      "brand_names": [
+        "Atectura Breezhaler"
+      ]
+    },
+    {
+      "name": "insulin neutral human + insulin isophane human",
+      "brand_names": [
+        "Humulin 30/70"
+      ]
+    },
+    {
+      "name": "lercanidipine + enalapril",
+      "brand_names": [
+        "Zan-Extra 10/10",
+        "Zan-Extra 10/20"
+      ]
+    },
+    {
+      "name": "leuprorelin (&) bicalutamide",
+      "brand_names": [
+        "Bi ELIGARD CP"
+      ]
+    },
+    {
+      "name": "liquid paraffin + glycerol + tyloxapol + poloxamer-188 + trometamol hydrochloride + trometamol + cetalkonium chloride",
+      "brand_names": [
+        "Cationorm"
+      ]
+    },
+    {
+      "name": "macrogol-3350 + sodium chloride + bicarbonate + potassium chloride",
+      "brand_names": [
+        "APO-MACROGOL plus ELECTROLYTES",
+        "APOHEALTH Macrogol with Electrolytes",
+        "Chemists'' Own Constipation Relief with electrolytes",
+        "Macrovic"
+      ]
+    },
+    {
+      "name": "mavacamten",
+      "brand_names": [
+        "Camzyos"
+      ]
+    },
+    {
+      "name": "methenamine hippurate",
+      "brand_names": [
+        "APOHEALTH Urinary Tract Antibacterial",
+        "Chemists'' Own Urinary Tract Antibacterial",
+        "Hiprex",
+        "Uraleev",
+        "Uramet"
+      ]
+    },
+    {
+      "name": "mifepristone (&) misoprostol",
+      "brand_names": [
+        "ARZESTRA",
+        "MS-2 Step"
+      ]
+    },
+    {
+      "name": "nanoparticle albumin-bound paclitaxel",
+      "brand_names": [
+        "Abraxane",
+        "nab-PACLITAXEL JUNO"
+      ]
+    },
+    {
+      "name": "nirmatrelvir (&) ritonavir",
+      "brand_names": [
+        "Paxlovid"
+      ]
+    },
+    {
+      "name": "nivolumab + relatlimab",
+      "brand_names": [
+        "Opdualag"
+      ]
+    },
+    {
+      "name": "palovarotene",
+      "brand_names": [
+        "Sohonos"
+      ]
+    },
+    {
+      "name": "pamidronate disodium",
+      "brand_names": [
+        "Pamisol"
+      ]
+    },
+    {
+      "name": "pancreatic extract",
+      "brand_names": [
+        "Creon 10,000",
+        "Creon 25,000",
+        "Creon 35,000",
+        "Creon Micro"
+      ]
+    },
+    {
+      "name": "pasireotide embonate",
+      "brand_names": [
+        "Signifor LAR"
+      ]
+    },
+    {
+      "name": "perfluorohexyloctane",
+      "brand_names": [
+        "Novatears"
+      ]
+    },
+    {
+      "name": "polyethylene glycol-400 + propylene glycol",
+      "brand_names": [
+        "Systane"
+      ]
+    },
+    {
+      "name": "potassium chloride + potassium bicarbonate + potassium carbonate",
+      "brand_names": [
+        "Chlorvescent"
+      ]
+    },
+    {
+      "name": "prednisolone acetate + phenylephrine",
+      "brand_names": [
+        "Prednefrin Forte"
+      ]
+    },
+    {
+      "name": "prednisolone sodium phosphate",
+      "brand_names": [
+        "PredMix",
+        "Predsol",
+        "Redipred"
+      ]
+    },
+    {
+      "name": "progesterone (&) estradiol",
+      "brand_names": [
+        "Estrogel Pro"
+      ]
+    },
+    {
+      "name": "psyllium husk powder",
+      "brand_names": [
+        "Metamucil Natural Granular",
+        "Metamucil Orange Smooth"
+      ]
+    },
+    {
+      "name": "relugolix + estradiol + norethisterone acetate",
+      "brand_names": [
+        "Ryeqo"
+      ]
+    },
+    {
+      "name": "risedronate",
+      "brand_names": [
+        "APO-Risedronate",
+        "Actonel",
+        "Actonel EC",
+        "Actonel Once-a-Month",
+        "RISEDRONATE-WGR",
+        "Risedronate Sandoz"
+      ]
+    },
+    {
+      "name": "sodium phenylbutyrate",
+      "brand_names": [
+        "Pheburane"
+      ]
+    },
+    {
+      "name": "somatrogon",
+      "brand_names": [
+        "Ngenla"
+      ]
+    },
+    {
+      "name": "tar + coal tar solution + salicylic acid",
+      "brand_names": [
+        "Sebitar"
+      ]
+    },
+    {
+      "name": "tebentafusp",
+      "brand_names": [
+        "Kimmtrak"
+      ]
+    },
+    {
+      "name": "tenofovir alafenamide + emtricitabine + elvitegravir + cobicistat",
+      "brand_names": [
+        "Genvoya"
+      ]
+    },
+    {
+      "name": "tenofovir disoproxil",
+      "brand_names": [
+        "TENOFOVIR ARX",
+        "Tenofovir Disoproxil Viatris",
+        "Tenofovir GH",
+        "Tenofovir Sandoz"
+      ]
+    },
+    {
+      "name": "tenofovir disoproxil + emtricitabine",
+      "brand_names": [
+        "CIPLA TENOFOVIR + EMTRICITABINE 300/200",
+        "TENOFOVIR/EMTRICITABINE 300/200 APX",
+        "TENOFOVIR/EMTRICITABINE 300/200 ARX",
+        "Tenofovir Disoproxil Emtricitabine Viatris 300/200",
+        "Tenofovir/Emtricitabine Sandoz 301/200",
+        "Tenofovir/Emtricitabine Sandoz Pharma 300/200"
+      ]
+    },
+    {
+      "name": "tenofovir disoproxil + emtricitabine + efavirenz",
+      "brand_names": [
+        "Efavirenz, Emtricitabine and Tenofovir Disoproxil Fumarate Tablet 600 mg/200 mg/300 mg (Camber, USA)",
+        "Tenofovir Disoproxil Emtricitabine Efavirenz Viatris 300/200/600"
+      ]
+    },
+    {
+      "name": "testosterone undecanoate",
+      "brand_names": [
+        "Gonadron",
+        "REJUNON 1000",
+        "Reandron 1000",
+        "Testosterone ADVZ 1000"
+      ]
+    },
+    {
+      "name": "tezacaftor + ivacaftor (&) ivacaftor",
+      "brand_names": [
+        "Symdeko"
+      ]
+    },
+    {
+      "name": "tiotropium + olodaterol",
+      "brand_names": [
+        "Spiolto Respimat"
+      ]
+    },
+    {
+      "name": "tislelizumab",
+      "brand_names": [
+        "Tevimbra"
+      ]
+    },
+    {
+      "name": "tremelimumab",
+      "brand_names": [
+        "Imjudo"
+      ]
+    },
+    {
+      "name": "triamcinolone + neomycin + gramicidin + nystatin",
+      "brand_names": [
+        "Kenacomb Otic",
+        "Otocomb Otic"
+      ]
+    },
+    {
+      "name": "umeclidinium + vilanterol",
+      "brand_names": [
+        "Anoro Ellipta 62.5/25"
+      ]
+    },
+    {
+      "name": "valproate",
+      "brand_names": [
+        "APO-Sodium Valproate",
+        "Epilim",
+        "Epilim EC",
+        "Epilim Liquid",
+        "Epilim Syrup",
+        "Sodium Valproate Sandoz",
+        "Valpro EC 200",
+        "Valpro EC 500",
+        "Valproate Winthrop EC 200",
+        "Valproate Winthrop EC 500"
+      ]
+    },
+    {
+      "name": "vosoritide",
+      "brand_names": [
+        "Voxzogo"
+      ]
+    },
+    {
+      "name": "zinc oxide + peru balsam + benzyl benzoate",
+      "brand_names": [
+        "Anusol"
+      ]
+    },
+    {
+      "name": "zuclopenthixol decanoate",
+      "brand_names": [
+        "Clopixol Depot"
+      ]
+    }
+  ],
+  "archiveSha256": "18f918805cf95f7049cd48561085c02a2659b971f2ab000fcce443d2903adf76"
+}

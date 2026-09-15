@@ -59,6 +59,16 @@ function input(overrides: Partial<Parameters<typeof buildOpsActionModel>[0]> = {
 }
 
 describe("operations action model", () => {
+  it("keeps checkout age when newer Parchment failures fill the recent feed", () => {
+    const model = buildOpsActionModel(input({ failureOverview: failureOverview({
+      checkoutFailures: [{ id: "checkout-old", created_at: "2026-07-01T00:00:00Z", checkout_error: "failed" }],
+      prescriptionWebhookFailures: Array.from({ length: 20 }, (_, i) => ({
+        id: `webhook-${i}`, action: "webhook_failed", created_at: "2026-07-28T00:00:00Z", intake_id: null, metadata: { error: "sync_failed" },
+      })),
+    }) }))
+    const checkout = model.groups.flatMap(group => group.issues).find(issue => issue.id === "failure:checkout")
+    expect(checkout?.occurredAt).toBe("2026-07-01T00:00:00Z")
+  })
   it("collapses a healthy system to one all-clear state with no zero groups", () => {
     const model = buildOpsActionModel(input())
 

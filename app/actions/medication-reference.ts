@@ -9,6 +9,7 @@ import {
   resolveGenericMedicationNameFromRows,
 } from "@/lib/clinical/generic-medication-resolver"
 import { resolveMedicationSpelling } from "@/lib/clinical/medication-spelling-match"
+import pbsNames from "@/lib/clinical/pbs-medication-names.json"
 import {
   findPriorMedicationMatch,
   type PriorMedicationMatchKind,
@@ -77,7 +78,7 @@ export async function resolveGenericMedicationNameAction(
     if (error || !Array.isArray(data)) {
       return { success: false, error: "Medication reference unavailable" }
     }
-    const catalogue = [...data as MedicationCatalogRow[], ...ADDITIONAL_MEDICATION_NAME_REFERENCES]
+    const catalogue = [...data as MedicationCatalogRow[], ...ADDITIONAL_MEDICATION_NAME_REFERENCES, ...pbsNames.medications]
 
     const resolution = resolveGenericMedicationNameFromRows(
       parsed.data,
