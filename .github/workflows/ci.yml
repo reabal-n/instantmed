@@ -447,6 +447,14 @@ jobs:
         timeout-minutes: 5
         run: node scripts/test-checkout-restored-browser.mjs
 
+      - name: Auth bootstrap preserves page state
+        timeout-minutes: 5
+        run: node scripts/test-navigation-bootstrap-browser.mjs
+
+      - name: Streamed hydration preserves DOM and edits
+        timeout-minutes: 5
+        run: node scripts/test-streamed-content-browser.mjs
+
       # Same isolated loopback boundary; evidence survives later app suites.
       - name: Prescribing workspace browser regression
         timeout-minutes: 5
