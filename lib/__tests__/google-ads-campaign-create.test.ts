@@ -317,7 +317,7 @@ describe("Google Ads campaign creation boundary", () => {
     expect(() => validateAdsMutationPolicy({
       operations: [{
         ...campaignCreateOperation as unknown as Record<string, unknown>,
-        dailyBudgetMicros: 20_000_001,
+        dailyBudgetMicros: 50_000_001,
       }],
       state,
     })).toThrow("service_budget_ceiling_exceeded")
