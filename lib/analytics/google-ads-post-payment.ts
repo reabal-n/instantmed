@@ -100,7 +100,6 @@ type GoogleAdsEnvPreflightBooleans = {
   hasDataManagerClientSecret: boolean
   hasDataManagerQuotaProjectId: boolean
   hasDataManagerRefreshToken: boolean
-  hasDeveloperToken: boolean
   hasRefreshToken: boolean
   serverConversionDisabled: boolean
 }
@@ -159,7 +158,6 @@ function getGoogleAdsEnvPreflightBooleans(): GoogleAdsEnvPreflightBooleans {
     hasDataManagerClientSecret: Boolean(cleanRuntimeValue(process.env.GOOGLE_DATA_MANAGER_CLIENT_SECRET)),
     hasDataManagerQuotaProjectId: Boolean(cleanRuntimeValue(process.env.GOOGLE_DATA_MANAGER_QUOTA_PROJECT_ID)),
     hasDataManagerRefreshToken: Boolean(cleanRuntimeValue(process.env.GOOGLE_DATA_MANAGER_REFRESH_TOKEN)),
-    hasDeveloperToken: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_DEVELOPER_TOKEN)),
     hasRefreshToken: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_REFRESH_TOKEN)),
     serverConversionDisabled: process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED === "true",
   }
@@ -376,7 +374,6 @@ async function recordGoogleAdsConversionAudit({
       google_ads_client_secret: envPreflight.hasClientSecret,
       google_ads_conversion_action_purchase: envPreflight.hasConversionActionPurchase,
       google_ads_customer_id: envPreflight.hasCustomerId,
-      google_ads_developer_token: envPreflight.hasDeveloperToken,
       google_ads_enhanced_conversions_disabled: envPreflight.enhancedConversionsDisabled,
       google_ads_refresh_token: envPreflight.hasRefreshToken,
       google_ads_server_conversion_disabled: envPreflight.serverConversionDisabled,

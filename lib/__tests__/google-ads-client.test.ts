@@ -12,7 +12,7 @@ const originalEnv = { ...process.env }
 
 function configureGoogleAdsEnv(): void {
   process.env.GOOGLE_ADS_CUSTOMER_ID = "123-456-7890"
-  process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+  delete process.env.GOOGLE_ADS_DEVELOPER_TOKEN
   process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
   process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
   process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
@@ -43,7 +43,8 @@ describe("shared Google Ads client", () => {
     )
   })
 
-  it("sends OAuth, manager, developer-token, and quota-project headers", async () => {
+  it.each([undefined, "obsolete-token"])("sends OAuth without a developer token (legacy env: %s)", async (legacyToken) => {
+    if (legacyToken) process.env.GOOGLE_ADS_DEVELOPER_TOKEN = legacyToken
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({
         access_token: "access-token",
@@ -65,7 +66,6 @@ describe("shared Google Ads client", () => {
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer access-token",
-          "developer-token": "developer-token",
           "login-customer-id": "9998887777",
           "x-goog-user-project": "quota-project",
         },

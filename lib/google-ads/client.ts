@@ -18,7 +18,6 @@ interface AccessTokenCache {
 export interface GoogleAdsClientConfig {
   apiVersion: string
   customerId: string
-  developerToken: string
   loginCustomerId?: string
   quotaProjectId?: string
 }
@@ -52,15 +51,13 @@ export function getGoogleAdsClientConfig(): GoogleAdsClientConfig | null {
   const customerId = normalizeGoogleAdsNumericId(
     process.env.GOOGLE_ADS_CUSTOMER_ID,
   )
-  const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN?.trim()
-  if (!customerId || !developerToken) return null
+  if (!customerId) return null
 
   return {
     apiVersion:
       process.env.GOOGLE_ADS_API_VERSION?.trim() ||
       DEFAULT_GOOGLE_ADS_API_VERSION,
     customerId,
-    developerToken,
     loginCustomerId:
       normalizeGoogleAdsNumericId(
         process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID,
@@ -77,7 +74,6 @@ export function buildGoogleAdsAuthHeaders(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${accessToken}`,
-    "developer-token": config.developerToken,
   }
 
   if (config.loginCustomerId) {

@@ -5,7 +5,7 @@ import Stripe from "stripe"
 import { AI_MODEL_CONFIG } from "@/lib/ai/provider"
 import { assertParchmentSmokeConfig } from "@/lib/parchment/smoke"
 import { STRIPE_PRICE_ENV_KEYS } from "@/lib/stripe/price-config-health"
-import { getTwilioVoiceReadiness } from "@/lib/twilio/voice-config"
+import { checkOpenAIReviewModel, checkTwilioVoiceReadiness } from "@/lib/integrations/credential-readiness"
 
 import { hydrateLocalEnv } from "./video-review/local-env"
 
@@ -37,12 +37,10 @@ function missingConfiguredEnvKeys(keys: string[]): string[] {
 function missingGoogleAdsCoreEnvKeys(
   customerId: string | null,
   conversionActionId: string | null,
-  developerToken?: string,
 ): string[] {
   const missing: string[] = []
   if (!customerId) missing.push("GOOGLE_ADS_CUSTOMER_ID")
   if (!conversionActionId) missing.push("GOOGLE_ADS_CONVERSION_ACTION_PURCHASE")
-  if (!isConfigured(developerToken)) missing.push("GOOGLE_ADS_DEVELOPER_TOKEN")
   return missing
 }
 
@@ -54,7 +52,6 @@ const CHECK_INTEGRATIONS_STRICT =
   process.argv.includes("--strict") ||
   process.env.CHECK_INTEGRATIONS_STRICT === "1" ||
   process.env.GITHUB_REF_PROTECTED === "true"
-const DEFAULT_OPENAI_REVIEW_MODEL = "gpt-5.5-pro"
 
 hydrateLocalEnv([
   "ANTHROPIC_API_KEY",
@@ -82,7 +79,6 @@ hydrateLocalEnv([
   "GOOGLE_ADS_CLIENT_SECRET",
   "GOOGLE_ADS_CONVERSION_ACTION_PURCHASE",
   "GOOGLE_ADS_CUSTOMER_ID",
-  "GOOGLE_ADS_DEVELOPER_TOKEN",
   "GOOGLE_ADS_DIAGNOSTICS_WATCH_REQUEST_ID",
   "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
   "GOOGLE_ADS_QUOTA_PROJECT_ID",
@@ -257,9 +253,8 @@ async function preflightGoogleAdsPurchaseConversionAction(): Promise<CheckResult
 
   const customerId = normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_CUSTOMER_ID)
   const conversionActionId = normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE)
-  const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN
 
-  const missingCoreKeys = missingGoogleAdsCoreEnvKeys(customerId, conversionActionId, developerToken)
+  const missingCoreKeys = missingGoogleAdsCoreEnvKeys(customerId, conversionActionId)
   if (missingCoreKeys.length > 0) {
     const localIssue = `Google Ads env is incomplete (${formatEnvList(missingCoreKeys)})`
     const productionFallback = await preflightProductionGoogleAdsConversionAction(localIssue)
@@ -288,7 +283,6 @@ async function preflightGoogleAdsPurchaseConversionAction(): Promise<CheckResult
       `${localIssue}; skipped UPLOAD_CLICKS validation.`,
     )
   }
-  const configuredDeveloperToken = developerToken?.trim() || ""
 
   const accessToken = await fetchGoogleAdsAccessToken()
   if (!accessToken) {
@@ -306,7 +300,6 @@ async function preflightGoogleAdsPurchaseConversionAction(): Promise<CheckResult
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${accessToken}`,
-    "developer-token": configuredDeveloperToken,
   }
   const loginCustomerId = normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID)
   if (loginCustomerId) headers["login-customer-id"] = loginCustomerId
@@ -621,39 +614,35 @@ async function checkAnthropicModels(): Promise<CheckResult[]> {
   return results
 }
 
-async function checkOpenAIReviewModel(): Promise<CheckResult[]> {
-  const apiKey = process.env.OPENAI_API_KEY
-  const model = process.env.OPENAI_REVIEW_MODEL?.trim() || DEFAULT_OPENAI_REVIEW_MODEL
-
-  if (!isConfigured(apiKey)) {
-    return [result("warn", "OpenAI review model", "OPENAI_API_KEY is not configured; skipped GPT review model validation.")]
+async function checkRuntimeCredentials(): Promise<CheckResult[]> {
+  const name = "Deployed runtime credentials"
+  const baseUrl = getIntegrationBaseUrl()
+  const cronSecret = process.env.CRON_SECRET
+  if (!baseUrl || !isConfigured(cronSecret)) {
+    return [result("fail", name, "A runtime base URL and CRON_SECRET are required; no credentials were verified.")]
   }
-
-  const response = await fetch(`https://api.openai.com/v1/models/${encodeURIComponent(model)}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  })
-
-  if (!response.ok) {
-    return [result(strictStatus(), "OpenAI review model", `${model} returned ${response.status}.`)]
+  // Never send the cron secret over plaintext or follow redirects to another host.
+  if (new URL(baseUrl).protocol !== "https:") {
+    return [result("fail", name, "Runtime credential checks require an HTTPS base URL.")]
   }
-
-  return [result("pass", "OpenAI review model", `${model} is available.`)]
-}
-
-function checkTwilioVoiceReadiness(): CheckResult[] {
-  const readiness = getTwilioVoiceReadiness(process.env)
-  if (!readiness.enabled) {
-    return [result("pass", "Twilio AI voice", "Disabled by the production kill switch.")]
+  try {
+    const response = await fetch(`${baseUrl}/api/internal/integration-readiness`, {
+      headers: { Authorization: `Bearer ${cronSecret}` },
+      redirect: "error",
+      signal: AbortSignal.timeout(20_000),
+    })
+    if (!response.ok) return [result("fail", name, `Runtime check returned HTTP ${response.status}; no credentials were verified.`)]
+    const payload = await response.json() as { source?: string; checks?: CheckResult[] }
+    const expectedNames = ["OpenAI review model", "Twilio AI voice"]
+    if (payload.source !== "deployed-runtime" || !Array.isArray(payload.checks) || payload.checks.length !== 2 ||
+        expectedNames.some((expected) => payload.checks!.filter((check) => check?.name === expected).length !== 1) ||
+        payload.checks.some((check) => !["pass", "fail"].includes(check.status) || typeof check.detail !== "string")) {
+      return [result("fail", name, "Runtime returned incomplete credential checks; no credentials were verified.")]
+    }
+    return payload.checks.map((check) => ({ ...check, detail: `Deployed runtime: ${check.detail}` }))
+  } catch {
+    return [result("fail", name, "Runtime credential checks could not be reached; no credentials were verified.")]
   }
-  if (!readiness.ready) {
-    return [result("fail", "Twilio AI voice", `Enabled but missing: ${formatEnvList(readiness.missing)}.`)]
-  }
-
-  const baseUrl = process.env.TWILIO_VOICE_PUBLIC_BASE_URL?.trim() ?? ""
-  if (!baseUrl.startsWith("https://")) {
-    return [result("fail", "Twilio AI voice", "TWILIO_VOICE_PUBLIC_BASE_URL must use HTTPS.")]
-  }
-  return [result("pass", "Twilio AI voice", "Enabled with signed webhooks, encrypted Medical Director messages, and an explicit kill switch.")]
 }
 
 async function checkParchmentReadiness(): Promise<CheckResult[]> {
@@ -689,8 +678,9 @@ async function main() {
     ...(await checkGoogleDataManagerConversions()),
     ...(await checkResendDomainOwnership()),
     ...(await checkAnthropicModels()),
-    ...(await checkOpenAIReviewModel()),
-    ...checkTwilioVoiceReadiness(),
+    ...(process.argv.includes("--runtime-credentials")
+      ? await checkRuntimeCredentials()
+      : [...await checkOpenAIReviewModel(), ...checkTwilioVoiceReadiness()]),
     ...(await checkParchmentReadiness()),
   ]
 
