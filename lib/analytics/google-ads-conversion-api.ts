@@ -37,7 +37,6 @@ export {
  *
  * Required env vars (all must be present for the call to fire):
  *   GOOGLE_ADS_CUSTOMER_ID            - 10-digit customer id, no dashes
- *   GOOGLE_ADS_DEVELOPER_TOKEN        - the developer token from API Center
  *   GOOGLE_ADS_CLIENT_ID        - OAuth 2.0 client id from GCP console
  *   GOOGLE_ADS_CLIENT_SECRET    - OAuth 2.0 client secret
  *   GOOGLE_ADS_REFRESH_TOKEN    - long-lived refresh token (one-time
@@ -196,7 +195,6 @@ function getGoogleAdsPurchaseConversionConfig(): {
   apiVersion: string
   conversionActionId: string
   customerId: string
-  developerToken: string
   loginCustomerId?: string
   quotaProjectId?: string
 } | null {
@@ -618,7 +616,6 @@ export async function fireGoogleAdsPurchaseConversion(
   if (!config) {
     logger.warn("Google Ads Conversion API skipped - missing env vars", {
       hasCustomerId: !!process.env.GOOGLE_ADS_CUSTOMER_ID,
-      hasDeveloperToken: !!process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
       hasConversionActionId: !!process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE,
     })
     return { attempted: false, error: "missing_env" }
@@ -718,7 +715,6 @@ export async function fireGoogleAdsConversionAdjustment(
   if (!config) {
     logger.warn("Google Ads conversion adjustment skipped - missing env vars", {
       hasCustomerId: !!process.env.GOOGLE_ADS_CUSTOMER_ID,
-      hasDeveloperToken: !!process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
       hasConversionActionId: !!process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE,
     })
     return { attempted: false, error: "missing_env" }

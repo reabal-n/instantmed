@@ -399,7 +399,7 @@ describe("google ads conversion api", () => {
       }) as typeof fetch
 
     process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
-    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    delete process.env.GOOGLE_ADS_DEVELOPER_TOKEN
     process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
     process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
     process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
@@ -454,7 +454,7 @@ describe("google ads conversion api", () => {
     })
 
     process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
-    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    delete process.env.GOOGLE_ADS_DEVELOPER_TOKEN
     process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE = "9876543210"
 
     await expect(fireGoogleAdsPurchaseConversion({
@@ -476,7 +476,7 @@ describe("google ads conversion api", () => {
     global.fetch = vi.fn() as typeof fetch
 
     process.env.GOOGLE_ADS_CUSTOMER_ID = "9205010513"
-    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    delete process.env.GOOGLE_ADS_DEVELOPER_TOKEN
     process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
     process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
     process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
@@ -553,7 +553,7 @@ describe("google ads conversion api", () => {
       }) as typeof fetch
 
     process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
-    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    delete process.env.GOOGLE_ADS_DEVELOPER_TOKEN
     process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
     process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
     process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
@@ -591,7 +591,7 @@ describe("google ads conversion api", () => {
       }) as typeof fetch
 
     process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
-    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    delete process.env.GOOGLE_ADS_DEVELOPER_TOKEN
     process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
     process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
     process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
@@ -611,7 +611,7 @@ describe("google ads conversion api", () => {
     process.env = originalEnv
   })
 
-  it("uploads conversion adjustments with the same Ads auth headers as click imports", async () => {
+  it("uploads conversion adjustments without a developer token", async () => {
     const originalFetch = global.fetch
     const originalEnv = { ...process.env }
 
@@ -628,7 +628,7 @@ describe("google ads conversion api", () => {
       }) as typeof fetch
 
     process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
-    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    delete process.env.GOOGLE_ADS_DEVELOPER_TOKEN
     process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
     process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
     process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
@@ -648,7 +648,6 @@ describe("google ads conversion api", () => {
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: "Bearer access-token",
-          "developer-token": "developer-token",
           "login-customer-id": "9998887777",
         }),
         method: "POST",
@@ -681,7 +680,7 @@ describe("google ads conversion api", () => {
         .mockRejectedValueOnce(new TypeError("connection reset after request write")) as typeof fetch
 
       process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
-      process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+      delete process.env.GOOGLE_ADS_DEVELOPER_TOKEN
       process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
       process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
       process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
@@ -718,7 +717,7 @@ describe("google ads conversion api", () => {
         }) as typeof fetch
 
       process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
-      process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+      delete process.env.GOOGLE_ADS_DEVELOPER_TOKEN
       process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
       process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
       process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"

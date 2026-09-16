@@ -506,7 +506,6 @@ describe("Google Ads post-payment attribution", () => {
       GOOGLE_ADS_CLIENT_SECRET: process.env.GOOGLE_ADS_CLIENT_SECRET,
       GOOGLE_ADS_CONVERSION_ACTION_PURCHASE: process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE,
       GOOGLE_ADS_CUSTOMER_ID: process.env.GOOGLE_ADS_CUSTOMER_ID,
-      GOOGLE_ADS_DEVELOPER_TOKEN: process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
       GOOGLE_ADS_REFRESH_TOKEN: process.env.GOOGLE_ADS_REFRESH_TOKEN,
       VERCEL: process.env.VERCEL,
       VERCEL_DEPLOYMENT_ID: process.env.VERCEL_DEPLOYMENT_ID,
@@ -518,7 +517,6 @@ describe("Google Ads post-payment attribution", () => {
     process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
     process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE = "7631611119"
     process.env.GOOGLE_ADS_CUSTOMER_ID = "9205010513"
-    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
     process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
     process.env.VERCEL = "1"
     process.env.VERCEL_DEPLOYMENT_ID = "dpl_test"
@@ -569,7 +567,6 @@ describe("Google Ads post-payment attribution", () => {
         google_ads_client_secret: true,
         google_ads_conversion_action_purchase: true,
         google_ads_customer_id: true,
-        google_ads_developer_token: true,
         google_ads_refresh_token: true,
       })
     } finally {
