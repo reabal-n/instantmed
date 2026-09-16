@@ -23,7 +23,6 @@
  * `lib/__tests__/stripe-checkout-retry.test.ts` continue to mock the same
  * external dependencies, which the step modules also import from.
  */
-
 import { cookies } from "next/headers"
 
 import { normalizeAttributionForStorage } from "@/lib/analytics/attribution-storage"
@@ -43,6 +42,7 @@ import type { ServiceCategory } from "@/types/services"
 import { runAuthAndProfile } from "./checkout/auth-and-profile"
 import { attachCheckoutSession } from "./checkout/checkout-session-safety"
 import { runClinicalValidation } from "./checkout/clinical-validation"
+import { CONSENT_EVIDENCE_ERROR, ensureCheckoutConsentEvidence, hasDurableCheckoutConsent } from "./checkout/consent-evidence"
 import { getServiceSlug } from "./checkout/helpers"
 import {
   applySafetyTriage,
@@ -269,6 +269,8 @@ export async function createIntakeAndCheckoutAction(
       patientId,
       answers: input.answers,
     })
+    const evidence = await ensureCheckoutConsentEvidence(supabase, { intakeId: intake.id, patientId, answers: input.answers, identity: input.consentIdentity })
+    if (!evidence.ok) return checkoutFailure("persistence", CONSENT_EVIDENCE_ERROR)
     await persistFraudFlags({ intakeId: intake.id, patientId, fraudResult })
 
     // 10. Build + create the Stripe Checkout session.
@@ -296,6 +298,7 @@ export async function createIntakeAndCheckoutAction(
       attribution,
     })
 
+    if (!await hasDurableCheckoutConsent(supabase, intake.id)) return checkoutFailure("persistence", CONSENT_EVIDENCE_ERROR)
     const sessionResult = await createStripeSessionWithRollback({
       supabase,
       intakeId: intake.id,

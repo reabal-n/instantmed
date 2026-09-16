@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+import { hasDurableCheckoutConsent } from "@/lib/stripe/checkout/consent-evidence"
 
 const mocks = vi.hoisted(() => ({
   checkSafetyForServer: vi.fn(),
@@ -307,6 +308,7 @@ describe("signed guest checkout resume payment safety", () => {
   it.each([undefined, false, "true"])("blocks signed resume without explicit telehealth consent %s before Stripe", async value => {
     const { supabase } = createResumeSupabaseMock({ payment_id: null })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValueOnce(false)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: value })
     await expect(resolveGuestCheckoutResume("intake-1")).resolves.toBe("/checkout/cancelled?reason=more_information_required")
     expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
@@ -316,6 +318,7 @@ describe("signed guest checkout resume payment safety", () => {
   it.each(["paid", "unpaid"])("preserves Stripe-complete %s recovery when consent is missing", async paymentStatus => {
     const { supabase } = createResumeSupabaseMock({ payment_id: "cs_previous", status: "pending_payment", payment_status: "pending" })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValueOnce(false)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: false })
     mocks.stripeSessionRetrieve.mockResolvedValueOnce({ id: "cs_previous", metadata: { intake_id: "intake-1" }, status: "complete", payment_status: paymentStatus })
     const result = await resolveGuestCheckoutResume("intake-1")
@@ -326,13 +329,15 @@ describe("signed guest checkout resume payment safety", () => {
   it("expires the owned open session before requiring new consent", async () => {
     const { supabase } = createResumeSupabaseMock({ payment_id: "cs_previous" })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValueOnce(false)
     mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent, telehealthConsentGiven: false })
     await resolveGuestCheckoutResume("intake-1")
     expect(mocks.stripeSessionExpire).toHaveBeenCalledWith("cs_previous")
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
-  it("loads encrypted-first answers and atomically locks a high-stakes payment before closing it", async () => {
+  it.each([true, false])("loads encrypted-first answers and locks high-stakes payment with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const events: string[] = []
     const { supabase, updateRecords } = createResumeSupabaseMock({}, { events })
     mocks.createServiceRoleClient.mockReturnValue(supabase)
@@ -385,7 +390,8 @@ describe("signed guest checkout resume payment safety", () => {
     expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
   })
 
-  it("routes a captured high-stakes session with payment in flight to account completion", async () => {
+  it.each([true, false])("routes high-stakes payment in flight to completion with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const { supabase, updateRecords } = createResumeSupabaseMock({}, {
       refetchedIntakes: [{ checkout_error: "safety_blocked_high_stakes" }],
     })
@@ -516,7 +522,8 @@ describe("signed guest checkout resume payment safety", () => {
     )
   })
 
-  it("withholds even a live open Session when the safety rules engine now blocks the answers", async () => {
+  it.each([true, false])("withholds unsafe open Session with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     // Identical fixture to the safe-open-session test above; ONLY the rules
     // verdict differs — pins that the re-evaluation runs before the
     // open-session reuse branch, so tightened rules beat a 7-day resume link.
@@ -690,7 +697,8 @@ describe("signed guest checkout resume payment safety", () => {
     })
   })
 
-  it("holds and invalidates an incomplete repeat-Rx Session before returning any URL", async () => {
+  it.each([true, false])("holds incomplete repeat-Rx Session with durable consent=%s", async receiptPresent => {
+    vi.mocked(hasDurableCheckoutConsent).mockResolvedValue(receiptPresent)
     const incompleteAnswers = { ...explicitConsent,
       dose_changed: false,
       emergency_symptoms: [],
@@ -1288,3 +1296,9 @@ describe("signed guest checkout resume payment safety", () => {
     expect(mocks.getIntakeAnswersForPaymentSafety).not.toHaveBeenCalled()
   })
 })
+
+vi.mock("@/lib/stripe/checkout/consent-evidence", () => ({
+  hasDurableCheckoutConsent: vi.fn(async () => true),
+  ensureCheckoutConsentEvidence: vi.fn(async () => ({ ok: true })),
+  CONSENT_EVIDENCE_ERROR: "Consent evidence unavailable",
+}))

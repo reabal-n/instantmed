@@ -391,3 +391,9 @@ describe("retry-payment path (retryPaymentForIntakeAction)", () => {
     )
   })
 })
+
+vi.mock("@/lib/stripe/checkout/consent-evidence", () => ({
+  hasDurableCheckoutConsent: vi.fn(async () => true),
+  ensureCheckoutConsentEvidence: vi.fn(async () => ({ ok: true })),
+  CONSENT_EVIDENCE_ERROR: "Consent evidence unavailable",
+}))

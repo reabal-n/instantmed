@@ -108,7 +108,7 @@ export async function runAuthAndProfile(
       return stepFail("clinical_or_input_validation", prescribingIdentityError)
     }
 
-    const prescribingUpdates = buildPrescribingProfileUpdates(input.answers)
+    const prescribingUpdates = buildPrescribingProfileUpdates(input.answers, authUser.profile)
     if (Object.keys(prescribingUpdates).length > 0) {
       const updatedProfile = await updateProfile(patientId, prescribingUpdates)
       if (!updatedProfile) {

@@ -31,6 +31,8 @@ if (!baseURL) {
 
 export default defineConfig({
   testDir: "./e2e",
+  // This probe requires its own disposable backend and blocked external I/O.
+  testIgnore: "**/server-action-access.spec.ts",
   
   // No global setup/teardown for preview - we don't seed the preview DB
   // Tests should be self-contained or use test accounts

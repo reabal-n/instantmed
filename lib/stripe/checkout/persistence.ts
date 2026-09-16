@@ -6,7 +6,7 @@
  *   1. Insert `intakes` (status=pending_payment)
  *   2. Insert `intake_answers` (atomic: rollback `intakes` on failure)
  *   3. Update triage fields + record operator-visible safety eval
- *   4. Compliance audit logs (request created, terms, telehealth, accuracy)
+ *   4. Request-created audit; checked consent receipt is owned by the orchestrator
  *   5. Persist fraud flags (non-blocking)
  *
  * Compliance writes happen AFTER answers insert so they never orphan if
@@ -19,13 +19,9 @@ import {
 
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import {
-  logAccuracyAttestationGiven,
   logRequestCreated,
-  logTelehealthConsentGiven,
-  logTermsConsentGiven,
 } from "@/lib/audit/compliance-audit"
 import type { IntakeFlag } from "@/lib/clinical/intake-flags"
-import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
 import { buildAnswersInsertColumns } from "@/lib/data/intake-answers"
 import { normalizePersistedGrowthExperienceVersion } from "@/lib/growth/specialty-experience-attribution"
 import { reportCheckoutPersistenceFailure } from "@/lib/observability/checkout-persistence-diagnostics"
@@ -39,6 +35,8 @@ import { checkoutFailure } from "@/lib/stripe/checkout-failure"
 
 import type { CheckoutResult } from "../checkout"
 import { canRetryPaymentForIntake, isTerminalPaidPaymentStatus } from "../payment-integrity"
+import { inspectCheckoutSession } from "./checkout-session-safety"
+import { CONSENT_EVIDENCE_ERROR, ensureCheckoutConsentEvidence } from "./consent-evidence"
 import { mapCategoryToRequestType } from "./helpers"
 import { reconcileTerminalDraftCheckout, type RestoredCheckoutIntake } from "./restored-draft-recovery"
 import type { CreateCheckoutInput, StepResult } from "./types"
@@ -241,6 +239,19 @@ export async function createIntakeWithAnswers(
             "This request is not awaiting payment. Please refresh and check your request status.",
           )
         }
+        if (existingIntake.payment_id) {
+          const payment = await inspectCheckoutSession(existingIntake.payment_id, existingIntake.id, {
+            intakeStatus: existingIntake.status, paymentStatus: existingIntake.payment_status,
+            storedPaymentId: existingIntake.payment_id,
+          })
+          if (payment.state === "paid" || payment.state === "payment_in_flight") {
+            return stepOk({ kind: "resolved_existing", result: { success: true, intakeId: existingIntake.id,
+              checkoutUrl: `${baseUrl}/patient/intakes/${existingIntake.id}` } })
+          }
+          if (payment.state === "unresolved") return stepFail("payment_provider", "We couldn't verify this payment. Please check its status before trying again.")
+        }
+        const evidence = await ensureCheckoutConsentEvidence(supabase, { intakeId: existingIntake.id, patientId, answers: input.answers, identity: input.consentIdentity })
+        if (!evidence.ok) return stepFail("persistence", CONSENT_EVIDENCE_ERROR)
         return stepOk({ kind: "retry_existing", intakeId: existingIntake.id })
       }
     }
@@ -339,9 +350,8 @@ export async function applySafetyTriage(
 }
 
 /**
- * Per-episode compliance audit. LegitScript and AHPRA defensibility require
- * a record that consent was attested at submission time, not assumed from
- * signup. Order: request_created first, then the three consent log lines.
+ * Request-created audit. The orchestrator separately requires the atomic
+ * versioned consent receipt; this best-effort lifecycle log cannot authorize payment.
  */
 export async function logComplianceAudit(args: {
   intake: IntakeRow
@@ -356,11 +366,7 @@ export async function logComplianceAudit(args: {
     subtype: args.subtype,
     ...buildAddressAuditMetadata(args.answers),
   })
-  await Promise.all([
-    logTermsConsentGiven(args.intake.id, requestType, args.patientId, TERMS_VERSION),
-    logTelehealthConsentGiven(args.intake.id, requestType, args.patientId, TELEHEALTH_CONSENT_VERSION),
-    logAccuracyAttestationGiven(args.intake.id, requestType, args.patientId),
-  ])
+
 }
 
 /**

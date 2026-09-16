@@ -151,6 +151,7 @@ export function validateRequiredPrescribingProfileAnswers(
 
 export function buildPrescribingProfileUpdates(
   answers: Record<string, unknown>,
+  currentProfile?: PrescribingProfileUpdates | null,
 ): PrescribingProfileUpdates {
   const updates: PrescribingProfileUpdates = {}
   const medicare = normalizeDigits(firstStringAnswer(answers, ["medicare_number", "medicareNumber"]))
@@ -187,6 +188,13 @@ export function buildPrescribingProfileUpdates(
     updates.onboarding_completed = true
   }
 
+  // Preserve an unchanged episode revision: re-encrypting equal PHI produces
+  // new ciphertext, which correctly invalidates consent at the storage boundary.
+  if (currentProfile) {
+    for (const key of Object.keys(updates) as Array<keyof PrescribingProfileUpdates>) {
+      if (updates[key] === currentProfile[key]) delete updates[key]
+    }
+  }
   return updates
 }
 

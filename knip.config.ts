@@ -15,7 +15,15 @@ const config: KnipConfig = {
     "scripts/backfill-stripe-refund-events.ts!",
     // Preview and fixture tooling belongs to the comprehensive scan only.
     "playwright.preview.config.ts",
+    "playwright.action-access.config.ts",
+    // Spawned with a clean environment by the compiled-action test configuration.
+    "scripts/e2e/action-access-backend.mjs",
+    "scripts/e2e/action-access-isolation.mjs",
     "scripts/e2e/{seed,teardown}.ts",
+    "scripts/test-navigation-bootstrap-browser.mjs",
+    "scripts/fixtures/navigation-bootstrap-browser.tsx",
+    "scripts/test-streamed-content-browser.mjs",
+    "scripts/fixtures/streamed-content-browser.jsx",
     "scripts/test-checkout-restored-browser.mjs",
     "scripts/fixtures/checkout-restored-browser.tsx",
     "scripts/test-parchment-workspace-browser.mjs",

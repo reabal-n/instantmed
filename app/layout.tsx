@@ -15,6 +15,7 @@ import { ServiceAvailabilityProvider } from "@/components/providers/service-avai
 import { OrganizationSchema } from "@/components/seo/schemas/organization"
 import { WebSiteSchema } from "@/components/seo/schemas/website"
 import { SkipToContent } from "@/components/shared/skip-to-content"
+import { StreamedContent } from "@/components/shared/streamed-content"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { SupabaseAuthProvider } from "@/lib/supabase/auth-provider"
 
@@ -187,7 +188,7 @@ export default function RootLayout({
                 <GlobalDeferredClients />
                 <SkipToContent />
                 <div id="main-content" tabIndex={-1} className="relative z-10 focus:outline-none">
-                  {children}
+                  <StreamedContent>{children}</StreamedContent>
                 </div>
                 </ServiceAvailabilityProvider>
           </ThemeProvider>

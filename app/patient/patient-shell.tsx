@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { type ReactNode, Suspense, useState } from 'react'
 
 import { PanelProvider } from '@/components/panels/panel-provider'
+import { StreamedContent } from '@/components/shared/streamed-content'
 import { LeftRail } from '@/components/shell/left-rail'
 import { MobileNav } from '@/components/ui/mobile-nav'
 import { cn } from '@/lib/utils'
@@ -36,7 +37,7 @@ function PatientShellContent({ children }: { children: ReactNode }) {
       <GlobalIntakeNotifications />
       {/* Session timeout warning removed - Supabase Auth handles session refresh automatically */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:pb-8">
-        {children}
+        <StreamedContent>{children}</StreamedContent>
       </div>
       <Suspense fallback={null}>
         <MobileNav />

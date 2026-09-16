@@ -14,6 +14,7 @@ import {
   isPaymentSafetyLock,
   PAYMENT_SAFETY_LOCKS,
 } from "../payment-safety-lock"
+import { hasDurableCheckoutConsent } from "./consent-evidence"
 
 const logger = createLogger("checkout-session-safety")
 
@@ -229,6 +230,10 @@ export async function attachCheckoutSession({
     | "retry_payment"
   supabase: ReturnType<typeof createServiceRoleClient>
 }): Promise<CheckoutSessionAttachResult> {
+  if (!await hasDurableCheckoutConsent(supabase, intakeId)) {
+    await invalidateCheckoutSessionForSafety(sessionId, intakeId)
+    return { outcome: "unresolved" }
+  }
   // Stripe idempotency can replay a session created by an earlier request. A
   // replay may have expired or completed since it was first created, so never
   // attach it to the intake until Stripe confirms it is still payable.
@@ -305,6 +310,7 @@ export async function attachCheckoutSession({
   }
 
   if (
+    await hasDurableCheckoutConsent(supabase, intakeId) &&
     currentIntake?.payment_id === sessionId &&
     !isPaymentSafetyLock(currentIntake.checkout_error) &&
     canRetryPaymentForIntake(currentIntake.status, currentIntake.payment_status)
@@ -388,6 +394,7 @@ export async function confirmCheckoutSessionStillCurrent({
     : null
 
   if (
+    await hasDurableCheckoutConsent(supabase, intakeId) &&
     currentState?.payment_id === sessionId &&
     !isPaymentSafetyLock(currentState.checkout_error) &&
     canRetryPaymentForIntake(currentState.status, currentState.payment_status)

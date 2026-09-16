@@ -55,6 +55,8 @@ Review channel/service contribution, refund and chargeback trends, queue/support
 
 ## 4. Ordered Active Queue
 
+**Current release follow-up:** the previously unmerged [server-action access and consent plan](superpowers/plans/2026-09-15-action-access-and-consent.md#execution-reconciliation--september-15) is implemented and under release verification. Its additive receipt schema is applied; application merge and production deployment remain pending. Plan 5 stays complete.
+
 **Operator-selected execution order — 2026-09-06:** confirmed checkout/data/monitoring reliability, then certificate revenue, then the clinical dashboard. Each numbered plan runs in a new session after the preceding build finishes. The dashboard's first priority is concise clinical information: the complete medicine, dose/directions and frequency must be visible together in both review and the prescribing modal. The operator delegates layout details and defers embedded AI, Lena and support-drafting evaluations. This is the execution sequence for the existing ranks, not a new strategy, staffing trigger or commercial approval. See the [reconciled audit](audits/2026-09-04-scaling-audit.md) for the dated evidence and superseded recommendations.
 
 | Session | Plan | Parent rank | Completion boundary |

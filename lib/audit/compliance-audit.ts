@@ -454,61 +454,7 @@ export async function logExternalPrescribingIndicated(
 // SECTION 6: Patient Consent Evidence - Per MEDICOLEGAL_AUDIT_REPORT CN-1, CN-2
 // ============================================================================
 
-export async function logTelehealthConsentGiven(
-  requestId: string,
-  requestType: RequestType,
-  patientId: string,
-  consentVersion: string,
-  ipAddress?: string
-) {
-  return logComplianceEvent({
-    eventType: "telehealth_consent_given",
-    requestId,
-    requestType,
-    actorId: patientId,
-    actorRole: "patient",
-    isHumanAction: true,
-    eventData: { consentVersion, consentTimestamp: new Date().toISOString() },
-    ipAddress,
-  })
-}
-
-export async function logTermsConsentGiven(
-  requestId: string,
-  requestType: RequestType,
-  patientId: string,
-  termsVersion: string,
-  ipAddress?: string
-) {
-  return logComplianceEvent({
-    eventType: "terms_consent_given",
-    requestId,
-    requestType,
-    actorId: patientId,
-    actorRole: "patient",
-    isHumanAction: true,
-    eventData: { termsVersion, consentTimestamp: new Date().toISOString() },
-    ipAddress,
-  })
-}
-
-export async function logAccuracyAttestationGiven(
-  requestId: string,
-  requestType: RequestType,
-  patientId: string,
-  ipAddress?: string
-) {
-  return logComplianceEvent({
-    eventType: "accuracy_attestation_given",
-    requestId,
-    requestType,
-    actorId: patientId,
-    actorRole: "patient",
-    isHumanAction: true,
-    eventData: { attestationTimestamp: new Date().toISOString() },
-    ipAddress,
-  })
-}
+// Checkout consent and its three audit events are written atomically by record_checkout_consent.
 
 export async function logTelehealthLimitationsAcknowledged(
   requestId: string,

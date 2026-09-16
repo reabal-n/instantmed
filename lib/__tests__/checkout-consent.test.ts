@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 
 import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+import { transformAnswersForUnifiedCheckout } from "@/lib/request/unified-checkout"
 import { hasCheckoutConsent } from "@/lib/stripe/checkout/consent"
 
 describe("explicit checkout consent", () => {
@@ -21,10 +22,19 @@ describe("explicit checkout consent", () => {
     expect(hasCheckoutConsent({ ...consent, [key]: false })).toBe(false)
   })
   it.each([
+    ["terms_agreed", false], ["accuracy_confirmed", "true"],
+    ["telehealth_consent_given", false], ["telehealth_consent_version", "2026-02"],
+  ])("rejects conflicting canonical alias %s", (key, value) => {
+    expect(hasCheckoutConsent({ ...consent, [key]: value })).toBe(false)
+    expect(hasCheckoutConsent(transformAnswersForUnifiedCheckout("med-cert", { ...consent, [key]: value }))).toBe(false)
+  })
+  it.each([
     "lib/stripe/checkout/auth-and-profile.ts", "lib/stripe/guest-checkout.ts",
-    "lib/stripe/checkout/retry-payment.ts", "lib/stripe/checkout/guest-resume.ts",
   ])("enforces the shared consent boundary in %s", file => {
     expect(readFileSync(file, "utf8")).toMatch(/if \(!hasCheckoutConsent\(/)
+  })
+  it.each(["lib/stripe/checkout/retry-payment.ts", "lib/stripe/checkout/guest-resume.ts"])("requires a durable current episode receipt for recovery in %s", file => {
+    expect(readFileSync(file, "utf8")).toContain("if (!await hasDurableCheckoutConsent(supabase, intake.id))")
   })
   it("does not expose internal answer hashing as an action", () => {
     expect(readFileSync("app/actions/drafts/draft-validation.ts", "utf8")).not.toContain("export async function computeIntakeHash")

@@ -23,6 +23,8 @@ import {
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
 import { createIntakeAndCheckoutAction, retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
+import { inspectCheckoutSession } from "@/lib/stripe/checkout/checkout-session-safety"
+import { CONSENT_EVIDENCE_ERROR, ensureCheckoutConsentEvidence } from "@/lib/stripe/checkout/consent-evidence"
 import { reconcileTerminalDraftCheckout } from "@/lib/stripe/checkout/restored-draft-recovery"
 import type { CheckoutResult } from "@/lib/stripe/checkout/types"
 import { checkoutFailure } from "@/lib/stripe/checkout-failure"
@@ -234,6 +236,21 @@ async function createCheckoutFromUnifiedFlowInternal(
     }
 
     if (canRetryPaymentForIntake(intake.status, intake.paymentStatus)) {
+      if (intake.paymentId) {
+        const payment = await inspectCheckoutSession(intake.paymentId, intake.id, {
+          intakeStatus: intake.status, paymentStatus: intake.paymentStatus, storedPaymentId: intake.paymentId,
+        })
+        if (payment.state === "paid" || payment.state === "payment_in_flight") {
+          return { success: true, intakeId: intake.id, checkoutUrl: isOwnedByAuthenticatedPatient
+            ? `${getAppUrl().replace(/\/$/, "")}/patient/intakes/${intake.id}`
+            : buildSignedCheckoutResumeUrl({ appUrl: getAppUrl(), intakeId: intake.id }) }
+        }
+        if (payment.state === "unresolved") return checkoutFailure("payment_provider", "We couldn't verify this payment. Please check its status before trying again.")
+      }
+      const evidence = await ensureCheckoutConsentEvidence(createServiceRoleClient(), {
+        intakeId: intake.id, patientId: intake.patientId!, answers: transformedAnswers, identity,
+      })
+      if (!evidence.ok) return checkoutFailure("persistence", CONSENT_EVIDENCE_ERROR)
       if (isOwnedByAuthenticatedPatient) {
         return retryPaymentForIntakeAction(intake.id)
       }
@@ -277,6 +294,7 @@ async function createCheckoutFromUnifiedFlowInternal(
       subtype: finalSubtype,
       type: serviceType,
       answers: transformedAnswers,
+      consentIdentity: identity,
       // A saved server draft is the canonical submission identity across guest
       // and authenticated checkout. Without one, preserve the 10-minute
       // double-click bucket so legitimate later requests still create a new row.

@@ -14,7 +14,6 @@ import {
   isSupersededDuplicateCheckoutError,
   resolvePaymentRecoveryCanonicality,
 } from "@/lib/stripe/canonical-payment-recovery"
-import { hasCheckoutConsent } from "@/lib/stripe/checkout/consent"
 import { buildGuestCheckoutCancelUrl } from "@/lib/stripe/checkout-recovery-link"
 import { getPriceIdForRequest, stripe } from "@/lib/stripe/client"
 import {
@@ -38,6 +37,7 @@ import {
   inspectCheckoutSession,
   invalidateCheckoutSessionForSafety,
 } from "./checkout-session-safety"
+import { hasDurableCheckoutConsent } from "./consent-evidence"
 import { getServiceSlug } from "./helpers"
 import {
   getHighStakesCheckoutBlock,
@@ -222,6 +222,7 @@ async function rebuildGuestCheckoutSession(
     payment_status: intake.payment_status,
     status: intake.status,
   }
+  if (!await hasDurableCheckoutConsent(supabase, intake.id)) return null
   const replacementClaim = await claimCheckoutSessionReplacement({
     initialState: replacementState,
     intakeId: intake.id,
@@ -236,6 +237,7 @@ async function rebuildGuestCheckoutSession(
     return null
   }
   try {
+    if (!await hasDurableCheckoutConsent(supabase, intake.id)) return null
     const session = await stripe.checkout.sessions.create(
       {
         line_items: lineItems,
@@ -369,16 +371,6 @@ export async function resolveGuestCheckoutResume(
       )
       return PAYMENT_STATE_UNRESOLVED_DESTINATION
     }
-    if (!hasCheckoutConsent(answers)) {
-      if (intake.payment_id) {
-        const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, {
-          intakeStatus: intake.status, paymentStatus: intake.payment_status, storedPaymentId: intake.payment_id,
-        })
-        if (invalidation === "payment_in_flight") return accountCompletionDestination(intake.id, intake.payment_id)
-        if (invalidation !== "invalidated") return PAYMENT_STATE_UNRESOLVED_DESTINATION
-      }
-      return MORE_INFORMATION_REQUIRED_DESTINATION
-    }
     const highStakesBlock = isMedicalCertificateIntake(intake.category, intake.service)
       ? getHighStakesCheckoutBlock(answers)
       : null
@@ -494,6 +486,18 @@ export async function resolveGuestCheckoutResume(
       return SAFETY_BLOCKED_DESTINATION
     }
 
+    // Clinical classification and durable safety holds precede consent recovery.
+    // A valid receipt remains mandatory before any payable URL or new Session.
+    if (!await hasDurableCheckoutConsent(supabase, intake.id)) {
+      if (intake.payment_id) {
+        const invalidation = await invalidateCheckoutSessionForSafety(intake.payment_id, intake.id, {
+          intakeStatus: intake.status, paymentStatus: intake.payment_status, storedPaymentId: intake.payment_id,
+        })
+        if (invalidation === "payment_in_flight") return accountCompletionDestination(intake.id, intake.payment_id)
+        if (invalidation !== "invalidated") return PAYMENT_STATE_UNRESOLVED_DESTINATION
+      }
+      return MORE_INFORMATION_REQUIRED_DESTINATION
+    }
     let canRebuild = !intake.payment_id
     if (intake.payment_id) {
       const inspection = await inspectCheckoutSession(intake.payment_id, intake.id, {

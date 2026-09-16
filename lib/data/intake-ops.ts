@@ -1,4 +1,4 @@
-"use server"
+import "server-only"
 
 /**
  * Intake Ops Data Access
@@ -6,7 +6,6 @@
  * Server-side queries for operational monitoring of intakes.
  * Used by the admin stuck intakes viewer.
  */
-
 import * as Sentry from "@sentry/nextjs"
 
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"

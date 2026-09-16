@@ -17,6 +17,7 @@ export interface CreateCheckoutInput {
   subtype: string
   type: string
   answers: Record<string, unknown>
+  consentIdentity?: { fullName?: string; dateOfBirth?: string; phone?: string }
   serviceSlug?: string
   /** Client-generated key (>=16 chars) preventing duplicate submissions. */
   idempotencyKey: string

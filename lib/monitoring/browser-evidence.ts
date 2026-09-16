@@ -73,16 +73,21 @@ class ObservationError extends Error {
   constructor(readonly backoffUntil = 0, readonly reason: UnavailableReason = "invalid_source") { super("browser_observer_unavailable") }
 }
 async function getJson(path: string, now: number): Promise<unknown> {
+  const token = process.env.GITHUB_BROWSER_MONITOR_TOKEN
   const response = await fetch(`${API}/${path}`, {
-    headers: { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
+    headers: { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     cache: "no-store", signal: AbortSignal.timeout(2500), redirect: "error",
   })
   if (!response.ok) {
     const reset = Number(response.headers.get("x-ratelimit-reset")) * 1000
     const retry = Number(response.headers.get("retry-after")) * 1000 + now
+    const rateLimited = response.status === 429 || response.status === 403
+      && (response.headers.get("x-ratelimit-remaining") === "0" || Number(response.headers.get("retry-after")) > 0)
     throw new ObservationError(response.status === 429 || response.status === 403
       ? Math.min(now + 3600000, Math.max(now + 300000, Number.isFinite(reset) ? reset : 0, Number.isFinite(retry) ? retry : 0)) : 0,
-    response.status === 429 ? "rate_limited" : "http_error")
+    rateLimited ? "rate_limited" : "http_error")
   }
   return response.json()
 }

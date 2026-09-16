@@ -68,7 +68,7 @@ function store(initial = state(), fail = false) {
   return { read: () => current, query, rpc, append, version: () => version }
 }
 beforeEach(() => { vi.clearAllMocks(); vi.useFakeTimers(); vi.setSystemTime(now) })
-afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 describe("bounded public GitHub observer", () => {
   it("does not reopen completed history outside a proven ten-run window", async () => {
     const cache = Array.from({ length: 10 }, (_, i) => evidence(20 - i))
@@ -168,6 +168,48 @@ describe("bounded public GitHub observer", () => {
     expect(result.state.latest).toEqual(previous.latest)
     expect(result.state.observerOk).toBe(false)
     if (status === 429) expect(result.state.backoffUntil).toBeGreaterThan(now)
+  })
+  it("authenticates workflow and job reads with the existing repository monitor token", async () => {
+    vi.stubEnv("GITHUB_BROWSER_MONITOR_TOKEN", "synthetic-monitor-token")
+    const fetcher = replies({ total_count: 1, workflow_runs: [run()] }, jobs())
+    const result = await collectBrowserEvidence(state(), now)
+    expect(result.state.observerOk).toBe(true)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    for (const [url, options] of fetcher.mock.calls) {
+      expect(url).toMatch(/^https:\/\/api\.github\.com\/repos\/reabal-n\/instantmed\/actions\//)
+      expect(options.headers.Authorization).toBe("Bearer synthetic-monitor-token")
+      expect(options.redirect).toBe("error")
+    }
+  })
+  it("does not emit an empty authorization header when the monitor token is absent", async () => {
+    vi.stubEnv("GITHUB_BROWSER_MONITOR_TOKEN", "")
+    const fetcher = replies({ total_count: 1, workflow_runs: [run()] }, jobs())
+    await collectBrowserEvidence(state(), now)
+    expect(fetcher.mock.calls[0][1].headers).not.toHaveProperty("Authorization")
+  })
+  it.each([
+    { headers: new Headers({ "x-ratelimit-remaining": "0", "x-ratelimit-reset": String((now + 600000) / 1000) }), backoff: 600000 },
+    { headers: new Headers({ "retry-after": "1200" }), backoff: 1200000 },
+  ])("classifies a GitHub 403 with quota headers as rate limiting (%j)", async ({ headers, backoff }) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("untrusted quota body", {
+      status: 403, headers,
+    })))
+    const result = await collectBrowserEvidence(state(), now)
+    expect(result.unavailableReason).toBe("rate_limited")
+    expect(result.state.observerOk).toBe(false)
+    expect(result.state.backoffUntil).toBe(now + backoff)
+  })
+  it.each([401, 403])("keeps authenticated HTTP %i failures visible without an anonymous retry", async status => {
+    vi.stubEnv("GITHUB_BROWSER_MONITOR_TOKEN", "synthetic-invalid-token")
+    const fetcher = vi.fn().mockResolvedValue(new Response("untrusted provider body", {
+      status, headers: { "x-ratelimit-remaining": "100" },
+    }))
+    vi.stubGlobal("fetch", fetcher)
+    const result = await collectBrowserEvidence(state(), now)
+    expect(result.state.observerOk).toBe(false)
+    expect(result.unavailableReason).toBe("http_error")
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(fetcher.mock.calls[0][1].headers.Authorization).toBe("Bearer synthetic-invalid-token")
   })
   it("honors durable rate-limit backoff without another request", async () => {
     const fetcher = replies()

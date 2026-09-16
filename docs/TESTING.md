@@ -472,3 +472,18 @@ The browser fixture also checks this sign-in/support state in all four views:
 disabled Pay, no restart action or unsupported payment claim, keyboard focus,
 and the existing sign-in redirect. That redirect proves navigation only, not a
 real authenticated sign-in or hosted provider flow.
+
+
+### Isolated action-access and consent-receipt regressions
+
+`pnpm exec playwright test --config=playwright.action-access.config.ts` runs against a compiled local Next server on port 3060 and a disposable loopback PostgREST-shaped backend. It skips shared fixture seeding, uses synthetic roles and records no trace, screenshots, credentials or action IDs. External fetches and provider credentials are excluded. This proves compiled action dispatch and application authorization, not Supabase RLS. Run after `pnpm build`; the build's `check-server-action-boundaries.mjs --summary` rejects internal helpers in both emitted action maps.
+
+`bash scripts/test-checkout-consent-db.sh` creates and removes its own PostgreSQL container. It replays the additive consent migration and checks grants, atomic audit failure, receipt idempotency, identity/answer invalidation, caller-selected revision rejection and concurrent changes. It does not use another project's local database or write production fixtures. Both checks are part of CI's required build job.
+
+### Auth bootstrap lifecycle regression
+
+`node scripts/test-navigation-bootstrap-browser.mjs` bundles the real navigation boundary with controlled auth and a loopback-only browser fixture. It checks that initial session resolution preserves an edited child, while subsequent actor changes reset it and staff session loss hides previous content. CI runs it before application browser suites. The compiled checkout-resume suite separately verifies server rendering and hydration.
+
+### Streamed hydration replay regression
+
+`node scripts/test-streamed-content-browser.mjs` uses Next's bundled React renderer and the real `StreamedContent` boundary on loopback port 3060. Ten negative controls reproduce React 418 and lost edits when a Flight-shaped lazy child resolves in a microtask directly inside a host element; ten boundary runs must preserve the original DOM and edited input without errors. It loads no environment files or provider data and removes its temporary bundle. CI runs it before application browser suites. This proves the renderer workaround; the compiled checkout-resume suite separately verifies its placement in the application. Revisit the negative control when an approved renderer upgrade incorporates upstream React fix #35494.
