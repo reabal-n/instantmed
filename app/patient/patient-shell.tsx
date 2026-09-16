@@ -1,7 +1,6 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { type ReactNode, Suspense, useState } from 'react'
+import { type ComponentType, type ReactNode, Suspense, useEffect, useState } from 'react'
 
 import { PanelProvider } from '@/components/panels/panel-provider'
 import { LeftRail } from '@/components/shell/left-rail'
@@ -25,15 +24,28 @@ interface PatientShellProps {
   }
 }
 
-const GlobalIntakeNotifications = dynamic(
-  () => import('@/components/patient/global-intake-notifications').then((mod) => mod.GlobalIntakeNotifications),
-  { ssr: false },
-)
-
 function PatientShellContent({ children }: { children: ReactNode }) {
+  const [Notifications, setNotifications] = useState<ComponentType | null>(null)
+  const [notificationLoadFailure, setNotificationLoadFailure] = useState<{ error: unknown } | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    // Notifications render nothing. Load after mount so SSR and initial client
+    // output agree without a client-only Suspense marker before the page content.
+    void import('@/components/patient/global-intake-notifications').then((mod) => {
+      if (!cancelled) setNotifications(() => mod.GlobalIntakeNotifications)
+    }).catch((error: unknown) => {
+      if (!cancelled) setNotificationLoadFailure({ error })
+    })
+    return () => { cancelled = true }
+  }, [])
+
+  // Preserve the route error boundary's recovery for failed or stale chunks.
+  if (notificationLoadFailure) throw notificationLoadFailure.error
+
   return (
     <>
-      <GlobalIntakeNotifications />
+      {Notifications ? <Notifications /> : null}
       {/* Session timeout warning removed - Supabase Auth handles session refresh automatically */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:pb-8">
         {children}
