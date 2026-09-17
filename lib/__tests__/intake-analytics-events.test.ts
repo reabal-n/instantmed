@@ -10,7 +10,6 @@ import {
   buildIntakeStepCompletedProperties,
   buildIntakeStepViewedProperties,
   buildIntakeValidationBlockedProperties,
-  captureWomensHealthRepeatHandoff,
   INTAKE_ANALYTICS_EVENTS,
   normalizeIntakeEntryRef,
 } from "@/lib/analytics/intake-events"
@@ -282,58 +281,6 @@ describe("intake analytics events", () => {
 
     expect(womensAssessmentSource.match(/stepId: "womens-health-assessment"/g)).toHaveLength(2)
     expect(womensAssessmentSource.match(/subtype: answers\.consultSubtype/g)).toHaveLength(2)
-  })
-
-  it("emits the current-pill handoff with exact fixed properties when PostHog is ready", () => {
-    const captured: Array<{ event: string; properties?: Record<string, unknown> }> = []
-
-    captureWomensHealthRepeatHandoff({
-      fallbackCapture: () => {
-        throw new Error("ready clients must not use the retry fallback")
-      },
-      flowInstanceId: "11111111-1111-4111-8111-111111111111",
-      posthog: {
-        capture: (event, properties) => captured.push({ event, properties }),
-      },
-    })
-
-    expect(captured).toEqual([{
-      event: "intake_validation_blocked",
-      properties: {
-        service_type: "consult",
-        flow_instance_id: "11111111-1111-4111-8111-111111111111",
-        step_id: "womens-health-type",
-        subtype: "womens_health",
-        block_type: "service_steer",
-        resolution: "redirected",
-        blocker_count: 1,
-        blockers: ["current_pill_repeat_handoff"],
-      },
-    }])
-  })
-
-  it("queues the exact current-pill handoff when PostHog is not ready", () => {
-    const queued: Array<{ event: string; properties?: Record<string, unknown> }> = []
-
-    captureWomensHealthRepeatHandoff({
-      fallbackCapture: (event, properties) => queued.push({ event, properties }),
-      flowInstanceId: "11111111-1111-4111-8111-111111111111",
-      posthog: null,
-    })
-
-    expect(queued).toEqual([{
-      event: "intake_validation_blocked",
-      properties: {
-        service_type: "consult",
-        flow_instance_id: "11111111-1111-4111-8111-111111111111",
-        step_id: "womens-health-type",
-        subtype: "womens_health",
-        block_type: "service_steer",
-        resolution: "redirected",
-        blocker_count: 1,
-        blockers: ["current_pill_repeat_handoff"],
-      },
-    }])
   })
 
   it("accepts only known intake entry markers", () => {

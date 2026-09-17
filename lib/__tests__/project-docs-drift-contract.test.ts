@@ -128,7 +128,7 @@ describe("project docs drift contract", () => {
       expect(source).toContain("strictly 18+ for every paid service")
       expect(source).not.toContain("18+ (parental consent for minors)")
       // Women's health launched 2026-06-15; weight management launched 2026-08-10.
-      expect(source).toContain("Women's health (UTI + new/switch pill, live 2026-06-15)")
+      expect(source).toContain("Women's health (UTI + start/switch/continue pill, live 2026-06-15)")
       expect(source).toContain("Weight management (live 2026-08-10)")
       expect(source).toContain("Priority review fee")
       expect(source).not.toContain("Priority fee (Express Review)")

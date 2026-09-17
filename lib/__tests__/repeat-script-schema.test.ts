@@ -511,12 +511,12 @@ describe("repeat script schema — dedicated-service routing", () => {
     }))).toMatchObject({ valid: false, requiresConsult: true })
   })
 
-  it("allows a contraceptive repeat — soft enforcement is locked policy", () => {
+  it("blocks a contraceptive repeat and requires the women's health assessment", () => {
     expect(validateRepeatScriptPayload(repeatFor({
       medication_name: "Levlen ED",
       medication_display: "Levlen ED",
       medication_strength: "150/30 mcg",
-    }))).toEqual({ valid: true })
+    }))).toMatchObject({ valid: false, requiresConsult: true })
   })
 
   it("refuses weight medicines at checkout even with stale diabetes exemptions", () => {

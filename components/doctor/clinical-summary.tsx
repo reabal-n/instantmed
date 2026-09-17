@@ -395,8 +395,8 @@ const HAIR_REPRODUCTIVE_LABELS: Record<string, string> = {
 
 const WOMENS_HEALTH_OPTION_LABELS: Record<string, string> = {
   uti: "UTI treatment",
-  ocp_new: "Start or switch pill",
-  ocp_repeat: "Repeat prescription route",
+  ocp_new: "Contraceptive pill assessment",
+  ocp_repeat: "Continue current pill",
 }
 
 const UTI_SYMPTOM_LABELS: Record<string, string> = {
@@ -411,7 +411,7 @@ const UTI_SYMPTOM_LABELS: Record<string, string> = {
 const CONTRACEPTION_TYPE_LABELS: Record<string, string> = {
   start: "Start pill",
   switch: "Switch pill",
-  continue: "Repeat prescription route",
+  continue: "Continue current pill",
 }
 
 const CONTRACEPTION_CURRENT_LABELS: Record<string, string> = {

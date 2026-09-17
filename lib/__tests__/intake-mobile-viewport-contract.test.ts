@@ -282,7 +282,7 @@ describe("intake mobile viewport contract", () => {
   it("keeps women's-health type selection short and limited to actionable paths", () => {
     const source = readProjectFile("components/request/steps/womens-health-type-step.tsx")
     expect(source).toContain("Start or switch pill")
-    expect(source).toContain("Choose one. Current-pill repeats go through repeat prescriptions.")
+    expect(source).toContain("Choose the care you need today.")
     expect(source).not.toContain("Emergency contraception")
     expect(source).not.toContain("Period pain or menstrual issues")
     expect(source).not.toContain("The doctor reviews the details after checkout")

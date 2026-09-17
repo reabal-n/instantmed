@@ -117,7 +117,7 @@ describe("keep-list: validator-level hard-blocks", () => {
     expect(validateWomensHealthAssessmentStep({ womensHealthOption: "period_pain" }).isValid).toBe(false)
   })
 
-  it("rejects current-pill repeats inside the new/switch women's-health assessment", () => {
+  it("accepts current-pill continuation inside the women's-health assessment", () => {
     const result = validateWomensHealthAssessmentStep({
       womensHealthOption: "ocp_new",
       contraceptionType: "continue",
@@ -128,8 +128,8 @@ describe("keep-list: validator-level hard-blocks", () => {
       womens_smoker: "no",
     })
 
-    expect(result.isValid).toBe(false)
-    expect(result.errors.contraceptionType).toContain("repeat prescriptions")
+    expect(result.isValid).toBe(true)
+    expect(result.errors).toEqual({})
   })
 
   it.each([

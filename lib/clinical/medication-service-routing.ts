@@ -30,7 +30,7 @@
  *  - A PDE5 inhibitor is flagged even on its PAH-only brands: the nitrate
  *    interaction applies whatever it is taken for.
  *
- * The enforcement tiers (hard/soft/flag_only) and why each service sits where
+ * The enforcement tiers (hard/flag_only) and why each service sits where
  * it does are documented on `DedicatedServiceEnforcement` below. Server-side
  * backstops: the checkout block in lib/validation/repeat-script-schema.ts and
  * the doctor flags in lib/clinical/derive-intake-flags.ts — never client-only.
@@ -50,8 +50,8 @@ export type DedicatedServiceSubtype = "ed" | "hair_loss" | "womens_health" | "we
  *    (`requiresConsult`). ED + hair loss, per operator decision 2026-08-05 —
  *    the $29.95 repeat lane was both underpricing the $49.95 consult and
  *    skipping screening the dedicated flow owns (ED: nitrates + cardiac).
- *  - "soft": steer with an explicit escape, no checkout block. Contraceptive
- *    pills only — continuing the same pill is deliberately a cheap repeat.
+ *    Contraceptive pills also require women's health assessment, including
+ *    continuation requests (operator decision 2026-09-17).
  *  - "flag_only": no steer, no block; the doctor sees the
  *    `dedicated_service_medication` flag. PAH-brand PDE5 inhibitors, and any
  *    exemption made by patient attestation.
@@ -59,7 +59,7 @@ export type DedicatedServiceSubtype = "ed" | "hair_loss" | "womens_health" | "we
 // Not exported: callers branch on `match.enforcement` through
 // DedicatedServiceMatch and never need the alias by name (the dead-code
 // ratchet fails on an export nothing imports).
-type DedicatedServiceEnforcement = "hard" | "soft" | "flag_only"
+type DedicatedServiceEnforcement = "hard" | "flag_only"
 
 /**
  * The structured "what do I take this for" answer. Written by the medication
@@ -137,7 +137,7 @@ const OCP_PATTERNS: ReadonlyArray<RegExp> = [
   /\bdesogestrel\b/i,
   /\bgestodene\b/i,
   /\bnorethisterone\b/i,
-  /\bcyproterone\b/i, // Diane/Estelle/Brenda — also acne; UI escape covers that
+  /\bcyproterone\b/i, // Diane/Estelle/Brenda
   /\bdienogest\b/i,
   /\bnomegestrol\b/i,
   // Common AU combined-pill brands
@@ -356,7 +356,7 @@ export function detectDedicatedServiceForMedication(
       subtype: "womens_health",
       serviceLabel: "Women's Health",
       reason: "Contraceptive pill — has a dedicated women's health pathway",
-      enforcement: "soft",
+      enforcement: "hard",
     }
   }
 

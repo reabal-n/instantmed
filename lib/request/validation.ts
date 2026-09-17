@@ -674,8 +674,8 @@ export function validateWomensHealthAssessmentStep(answers: Record<string, unkno
   const errors: Record<string, string> = {}
   const option = answers.womensHealthOption as string | undefined
 
-  // Server-trust guard: only live options may reach the assessment. ocp_repeat
-  // is redirected to the repeat-script flow in the type step; morning-after /
+  // Server-trust guard: only live options may reach the assessment. Continuation
+  // uses ocp_new with contraceptionType=continue; morning-after /
   // period-pain are gated. A crafted payload must not slip a gated option through.
   if (!isWomensHealthOptionLive(option)) {
     return { isValid: false, errors: { womensHealthOption: "This option is not available yet." } }
@@ -686,10 +686,10 @@ export function validateWomensHealthAssessmentStep(answers: Record<string, unkno
     if (!contraceptionType) {
       errors.contraceptionType = "Please select what you need"
     } else if (!isExactStringValue(contraceptionType, PILL_CONTRACEPTION_TYPE_VALUES)) {
-      errors.contraceptionType = "Current-pill repeats go through repeat prescriptions."
+      errors.contraceptionType = "Please select start, switch or continue."
     }
     // Client (ContraceptionAssessment.validate) requires this unconditionally for
-    // the new/switch pill screen; mirror it here so a crafted payload can't skip it.
+    // the pill screen; mirror it here so a crafted payload can't skip it.
     if (!isExactStringValue(answers.contraceptionCurrent, PILL_CURRENT_CONTRACEPTION_VALUES)) {
       errors.contraceptionCurrent = "Please select an option"
     }

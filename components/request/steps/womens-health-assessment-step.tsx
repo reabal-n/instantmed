@@ -43,8 +43,8 @@ export default function WomensHealthAssessmentStep({ serviceType, onNext, onBack
   const womensHealthOption = answers.womensHealthOption as string | undefined
 
   // Render the assessment for the live option. Only uti + ocp_new are live
-  // (LIVE_WOMENS_HEALTH_OPTIONS): the type step routes ocp_repeat to the
-  // repeat-script flow, and morning-after / period-pain / other are gated and
+  // (LIVE_WOMENS_HEALTH_OPTIONS): continuation also uses ocp_new.
+  // Morning-after / period-pain / other are gated and
   // rejected server-side by validateWomensHealthAssessmentStep. Anything else
   // renders nothing rather than a half-built assessment.
   switch (womensHealthOption) {
@@ -89,18 +89,18 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
 }) {
   const posthog = usePostHog()
   const flowInstanceId = useRequestStore((state) => state.flowInstanceId)
-  // This component now serves only the live new/switch pill (ocp_new).
+  // This component now serves the live start/switch/continue pill (ocp_new).
   const contraceptionType = exactStringValue(answers.contraceptionType, PILL_CONTRACEPTION_TYPE_VALUES)
   const contraceptionCurrent = exactStringValue(answers.contraceptionCurrent, PILL_CURRENT_CONTRACEPTION_VALUES)
   const pregnancyStatus = exactStringValue(answers.pregnancyStatus, PILL_PREGNANCY_STATUS_VALUES)
   const lastPeriod = (answers.lastPeriod as string) || ""
   const contraceptionDetails = (answers.contraceptionDetails as string) || ""
-  // Combined-pill safety screen (new/switch pill only). These answers can stop
+  // Combined-pill safety screen (all pill requests). These answers can stop
   // an unsuitable paid pathway before checkout and direct the patient elsewhere.
   const migraineAura = exactStringValue(answers.womens_migraine_aura, PILL_YES_NO_VALUES)
   const bloodClotHistory = exactStringValue(answers.womens_blood_clot_history, PILL_YES_NO_VALUES)
   const smoker = exactStringValue(answers.womens_smoker, PILL_YES_NO_VALUES)
-  // Always shown — this component only serves the new/switch combined pill now.
+  // Always shown — this component serves all pill requests.
   const needsPillSafetyScreen = true
   const isComplete = Boolean(
     contraceptionType && contraceptionCurrent && pregnancyStatus
@@ -120,9 +120,9 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
     isComplete,
     useCallback(() => {
       const reasons: string[] = []
-      // exactStringValue already narrows contraceptionType to "start" | "switch"
+      // exactStringValue already narrows contraceptionType to "start" | "switch" | "continue"
       // | undefined, so a truthy value is always a live option.
-      if (!contraceptionType) reasons.push("start or switch")
+      if (!contraceptionType) reasons.push("start, switch or continue")
       if (!contraceptionCurrent) reasons.push("current contraception")
       if (!pregnancyStatus) reasons.push("pregnancy status")
       if (needsPillSafetyScreen) {
@@ -185,11 +185,12 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
             options={[
               { value: "start", label: "Start" },
               { value: "switch", label: "Switch" },
+              { value: "continue", label: "Continue" },
             ]}
             value={contraceptionType}
             onChange={(value) => setAnswer("contraceptionType", value)}
             ariaLabel="What would you like?"
-            columns="two"
+            columns="three"
           />
         </div>
       </QuestionCard>
@@ -198,7 +199,7 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
         <div className="space-y-2.5">
           <QuestionPrompt
             label="Are you currently using contraception?"
-            hint="This gives the doctor context for starting or switching safely."
+            hint="This gives the doctor context for assessing your pill request."
             required
           />
           <SegmentedChoiceGroup

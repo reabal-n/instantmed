@@ -498,51 +498,19 @@ test.describe("Consult Sub-Services", () => {
     }
   })
 
-  test("current-pill handoff preserves attribution, avoids passive abandonment, and keeps Back useful", async ({ page }) => {
-    const passiveBeacons: string[] = []
-    await page.exposeFunction("recordPassiveBeacon", (url: string) => {
-      passiveBeacons.push(url)
-    })
-    await page.addInitScript(() => {
-      const record = (window as typeof window & {
-        recordPassiveBeacon: (url: string) => Promise<void>
-      }).recordPassiveBeacon
-      navigator.sendBeacon = (url) => {
-        void record(String(url))
-        return true
-      }
-    })
-
-    await page.goto(
-      "/request?service=consult&subtype=womens_health&utm_source=google&utm_medium=cpc&utm_campaign=womens-health&gclid=test-click",
-    )
+  test("current-pill requests stay in women's health and open the pill assessment", async ({ page }) => {
+    await page.goto("/request?service=consult&subtype=womens_health&utm_source=google")
     await waitForPageLoad(page)
-    await ensureRadioChecked(
-      page,
-      /Women's health option/i,
-      /Continue my current pill/i,
-    )
+    await ensureRadioChecked(page, /Women's health option/i, /Continue my current pill/i)
     await clickContinue(page)
 
-    await page.waitForURL((url) => {
-      return url.pathname === "/request"
-        && url.searchParams.get("service") === "repeat-script"
-        && url.searchParams.get("from") === "womens-health-repeat-handoff"
-    })
-    const destination = new URL(page.url())
-    expect(destination.searchParams.get("utm_source")).toBe("google")
-    expect(destination.searchParams.get("utm_medium")).toBe("cpc")
-    expect(destination.searchParams.get("utm_campaign")).toBe("womens-health")
-    expect(destination.searchParams.get("gclid")).toBe("test-click")
-    expect(passiveBeacons).toEqual([])
-
-    await page.goBack()
-    await expect(page.getByText(/What do you need today/i)).toBeVisible({ timeout: 10000 })
-    await expect(
-      page
-        .getByRole("radiogroup", { name: /Women's health option/i })
-        .getByRole("radio", { name: /Continue my current pill/i }),
-    ).toHaveAttribute("aria-checked", "true")
+    await expect(page.getByText(/A few safety checks/i)).toBeVisible()
+    expect(new URL(page.url()).searchParams.get("subtype")).toBe("womens_health")
+    expect(new URL(page.url()).searchParams.get("utm_source")).toBe("google")
+    await expect(page.getByRole("radiogroup", { name: "What would you like?" })
+      .getByRole("radio", { name: "Continue", exact: true })).toHaveAttribute("aria-checked", "true")
+    await expect(page.locator('[data-intake-primary-action="true"]').first())
+      .toHaveAttribute("data-intake-primary-ready", "false")
   })
 
   test("women's health UTI clean case advances past the safety screen", async ({ page }) => {

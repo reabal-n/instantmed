@@ -61,7 +61,7 @@ const stepIntroCopy: Partial<Record<string, { eyebrow?: string; title: string; d
   "womens-health-type-step": {
     eyebrow: "Women's health",
     title: "What do you need today?",
-    description: "Choose one. Current-pill repeats go through repeat prescriptions.",
+    description: "Choose the care you need today.",
   },
 }
 

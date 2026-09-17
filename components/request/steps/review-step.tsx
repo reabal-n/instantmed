@@ -88,7 +88,7 @@ const UTI_PREGNANCY_REVIEW_LABELS: Record<string, string> = {
 
 const CONTRACEPTION_REVIEW_TYPE_LABELS: Record<string, string> = {
   start: 'Start pill',
-  continue: 'Repeat prescription route',
+  continue: 'Continue current pill',
   switch: 'Switch pill',
 }
 

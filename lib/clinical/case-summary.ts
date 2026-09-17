@@ -412,7 +412,7 @@ const UTI_SYMPTOM_LABELS: Record<string, string> = {
 const CONTRACEPTION_TYPE_LABELS: Record<string, string> = {
   start: "Start pill",
   switch: "Switch pill",
-  continue: "Repeat prescription route",
+  continue: "Continue current pill",
 }
 
 const CONTRACEPTION_CURRENT_LABELS: Record<string, string> = {
@@ -1470,7 +1470,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       detail: isSwitch
         ? "Patient wants to switch contraceptive pill."
         : isRepeatRequest
-          ? "Patient selected current-pill repeat; route through the repeat-prescription workflow before prescribing."
+          ? "Patient wants to continue their current contraceptive pill."
           : "Patient wants to start a contraceptive pill.",
     },
     pregnant
@@ -1600,7 +1600,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   const subjective = [
     `${header}, requesting to ${requestVerb} a contraceptive pill.`,
-    isRepeatRequest ? "Repeat request should be handled through the repeat-prescription workflow." : null,
+    isRepeatRequest ? "Continuation request assessed through the women's-health pathway." : null,
     isSwitch && currentNoteLabel ? `Currently using ${currentNoteLabel}.` : null,
     lastPeriod ? `Last period: ${lastPeriod}.` : null,
     details ? `Patient notes: ${details}.` : null,
@@ -1631,7 +1631,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       : "Prescribe a contraceptive pill if clinically appropriate (combined or progestogen-only per preference and risk). Counsel on correct use, missed-pill rules, VTE warning signs, and follow-up blood pressure review."
 
   return {
-    title: "Women's health · New pill",
+    title: isRepeatRequest ? "Women's health · Continue pill" : "Women's health · New pill",
     patientStory: storySentence,
     keyFacts,
     safetyItems,

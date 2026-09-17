@@ -43,7 +43,7 @@ describe("detectDedicatedServiceForMedication", () => {
       "Cerazette",
       "Diane-35",
     ]) {
-      expect(detectDedicatedServiceForMedication(name)?.subtype).toBe("womens_health")
+      expect(detectDedicatedServiceForMedication(name)).toMatchObject({ subtype: "womens_health", enforcement: "hard" })
     }
   })
 
@@ -251,7 +251,7 @@ describe("detectDedicatedServiceForMedication", () => {
     // "ED" on an AU pill pack means "every day". OCP is matched first so the
     // bare `ed` token can never steal a contraceptive repeat.
     for (const name of ["Levlen ED", "Microgynon 30 ED", "Femme-Tab ED 20/100"]) {
-      expect(detectDedicatedServiceForMedication(name)?.subtype).toBe("womens_health")
+      expect(detectDedicatedServiceForMedication(name)).toMatchObject({ subtype: "womens_health", enforcement: "hard" })
     }
   })
 
@@ -269,7 +269,7 @@ describe("detectDedicatedServiceForMedication", () => {
 
   it("pins the enforcement tier of the existing classes", () => {
     expect(detectDedicatedServiceForMedication("finasteride 1mg")?.enforcement).toBe("hard")
-    expect(detectDedicatedServiceForMedication("Microgynon 30")?.enforcement).toBe("soft")
+    expect(detectDedicatedServiceForMedication("Microgynon 30")?.enforcement).toBe("hard")
   })
 })
 

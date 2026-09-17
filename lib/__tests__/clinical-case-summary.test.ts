@@ -307,6 +307,21 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent?.directionsTemplate).toMatch(/once daily/i)
   })
 
+  it("keeps pill continuation in the women's-health doctor review", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult", subtype: "womens_health", serviceType: "consult",
+      answers: {
+        womensHealthOption: "ocp_new", contraceptionType: "continue",
+        contraceptionCurrent: "pill", pregnancyStatus: "no",
+        womens_migraine_aura: "no", womens_blood_clot_history: "no", womens_smoker: "no",
+      },
+    })
+    expect(summary.title).toBe("Women's health · Continue pill")
+    expect(summary.keyFacts).toContainEqual({ label: "Request", value: "Continue current pill" })
+    expect(summary.draftNote).not.toContain("repeat-prescription workflow")
+    expect(summary.recommendedPlan.action).toBe("prescribe")
+  })
+
   it("turns safe women's health UTI requests into Parchment prescribing context", () => {
     const summary = buildClinicalCaseSummary({
       category: "consult",
