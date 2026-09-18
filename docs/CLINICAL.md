@@ -265,6 +265,7 @@ The staged Lena service is an **administrative message-taking channel**, not a c
 - Lena listens to the issue, collects the patient's full name when possible, asks at most two short clarifying questions, reads back one concise summary, and saves it only after caller confirmation. Lena does not request or retain date of birth.
 - A callback number is requested and retained only when the patient explicitly wants a return call; caller ID is never silently used as the callback number.
 - The application says `Thanks, I've sent your message securely to our Medical Director.` only after the encrypted database write succeeds. If persistence cannot be confirmed, Lena directs the caller to `instantmed.com.au/contact` and must not imply that a message was saved.
+- The optional ElevenLabs voice path uses Twilio ConversationRelay with Google speech recognition, OpenAI text-only conversation, and ElevenLabs speech synthesis. This changes processors and voice delivery, not the message-taking boundaries. Recognised speech remains bounded, transient call context; only the confirmed message is persisted. Activation and rollback are documented in `docs/OPERATIONS.md`.
 - InstantMed stores no raw audio or full call transcript. The confirmed name, concise summary, and optional requested callback number are field-level encrypted. Operational alerts contain only category, received time, and an authenticated admin link.
 - The Medical Director reviews the message and owns every clinical, prescribing, certificate, correction, complaint, payment, and return-call decision. Lena never converts a phone message into an outcome.
 - Production activation remains blocked until the public collection/privacy notice, APP 5 and APP 8 assessment, Twilio/OpenAI processor agreements and retention settings are approved; the migration and admin-only inbox are live; and the adversarial, failure, preview, and controlled end-to-end call checks pass.
@@ -458,7 +459,7 @@ Patients must be informed at intake of:
 | PHI in logs | Production logs sanitized; no PHI in error/debug logs |
 | Telegram | Operational alerts only. Never include patient identity, medicine names, presenting complaints, symptoms, consultation subtype, intake answers, or clinical notes. |
 | AI data sharing | Clinical notes sent to Anthropic (Claude) with no patient identifiers; DPA in place |
-| Staged AI voice processing | Live call audio is streamed through Twilio and OpenAI Realtime only while the call is active. InstantMed stores no raw audio or full transcript. The published notice discloses the automated service and processors; production remains disabled until processor, retention, APP 5, APP 8, and public-disclosure gates are approved. |
+| AI voice processing | The original path streams live audio through Twilio and OpenAI Realtime. The optional ConversationRelay path uses Google speech recognition and ElevenLabs synthesis through Twilio, with OpenAI receiving transient text. InstantMed stores no raw audio or full transcript. Processor, retention, APP 5, APP 8, and public-disclosure checks apply to the selected path. |
 
 ### Australian Privacy Principles (APP 1-13) Summary
 
@@ -491,6 +492,7 @@ Patients must be informed at intake of:
 | Anthropic | Clinical notes (no identifiers) | US | DPA (data processing agreement) |
 | Twilio | Live phone audio and call-routing metadata for the staged voice-message service | AU1 regional voice service; subprocessors may be overseas | **Activation blocked pending approval** |
 | OpenAI Realtime | Live phone audio and transient model context for the staged voice-message service | Overseas processing | **Activation blocked pending approval and retention configuration** |
+| Google and ElevenLabs through Twilio | Speech recognition and voice synthesis respectively for the optional ConversationRelay path; OpenAI receives transient text instead of audio on this path | Overseas processing may apply; AU1 routing is not a residency guarantee | Confirm applicable Twilio processor terms and settings before voice-provider activation |
 
 ---
 

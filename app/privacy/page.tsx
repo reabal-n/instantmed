@@ -180,7 +180,9 @@ export default function PrivacyPage() {
                     </li>
                     <li>
                       <strong>Twilio and OpenAI:</strong> Phone call routing and automated voice message
-                      processing
+                      processing. When the ElevenLabs voice option is used, Twilio also uses Google
+                      for speech recognition and ElevenLabs for voice synthesis, while OpenAI processes
+                      the conversation as text
                     </li>
                     <li>
                       <strong>Parchment:</strong> Electronic prescription generation
