@@ -74,6 +74,8 @@ export type RoutingContext =
   | "blood_pressure"
   | "weight_management"
   | "type_2_diabetes"
+  | "contraceptive_pill"
+  | "other_hormonal_use"
 
 const ROUTING_CONTEXT_VALUES: ReadonlyArray<RoutingContext> = [
   "erectile_dysfunction",
@@ -83,6 +85,8 @@ const ROUTING_CONTEXT_VALUES: ReadonlyArray<RoutingContext> = [
   "blood_pressure",
   "weight_management",
   "type_2_diabetes",
+  "contraceptive_pill",
+  "other_hormonal_use",
 ]
 
 /** Display labels shared by the intake chips and doctor-flag reasons. */
@@ -94,6 +98,8 @@ export const ROUTING_CONTEXT_LABELS: Record<RoutingContext, string> = {
   blood_pressure: "Blood pressure",
   weight_management: "Weight management",
   type_2_diabetes: "Type 2 diabetes",
+  contraceptive_pill: "Contraceptive pill",
+  other_hormonal_use: "Another prescribed use",
 }
 
 // Not exported: consumers pass the raw answer to the detector, which
@@ -129,9 +135,8 @@ export interface DedicatedServiceMatch {
 // Contraceptive pills: active ingredients + common Australian brands.
 // Combined + progestogen-only. Not exhaustive — the doctor flag catches the
 // long tail; this covers the medicines patients actually type.
-const OCP_PATTERNS: ReadonlyArray<RegExp> = [
+const OCP_INGREDIENT_PATTERNS: ReadonlyArray<RegExp> = [
   // Active ingredients (combined + POP)
-  /ethinyl[o]?estradiol/i,
   /\blevonorgestrel\b/i,
   /\bdrospirenone\b/i,
   /\bdesogestrel\b/i,
@@ -140,6 +145,12 @@ const OCP_PATTERNS: ReadonlyArray<RegExp> = [
   /\bcyproterone\b/i, // Diane/Estelle/Brenda
   /\bdienogest\b/i,
   /\bnomegestrol\b/i,
+]
+
+const OCP_ESTROGEN = /\b(?:ethinyl[o]?estradiol|estradiol|oestradiol)\b/i
+const NON_PILL_FORM = /\b(?:iud|ius|intrauterine|implant|injection|injectable|patch|transdermal|cream|gel|vaginal)\b/i
+const OCP_CONTEXT_OPTIONS: ReadonlyArray<RoutingContext> = ["contraceptive_pill", "other_hormonal_use"]
+const OCP_BRAND_PATTERNS: ReadonlyArray<RegExp> = [
   // Common AU combined-pill brands
   /\bmicrogynon\b/i,
   /\blevlen\b/i,
@@ -349,14 +360,26 @@ export function detectDedicatedServiceForMedication(
     }
   }
 
-  // Women's health (OCP) — pill brands are unambiguous and never overlap
-  // with the hair-loss / prostate 5α-reductase inhibitors.
-  if (OCP_PATTERNS.some((pattern) => pattern.test(medicine))) {
+  // Confirmed pill brands/combined ingredients cannot be exempted by a context
+  // token. Single ingredients need an indication; non-pill formulations retain
+  // a doctor-visible flag rather than entering the oral-pill assessment.
+  const pillBrand = OCP_BRAND_PATTERNS.some((pattern) => pattern.test(medicine))
+  const pillIngredient = OCP_INGREDIENT_PATTERNS.some((pattern) => pattern.test(medicine))
+  const combinedPill = pillIngredient && /\bethinyl[o]?estradiol\b/i.test(medicine)
+  if (pillBrand || pillIngredient || OCP_ESTROGEN.test(medicine)) {
+    const definitePill = pillBrand || combinedPill
+    const nonPillForm = !pillBrand && NON_PILL_FORM.test(medicine)
+    const otherUse = !definitePill && routingContext === "other_hormonal_use"
     return {
       subtype: "womens_health",
       serviceLabel: "Women's Health",
-      reason: "Contraceptive pill — has a dedicated women's health pathway",
-      enforcement: "hard",
+      reason: nonPillForm
+        ? "Hormonal medicine in a non-pill formulation — confirm product and indication"
+        : otherUse
+          ? "Hormonal medicine kept as a repeat — patient selected another prescribed use"
+          : "Contraceptive pill requires the women's health assessment",
+      enforcement: nonPillForm || otherUse ? "flag_only" : "hard",
+      ...(!definitePill && !nonPillForm ? { contextOptions: OCP_CONTEXT_OPTIONS } : {}),
     }
   }
 

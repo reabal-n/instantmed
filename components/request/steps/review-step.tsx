@@ -895,6 +895,12 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         const pregnancyStatus = stringAnswer(answers.pregnancyStatus)
         if (contraceptionType) whAssessmentItems.push({ label: 'Pill request', value: reviewLabel(CONTRACEPTION_REVIEW_TYPE_LABELS, contraceptionType) })
         if (contraceptionCurrent) whAssessmentItems.push({ label: 'Current contraception', value: reviewLabel(CONTRACEPTION_CURRENT_REVIEW_LABELS, contraceptionCurrent) })
+        if (contraceptionType === 'continue') {
+          for (const [key, label] of [['contraceptionMedicine', 'Current pill'], ['contraceptionDose', 'Current dose / directions']]) {
+            const value = stringAnswer(answers[key])
+            if (value) whAssessmentItems.push({ label, value })
+          }
+        }
         if (pregnancyStatus) whAssessmentItems.push({ label: 'Pregnancy check', value: reviewLabel(UTI_PREGNANCY_REVIEW_LABELS, pregnancyStatus) })
         for (const [key, label] of Object.entries(PILL_SAFETY_REVIEW_LABELS)) {
           const value = stringAnswer(answers[key])

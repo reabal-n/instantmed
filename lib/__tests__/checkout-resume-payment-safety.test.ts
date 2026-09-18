@@ -305,6 +305,30 @@ describe("signed guest checkout resume payment safety", () => {
     }))
   })
 
+  it.each(["Levlen ED", "Slinda"].flatMap(name => ["cs_previous", null].map(paymentId => ({ name, paymentId }))))("routes a saved pill repeat before reusing or creating payment: %j", async ({ name, paymentId }) => {
+    const { supabase } = createResumeSupabaseMock({
+      category: "prescription",
+      subtype: "repeat",
+      service: { slug: "common-scripts", type: "common_scripts" },
+      payment_id: paymentId,
+      stripe_price_id: "price_repeat",
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getIntakeAnswersForPaymentSafety.mockResolvedValueOnce({ ...explicitConsent,
+      medications: [{ name, strength: "1mg", form: "tablet", pbsCode: "MANUAL" }],
+      routing_context: "type_2_diabetes",
+    })
+    await expect(resolveGuestCheckoutResume("intake-1")).resolves.toBe(
+      "/request?service=consult&subtype=womens_health&from=repeat-steer",
+    )
+    expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(mocks.recordSafetyEvaluationForOperators).toHaveBeenCalledWith(expect.objectContaining({
+      context: "guest_resume",
+      result: expect.objectContaining({ isAllowed: false, triggeredRuleIds: ["repeat_script_requires_consult"] }),
+    }))
+  })
+
   it.each([undefined, false, "true"])("blocks signed resume without explicit telehealth consent %s before Stripe", async value => {
     const { supabase } = createResumeSupabaseMock({ payment_id: null })
     mocks.createServiceRoleClient.mockReturnValue(supabase)

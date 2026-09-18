@@ -121,6 +121,8 @@ describe("keep-list: validator-level hard-blocks", () => {
     const result = validateWomensHealthAssessmentStep({
       womensHealthOption: "ocp_new",
       contraceptionType: "continue",
+      contraceptionMedicine: "Levlen ED",
+      contraceptionDose: "One tablet daily",
       contraceptionCurrent: "pill",
       pregnancyStatus: "no",
       womens_migraine_aura: "no",

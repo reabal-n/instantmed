@@ -11,6 +11,7 @@ import { z } from "zod"
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 import {
   isExactStringValue,
+  isPillMedicineDetail,
   PILL_CONTRACEPTION_TYPE_VALUES,
   PILL_CURRENT_CONTRACEPTION_VALUES,
   PILL_PREGNANCY_DECLINE_REASON,
@@ -687,6 +688,10 @@ export function validateWomensHealthAssessmentStep(answers: Record<string, unkno
       errors.contraceptionType = "Please select what you need"
     } else if (!isExactStringValue(contraceptionType, PILL_CONTRACEPTION_TYPE_VALUES)) {
       errors.contraceptionType = "Please select start, switch or continue."
+    }
+    if (contraceptionType === "continue") {
+      if (!isPillMedicineDetail(answers.contraceptionMedicine)) errors.contraceptionMedicine = "Enter your current pill name and strength (up to 200 characters)."
+      if (!isPillMedicineDetail(answers.contraceptionDose)) errors.contraceptionDose = "Enter how you take your pill (up to 200 characters)."
     }
     // Client (ContraceptionAssessment.validate) requires this unconditionally for
     // the pill screen; mirror it here so a crafted payload can't skip it.

@@ -498,19 +498,47 @@ test.describe("Consult Sub-Services", () => {
     }
   })
 
-  test("current-pill requests stay in women's health and open the pill assessment", async ({ page }) => {
+  test("current-pill requests require medicine details and reach women's health checkout", async ({ page }) => {
     await page.goto("/request?service=consult&subtype=womens_health&utm_source=google")
     await waitForPageLoad(page)
+    await dismissOverlays(page)
     await ensureRadioChecked(page, /Women's health option/i, /Continue my current pill/i)
     await clickContinue(page)
-
     await expect(page.getByText(/A few safety checks/i)).toBeVisible()
     expect(new URL(page.url()).searchParams.get("subtype")).toBe("womens_health")
-    expect(new URL(page.url()).searchParams.get("utm_source")).toBe("google")
-    await expect(page.getByRole("radiogroup", { name: "What would you like?" })
-      .getByRole("radio", { name: "Continue", exact: true })).toHaveAttribute("aria-checked", "true")
+    await ensureRadioChecked(page, /pregnant or could you be pregnant/i, /^No$/i)
+    await ensureRadioChecked(page, /migraines with aura/i, /^No$/i)
+    await ensureRadioChecked(page, /blood clot/i, /^No$/i)
+    await ensureRadioChecked(page, /Do you smoke/i, /^No$/i)
     await expect(page.locator('[data-intake-primary-action="true"]').first())
       .toHaveAttribute("data-intake-primary-ready", "false")
+    await page.getByLabel("Current pill name and strength").fill("Levlen ED 150/30 micrograms")
+    await page.getByLabel("How do you take your pill?").fill("One tablet daily")
+    await clickContinue(page)
+    await completeConsultMedicalHistory(page)
+    await completeConsultDetailsWithTestMedicare(page, "Female")
+    await expectEnabledConsultCheckout(page)
+    await expect(page.getByText("Levlen ED 150/30 micrograms", { exact: true })).toBeVisible()
+    await expect(page.getByText("One tablet daily", { exact: true })).toBeVisible()
+  })
+
+  test("changing from pill continuation to UTI clears hidden medicine and safety answers", async ({ page }) => {
+    await page.goto("/request?service=consult&subtype=womens_health")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+    await ensureRadioChecked(page, /Women's health option/i, /Continue my current pill/i)
+    await clickContinue(page)
+    await page.getByLabel("Current pill name and strength").fill("Levlen ED")
+    await page.getByLabel("How do you take your pill?").fill("One tablet daily")
+    await ensureRadioChecked(page, /pregnant or could you be pregnant/i, /^No$/i)
+    await page.getByRole("navigation", { name: /Request progress/i }).getByRole("button", { name: /Type/ }).click()
+    await ensureRadioChecked(page, /Women's health option/i, /UTI symptoms/i)
+    await ensureRadioChecked(page, /Women's health option/i, /Continue my current pill/i)
+    await clickContinue(page)
+    await expect(page.getByLabel("Current pill name and strength")).toHaveValue("")
+    await expect(page.getByLabel("How do you take your pill?")).toHaveValue("")
+    await expect(page.getByRole("radiogroup", { name: /pregnant or could you be pregnant/i })
+      .getByRole("radio", { name: "No", exact: true })).toHaveAttribute("aria-checked", "false")
   })
 
   test("women's health UTI clean case advances past the safety screen", async ({ page }) => {

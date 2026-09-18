@@ -155,6 +155,8 @@ const FIELD_LABELS: Record<string, string> = {
   utiDetails: "Additional context",
   contraceptionType: "Pill request",
   contraceptionCurrent: "Current contraception",
+  contraceptionMedicine: "Current pill",
+  contraceptionDose: "Current dose / directions",
   pregnancyStatus: "Pregnancy check",
   womens_migraine_aura: "Migraine with aura",
   womens_blood_clot_history: "Blood clot history",
@@ -259,7 +261,7 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
     fields: [
       "womensHealthOption",
       "utiSymptoms", "utiRedFlags", "utiPregnant", "utiDetails",
-      "contraceptionType", "contraceptionCurrent", "pregnancyStatus",
+      "contraceptionType", "contraceptionCurrent", "contraceptionMedicine", "contraceptionDose", "pregnancyStatus",
       "womens_migraine_aura", "womens_blood_clot_history", "womens_smoker",
       "lastPeriod", "contraceptionDetails",
       "contraception_type", "current_contraception", "menstrual_history",

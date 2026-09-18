@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import {
   exactStringValue,
+  isPillMedicineDetail,
   PILL_CONTRACEPTION_TYPE_VALUES,
   PILL_CURRENT_CONTRACEPTION_VALUES,
   PILL_PREGNANCY_STATUS_VALUES,
@@ -92,6 +93,9 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
   // This component now serves the live start/switch/continue pill (ocp_new).
   const contraceptionType = exactStringValue(answers.contraceptionType, PILL_CONTRACEPTION_TYPE_VALUES)
   const contraceptionCurrent = exactStringValue(answers.contraceptionCurrent, PILL_CURRENT_CONTRACEPTION_VALUES)
+  const contraceptionMedicine = typeof answers.contraceptionMedicine === "string" ? answers.contraceptionMedicine : ""
+  const contraceptionDose = typeof answers.contraceptionDose === "string" ? answers.contraceptionDose : ""
+  const continuingPill = contraceptionType === "continue"
   const pregnancyStatus = exactStringValue(answers.pregnancyStatus, PILL_PREGNANCY_STATUS_VALUES)
   const lastPeriod = (answers.lastPeriod as string) || ""
   const contraceptionDetails = (answers.contraceptionDetails as string) || ""
@@ -104,6 +108,7 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
   const needsPillSafetyScreen = true
   const isComplete = Boolean(
     contraceptionType && contraceptionCurrent && pregnancyStatus
+      && (!continuingPill || (isPillMedicineDetail(contraceptionMedicine) && isPillMedicineDetail(contraceptionDose)))
       && (!needsPillSafetyScreen || (migraineAura && bloodClotHistory && smoker)),
   )
   const terminalBlock = derivePillTerminalBlock(answers)
@@ -123,6 +128,8 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
       // exactStringValue already narrows contraceptionType to "start" | "switch" | "continue"
       // | undefined, so a truthy value is always a live option.
       if (!contraceptionType) reasons.push("start, switch or continue")
+      if (continuingPill && !isPillMedicineDetail(contraceptionMedicine)) reasons.push("current pill name and strength")
+      if (continuingPill && !isPillMedicineDetail(contraceptionDose)) reasons.push("how you take your pill")
       if (!contraceptionCurrent) reasons.push("current contraception")
       if (!pregnancyStatus) reasons.push("pregnancy status")
       if (needsPillSafetyScreen) {
@@ -131,7 +138,7 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
         if (!smoker) reasons.push("smoking status")
       }
       return reasons
-    }, [bloodClotHistory, contraceptionCurrent, contraceptionType, migraineAura, needsPillSafetyScreen, pregnancyStatus, smoker]),
+    }, [bloodClotHistory, continuingPill, contraceptionMedicine, contraceptionDose, contraceptionCurrent, contraceptionType, migraineAura, needsPillSafetyScreen, pregnancyStatus, smoker]),
     { flowInstanceId, posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "womens-health-assessment" },
   )
 
@@ -194,6 +201,25 @@ function ContraceptionAssessment({ serviceType, onNext, onBack, answers, setAnsw
           />
         </div>
       </QuestionCard>
+
+      {continuingPill && (
+        <QuestionCard compact>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="contraception-medicine">Current pill name and strength</Label>
+              <Input id="contraception-medicine" required maxLength={200} value={contraceptionMedicine}
+                onChange={(event) => setAnswer("contraceptionMedicine", event.target.value)}
+                placeholder="Copy the name and strength from your pack" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contraception-dose">How do you take your pill?</Label>
+              <Input id="contraception-dose" required maxLength={200} value={contraceptionDose}
+                onChange={(event) => setAnswer("contraceptionDose", event.target.value)}
+                placeholder="Your current dose and directions" />
+            </div>
+          </div>
+        </QuestionCard>
+      )}
 
       <QuestionCard compact>
         <div className="space-y-2.5">

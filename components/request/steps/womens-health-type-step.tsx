@@ -38,7 +38,7 @@ const WOMENS_HEALTH_OPTIONS = [
 ] as const
 
 export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHealthTypeStepProps) {
-  const { answers, flowInstanceId, setAnswers } = useRequestStore()
+  const { answers, flowInstanceId, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
   const womensHealthOption = answers.womensHealthOption === "ocp_new" && answers.contraceptionType === "continue"
@@ -52,12 +52,10 @@ export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHeal
   )
 
   const handleSelect = (value: string) => {
-    // Keep the canonical pill intent so every existing safety gate applies.
-    setAnswers({
-      womensHealthOption: value === "ocp_repeat" ? "ocp_new" : value,
-      contraceptionType: value === "ocp_repeat" ? "continue" : undefined,
-      ...(value === "ocp_repeat" ? { contraceptionCurrent: "pill" } : {}),
-    })
+    // Use the branch-aware setter so changing care clears hidden clinical answers.
+    setAnswer("womensHealthOption", value === "ocp_repeat" ? "ocp_new" : value)
+    setAnswer("contraceptionType", value === "ocp_repeat" ? "continue" : undefined)
+    if (value === "ocp_repeat") setAnswer("contraceptionCurrent", "pill")
   }
 
   const handleNext = () => {
@@ -66,9 +64,7 @@ export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHeal
       return
     }
     // Restore old drafts that saved the former handoff option.
-    if (womensHealthOption === "ocp_repeat") {
-      setAnswers({ womensHealthOption: "ocp_new", contraceptionType: "continue", contraceptionCurrent: "pill" })
-    }
+    if (answers.womensHealthOption === "ocp_repeat") handleSelect("ocp_repeat")
     onNext()
   }
 

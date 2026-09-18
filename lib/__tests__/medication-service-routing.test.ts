@@ -371,3 +371,24 @@ describe("deriveIntakeFlags — dedicated_service_medication", () => {
     expect(flags.find((f) => f.code === "dedicated_service_medication")).toBeUndefined()
   })
 })
+
+
+describe("OCP medicine identity and indication boundaries", () => {
+  it.each(["norethisterone 5 mg", "cyproterone", "dienogest", "levonorgestrel", "estradiol 1 mg + drospirenone 2 mg tablet"])("asks for the indication of ambiguous %s", (medicine) => {
+    expect(detectDedicatedServiceForMedication(medicine)).toMatchObject({
+      enforcement: "hard", contextOptions: ["contraceptive_pill", "other_hormonal_use"],
+    })
+    expect(detectDedicatedServiceForMedication(medicine, "", "other_hormonal_use"))
+      .toMatchObject({ enforcement: "flag_only" })
+    expect(detectDedicatedServiceForMedication(medicine, "not contraception", "contraceptive_pill"))
+      .toMatchObject({ enforcement: "hard" })
+  })
+  it.each(["Levlen ED", "Slinda", "levonorgestrel + ethinylestradiol"])("does not exempt confirmed pill %s", (medicine) => {
+    expect(detectDedicatedServiceForMedication(medicine, "", "other_hormonal_use"))
+      .toMatchObject({ enforcement: "hard" })
+    expect(detectDedicatedServiceForMedication(medicine)?.contextOptions).toBeUndefined()
+  })
+  it.each(["levonorgestrel IUD", "levonorgestrel intrauterine system", "estradiol transdermal patch"])("does not force non-pill formulation %s into pill assessment", (medicine) => {
+    expect(detectDedicatedServiceForMedication(medicine)?.enforcement).not.toBe("hard")
+  })
+})

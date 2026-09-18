@@ -43,7 +43,19 @@ describe("women's-health new-pill unified checkout validation", () => {
       ...validNewPillAnswers,
       contraceptionType: "continue",
       contraceptionCurrent: "pill",
+      contraceptionMedicine: "Levlen ED 150/30 micrograms",
+      contraceptionDose: "One tablet daily",
     }, identity)).toBeNull()
+  })
+
+  it.each([undefined, "", "   ", true, {}, "a".repeat(201)])("rejects continuation without usable medicine details (%s)", (value) => {
+    for (const field of ["contraceptionMedicine", "contraceptionDose"]) {
+      expect(validateAnswersServerSide("consult", {
+        ...validNewPillAnswers, contraceptionType: "continue", contraceptionCurrent: "pill",
+        contraceptionMedicine: "Levlen ED 150/30 micrograms", contraceptionDose: "One tablet daily",
+        [field]: value,
+      }, identity)).not.toBeNull()
+    }
   })
 
   it("rejects confirmed pregnancy with the canonical in-person guidance", () => {

@@ -24,3 +24,8 @@ export function exactStringValue<const TValues extends readonly string[]>(
 ): TValues[number] | undefined {
   return isExactStringValue(value, values) ? value : undefined
 }
+
+/** Bounded patient-entered current medicine/dose, never a prescribing directive. */
+export function isPillMedicineDetail(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0 && value.trim().length <= 200
+}

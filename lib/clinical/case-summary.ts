@@ -1528,6 +1528,8 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const keyFacts = compactFacts([
     { label: "Request", value: requestLabel },
     fact("Current contraception", currentLabel),
+    fact("Current pill", isRepeatRequest ? str(answers, "contraceptionMedicine") : undefined),
+    fact("Current dose / directions", isRepeatRequest ? str(answers, "contraceptionDose") : undefined),
     { label: "Pregnant", value: pregnancyLabel },
     { label: "Migraine with aura", value: yesNo(raw(answers, "womens_migraine_aura")) },
     { label: "Blood clot history", value: yesNo(raw(answers, "womens_blood_clot_history")) },
@@ -1601,6 +1603,8 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const subjective = [
     `${header}, requesting to ${requestVerb} a contraceptive pill.`,
     isRepeatRequest ? "Continuation request assessed through the women's-health pathway." : null,
+    isRepeatRequest && str(answers, "contraceptionMedicine") ? `Current pill: ${str(answers, "contraceptionMedicine")}.` : null,
+    isRepeatRequest && str(answers, "contraceptionDose") ? `Current dose / directions: ${str(answers, "contraceptionDose")}.` : null,
     isSwitch && currentNoteLabel ? `Currently using ${currentNoteLabel}.` : null,
     lastPeriod ? `Last period: ${lastPeriod}.` : null,
     details ? `Patient notes: ${details}.` : null,
