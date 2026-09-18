@@ -1,6 +1,10 @@
 type VoiceEnvironment = Readonly<Record<string, string | undefined>>
 
 export const LENA_ELEVENLABS_VOICE_ID = "uYXf8XasLslADfZ2MB4u"
+// ConversationRelay's suffix is model-speed_stability_similarity. Keep normal
+// speed and Flash latency while allowing more expressive delivery. Native Say
+// uses the bare voice ID; its API does not accept this Relay tuning suffix.
+export const LENA_ELEVENLABS_RELAY_VOICE = `${LENA_ELEVENLABS_VOICE_ID}-flash_v2_5-1.0_0.35_0.75`
 
 export function usesElevenLabsVoice(environment: VoiceEnvironment = process.env): boolean {
   return environment.TWILIO_VOICE_PROVIDER === "elevenlabs"

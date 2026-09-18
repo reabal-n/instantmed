@@ -7,7 +7,7 @@ import {
   isVoiceCallerBlocked,
   releaseVoiceCallSlot,
 } from "@/lib/twilio/voice-abuse"
-import { getTwilioVoiceReadiness, LENA_ELEVENLABS_VOICE_ID, usesElevenLabsVoice } from "@/lib/twilio/voice-config"
+import { getTwilioVoiceReadiness, LENA_ELEVENLABS_RELAY_VOICE, usesElevenLabsVoice } from "@/lib/twilio/voice-config"
 import { createTwilioVoiceSessionToken } from "@/lib/twilio/voice-session-token"
 import {
   getTwilioVoiceUrl,
@@ -76,11 +76,13 @@ export async function POST(request: Request): Promise<Response> {
     const relay = connect.addChild("ConversationRelay", {
       url: getTwilioVoiceWebSocketUrl("/api/webhooks/twilio/voice/stream"),
       ttsProvider: "ElevenLabs",
-      voice: LENA_ELEVENLABS_VOICE_ID,
+      voice: LENA_ELEVENLABS_RELAY_VOICE,
       ttsLanguage: "en-US",
       transcriptionProvider: "Google",
       transcriptionLanguage: "en-AU",
       speechModel: "telephony",
+      // Bound turn-end silence instead of leaving it to provider auto timing.
+      speechTimeout: "800",
       interruptible: "speech",
       reportInputDuringAgentSpeech: "speech",
     })
