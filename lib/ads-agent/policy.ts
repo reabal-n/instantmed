@@ -91,7 +91,7 @@ export const POLICY = {
   womensHealth: {
     dailyBudgetCents: 5_000,
     pilot: {
-      initialCpcCeilingCents: 300,
+      initialCpcCeilingCents: 400,
       investigateClicks: 10,
       maximumDays: 30,
       maximumDaysStatus: "inactive_requires_campaign_scoped_start",

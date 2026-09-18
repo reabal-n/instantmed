@@ -3,7 +3,7 @@
 > **Authority:** revenue milestones, economic definitions, paid-scaling gates, and hiring/capacity thresholds.
 > Live values come from the admin dashboard. Durable strategy lives in `docs/BUSINESS_PLAN.md`. Current priorities and status live in `docs/ROADMAP.md`.
 
-**Last updated:** 2026-09-09
+**Last updated:** 2026-09-19
 
 ---
 
@@ -125,6 +125,14 @@ A target cost per acquisition (tCPA) is an average acquisition target. It is not
 The operator explicitly approved Scripts AUD 95 to AUD 120/day, Women's Health AUD 20 to AUD 50/day, and pausing Hair Loss in Codex task `01a0a806-83fa-7360-a710-a62995b4f70d`. This overrides the old Women's Health AUD 20 pilot ceiling (new ceiling AUD 50) and the measured cash break-even ceiling for the exact Scripts budget-resource transition from 95 to 120. It does not authorize further increases, remove exact proposal approval, relax tracking/compliance/clinical holds, or change the Scripts tROAS floor. The ordinary Scripts 50% step ceiling remains.
 
 These are operator-approved growth tests, not proven profitable scale at the new spend. Baseline first-order contribution after fees and all acquisition spend for August 18–September 16 Sydney was Scripts +AUD 221.52, Women's Health +AUD 351.78 and Hair Loss −AUD 270.25. Compare seven completed post-change Sydney days; no additional increase is authorized. If first-order contribution turns non-positive, present an exact rollback proposal rather than automatically extending spend. No automatic pause or scheduled follow-up is created by this record. The live apply receipt belongs in `docs/OPERATIONS.md`.
+
+### September 19 acquisition tests
+
+The owner authorized execution following the sales-drop diagnosis in Codex task `01a0a806-83fa-7360-a710-a62995b4f70d`. Scripts restores its target ROAS from 1.35 to 1.50 at the unchanged AUD 120/day budget. Women's Health tests maximum CPC AUD 3 to AUD 4 in its UTI and contraception ad groups at the unchanged AUD 50/day budget. The Women's Health service CPC ceiling is now AUD 4; ED and Hair Loss retain AUD 3. Active configured campaign budgets remain AUD 202/day. This decision does not authorize another budget increase or a new service campaign.
+
+Closed August 20–September 18 first-customer contribution after actual Stripe fees, refund/dispute cash and all campaign spend was Scripts +AUD 225.89 and Women's Health +AUD 377.47. September 16–18 was Scripts −AUD 161.72 and Women's Health +AUD 33.32. Women's Health had 18 first orders over 30 days and two over the last three days; new traffic need not reproduce those averages. Scripts' higher ROAS target may reduce traffic and is an efficiency test, not a guaranteed scaling lever. Women's Health's higher bid may increase acquisition cost and actual spend within its existing average daily budget.
+
+The September 17 budget-only measurement is now inconclusive: these subsequent bid changes overlap it. Preserve the earlier receipts, but do not attribute later lift or deterioration solely to budgets. Compare September 20–26 Sydney against the preceding seven completed days, with an early review after two completed days. If Women's Health first-order contribution becomes non-positive, prepare an inverse AUD 3 bid proposal. For Scripts, review an inverse 1.35 target proposal if paid-order volume and contribution both deteriorate from September 16–18. These are review criteria, not automatic actions or a scheduled monitor. Provider validation, apply and read-back receipts live in `docs/OPERATIONS.md`.
 
 ### Bounded Learning Exception
 

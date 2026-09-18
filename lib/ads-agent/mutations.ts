@@ -1482,8 +1482,6 @@ function assertSpecialtyCpcCeiling(
   operations: AdsMutationOperation[],
   state: GoogleAdsAccountState,
 ): void {
-  const ceilingMicros = POLICY.ed.pilot.initialCpcCeilingCents * 10_000
-
   for (const operation of operations) {
     if (
       operation.kind === "campaign_create"
@@ -1496,9 +1494,12 @@ function assertSpecialtyCpcCeiling(
         state,
         operation.resourceName,
       )
+      const service = campaignNameService(
+        asString(campaignValue(state, campaign ?? "")?.name),
+      )
       if (
-        isSpecialtyCampaign(state, campaign)
-        && operation.nextMicros > ceilingMicros
+        (service === "ed" || service === "hair_loss" || service === "womens_health")
+        && operation.nextMicros > specialtyCpcCeilingMicros(service)
         && operation.nextMicros > operation.expectedMicros
       ) {
         throw new Error("specialty_cpc_ceiling_exceeded")
@@ -1509,6 +1510,13 @@ function assertSpecialtyCpcCeiling(
       && operation.next.strategy === "MANUAL_CPC"
       && isSpecialtyCampaign(state, operation.resourceName)
     ) {
+      const service = campaignNameService(
+        asString(campaignValue(state, operation.resourceName)?.name),
+      )
+      if (service !== "ed" && service !== "hair_loss" && service !== "womens_health") {
+        throw new Error("ungoverned_campaign_service")
+      }
+      const ceilingMicros = specialtyCpcCeilingMicros(service)
       const adGroupNames = new Set(
         state.adGroups
           .filter((resource) =>

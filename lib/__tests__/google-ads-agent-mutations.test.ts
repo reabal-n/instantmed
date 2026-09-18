@@ -1550,6 +1550,47 @@ describe("Google Ads mutation gateway", () => {
   })
 
   it.each([
+    ["Women's Health Search", 4_000_000, true],
+    ["Women's Health Search", 4_010_000, false],
+    ["ED Search", 4_000_000, false],
+    ["Hair Loss Search", 4_000_000, false],
+  ])("scopes the CPC ceiling to %s at %i", (name, nextMicros, allowed) => {
+    const state = accountState()
+    const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
+    campaign.name = name
+    const validate = () => validateAdsMutationPolicy({
+      operations: [{
+        expectedMicros: 2_500_000,
+        kind: "ad_group_cpc_bid",
+        nextMicros,
+        resourceName: adGroupResourceName,
+      }],
+      state,
+    })
+    if (allowed) expect(validate).not.toThrow()
+    else expect(validate).toThrow("specialty_cpc_ceiling_exceeded")
+  })
+
+  it.each([3_500_000, 4_010_000])("checks Women's Health Manual CPC keyword bids at %i", (cpcBidMicros) => {
+    const state = accountState()
+    const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
+    campaign.name = "Women's Health Search"
+    const criterion = state.adGroupCriteria[0].values.adGroupCriterion as Record<string, unknown>
+    criterion.cpcBidMicros = String(cpcBidMicros)
+    const validate = () => validateAdsMutationPolicy({
+      operations: [{
+        expected: { strategy: "MAXIMIZE_CONVERSION_VALUE", targetRoas: 1.35 },
+        kind: "campaign_bidding",
+        next: { strategy: "MANUAL_CPC" },
+        resourceName: campaignResourceName,
+      }],
+      state,
+    })
+    if (cpcBidMicros <= 4_000_000) expect(validate).not.toThrow()
+    else expect(validate).toThrow("specialty_cpc_ceiling_exceeded")
+  })
+
+  it.each([
     ["medicine_name_keyword", "sildenafil", "EXACT"],
     ["broad_match_positive", "online doctor assessment", "BROAD"],
   ])("rejects %s", (_reason, text, matchType) => {
