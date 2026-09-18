@@ -57,6 +57,8 @@ const CONSULT_SUBTYPE_RESET_KEYS = [
   "hairAdditionalInfo",
   "womensHealthOption",
   "contraceptionType",
+  "contraceptionMedicine",
+  "contraceptionDose",
   "pregnancyStatus",
   "hoursSinceIntercourse",
   "utiSymptoms",

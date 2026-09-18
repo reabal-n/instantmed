@@ -17,7 +17,6 @@ import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
 
 import { useRequestStore } from "../store"
-import { completeIntentionalNavigationAtFlowDestination } from "./use-unsaved-changes"
 
 function trackStepEventDeferred(input: {
   stepName: string
@@ -98,17 +97,6 @@ export function useFlowAnalytics({
     () => canonicalizeServiceType(serviceType) || serviceType || "unknown",
     [serviceType],
   )
-
-  // A same-route service handoff uses client navigation, so the old flow's
-  // unload-suppression latch must be cleared only after the exact destination
-  // marker and service have mounted. Source-flow hydration must retain it.
-  useEffect(() => {
-    completeIntentionalNavigationAtFlowDestination({
-      entryRef,
-      flowInstanceId,
-      serviceType,
-    })
-  }, [entryRef, flowInstanceId, serviceType])
 
   // Reset funnel event de-duplication state when changing flows.
   useEffect(() => {

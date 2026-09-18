@@ -28,7 +28,7 @@
  * - dedicated-service steer: ED, hair-loss and contraceptive-pill medicines
  *   route to their own services (detectDedicatedServiceForMedication). ED and
  *   hair loss are hard-routed (no escape; checkout refuses them too); the pill
- *   keeps its "continuing my current pill" escape
+ *   requires the women's health safety assessment
  * - server-side `dedicated_service_medication` attention flag
  *   (lib/clinical/derive-intake-flags.ts), which scans name+strength+form
  * - checkout re-validates via validateMedicationStep +
@@ -193,7 +193,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   // Subtype the patient explicitly chose to keep as a repeat (clears the steer).
-  const [steerDismissedSubtype, setSteerDismissedSubtype] = useState<string | null>(null)
   const [blockedReasons, setBlockedReasons] = useState<string[]>([])
   const [recentMeds, setRecentMeds] = useState<RecentMedication[]>([])
   const controlledBlock = deriveRepeatMedicationTerminalBlock(answers)
@@ -318,15 +317,8 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     if (med.form) setShowMedicationForm(true)
   }
 
-  // Steer medicines that have a dedicated service out of the generic
-  // repeat/prescription flow. Intent-aware and tiered: ED and hair loss are
-  // hard-routed (the dedicated flow owns screening this one never asks for),
-  // the contraceptive pill keeps its escape because continuing the same pill
-  // is deliberately a cheap repeat, and a medicine whose stated indication
-  // shows it is not the dedicated condition never steers at all. Server-side
-  // backstops: the `dedicated_service_medication` flag
-  // (lib/clinical/derive-intake-flags.ts) and the checkout block in
-  // lib/validation/repeat-script-schema.ts.
+  // Dedicated medicines require their service's safety assessment. The shared
+  // classifier also enforces this at checkout; flag-only matches stay repeats.
   const steerEnabled = serviceType === "repeat-script" || serviceType === "prescription"
   // The structured "what do I take this for" answer — the only exemption
   // input. See the intent-binding note in medication-service-routing.ts.
@@ -342,11 +334,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     }
     return null
   }, [steerEnabled, medications, indication, routingContext])
-  // flag_only never steers (the doctor sees the flag instead); only a soft
-  // match can be dismissed — hard-routed medicines have no escape.
-  const steerActive = serviceSteer !== null
-    && serviceSteer.enforcement !== "flag_only"
-    && !(serviceSteer.enforcement === "soft" && serviceSteer.subtype === steerDismissedSubtype)
+  const steerActive = serviceSteer !== null && serviceSteer.enforcement === "hard"
 
   const likelyDeclinedMedication = useMemo(() => {
     if (!steerEnabled) return null
@@ -425,15 +413,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       }),
     )
   }, [serviceSteer, setAnswers, posthog, flowInstanceId, serviceType])
-
-  const keepAsRepeat = useCallback((subtype: string) => {
-    captureMedicationBlock({
-      blockType: "service_steer",
-      blockers: ["dedicated_service_steer"],
-      resolution: "overridden",
-    })
-    setSteerDismissedSubtype(subtype)
-  }, [captureMedicationBlock])
 
   // How often each steer fires, and whether patients follow it. Subtype and
   // enforcement tokens only — never the typed medication text.
@@ -714,7 +693,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
           <AlertDescription className="text-base">
             <p>
               {serviceSteer.subtype === "womens_health"
-                ? "Starting or switching pills goes through our Women's Health service, which asks the right safety questions before prescribing."
+                ? "Starting, switching or continuing the pill goes through our Women's Health service, which includes the safety assessment before a doctor decides on treatment."
                 : serviceSteer.subtype === "ed"
                   ? "This medicine is prescribed through our Erectile Dysfunction service, which asks the heart and medication safety questions we need first. If you take it for something else, choose it below and you can continue here."
                   : serviceSteer.subtype === "weight_loss"
@@ -728,19 +707,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
                 Continue in {serviceSteer.serviceLabel}
                 <ArrowRight className="w-4 h-4" />
               </Button>
-              {/* Escape only for soft matches (contraceptive pills — continuing
-                  the same pill is deliberately a cheap repeat). ED and hair
-                  loss are hard-routed and checkout refuses them too. */}
-              {serviceSteer.enforcement === "soft" && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-12"
-                  onClick={() => keepAsRepeat(serviceSteer.subtype)}
-                >
-                  I&apos;m continuing my current pill — keep as repeat
-                </Button>
-              )}
+
             </div>
           </AlertDescription>
         </Alert>

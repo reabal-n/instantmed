@@ -18,7 +18,7 @@ The business is built around one-off, clearly scoped services that can be delive
 | Decision | Rule |
 |----------|------|
 | **Business model** | One-off transactions only for now. No subscriptions, memberships, bundles, or pharmacy fulfilment until deliberate expansion gates pass. |
-| **Active services** | Medical certificates, repeat prescriptions, erectile dysfunction, hair loss, narrowly scoped women's health (UTI + new/switch contraceptive pill), and weight management. |
+| **Active services** | Medical certificates, repeat prescriptions, erectile dysfunction, hair loss, narrowly scoped women's health (UTI + start/switch/continue contraceptive pill), and weight management. |
 | **Gated/retired services** | General Consult is retired and cannot be used as a fallback route around structured screeners. Unlaunched consult subtypes remain gated. |
 | **Fulfilment** | eScript token only for prescribing services. No owned pharmacy, delivery, inventory, or dispensing margin in this phase. |
 | **Moat** | No booking friction: patients start with a secure clinical form. A doctor may call or message whenever clinically needed. |
@@ -37,7 +37,7 @@ This is the durable service hierarchy, not the current execution queue. `docs/RO
 | 2 | Repeat prescriptions | Second core product | Clear existing-treatment intent and natural trust expansion after an earlier order. |
 | 3 | Hair loss | Specialist line | Higher AOV, one-off only, with a bounded clinical and advertising surface. |
 | 4 | ED | Specialist line | High intent and higher AOV, with stricter contraindication, privacy, and advertising risk. |
-| 5 | Women's health | Narrow specialist line | UTI + new/switch pill only. Avoid broad "women's health clinic" positioning. |
+| 5 | Women's health | Narrow specialist line | UTI + start/switch/continue pill only. Avoid broad "women's health clinic" positioning. |
 | 6 | Weight management | Narrow specialist line | One-off, doctor-reviewed assessment. No subscription, ongoing-monitoring promise, or paid advertising without separate approval. |
 
 Weight management joined the active hierarchy on 2026-08-10 (operator decisions D-A..D-E): one-off doctor-reviewed assessments only, GLP-1-focused, no subscriptions and no staff-heavy follow-up — continuation is a new patient-initiated consult. Paid advertising remains separately gated per docs/ADVERTISING_COMPLIANCE.md.

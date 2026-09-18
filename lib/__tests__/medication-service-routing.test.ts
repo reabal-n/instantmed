@@ -43,7 +43,7 @@ describe("detectDedicatedServiceForMedication", () => {
       "Cerazette",
       "Diane-35",
     ]) {
-      expect(detectDedicatedServiceForMedication(name)?.subtype).toBe("womens_health")
+      expect(detectDedicatedServiceForMedication(name)).toMatchObject({ subtype: "womens_health", enforcement: "hard" })
     }
   })
 
@@ -251,7 +251,7 @@ describe("detectDedicatedServiceForMedication", () => {
     // "ED" on an AU pill pack means "every day". OCP is matched first so the
     // bare `ed` token can never steal a contraceptive repeat.
     for (const name of ["Levlen ED", "Microgynon 30 ED", "Femme-Tab ED 20/100"]) {
-      expect(detectDedicatedServiceForMedication(name)?.subtype).toBe("womens_health")
+      expect(detectDedicatedServiceForMedication(name)).toMatchObject({ subtype: "womens_health", enforcement: "hard" })
     }
   })
 
@@ -269,7 +269,7 @@ describe("detectDedicatedServiceForMedication", () => {
 
   it("pins the enforcement tier of the existing classes", () => {
     expect(detectDedicatedServiceForMedication("finasteride 1mg")?.enforcement).toBe("hard")
-    expect(detectDedicatedServiceForMedication("Microgynon 30")?.enforcement).toBe("soft")
+    expect(detectDedicatedServiceForMedication("Microgynon 30")?.enforcement).toBe("hard")
   })
 })
 
@@ -369,5 +369,26 @@ describe("deriveIntakeFlags — dedicated_service_medication", () => {
       answers: { medications: [{ name: "Atorvastatin", strength: "20 mg", form: "tablet", pbsCode: "1234" }], ...complete },
     })
     expect(flags.find((f) => f.code === "dedicated_service_medication")).toBeUndefined()
+  })
+})
+
+
+describe("OCP medicine identity and indication boundaries", () => {
+  it.each(["norethisterone 5 mg", "cyproterone", "dienogest", "levonorgestrel", "estradiol 1 mg + drospirenone 2 mg tablet"])("asks for the indication of ambiguous %s", (medicine) => {
+    expect(detectDedicatedServiceForMedication(medicine)).toMatchObject({
+      enforcement: "hard", contextOptions: ["contraceptive_pill", "other_hormonal_use"],
+    })
+    expect(detectDedicatedServiceForMedication(medicine, "", "other_hormonal_use"))
+      .toMatchObject({ enforcement: "flag_only" })
+    expect(detectDedicatedServiceForMedication(medicine, "not contraception", "contraceptive_pill"))
+      .toMatchObject({ enforcement: "hard" })
+  })
+  it.each(["Levlen ED", "Slinda", "levonorgestrel + ethinylestradiol"])("does not exempt confirmed pill %s", (medicine) => {
+    expect(detectDedicatedServiceForMedication(medicine, "", "other_hormonal_use"))
+      .toMatchObject({ enforcement: "hard" })
+    expect(detectDedicatedServiceForMedication(medicine)?.contextOptions).toBeUndefined()
+  })
+  it.each(["levonorgestrel IUD", "levonorgestrel intrauterine system", "estradiol transdermal patch"])("does not force non-pill formulation %s into pill assessment", (medicine) => {
+    expect(detectDedicatedServiceForMedication(medicine)?.enforcement).not.toBe("hard")
   })
 })

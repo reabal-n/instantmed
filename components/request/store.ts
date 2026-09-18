@@ -235,6 +235,8 @@ const WOMENS_HEALTH_BRANCH_ANSWER_KEYS = [
   'utiPregnant',
   'utiDetails',
   'contraceptionType',
+  'contraceptionMedicine',
+  'contraceptionDose',
   'contraceptionCurrent',
   'pregnancyStatus',
   'lastPeriod',
@@ -254,6 +256,10 @@ function applyAnswerChange(
     for (const branchKey of WOMENS_HEALTH_BRANCH_ANSWER_KEYS) {
       delete nextAnswers[branchKey]
     }
+  }
+  if (key === 'contraceptionType' && value !== 'continue') {
+    delete nextAnswers.contraceptionMedicine
+    delete nextAnswers.contraceptionDose
   }
   nextAnswers[key] = value
   return nextAnswers

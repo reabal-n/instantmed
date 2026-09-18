@@ -193,7 +193,9 @@ export function getRepeatScriptRoutingBlock(answers: Record<string, unknown>): {
         ? "our Erectile Dysfunction service, which includes the required heart and medication safety check"
         : routingMatch.subtype === "weight_loss"
           ? "our Weight Management assessment, which includes the required eligibility and safety screening"
-          : "our Hair Loss service, which includes the right safety screening"
+          : routingMatch.subtype === "womens_health"
+            ? "our Women's Health assessment, which includes the required pill safety screening"
+            : "our Hair Loss service, which includes the right safety screening"
       return {
         subtype: routingMatch.subtype,
         error: routingMatch.requestedMedicineOutsideScope

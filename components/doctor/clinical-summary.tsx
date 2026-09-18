@@ -155,6 +155,8 @@ const FIELD_LABELS: Record<string, string> = {
   utiDetails: "Additional context",
   contraceptionType: "Pill request",
   contraceptionCurrent: "Current contraception",
+  contraceptionMedicine: "Current pill",
+  contraceptionDose: "Current dose / directions",
   pregnancyStatus: "Pregnancy check",
   womens_migraine_aura: "Migraine with aura",
   womens_blood_clot_history: "Blood clot history",
@@ -259,7 +261,7 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
     fields: [
       "womensHealthOption",
       "utiSymptoms", "utiRedFlags", "utiPregnant", "utiDetails",
-      "contraceptionType", "contraceptionCurrent", "pregnancyStatus",
+      "contraceptionType", "contraceptionCurrent", "contraceptionMedicine", "contraceptionDose", "pregnancyStatus",
       "womens_migraine_aura", "womens_blood_clot_history", "womens_smoker",
       "lastPeriod", "contraceptionDetails",
       "contraception_type", "current_contraception", "menstrual_history",
@@ -395,8 +397,8 @@ const HAIR_REPRODUCTIVE_LABELS: Record<string, string> = {
 
 const WOMENS_HEALTH_OPTION_LABELS: Record<string, string> = {
   uti: "UTI treatment",
-  ocp_new: "Start or switch pill",
-  ocp_repeat: "Repeat prescription route",
+  ocp_new: "Contraceptive pill assessment",
+  ocp_repeat: "Continue current pill",
 }
 
 const UTI_SYMPTOM_LABELS: Record<string, string> = {
@@ -411,7 +413,7 @@ const UTI_SYMPTOM_LABELS: Record<string, string> = {
 const CONTRACEPTION_TYPE_LABELS: Record<string, string> = {
   start: "Start pill",
   switch: "Switch pill",
-  continue: "Repeat prescription route",
+  continue: "Continue current pill",
 }
 
 const CONTRACEPTION_CURRENT_LABELS: Record<string, string> = {

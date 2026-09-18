@@ -7,7 +7,7 @@ import type { ConsultSubtype } from "@/types/services"
  * normalization, and checkout validation cannot drift from each other.
  */
 export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
-  // womens_health launched 2026-06-15 (UTI + new/switch pill only, scoped by
+  // womens_health launched 2026-06-15 (UTI + start/switch/continue pill, scoped by
   // LIVE_WOMENS_HEALTH_OPTIONS). weight_loss launched 2026-08-07 (form-first,
   // GLP-1-focused, D-A..D-E in docs/plans/2026-08-07-weight-loss-launch-plan.md)
   // — the set is empty but stays as the mechanism for gating future subtypes.
@@ -16,9 +16,9 @@ export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
 /**
  * Within women's health, only these option screens are live. Flipping the
  * subtype gate alone would expose the whole type picker (morning-after,
- * period-pain, "other"); this keeps the launch scoped to UTI + new/switch pill.
- * `ocp_repeat` is deliberately absent — "continuing the same pill" is routed to
- * the cheaper repeat-script flow, not a parallel $49.95 path.
+ * period-pain, "other"); this keeps the launch scoped to UTI + pill assessment.
+ * The canonical pill intent remains `ocp_new`; contraceptionType distinguishes
+ * start, switch and continue. The type picker maps legacy ocp_repeat to it.
  */
 const WOMENS_HEALTH_INTENT_VALUES = ["uti", "ocp_new"] as const
 export type WomensHealthIntent = (typeof WOMENS_HEALTH_INTENT_VALUES)[number]
