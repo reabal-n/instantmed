@@ -89,7 +89,7 @@ export const POLICY = {
     },
   },
   womensHealth: {
-    dailyBudgetCents: 2_000,
+    dailyBudgetCents: 5_000,
     pilot: {
       initialCpcCeilingCents: 300,
       investigateClicks: 10,
@@ -307,15 +307,23 @@ export function authorizeScriptsBudgetScale(args: {
   const economicMaximumMicros = Math.floor(
     args.expectedMicros * maximumWindowSpendCents / campaign.spendCents,
   )
+  // Explicit owner decision, 2026-09-17: this exact step is a growth test,
+  // not a claim that the higher budget is already first-order profitable.
+  // Every apply still requires its own immutable approval and live validation.
+  const operatorApprovedGrowthTest =
+    campaign.budgetResourceName === "customers/9205010513/campaignBudgets/15589755119"
+    && args.expectedMicros === 95_000_000
+    && args.nextMicros === 120_000_000
   const maximumNextMicros = Math.min(
     tierMaximumMicros,
-    economicMaximumMicros,
+    operatorApprovedGrowthTest ? Math.max(economicMaximumMicros, 120_000_000) : economicMaximumMicros,
   )
   if (args.nextMicros > maximumNextMicros) {
     throw new Error("scripts_budget_authorization_exceeded")
   }
 
   const advisoryReasonCodes = [
+    ...(operatorApprovedGrowthTest ? ["OPERATOR_APPROVED_GROWTH_TEST"] : []),
     ...(campaign.firstOrder!.orders! < POLICY.scripts.scale.smallSampleOrderThreshold ? ["SMALL_SAMPLE_UNCERTAINTY"] : []),
     ...(args.closedDaysAfterPreviousChange != null || args.ordersAfterPreviousChange != null
       ? ["RECENT_CHANGE_MONITORING"] : []),

@@ -1808,3 +1808,21 @@ When the operator wants to formalize:
 2. **DONE (2026-05-29, expanded 2026-06-29, 2026-07-01, and 2026-09-02).** `/admin/ops` renders an "Integrity (weekly invariants)" strip for Review SLA backlog (Q1 proxy: paid intakes awaiting review past 24h), Paid + cancelled (charged but undelivered intakes still in reporting), Cert + refund orphans (Q2), Refund record anomalies (Q4), Cert timestamp drift (Q6, 14d), Cert missing record (approved/completed paid or partially refunded med-cert intakes across all history without a current valid certificate), and Invariant query failures. Counts come from `getOperationalInvariants()` in `lib/admin/ops-invariants.ts` (service-role, seeded-E2E filtered, fail-soft). The paid-cancelled, cert-orphan, and cert-missing-record cards are critical on any non-zero count; SLA backlog goes critical at `SLA_BREACH_CRITICAL` (10); cert timestamp drift stays warning-only and links to the certificate delivery rescue panel.
 3. Sentry alert when any count is non-zero (severity warning) or P95 exceeds target (severity critical).
 4. Update `docs/SECURITY.md` Kill Switches table if the alert should pause new paid intakes.
+
+### September 17 operator-approved growth allocation
+
+The operator explicitly authorized Scripts AUD 95 to AUD 120/day, Women's Health AUD 20 to AUD 50/day, and Hair Loss paused in Codex task `01a0a806-83fa-7360-a710-a62995b4f70d`. The Women's Health ceiling is AUD 50/day; the exact Scripts 95-to-120 budget-resource step is allowed as a growth test beyond the measured cash ceiling. Financial evidence, tracking, immutable approval, stale-resource checks, unchanged bidding/targeting and Google validate-only remain enforced. Previous unconsumed proposals for Scripts AUD 100 and Women's Health AUD 25 are superseded and must not be applied.
+
+The closed August 18–September 16 Sydney first-customer contribution after refunds, exact Stripe fees and all campaign spend was Scripts +AUD 221.52, Women's Health +AUD 351.78, Certificates +AUD 195.57, ED +AUD 27.46 and Hair Loss −AUD 270.25. The corresponding seven-day figures were +AUD 369.95, +AUD 94.79, +AUD 20.64, −AUD 4.20 and −AUD 76.46. Actual fee evidence for 172 missing reporting-cache rows was refreshed using the existing Stripe fee reader; no payments or refunds were initiated.
+
+All three provider changes were applied and verified. The active configured allocation is AUD 202/day (Scripts 120, Women's Health 50, Certificates 20, ED 12; Hair Loss paused with its budget retained at 10). Average daily budgets are not a same-day spending cap. Review seven completed post-change Sydney days; do not infer causal lift from the overlapping changes or create an automatic increase. Rollback requires an exact new approved inverse proposal: Scripts 95/day, Women's Health 20/day, Hair Loss enabled at its retained 10/day.
+
+| Proposal | Campaign | Applied UTC | Google request ID | Read-back |
+|---|---|---|---|---|
+| ADS-20260917-04 | IM \| Search \| Hair Loss \| Pilot | 2026-09-16T21:28:09.252Z | `9oa3u0guPxO3CqxQOc1XyQ` | verified at 2026-09-16T21:28:57.303Z |
+| ADS-20260917-05 | JDM \| Search \| Scripts | 2026-09-16T21:29:30.576Z | `7Qe7mNu7PoA6FMOGiOIYJg` | verified at 2026-09-16T21:30:17.141Z |
+| ADS-20260917-06 | IM \| Search \| Women's Health \| AU | 2026-09-16T21:30:48.185Z | `CnV5kRLW7ArQ4aeB-9MYJg` | verified at 2026-09-16T21:31:44.071Z |
+
+Approval: explicit Codex-task decision for the exact packet; each apply re-read the live baseline and reran Google validate-only with partial failure disabled. Hair Loss paused first, then Scripts increased, then Women's Health increased. Seven full post-change days are September 18–24 Sydney, assessed September 25; September 17 is a partial exposure day.
+
+Verification: 140 focused policy/mutation/campaign-creation tests, changed-file ESLint and doc audit passed. Typecheck passed with only pre-existing generated `output/**` evidence excluded; unfiltered typecheck fails on those historical broken imports. Unfiltered lint also scans unrelated generated `.superpowers` and output artifacts. Live actions used the tested local policy through the existing audited mutation workflow; the source branch and PR do not by themselves imply a new application deployment.

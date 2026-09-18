@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { fetchWithCsrf } from "@/lib/security/csrf-client"
@@ -9,10 +9,20 @@ import { fetchWithCsrf } from "@/lib/security/csrf-client"
 export function RequestAccessSignIn() {
   const sending = useRef(false)
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle")
+  const [canRequestAgain, setCanRequestAgain] = useState(false)
+
+  useEffect(() => {
+    if (state !== "sent") return
+    // Allow recovery without immediately replacing a link still in transit.
+    // Server rate limits and mailbox eligibility remain authoritative.
+    const timer = window.setTimeout(() => setCanRequestAgain(true), 60_000)
+    return () => window.clearTimeout(timer)
+  }, [state])
 
   async function requestLink() {
-    if (sending.current || state === "sent") return
+    if (sending.current || (state === "sent" && !canRequestAgain)) return
     sending.current = true
+    setCanRequestAgain(false)
     setState("sending")
     try {
       const response = await fetchWithCsrf("/track/request/access-link", { method: "POST" })
@@ -28,16 +38,29 @@ export function RequestAccessSignIn() {
   return (
     <div className="mt-6 space-y-3">
       <p className="text-base leading-relaxed text-muted-foreground">
-        Choose an email link to create or connect your secure account. No password or repeated details.
+        We’ll request a separate sign-in email so you can open your documents securely. No password or repeated details.
       </p>
       <Button className="min-h-12 w-full whitespace-normal rounded-xl px-3 text-base" size="lg"
-        disabled={state === "sending" || state === "sent"} onClick={requestLink}>
-        {state === "sending" ? "Requesting link…" : state === "sent" ? "Link requested" : "Email me a secure access link"}
+        disabled={state === "sending" || (state === "sent" && !canRequestAgain)} onClick={requestLink}>
+        {state === "sending" ? "Requesting link…" : state === "sent" ? canRequestAgain ? "Request another link" : "Link requested" : "Email me a secure access link"}
       </Button>
       {state === "sent" && (
-        <p role="status" className="text-base leading-relaxed text-muted-foreground">
-          Check the inbox used for your request. If access is available, a secure link will arrive shortly. Check junk mail too.
-        </p>
+        <div className="space-y-3">
+          <p role="status" className="text-base leading-relaxed text-muted-foreground">
+            Check the inbox used for your request. If access is available, open the new sign-in or confirmation email and confirm to continue. The request-update email brings you back here. Check junk mail too.
+          </p>
+          <Button asChild className="min-h-12 w-full whitespace-normal rounded-xl px-3 text-base" size="lg" variant="outline">
+            {/* A full request rechecks server-side ownership after sign-in in
+                another tab, without resending email or trusting client state. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Recheck server auth with a fresh document, not the cached route. */}
+            <a href="/track/request">I’ve signed in. Open my request</a>
+          </Button>
+          {!canRequestAgain && (
+            <p className="text-base leading-relaxed text-muted-foreground">
+              You can request another link after one minute. Use the newest email if you request another.
+            </p>
+          )}
+        </div>
       )}
       {state === "error" && (
         <p role="alert" className="text-base text-destructive">
