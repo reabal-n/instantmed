@@ -1311,6 +1311,16 @@ On **Phone Numbers → Active numbers → +61 495 049 555 → Configure**, use f
 
 Do not paste relative paths into the Console. Messaging routing is separate and is not part of this voice launch; the AU1 screen may continue to say messaging routing is unavailable. The bidirectional media stream and its stream-status callback are returned by the signed incoming-call flow and do not need another Console field.
 
+### ElevenLabs voice option
+
+`TWILIO_VOICE_PROVIDER=elevenlabs` selects Twilio-managed ConversationRelay on the same signed incoming and WebSocket URLs. An unset value keeps the original OpenAI audio bridge. The chosen voice is **Hope** (`uYXf8XasLslADfZ2MB4u`), an American conversational voice. Google recognises Australian English speech (`en-AU`, `telephony`); ElevenLabs speaks the text (`en-US`); the existing `gpt-realtime-2.1` model runs in text-only mode. This integration reuses `OPENAI_API_KEY` and requires **no ElevenLabs API key**. Twilio's AI/ML addendum must be accepted on the account.
+
+ConversationRelay sends only transient recognised speech into the model. The application bounds that text context to the active call, corrects interrupted readbacks to what was heard, ignores cancelled responses and their tools, and retains the existing encrypted confirmed-message storage. Do not enable Conversation Intelligence, recordings, transcript persistence, or raw provider-frame logging. AU1 call routing does not imply Google, OpenAI, or ElevenLabs processing is Australian-only.
+
+After a terminal outcome, the signed Connect action plays the code-owned final sentence using TwiML and hangs up in sequence. Success and the fixed emergency direction use Hope through Twilio's ElevenLabs `<Say>` integration; uncertain saves and technical failures use Twilio's default voice so recovery does not depend on ElevenLabs. A pending save is registered with Vercel `waitUntil` and continues after caller disconnect, within the function duration limit. After fifteen seconds without a confirmed result, the caller hears only that confirmation was unavailable, not a claim that the message was lost.
+
+Before selecting this option for live calls, deploy and verify signed routing and a controlled telephone call with Hope, interruption, confirmed save, and fallback. A successful text-only OpenAI API check does not prove Twilio STT/TTS, voice availability, telephone latency, or the caller's audio quality. Confirm the processor disclosure and applicable provider settings cover Google and ElevenLabs through Twilio. Roll back just the voice provider by removing `TWILIO_VOICE_PROVIDER` and redeploying; the stored messages and Console URLs do not change.
+
 ### Activation checklist
 
 1. Approve the Twilio/OpenAI processor agreements and retention settings, complete the APP 5/APP 8 assessment, and confirm the public processor disclosure is current. Do not enable Lena from code or the Twilio Console before this gate is evidenced.

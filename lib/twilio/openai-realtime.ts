@@ -197,6 +197,21 @@ export function buildOpenAIRealtimeSessionUpdate() {
   }
 }
 
+export function buildOpenAIRealtimeTextSessionUpdate() {
+  const { audio: _audio, ...session } = buildOpenAIRealtimeSessionUpdate().session
+  return {
+    type: "session.update" as const,
+    session: {
+      ...session,
+      output_modalities: ["text"] as const,
+      instructions: session.instructions.replace(
+        "Use Australian English and a warm, natural Australian support cadence.",
+        "Use Australian English wording and a warm, natural conversational style. The speech provider supplies your voice.",
+      ),
+    },
+  }
+}
+
 type CreateMessage = (
   input: MedicalDirectorVoiceMessageInput,
 ) => Promise<MedicalDirectorVoiceMessageResult>

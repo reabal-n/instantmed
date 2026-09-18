@@ -54,6 +54,22 @@ function enableVoice() {
 }
 
 describe("Twilio incoming voice webhook", () => {
+  it("selects Hope through managed ConversationRelay only when explicitly enabled", async () => {
+    enableVoice()
+    vi.stubEnv("TWILIO_VOICE_PROVIDER", "elevenlabs")
+    const { POST } = await import("@/app/api/webhooks/twilio/voice/incoming/route")
+    const xml = await (await POST(buildRequest(""))).text()
+    expect(xml).toContain("<ConversationRelay")
+    expect(xml).toContain('ttsProvider="ElevenLabs"')
+    expect(xml).toContain('voice="uYXf8XasLslADfZ2MB4u"')
+    expect(xml).toContain('transcriptionLanguage="en-AU"')
+    expect(xml).toContain('ttsLanguage="en-US"')
+    expect(xml).toContain('name="sessionToken"')
+    expect(xml).toContain('action="https://instantmed.com.au/api/webhooks/twilio/voice/fallback"')
+    expect(xml).not.toContain("<Stream")
+    expect(xml).not.toContain("intelligenceService")
+  })
+
   afterEach(() => {
     vi.unstubAllEnvs()
     vi.doUnmock("@/lib/rate-limit/redis")

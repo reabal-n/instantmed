@@ -114,7 +114,7 @@ function buildSafetyIdentifier(callSid: string): string {
   return createHmac("sha256", secret).update(`voice-call:${callSid}`).digest("hex")
 }
 
-function defaultOpenAISocket(session: TwilioVoiceSession): VoiceSocket {
+export function createOpenAIRealtimeSocket(session: TwilioVoiceSession): VoiceSocket {
   const apiKey = process.env.OPENAI_API_KEY?.trim()
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured")
 
@@ -129,7 +129,7 @@ function defaultOpenAISocket(session: TwilioVoiceSession): VoiceSocket {
 function defaultDependencies(): TwilioOpenAIRealtimeBridgeDependencies {
   return {
     clearCallTimeout: clearTimeout,
-    createOpenAISocket: defaultOpenAISocket,
+    createOpenAISocket: createOpenAIRealtimeSocket,
     executeVoiceMessageTool: executeMedicalDirectorVoiceMessageTool,
     parseSessionToken: parseTwilioVoiceSessionToken,
     setCallTimeout: setTimeout,

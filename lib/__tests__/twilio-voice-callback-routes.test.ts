@@ -25,6 +25,40 @@ function request(pathname: string, params: Record<string, string>): Request {
 }
 
 describe("Twilio voice fallback and status callbacks", () => {
+  it.each([
+    ["ended", '{"outcome":"saved"}', false],
+    ["ended", '{"outcome":"unavailable"}', true],
+    ["failed", '{"outcome":"saved"}', true],
+    ["ended", "invalid", true],
+  ])("handles relay handoff %s / %s without falsely reporting a saved message failed", async (status, handoff, fallback) => {
+    vi.stubEnv("TWILIO_AUTH_TOKEN", AUTH_TOKEN)
+    vi.stubEnv("TWILIO_VOICE_PUBLIC_BASE_URL", BASE_URL)
+    const { POST } = await import("@/app/api/webhooks/twilio/voice/fallback/route")
+    const response = await POST(request("/api/webhooks/twilio/voice/fallback", {
+      CallSid: "CA00000000000000000000000000000000", SessionStatus: status, HandoffData: handoff,
+    }))
+    const xml = await response.text()
+    expect(xml.includes("unable to take your message")).toBe(fallback)
+    expect(xml).toContain("<Hangup/>")
+  })
+
+  it.each([
+    ["saved", "sent your message securely", true],
+    ["unconfirmed", "couldn't confirm your message", false],
+    ["emergency", "hang up and call triple zero now", true],
+  ])("plays the fixed %s closeout before hanging up", async (outcome, words, hope) => {
+    vi.stubEnv("TWILIO_AUTH_TOKEN", AUTH_TOKEN)
+    vi.stubEnv("TWILIO_VOICE_PUBLIC_BASE_URL", BASE_URL)
+    const { POST } = await import("@/app/api/webhooks/twilio/voice/fallback/route")
+    const xml = await (await POST(request("/api/webhooks/twilio/voice/fallback", {
+      CallSid: "CA00000000000000000000000000000000", SessionStatus: "ended", HandoffData: JSON.stringify({ outcome }),
+    }))).text()
+    expect(xml).toContain(words)
+    expect(xml).toMatch(/<Say[^>]*>.*<\/Say><Hangup\/>/)
+    expect(xml.includes('voice="ElevenLabs.uYXf8XasLslADfZ2MB4u"')).toBe(hope)
+    expect(xml).not.toContain("unable to take your message")
+  })
+
   afterEach(() => {
     vi.unstubAllEnvs()
     vi.resetModules()

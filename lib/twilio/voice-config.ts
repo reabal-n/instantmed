@@ -1,5 +1,11 @@
 type VoiceEnvironment = Readonly<Record<string, string | undefined>>
 
+export const LENA_ELEVENLABS_VOICE_ID = "uYXf8XasLslADfZ2MB4u"
+
+export function usesElevenLabsVoice(environment: VoiceEnvironment = process.env): boolean {
+  return environment.TWILIO_VOICE_PROVIDER === "elevenlabs"
+}
+
 export interface TwilioVoiceReadiness {
   enabled: boolean
   missing: string[]
