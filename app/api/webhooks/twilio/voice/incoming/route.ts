@@ -7,7 +7,7 @@ import {
   isVoiceCallerBlocked,
   releaseVoiceCallSlot,
 } from "@/lib/twilio/voice-abuse"
-import { getTwilioVoiceReadiness } from "@/lib/twilio/voice-config"
+import { getTwilioVoiceReadiness, LENA_ELEVENLABS_VOICE_ID, usesElevenLabsVoice } from "@/lib/twilio/voice-config"
 import { createTwilioVoiceSessionToken } from "@/lib/twilio/voice-session-token"
 import {
   getTwilioVoiceUrl,
@@ -66,6 +66,27 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const response = new twilio.twiml.VoiceResponse()
+  if (usesElevenLabsVoice()) {
+    const connect = response.connect({
+      action: getTwilioVoiceUrl("/api/webhooks/twilio/voice/fallback"),
+      method: "POST",
+    })
+    // addChild preserves current ConversationRelay attributes whose types in
+    // the installed Twilio SDK predate string-valued reportInputDuringAgentSpeech.
+    const relay = connect.addChild("ConversationRelay", {
+      url: getTwilioVoiceWebSocketUrl("/api/webhooks/twilio/voice/stream"),
+      ttsProvider: "ElevenLabs",
+      voice: LENA_ELEVENLABS_VOICE_ID,
+      ttsLanguage: "en-US",
+      transcriptionProvider: "Google",
+      transcriptionLanguage: "en-AU",
+      speechModel: "telephony",
+      interruptible: "speech",
+      reportInputDuringAgentSpeech: "speech",
+    })
+    relay.addChild("Parameter", { name: "sessionToken", value: sessionToken })
+    return twimlResponse(response.toString())
+  }
   const connect = response.connect()
   const stream = connect.stream({
     statusCallback: getTwilioVoiceUrl("/api/webhooks/twilio/voice/stream-status"),
