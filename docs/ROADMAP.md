@@ -127,6 +127,10 @@ An open **Attribution Investigation Hold** blocks scaling for that service even 
 
 **Attribution Investigation Resolution — Scripts, 2026-08-15.** Cause: ED and hair-loss requests had bypassed their dedicated pathways through the cheaper repeat-prescription lane. Correction: the dedicated-service hard routing shipped 2026-08-05/06. Fresh closed-window evidence ending 2026-08-14 showed 70 expected Scripts orders out of 72 recognised orders (97.2%), clearing the 90% / 10-order threshold. The Operator resolved the investigation and the code-owned hold was removed. This historical resolution does not authorise a live Ads mutation; the September 9 policy supersedes fixed waiting gates.
 
+### Operator growth allocation — 2026-09-17
+
+The operator approved Scripts AUD 120/day, Women's Health AUD 50/day, and Hair Loss paused, superseding the earlier rejected Hair Loss pause and the prior Women's Health pilot ceiling. The exact scope is in [Revenue Model](REVENUE_MODEL.md#exact-operator-budget-decision--2026-09-17); [Operations](OPERATIONS.md#september-17-operator-approved-growth-allocation) owns validation and live read-back. Evaluate first-customer contribution, retained ROAS and total contribution over seven completed post-change Sydney days. This approval is not permission for further automatic increases or a claim of profitable scale at the new spend.
+
 ### Scheduled service checkpoints
 
 - **Certificate overnight contribution — 2026-09-24 00:07:19 AEST:** fourteen days from the actual September 10 schedule apply. Review first-order and total cash contribution, overnight click cohorts and the $150 test-loss review threshold at unchanged $20/day/$22 tCPA. Copy and negative repairs overlap; this is observational, not a Google split experiment or a waiting gate. See the [execution receipt](audits/2026-09-10-profit-growth-execution.md).

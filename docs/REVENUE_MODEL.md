@@ -120,6 +120,12 @@ Campaign cash includes real recognised cross-service orders, but their actual se
 
 A target cost per acquisition (tCPA) is an average acquisition target. It is not a CPC limit, a guaranteed per-conversion price, or permission to ignore service-level retained contribution.
 
+### Exact operator budget decision — 2026-09-17
+
+The operator explicitly approved Scripts AUD 95 to AUD 120/day, Women's Health AUD 20 to AUD 50/day, and pausing Hair Loss in Codex task `01a0a806-83fa-7360-a710-a62995b4f70d`. This overrides the old Women's Health AUD 20 pilot ceiling (new ceiling AUD 50) and the measured cash break-even ceiling for the exact Scripts budget-resource transition from 95 to 120. It does not authorize further increases, remove exact proposal approval, relax tracking/compliance/clinical holds, or change the Scripts tROAS floor. The ordinary Scripts 50% step ceiling remains.
+
+These are operator-approved growth tests, not proven profitable scale at the new spend. Baseline first-order contribution after fees and all acquisition spend for August 18–September 16 Sydney was Scripts +AUD 221.52, Women's Health +AUD 351.78 and Hair Loss −AUD 270.25. Compare seven completed post-change Sydney days; no additional increase is authorized. If first-order contribution turns non-positive, present an exact rollback proposal rather than automatically extending spend. No automatic pause or scheduled follow-up is created by this record. The live apply receipt belongs in `docs/OPERATIONS.md`.
+
 ### Bounded Learning Exception
 
 A campaign may temporarily be contribution-negative only as an operator-approved learning experiment with:

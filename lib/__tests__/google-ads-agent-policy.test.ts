@@ -271,7 +271,7 @@ describe("Google Ads Agent policy", () => {
         "campaign_scoped_duration",
       ],
     })
-    expect(POLICY.womensHealth.dailyBudgetCents).toBe(2000)
+    expect(POLICY.womensHealth.dailyBudgetCents).toBe(5000)
     expect(POLICY.womensHealth.pilot.initialCpcCeilingCents).toBe(300)
     expect(POLICY.womensHealth.pilot.investigateClicks).toBe(10)
     expect(POLICY.womensHealth.pilot.maximumLossCents).toBe(15000)
@@ -359,6 +359,28 @@ describe("Google Ads Agent policy", () => {
       expectedMicros: 40_000_000,
       nextMicros: 48_000_000,
     })).not.toThrow()
+  })
+
+  it("allows only the operator-approved September 17 Scripts budget step beyond the cash ceiling", () => {
+    const approved = campaign({
+      biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
+      budgetAmountMicros: 95_000_000,
+      budgetResourceName: "customers/9205010513/campaignBudgets/15589755119",
+      targetRoas: 1.35,
+      spendCents: 273_066,
+      firstOrder: { orders: 93, stripeFeeCents: 8_272, netRetainedRevenueCents: 303_490, contributionCents: 22_152 },
+    })
+    const step = { campaign: approved, expectedMicros: 95_000_000, nextMicros: 120_000_000 }
+    expect(authorizeScriptsBudgetScale(step).maximumNextMicros).toBe(120_000_000)
+    expect(authorizeScriptsBudgetScale(step).advisoryReasonCodes).toContain("OPERATOR_APPROVED_GROWTH_TEST")
+    expect(() => authorizeScriptsBudgetScale({ ...step, nextMicros: 120_000_001 })).toThrow("scripts_budget_authorization_exceeded")
+    expect(() => authorizeScriptsBudgetScale({ ...step, campaign: { ...approved, budgetResourceName: "customers/other/campaignBudgets/other" } })).toThrow("scripts_budget_authorization_exceeded")
+    expect(() => authorizeScriptsBudgetScale({ ...step, campaign: { ...approved, firstOrder: null } })).toThrow("scripts_scale_economics_unavailable")
+    expect(() => authorizeScriptsBudgetScale({ ...step, campaign: { ...approved, targetRoas: null } })).toThrow("scripts_troas_floor_missing")
+  })
+
+  it("uses the operator-approved AUD 50 women's health ceiling", () => {
+    expect(POLICY.womensHealth.dailyBudgetCents).toBe(5_000)
   })
 
   it("blocks scale proposals whenever tracking is not GREEN", () => {
