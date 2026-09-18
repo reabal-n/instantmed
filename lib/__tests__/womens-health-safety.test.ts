@@ -162,3 +162,25 @@ describe("women's health — required safety fields", () => {
     expect(result.missingFields).toContain(field)
   })
 })
+
+
+describe("continuing the pill uses the women's-health safety boundary", () => {
+  const answers = {
+    consultSubtype: "womens_health", womensHealthOption: "ocp_new",
+    contraceptionType: "continue", contraceptionCurrent: "pill",
+    pregnancyStatus: "no", womens_migraine_aura: "no",
+    womens_blood_clot_history: "no", womens_smoker: "no", emergency_symptoms: [],
+  }
+
+  it("allows a complete clear continuation screen", () => {
+    expect(checkSafetyForServer("consult", answers).isAllowed).toBe(true)
+  })
+
+  it.each([
+    ["pregnancyStatus", "yes"], ["pregnancyStatus", "not_sure"],
+    ["womens_migraine_aura", "yes"], ["womens_blood_clot_history", "yes"],
+    ["womens_smoker", "yes"],
+  ])("blocks continuing with %s=%s", (field, value) => {
+    expect(checkSafetyForServer("consult", { ...answers, [field]: value }).isAllowed).toBe(false)
+  })
+})

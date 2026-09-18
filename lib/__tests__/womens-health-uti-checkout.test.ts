@@ -141,3 +141,20 @@ describe("OCP (new/switch pill) checkout clinical path", () => {
     expect(result.ok).toBe(false)
   })
 })
+
+
+describe("pill continuation checkout completeness", () => {
+  const answers = {
+    consultSubtype: "womens_health", womensHealthOption: "ocp_new", contraceptionType: "continue",
+    contraceptionMedicine: "Levlen ED", contraceptionDose: "One tablet daily",
+    pregnancyStatus: "no", womens_migraine_aura: "no", womens_blood_clot_history: "no", womens_smoker: "no",
+    emergency_symptoms: [],
+  }
+  it.each(["contraceptionMedicine", "contraceptionDose"])("holds payment for missing %s", async (field) => {
+    const result = await runClinicalValidation(utiInput({ ...answers, [field]: undefined }))
+    expect(result.ok).toBe(false)
+  })
+  it("allows a complete continuation through the real shared clinical validator", async () => {
+    expect((await runClinicalValidation(utiInput(answers))).ok).toBe(true)
+  })
+})

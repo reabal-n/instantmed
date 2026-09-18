@@ -38,6 +38,26 @@ describe("women's-health new-pill unified checkout validation", () => {
     expect(validateAnswersServerSide("consult", validNewPillAnswers, identity)).toBeNull()
   })
 
+  it("accepts continuing a pill through the same complete women's-health assessment", () => {
+    expect(validateAnswersServerSide("consult", {
+      ...validNewPillAnswers,
+      contraceptionType: "continue",
+      contraceptionCurrent: "pill",
+      contraceptionMedicine: "Levlen ED 150/30 micrograms",
+      contraceptionDose: "One tablet daily",
+    }, identity)).toBeNull()
+  })
+
+  it.each([undefined, "", "   ", true, {}, "a".repeat(201)])("rejects continuation without usable medicine details (%s)", (value) => {
+    for (const field of ["contraceptionMedicine", "contraceptionDose"]) {
+      expect(validateAnswersServerSide("consult", {
+        ...validNewPillAnswers, contraceptionType: "continue", contraceptionCurrent: "pill",
+        contraceptionMedicine: "Levlen ED 150/30 micrograms", contraceptionDose: "One tablet daily",
+        [field]: value,
+      }, identity)).not.toBeNull()
+    }
+  })
+
   it("rejects confirmed pregnancy with the canonical in-person guidance", () => {
     expect(validateAnswersServerSide("consult", {
       ...validNewPillAnswers,
@@ -46,7 +66,7 @@ describe("women's-health new-pill unified checkout validation", () => {
   })
 
   it.each([
-    ["contraceptionType", "continue"],
+    ["contraceptionType", "unknown"],
     ["contraceptionCurrent", "legacy-method"],
     ["pregnancyStatus", "pregnant"],
     ["womens_migraine_aura", "unknown"],

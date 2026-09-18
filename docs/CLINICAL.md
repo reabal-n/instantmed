@@ -15,14 +15,16 @@ InstantMed is **not a broad online GP clinic** and **not a prescribing system**.
 - repeat prescriptions
 - hair loss
 - erectile dysfunction
-- women's health (UTI + new/switch contraceptive pill only) — launched 2026-06-15
+- women's health (UTI + start/switch/continue contraceptive pill) — launched 2026-06-15
 - weight management — launched 2026-08-10
 
 **Women's health scope (live 2026-06-15):** narrow and protocol-led. Only
 `uti` and `ocp_new` are live (`LIVE_WOMENS_HEALTH_OPTIONS` in
 `lib/request/consult-subtypes.ts`); morning-after and period-pain stay gated,
-and "continue my current pill" is routed to the repeat-script flow rather than
-a parallel consult. Server-enforced safety: UTI red flags and pregnancy or
+and all contraceptive-pill requests, including continuation, use the women's-health
+assessment (operator decision 2026-09-17). The canonical `ocp_new` intent covers
+`contraceptionType: start | switch | continue`; recognised pill medicines are
+hard-routed out of repeat scripts before payment, including payment retries. Server-enforced safety: UTI red flags and pregnancy or
 possible pregnancy decline to in-person care. Possible pregnancy, migraine with aura, blood-clot history, and smoking block checkout before payment. Patients are
 redirected to a GP or sexual health clinic without creating a paid intake. The
 pathway does not promise doctor contact or recommend a replacement treatment.
@@ -201,7 +203,7 @@ Prescribing is framed as: "a possible outcome of clinician review, occurring sep
 | Repeat prescriptions | One-off eScript review for existing, stable medication only. Call/message if stability, medication history, monitoring, contraindications, or usual-prescriber context is unclear. |
 | Hair loss | One-off form-first doctor assessment. No subscription or outcome guarantee. Avoid drug names in acquisition copy. The existing reproductive exclusion is enforced by the visible intake terminal block and again by server safety before initial, recovered-guest, or retry payment; a missing or invalid persisted answer enters the recoverable `REQUEST_MORE_INFO` hold instead of being treated as safe or declined. |
 | Erectile dysfunction | One-off form-first doctor assessment with strict contraindication screening. Cardiac history, nitrate/alpha-blocker use, uncertain medication history, or clinical discomfort requires contact or decline. |
-| Women's health | Live for UTI + new/switch contraceptive pill only. Keep it narrow and protocol-led; pregnancy risk, UTI red flags, STI risk, pelvic pain, heavy bleeding, complex symptoms, or safety uncertainty require contact, decline, or in-person redirection. |
+| Women's health | Live for UTI + start/switch/continue contraceptive pill. Keep it narrow and protocol-led; pregnancy risk, UTI red flags, STI risk, pelvic pain, heavy bleeding, complex symptoms, or safety uncertainty require contact, decline, or in-person redirection. |
 | Weight management | LIVE 2026-08-10. Doctor-reviewed only — never auto-approved. GLP-1-focused (phentermine excluded at launch, D-B). One-off review: continuation requires a new consult (D-E); no ongoing-monitoring promise. Eating-disorder or cardiac history requires a doctor call before any decision. `can_review_weight_loss` capability + Medical Director sign-off required for non-admin doctors. |
 
 Weight-assessment checkout evaluates numeric measurement strings from the actual form as well as stored numeric values. The server checks measurements against the shared plausible ranges before applying the BMI eligibility floors; missing, malformed or out-of-range measurements remain an incomplete-information hold. Below BMI 30, `wlHasWeightComorbidity` must be an explicit boolean before eligibility evaluation; omission, null and string values cannot bypass the comorbidity requirement. MEN2 and pancreatitis answers must be booleans, and pregnancy/breastfeeding and eating-disorder answers must be explicit `yes` or `no`; malformed values cannot stand in for a negative screen. The September 14 application repair and its production status are recorded in `docs/OPERATIONS.md`.
@@ -216,7 +218,7 @@ A medicine that belongs to a dedicated service must not be prescribed through th
 
 - **PDE5 inhibitors and hair-loss medicines route to their own services and are refused at checkout.** The ED pathway owns the nitrate absolute-contraindication and cardiac screening; the generic repeat history step asks none of it, so allowing these through was a screening bypass as well as a pricing one. The reported `sedenfil` spelling is an exact, whole-word routing alias with the same structured non-ED context safeguards as sildenafil; it does not broaden general fuzzy matching or establish a verified prescribing identity.
 - **A stated BPH/PAH indication keeps the repeat** (low-dose daily tadalafil for prostate symptoms; Revatio / sildenafil 20 mg for pulmonary hypertension) and raises a doctor flag instead. The context is patient-reported, so the reviewer is told rather than the request being waved through silently. Dose alone never exempts.
-- **Continuing an existing contraceptive pill stays a repeat** by design and keeps an explicit patient escape.
+- **All oral contraceptive pill requests use women's health**, including continuation (operator decision 2026-09-17). Continuing patients must provide their current pill name/strength and dose/directions before payment; patient review and clinician summaries display both. Confirmed pill brands and ethinylestradiol/progestogen combinations have no repeat escape. Ambiguous hormone ingredients use a structured indication choice; another prescribed use or a non-pill formulation remains a doctor-flagged repeat, not an oral-pill assessment.
 - **Weight-management routing — operator decision 2026-09-14.** GLP-1 requests, including Mounjaro (and the `monjaro` spelling), Wegovy and Ozempic, and phentermine requests, including Duromine and Metermine, hard-route to the $89.95 weight assessment and cannot proceed through repeat-Rx. A `type_2_diabetes` answer does not exempt a GLP-1 request; the former structured weight-vs-diabetes escape is retired. Routing does not authorize a prescription: the service remains GLP-1-focused, phentermine prescribing remains excluded, and orlistat stays flag-only for decline-to-GP. The original August launch plan records the earlier routing decision; this September decision supersedes its repeat-lane exemptions. Application release evidence remains separate in `docs/OPERATIONS.md`.
 
 ### Repeat Quantity & Supply Standard

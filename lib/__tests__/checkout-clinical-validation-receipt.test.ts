@@ -122,6 +122,24 @@ describe("checkout refusal receipts", () => {
       triggeredRuleIds: ["repeat_script_requires_consult"],
     })
   })
+  it.each(["Levlen ED", "Slinda"])("refuses %s before payment and records the women's health route", async (name) => {
+    const input = repeatCheckoutInput()
+    const result = await runClinicalValidation({
+      ...input,
+      answers: {
+        ...input.answers,
+        medication_name: name,
+        medication_display: name,
+        routing_context: "type_2_diabetes",
+      },
+    })
+    expect(result).toMatchObject({ ok: false, error: expect.stringMatching(/women's health/i) })
+    expect(receiptCalls).toHaveLength(1)
+    expect(receiptCalls[0].result).toMatchObject({
+      isAllowed: false,
+      triggeredRuleIds: ["repeat_script_requires_consult"],
+    })
+  })
 
   it("does not write a refusal receipt when the repeat passes", async () => {
     const result = await runClinicalValidation(repeatCheckoutInput({

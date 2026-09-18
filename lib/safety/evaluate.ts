@@ -5,6 +5,7 @@ import {
 import { computeBmi, WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY } from '@/lib/clinical/weight-loss-eligibility'
 import {
   isExactStringValue,
+  isPillMedicineDetail,
   PILL_PREGNANCY_STATUS_VALUES,
   PILL_YES_NO_VALUES,
 } from '@/lib/clinical/womens-health-pill'
@@ -563,6 +564,10 @@ function hasAnsweredSafetyField(fieldId: string, value: unknown): boolean {
     return value === 'yes' || value === 'no'
   }
 
+  if (fieldId === 'contraceptionMedicine' || fieldId === 'contraceptionDose') {
+    return isPillMedicineDetail(value)
+  }
+
   if (fieldId === 'hasSideEffects') {
     return typeof value === 'boolean'
   }
@@ -637,6 +642,10 @@ function getRequiredSafetyFields(
         fields.add('womens_migraine_aura')
         fields.add('womens_blood_clot_history')
         fields.add('womens_smoker')
+        if (answers.contraceptionType === 'continue') {
+          fields.add('contraceptionMedicine')
+          fields.add('contraceptionDose')
+        }
       }
     }
   }

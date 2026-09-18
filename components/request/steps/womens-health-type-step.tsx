@@ -1,18 +1,15 @@
 "use client"
 
 import { ArrowRight, HeartPulse } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useRef } from "react"
+import { useCallback } from "react"
 
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { captureWomensHealthRepeatHandoff } from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
-import { runWomensHealthRepeatHandoffOnce } from "../hooks/use-unsaved-changes"
 import { useRequestStore } from "../store"
 
 interface WomensHealthTypeStepProps {
@@ -21,10 +18,6 @@ interface WomensHealthTypeStepProps {
   onBack: () => void
   onComplete: () => void
 }
-
-// Attribution params preserved when we hand "continue my pill" off to the
-// cheaper repeat-script flow.
-const ATTRIBUTION_PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "ref", "gclid", "gbraid", "wbraid"]
 
 const WOMENS_HEALTH_OPTIONS = [
   {
@@ -38,22 +31,19 @@ const WOMENS_HEALTH_OPTIONS = [
     description: 'First pill, or changing to a different one.',
   },
   {
-    // Continuing the same pill is a repeat prescription ($29.95), so we hand this
-    // off to the repeat-script flow rather than a pricier consult.
     value: 'ocp_repeat',
     label: 'Continue my current pill',
-    description: 'Already prescribed? Use repeat prescriptions.',
+    description: "Continue your pill with a women's health assessment.",
   },
 ] as const
 
 export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHealthTypeStepProps) {
   const { answers, flowInstanceId, setAnswer } = useRequestStore()
-  const router = useRouter()
-  const searchParams = useSearchParams()
   const posthog = usePostHog()
-  const repeatHandoffAttemptRef = useRef<string | null>(null)
 
-  const womensHealthOption = answers.womensHealthOption as string | undefined
+  const womensHealthOption = answers.womensHealthOption === "ocp_new" && answers.contraceptionType === "continue"
+    ? "ocp_repeat"
+    : answers.womensHealthOption as string | undefined
   const hasSelection = Boolean(womensHealthOption)
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     hasSelection,
@@ -62,7 +52,10 @@ export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHeal
   )
 
   const handleSelect = (value: string) => {
-    setAnswer("womensHealthOption", value)
+    // Use the branch-aware setter so changing care clears hidden clinical answers.
+    setAnswer("womensHealthOption", value === "ocp_repeat" ? "ocp_new" : value)
+    setAnswer("contraceptionType", value === "ocp_repeat" ? "continue" : undefined)
+    if (value === "ocp_repeat") setAnswer("contraceptionCurrent", "pill")
   }
 
   const handleNext = () => {
@@ -70,28 +63,8 @@ export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHeal
       showBlockingReasons()
       return
     }
-    if (womensHealthOption === "ocp_repeat") {
-      // Branch-by-intent: a continuation is a repeat prescription, not a consult.
-      const params = new URLSearchParams()
-      for (const key of ATTRIBUTION_PARAMS) {
-        const value = searchParams.get(key)
-        if (value) params.set(key, value)
-      }
-      params.set("service", "repeat-script")
-      params.set("from", "womens-health-repeat-handoff")
-      const destination = `/request?${params.toString()}`
-
-      runWomensHealthRepeatHandoffOnce({
-        attemptKey: `womens-health-repeat-handoff:${flowInstanceId ?? "unscoped"}`,
-        capture: () => captureWomensHealthRepeatHandoff({
-          flowInstanceId,
-          posthog,
-        }),
-        gate: repeatHandoffAttemptRef,
-        navigate: () => router.push(destination),
-      })
-      return
-    }
+    // Restore old drafts that saved the former handoff option.
+    if (answers.womensHealthOption === "ocp_repeat") handleSelect("ocp_repeat")
     onNext()
   }
 
@@ -100,7 +73,7 @@ export default function WomensHealthTypeStep({ serviceType, onNext }: WomensHeal
       <IntakeStepIntro
         eyebrow="Women's health"
         title="What do you need today?"
-        description="Choose one. Current-pill repeats go through repeat prescriptions."
+        description="Choose the care you need today."
       />
 
       <QuestionCard compact>

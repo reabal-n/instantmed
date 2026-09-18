@@ -880,7 +880,7 @@ test.describe("Prescription: dedicated-service routing", () => {
     await expect(page.getByRole("button", { name: steerCta })).toHaveCount(0)
   })
 
-  test("a contraceptive repeat keeps its explicit escape", async ({ page }) => {
+  test("a contraceptive repeat requires women's health", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -890,8 +890,10 @@ test.describe("Prescription: dedicated-service routing", () => {
 
     await expect(page.getByRole("alert").filter({ hasText: /Women's Health has a dedicated service/i }))
       .toBeVisible({ timeout: 10000 })
-    // Soft enforcement: continuing the same pill is deliberately a cheap repeat.
-    await expect(page.getByRole("button", { name: keepAsRepeat })).toBeVisible()
+    await expect(page.getByRole("button", { name: keepAsRepeat })).toHaveCount(0)
+    await page.getByRole("button", { name: /Continue in Women's Health/i }).click()
+    await page.waitForURL(/service=consult.*subtype=womens_health/)
+    await expect(page.getByText(/What do you need today/i)).toBeVisible()
   })
 })
 
