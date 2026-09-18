@@ -22,6 +22,8 @@ const config: KnipConfig = {
     "scripts/e2e/{seed,teardown}.ts",
     "scripts/test-navigation-bootstrap-browser.mjs",
     "scripts/fixtures/navigation-bootstrap-browser.tsx",
+    "scripts/test-request-access-browser.mjs",
+    "scripts/fixtures/request-access-browser.tsx",
     "scripts/test-streamed-content-browser.mjs",
     "scripts/fixtures/streamed-content-browser.jsx",
     "scripts/test-checkout-restored-browser.mjs",
