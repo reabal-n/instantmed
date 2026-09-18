@@ -71,14 +71,15 @@ describe("ConversationRelay voice secretary", () => {
     const h = harness()
     h.setup("bad")
     expect(h.create).not.toHaveBeenCalled()
+    expect(h.phone.sent.filter(e => e.type === "text")).toEqual([])
     expect(h.phone.readyState).toBe(3)
   })
 
-  it("waits for model readiness, greets once, and sends only final speech as text", () => {
+  it("greets after valid setup without waiting for the model, then sends only final speech as text", () => {
     const h = harness()
     h.setup()
     h.model.emit("open")
-    expect(h.phone.sent).toEqual([])
+    expect(h.phone.sent).toEqual([{ type: "text", token: "Hi, this is Lena from InstantMed support. How can I help?", last: true }])
     expect(h.model.sent[0]).toMatchObject({ type: "session.update", session: { output_modalities: ["text"] } })
     h.model.receive({ type: "session.updated" })
     h.model.receive({ type: "session.updated" })
@@ -98,6 +99,23 @@ describe("ConversationRelay voice secretary", () => {
       { type: "text", token: "Of course, ", last: false },
       { type: "text", token: "", last: true },
     ])
+  })
+
+  it("holds an early caller reply until model readiness without repeating the greeting", () => {
+    const h = harness()
+    h.setup()
+    h.prompt("Please correct the date on my certificate.")
+    expect(h.model.sent.filter(e => e.type === "response.create")).toHaveLength(0)
+    expect(h.phone.sent.filter(e => e.type === "text")).toHaveLength(1)
+    h.model.emit("open")
+    h.model.receive({ type: "session.updated" })
+    expect(h.phone.sent.filter(e => e.type === "text")).toHaveLength(1)
+    expect(h.model.sent.at(-1)).toMatchObject({ type: "response.create", response: {
+      input: [
+        { role: "assistant", content: [{ type: "output_text", text: "Hi, this is Lena from InstantMed support. How can I help?" }] },
+        { role: "user", content: [{ type: "input_text", text: "Please correct the date on my certificate." }] },
+      ],
+    } })
   })
 
   it("cancels an interrupted response and never executes its late save tool", async () => {

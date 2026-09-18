@@ -123,8 +123,6 @@ export function attachTwilioConversationRelayBridge(
       if (ready) return
       ready = true
       clear(handshake)
-      speak(LENA_GREETING)
-      add("assistant", LENA_GREETING)
       respond()
     } else if (event.type === "error") {
       const error = event.error as { code?: string; event_id?: string } | undefined
@@ -206,6 +204,10 @@ export function attachTwilioConversationRelayBridge(
       try {
         session = deps.parseSessionToken(parsed.data.customParameters.sessionToken)
         if (session.callSid !== parsed.data.callSid) { close(); return }
+        // The fixed greeting needs no model. Start speech while its connection
+        // warms up; respond() queues any early caller reply until session.updated.
+        speak(LENA_GREETING)
+        add("assistant", LENA_GREETING)
         model = deps.createOpenAISocket(session)
         model.on("open", () => send(model, buildOpenAIRealtimeTextSessionUpdate()))
         model.on("message", data => {
