@@ -16,6 +16,11 @@ import {
 } from "@/lib/twilio/openai-realtime-bridge"
 import { parseTwilioVoiceSessionToken, type TwilioVoiceSession } from "@/lib/twilio/voice-session-token"
 
+// Flash v2.5 uses a spelling cue for the short-e "Leh-na" pronunciation.
+// Apply only to our fixed greeting, never to caller names or message content.
+// History must match spoken text so interruption prefixes remain valid.
+const LENA_RELAY_GREETING = LENA_GREETING.replace("Lena", "Lenna")
+
 const setupSchema = z.object({
   callSid: z.string().regex(/^CA[a-fA-F0-9]{32}$/),
   customParameters: z.object({ sessionToken: z.string().min(1).max(4_096) }),
@@ -206,8 +211,8 @@ export function attachTwilioConversationRelayBridge(
         if (session.callSid !== parsed.data.callSid) { close(); return }
         // The fixed greeting needs no model. Start speech while its connection
         // warms up; respond() queues any early caller reply until session.updated.
-        speak(LENA_GREETING)
-        add("assistant", LENA_GREETING)
+        speak(LENA_RELAY_GREETING)
+        add("assistant", LENA_RELAY_GREETING)
         model = deps.createOpenAISocket(session)
         model.on("open", () => send(model, buildOpenAIRealtimeTextSessionUpdate()))
         model.on("message", data => {
