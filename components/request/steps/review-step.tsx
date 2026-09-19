@@ -305,7 +305,10 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const [requiresSignIn, setRequiresSignIn] = useState(false)
   const [requiresSupport, setRequiresSupport] = useState(false)
   const [savedRequestUrl, setSavedRequestUrl] = useState<string | null>(null)
-  const checkoutBlocked = requiresFreshRequest || requiresSignIn || requiresSupport || Boolean(savedRequestUrl)
+  // Codeine combination repeats inside the 7-day window: the server names the
+  // day the medicine can be requested again, and there is nothing to edit.
+  const [requestAgainOn, setRequestAgainOn] = useState<string | null>(null)
+  const checkoutBlocked = requiresFreshRequest || requiresSignIn || requiresSupport || Boolean(savedRequestUrl) || Boolean(requestAgainOn)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [isPriority, setIsPriority] = useState(false)
   // Quiet hours (silent, no explanatory copy): the upsell simply does not
@@ -365,6 +368,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     setRequiresSignIn(false)
     setRequiresSupport(false)
     setSavedRequestUrl(null)
+    setRequestAgainOn(null)
 
     const identity = getIdentity()
     const attribution = getAttribution()
@@ -418,6 +422,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         const providerUncertain = result.failureCode === "payment_provider" || result.failureCode === "unexpected"
         setRequiresSupport(Boolean(result.requiresSupport) || providerUncertain)
         setSavedRequestUrl(result.savedRequestUrl ?? null)
+        setRequestAgainOn(result.requestAgainOn ?? null)
         setError(providerUncertain && !result.requiresSupport
           ? "We couldn't confirm the payment status. Contact support before starting another payment."
           : result.error || "Unable to create payment session. Please try again.")
@@ -1197,7 +1202,20 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
 
         <div ref={errorRef} aria-live="polite">
         {error && (
-          requiresFreshRequest ? (
+          requestAgainOn ? (
+            <Alert variant="destructive" role="alert" data-testid="codeine-repeat-window-block">
+              <AlertDescription className="space-y-3">
+                <p>{error}</p>
+                <p className="text-base opacity-90">
+                  No payment has been taken.{" "}
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium underline">
+                    Contact support
+                  </a>{" "}
+                  if you think this is wrong.
+                </p>
+              </AlertDescription>
+            </Alert>
+          ) : requiresFreshRequest ? (
             <Alert variant="destructive" role="alert">
               <AlertDescription className="space-y-3">
                 <p>{error}</p>

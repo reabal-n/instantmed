@@ -130,3 +130,17 @@ export function getLikelyDeclinedOnlineMedication(
   )
   return match ? { token: match.token, label: match.label } : null
 }
+
+// Codeine combination medicines (paracetamol/ibuprofen/aspirin + codeine and
+// the common Australian brands). Not a hard block: the operator prescribes
+// them case by case, at most once every 7 days. The recency gate in
+// `lib/stripe/checkout/codeine-repeat-gate.ts` reads this at checkout and the
+// doctor still decides every request that reaches the queue.
+const CODEINE_COMBINATION_PATTERNS: readonly RegExp[] = [
+  ...LIKELY_DECLINED_ONLINE_MEDICATIONS.map(({ pattern }) => pattern),
+  /\bcodeine\b/i,
+]
+
+export function isCodeineCombinationMedication(value: string): boolean {
+  return CODEINE_COMBINATION_PATTERNS.some((pattern) => pattern.test(value))
+}

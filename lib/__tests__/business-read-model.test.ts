@@ -67,7 +67,7 @@ const revenue = {
 
 describe("buildBusinessReadModel", () => {
   it("allows an exact approved action with trusted advisory AMBER evidence", () => {
-    const run = evidence({ trackingState: "AMBER", recommendations: [{ kind: "APPROVAL_NEEDED", proposedMutationFamily: "campaign_budget", reasonCodes: ["FIRST_ORDER_CONTRIBUTION_POSITIVE"], service: "scripts" }] })
+    const run = evidence({ trackingState: "AMBER", recommendations: [{ kind: "APPROVAL_NEEDED", proposedMutationFamily: "campaign_budget", reasonCodes: ["CAMPAIGN_CONTRIBUTION_POSITIVE"], service: "scripts" }] })
     run.snapshot.tracking.scaleAllowed = true
     const model = buildBusinessReadModel({ adsAction: { kind: "approval_ready", currentValue: "A$40", requestedValue: "A$45", proposalKey: "ADS-20260729-01", mutationFamily: "campaign_budget", service: "scripts" }, adsRun: { availability: "available", reason: null, run }, now: NOW, revenue })
     expect(model.scaleDecision).toBe("ACTION")

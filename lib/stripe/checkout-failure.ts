@@ -39,6 +39,8 @@ export interface CheckoutFailureResult {
   failureTaxonomyVersion: CheckoutFailureTaxonomyVersion
   intakeId?: undefined
   paymentRecoveryReason?: "more_information_required"
+  /** ISO calendar date from which a blocked codeine-combination repeat may be requested again. */
+  requestAgainOn?: string
   requiresFreshRequest?: boolean
   requiresSignIn?: boolean
   requiresSupport?: boolean
@@ -48,7 +50,7 @@ export interface CheckoutFailureResult {
 
 type CheckoutFailureOptions = Pick<
   CheckoutFailureResult,
-  "paymentRecoveryReason" | "requiresFreshRequest" | "requiresSignIn" | "requiresSupport" | "savedRequestUrl"
+  "paymentRecoveryReason" | "requestAgainOn" | "requiresFreshRequest" | "requiresSignIn" | "requiresSupport" | "savedRequestUrl"
 >
 
 export function getCheckoutFailureCategory(

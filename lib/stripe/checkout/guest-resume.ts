@@ -14,6 +14,7 @@ import {
   isSupersededDuplicateCheckoutError,
   resolvePaymentRecoveryCanonicality,
 } from "@/lib/stripe/canonical-payment-recovery"
+import { evaluateCodeineRepeatGate, refuseCodeineRepeatCheckout } from "@/lib/stripe/checkout/codeine-repeat-gate"
 import { buildGuestCheckoutCancelUrl } from "@/lib/stripe/checkout-recovery-link"
 import { getPriceIdForRequest, stripe } from "@/lib/stripe/client"
 import {
@@ -462,6 +463,27 @@ export async function resolveGuestCheckoutResume(
         },
       })
       return `/request?service=consult&subtype=${routingBlock.subtype}&from=repeat-steer`
+    }
+
+    // Codeine combination repeats: at most once every 7 days (operator
+    // decision 2026-09-19). A signed resume link must not pay past it either.
+    if (intake.patient_id && isRepeatPrescriptionRequest(intake.category, intake.subtype)) {
+      const codeineGate = await evaluateCodeineRepeatGate({
+        answers,
+        patientIds: [intake.patient_id],
+        supabase,
+      })
+      if (codeineGate.blocked) {
+        await refuseCodeineRepeatCheckout({
+          answers,
+          audience: "guest",
+          context: "guest_resume",
+          gate: codeineGate,
+          requestId: intake.id,
+          serviceSlug: serviceSlugForSafety,
+        })
+        return SAFETY_BLOCKED_DESTINATION
+      }
     }
 
     // Re-evaluate the safety rules so a signed resume link (7-day TTL) cannot

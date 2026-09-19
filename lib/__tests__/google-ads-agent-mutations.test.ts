@@ -1400,7 +1400,14 @@ describe("Google Ads mutation gateway", () => {
       nextMicros: 60_000_000,
     }]
     const scaleEvidence = eligibleScaleEvidence()
-    scaleEvidence.snapshot.rolling30[0].firstOrder = { contributionCents: 38_731, netRetainedRevenueCents: 150_000, stripeFeeCents: 7_313, orders: 50 }
+    // Campaign cash (first + repeat orders) sets the ceiling since 2026-09-19:
+    // 40 × (150,000 − 7,313 − 1) / 103,956 ≈ 54.9, so a 60 step exceeds it.
+    Object.assign(scaleEvidence.snapshot.rolling30[0], {
+      contributionCents: 150_000 - 7_313 - 103_956,
+      firstOrder: { contributionCents: 38_731, netRetainedRevenueCents: 150_000, stripeFeeCents: 7_313, orders: 50 },
+      netRetainedRevenueCents: 150_000,
+      stripeFeeCents: 7_313,
+    })
     const harness = gateway({
       scaleEvidence,
       accountReads: [state],

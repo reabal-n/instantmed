@@ -651,13 +651,13 @@ Google Ads API user access is included in the account read. As of 2026-07-31 the
 
 ### Operational growth evidence
 
-**Owner decision — 2026-09-09:** positive first-order cash contribution qualifies commercial scale proposals. Numeric refund rates, queue P95/oldest/wait-duration thresholds, missing queue data, support-contact counts and QA backlog are advisory; they do not create a commercial hold or a pause proposal. Keep them visible for weekly eligibility/copy, workflow and capacity review. Actual clinical incident, explicit service hold and fulfilment failure evidence still creates a hold and an approval-ready affected-campaign pause proposal.
+**Owner decision — 2026-09-09:** positive first-order cash contribution qualifies commercial scale proposals. **Owner decision — 2026-09-19:** the qualification is campaign contribution, which counts repeat orders from campaign-attributed patients; a negative first-order figure is an advisory signal, not a veto (`docs/REVENUE_MODEL.md` §4). Numeric refund rates, queue P95/oldest/wait-duration thresholds, missing queue data, support-contact counts and QA backlog are advisory; they do not create a commercial hold or a pause proposal. Keep them visible for weekly eligibility/copy, workflow and capacity review. Actual clinical incident, explicit service hold and fulfilment failure evidence still creates a hold and an approval-ready affected-campaign pause proposal.
 
 Support evidence remains a non-negative verified aggregate; completed clinical QA remains a Medical Director attestation. Both optional inputs expire after seven days. Malformed, future or missing values do not manufacture harm. `qa_sampled` is selection, not completed review.
 
 The reporting precedence remains `hold > unavailable > watch > clear`, with only actual incidents/holds/failures producing `hold`. Queue data uses reportable paid manual-review requests and the first later `clinician_opened_request`; unavailable reads remain explicitly unavailable and advisory. No patient, staff or request identifiers leave the aggregate boundary. No operational state mutates Google Ads autonomously; immutable proposal, approval, validation and read-back controls remain mandatory.
 
-The scale authorization reader enriches the latest delivered run in memory with fresh canonical cash-ledger and first-customer-order evidence for that run's exact rolling window. It records source run, read timestamp and window; it never edits the historical run. All campaign spend is charged to first orders; repeat cash is separate. Missing historical identity, exact cash or actual fee evidence cannot qualify profitable scale. The fixed margin, order-count, purity and post-change delays are superseded by `docs/REVENUE_MODEL.md`; actual resource drift, unresolved ambiguous writes, integrity failures and exact spend bounds remain blocking.
+The scale authorization reader enriches the latest delivered run in memory with fresh canonical cash-ledger and first-customer-order evidence for that run's exact rolling window. It records source run, read timestamp and window; it never edits the historical run. All campaign spend is charged to first orders for the first-order diagnostic; the scaling qualification and the cash break-even ceiling use campaign contribution, which includes repeat orders from campaign-attributed patients. Missing exact cash or actual fee evidence cannot qualify profitable scale; missing first-order identity evidence is reported as unavailable and stays advisory. The fixed margin, order-count, purity and post-change delays are superseded by `docs/REVENUE_MODEL.md`; actual resource drift, unresolved ambiguous writes, integrity failures and exact spend bounds remain blocking.
 
 ### Daily loop
 
@@ -701,7 +701,7 @@ pnpm ads:agent reconcile --proposal=<proposal-key>
 
 Approval is required for budgets, bids, bid strategies, keywords, negative keywords, match types, ads, assets, sitelinks, callouts, targeting, schedules, pauses, enables, experiments, and campaign creation/removal. No unattended Ads mutation is authorised by this workflow.
 
-Paid scaling remains governed by the fee-aware, service-level first-order contribution and bounded-learning rules in `docs/REVENUE_MODEL.md`. Attribution or tracking failures fail closed and block scaling. Compliance failures follow `docs/ADVERTISING_COMPLIANCE.md` and the incident process; they do not widen mutation authority.
+Paid scaling remains governed by the fee-aware, service-level campaign contribution (first and repeat orders) and bounded-learning rules in `docs/REVENUE_MODEL.md`. Attribution or tracking failures fail closed and block scaling. Compliance failures follow `docs/ADVERTISING_COMPLIANCE.md` and the incident process; they do not widen mutation authority.
 
 ---
 
