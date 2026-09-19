@@ -110,7 +110,7 @@ describe("women's-health child-page narrative compression", () => {
     expect(pill).toContain("items={PILL_LANDING_FAQ}")
     expect(pillPage).toContain("<FAQSchema faqs={[...PILL_LANDING_FAQ]} />")
 
-    expect(faqData).toContain("this paid pathway stops before checkout")
+    expect(faqData).toContain("this paid assessment stops before checkout")
     expect(faqData).not.toContain("The doctor may ask for a pregnancy test, contact you")
   })
 

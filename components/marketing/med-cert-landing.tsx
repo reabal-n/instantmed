@@ -262,7 +262,7 @@ function MedCertHero() {
 
             <div>
               <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:mb-7 sm:text-base lg:mx-0 lg:text-lg">
-                {MED_CERT_WEDGE} Tell us what kept you from work, study or caring duties. If your request is suitable, your certificate arrives as a secure PDF. {GUARANTEE}
+                For suitable form-only requests: {MED_CERT_WEDGE} Tell us what kept you from work, study or caring duties. If suitable, your certificate arrives as a secure PDF. {GUARANTEE}
               </p>
             </div>
 
