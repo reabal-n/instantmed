@@ -348,13 +348,13 @@ function MedCertFinalCta() {
 export function MedCertLanding() {
   return (
     <MarketingPageShell>
-      <div className="min-h-screen overflow-x-hidden">
+      <div className="min-h-screen overflow-x-hidden pt-[calc(5rem+env(safe-area-inset-top))]">
         <MedCertClientControls stickyTargetId={MED_CERT_HERO_CTA_ID} />
         <ReturningPatientBanner className="mx-4 mt-2" />
         <Navbar variant="marketing" />
 
         <main className="relative">
-          <IntakeResumeChip className="mx-4 mt-[calc(5.5rem+env(safe-area-inset-top))] max-w-5xl sm:mx-auto" />
+          <IntakeResumeChip className="mx-4 mt-2 max-w-5xl sm:mx-auto" />
           <MedCertHero />
           <LimitationsSection />
           <WorkplaceProofPanel />

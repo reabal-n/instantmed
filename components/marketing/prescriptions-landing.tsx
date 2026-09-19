@@ -287,7 +287,7 @@ function PrescriptionResourceNav() {
 export function PrescriptionsLanding() {
   return (
     <MarketingPageShell>
-      <div className="min-h-screen overflow-x-hidden">
+      <div className="min-h-screen overflow-x-hidden pt-[calc(5rem+env(safe-area-inset-top))]">
         <PrescriptionsClientControls stickyTargetId={PRESCRIPTION_HERO_CTA_ID} />
         <ReturningPatientBanner className="mx-4 mt-2" />
         <Navbar variant="marketing" />

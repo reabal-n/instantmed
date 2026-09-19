@@ -114,7 +114,7 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
 
   return (
     <MarketingPageShell>
-      <div className="min-h-screen overflow-x-hidden">
+      <div className="min-h-screen overflow-x-hidden pt-[calc(5rem+env(safe-area-inset-top))]">
         <UnavailableBanner show={isDisabled} />
         <ReturningPatientBanner className="mx-4 mt-2" />
         <Navbar variant="marketing" />
