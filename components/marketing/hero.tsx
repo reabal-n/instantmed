@@ -235,7 +235,7 @@ export function Hero({
                     (/medical-certificate #3): "the most important credential
                     breaks mid-word".
                   */}
-                  <span className="min-[241px]:whitespace-nowrap">AHPRA-registered</span> Australian doctors. Secure form-first review.
+                  <span className="min-[241px]:whitespace-nowrap">AHPRA-registered</span> Australian doctors. A doctor reviews your secure form.
                 </p>
               )}
             </div>

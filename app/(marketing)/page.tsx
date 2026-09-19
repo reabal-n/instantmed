@@ -157,7 +157,7 @@ export default async function HomePage() {
               {PROP_PHRASE}
             </h2>
             <p className="text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed text-balance">
-              Medical certificates, repeat prescriptions and focused assessments for Australian
+              Medical certificates, repeat prescriptions and doctor assessments for Australian
               adults 18+. From {PRICING_DISPLAY.MED_CERT} AUD.
             </p>
           </Hero>

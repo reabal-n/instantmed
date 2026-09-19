@@ -25,14 +25,14 @@ const SERVICE_DETAILS: Record<
   },
   "repeat-rx": {
     benefits: ["For your regular medication", "Doctor review before prescribing"],
-    cta: "Renew medication",
+    cta: "Get your repeat",
   },
   ed: {
-    benefits: ["Private, focused assessment", "eScript if clinically appropriate"],
+    benefits: ["Private doctor assessment", "eScript if the doctor prescribes"],
     cta: "View ED assessment",
   },
   "hair-loss": {
-    benefits: ["Doctor-assessed options", "eScript if clinically appropriate"],
+    benefits: ["Doctor-assessed options", "eScript if the doctor prescribes"],
     cta: "View hair loss assessment",
   },
   "womens-health": {
@@ -139,7 +139,7 @@ export function PortfolioRouteMap() {
             What do you need?
           </Heading>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            Choose the focused service that fits. The fee is shown before you start.
+            Choose the service that fits. The fee is shown before you start.
           </p>
         </div>
 
@@ -154,7 +154,7 @@ export function PortfolioRouteMap() {
             <Stethoscope className="h-4 w-4" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-foreground">Doctor-owned clinical pathways</p>
+            <p className="text-sm font-semibold text-foreground">One secure form per service</p>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               Each service has its own secure form and safety rules. {FORM_FIRST_WEDGE}
             </p>
