@@ -60,9 +60,9 @@ const HOW_IT_WORKS_STEPS = [
   {
     sticker: "stethoscope" as const,
     step: 2,
-    title: "The clinical pathway checks your request",
+    title: "A doctor-approved protocol checks your request",
     description: CLINICAL_REVIEW_SEQUENCE,
-    time: "Doctor-owned pathway",
+    time: "Medical Director protocol",
   },
   {
     sticker: "certificate" as const,
@@ -99,7 +99,7 @@ const FEE_DETAILS = [
   },
   {
     icon: MessageSquareText,
-    title: "If the pathway needs more",
+    title: "If more is needed",
     body: "Concerning or uncertain requests go to a doctor, who can message or call if more information is needed.",
   },
   {
@@ -262,7 +262,7 @@ function MedCertHero() {
 
             <div>
               <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:mb-7 sm:text-base lg:mx-0 lg:text-lg">
-                For suitable form-only requests: {MED_CERT_WEDGE} Tell us what kept you from work, study, or caring duties. If suitable, your certificate is delivered as a secure PDF. {GUARANTEE}
+                {MED_CERT_WEDGE} Tell us what kept you from work, study or caring duties. If your request is suitable, your certificate arrives as a secure PDF. {GUARANTEE}
               </p>
             </div>
 
@@ -320,7 +320,7 @@ function MedCertFinalCta() {
           Back to bed without a waiting room.
         </Heading>
         <p className="mx-auto mt-3 max-w-xl leading-relaxed text-muted-foreground">
-          Start with a short health form. If the pathway can help, your certificate is delivered as a secure PDF.
+          Start with a short health form. If your request is suitable, your certificate arrives as a secure PDF.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link
@@ -366,7 +366,7 @@ export function MedCertLanding() {
               ctaText={`Get your certificate · ${PRICING_DISPLAY.FROM_MED_CERT}`}
               ctaDataAttributes={{ "data-med-cert-cta": "how_it_works" }}
               heading="How it works"
-              subheading="Fill a short form, follow the doctor-owned certificate pathway, and receive a secure PDF if the request is suitable."
+              subheading="Fill a short form. If the request is suitable, you receive a secure PDF."
             />
           </div>
 
