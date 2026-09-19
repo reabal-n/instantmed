@@ -23,7 +23,7 @@ describe("portfolio money-page art direction", () => {
     expect(map).toContain("regular GP or an in-person service")
     expect(homepage).not.toContain("ServiceCards")
     expect(homepage).not.toContain("HomeFactsBlock")
-    expect(homepage).not.toContain("<HowItWorks")
+    expect(homepage).not.toMatch(/<HowItWorks\s*\/>/)
     expect(homepage).not.toContain("ComplianceMarquee")
     expect(homepage.indexOf("<CTABanner")).toBeLessThan(
       homepage.indexOf("<HomeServiceLinks />"),

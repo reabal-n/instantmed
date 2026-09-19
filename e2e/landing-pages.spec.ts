@@ -193,3 +193,17 @@ test("home services grid has no orphan row at desktop width", async ({ page }) =
   )
   expect(rows, "six service cards should sit in two rows of three").toBe(2)
 })
+
+test.describe("landing page length", () => {
+  for (const landing of LANDING_PAGES) {
+    test(`${landing.path} fits ${landing.maxPhoneScreens} phone screens`, async ({ page }) => {
+      test.fixme(landing.path !== "/", "budgets for service pages land in PR 5")
+      await page.setViewportSize(PHONE)
+      await seedMoneyPageState(page, "light")
+      await gotoPublicRoute(page, landing.path)
+      await settle(page)
+      const screens = await page.evaluate(() => document.documentElement.scrollHeight / window.innerHeight)
+      expect(screens, `${landing.path}: ${screens.toFixed(1)} screens`).toBeLessThanOrEqual(landing.maxPhoneScreens)
+    })
+  }
+})

@@ -1513,7 +1513,10 @@ test.describe("money-page reduced-motion foundations", () => {
     for (const reducedMotion of ["no-preference", "reduce"] as const) {
       const context = await browser.newContext({
         baseURL: projectBaseURL(testInfo),
-        viewport: { width: 390, height: 844 },
+        // Viewport bumped to desktop (Task 15, 19 Sep 2026): the hero mockup
+        // this case asserts on is now `hidden lg:block` (desktop-only by
+        // design), so a phone-width context can no longer see it.
+        viewport: { width: 1440, height: 900 },
         screen: { width: 390, height: 844 },
         isMobile: true,
         hasTouch: true,

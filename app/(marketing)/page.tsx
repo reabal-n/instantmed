@@ -33,6 +33,9 @@ const CTABanner = dynamic(
 const FAQSection = dynamic(
   () => import('@/components/sections/faq-section').then(m => ({ default: m.FAQSection })),
 )
+const HowItWorksInline = dynamic(
+  () => import('@/components/marketing/sections/how-it-works-inline').then(m => ({ default: m.HowItWorksInline })),
+)
 const MarketingFooter = dynamic(
   () => import('@/components/marketing/marketing-footer').then(m => ({ default: m.MarketingFooter })),
 )
@@ -100,6 +103,30 @@ async function MaintenanceBanner() {
   )
 }
 
+const HOME_HOW_IT_WORKS_STEPS = [
+  {
+    sticker: 'medical-history' as const,
+    step: 1,
+    title: 'Fill in a short form',
+    description: 'Tell us what you need and answer the safety questions. Takes about 3 minutes.',
+    time: '~3 minutes',
+  },
+  {
+    sticker: 'stethoscope' as const,
+    step: 2,
+    title: 'A doctor reviews it',
+    description: 'Requests can be submitted and reviewed 24/7. The doctor may call you briefly before prescribing.',
+    time: 'Reviewed 24/7',
+  },
+  {
+    sticker: 'certificate' as const,
+    step: 3,
+    title: 'Certificate to your inbox, eScript to your phone',
+    description: 'Every certificate carries a reference your employer can check at instantmed.com.au/verify.',
+    time: 'Digital delivery',
+  },
+]
+
 export default async function HomePage() {
   // Transform FAQ items for schema
   const faqSchemaData = faqItems.map(item => ({
@@ -151,6 +178,7 @@ export default async function HomePage() {
             primaryCta={{ text: "Get started", href: "/request", wrapperId: HOME_HERO_CTA_ID }}
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
+            mockupClassName="hidden lg:block"
             trustRow={(
               <>
                 <GoogleAdsCert size="sm" />
@@ -170,7 +198,13 @@ export default async function HomePage() {
           {/* Card-based service chooser: common requests first, then focused assessments. */}
           <PortfolioRouteMap />
 
-          <RegulatoryPartners className="border-t border-b border-border/30 bg-muted/20 dark:bg-white/[0.02]" />
+          <HowItWorksInline
+            steps={HOME_HOW_IT_WORKS_STEPS}
+            ctaHref="/request"
+            ctaText="Get started"
+            heading="How it works"
+            subheading="One secure form, one doctor decision, one email."
+          />
 
           <FAQSection
             pill="FAQ"
@@ -186,6 +220,8 @@ export default async function HomePage() {
             ctaText="Get started"
             ctaHref="/request"
           />
+
+          <RegulatoryPartners className="border-t border-b border-border/30 bg-muted/20 dark:bg-white/[0.02]" />
 
           {/* Active service links already render in the server-owned route map. */}
           <HomeServiceLinks />

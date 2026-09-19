@@ -488,7 +488,7 @@ describe("marketing copy contracts", () => {
     expect(homePageSource).toContain("<PortfolioRouteMap />")
     expect(homePageSource).not.toContain("ServiceCards")
     expect(homePageSource).not.toContain("HomeFactsBlock")
-    expect(homePageSource).not.toContain("<HowItWorks")
+    expect(homePageSource).not.toMatch(/<HowItWorks\s*\/>/)
     expect(homePageSource).not.toContain("ComplianceMarquee")
     expect(existsSync(join(root, "components/marketing/waitlist-form.tsx"))).toBe(false)
     expect(existsSync(join(root, "app/actions/waitlist.ts"))).toBe(false)
