@@ -132,8 +132,8 @@ function WeightHeroFacts() {
               </span>
               <span>{fact.label}</span>
             </dt>
-            <dd className="ml-12 mt-1 text-sm font-semibold text-foreground"><span>{fact.value}</span></dd>
-            <dd className="ml-12 mt-1 text-sm leading-6 text-muted-foreground"><span>{fact.body}</span></dd>
+            <dd className="ml-12 mt-1 text-sm font-semibold text-foreground">{fact.value}</dd>
+            <dd className="ml-12 mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</dd>
           </div>
         ))}
       </dl>

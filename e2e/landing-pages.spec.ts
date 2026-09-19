@@ -115,8 +115,9 @@ test.describe("landing page desktop rhythm", () => {
       const gap = await page.evaluate(() => {
         const hero = document.querySelector("[data-hero]")
         if (!hero) return null
+        // Must include every text-bearing element a hero can render, so description lists and headings are not skipped.
         const heroBottom = Math.max(
-          ...Array.from(hero.querySelectorAll("a, p, span, img, svg")).map(
+          ...Array.from(hero.querySelectorAll("a, p, span, li, dt, dd, h1, h2, h3, h4, img, svg")).map(
             (el) => el.getBoundingClientRect().bottom,
           ),
         )
