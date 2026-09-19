@@ -30,10 +30,6 @@ import { moneyH1Font } from "@/lib/fonts/money-h1"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"
 
-const RegulatoryPartners = dynamic(
-  () => import("@/components/marketing/regulatory-partners").then((m) => m.RegulatoryPartners),
-  { loading: () => <div className="min-h-[120px]" /> },
-)
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((m) => ({ default: m.FAQSection })),
   { loading: () => <div className="min-h-[400px]" /> },
@@ -338,8 +334,6 @@ export function PrescriptionsLanding() {
               className="bg-muted/30 dark:bg-white/[0.02]"
             />
           </div>
-
-          <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
           <div data-prescription-cta="final_cta">
             <CTABanner

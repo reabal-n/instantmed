@@ -18,7 +18,6 @@ import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { MedCertClientControls } from "@/components/marketing/med-cert-client-controls"
 import { MedCertReasonLinks } from "@/components/marketing/med-cert-reason-links"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
-import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
 import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
 import { LimitationsSection } from "@/components/marketing/sections/limitations-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
@@ -334,8 +333,6 @@ export function MedCertLanding({ liveWait }: { liveWait?: WaitState }) {
           <div data-track-section="final_cta">
             <MedCertFinalCta />
           </div>
-
-          <RegulatoryPartners />
 
           <MedCertReasonLinks />
         </main>

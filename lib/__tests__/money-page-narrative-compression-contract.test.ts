@@ -81,7 +81,6 @@ describe("money-page narrative compression", () => {
       "<FeeSuitabilityPanel />",
       "items={MED_CERT_LANDING_FAQ}",
       "<MedCertFinalCta />",
-      "<RegulatoryPartners />",
       "<MedCertReasonLinks />",
     ])
   })
@@ -135,7 +134,6 @@ describe("money-page narrative compression", () => {
       "<PrescriptionLifecycleGraphic />",
       "<PrescriptionFeePanel />",
       "items={PRESCRIPTION_LANDING_FAQ}",
-      "<RegulatoryPartners",
       "<CTABanner",
       "<PrescriptionResourceNav />",
     ])
