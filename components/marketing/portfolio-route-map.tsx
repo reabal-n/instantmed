@@ -51,20 +51,13 @@ function getHomepageServiceHref(service: ServiceDef): string {
     : getServiceMarketingHref(service)
 }
 
-function ServiceCard({ service, index }: { service: ServiceDef; index: number }) {
+function ServiceCard({ service }: { service: ServiceDef }) {
   const { isServiceDisabled } = useServiceAvailability()
   const disabled = isServiceDisabled(service.id)
   const detail = SERVICE_DETAILS[service.id]
-  const isCoreService = index < 2
 
   return (
-    <li
-      className={cn(
-        "min-w-0",
-        isCoreService ? "lg:col-span-3" : "lg:col-span-2",
-        index === 4 && "sm:col-span-2 lg:col-span-2",
-      )}
-    >
+    <li className="min-w-0">
       <Link
         href={getHomepageServiceHref(service)}
         aria-disabled={disabled || undefined}
@@ -143,9 +136,9 @@ export function PortfolioRouteMap() {
           </p>
         </div>
 
-        <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-6">
-          {services.map((service, index) => (
-            <ServiceCard key={service.id} service={service} index={index} />
+        <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((service) => (
+            <ServiceCard key={service.id} service={service} />
           ))}
         </ul>
 

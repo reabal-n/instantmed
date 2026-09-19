@@ -181,3 +181,17 @@ test.describe("landing page health", () => {
     }
   }
 })
+
+test("home services grid has no orphan row at desktop width", async ({ page }) => {
+  await page.setViewportSize(DESKTOP)
+  await seedMoneyPageState(page, "light")
+  await gotoPublicRoute(page, "/")
+  await settle(page)
+
+  // Scoped to the grid's direct <li> children: "#pricing li" alone also matches
+  // each card's nested benefit-bullet <li> items, which inflates the row count.
+  const rows = await page.locator("#pricing ul.grid > li").evaluateAll((cards) =>
+    new Set(cards.map((card) => Math.round(card.getBoundingClientRect().top))).size,
+  )
+  expect(rows, "six service cards should sit in two rows of three").toBe(2)
+})

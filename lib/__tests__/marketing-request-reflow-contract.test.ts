@@ -120,9 +120,9 @@ describe("marketing and request reflow contract", () => {
 
     expect(comparisonTable.match(/grid-cols-3 sm:grid-cols-\[1fr_120px_120px\]/g)).toHaveLength(2)
     expect(comparisonTable.match(/px-2 min-\[241px\]:px-6/g)).toHaveLength(2)
-    expect(routeMap).toContain("grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-6")
+    expect(routeMap).toContain("grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3")
     expect(routeMap).toContain('"min-w-0"')
-    expect(routeMap).toContain('index === 4 && "sm:col-span-2 lg:col-span-2"')
+    expect(routeMap).not.toContain("lg:col-span-2")
   })
 
   it("moves each compact commercial link as one reflowable unit", () => {
