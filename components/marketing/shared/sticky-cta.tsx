@@ -58,14 +58,8 @@ export function StickyCTA({
         )}
         inert={!show ? true : undefined}
       >
-        {/*
-          Compact layout - Tier 1 review 2026-05-25 flagged the ED sticky
-          bar as "eating 20% of the viewport". Tighter padding (pt-1.5 pb-2),
-          summary line compact, response time bumped to text-[13px] on
-          solid surface so the number actually reads.
-        */}
         <div className="bg-white dark:bg-card border-t border-border/50 px-4 pt-1.5 pb-2 safe-area-pb">
-          <p className="mb-1.5 min-w-0 break-words text-center text-[11px] leading-tight text-muted-foreground">
+          <p className="mb-1.5 min-w-0 break-words text-center text-sm leading-tight text-muted-foreground">
             {mobileSummary}
             {responseTime && (
               <span className="text-foreground/80 font-medium"> &middot; {responseTime}</span>
