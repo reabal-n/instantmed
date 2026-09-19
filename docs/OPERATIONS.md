@@ -1854,3 +1854,14 @@ The owner approved medical certificates from AUD 20 to AUD 50/day under a AUD 22
 | ADS-20260919-04 | Med Certs budget `15429766260`: AUD 20 to AUD 50/day; bidding unchanged | `F40bGrlNzFbnQ1496Ye7qA` | 2026-09-19T07:01:18.669Z | `aQr-PjFk8Vcon0DvrgnwGA` | verified 2026-09-19T07:01:53.872Z |
 
 Source run: the delivered GREEN 2026-09-18 report (`68be3908-10b2-4355-b382-a242fe078c01`). The local mutation switch was enabled only for the single apply execution; hosted environment flags were not changed. Provider read-back proves the budget is live; it is not proof of revenue lift. First review after two completed Sydney days, full comparison Sep 20–26 against the preceding seven days, criteria in `docs/REVENUE_MODEL.md`.
+
+### September 19 Scripts efficiency packets
+
+The owner approved re-issuing the two Scripts packets that expired unapplied on 2026-09-17 (decision reference `codex-task:claude-48977fd4-5d38-4141-9a44-319f11a125ec`). Same run, same guarded path as above.
+
+| Proposal | Resource and change | Validate-only request ID | Applied UTC | Google request ID | Read-back UTC |
+|---|---|---|---|---|---|
+| ADS-20260919-05 | Scripts `23870042807`: nine campaign-level phrase negatives (ondansetron, valacyclovir, amoxicillin, norethisterone, ivermectin, cephalexin, spironolactone, metformin, panadeine forte) | `BqMoRuUJrB6CyN0wpHA8-g` | 2026-09-19T08:31:10.455Z | `Mydt8qDqmpTRO40ZVzPBrA` | verified 2026-09-19T08:31:43.893Z |
+| ADS-20260919-06 | Scripts keyword `196799711917~1942857048947` ("repeat scripts", phrase): pause | validation failed `operation_expected_state_drift` | not applied | none | fresh read 2026-09-19 shows the keyword already `PAUSED` |
+
+Nothing else changed: bids, tROAS 1.5, the AUD 120/day budget and every generic keyword are as before. Medicine-name negatives prevent serving rather than target a query, so they are compatible with the no-medicine-name paid-targeting policy.
