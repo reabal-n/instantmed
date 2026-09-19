@@ -241,10 +241,10 @@ describe("money-page narrative compression", () => {
     }
 
     const pricingStart = source.indexOf("function HairLossPricingSection")
-    const pricingEnd = source.indexOf("function HairLossLimitationsSection")
+    const pricingEnd = source.indexOf("export function HairLossLanding")
     expect(pricingStart).toBeGreaterThan(-1)
     expect(pricingEnd).toBeGreaterThan(pricingStart)
-    expect(source.slice(pricingStart, pricingEnd)).toContain("<RegulatoryPartners")
+    expect(source.slice(pricingStart, pricingEnd)).not.toContain("<RegulatoryPartners")
     expect(source.slice(pricingStart, pricingEnd)).toContain("Medicine cost is separate")
     expect(source.slice(pricingStart, pricingEnd)).toContain("Australian pharmacy")
     expect(source.slice(pricingStart, pricingEnd)).toContain("Prescription is not guaranteed")
@@ -259,7 +259,6 @@ describe("money-page narrative compression", () => {
       "<HairAssessmentModel />",
       "<HowItWorksInline",
       "<DoctorProfileSection",
-      "<HairLossLimitationsSection />",
       "items={HAIR_LOSS_LANDING_FAQ}",
       "<CTABanner",
     ])

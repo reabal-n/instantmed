@@ -39,10 +39,6 @@ const DoctorProfileSection = dynamic(
   () => import("@/components/marketing/sections/doctor-profile-section").then((module) => module.DoctorProfileSection),
   { loading: () => <div className="min-h-[200px]" /> },
 )
-const RegulatoryPartners = dynamic(
-  () => import("@/components/marketing/regulatory-partners").then((module) => module.RegulatoryPartners),
-  { loading: () => <div className="min-h-[120px]" /> },
-)
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((module) => module.FAQSection),
   { loading: () => <div className="min-h-[300px]" /> },
@@ -334,28 +330,6 @@ function HairLossPricingSection({
             </div>
           </div>
         </Reveal>
-
-        <RegulatoryPartners className="mt-8 border-t border-border/50 pb-0 pt-7 dark:border-white/10" />
-      </div>
-    </section>
-  )
-}
-
-function HairLossLimitationsSection() {
-  return (
-    <section aria-labelledby="hair-loss-limits-title" className="bg-muted/30 py-12 dark:bg-white/[0.02] sm:py-14">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <Reveal instant className="rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950/20 sm:p-6">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" aria-hidden="true" />
-            <div>
-              <Heading id="hair-loss-limits-title" level="h2" className="text-lg">What this online review cannot settle on its own</Heading>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                A hair pattern does not diagnose the cause of hair loss. Sudden or patchy loss, painful or infected scalp symptoms, wider body-hair changes, an unclear history, or other signs that need examination may be safer to assess in person. The doctor may ask for more detail, recommend tests or GP review, or decline online care. The doctor decides whether to prescribe.
-              </p>
-            </div>
-          </div>
-        </Reveal>
       </div>
     </section>
   )
@@ -410,7 +384,6 @@ export function HairLossLanding() {
           />
 
           <DoctorProfileSection instant />
-          <HairLossLimitationsSection />
 
           <FAQSection
             pill="FAQ"
