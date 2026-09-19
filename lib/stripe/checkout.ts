@@ -28,6 +28,7 @@ import { cookies } from "next/headers"
 import { normalizeAttributionForStorage } from "@/lib/analytics/attribution-storage"
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { resolveCheckoutAttribution } from "@/lib/analytics/server-attribution"
+import { isRepeatPrescriptionRequest } from "@/lib/clinical/repeat-rx-dose-requirement"
 import {
   normalizeIncomingGrowthExperienceVersion,
   selectGrowthExperienceVersion,
@@ -36,6 +37,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { readBoundPartialIntakeGrowthExperienceVersion } from "@/lib/request/server-draft-conversion"
 import { runFraudChecks } from "@/lib/security/fraud-detector"
+import { evaluateCodeineRepeatGate, refuseCodeineRepeatCheckout } from "@/lib/stripe/checkout/codeine-repeat-gate"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
 
@@ -100,6 +102,27 @@ export async function createIntakeAndCheckoutAction(
     const { patientId, patientEmail, stripeCustomerId, baseUrl } = authResult.data
 
     const supabase = createServiceRoleClient()
+
+    // 3b. Codeine combination repeats are prescribed at most once every 7 days
+    // (operator decision 2026-09-19). Runs after auth because the patient id
+    // only exists here; stops the pay-then-decline-then-refund loop.
+    if (isRepeatPrescriptionRequest(input.category, input.subtype)) {
+      const codeineGate = await evaluateCodeineRepeatGate({
+        answers: input.answers,
+        patientIds: [patientId],
+        supabase,
+      })
+      if (codeineGate.blocked) {
+        return refuseCodeineRepeatCheckout({
+          answers: input.answers,
+          audience: "signed_in",
+          context: "checkout",
+          gate: codeineGate,
+          requestId: input.flowInstanceId ?? undefined,
+          serviceSlug: serviceSlugForSafety,
+        })
+      }
+    }
     const storedGrowthExperienceVersion = input.category === "consult"
       ? await readBoundPartialIntakeGrowthExperienceVersion(supabase, {
           flowInstanceId: input.flowInstanceId,

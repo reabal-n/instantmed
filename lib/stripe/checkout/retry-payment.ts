@@ -26,6 +26,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
+import { evaluateCodeineRepeatGate, refuseCodeineRepeatCheckout } from "@/lib/stripe/checkout/codeine-repeat-gate"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
@@ -303,6 +304,24 @@ export async function retryPaymentForIntakeAction(
           "clinical_or_input_validation",
           repeatValidation.error || "This request cannot be processed online.",
         )
+      }
+
+      // Codeine combination repeats: at most once every 7 days (operator
+      // decision 2026-09-19). A stored `checkout_failed` row must not pay past it.
+      const codeineGate = await evaluateCodeineRepeatGate({
+        answers: intakeAnswers,
+        patientIds: [patientId],
+        supabase,
+      })
+      if (codeineGate.blocked) {
+        return refuseCodeineRepeatCheckout({
+          answers: intakeAnswers,
+          audience: "signed_in",
+          context: "retry_payment",
+          gate: codeineGate,
+          requestId: intakeId,
+          serviceSlug: serviceSlugForSafety,
+        })
       }
     }
 
