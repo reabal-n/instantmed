@@ -16,8 +16,9 @@ The active goal is staged, evidence-backed revenue growth:
 | **$2,000/month** rolling net-retained revenue run-rate | Within 30 days | Proves that the current baseline can move through focused channel work. |
 | **$5,000/month** rolling net-retained revenue run-rate | Within 90 days | Proves repeatable demand across more than one order source. |
 | **$10,000/month** rolling net-retained revenue run-rate | Next phase | Triggers a formal capacity and staffing review; it does not trigger an automatic hire. |
+| **$20,000/month** rolling net-retained revenue run-rate | Set 2026-09-19 | Proves that campaign-contribution scaling plus a second paid channel can double demand without a second doctor; reaching it reopens the capacity question on evidence rather than on volume alone. |
 
-**Attainment record:** all three rungs are closed as of 2026-09-19 by explicit operator decision; the dated checkpoints live in `docs/ROADMAP.md` §2. The next rung is not yet defined and this ladder is not extended by inference.
+**Attainment record:** the `$2k`, `$5k` and `$10k` rungs are closed as of 2026-09-19 by explicit operator decision; the dated checkpoints live in `docs/ROADMAP.md` §2. The `$20,000` rung was set the same day by the operator and is the active target.
 
 `$1M` annual gross remains a distant directional north star for the one-off model. It is not the active planning frame and does not override the milestone ladder.
 
