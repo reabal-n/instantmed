@@ -145,7 +145,8 @@ test.describe("landing page sticky CTA", () => {
       const box = await region.boundingBox()
       expect(box).not.toBeNull()
       expect(box!.y + box!.height).toBeLessThanOrEqual(PHONE.height + 1)
-      expect(box!.height, `${landing.path}: sticky bar taller than 120px`).toBeLessThanOrEqual(120)
+      // 130px = 16% of an 812px viewport; the medical-certificate bar carries a payment-marks footer row.
+      expect(box!.height, `${landing.path}: sticky bar taller than 130px`).toBeLessThanOrEqual(130)
     })
   }
 })
