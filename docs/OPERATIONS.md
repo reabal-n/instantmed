@@ -1847,3 +1847,10 @@ Local verification: 146 focused policy, mutation and campaign-creation tests pas
 ### September 19 medical-certificate scaling decision
 
 The owner approved medical certificates from AUD 20 to AUD 50/day under a AUD 22 target CPA in a Claude session (decision reference `codex-task:claude-48977fd4-5d38-4141-9a44-319f11a125ec`); the policy ceiling change ships in the same pull request as this record. A `campaign_bidding` draft (`ADS-20260919-03`, target CPA AUD 22) failed Google validate-only with `operation_expected_state_drift` and was left failed without any mutation: the fresh read-back showed the campaign already running Maximize Conversions with target CPA AUD 22, so bidding needs no change. The only live change is one exact `campaign_budget` packet (AUD 20 to AUD 50/day) through the existing immutable proposal, decision receipt, fresh baseline, Google validate-only, atomic apply and read-back path. Its receipt is recorded below. Review criteria are owned by `docs/REVENUE_MODEL.md`.
+
+| Proposal | Resource and change | Validate-only request ID | Applied UTC | Google request ID | Read-back UTC |
+|---|---|---|---|---|---|
+| ADS-20260919-03 | Med Certs `23651537255` bidding: target CPA AUD 22 | validation failed `operation_expected_state_drift` (target already live) | not applied | none | none |
+| ADS-20260919-04 | Med Certs budget `15429766260`: AUD 20 to AUD 50/day; bidding unchanged | `F40bGrlNzFbnQ1496Ye7qA` | 2026-09-19T07:01:18.669Z | `aQr-PjFk8Vcon0DvrgnwGA` | verified 2026-09-19T07:01:53.872Z |
+
+Source run: the delivered GREEN 2026-09-18 report (`68be3908-10b2-4355-b382-a242fe078c01`). The local mutation switch was enabled only for the single apply execution; hosted environment flags were not changed. Provider read-back proves the budget is live; it is not proof of revenue lift. First review after two completed Sydney days, full comparison Sep 20–26 against the preceding seven days, criteria in `docs/REVENUE_MODEL.md`.
