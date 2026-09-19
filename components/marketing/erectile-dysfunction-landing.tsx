@@ -457,7 +457,11 @@ export function ErectileDysfunctionLanding() {
               ref: heroCTARef,
             }}
             secondaryCta={{ text: "See how it works", href: "#how-it-works" }}
-            reassuranceRow={null}
+            reassuranceRow={(
+              <p className="text-center text-sm leading-6 text-muted-foreground lg:text-left">
+                {REFUND_GUARANTEE_CLAIM}
+              </p>
+            )}
             mockup={<EdHeroFacts />}
           >
             <p data-speakable className="mx-auto mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground lg:mx-0 lg:text-lg">

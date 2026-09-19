@@ -123,7 +123,7 @@ export function CTABanner({
 
         {/* Optional service-specific microcopy line. */}
         {microcopy && (
-          <p className="mt-1 text-xs text-muted-foreground">{microcopy}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{microcopy}</p>
         )}
 
         {/* Optional trust badge row */}

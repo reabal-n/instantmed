@@ -107,8 +107,8 @@ const HOME_HOW_IT_WORKS_STEPS = [
     sticker: 'medical-history' as const,
     step: 1,
     title: 'Fill in a short form',
-    description: 'Tell us what you need and answer the safety questions. Takes about 3 minutes.',
-    time: '~3 minutes',
+    description: 'Tell us what you need and answer the safety questions. Each service page shows how long its form takes.',
+    time: 'A few minutes',
   },
   {
     sticker: 'stethoscope' as const,
