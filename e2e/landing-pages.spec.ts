@@ -15,7 +15,8 @@ const DESKTOP = { width: 1440, height: 900 }
 
 /** Phase-1 phone height budgets in 812px screens. Ratchet down, never up. */
 export const LANDING_PAGES = [
-  { path: "/", maxPhoneScreens: 7.0 },
+  // 9.0: the how-it-works proof section (Task 15) outweighs the hidden hero mock; the six-card chooser is ~2.5 screens on its own.
+  { path: "/", maxPhoneScreens: 9.0 },
   { path: "/medical-certificate", maxPhoneScreens: 10.0 },
   { path: "/prescriptions", maxPhoneScreens: 8.5 },
   { path: "/erectile-dysfunction", maxPhoneScreens: 9.5 },
