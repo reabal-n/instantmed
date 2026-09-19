@@ -276,7 +276,7 @@ function HairAssessmentModel() {
           </div>
 
           <figcaption className="border-t border-border/50 bg-muted/30 px-5 py-3 text-sm leading-6 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
-            This model explains the information reviewed. It does not diagnose the cause of hair loss or guarantee a prescription.
+            This model explains the information reviewed. It does not diagnose the cause of hair loss or guarantee a prescription. Sudden or patchy loss, painful or infected scalp symptoms, wider body-hair changes, an unclear history, or other signs that need examination may be safer to assess in person. The doctor may ask for more detail, recommend tests or GP review, or decline online care. The doctor decides whether to prescribe.
           </figcaption>
         </figure>
       </div>
