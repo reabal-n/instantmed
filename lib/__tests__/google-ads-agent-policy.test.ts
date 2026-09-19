@@ -349,7 +349,9 @@ describe("Google Ads Agent policy", () => {
     // under a AUD 22 target CPA (the only lane where budget alone buys volume).
     expect(POLICY.medCerts.dailyBudgetCents).toBe(5000)
     expect(POLICY.medCerts.targetCpaCents).toBe(2200)
-    expect(POLICY.womensHealth.dailyBudgetCents).toBe(5000)
+    // Owner delegated 2026-09-19: Women's Health may run to AUD 75/day once the
+    // Sep 22 read of the AUD 4 bid test holds; the ceiling moves ahead of the read.
+    expect(POLICY.womensHealth.dailyBudgetCents).toBe(7500)
     expect(POLICY.womensHealth.pilot.initialCpcCeilingCents).toBe(400)
     expect(POLICY.womensHealth.pilot.investigateClicks).toBe(10)
     expect(POLICY.womensHealth.pilot.maximumLossCents).toBe(15000)
@@ -489,8 +491,8 @@ describe("Google Ads Agent policy", () => {
     expect(() => authorizeScriptsBudgetScale({ campaign: scripts, expectedMicros: 120_000_000, nextMicros: campaignCashCeiling + 1 })).toThrow("scripts_budget_authorization_exceeded")
   })
 
-  it("uses the operator-approved AUD 50 women's health ceiling", () => {
-    expect(POLICY.womensHealth.dailyBudgetCents).toBe(5_000)
+  it("uses the delegated AUD 75 women's health ceiling (2026-09-19)", () => {
+    expect(POLICY.womensHealth.dailyBudgetCents).toBe(7_500)
   })
 
   it("blocks scale proposals whenever tracking is not GREEN", () => {

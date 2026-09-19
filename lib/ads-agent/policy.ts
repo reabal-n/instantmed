@@ -92,7 +92,10 @@ export const POLICY = {
     },
   },
   womensHealth: {
-    dailyBudgetCents: 5_000,
+    // Owner delegated 2026-09-19 ("do what's best for the business"): AUD 75/day
+    // ceiling so the Sep 22 read of the AUD 4 bid test can step the budget
+    // without another policy cycle. The step itself stays an exact proposal.
+    dailyBudgetCents: 7_500,
     pilot: {
       initialCpcCeilingCents: 400,
       investigateClicks: 10,

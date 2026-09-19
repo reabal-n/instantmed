@@ -1515,6 +1515,19 @@ describe("Google Ads mutation gateway", () => {
       }],
       state: medCerts,
     })).toThrow("service_budget_ceiling_exceeded")
+
+    // Delegated decision 2026-09-19: Women's Health ceiling AUD 75/day.
+    const women = stateWithBudget(accountState(), 50_000_000)
+    const womenCampaign = women.campaigns[0].values.campaign as Record<string, unknown>
+    womenCampaign.name = "IM | Search | Women's Health | AU"
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...budgetOperation, expectedMicros: 50_000_000, nextMicros: 75_000_000 }],
+      state: women,
+    })).not.toThrow()
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...budgetOperation, expectedMicros: 50_000_000, nextMicros: 75_010_000 }],
+      state: women,
+    })).toThrow("service_budget_ceiling_exceeded")
   })
 
   it("keeps at most one enabled Search campaign per launched service", () => {
