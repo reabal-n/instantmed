@@ -16,8 +16,9 @@ The active goal is staged, evidence-backed revenue growth:
 | **$2,000/month** rolling net-retained revenue run-rate | Within 30 days | Proves that the current baseline can move through focused channel work. |
 | **$5,000/month** rolling net-retained revenue run-rate | Within 90 days | Proves repeatable demand across more than one order source. |
 | **$10,000/month** rolling net-retained revenue run-rate | Next phase | Triggers a formal capacity and staffing review; it does not trigger an automatic hire. |
+| **$20,000/month** rolling net-retained revenue run-rate | Set 2026-09-19 | Proves that campaign-contribution scaling plus a second paid channel can double demand without a second doctor; reaching it reopens the capacity question on evidence rather than on volume alone. |
 
-**Attainment record:** all three rungs are closed as of 2026-09-19 by explicit operator decision; the dated checkpoints live in `docs/ROADMAP.md` §2. The next rung is not yet defined and this ladder is not extended by inference.
+**Attainment record:** the `$2k`, `$5k` and `$10k` rungs are closed as of 2026-09-19 by explicit operator decision; the dated checkpoints live in `docs/ROADMAP.md` §2. The `$20,000` rung was set the same day by the operator and is the active target.
 
 `$1M` annual gross remains a distant directional north star for the one-off model. It is not the active planning frame and does not override the milestone ladder.
 
@@ -150,6 +151,14 @@ The owner authorized execution following the sales-drop diagnosis in Codex task 
 Closed August 20–September 18 first-customer contribution after actual Stripe fees, refund/dispute cash and all campaign spend was Scripts +AUD 225.89 and Women's Health +AUD 377.47. September 16–18 was Scripts −AUD 161.72 and Women's Health +AUD 33.32. Women's Health had 18 first orders over 30 days and two over the last three days; new traffic need not reproduce those averages. Scripts' higher ROAS target may reduce traffic and is an efficiency test, not a guaranteed scaling lever. Women's Health's higher bid may increase acquisition cost and actual spend within its existing average daily budget.
 
 The September 17 budget-only measurement is now inconclusive: these subsequent bid changes overlap it. Preserve the earlier receipts, but do not attribute later lift or deterioration solely to budgets. Compare September 20–26 Sydney against the preceding seven completed days, with an early review after two completed days. If Women's Health first-order contribution becomes non-positive, prepare an inverse AUD 3 bid proposal. For Scripts, review an inverse 1.35 target proposal if paid-order volume and contribution both deteriorate from September 16–18. These are review criteria, not automatic actions or a scheduled monitor. Provider validation, apply and read-back receipts live in `docs/OPERATIONS.md`.
+
+### Exact operator budget decision — 2026-09-19 (medical certificates)
+
+The operator explicitly approved scaling medical certificates from AUD 20 to AUD 50/day under a target CPA of AUD 22. A fresh account read-back on 2026-09-19 showed the campaign already running Maximize Conversions with that exact target (matching `POLICY.medCerts.targetCpaCents`), so no bidding change was needed and only the budget moves. This raises the code-owned service ceiling in `POLICY.medCerts.dailyBudgetCents` from 2,000 to 5,000 cents and is a 150% step by explicit decision, mirroring the 2026-09-17 Women's Health AUD 20 to AUD 50 decision; the ordinary Scripts 50% step ceiling is unchanged. It does not authorize a further increase, a new campaign, or any keyword, destination or copy change.
+
+Evidence at decision: Aug 20–Sep 18 Sydney, 27 campaign-attributed orders, AUD 768.60 net retained, AUD 21.25 actual fees, AUD 576.27 spend, AUD 171.08 campaign contribution (22%), zero refunds, blended CPA AUD 21.34; Sep 12–18 Search impression share 10% with 89.2% lost to budget and 10.3% to rank. Certificates issue through the bounded protocol within minutes, so added volume costs no clinician time. Expected outcome is about 60–68 orders per 30 days if CPA holds near AUD 22, with contribution roughly flat if CPA drifts to AUD 26–28; downside is bounded to about minus AUD 200 for the month before review.
+
+Review criteria: compare Sep 20–26 Sydney CPA, orders and campaign contribution against the preceding seven completed days, with an earlier look after two completed days. If CPA exceeds AUD 25 or campaign contribution turns non-positive, prepare an exact inverse proposal returning the budget to AUD 20/day. These are review criteria, not automatic actions. Apply and read-back receipts live in `docs/OPERATIONS.md`.
 
 ### Bounded Learning Exception
 
