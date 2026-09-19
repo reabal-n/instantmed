@@ -5,9 +5,8 @@
  * copy changes. Extend LANDING_PAGES and the per-page budgets when a page
  * is added or compressed; never widen a budget to make a red run green.
  */
-// eslint-disable-next-line simple-import-sort/imports, @typescript-eslint/no-unused-vars -- wired up when a later task in this plan adds an a11y gate to this file
 import AxeBuilder from "@axe-core/playwright"
-import { expect, test, type Page } from "@playwright/test"
+import { expect, type Page, test } from "@playwright/test"
 
 import { gotoPublicRoute, seedMoneyPageState } from "./helpers/money-pages"
 
@@ -123,5 +122,53 @@ test.describe("landing page desktop rhythm", () => {
       expect(gap, `${landing.path}: no [data-hero] section`).not.toBeNull()
       expect(gap!, `${landing.path}: ${Math.round(gap!)}px of empty space under the hero`).toBeLessThanOrEqual(120)
     })
+  }
+})
+
+/** Pages that own a sticky CTA today. Tasks 14 and 18 add "/" and "/weight-loss". */
+const STICKY_PAGES = LANDING_PAGES.filter(
+  (p) => p.path !== "/" && p.path !== "/weight-loss",
+)
+
+test.describe("landing page sticky CTA", () => {
+  for (const landing of STICKY_PAGES) {
+    test(`${landing.path} shows the quick-purchase bar after the hero scrolls out`, async ({ page }) => {
+      await page.setViewportSize(PHONE)
+      await seedMoneyPageState(page, "light")
+      await gotoPublicRoute(page, landing.path)
+      await settle(page)
+
+      await page.mouse.wheel(0, 1400)
+      await page.waitForTimeout(500)
+      const region = page.getByRole("region", { name: "Quick purchase" })
+      await expect(region).toBeVisible()
+      const box = await region.boundingBox()
+      expect(box).not.toBeNull()
+      expect(box!.y + box!.height).toBeLessThanOrEqual(PHONE.height + 1)
+      expect(box!.height, `${landing.path}: sticky bar taller than 120px`).toBeLessThanOrEqual(120)
+    })
+  }
+})
+
+test.describe("landing page health", () => {
+  for (const landing of LANDING_PAGES) {
+    for (const theme of ["light", "dark"] as const) {
+      test(`${landing.path} (${theme}) has no console errors and no serious axe violations`, async ({ page }) => {
+        const errors: string[] = []
+        page.on("pageerror", (err) => errors.push(err.message))
+        page.on("console", (msg) => {
+          if (msg.type() === "error") errors.push(msg.text())
+        })
+        await page.setViewportSize(DESKTOP)
+        await seedMoneyPageState(page, theme)
+        await gotoPublicRoute(page, landing.path)
+        await settle(page)
+
+        expect(errors, `${landing.path}: console errors`).toEqual([])
+        const results = await new AxeBuilder({ page }).analyze()
+        const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical")
+        expect(serious.map((v) => `${v.id}: ${v.nodes.length} nodes`), `${landing.path}: axe`).toEqual([])
+      })
+    }
   }
 })
