@@ -1768,6 +1768,33 @@ function assertGovernedCampaignConstitution(
   }
 }
 
+/**
+ * Medical certificates run Maximize Conversions under the policy target CPA
+ * (operator decision 2026-09-19). A bidding packet may move the target only
+ * at or below POLICY.medCerts.targetCpaCents and may not drop it.
+ */
+function assertMedCertsBidding(
+  operations: AdsMutationOperation[],
+  state: GoogleAdsAccountState,
+): void {
+  for (const operation of operations) {
+    if (operation.kind !== "campaign_bidding") continue
+    const service = campaignNameService(
+      asString(campaignValue(state, operation.resourceName)?.name),
+    )
+    if (service !== "med_certs") continue
+    if (operation.next.strategy !== "MAXIMIZE_CONVERSIONS") {
+      throw new Error("medcerts_bidding_strategy_rejected")
+    }
+    if (operation.next.targetCpaMicros == null) {
+      throw new Error("medcerts_target_cpa_required")
+    }
+    if (operation.next.targetCpaMicros > POLICY.medCerts.targetCpaCents * 10_000) {
+      throw new Error("medcerts_target_cpa_ceiling_exceeded")
+    }
+  }
+}
+
 export function validateAdsMutationPolicy(args: {
   operations: unknown
   state: GoogleAdsAccountState
@@ -1777,6 +1804,7 @@ export function validateAdsMutationPolicy(args: {
   assertSharedNegativeListSafe(operations, args.state)
   assertCampaignCreateSafe(operations, args.state)
   assertSpecialtyCpcCeiling(operations, args.state)
+  assertMedCertsBidding(operations, args.state)
   assertCreateOperationsSafe(operations, args.state)
   assertKeywordAndAudienceSafety(operations, args.state)
   return operations

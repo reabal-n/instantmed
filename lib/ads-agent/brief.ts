@@ -14,6 +14,7 @@ const guardrailCopy: Record<string, string> = {
   CAMPAIGN_CONTRIBUTION_NOT_POSITIVE: "Campaign cash contribution is not positive",
   FIRST_ORDER_CONTRIBUTION_NEGATIVE: "First-order cash is negative; repeat orders carry this campaign",
   FIRST_ORDER_EVIDENCE_UNAVAILABLE: "First-order cash evidence unavailable; campaign cash used",
+  REPEAT_VALUE_COHORT_APPLIED: "Ceiling includes measured 60-day repeat cash of matured first orders",
   SMALL_SAMPLE_UNCERTAINTY: "Small sample; profit may not persist",
   REFUND_RATE_REVIEW: "Review refund causes and eligibility/copy weekly",
   RECENT_CHANGE_MONITORING: "Recent change; keep before/after evidence separate",

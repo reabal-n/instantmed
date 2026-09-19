@@ -83,6 +83,8 @@ describe("Google Ads Agent policy documentation", () => {
     expect(operations).toContain("No operational state mutates Google Ads autonomously")
     expect(revenue).toContain("repeat orders from campaign-attributed patients count")
     expect(revenue).toContain("First-order contribution stays visible as a diagnostic")
+    expect(revenue).toContain("60-day repeat cash of the campaign's matured first-order cohort")
+    expect(operations).toContain("matured first-order cohort")
     expect(revenue).not.toContain("Repeat revenue cannot subsidise a first-order loss")
     expect(revenue).not.toContain("until repeat purchasing is proven with real cohort data")
   })
