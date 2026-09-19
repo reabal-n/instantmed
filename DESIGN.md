@@ -260,19 +260,13 @@ className="focus:outline-none focus:border-primary focus:ring-2 focus:ring-prima
 
 Two hero patterns, chosen by context:
 
-### Split Hero (service pages with images)
+### Split Hero (`<Hero>` from `components/marketing/hero.tsx`)
 
-Left-aligned text + right image. Used on: medical certificate, homepage.
-
-```tsx
-// Text block: left-aligned, max-w-lg
-// Image: rounded-2xl overflow-hidden, right side
-// Badge: AHPRA pill floating on image
-```
+Used on every landing page: home, medical certificate, prescriptions, ED, hair loss, women's health, weight management. Bespoke hero markup is not permitted; extend the primitive's slot props.
 
 ### Centered Hero (simpler pages)
 
-Centered text, no image. Used on: hair-loss, weight-loss, pricing, about, contact.
+Centered text, no image. Used on: pricing, about, contact.
 
 ```tsx
 <CenteredHero
@@ -297,10 +291,13 @@ Centered headline + animated stat counters. Used on: pricing, trust.
 
 ### Hero Rules
 
-- Ambient `MorningSkyBackground` supplied by the canonical `MarketingPageShell`; do not mount a second canvas per hero
-- Availability indicator badge where relevant
-- Emergency disclaimer on clinical service pages
-- Trust badges below CTA (AHPRA, response time, refund guarantee)
+- The shell reserves the fixed header: every landing wrapper carries `pt-[calc(5rem+env(safe-area-inset-top))]` (`LandingPageShell`, `PrescriptionsLanding`, `MedCertLanding`, home).
+- Pill = `GoogleReviewsBadge variant="inline"` (G mark + stars) · `pillLabel` (default "AHPRA-registered doctors") · live `WaitCounter` when the page passes `liveWait`, otherwise "Open now". Stars never render without the Google mark.
+- Trust row = `GoogleAdsCert` + `LegitScriptSeal`, two marks, one row. Pages with their own marks pass `trustRow={null}`.
+- Display titles are `hyphens-none`; long words wrap with `overflow-wrap:anywhere`.
+- Bottom padding `pb-8 sm:pb-12 lg:pb-10`; the next section starts within 120px at 1440×900 (`e2e/landing-pages.spec.ts`).
+- Ambient `MorningSkyBackground` comes from `MarketingPageShell`; do not mount a second canvas per hero.
+- Emergency disclaimer on clinical service pages; price in the primary CTA on every service page.
 
 ---
 
@@ -476,6 +473,8 @@ className="bg-white dark:bg-card border border-border
 ```
 
 ### Trust Logos
+
+Renders on explainer and audience pages (`/for/*`, `/employers`) and the homepage's closing compliance strip. The six service landing pages (medical certificate, prescriptions, ED, hair loss, women's health, weight management) do not mount this strip; they use the Hero trust row instead (`GoogleAdsCert` + `LegitScriptSeal`, see §6 Hero Rules).
 
 ```tsx
 // AHPRA, TGA, Medicare PNGs from /public/logos/

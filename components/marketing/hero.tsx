@@ -87,9 +87,9 @@ interface HeroProps {
   /** Optional responsive/layout classes for the canonical mockup wrapper. */
   mockupClassName?: string
   /**
-   * Optional trust-row override. Defaults to GoogleAdsCert + LegitScript +
-   * LastReviewedSignal. Pass `null` to suppress entirely when a page renders
-   * its own trust badges directly below the hero.
+   * Optional trust-row override. Defaults to GoogleAdsCert + LegitScript.
+   * Pass `null` to suppress entirely when a page renders its own trust
+   * badges directly below the hero.
    */
   trustRow?: ReactNode | null
   /**
