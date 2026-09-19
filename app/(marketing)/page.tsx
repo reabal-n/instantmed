@@ -17,6 +17,7 @@ import { getWaitState } from '@/lib/brand/wait-counter'
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { isMaintenanceMode } from '@/lib/feature-flags'
 import { homeH1Font } from '@/lib/fonts/home-h1'
+import { getApprovedClaim } from '@/lib/marketing/approved-claims'
 import { HOME_HERO_CTA_ID } from '@/lib/marketing/home-anchors'
 import { faqItems } from '@/lib/marketing/homepage'
 import { PROP_PHRASE, TAGLINE } from '@/lib/marketing/voice'
@@ -112,15 +113,15 @@ const HOME_HOW_IT_WORKS_STEPS = [
   {
     sticker: 'stethoscope' as const,
     step: 2,
-    title: 'A doctor reviews it',
-    description: 'Requests can be submitted and reviewed 24/7. The doctor may call you briefly before prescribing.',
+    title: 'Clinical review',
+    description: getApprovedClaim('clinical_review_sequence'),
     time: 'Reviewed 24/7',
   },
   {
     sticker: 'certificate' as const,
     step: 3,
-    title: 'Certificate to your inbox, eScript to your phone',
-    description: 'Every certificate carries a reference your employer can check at instantmed.com.au/verify.',
+    title: 'If approved, certificate to your inbox or eScript to your phone',
+    description: 'Delivery is digital and only follows a clinical decision. Every certificate carries a reference your employer can check at instantmed.com.au/verify.',
     time: 'Digital delivery',
   },
 ]
@@ -195,7 +196,7 @@ export default async function HomePage() {
             ctaHref="/request"
             ctaText="Get started"
             heading="How it works"
-            subheading="One secure form, one doctor decision, one email."
+            subheading="One secure form, one clinical decision, one email."
           />
 
           <FAQSection

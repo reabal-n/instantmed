@@ -193,6 +193,7 @@ export function WeightLossLanding() {
               ref: heroCTARef,
             }}
             secondaryCta={{ text: "See how it works", href: "#how-it-works" }}
+            reassuranceRow={null}
             mockup={<WeightHeroFacts />}
           >
             <p className="mx-auto mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground lg:mx-0 lg:text-lg">

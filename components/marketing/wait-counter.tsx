@@ -43,7 +43,7 @@ export function WaitCounter({ state, variant = "inline", className }: WaitCounte
         "inline-flex items-center gap-1.5 font-medium",
         isStandalone
           ? "text-sm sm:text-base text-foreground/85"
-          : "text-xs sm:text-sm text-muted-foreground",
+          : "text-sm text-muted-foreground",
         className,
       )}
       role="status"
