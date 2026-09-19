@@ -30,6 +30,7 @@ export const LANDING_SURFACES = [
   "lib/data/womens-health-faq.ts",
   "components/marketing/home-client-controls.tsx",
   "lib/data/weight-loss-faq.ts",
+  "components/marketing/weight-loss-landing.tsx",
 ] as const
 
 /** Words a patient should never have to decode. */
