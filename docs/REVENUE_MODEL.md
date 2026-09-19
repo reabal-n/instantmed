@@ -17,6 +17,8 @@ The active goal is staged, evidence-backed revenue growth:
 | **$5,000/month** rolling net-retained revenue run-rate | Within 90 days | Proves repeatable demand across more than one order source. |
 | **$10,000/month** rolling net-retained revenue run-rate | Next phase | Triggers a formal capacity and staffing review; it does not trigger an automatic hire. |
 
+**Attainment record:** all three rungs are closed as of 2026-09-19 by explicit operator decision; the dated checkpoints live in `docs/ROADMAP.md` §2. The next rung is not yet defined and this ladder is not extended by inference.
+
 `$1M` annual gross remains a distant directional north star for the one-off model. It is not the active planning frame and does not override the milestone ladder.
 
 ### Milestone Definition
@@ -60,18 +62,31 @@ Measure economics by service. A blended account-level result can hide a profitab
 
 Target service mix is learned from retained revenue and capacity evidence. It is not fixed by a speculative long-range order table.
 
-## 4. First-Order Contribution
+## 4. Campaign Contribution
 
-Scaled paid acquisition must be first-order contribution-positive until repeat purchasing is proven with real cohort data.
+**Owner decision — 2026-09-19:** repeat purchasing is proven with real cohort data, so the scaling qualification counts repeat orders from campaign-attributed patients. Campaign contribution is the decision figure. First-order contribution stays visible as a diagnostic only.
 
-For each service and paid channel:
+Cohort evidence (production, each patient's first paid order to any later paid order across all services and channels, Sydney months):
+
+| First-order cohort | New patients | Repeat within 30 days | Repeat within 60 days | Repeat net per new patient, 60 days |
+|---|---|---|---|---|
+| Prescriptions, July 2026 | 28 | 18% | 21% | A$13.91 |
+| Prescriptions, August 2026 | 92 | 25% | 26% (window still open) | A$21.91 (window still open) |
+| Medical certificates, July 2026 | 52 | 10% | 21% | A$6.72 |
+| Medical certificates, August 2026 | 87 | 13% | 14% (window still open) | A$5.51 (window still open) |
+
+Refresh this table when a newer cohort reaches 60 completed days. Duplicate profiles under a new email understate repeat rates, so the table is conservative.
+
+For each campaign and reporting window:
 
 ```text
-Below-capacity first-order contribution after acquisition
-  = net-retained order revenue
-  - Stripe/payment fees
-  - attributable acquisition cost
+Campaign contribution after acquisition
+  = net-retained revenue of campaign-attributed orders (first and repeat)
+  - actual Stripe/payment fees on those orders
+  - campaign spend
 ```
+
+First-order contribution is the same formula restricted to each patient's earliest reportable paid order, with all campaign spend charged to first orders. It remains reported per campaign. A negative first-order figure with positive campaign contribution is an advisory signal that repeat orders carry the campaign, not a veto; missing first-order evidence is likewise advisory. Only an unavailable or non-positive campaign contribution blocks a profitable-scale proposal.
 
 Fixed software, insurance, accounting, and general business overhead stay outside this channel-level calculation. They remain business costs, but they do not determine whether one extra paid order contributes positively.
 
@@ -81,9 +96,9 @@ If an order actually incurs paid incremental doctor or support labour, subtract 
 
 Paid-to-decision elapsed time (`paid_at` to `approved_at` or `declined_at`) is an operational latency measure. It includes queue and waiting time, so it is not active doctor labour and must not be used as the labour input in the contribution formula.
 
-Do not use assumed lifetime value, hoped-for repeat orders, approval rate, or gross AOV to justify first-order losses. Repeat revenue cannot subsidise a first-order loss in a profitable-scale recommendation.
+Do not use assumed lifetime value, hoped-for repeat orders, approval rate, or gross AOV to justify a loss. Only measured repeat orders from campaign-attributed patients count, and they count at their actual net-retained value in the reporting window.
 
-First means the customer's earliest reportable paid order across all services and channels, ordered by payment time and intake ID for ties. The Ads reader keeps identifiers in memory, reads complete historical purchases for affected patients, deducts canonical cash-ledger refunds and disputes (including older first orders with cash movement in the window), and uses actual durable Stripe fees. All campaign acquisition spend is charged to first orders. Historical snapshots without this cohort evidence remain unavailable for first-order qualification; the mutation reader may add a fresh, timestamped in-memory read for the stored run's exact window, without rewriting that run. Blended campaign contribution remains separate.
+First means the customer's earliest reportable paid order across all services and channels, ordered by payment time and intake ID for ties. The Ads reader keeps identifiers in memory, reads complete historical purchases for affected patients, deducts canonical cash-ledger refunds and disputes (including older first orders with cash movement in the window), and uses actual durable Stripe fees. All campaign acquisition spend is charged to first orders for the first-order diagnostic. Historical snapshots without this cohort evidence report first-order evidence as unavailable; the mutation reader may add a fresh, timestamped in-memory read for the stored run's exact window, without rewriting that run. Campaign contribution uses the same cash-ledger truth for every campaign-attributed order.
 
 ## 5. Operating scorecard
 
@@ -93,7 +108,7 @@ Review these metrics by service before increasing paid demand:
 |--------|------------|---------------|
 | Rolling 30-day net-retained revenue | Captured revenue less refunds and disputes in the rolling window. | Track against the active `$2k -> $5k -> $10k` milestone. |
 | Paid order volume | Real paid intakes, excluding seeded E2E and failed checkout rows. | Growth must not overload clinical or support capacity. |
-| First-order contribution after acquisition | Formula in section 4, by service and channel, using retained revenue, payment fees, and attributable acquisition cost. | Must be positive for scaling; untrusted revenue, fee, or acquisition inputs block a scaling decision. |
+| Campaign contribution after acquisition | Formula in section 4, by campaign and service: net-retained revenue of campaign-attributed first and repeat orders, actual payment fees, and campaign spend. First-order contribution is reported alongside as a diagnostic. | Must be positive for scaling; untrusted revenue, fee, or acquisition inputs block a scaling decision. |
 | Refund rate | Refunded or partially refunded paid intakes by service. | Advisory weekly eligibility/copy review; actual refund cash remains deducted from profit. |
 | Chargeback rate | Stripe disputes divided by paid orders. | Investigate clusters in the same week; actual dispute cash remains deducted. |
 | Support tickets per 100 orders | Patient support contacts per 100 paid orders. | Advisory friction and capacity review; workload count alone is not a scaling veto. |
@@ -108,11 +123,13 @@ Every launched service remains a low-budget pilot while it gathers data. Remaini
 
 **Owner decision — 2026-09-09:** confirmed positive first-order cash contribution is the commercial qualification for a profitable-scale proposal. The previous 20/30/40% margin tiers, 10/30/50-order minimums, refund-rate veto, 90% service-purity graduation, and fixed post-change waiting/sample rules are superseded. They must not reject verified positive cash contribution.
 
-Material budget increases still require compliant ads and destinations, trustworthy purchase/refund/dispute/fee/spend evidence, positive first-order contribution for the campaign, no actual clinical incident, explicit service hold or fulfilment failure, and exact operator approval. Unknown or non-positive first-order economics cannot be called profitable. Tracking faults remain blocking; diagnostics or conversion-reporting lag alone are advisory when critical financial and attribution inputs are trustworthy.
+**Owner decision — 2026-09-19:** the qualification widens from first-order cash to campaign contribution (section 4), so repeat orders from campaign-attributed patients count. A negative first-order figure is an advisory signal, not a veto. Everything else in this section stands.
+
+Material budget increases still require compliant ads and destinations, trustworthy purchase/refund/dispute/fee/spend evidence, positive campaign contribution for the campaign, no actual clinical incident, explicit service hold or fulfilment failure, and exact operator approval. Unknown or non-positive campaign economics cannot be called profitable. Tracking faults remain blocking; diagnostics or conversion-reporting lag alone are advisory when critical financial and attribution inputs are trustworthy.
 
 Refund rate, queue P95/oldest/wait duration, missing queue data, support contacts and QA workload are advisory investigation signals. Review eligibility, copy, workflow and capacity weekly. Support and completed-QA attestations expire after seven days; selection-only `qa_sampled` is not completed QA. Only evidenced clinical incidents, explicit service holds and actual fulfilment failures create operational commercial holds. No numerical wait or workload threshold manufactures one.
 
-Every budget, keyword, negative keyword, asset, sitelink, targeting, bid-strategy, pause or enable change follows `docs/OPERATIONS.md`; no routine Ads mutation is autonomous. The **maximum 50% budget step** remains a hard ceiling, and a proposed increase is additionally bounded by the measured first-order cash break-even ceiling (retaining at least one cent). The live Scripts tROAS floor and exact approved amounts remain enforced. There is no permission for unlimited spend or an automatic budget increase.
+Every budget, keyword, negative keyword, asset, sitelink, targeting, bid-strategy, pause or enable change follows `docs/OPERATIONS.md`; no routine Ads mutation is autonomous. The **maximum 50% budget step** remains a hard ceiling, and a proposed increase is additionally bounded by the measured campaign cash break-even ceiling: net-retained revenue of campaign-attributed first and repeat orders less actual fees, retaining at least one cent. The live Scripts tROAS floor and exact approved amounts remain enforced. There is no permission for unlimited spend or an automatic budget increase.
 
 Sample size and time since a change are uncertainty signals. Preserve closed-day/order counts and actual before/after timestamps; disclose overlapping experiments rather than imposing a fixed three-day/10-order delay. An observation is not proof that the change caused the result. An active experiment constrains causal attribution, not revenue indefinitely: the owner may explicitly close its measurement window as inconclusive before authorizing another variable, retaining original checkpoints and the exact stop timestamp. Closing measurement does not roll back the existing Ads budget.
 
@@ -173,6 +190,8 @@ Revenue alone does not decide staffing. The `$10,000` rung triggers a capacity r
 | Queue P95 at or above 6 hours, oldest unresolved work at or above 20 hours, or any 24-hour breach | Investigate the affected service. Elapsed time alone creates neither an automatic commercial hold nor a hire. |
 | Fresh completed clinical QA is behind | Review QA capacity; workload alone is advisory. Selection alone is not completed QA. |
 | Weight-management scaling is considered | The 2026-08-10 launch is one-off review only (D-E): continuation is a new consult, so no standing monitoring capacity is assumed. Any move beyond that model needs its own capacity decision. |
+
+**Capacity review outcome — 2026-09-19:** the `$10,000` rung review was held when the rung closed. The owner-doctor keeps sole clinical coverage and no second doctor is hired: at current volume a hire would consume the margin the rung exists to protect. Queue P95 over the preceding seven Sydney days (prescriptions 6.3h, consults 5.3h, medical certificates 0.3h) stays advisory. The sole automatic extra-doctor trigger above is unchanged.
 
 Future clinicians use `doctor` accounts with verified capability flags. Future non-clinical operators use `support`. The owner remains the sole human admin.
 
