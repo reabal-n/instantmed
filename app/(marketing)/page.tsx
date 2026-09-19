@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import { GoogleAdsCert } from '@/components/marketing/google-ads-cert'
 import { Hero } from '@/components/marketing/hero'
 import { HeroDoctorReviewMockup } from '@/components/marketing/hero-doctor-review-mockup'
+import { HomeClientControls } from '@/components/marketing/home-client-controls'
 import { HomeServiceLinks } from '@/components/marketing/home-service-links'
 import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
 import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
@@ -18,6 +19,7 @@ import { getWaitState } from '@/lib/brand/wait-counter'
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { isMaintenanceMode } from '@/lib/feature-flags'
 import { homeH1Font } from '@/lib/fonts/home-h1'
+import { HOME_HERO_CTA_ID } from '@/lib/marketing/home-anchors'
 import { faqItems } from '@/lib/marketing/homepage'
 import { PROP_PHRASE, TAGLINE } from '@/lib/marketing/voice'
 import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo/social-image"
@@ -112,6 +114,8 @@ export default async function HomePage() {
   return (
     <MarketingPageShell>
       <div className="min-h-screen overflow-x-hidden pt-[calc(5rem+env(safe-area-inset-top))]">
+        <HomeClientControls />
+
         {/* SEO Structured Data */}
         <MedicalBusinessSchema />
         <FAQSchema faqs={faqSchemaData} />
@@ -144,6 +148,7 @@ export default async function HomePage() {
             title={TAGLINE}
             titleClassName={`${homeH1Font.className} min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5`}
             liveWait={waitState}
+            primaryCta={{ text: "Get started", href: "/request", wrapperId: HOME_HERO_CTA_ID }}
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
             trustRow={(

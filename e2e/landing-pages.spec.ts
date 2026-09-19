@@ -134,9 +134,7 @@ test.describe("landing page desktop rhythm", () => {
 })
 
 /** Pages that own a sticky CTA today. Tasks 14 and 18 add "/" and "/weight-loss". */
-const STICKY_PAGES = LANDING_PAGES.filter(
-  (p) => p.path !== "/" && p.path !== "/weight-loss",
-)
+const STICKY_PAGES = LANDING_PAGES.filter((p) => p.path !== "/weight-loss")
 
 test.describe("landing page sticky CTA", () => {
   for (const landing of STICKY_PAGES) {
