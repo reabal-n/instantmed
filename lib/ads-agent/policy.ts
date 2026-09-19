@@ -73,7 +73,7 @@ export const POLICY = {
     supportContactsPer100Review: 5,
   },
   medCerts: {
-    dailyBudgetCents: 2_000,
+    dailyBudgetCents: 5_000,
     targetCpaCents: 2_200,
   },
   scripts: {
@@ -254,12 +254,34 @@ function firstOrderEconomicsAvailable(campaign: CampaignEconomics): boolean {
     && first.contributionCents === first.netRetainedRevenueCents! - first.stripeFeeCents! - campaign.spendCents
 }
 
+/**
+ * Owner decision 2026-09-19: campaign cash counts every campaign-attributed
+ * order in the window, first and repeat, because cohort data now proves repeat
+ * purchasing. First-order economics stay visible as a diagnostic only.
+ */
+function campaignContributionPositive(campaign: CampaignEconomics): boolean {
+  return Number.isSafeInteger(campaign.contributionCents)
+    && campaign.contributionCents! > 0
+    && Number.isSafeInteger(campaign.orders)
+    && campaign.orders! > 0
+}
+
+function firstOrderAdvisoryReasonCodes(campaign: CampaignEconomics): string[] {
+  if (!firstOrderEconomicsAvailable(campaign) || campaign.firstOrder!.orders! <= 0) {
+    return ["FIRST_ORDER_EVIDENCE_UNAVAILABLE"]
+  }
+  if (campaign.firstOrder!.contributionCents! <= 0) {
+    return ["FIRST_ORDER_CONTRIBUTION_NEGATIVE"]
+  }
+  return []
+}
+
 export function authorizeScriptsScaleEligibility(campaign: CampaignEconomics): ScriptsScaleTier {
-  if (economicsUnavailable(campaign) || !firstOrderEconomicsAvailable(campaign)) {
+  if (economicsUnavailable(campaign)) {
     throw new Error("scripts_scale_economics_unavailable")
   }
-  if (campaign.firstOrder!.contributionCents! <= 0 || campaign.firstOrder!.orders! <= 0) {
-    throw new Error("scripts_first_order_contribution_not_positive")
+  if (!campaignContributionPositive(campaign)) {
+    throw new Error("scripts_contribution_not_positive")
   }
   return POLICY.scripts.scale.budgetStepTiers[0]
 }
@@ -295,9 +317,10 @@ export function authorizeScriptsBudgetScale(args: {
   }
   const tier = authorizeScriptsScaleEligibility(campaign)
 
-  // Preserve at least one cent of measured first-order cash contribution.
-  const maximumWindowSpendCents = campaign.firstOrder!.netRetainedRevenueCents!
-    - campaign.firstOrder!.stripeFeeCents! - 1
+  // Preserve at least one cent of measured campaign cash contribution
+  // (first and repeat orders attributed to the campaign in the window).
+  const maximumWindowSpendCents = campaign.netRetainedRevenueCents
+    - campaign.stripeFeeCents - 1
   if (campaign.spendCents <= 0 || maximumWindowSpendCents <= 0) {
     throw new Error("scripts_scale_economic_ceiling_unavailable")
   }
@@ -324,7 +347,8 @@ export function authorizeScriptsBudgetScale(args: {
 
   const advisoryReasonCodes = [
     ...(operatorApprovedGrowthTest ? ["OPERATOR_APPROVED_GROWTH_TEST"] : []),
-    ...(campaign.firstOrder!.orders! < POLICY.scripts.scale.smallSampleOrderThreshold ? ["SMALL_SAMPLE_UNCERTAINTY"] : []),
+    ...firstOrderAdvisoryReasonCodes(campaign),
+    ...(campaign.orders! < POLICY.scripts.scale.smallSampleOrderThreshold ? ["SMALL_SAMPLE_UNCERTAINTY"] : []),
     ...(args.closedDaysAfterPreviousChange != null || args.ordersAfterPreviousChange != null
       ? ["RECENT_CHANGE_MONITORING"] : []),
   ]
@@ -514,8 +538,8 @@ function economicsUnavailable(campaign: CampaignEconomics): boolean {
 
 function profitRecommendation(service: AdsService, campaign: CampaignEconomics): AdsRecommendation | null {
   if (campaign.campaignStatus !== "ENABLED") return hold(service, inactiveCampaignReason(campaign.campaignStatus))
-  if (!firstOrderEconomicsAvailable(campaign)) return investigate(service, "ECONOMICS_UNAVAILABLE")
-  if (campaign.firstOrder!.contributionCents! <= 0 || campaign.firstOrder!.orders! <= 0) return null
+  if (economicsUnavailable(campaign)) return investigate(service, "ECONOMICS_UNAVAILABLE")
+  if (!campaignContributionPositive(campaign)) return null
   return {
     kind: "APPROVAL_NEEDED",
     proposedMutationFamily: service === "scripts" && !(
@@ -523,8 +547,9 @@ function profitRecommendation(service: AdsService, campaign: CampaignEconomics):
       && campaign.targetRoas != null && campaign.targetRoas >= POLICY.scripts.scale.initialTargetRoas
     ) ? "campaign_bidding" : "campaign_budget",
     reasonCodes: [
-      "FIRST_ORDER_CONTRIBUTION_POSITIVE",
-      ...(campaign.firstOrder!.orders! < POLICY.scripts.scale.smallSampleOrderThreshold ? ["SMALL_SAMPLE_UNCERTAINTY"] : []),
+      "CAMPAIGN_CONTRIBUTION_POSITIVE",
+      ...firstOrderAdvisoryReasonCodes(campaign),
+      ...(campaign.orders! < POLICY.scripts.scale.smallSampleOrderThreshold ? ["SMALL_SAMPLE_UNCERTAINTY"] : []),
     ],
     service,
   }
@@ -532,7 +557,7 @@ function profitRecommendation(service: AdsService, campaign: CampaignEconomics):
 
 function evaluateScripts(campaign: CampaignEconomics): AdsRecommendation {
   if (economicsUnavailable(campaign)) return investigate("scripts", "ECONOMICS_UNAVAILABLE")
-  return profitRecommendation("scripts", campaign) ?? hold("scripts", "FIRST_ORDER_CONTRIBUTION_NOT_POSITIVE")
+  return profitRecommendation("scripts", campaign) ?? hold("scripts", "CAMPAIGN_CONTRIBUTION_NOT_POSITIVE")
 }
 
 function evaluateMedCerts(campaign: CampaignEconomics): AdsRecommendation {
@@ -542,7 +567,7 @@ function evaluateMedCerts(campaign: CampaignEconomics): AdsRecommendation {
   if (campaign.contributionCents! < 0) {
     return hold("med_certs", "MEDCERT_NEGATIVE_CONTRIBUTION")
   }
-  return profitRecommendation("med_certs", campaign) ?? hold("med_certs", "FIRST_ORDER_CONTRIBUTION_NOT_POSITIVE")
+  return profitRecommendation("med_certs", campaign) ?? hold("med_certs", "CAMPAIGN_CONTRIBUTION_NOT_POSITIVE")
 }
 
 function specialtyPilot(

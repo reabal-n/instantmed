@@ -651,13 +651,13 @@ Google Ads API user access is included in the account read. As of 2026-07-31 the
 
 ### Operational growth evidence
 
-**Owner decision — 2026-09-09:** positive first-order cash contribution qualifies commercial scale proposals. Numeric refund rates, queue P95/oldest/wait-duration thresholds, missing queue data, support-contact counts and QA backlog are advisory; they do not create a commercial hold or a pause proposal. Keep them visible for weekly eligibility/copy, workflow and capacity review. Actual clinical incident, explicit service hold and fulfilment failure evidence still creates a hold and an approval-ready affected-campaign pause proposal.
+**Owner decision — 2026-09-09:** positive first-order cash contribution qualifies commercial scale proposals. **Owner decision — 2026-09-19:** the qualification is campaign contribution, which counts repeat orders from campaign-attributed patients; a negative first-order figure is an advisory signal, not a veto (`docs/REVENUE_MODEL.md` §4). Numeric refund rates, queue P95/oldest/wait-duration thresholds, missing queue data, support-contact counts and QA backlog are advisory; they do not create a commercial hold or a pause proposal. Keep them visible for weekly eligibility/copy, workflow and capacity review. Actual clinical incident, explicit service hold and fulfilment failure evidence still creates a hold and an approval-ready affected-campaign pause proposal.
 
 Support evidence remains a non-negative verified aggregate; completed clinical QA remains a Medical Director attestation. Both optional inputs expire after seven days. Malformed, future or missing values do not manufacture harm. `qa_sampled` is selection, not completed review.
 
 The reporting precedence remains `hold > unavailable > watch > clear`, with only actual incidents/holds/failures producing `hold`. Queue data uses reportable paid manual-review requests and the first later `clinician_opened_request`; unavailable reads remain explicitly unavailable and advisory. No patient, staff or request identifiers leave the aggregate boundary. No operational state mutates Google Ads autonomously; immutable proposal, approval, validation and read-back controls remain mandatory.
 
-The scale authorization reader enriches the latest delivered run in memory with fresh canonical cash-ledger and first-customer-order evidence for that run's exact rolling window. It records source run, read timestamp and window; it never edits the historical run. All campaign spend is charged to first orders; repeat cash is separate. Missing historical identity, exact cash or actual fee evidence cannot qualify profitable scale. The fixed margin, order-count, purity and post-change delays are superseded by `docs/REVENUE_MODEL.md`; actual resource drift, unresolved ambiguous writes, integrity failures and exact spend bounds remain blocking.
+The scale authorization reader enriches the latest delivered run in memory with fresh canonical cash-ledger and first-customer-order evidence for that run's exact rolling window. It records source run, read timestamp and window; it never edits the historical run. All campaign spend is charged to first orders for the first-order diagnostic; the scaling qualification and the cash break-even ceiling use campaign contribution, which includes repeat orders from campaign-attributed patients. Missing exact cash or actual fee evidence cannot qualify profitable scale; missing first-order identity evidence is reported as unavailable and stays advisory. The fixed margin, order-count, purity and post-change delays are superseded by `docs/REVENUE_MODEL.md`; actual resource drift, unresolved ambiguous writes, integrity failures and exact spend bounds remain blocking.
 
 ### Daily loop
 
@@ -701,7 +701,7 @@ pnpm ads:agent reconcile --proposal=<proposal-key>
 
 Approval is required for budgets, bids, bid strategies, keywords, negative keywords, match types, ads, assets, sitelinks, callouts, targeting, schedules, pauses, enables, experiments, and campaign creation/removal. No unattended Ads mutation is authorised by this workflow.
 
-Paid scaling remains governed by the fee-aware, service-level first-order contribution and bounded-learning rules in `docs/REVENUE_MODEL.md`. Attribution or tracking failures fail closed and block scaling. Compliance failures follow `docs/ADVERTISING_COMPLIANCE.md` and the incident process; they do not widen mutation authority.
+Paid scaling remains governed by the fee-aware, service-level campaign contribution (first and repeat orders) and bounded-learning rules in `docs/REVENUE_MODEL.md`. Attribution or tracking failures fail closed and block scaling. Compliance failures follow `docs/ADVERTISING_COMPLIANCE.md` and the incident process; they do not widen mutation authority.
 
 ---
 
@@ -1843,3 +1843,25 @@ Women's Health's three-day spend was AUD 64.30 against two first orders and AUD 
 Scripts' three-day first-order contribution was −AUD 161.72, versus +AUD 225.89 over 30 days. Raising the ROAS target tests efficiency and can reduce volume. The September 17 budget-only measurement ended inconclusively at the first bid-change apply timestamp above. Keep its original receipts, but do not infer budget causation from subsequent results. Review criteria and the September 20–26 comparison window are owned by `docs/REVENUE_MODEL.md`; no scheduled monitor or automatic rollback was created.
 
 Local verification: 146 focused policy, mutation and campaign-creation tests passed, including Women's Health AUD 4 acceptance, above-ceiling rejection, and ED/Hair Loss ceiling isolation. Changed-file ESLint passed. Application typecheck passed with only existing generated `output/**` evidence excluded; ordinary typecheck still fails on seven missing imports in `output/plan3-density-correction/evidence/local-checks/`. Provider read-back proves the Ads settings are live; this source branch is not itself proof of a hosted application deployment or increased revenue.
+
+### September 19 medical-certificate scaling decision
+
+The owner approved medical certificates from AUD 20 to AUD 50/day under a AUD 22 target CPA in a Claude session (decision reference `codex-task:claude-48977fd4-5d38-4141-9a44-319f11a125ec`); the policy ceiling change ships in the same pull request as this record. A `campaign_bidding` draft (`ADS-20260919-03`, target CPA AUD 22) failed Google validate-only with `operation_expected_state_drift` and was left failed without any mutation: the fresh read-back showed the campaign already running Maximize Conversions with target CPA AUD 22, so bidding needs no change. The only live change is one exact `campaign_budget` packet (AUD 20 to AUD 50/day) through the existing immutable proposal, decision receipt, fresh baseline, Google validate-only, atomic apply and read-back path. Its receipt is recorded below. Review criteria are owned by `docs/REVENUE_MODEL.md`.
+
+| Proposal | Resource and change | Validate-only request ID | Applied UTC | Google request ID | Read-back UTC |
+|---|---|---|---|---|---|
+| ADS-20260919-03 | Med Certs `23651537255` bidding: target CPA AUD 22 | validation failed `operation_expected_state_drift` (target already live) | not applied | none | none |
+| ADS-20260919-04 | Med Certs budget `15429766260`: AUD 20 to AUD 50/day; bidding unchanged | `F40bGrlNzFbnQ1496Ye7qA` | 2026-09-19T07:01:18.669Z | `aQr-PjFk8Vcon0DvrgnwGA` | verified 2026-09-19T07:01:53.872Z |
+
+Source run: the delivered GREEN 2026-09-18 report (`68be3908-10b2-4355-b382-a242fe078c01`). The local mutation switch was enabled only for the single apply execution; hosted environment flags were not changed. Provider read-back proves the budget is live; it is not proof of revenue lift. First review after two completed Sydney days, full comparison Sep 20–26 against the preceding seven days, criteria in `docs/REVENUE_MODEL.md`.
+
+### September 19 Scripts efficiency packets
+
+The owner approved re-issuing the two Scripts packets that expired unapplied on 2026-09-17 (decision reference `codex-task:claude-48977fd4-5d38-4141-9a44-319f11a125ec`). Same run, same guarded path as above.
+
+| Proposal | Resource and change | Validate-only request ID | Applied UTC | Google request ID | Read-back UTC |
+|---|---|---|---|---|---|
+| ADS-20260919-05 | Scripts `23870042807`: nine campaign-level phrase negatives (ondansetron, valacyclovir, amoxicillin, norethisterone, ivermectin, cephalexin, spironolactone, metformin, panadeine forte) | `BqMoRuUJrB6CyN0wpHA8-g` | 2026-09-19T08:31:10.455Z | `Mydt8qDqmpTRO40ZVzPBrA` | verified 2026-09-19T08:31:43.893Z |
+| ADS-20260919-06 | Scripts keyword `196799711917~1942857048947` ("repeat scripts", phrase): pause | validation failed `operation_expected_state_drift` | not applied | none | fresh read 2026-09-19 shows the keyword already `PAUSED` |
+
+**Reversed the same day at the owner's direction.** The negatives packet misread policy: medicine names are excluded as positive targeting, not as searches the generic repeat-script ad may serve on, and the owner receives legitimate repeat requests for several of these medicines (ondansetron and valacyclovir among them). Its evidence was 15 clicks. `ADS-20260919-07` (`keyword_status`, nine removals) validated (`CVlVAPsDGyis3kiaYjJCIQ`), applied at 2026-09-19T08:43:11.851Z (Google request `EbZ1CWADc5QcMbGV1_CnyA`) and read back verified at 08:43:44.367Z, restoring the exact pre-08:31Z state. Rule going forward: a phrase negative on a medicine name blocks demand for that medicine's repeat script; add one only with the owner's explicit, medicine-specific decision and real search-term evidence, never as policy hygiene. Bids, tROAS 1.5, the AUD 120/day budget and every generic keyword were unchanged throughout.

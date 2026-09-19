@@ -1400,7 +1400,14 @@ describe("Google Ads mutation gateway", () => {
       nextMicros: 60_000_000,
     }]
     const scaleEvidence = eligibleScaleEvidence()
-    scaleEvidence.snapshot.rolling30[0].firstOrder = { contributionCents: 38_731, netRetainedRevenueCents: 150_000, stripeFeeCents: 7_313, orders: 50 }
+    // Campaign cash (first + repeat orders) sets the ceiling since 2026-09-19:
+    // 40 × (150,000 − 7,313 − 1) / 103,956 ≈ 54.9, so a 60 step exceeds it.
+    Object.assign(scaleEvidence.snapshot.rolling30[0], {
+      contributionCents: 150_000 - 7_313 - 103_956,
+      firstOrder: { contributionCents: 38_731, netRetainedRevenueCents: 150_000, stripeFeeCents: 7_313, orders: 50 },
+      netRetainedRevenueCents: 150_000,
+      stripeFeeCents: 7_313,
+    })
     const harness = gateway({
       scaleEvidence,
       accountReads: [state],
@@ -1484,6 +1491,29 @@ describe("Google Ads mutation gateway", () => {
         nextMicros: 13_000_000,
       }],
       state: specialty,
+    })).toThrow("service_budget_ceiling_exceeded")
+
+    // Operator decision 2026-09-19: medical certificates may run up to
+    // AUD 50/day (from AUD 20). The ceiling is the service limit, not a step.
+    const medCerts = stateWithBudget(accountState(), 20_000_000)
+    const medCertsCampaign = medCerts.campaigns[0].values
+      .campaign as Record<string, unknown>
+    medCertsCampaign.name = "JDM | Search | Med Certs"
+    expect(() => validateAdsMutationPolicy({
+      operations: [{
+        ...budgetOperation,
+        expectedMicros: 20_000_000,
+        nextMicros: 50_000_000,
+      }],
+      state: medCerts,
+    })).not.toThrow()
+    expect(() => validateAdsMutationPolicy({
+      operations: [{
+        ...budgetOperation,
+        expectedMicros: 20_000_000,
+        nextMicros: 50_010_000,
+      }],
+      state: medCerts,
     })).toThrow("service_budget_ceiling_exceeded")
   })
 
