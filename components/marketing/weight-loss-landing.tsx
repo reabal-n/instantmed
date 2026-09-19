@@ -22,12 +22,15 @@ import { getService } from "@/lib/services/service-catalog"
 
 const HowItWorksInline = dynamic(
   () => import("@/components/marketing/sections/how-it-works-inline").then((module) => module.HowItWorksInline),
+  { loading: () => <div className="min-h-[400px]" /> },
 )
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((module) => module.FAQSection),
+  { loading: () => <div className="min-h-[300px]" /> },
 )
 const CTABanner = dynamic(
   () => import("@/components/sections/cta-banner").then((module) => module.CTABanner),
+  { loading: () => <div className="min-h-[300px]" /> },
 )
 
 const REQUEST_HREF = "/request?service=consult&subtype=weight_loss"
@@ -140,11 +143,11 @@ function WeightHeroFacts() {
 
 function WeightEligibilitySection() {
   return (
-    <section id="eligibility" className="py-12 sm:py-14 lg:py-16">
+    <section id="eligibility" aria-labelledby="weight-eligibility-title" className="py-12 sm:py-14 lg:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant>
           <SectionPill>Eligibility</SectionPill>
-          <Heading level="h2" className="mt-4">Who this assessment is for</Heading>
+          <Heading id="weight-eligibility-title" level="h2" className="mt-4">Who this assessment is for</Heading>
         </Reveal>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <Reveal instant className="min-w-0 rounded-2xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
