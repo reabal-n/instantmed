@@ -108,11 +108,29 @@ export type CampaignAvailabilityReason =
   | "STRIPE_FEES_UNAVAILABLE"
 
 /** Verified first-customer-order cash in the campaign window; all campaign spend is charged here. */
+/**
+ * Matured first-order cohort: first orders paid 60-150 days before the window
+ * end and the net-retained repeat cash they brought back on any channel within
+ * 60 days. Read fresh at authorization time; absent on stored snapshots.
+ */
+export interface AdsRepeatValueEvidence {
+  cohortWindowDays: number
+  cohortStartUtc: string
+  cohortEndUtc: string
+  maturedFirstOrders: number
+  repeatOrders: number
+  repeatNetRetainedRevenueCents: number
+  repeatStripeFeeCents: number
+  estimatedFeeOrders: number
+  repeatContributionPerFirstOrderCents: number
+}
+
 export interface AdsFirstOrderEconomics {
   contributionCents: number | null
   netRetainedRevenueCents: number | null
   orders: number | null
   stripeFeeCents: number | null
+  repeatValue?: AdsRepeatValueEvidence | null
 }
 
 export interface CampaignEconomics {

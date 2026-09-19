@@ -1481,7 +1481,6 @@
     "production|exports|lib/data/revenue-dashboard.ts|buildRevenueDashboard",
     "production|exports|lib/data/revenue-dashboard.ts|buildTrendPeriods",
     "production|exports|lib/data/revenue-dashboard.ts|computeNetChangePct",
-    "production|exports|lib/data/revenue-dashboard.ts|estimateStripeFeeCents",
     "production|exports|lib/data/revenue-dashboard.ts|getRevenueWindowBounds",
     "production|exports|lib/data/revenue-dashboard.ts|resolveRevenueDashboardSourceAvailability",
     "production|exports|lib/data/revenue-dashboard.ts|startOfDaySydney",

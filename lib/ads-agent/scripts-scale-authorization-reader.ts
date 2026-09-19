@@ -2,7 +2,7 @@ import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { readFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics"
+import { readCampaignRepeatValue, readFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics"
 import { isAdsAgentSnapshot } from "@/lib/ads-agent/runs"
 import {
   type AdsScaleAuthorizationEvidence,
@@ -117,11 +117,21 @@ export async function readScriptsScaleAuthorizationEvidence(args: {
   })
   if (!evidence) return null
   // Fresh enrichment of the immutable run's exact window. Never overwrite the stored run.
-  const rolling30 = await readFirstOrderCampaignEconomics({
+  const firstOrderRolling30 = await readFirstOrderCampaignEconomics({
     campaigns: evidence.snapshot.rolling30,
     range: evidence.snapshot.windows.rolling30,
     supabase: args.supabase,
   })
+  // Matured-cohort repeat cash for the ceiling (owner decision 2026-09-19).
+  // Null when unavailable; the ceiling then falls back to window cash.
+  const repeatValues = await readCampaignRepeatValue({
+    campaigns: firstOrderRolling30,
+    range: evidence.snapshot.windows.rolling30,
+    supabase: args.supabase,
+  })
+  const rolling30 = firstOrderRolling30.map((campaign) => campaign.firstOrder
+    ? { ...campaign, firstOrder: { ...campaign.firstOrder, repeatValue: repeatValues.get(campaign.campaignId) ?? null } }
+    : campaign)
   return {
     ...evidence,
     firstOrderEvidence: {
