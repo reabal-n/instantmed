@@ -73,7 +73,7 @@ export const POLICY = {
     supportContactsPer100Review: 5,
   },
   medCerts: {
-    dailyBudgetCents: 2_000,
+    dailyBudgetCents: 5_000,
     targetCpaCents: 2_200,
   },
   scripts: {

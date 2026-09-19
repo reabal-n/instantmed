@@ -17,7 +17,7 @@ This phase does not authorise new services, subscriptions, broad general consult
 
 ## 2. Revenue Rung Status
 
-**Ladder status — 2026-09-19:** the `$2,000`, `$5,000`, and `$10,000` rungs are all closed by explicit operator decision. The complete ladder in `docs/REVENUE_MODEL.md` is attained. No new rung is set here; the next target is an open operator decision and the ladder is not extended by inference.
+**Ladder status — 2026-09-19:** the `$2,000`, `$5,000`, and `$10,000` rungs are all closed by explicit operator decision. The complete ladder in `docs/REVENUE_MODEL.md` is attained. **Active target — set 2026-09-19:** `$20,000/month` rolling net-retained revenue run-rate, the first rung added to the ladder in `docs/REVENUE_MODEL.md` since launch. At the September net AOV of about `$31.40` that is roughly 640 orders per 30 days, or about 21 a day against the current 11.5.
 
 The `$2,000` rung was crossed with 71 real paid orders and `$2,066.30` rolling 30-day net-retained revenue as of 2026-07-22. At the same snapshot, `$29.10` net AOV implied approximately 172 monthly orders for the `$5,000` rung.
 
@@ -44,7 +44,7 @@ Surface without waiting for the daily brief:
 
 One bounded operator brief should show:
 
-- rolling 30-day net-retained revenue and its trend (the `$2k -> $5k -> $10k` ladder closed 2026-09-19; the next rung is an open operator decision)
+- rolling 30-day net-retained revenue and its trend (the `$2k -> $5k -> $10k` ladder closed 2026-09-19; the active rung is `$20,000/month`)
 - Google Ads spend, retained revenue, service-level contribution readiness, and exact proposed mutations
 - support issues that need an operator decision; conversations stay in Gmail and are handled manually
 - operational issues requiring a decision rather than another dashboard visit
