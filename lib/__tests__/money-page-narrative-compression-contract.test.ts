@@ -311,13 +311,12 @@ describe("money-page narrative compression", () => {
     const reviewEnd = source.indexOf("function WomensHealthFinalChoice")
     expect(reviewStart).toBeGreaterThan(-1)
     expect(reviewEnd).toBeGreaterThan(reviewStart)
-    expect(source.slice(reviewStart, reviewEnd)).toContain("<RegulatoryPartners")
+    expect(source.slice(reviewStart, reviewEnd)).not.toContain("<RegulatoryPartners")
     expect(source.slice(reviewStart, reviewEnd)).toContain("AHPRA")
 
     expectInOrder(source, [
       "<WomensHealthDecisionFork />",
       "<WomensHealthCommonFacts />",
-      "<WomensHealthPathwaysSection />",
       "<WomensHealthBoundarySection />",
       "<WomensHealthReviewAndPriceSection />",
       "items={WOMENS_HEALTH_HUB_FAQ}",

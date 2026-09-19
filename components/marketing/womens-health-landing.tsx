@@ -32,10 +32,6 @@ import { WOMENS_HEALTH_HUB_FAQ } from "@/lib/data/womens-health-faq"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 
-const RegulatoryPartners = dynamic(
-  () => import("@/components/marketing/regulatory-partners").then((module) => module.RegulatoryPartners),
-  { loading: () => <div className="min-h-[120px]" /> },
-)
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((module) => module.FAQSection),
   { loading: () => <div className="min-h-[300px]" /> },
@@ -101,62 +97,6 @@ function WomensHealthCommonFacts() {
           </div>
         ))}
       </dl>
-    </section>
-  )
-}
-
-function WomensHealthPathwaysSection() {
-  return (
-    <section id="assessments" className="py-14 sm:py-16 lg:py-20">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <Reveal instant className="mx-auto max-w-3xl text-center">
-          <SectionPill>Choose the right screen</SectionPill>
-          <Heading level="h2" className="mt-4">Two assessments, not a general consultation</Heading>
-          <p className="mt-3 text-base leading-7 text-muted-foreground">
-            Each assessment page explains its own form and safety checks before you start. Choose the concern that matches today.
-          </p>
-        </Reveal>
-
-        <div className="mt-8 grid gap-5 md:grid-cols-2">
-          <Reveal instant className="flex h-full flex-col rounded-2xl border border-sky-200 bg-sky-50/70 p-6 shadow-md shadow-primary/[0.04] dark:border-sky-800 dark:bg-sky-950/20 dark:shadow-none">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-600 text-white dark:bg-sky-400 dark:text-sky-950">
-              <Droplets className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <SectionPill className="mt-5 w-fit">UTI symptoms</SectionPill>
-            <Heading level="h3" className="mt-3">Possible uncomplicated UTI</Heading>
-            <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
-              For common urinary symptoms when the red-flag screen does not point to pregnancy, kidney involvement, recurrent infection, or another condition needing examination.
-            </p>
-            <Button asChild size="lg" className="mt-6 w-full">
-              <Link href="/uti-assessment-online">
-                View UTI assessment
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-          </Reveal>
-
-          <Reveal instant className="flex h-full flex-col rounded-2xl border border-pink-200 bg-pink-50/70 p-6 shadow-md shadow-primary/[0.04] dark:border-pink-800 dark:bg-pink-950/20 dark:shadow-none">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-pink-600 text-white dark:bg-pink-400 dark:text-pink-950">
-              <HeartPulse className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <SectionPill className="mt-5 w-fit">Contraceptive pill</SectionPill>
-            <Heading level="h3" className="mt-3">Start a new pill or switch</Heading>
-            <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
-              For a doctor review of your health history and prescribing safety when starting a pill or switching from your current option.
-            </p>
-            <Button asChild size="lg" className="mt-6 w-full">
-              <Link href="/contraceptive-pill-assessment-online">
-                View pill assessment
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-            <Link href="/prescriptions" className="mt-4 inline-flex items-center justify-center gap-2 text-sm font-medium text-primary hover:underline">
-              <RefreshCw className="h-4 w-4" aria-hidden="true" />
-              Continuing the same pill? Use repeat prescriptions.
-            </Link>
-          </Reveal>
-        </div>
-      </div>
     </section>
   )
 }
@@ -249,8 +189,6 @@ function WomensHealthReviewAndPriceSection() {
             </a>
           </Reveal>
         </div>
-
-        <RegulatoryPartners className="mt-8 border-t border-border/50 pb-0 pt-7 dark:border-white/10" />
       </div>
     </section>
   )
@@ -283,6 +221,9 @@ function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean
               </Link>
             </Button>
           </div>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Want the detail first? Read the <Link href="/uti-assessment-online" className="font-medium text-primary underline-offset-4 hover:underline">UTI assessment page</Link> or the <Link href="/contraceptive-pill-assessment-online" className="font-medium text-primary underline-offset-4 hover:underline">contraceptive pill page</Link>.
+          </p>
           <Link href="/prescriptions" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
             Continuing the same pill? Use repeat prescriptions.
@@ -324,7 +265,6 @@ export function WomensHealthLanding() {
           </Hero>
 
           <WomensHealthCommonFacts />
-          <WomensHealthPathwaysSection />
           <WomensHealthBoundarySection />
           <WomensHealthReviewAndPriceSection />
 
