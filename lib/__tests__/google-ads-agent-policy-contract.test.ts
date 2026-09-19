@@ -25,6 +25,8 @@ describe("Google Ads Agent policy documentation", () => {
     expect(operations).toContain("A$20/day")
     expect(operations).toContain("A$3 maximum CPC")
     expect(revenue).toContain("maximum 50% budget step")
+    expect(revenue).toContain("medical certificates from AUD 20 to AUD 50/day")
+    expect(revenue).toContain("target CPA of AUD 22")
     expect(revenue).toContain("Sample size and time since a change are uncertainty signals")
     expect(revenue).not.toContain("tCPA cap")
   })

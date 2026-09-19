@@ -1485,6 +1485,29 @@ describe("Google Ads mutation gateway", () => {
       }],
       state: specialty,
     })).toThrow("service_budget_ceiling_exceeded")
+
+    // Operator decision 2026-09-19: medical certificates may run up to
+    // AUD 50/day (from AUD 20). The ceiling is the service limit, not a step.
+    const medCerts = stateWithBudget(accountState(), 20_000_000)
+    const medCertsCampaign = medCerts.campaigns[0].values
+      .campaign as Record<string, unknown>
+    medCertsCampaign.name = "JDM | Search | Med Certs"
+    expect(() => validateAdsMutationPolicy({
+      operations: [{
+        ...budgetOperation,
+        expectedMicros: 20_000_000,
+        nextMicros: 50_000_000,
+      }],
+      state: medCerts,
+    })).not.toThrow()
+    expect(() => validateAdsMutationPolicy({
+      operations: [{
+        ...budgetOperation,
+        expectedMicros: 20_000_000,
+        nextMicros: 50_010_000,
+      }],
+      state: medCerts,
+    })).toThrow("service_budget_ceiling_exceeded")
   })
 
   it("keeps at most one enabled Search campaign per launched service", () => {

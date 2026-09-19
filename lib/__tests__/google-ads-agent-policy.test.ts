@@ -271,6 +271,10 @@ describe("Google Ads Agent policy", () => {
         "campaign_scoped_duration",
       ],
     })
+    // Operator decision 2026-09-19: medical certificates scale to AUD 50/day
+    // under a AUD 22 target CPA (the only lane where budget alone buys volume).
+    expect(POLICY.medCerts.dailyBudgetCents).toBe(5000)
+    expect(POLICY.medCerts.targetCpaCents).toBe(2200)
     expect(POLICY.womensHealth.dailyBudgetCents).toBe(5000)
     expect(POLICY.womensHealth.pilot.initialCpcCeilingCents).toBe(400)
     expect(POLICY.womensHealth.pilot.investigateClicks).toBe(10)
