@@ -177,7 +177,7 @@ function HairHeroFacts() {
   return (
     <aside aria-label="Hair loss assessment facts" className="w-[320px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-border/50 bg-white shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:w-[360px]">
       <div className="border-b border-border/50 bg-muted/35 px-5 py-4 dark:border-white/10 dark:bg-white/[0.04]">
-        <p className="text-xs font-medium text-primary">Before you start</p>
+        <p className="text-sm font-medium text-primary">Before you start</p>
         <Heading level="h3" as="h2" className="mt-1">The practical facts</Heading>
       </div>
       <dl className="divide-y divide-border/50 px-5 dark:divide-white/10">
@@ -190,7 +190,7 @@ function HairHeroFacts() {
               <span>{fact.label}</span>
             </dt>
             <dd className="ml-12 mt-1 text-sm font-semibold text-foreground">{fact.value}</dd>
-            <dd className="ml-12 mt-1 text-xs leading-5 text-muted-foreground">{fact.body}</dd>
+            <dd className="ml-12 mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</dd>
           </div>
         ))}
       </dl>
@@ -246,10 +246,10 @@ function HairAssessmentModel() {
                 <ShieldCheck className="h-6 w-6" aria-hidden="true" />
               </span>
               <Heading level="h3" className="mt-4">The combination matters</Heading>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 text-base leading-7 text-muted-foreground">
                 Pattern does not decide suitability on its own. The doctor reviews all four signals before recommending the next step.
               </p>
-              <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-medium text-foreground">
+              <div className="mt-5 flex flex-wrap items-center gap-2 text-sm font-medium text-foreground">
                 <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Pattern</span>
                 <span aria-hidden="true">+</span>
                 <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Tempo</span>
@@ -269,13 +269,13 @@ function HairAssessmentModel() {
                 <li key={outcome.title} className="min-w-0 py-4 first:pt-0 last:pb-0 md:px-5 md:py-0 md:first:pl-0 md:last:pr-0">
                   <outcome.icon className="h-5 w-5 text-[color:var(--service-hair)]" aria-hidden="true" />
                   <p className="mt-3 text-sm font-semibold text-foreground">{outcome.title}</p>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{outcome.body}</p>
+                  <p className="mt-1 text-base leading-7 text-muted-foreground">{outcome.body}</p>
                 </li>
               ))}
             </ul>
           </div>
 
-          <figcaption className="border-t border-border/50 bg-muted/30 px-5 py-3 text-sm leading-6 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
+          <figcaption className="border-t border-border/50 bg-muted/30 px-5 py-3 text-base leading-7 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
             This model explains the information reviewed. It does not diagnose the cause of hair loss or guarantee a prescription. Sudden or patchy loss, painful or infected scalp symptoms, wider body-hair changes, an unclear history, or other signs that need examination may be safer to assess in person. The doctor may ask for more detail, recommend tests or GP review, or decline online care. The doctor decides whether to prescribe.
           </figcaption>
         </figure>
@@ -309,10 +309,10 @@ function HairLossPricingSection({
             <div className="p-6">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Doctor review</p>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary-strong border border-primary/20">One-time</span>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary-strong border border-primary/20">One-time</span>
               </div>
               <p className="mt-3 text-4xl font-semibold tracking-tight text-foreground">{PRICING_DISPLAY.HAIR_LOSS}</p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">No subscription or ongoing InstantMed fee.</p>
+              <p className="mt-2 text-base leading-7 text-muted-foreground">No subscription or ongoing InstantMed fee.</p>
             </div>
             <div className="p-6">
               <ul className="space-y-3">

@@ -97,7 +97,7 @@ async function MaintenanceBanner() {
       </svg>
       <div>
         <p className="text-sm font-medium text-amber-900">We&apos;re currently performing maintenance.</p>
-        <p className="text-xs text-warning">{maintenance.message || "New requests will be accepted soon."}</p>
+        <p className="text-sm text-warning">{maintenance.message || "New requests will be accepted soon."}</p>
       </div>
     </div>
   )

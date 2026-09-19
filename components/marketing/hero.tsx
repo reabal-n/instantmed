@@ -176,7 +176,7 @@ export function Hero({
   const resolvedReassuranceRow = reassuranceRow === undefined
     ? (
         <>
-          <p className="text-xs text-muted-foreground text-center lg:text-left">
+          <p className="text-sm text-muted-foreground text-center lg:text-left">
             {ICONIC_HOOK} {GUARANTEE}
           </p>
           <LastReviewedSignal className="justify-center lg:justify-start" />
@@ -228,7 +228,7 @@ export function Hero({
             {/* Subhead */}
             <div className={immediateSubheadline ? undefined : "hero-subheadline-enter"}>
               {children ?? (
-                <p className="text-sm sm:text-base lg:text-lg leading-[1.5rem] sm:leading-relaxed text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 text-balance">
+                <p className="text-base lg:text-lg leading-relaxed text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 text-balance">
                   {/*
                     nowrap span on "AHPRA-registered" so the hyphen can't break
                     mid-word on narrow viewports. Tier 1 review 2026-05-25
@@ -268,7 +268,7 @@ export function Hero({
                   asChild
                   variant="ghost"
                   size="lg"
-                  className="h-auto min-h-12 whitespace-normal px-4 py-3 text-center text-sm font-medium text-muted-foreground hover:text-foreground"
+                  className="h-auto min-h-12 whitespace-normal px-4 py-3 text-center text-base font-medium text-muted-foreground hover:text-foreground"
                 >
                   <Link href={resolvedSecondary.href}>{resolvedSecondary.text}</Link>
                 </Button>
@@ -307,7 +307,7 @@ export function Hero({
 
           {/* ── Mockup column ─────────────────────────────────────── */}
           {resolvedMockup && (
-            <div className={cn("relative shrink-0 mt-12 max-[240px]:hidden lg:mt-0 self-center", mockupClassName)}>
+            <div data-hero-mockup="" className={cn("relative shrink-0 mt-12 max-[240px]:hidden lg:mt-0 self-center", mockupClassName)}>
               {resolvedMockup}
             </div>
           )}

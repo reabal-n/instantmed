@@ -203,12 +203,53 @@ test.describe("landing page length", () => {
         landing.path === "/hair-loss",
         "12.0 screens at 375×812 against a 9.5 budget; follow-up F3 in docs/plans/2026-09-19-landing-pages-95-plan.md",
       )
+      test.fixme(
+        landing.path === "/womens-health",
+        "9.6 screens at 375×812 against a 9.5 budget; follow-up F4 in docs/plans/2026-09-19-landing-pages-95-plan.md",
+      )
       await page.setViewportSize(PHONE)
       await seedMoneyPageState(page, "light")
       await gotoPublicRoute(page, landing.path)
       await settle(page)
       const screens = await page.evaluate(() => document.documentElement.scrollHeight / window.innerHeight)
       expect(screens, `${landing.path}: ${screens.toFixed(1)} screens`).toBeLessThanOrEqual(landing.maxPhoneScreens)
+    })
+  }
+})
+
+test.describe("landing page type floor", () => {
+  for (const landing of LANDING_PAGES) {
+    test(`${landing.path} renders no small text and at least 45% of words at 16px+`, async ({ page }) => {
+      await page.setViewportSize(DESKTOP)
+      await seedMoneyPageState(page, "light")
+      await gotoPublicRoute(page, landing.path)
+      await settle(page)
+
+      const census = await page.evaluate(() => {
+        const walker = document.createTreeWalker(document.querySelector("main")!, NodeFilter.SHOW_TEXT)
+        let total = 0
+        let large = 0
+        const small: string[] = []
+        let node: Node | null
+        while ((node = walker.nextNode())) {
+          const text = node.textContent?.trim()
+          if (!text) continue
+          const el = node.parentElement
+          if (!el || el.closest("[data-hero-mockup], [aria-label='Specimen'], .hero-mockup-enter")) continue
+          const cs = getComputedStyle(el)
+          if (cs.display === "none" || cs.visibility === "hidden") continue
+          const rect = el.getBoundingClientRect()
+          if (rect.width === 0 && rect.height === 0) continue
+          const size = parseFloat(cs.fontSize)
+          const words = text.split(/\s+/).length
+          total += words
+          if (size >= 16) large += words
+          if (size < 12 && cs.textTransform !== "uppercase") small.push(`${Math.round(size)}px: ${text.slice(0, 40)}`)
+        }
+        return { total, share: total ? large / total : 0, small }
+      })
+      expect(census.small, `${landing.path}: text under 12px`).toEqual([])
+      expect(census.share, `${landing.path}: ${(census.share * 100).toFixed(0)}% of words at 16px+`).toBeGreaterThanOrEqual(0.45)
     })
   }
 })

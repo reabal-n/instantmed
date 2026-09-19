@@ -70,7 +70,7 @@ function ServiceCard({ service }: { service: ServiceDef }) {
         )}
       >
         {disabled ? (
-          <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-lg bg-warning-light px-2.5 py-1 text-xs font-medium text-warning">
+          <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-lg bg-warning-light px-2.5 py-1 text-sm font-medium text-warning">
             <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
             Unavailable
           </span>
@@ -84,7 +84,7 @@ function ServiceCard({ service }: { service: ServiceDef }) {
             variant="sticker"
             stickerLoading="eager"
           />
-          <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+          <p className="shrink-0 text-base font-semibold tabular-nums text-foreground">
             {service.pricePrefix ? `${service.pricePrefix} ` : null}
             {service.price}
           </p>
@@ -93,11 +93,11 @@ function ServiceCard({ service }: { service: ServiceDef }) {
         <Heading level="h3" className="mt-5 text-xl sm:text-2xl">
           {service.title}
         </Heading>
-        <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+        <p className="mt-1.5 text-base leading-6 text-muted-foreground">
           {service.subtitle}
         </p>
 
-        <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+        <ul className="mt-4 space-y-2 text-base text-muted-foreground">
           {detail.benefits.map((benefit) => (
             <li key={benefit} className="flex items-start gap-2">
               <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
@@ -106,7 +106,7 @@ function ServiceCard({ service }: { service: ServiceDef }) {
           ))}
         </ul>
 
-        <span className="mt-auto flex items-center gap-2 pt-6 text-sm font-semibold text-primary">
+        <span className="mt-auto flex items-center gap-2 pt-6 text-base font-semibold text-primary">
           {detail.cta}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </span>
@@ -148,10 +148,10 @@ export function PortfolioRouteMap() {
           </span>
           <div>
             <p className="text-sm font-semibold text-foreground">One secure form per service</p>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            <p className="mt-1 text-base leading-6 text-muted-foreground">
               Each service has its own secure form and safety rules. {FORM_FIRST_WEDGE}
             </p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <p className="mt-2 text-base leading-6 text-muted-foreground">
               Broader concerns, ongoing care, or anything needing an examination belongs with
               your regular GP or an in-person service.
             </p>

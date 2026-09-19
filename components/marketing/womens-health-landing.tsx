@@ -93,7 +93,7 @@ function WomensHealthCommonFacts() {
               <span>{fact.label}</span>
             </dt>
             <dd className="ml-12 mt-1 text-sm font-semibold text-foreground">{fact.value}</dd>
-            <dd className="ml-12 mt-1 text-xs leading-5 text-muted-foreground">{fact.body}</dd>
+            <dd className="ml-12 mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</dd>
           </div>
         ))}
       </dl>
@@ -103,7 +103,7 @@ function WomensHealthCommonFacts() {
 
 function WomensHealthBoundarySection() {
   return (
-    <section aria-labelledby="womens-health-boundary-title" className="bg-muted/30 py-14 dark:bg-white/[0.02] sm:py-16 lg:py-20">
+    <section aria-labelledby="womens-health-boundary-title" className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12 lg:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Safety boundary</SectionPill>
@@ -120,7 +120,7 @@ function WomensHealthBoundarySection() {
                 <Droplets className="h-5 w-5 text-sky-700 dark:text-sky-300" aria-hidden="true" />
                 <Heading level="h3">UTI symptoms</Heading>
               </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              <p className="mt-3 text-base leading-7 text-muted-foreground">
                 Fever or chills, pain in your back or side, vomiting, blood in your urine, pregnancy or possible pregnancy, recurrent infections, pelvic pain, STI concerns, or symptoms that do not fit a simple lower-urinary pattern need in-person assessment. Call 000 for an emergency.
               </p>
             </div>
@@ -129,7 +129,7 @@ function WomensHealthBoundarySection() {
                 <HeartPulse className="h-5 w-5 text-pink-700 dark:text-pink-300" aria-hidden="true" />
                 <Heading level="h3">Starting or switching the pill</Heading>
               </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              <p className="mt-3 text-base leading-7 text-muted-foreground">
                 Possible pregnancy, migraine with aura, clot history, or smoking stop this online start-or-switch assessment before payment. Missing blood pressure context, pelvic pain, heavy bleeding, STI concerns, or other safety uncertainty may also require in-person review or a different assessment.
               </p>
             </div>
@@ -146,7 +146,7 @@ function WomensHealthBoundarySection() {
 
 function WomensHealthReviewAndPriceSection() {
   return (
-    <section id="review-and-price" aria-labelledby="womens-health-review-title" className="py-14 sm:py-16 lg:py-20">
+    <section id="review-and-price" aria-labelledby="womens-health-review-title" className="py-10 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Doctor review and fee</SectionPill>
@@ -160,7 +160,7 @@ function WomensHealthReviewAndPriceSection() {
           <Reveal instant className="rounded-2xl border border-primary/30 bg-white p-6 shadow-xl shadow-primary/[0.1] dark:border-white/15 dark:bg-card dark:shadow-none">
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Doctor review</p>
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary-strong border border-primary/20">One-time</span>
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary-strong border border-primary/20">One-time</span>
             </div>
             <p className="mt-3 text-4xl font-semibold tracking-tight text-foreground">{PRICING_DISPLAY.WOMENS_HEALTH}</p>
             <ul className="mt-5 space-y-3">
@@ -175,7 +175,7 @@ function WomensHealthReviewAndPriceSection() {
               <Stethoscope className="h-6 w-6" aria-hidden="true" />
             </span>
             <Heading level="h3" className="mt-4">AHPRA-registered doctor review</Heading>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <p className="mt-2 text-base leading-7 text-muted-foreground">
               {DOCTOR_REGISTRATION_CLAIM} The doctor may call or message if a safety detail needs clarification, approve when clinically appropriate, decline, or recommend a safer in-person route.
             </p>
             <a
@@ -199,7 +199,7 @@ function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean
   const pillHref = isDisabled ? "/contact" : PILL_REQUEST_HREF
 
   return (
-    <section id="choose-care" className="py-14 sm:py-16 lg:py-20">
+    <section id="choose-care" className="py-10 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="rounded-3xl border border-border/50 bg-[color:var(--morning-ivory)]/65 p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
           <SectionPill>Choose your assessment</SectionPill>
@@ -252,7 +252,7 @@ export function WomensHealthLanding() {
             }}
             secondaryCta={null}
             beforeCta={
-              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-[13px] leading-snug text-foreground lg:mx-0">
+              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground lg:mx-0">
                 <Lock className="mt-px h-4 w-4 shrink-0 text-success" aria-hidden="true" />
                 <span>Private and secure.<span className="text-muted-foreground"> Each focused form is reviewed by an Australian doctor.</span></span>
               </p>

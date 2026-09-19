@@ -125,7 +125,7 @@ function WorkplaceProofPanel() {
         <div className="overflow-hidden rounded-2xl border border-border/45 bg-muted/25 dark:bg-white/[0.04]">
           <EmployerLogoMarquee className="border-0 bg-transparent py-5 sm:py-6" />
         </div>
-        <div className="pt-5 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+        <div className="pt-5 flex items-center justify-center gap-4 text-sm text-muted-foreground">
           <Link
             href="/employers"
             data-med-cert-cta="employer_link"
@@ -144,7 +144,7 @@ function WorkplaceProofPanel() {
             Verify a Certificate
           </Link>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-3 border-t border-border/40 pt-4 text-xs text-muted-foreground dark:border-white/10">
+        <div className="flex flex-wrap items-center justify-center gap-3 border-t border-border/40 pt-4 text-sm text-muted-foreground dark:border-white/10">
           <span className="font-medium text-foreground">Source-backed references:</span>
           <Link
             href="/resources/medical-certificate-employer-policy"
@@ -168,7 +168,7 @@ function WorkplaceProofPanel() {
             <ArrowRight className="h-3 w-3" aria-hidden="true" />
           </Link>
         </div>
-        <p className="border-t border-border/40 pt-4 text-center text-xs leading-relaxed text-muted-foreground dark:border-white/10">
+        <p className="border-t border-border/40 pt-4 text-center text-base leading-relaxed text-muted-foreground dark:border-white/10">
           The Fair Work Act 2009 (Cth), s 107 allows employers to request evidence for personal leave. Fair Work guidance says the evidence should satisfy a reasonable person. Employer and institution policies may vary.
         </p>
       </ServiceClaimSection>
@@ -182,14 +182,14 @@ function FeeSuitabilityPanel() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-4 rounded-[1.75rem] border border-border/50 bg-white p-4 shadow-lg shadow-primary/[0.07] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-5 lg:grid-cols-[0.9fr_1.1fr] lg:p-6">
           <div className="rounded-2xl bg-muted/35 p-5 dark:bg-white/[0.04]">
-            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-sm font-semibold text-primary">
               <ClipboardCheck className="h-3.5 w-3.5" aria-hidden="true" />
               Before payment
             </p>
             <Heading level="h2" className="mb-3 text-balance">
               Clear fee. Clear fallback.
             </Heading>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <p className="text-base leading-relaxed text-muted-foreground">
               Choose the absence length in the form. The request fee, what it
               covers, and the fallback are clear before checkout.
             </p>
@@ -213,7 +213,7 @@ function FeeSuitabilityPanel() {
                   <item.icon className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+                <p className="mt-1.5 text-base leading-relaxed text-muted-foreground">{item.body}</p>
               </div>
             ))}
           </div>
@@ -243,7 +243,7 @@ function MedCertFinalCta() {
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
-        <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+        <p className="mt-4 flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />
           {GUARANTEE}
         </p>

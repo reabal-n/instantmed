@@ -192,7 +192,7 @@ function EdHeroFacts() {
               <span>{fact.label}</span>
             </dt>
             <dd className="ml-12 mt-1 text-sm font-semibold text-foreground">{fact.value}</dd>
-            <dd className="ml-12 mt-1 text-sm leading-5 text-muted-foreground">{fact.body}</dd>
+            <dd className="ml-12 mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</dd>
           </div>
         ))}
       </dl>
@@ -250,7 +250,7 @@ function EdSafetyDecisionMap() {
             <div className="min-w-0 p-5 sm:p-6">
               <div className="flex items-center justify-between gap-3 border-b border-border/50 pb-4">
                 <Heading level="h3">Your private safety screen</Heading>
-                <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary-strong dark:text-primary">Four signals</span>
+                <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-sm font-medium text-primary-strong dark:text-primary">Four signals</span>
               </div>
               <ol className="divide-y divide-border/50">
                 {ED_DECISION_SIGNALS.map((signal, index) => (
@@ -260,7 +260,7 @@ function EdSafetyDecisionMap() {
                     </span>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-foreground"><span className="mr-2 text-muted-foreground" aria-hidden="true">{index + 1}.</span>{signal.title}</p>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{signal.body}</p>
+                      <p className="mt-1 text-base leading-7 text-muted-foreground">{signal.body}</p>
                     </div>
                   </li>
                 ))}
@@ -273,7 +273,7 @@ function EdSafetyDecisionMap() {
                 <Stethoscope className="h-6 w-6" aria-hidden="true" />
               </span>
               <Heading level="h3" className="mt-4">Doctor review</Heading>
-              <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 max-w-xs text-base leading-7 text-muted-foreground">
                 {DOCTOR_REGISTRATION_CLAIM} The doctor weighs the combined clinical picture before any prescribing decision.
               </p>
               <ArrowRight className="mt-3 h-5 w-5 rotate-90 text-primary lg:rotate-0" aria-hidden="true" />
@@ -287,7 +287,7 @@ function EdSafetyDecisionMap() {
                     <outcome.icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
                     <div>
                       <p className="text-sm font-semibold text-foreground">{outcome.title}</p>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{outcome.body}</p>
+                      <p className="mt-1 text-base leading-7 text-muted-foreground">{outcome.body}</p>
                     </div>
                   </li>
                 ))}
@@ -322,7 +322,7 @@ function EdScopeBoundarySection() {
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" aria-hidden="true" />
             <div>
               <Heading level="h3" className="text-base">Do not wait for the online form</Heading>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 text-base leading-7 text-muted-foreground">
                 Call 000 for chest pain, severe breathlessness, collapse, or stroke symptoms. Seek urgent care for an erection lasting more than 4 hours, a painful erection, penile injury, or sudden severe genital pain. Chest-pain medicines, unstable heart symptoms, or uncertainty about current medicines need a safer clinical route before any ED prescribing decision.
               </p>
             </div>
@@ -356,9 +356,9 @@ function EdReviewCostOutcomeSection({
         <ol className="mt-8 grid gap-4 lg:grid-cols-3">
           {REVIEW_STEPS.map((step) => (
             <li key={step.number} className="rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
-              <span className="text-xs font-semibold tracking-[0.12em] text-primary">{step.number}</span>
+              <span className="text-sm font-semibold tracking-[0.12em] text-primary">{step.number}</span>
               <Heading level="h3" className="mt-3 text-base">{step.title}</Heading>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.body}</p>
+              <p className="mt-2 text-base leading-7 text-muted-foreground">{step.body}</p>
             </li>
           ))}
         </ol>
@@ -386,7 +386,7 @@ function EdSourcesSection() {
           <Reveal instant>
             <SectionPill>References</SectionPill>
             <Heading level="h2" className="mt-4 text-balance">Australian safety sources</Heading>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">Reviewed against patient and telehealth guidance. Last reviewed June 2026.</p>
+            <p className="mt-3 text-base leading-7 text-muted-foreground">Reviewed against patient and telehealth guidance. Last reviewed June 2026.</p>
           </Reveal>
           <Reveal instant>
             <ul className="divide-y divide-border/50 rounded-2xl border border-border/50 bg-white px-5 dark:border-white/15 dark:bg-card">

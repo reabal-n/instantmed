@@ -144,7 +144,7 @@ function RepeatEligibilitySection() {
                 </li>
               ))}
             </ul>
-            <p className="mt-5 text-sm leading-6 text-muted-foreground">
+            <p className="mt-5 text-base leading-7 text-muted-foreground">
               For new medicines or complex care, see your regular GP. For urgent symptoms, seek urgent or emergency care.
             </p>
           </div>
@@ -183,7 +183,7 @@ function PrescriptionLifecycleGraphic() {
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <step.icon className="h-5 w-5" aria-hidden="true" />
                 </span>
-                <span className="text-xs font-semibold text-primary" aria-hidden="true">
+                <span className="text-sm font-semibold text-primary" aria-hidden="true">
                   {String(index + 1).padStart(2, "0")}
                 </span>
               </div>
@@ -194,7 +194,7 @@ function PrescriptionLifecycleGraphic() {
                 {step.description}
               </p>
               {"callout" in step && (
-                <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary-strong">
+                <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-sm font-medium text-primary-strong">
                   <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
                   {step.callout}
                 </span>
@@ -301,20 +301,20 @@ export function PrescriptionsLanding() {
             primaryCtaContent={<PrescriptionHeroCTA />}
             secondaryCta={null}
             beforeCta={(
-              <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-foreground/75 lg:justify-start sm:text-sm">
+              <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-medium text-foreground/75 lg:justify-start">
                 <li>Australia only</li>
                 <li>Ages 18+</li>
                 <li>{getApprovedClaim("prescribing_identity_required")}</li>
               </ul>
             )}
             reassuranceRow={(
-              <p className="text-center text-xs leading-5 text-muted-foreground lg:text-left">
+              <p className="text-center text-sm leading-6 text-muted-foreground lg:text-left">
                 Takes about 3 minutes. Every request is reviewed before a prescribing decision.
               </p>
             )}
             mockup={<EScriptHeroMockup />}
           >
-            <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-6 text-muted-foreground sm:mb-7 sm:text-base sm:leading-7 lg:mx-0 lg:text-lg">
+            <p className="mx-auto mb-6 max-w-xl text-balance text-base leading-7 text-muted-foreground sm:mb-7 sm:text-base sm:leading-7 lg:mx-0 lg:text-lg">
               {FORM_FIRST_WEDGE} For one regular medicine you already take. If approved, your eScript token is sent by SMS for any Australian pharmacy.
             </p>
           </Hero>
