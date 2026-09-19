@@ -115,7 +115,7 @@ function RepeatEligibilitySection() {
             For one regular medicine you already take.
           </Heading>
           <p className="mt-3 text-base leading-7 text-muted-foreground">
-            This pathway is deliberately narrow. The doctor checks that a repeat remains safe and appropriate before making a prescribing decision.
+            This service is deliberately narrow. The doctor checks that a repeat is still safe and appropriate before deciding.
           </p>
         </div>
 
@@ -123,7 +123,7 @@ function RepeatEligibilitySection() {
           <div className="p-6 sm:p-8">
             <div className="flex items-center gap-2 text-foreground">
               <CheckCircle2 className="h-5 w-5 text-success" aria-hidden="true" />
-              <Heading level="h3" className="text-lg">This pathway may fit when</Heading>
+              <Heading level="h3" className="text-lg">A repeat may fit when</Heading>
             </div>
             <ul className="mt-5 space-y-3">
               {SUITABLE_REQUESTS.map((item) => (
@@ -138,7 +138,7 @@ function RepeatEligibilitySection() {
           <div className="border-t border-border/50 p-6 dark:border-white/10 sm:p-8 md:border-t-0">
             <div className="flex items-center gap-2 text-foreground">
               <ShieldAlert className="h-5 w-5 text-primary" aria-hidden="true" />
-              <Heading level="h3" className="text-lg">Use another care pathway when</Heading>
+              <Heading level="h3" className="text-lg">See your GP or another service when</Heading>
             </div>
             <ul className="mt-5 space-y-3">
               {OUT_OF_SCOPE_REQUESTS.map((item) => (
@@ -298,7 +298,7 @@ export function PrescriptionsLanding() {
             titleClassName={moneyH1Font.className}
             immediateSubheadline
             primaryCta={{
-              text: `Renew medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
+              text: `Get your repeat · ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
               href: "/request?service=repeat-script",
               wrapperId: PRESCRIPTION_HERO_CTA_ID,
             }}
@@ -319,7 +319,7 @@ export function PrescriptionsLanding() {
             mockup={<EScriptHeroMockup />}
           >
             <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-6 text-muted-foreground sm:mb-7 sm:text-base sm:leading-7 lg:mx-0 lg:text-lg">
-              {FORM_FIRST_WEDGE} This pathway is for one regular medication you have taken before. If approved, your eScript token is sent by SMS for an Australian pharmacy.
+              {FORM_FIRST_WEDGE} For one regular medicine you already take. If approved, your eScript token is sent by SMS for any Australian pharmacy.
             </p>
           </Hero>
 
@@ -345,7 +345,7 @@ export function PrescriptionsLanding() {
             <CTABanner
               title="Ready to request your repeat?"
               subtitle="Share your current medication and safety details for doctor review. An eScript is sent only if approved."
-              ctaText="Renew your medication"
+              ctaText="Get your repeat"
               ctaHref="/request?service=repeat-script"
               availabilityServiceId="scripts"
               price={PRICING.REPEAT_SCRIPT}
