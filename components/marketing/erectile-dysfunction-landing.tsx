@@ -364,7 +364,7 @@ function EdReviewCostOutcomeSection({
         </ol>
 
         <Reveal instant className="mt-5 overflow-hidden rounded-2xl border border-primary/25 bg-white shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
-          <div className="border-t border-border/50 p-5 text-center">
+          <div className="p-5 text-center">
             <Button asChild size="lg" onClick={onStart}>
               <Link href={isDisabled ? "/contact" : requestCtaHref}>
                 {isDisabled ? "Contact us" : "Start private assessment"}

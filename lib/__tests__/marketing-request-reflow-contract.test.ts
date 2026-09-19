@@ -178,9 +178,7 @@ describe("marketing and request reflow contract", () => {
     const medCertLanding = read("components/marketing/med-cert-landing.tsx")
     const medCertMockup = read("components/marketing/mockups/med-cert-hero-mockup.tsx")
 
-    expect(medCertLanding).toContain(
-      'className="relative mt-12 shrink-0 self-center max-[240px]:hidden lg:mt-0"',
-    )
+    expect(medCertLanding).toContain("mockup={<MedCertHeroMockup />}")
     expect(medCertMockup).toContain('"w-[352px] xl:w-[384px]"')
     expect(medCertMockup).not.toContain('"w-[22rem] xl:w-[24rem]"')
   })
