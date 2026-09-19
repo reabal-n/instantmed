@@ -39,10 +39,6 @@ async function settle(page: Page) {
 test.describe("landing page geometry", () => {
   for (const landing of LANDING_PAGES) {
     test(`${landing.path} hero pill clears the fixed header on a phone`, async ({ page }) => {
-      test.fixme(
-        landing.path === "/erectile-dysfunction",
-        "bespoke hero has no shared pill until Task 21",
-      )
       await page.setViewportSize(PHONE)
       await seedMoneyPageState(page, "light")
       await gotoPublicRoute(page, landing.path)
@@ -103,10 +99,6 @@ test.describe("landing page geometry", () => {
 test.describe("landing page desktop rhythm", () => {
   for (const landing of LANDING_PAGES) {
     test(`${landing.path} keeps the hero and the next section within 120px`, async ({ page }) => {
-      test.fixme(
-        landing.path === "/erectile-dysfunction",
-        "hero migrates to the shared primitive in Task 21",
-      )
       await page.setViewportSize(DESKTOP)
       await seedMoneyPageState(page, "light")
       await gotoPublicRoute(page, landing.path)

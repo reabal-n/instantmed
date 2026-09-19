@@ -43,7 +43,6 @@ describe("marketing and request reflow contract", () => {
   })
 
   it.each([
-    ["components/marketing/erectile-dysfunction-landing.tsx", 1],
     ["components/marketing/uti-assessment-landing.tsx", 2],
     ["components/marketing/contraceptive-pill-assessment-landing.tsx", 2],
   ])("%s uses explicit single-column hero tracks", (path, expectedReflowableCtas) => {

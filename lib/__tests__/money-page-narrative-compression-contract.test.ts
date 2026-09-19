@@ -168,7 +168,7 @@ describe("money-page narrative compression", () => {
     expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
 
     expect(source).toContain("Start private assessment")
-    expect(source).toContain('href="#how-it-works"')
+    expect(source).toContain('href: "#how-it-works"')
     expect(source).toContain("See how it works")
     expect(source).not.toContain("About 3 minutes")
     expect(source).not.toContain("exercise tolerance")
@@ -195,13 +195,12 @@ describe("money-page narrative compression", () => {
     expect(page).toContain("ED_LANDING_FAQ")
 
     expectInOrder(source, [
-      "function EdHero",
-      "<EdHero",
+      "function EdHeroFacts",
+      "<Hero",
       "<EdReviewCostOutcomeSection",
       "<EdEligibilitySection />",
       "<EdSafetyDecisionMap />",
       "<EdScopeBoundarySection />",
-      "<EdAlternativesSection />",
       "<EdSourcesSection />",
       "items={ED_LANDING_FAQ}",
       "<EdFinalCta",
