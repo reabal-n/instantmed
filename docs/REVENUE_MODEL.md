@@ -17,6 +17,8 @@ The active goal is staged, evidence-backed revenue growth:
 | **$5,000/month** rolling net-retained revenue run-rate | Within 90 days | Proves repeatable demand across more than one order source. |
 | **$10,000/month** rolling net-retained revenue run-rate | Next phase | Triggers a formal capacity and staffing review; it does not trigger an automatic hire. |
 
+**Attainment record:** all three rungs are closed as of 2026-09-19 by explicit operator decision; the dated checkpoints live in `docs/ROADMAP.md` §2. The next rung is not yet defined and this ladder is not extended by inference.
+
 `$1M` annual gross remains a distant directional north star for the one-off model. It is not the active planning frame and does not override the milestone ladder.
 
 ### Milestone Definition
@@ -188,6 +190,8 @@ Revenue alone does not decide staffing. The `$10,000` rung triggers a capacity r
 | Queue P95 at or above 6 hours, oldest unresolved work at or above 20 hours, or any 24-hour breach | Investigate the affected service. Elapsed time alone creates neither an automatic commercial hold nor a hire. |
 | Fresh completed clinical QA is behind | Review QA capacity; workload alone is advisory. Selection alone is not completed QA. |
 | Weight-management scaling is considered | The 2026-08-10 launch is one-off review only (D-E): continuation is a new consult, so no standing monitoring capacity is assumed. Any move beyond that model needs its own capacity decision. |
+
+**Capacity review outcome — 2026-09-19:** the `$10,000` rung review was held when the rung closed. The owner-doctor keeps sole clinical coverage and no second doctor is hired: at current volume a hire would consume the margin the rung exists to protect. Queue P95 over the preceding seven Sydney days (prescriptions 6.3h, consults 5.3h, medical certificates 0.3h) stays advisory. The sole automatic extra-doctor trigger above is unchanged.
 
 Future clinicians use `doctor` accounts with verified capability flags. Future non-clinical operators use `support`. The owner remains the sole human admin.
 
