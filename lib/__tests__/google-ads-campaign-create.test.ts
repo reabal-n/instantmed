@@ -325,7 +325,7 @@ describe("Google Ads campaign creation boundary", () => {
     expect(() => validateAdsMutationPolicy({
       operations: [{
         ...campaignCreateOperation as unknown as Record<string, unknown>,
-        cpcBidMicros: 3_000_001,
+        cpcBidMicros: 4_000_001,
       }],
       state,
     })).toThrow("specialty_cpc_ceiling_exceeded")

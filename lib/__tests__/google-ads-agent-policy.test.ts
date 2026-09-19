@@ -272,7 +272,7 @@ describe("Google Ads Agent policy", () => {
       ],
     })
     expect(POLICY.womensHealth.dailyBudgetCents).toBe(5000)
-    expect(POLICY.womensHealth.pilot.initialCpcCeilingCents).toBe(300)
+    expect(POLICY.womensHealth.pilot.initialCpcCeilingCents).toBe(400)
     expect(POLICY.womensHealth.pilot.investigateClicks).toBe(10)
     expect(POLICY.womensHealth.pilot.maximumLossCents).toBe(15000)
     expect(POLICY.womensHealth.pilot.pauseProposalClicks).toBe(30)
