@@ -188,7 +188,7 @@ export function Hero({
     // overflow-x-clip (not overflow-hidden) so the mockup's floating cards
     // can extend slightly outside the section without horizontal scrollbars
     // on iOS.
-    <section data-hero="" className={cn("relative overflow-x-clip pt-6 pb-12 sm:pt-14 sm:pb-20 lg:pt-20 lg:pb-24", className)}>
+    <section data-hero="" className={cn("relative overflow-x-clip pt-6 pb-8 sm:pt-14 sm:pb-12 lg:pt-20 lg:pb-10", className)}>
       <div className="mx-auto max-w-5xl px-4 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:items-start lg:gap-12 xl:gap-14">
           {/* ── Text column ───────────────────────────────────────── */}

@@ -130,7 +130,7 @@ export function PortfolioRouteMap() {
     <section
       id="pricing"
       aria-labelledby="portfolio-route-map-title"
-      className="scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16 lg:py-24"
+      className="scroll-mt-20 px-4 pt-8 pb-12 sm:px-6 sm:pt-10 sm:pb-16 lg:pt-14 lg:pb-24"
     >
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">

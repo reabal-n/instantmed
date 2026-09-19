@@ -297,7 +297,7 @@ function HairLossPricingSection({
   requestCtaHref: string
 }) {
   return (
-    <section id="pricing" aria-label="Hair loss assessment pricing" className="py-14 sm:py-16 lg:py-20">
+    <section id="pricing" aria-label="Hair loss assessment pricing" className="py-14 sm:py-16 lg:pt-14 lg:pb-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-2xl text-center">
           <SectionPill>Fee and dispensing</SectionPill>

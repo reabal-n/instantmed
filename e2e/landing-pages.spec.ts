@@ -12,7 +12,6 @@ import { expect, test, type Page } from "@playwright/test"
 import { gotoPublicRoute, seedMoneyPageState } from "./helpers/money-pages"
 
 const PHONE = { width: 375, height: 812 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- wired up when a later task in this plan adds a desktop-viewport gate to this file
 const DESKTOP = { width: 1440, height: 900 }
 
 /** Phase-1 phone height budgets in 812px screens. Ratchet down, never up. */
@@ -93,6 +92,36 @@ test.describe("landing page geometry", () => {
       // height (40px+), far past this tolerance.
       const spread = Math.max(...tops) - Math.min(...tops)
       expect(spread, `${landing.path}: trust marks wrapped to a second row`).toBeLessThanOrEqual(8)
+    })
+  }
+})
+
+test.describe("landing page desktop rhythm", () => {
+  for (const landing of LANDING_PAGES) {
+    test(`${landing.path} keeps the hero and the next section within 120px`, async ({ page }) => {
+      await page.setViewportSize(DESKTOP)
+      await seedMoneyPageState(page, "light")
+      await gotoPublicRoute(page, landing.path)
+      await settle(page)
+
+      const gap = await page.evaluate(() => {
+        const hero = document.querySelector("[data-hero]")
+        if (!hero) return null
+        const heroBottom = Math.max(
+          ...Array.from(hero.querySelectorAll("a, p, span, img, svg")).map(
+            (el) => el.getBoundingClientRect().bottom,
+          ),
+        )
+        let next = hero.nextElementSibling
+        while (next && !(next as HTMLElement).innerText?.trim()) next = next.nextElementSibling
+        if (!next) return null
+        const firstText = Array.from(next.querySelectorAll("h2, h3, p, span")).find(
+          (el) => (el as HTMLElement).innerText.trim().length > 0,
+        )
+        return firstText ? firstText.getBoundingClientRect().top - heroBottom : null
+      })
+      expect(gap, `${landing.path}: no [data-hero] section`).not.toBeNull()
+      expect(gap!, `${landing.path}: ${Math.round(gap!)}px of empty space under the hero`).toBeLessThanOrEqual(120)
     })
   }
 })

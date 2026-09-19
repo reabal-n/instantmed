@@ -107,7 +107,7 @@ const PRESCRIPTION_HERO_CTA_ID = "prescription-hero-cta"
 
 function RepeatEligibilitySection() {
   return (
-    <section aria-labelledby="repeat-eligibility-title" className="py-12 sm:py-16 lg:py-20">
+    <section aria-labelledby="repeat-eligibility-title" className="py-12 sm:py-16 lg:pt-14 lg:pb-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <SectionPill>Check the fit</SectionPill>
