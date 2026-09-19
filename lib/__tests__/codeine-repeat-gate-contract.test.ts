@@ -57,6 +57,21 @@ describe("codeine repeat gate coverage", () => {
     expect(source).toContain("setRequestAgainOn(")
   })
 
+  it("warns signed-in patients at the medication step through the patient-scoped action", () => {
+    const action = read("app/actions/codeine-repeat-check.ts")
+    expect(action).toContain('"use server"')
+    expect(action).toContain("getAuthenticatedUserWithProfile(")
+    expect(action).toContain("checkServerActionRateLimit(")
+    expect(action).toContain("evaluateCodeineRepeatGate(")
+    expect(action).toMatch(/z\.object\(/)
+
+    const step = read("components/request/steps/medication-step.tsx")
+    expect(step).toContain('from "@/app/actions/codeine-repeat-check"')
+    expect(step).toContain("codeineWindowActive")
+    expect(step).toMatch(/canContinue = [^\n]*!codeineWindowActive/)
+    expect(step).toContain('data-testid="codeine-repeat-window-early-block"')
+  })
+
   it("documents the rule in the clinical doc and the project brain", () => {
     expect(read("docs/CLINICAL.md")).toContain("once every 7 days")
     expect(read("CLAUDE.md")).toContain("codeine-repeat-gate")

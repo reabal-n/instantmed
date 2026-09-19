@@ -181,7 +181,7 @@ test.describe("Prescription: codeine combination repeat inside 7 days", () => {
     await expect(page.locator("iframe[src*='stripe']")).toHaveCount(0)
   })
 
-  test("signed-in patient sees the issue date and the day they can request again", async ({ page }) => {
+  test("signed-in patient is stopped at the medication step with the request-again date", async ({ page }) => {
     const login = await loginAsTestUser(page, "patient")
     expect(login.success, login.error).toBe(true)
 
@@ -189,22 +189,22 @@ test.describe("Prescription: codeine combination repeat inside 7 days", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    await completeMedicationStep(page)
-    await completeMedicalHistoryStep(page)
-    await completeDetailsStep(page)
-    await attemptPayment(page)
+    // The early warning fires from the typed medicine alone; the checkout
+    // gate behind it is covered by the guest run above and by unit tests.
+    await waitForStep(page, /Your medication/i)
+    await page.locator("#medication-name-0").fill("Panadeine Forte")
+    await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+    await page.locator("#medication-strength-0").fill("500 mg/30 mg")
 
-    const block = page.getByTestId("codeine-repeat-window-block")
+    const block = page.getByTestId("codeine-repeat-window-early-block")
     await expect(block).toBeVisible({ timeout: 20_000 })
     await expect(block).toContainText(/at most once every 7 days/i)
     await expect(block).toContainText(/You can request it again from/i)
-    await expect(block).toContainText(/No payment has been taken/i)
-    // The dated block offers no "Edit your details" action: there is nothing
-    // to edit, only a date to wait for. (The review summary's own edit
-    // controls live outside the alert and are not what this checks.)
-    await expect(block.getByRole("button", { name: /Edit your details/i })).toHaveCount(0)
+    await expect(block).toContainText(/No payment is taken/i)
+    // The likely-decline acknowledgement is moot while the window blocks.
+    await expect(page.getByRole("button", { name: /I understand, continue/i })).toHaveCount(0)
+    await expect(page.locator('button[data-intake-primary-action="true"]').last()).toHaveAttribute("data-intake-primary-ready", "false")
     await expect(page).toHaveURL(/\/request/)
-    await expect(page.locator("iframe[src*='stripe']")).toHaveCount(0)
 
     await logoutTestUser(page).catch(() => {})
   })
