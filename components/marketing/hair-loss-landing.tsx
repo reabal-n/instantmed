@@ -6,6 +6,7 @@ import {
   CalendarRange,
   CheckCircle2,
   HeartPulse,
+  Lock,
   MessageCircle,
   ScanSearch,
   ShieldCheck,
@@ -37,10 +38,6 @@ const HowItWorksInline = dynamic(
 const DoctorProfileSection = dynamic(
   () => import("@/components/marketing/sections/doctor-profile-section").then((module) => module.DoctorProfileSection),
   { loading: () => <div className="min-h-[200px]" /> },
-)
-const RegulatoryPartners = dynamic(
-  () => import("@/components/marketing/regulatory-partners").then((module) => module.RegulatoryPartners),
-  { loading: () => <div className="min-h-[120px]" /> },
 )
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((module) => module.FAQSection),
@@ -80,7 +77,7 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "sent" as const,
     step: 3,
     title: "Receive the next step",
-    description: "The doctor may approve if clinically appropriate, ask for more detail, or recommend in-person care.",
+    description: "The doctor may approve, ask for more detail, or recommend in-person care.",
     time: "After review",
   },
 ]
@@ -108,7 +105,7 @@ const HAIR_HERO_FACTS = [
     icon: Stethoscope,
     label: "If approved",
     value: PRESCRIPTION_IF_APPROVED_CLAIM,
-    body: "Fill it at an Australian pharmacy. Medicine cost is separate. Prescription is not guaranteed.",
+    body: "Fill it at an Australian pharmacy. Medicine cost is separate.",
   },
 ] as const
 
@@ -180,7 +177,7 @@ function HairHeroFacts() {
   return (
     <aside aria-label="Hair loss assessment facts" className="w-[320px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-border/50 bg-white shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:w-[360px]">
       <div className="border-b border-border/50 bg-muted/35 px-5 py-4 dark:border-white/10 dark:bg-white/[0.04]">
-        <p className="text-xs font-medium text-primary">Before you start</p>
+        <p className="text-sm font-medium text-primary">Before you start</p>
         <Heading level="h3" as="h2" className="mt-1">The practical facts</Heading>
       </div>
       <dl className="divide-y divide-border/50 px-5 dark:divide-white/10">
@@ -193,7 +190,7 @@ function HairHeroFacts() {
               <span>{fact.label}</span>
             </dt>
             <dd className="ml-12 mt-1 text-sm font-semibold text-foreground">{fact.value}</dd>
-            <dd className="ml-12 mt-1 text-xs leading-5 text-muted-foreground">{fact.body}</dd>
+            <dd className="ml-12 mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</dd>
           </div>
         ))}
       </dl>
@@ -206,7 +203,7 @@ function HairAssessmentModel() {
     <section
       id="assessment-model"
       aria-labelledby="hair-assessment-model-title"
-      className="bg-muted/30 py-14 dark:bg-white/[0.02] sm:py-16 lg:py-20"
+      className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12 lg:py-16"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
@@ -249,10 +246,10 @@ function HairAssessmentModel() {
                 <ShieldCheck className="h-6 w-6" aria-hidden="true" />
               </span>
               <Heading level="h3" className="mt-4">The combination matters</Heading>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 text-base leading-7 text-muted-foreground">
                 Pattern does not decide suitability on its own. The doctor reviews all four signals before recommending the next step.
               </p>
-              <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-medium text-foreground">
+              <div className="mt-5 flex flex-wrap items-center gap-2 text-sm font-medium text-foreground">
                 <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Pattern</span>
                 <span aria-hidden="true">+</span>
                 <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Tempo</span>
@@ -272,14 +269,14 @@ function HairAssessmentModel() {
                 <li key={outcome.title} className="min-w-0 py-4 first:pt-0 last:pb-0 md:px-5 md:py-0 md:first:pl-0 md:last:pr-0">
                   <outcome.icon className="h-5 w-5 text-[color:var(--service-hair)]" aria-hidden="true" />
                   <p className="mt-3 text-sm font-semibold text-foreground">{outcome.title}</p>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{outcome.body}</p>
+                  <p className="mt-1 text-base leading-7 text-muted-foreground">{outcome.body}</p>
                 </li>
               ))}
             </ul>
           </div>
 
-          <figcaption className="border-t border-border/50 bg-muted/30 px-5 py-3 text-sm leading-6 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
-            This model explains the information reviewed. It does not diagnose the cause of hair loss or guarantee a prescription.
+          <figcaption className="border-t border-border/50 bg-muted/30 px-5 py-3 text-base leading-7 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
+            This model explains the information reviewed. It does not diagnose the cause of hair loss or guarantee a prescription. Sudden or patchy loss, painful or infected scalp symptoms, wider body-hair changes, an unclear history, or other signs that need examination may be safer to assess in person. The doctor may ask for more detail, recommend tests or GP review, or decline online care. The doctor decides whether to prescribe.
           </figcaption>
         </figure>
       </div>
@@ -297,7 +294,7 @@ function HairLossPricingSection({
   requestCtaHref: string
 }) {
   return (
-    <section id="pricing" aria-label="Hair loss assessment pricing" className="py-14 sm:py-16 lg:py-20">
+    <section id="pricing" aria-label="Hair loss assessment pricing" className="py-10 sm:py-12 lg:pt-14 lg:pb-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-2xl text-center">
           <SectionPill>Fee and dispensing</SectionPill>
@@ -312,10 +309,10 @@ function HairLossPricingSection({
             <div className="p-6">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Doctor review</p>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary-strong border border-primary/20">One-time</span>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary-strong border border-primary/20">One-time</span>
               </div>
               <p className="mt-3 text-4xl font-semibold tracking-tight text-foreground">{PRICING_DISPLAY.HAIR_LOSS}</p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">No subscription or ongoing InstantMed fee.</p>
+              <p className="mt-2 text-base leading-7 text-muted-foreground">No subscription or ongoing InstantMed fee.</p>
             </div>
             <div className="p-6">
               <ul className="space-y-3">
@@ -330,28 +327,6 @@ function HairLossPricingSection({
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
-            </div>
-          </div>
-        </Reveal>
-
-        <RegulatoryPartners className="mt-8 border-t border-border/50 pb-0 pt-7 dark:border-white/10" />
-      </div>
-    </section>
-  )
-}
-
-function HairLossLimitationsSection() {
-  return (
-    <section aria-labelledby="hair-loss-limits-title" className="bg-muted/30 py-12 dark:bg-white/[0.02] sm:py-14">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <Reveal instant className="rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950/20 sm:p-6">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" aria-hidden="true" />
-            <div>
-              <Heading id="hair-loss-limits-title" level="h2" className="text-lg">What this online review cannot settle on its own</Heading>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                A hair pattern does not diagnose the cause of hair loss. Sudden or patchy loss, painful or infected scalp symptoms, wider body-hair changes, an unclear history, or other signs that need examination may be safer to assess in person. The doctor may ask for more detail, recommend tests or GP review, or decline online care. A prescription is never guaranteed.
-              </p>
             </div>
           </div>
         </Reveal>
@@ -379,9 +354,9 @@ export function HairLossLanding() {
             }}
             secondaryCta={null}
             beforeCta={
-              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-[13px] leading-snug text-foreground lg:mx-0">
-                <Sparkles className="mt-px h-4 w-4 shrink-0 text-success" aria-hidden="true" />
-                <span>Clinical assessment.<span className="text-muted-foreground"> Your doctor decides what is clinically appropriate.</span></span>
+              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground lg:mx-0">
+                <Lock className="mt-px h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                <span>Private and secure.<span className="text-muted-foreground"> Reviewed by an Australian doctor.</span></span>
               </p>
             }
             mockup={<HairHeroFacts />}
@@ -409,7 +384,6 @@ export function HairLossLanding() {
           />
 
           <DoctorProfileSection instant />
-          <HairLossLimitationsSection />
 
           <FAQSection
             pill="FAQ"
@@ -424,7 +398,7 @@ export function HairLossLanding() {
 
           <CTABanner
             title="Start a hair loss assessment."
-            subtitle="A doctor reviews your assessment and prescribes only when it is clinically appropriate."
+            subtitle="A doctor reviews your assessment before deciding whether to prescribe."
             ctaText="Start assessment"
             ctaHref={requestCtaHref}
             onCtaClick={handleFinalCTA}

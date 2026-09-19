@@ -30,10 +30,6 @@ import { moneyH1Font } from "@/lib/fonts/money-h1"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"
 
-const RegulatoryPartners = dynamic(
-  () => import("@/components/marketing/regulatory-partners").then((m) => m.RegulatoryPartners),
-  { loading: () => <div className="min-h-[120px]" /> },
-)
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((m) => ({ default: m.FAQSection })),
   { loading: () => <div className="min-h-[400px]" /> },
@@ -107,7 +103,7 @@ const PRESCRIPTION_HERO_CTA_ID = "prescription-hero-cta"
 
 function RepeatEligibilitySection() {
   return (
-    <section aria-labelledby="repeat-eligibility-title" className="py-12 sm:py-16 lg:py-20">
+    <section aria-labelledby="repeat-eligibility-title" className="py-12 sm:py-16 lg:pt-14 lg:pb-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <SectionPill>Check the fit</SectionPill>
@@ -115,7 +111,7 @@ function RepeatEligibilitySection() {
             For one regular medicine you already take.
           </Heading>
           <p className="mt-3 text-base leading-7 text-muted-foreground">
-            This pathway is deliberately narrow. The doctor checks that a repeat remains safe and appropriate before making a prescribing decision.
+            This service is deliberately narrow. The doctor checks that a repeat is still safe and appropriate before deciding.
           </p>
         </div>
 
@@ -123,7 +119,7 @@ function RepeatEligibilitySection() {
           <div className="p-6 sm:p-8">
             <div className="flex items-center gap-2 text-foreground">
               <CheckCircle2 className="h-5 w-5 text-success" aria-hidden="true" />
-              <Heading level="h3" className="text-lg">This pathway may fit when</Heading>
+              <Heading level="h3" className="text-lg">A repeat may fit when</Heading>
             </div>
             <ul className="mt-5 space-y-3">
               {SUITABLE_REQUESTS.map((item) => (
@@ -138,7 +134,7 @@ function RepeatEligibilitySection() {
           <div className="border-t border-border/50 p-6 dark:border-white/10 sm:p-8 md:border-t-0">
             <div className="flex items-center gap-2 text-foreground">
               <ShieldAlert className="h-5 w-5 text-primary" aria-hidden="true" />
-              <Heading level="h3" className="text-lg">Use another care pathway when</Heading>
+              <Heading level="h3" className="text-lg">See your GP or another service when</Heading>
             </div>
             <ul className="mt-5 space-y-3">
               {OUT_OF_SCOPE_REQUESTS.map((item) => (
@@ -148,7 +144,7 @@ function RepeatEligibilitySection() {
                 </li>
               ))}
             </ul>
-            <p className="mt-5 text-sm leading-6 text-muted-foreground">
+            <p className="mt-5 text-base leading-7 text-muted-foreground">
               For new medicines or complex care, see your regular GP. For urgent symptoms, seek urgent or emergency care.
             </p>
           </div>
@@ -187,7 +183,7 @@ function PrescriptionLifecycleGraphic() {
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <step.icon className="h-5 w-5" aria-hidden="true" />
                 </span>
-                <span className="text-xs font-semibold text-primary" aria-hidden="true">
+                <span className="text-sm font-semibold text-primary" aria-hidden="true">
                   {String(index + 1).padStart(2, "0")}
                 </span>
               </div>
@@ -198,7 +194,7 @@ function PrescriptionLifecycleGraphic() {
                 {step.description}
               </p>
               {"callout" in step && (
-                <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary-strong">
+                <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-sm font-medium text-primary-strong">
                   <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
                   {step.callout}
                 </span>
@@ -287,7 +283,7 @@ function PrescriptionResourceNav() {
 export function PrescriptionsLanding() {
   return (
     <MarketingPageShell>
-      <div className="min-h-screen overflow-x-hidden">
+      <div className="min-h-screen overflow-x-hidden pt-[calc(5rem+env(safe-area-inset-top))]">
         <PrescriptionsClientControls stickyTargetId={PRESCRIPTION_HERO_CTA_ID} />
         <ReturningPatientBanner className="mx-4 mt-2" />
         <Navbar variant="marketing" />
@@ -298,28 +294,28 @@ export function PrescriptionsLanding() {
             titleClassName={moneyH1Font.className}
             immediateSubheadline
             primaryCta={{
-              text: `Renew medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
+              text: `Get your repeat · ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
               href: "/request?service=repeat-script",
               wrapperId: PRESCRIPTION_HERO_CTA_ID,
             }}
             primaryCtaContent={<PrescriptionHeroCTA />}
             secondaryCta={null}
             beforeCta={(
-              <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-foreground/75 lg:justify-start sm:text-sm">
+              <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-medium text-foreground/75 lg:justify-start">
                 <li>Australia only</li>
                 <li>Ages 18+</li>
                 <li>{getApprovedClaim("prescribing_identity_required")}</li>
               </ul>
             )}
             reassuranceRow={(
-              <p className="text-center text-xs leading-5 text-muted-foreground lg:text-left">
+              <p className="text-center text-sm leading-6 text-muted-foreground lg:text-left">
                 Takes about 3 minutes. Every request is reviewed before a prescribing decision.
               </p>
             )}
             mockup={<EScriptHeroMockup />}
           >
-            <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-6 text-muted-foreground sm:mb-7 sm:text-base sm:leading-7 lg:mx-0 lg:text-lg">
-              {FORM_FIRST_WEDGE} This pathway is for one regular medication you have taken before. If approved, your eScript token is sent by SMS for an Australian pharmacy.
+            <p className="mx-auto mb-6 max-w-xl text-balance text-base leading-7 text-muted-foreground sm:mb-7 lg:mx-0 lg:text-lg">
+              {FORM_FIRST_WEDGE} For one regular medicine you already take. If approved, your eScript token is sent by SMS for any Australian pharmacy.
             </p>
           </Hero>
 
@@ -339,13 +335,11 @@ export function PrescriptionsLanding() {
             />
           </div>
 
-          <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
-
           <div data-prescription-cta="final_cta">
             <CTABanner
               title="Ready to request your repeat?"
               subtitle="Share your current medication and safety details for doctor review. An eScript is sent only if approved."
-              ctaText="Renew your medication"
+              ctaText="Get your repeat"
               ctaHref="/request?service=repeat-script"
               availabilityServiceId="scripts"
               price={PRICING.REPEAT_SCRIPT}

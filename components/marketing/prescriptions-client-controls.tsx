@@ -28,7 +28,7 @@ export function PrescriptionHeroCTA() {
       >
         {isDisabled
           ? "Contact us"
-          : `Renew medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`}
+          : `Get your repeat · ${PRICING_DISPLAY.REPEAT_SCRIPT}`}
         <ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" />
       </Link>
     </Button>
@@ -98,7 +98,7 @@ export function PrescriptionsClientControls({
       <UnavailableBanner show={isDisabled} />
       <StickyCTA
         show={showStickyCTA}
-        ctaText={isDisabled ? "Contact us" : `Renew your medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`}
+        ctaText={isDisabled ? "Contact us" : `Get your repeat · ${PRICING_DISPLAY.REPEAT_SCRIPT}`}
         ctaHref={isDisabled ? "/contact" : "/request?service=repeat-script"}
         mobileSummary="Repeat medication request"
         isDisabled={isDisabled}

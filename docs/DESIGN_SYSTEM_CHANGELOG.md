@@ -14,6 +14,7 @@
 - Documented `lib/marketing/approved-claims.ts` as the owner of high-risk factual strings and evidence receipts. `lib/marketing/voice.ts` remains the stable brand-alias and voice-policy API.
 - Compressed marketing hero/reveal motion to 220-250ms strong ease-out timing with 50ms sequencing. The mobile drawer is transform-only at 220ms in / 160ms out, sticky purchase bars use 180ms in / 140ms out, and request progress uses `scaleX()` instead of width animation.
 - Tightened money-page image policy: regulatory marks use the Next optimizer, below-fold educational visuals remain lazy with padded-viewport `sizes`, brand-logo priority is caller-scoped, and the doctor signature reserves a fixed display box backed by exact source dimensions.
+- Rewrote DESIGN.md §6 Hero Rules (2026-09-19): the shared `Hero` primitive from `components/marketing/hero.tsx` now renders on every landing page, with no bespoke hero markup permitted. The pill carries the Google-mark review badge, the shell reserves the fixed header offset (`pt-[calc(5rem+env(safe-area-inset-top))]`), display titles are `hyphens-none`, and the next section must start within 120px of the hero at 1440×900. No design-system version bump is required.
 
 ### Removed
 - The unmounted hair-loss hero mockup, which had survived only through a source-inspection test after the live page moved to its assessment-model art direction.

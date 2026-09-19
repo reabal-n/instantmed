@@ -109,7 +109,7 @@ export function HeroDoctorReviewMockup() {
   const animate = !prefersReducedMotion
 
   return (
-    <div className="relative w-full max-w-[360px]" aria-label="Example of doctor review">
+    <div data-hero-facsimile="" className="relative w-full max-w-[360px]" aria-label="Example of doctor review">
       {/* Primary card */}
       <motion.div
         data-reduced-motion-final="doctor-card"

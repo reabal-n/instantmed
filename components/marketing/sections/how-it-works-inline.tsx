@@ -63,13 +63,13 @@ export function HowItWorksInline({
                   Reveal triggers instead of snapping to its final state.
                   Tier 1 review 2026-05-25 (/hair-loss #4): "step-card
                   checkmarks pop in as a state-flip". */}
-              <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary font-semibold text-xs mb-3 transition-[opacity,transform] duration-200 ease-in-out">
+              <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary font-semibold text-sm mb-3 transition-[opacity,transform] duration-200 ease-in-out">
                 {step.step}
               </div>
               <StickerIcon name={step.sticker} size={52} className="mx-auto mb-3" />
               <Heading level="h3" className="mb-2">{step.title}</Heading>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-3">{step.description}</p>
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
+              <p className="text-base text-muted-foreground leading-relaxed mb-3">{step.description}</p>
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary">
                 <Clock className="h-3 w-3" />
                 {step.time}
               </span>

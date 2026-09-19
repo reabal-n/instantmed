@@ -700,7 +700,10 @@ test("ED E1 leads with the private one-off outcome before clinical detail", asyn
     }
 
     const practicalOffer = page.locator("#how-it-works")
-    await expect(practicalOffer).toContainText("Medicine cost is separate")
+    await expect(practicalOffer).toContainText(
+      "Answer the erection-pattern, heart and stroke history, very low blood pressure, medicine, allergy, and medical-history questions.",
+    )
+    await expect(heroFacts).toContainText("Medicine cost is separate.")
     expect(
       await hero.evaluate((element) => element.nextElementSibling?.id ?? null),
       `${state.name} practical offer should directly follow the Hero`,
@@ -763,9 +766,15 @@ test("ED E1 contains the Hero at narrow zoom and enlarged text", async ({ browse
       await expect(heading).toHaveCSS("hyphens", "none")
       const hero = heading.locator("xpath=ancestor::section[1]")
       await expect(hero).toContainText("Start private assessment")
-      await expect(hero.getByRole("complementary", { name: "ED assessment facts" })).toContainText(
-        "The practical facts",
-      )
+      const heroFacts = hero.getByRole("complementary", { name: "ED assessment facts" })
+      if (state.name === "zoom-200-proxy") {
+        // The shared Hero hides its mockup column below 240px (max-[240px]:hidden,
+        // pinned by marketing-request-reflow-contract.test.ts), so the facts aside
+        // is correctly absent from the accessibility tree at this width.
+        await expect(heroFacts).toBeHidden()
+      } else {
+        await expect(heroFacts).toContainText("The practical facts")
+      }
 
       const containment = await heading.evaluate((element) => {
         const headingRect = element.getBoundingClientRect()
@@ -1513,7 +1522,10 @@ test.describe("money-page reduced-motion foundations", () => {
     for (const reducedMotion of ["no-preference", "reduce"] as const) {
       const context = await browser.newContext({
         baseURL: projectBaseURL(testInfo),
-        viewport: { width: 390, height: 844 },
+        // Viewport bumped to desktop (Task 15, 19 Sep 2026): the hero mockup
+        // this case asserts on is now `hidden lg:block` (desktop-only by
+        // design), so a phone-width context can no longer see it.
+        viewport: { width: 1440, height: 900 },
         screen: { width: 390, height: 844 },
         isMobile: true,
         hasTouch: true,

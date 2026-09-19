@@ -139,6 +139,7 @@ September 10 added [profit-growth execution](../audits/2026-09-10-profit-growth-
 | [docs/plans/2026-08-05-repeat-rx-dedicated-service-routing.md](../plans/2026-08-05-repeat-rx-dedicated-service-routing.md) | Implemented record for tiered dedicated-service routing out of the repeat-Rx lane (ED + hair loss hard-routed, weight-loss class flagged); reference only, shipped in PR #433 |
 | [docs/plans/2026-08-07-weight-loss-launch-plan.md](../plans/2026-08-07-weight-loss-launch-plan.md) | Implemented decision record for the weight-management launch (operator decisions D-A..D-E; production go-live PR #447 on 2026-08-10); paid advertising remains separately gated |
 | [docs/plans/2026-08-24-free-channel-compounding-and-repeat-rx-conversion.md](../plans/2026-08-24-free-channel-compounding-and-repeat-rx-conversion.md) | Execution plan under ROADMAP ranks 6 and 1: deepen order-proven free-channel pages, one bounded on-site prescription experiment, repeat-Rx medication-step mobile conversion repair; records the AI Attribution Expansion Gate as cleared |
+| [docs/plans/2026-09-19-landing-pages-95-plan.md](../plans/2026-09-19-landing-pages-95-plan.md) | Reference-only execution plan for the 19 September landing-page audit: 28 tasks, gates G1 to G15, and the follow-ups appendix (F1 to F8) for the deferred phone-length budgets; shipped as PR #589. |
 
 Root plan files preserve implementation detail only. They are not active merely because they remain outside the archive; `docs/ROADMAP.md` is the sole queue.
 
