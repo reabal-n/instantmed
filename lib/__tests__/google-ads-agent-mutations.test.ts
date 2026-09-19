@@ -1578,6 +1578,27 @@ describe("Google Ads mutation gateway", () => {
     else expect(validate).toThrow("specialty_cpc_ceiling_exceeded")
   })
 
+  it("keeps medical-certificate bidding on Maximize Conversions with a target CPA at or under policy", () => {
+    const state = accountState()
+    const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
+    campaign.name = "JDM | Search | Med Certs"
+    campaign.biddingStrategyType = "MAXIMIZE_CONVERSIONS"
+    campaign.maximizeConversions = { targetCpaMicros: "20000000" }
+    const bidding = (next: Record<string, unknown>) => () => validateAdsMutationPolicy({
+      operations: [{
+        expected: { strategy: "MAXIMIZE_CONVERSIONS", targetCpaMicros: 20_000_000 },
+        kind: "campaign_bidding",
+        next,
+        resourceName: campaignResourceName,
+      } as unknown as AdsMutationOperation],
+      state,
+    })
+    expect(bidding({ strategy: "MAXIMIZE_CONVERSIONS", targetCpaMicros: 22_000_000 })).not.toThrow()
+    expect(bidding({ strategy: "MAXIMIZE_CONVERSIONS", targetCpaMicros: 22_000_001 })).toThrow("medcerts_target_cpa_ceiling_exceeded")
+    expect(bidding({ strategy: "MAXIMIZE_CONVERSIONS" })).toThrow("medcerts_target_cpa_required")
+    expect(bidding({ strategy: "MANUAL_CPC" })).toThrow("medcerts_bidding_strategy_rejected")
+  })
+
   it.each([3_500_000, 4_010_000])("checks Women's Health Manual CPC keyword bids at %i", (cpcBidMicros) => {
     const state = accountState()
     const campaign = state.campaigns[0].values.campaign as Record<string, unknown>

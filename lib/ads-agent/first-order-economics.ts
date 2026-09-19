@@ -4,11 +4,15 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { resolveGoogleAdsPurchaseCampaignId } from "@/lib/ads-agent/campaign-attribution"
 import {
+  aggregateCampaignRepeatValue,
   aggregateFirstOrderCampaignEconomics,
   type CampaignPurchaseRow,
+  type CohortPurchaseRow,
   type PurchaseHistoryRow,
+  REPEAT_COHORT_WINDOW_DAYS,
 } from "@/lib/ads-agent/first-order-economics-core"
-import type { AdsSnapshotWindow, CampaignEconomics } from "@/lib/ads-agent/types"
+import { POLICY } from "@/lib/ads-agent/policy"
+import type { AdsRepeatValueEvidence, AdsSnapshotWindow, CampaignEconomics } from "@/lib/ads-agent/types"
 import { GOOGLE_ADS_ATTRIBUTION_SELECT } from "@/lib/analytics/google-ads-post-payment"
 import {
   collectCustomerGrowthAttributionIntakeIds,
@@ -64,5 +68,70 @@ export async function readFirstOrderCampaignEconomics(args: {
     })
   } catch {
     return args.campaigns.map((campaign) => ({ ...campaign, firstOrder: null }))
+  }
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Read only: the matured first-order cohort for each campaign and its 60-day
+ * repeat cash on any channel. Horizon = 60 days of maturity plus the cohort
+ * span before the window end. Any failure yields null for every campaign.
+ */
+export async function readCampaignRepeatValue(args: {
+  campaigns: CampaignEconomics[]
+  range: AdsSnapshotWindow
+  supabase: SupabaseClient
+}): Promise<Map<string, AdsRepeatValueEvidence | null>> {
+  const result = new Map<string, AdsRepeatValueEvidence | null>(
+    args.campaigns.map((campaign) => [campaign.campaignId, null]),
+  )
+  const until = new Date(Date.parse(args.range.endUtcExclusive) - 1)
+  const cohortEnd = new Date(until.getTime() - REPEAT_COHORT_WINDOW_DAYS * DAY_MS)
+  const cohortStart = new Date(
+    until.getTime() - (REPEAT_COHORT_WINDOW_DAYS + POLICY.scripts.scale.repeatValue.cohortSpanDays) * DAY_MS,
+  )
+  try {
+    const evidence = await readCustomerGrowthRevenueEvidence(args.supabase, cohortStart, until)
+    const ids = [...collectCustomerGrowthAttributionIntakeIds(evidence)]
+    const rows: CampaignPurchaseRow[] = []
+    for (let index = 0; index < ids.length; index += CHUNK_SIZE) {
+      const chunk = ids.slice(index, index + CHUNK_SIZE)
+      const read = await filterReportableIntakes(args.supabase.from("intakes")
+        .select(`id, patient_id, paid_at, stripe_fee_cents, stripe_balance_transaction_id, stripe_fee_synced_at, ${GOOGLE_ADS_ATTRIBUTION_SELECT}`, { count: "exact" })
+        .in("id", chunk).limit(CHUNK_SIZE))
+      if (read.error || read.count !== chunk.length || read.data?.length !== chunk.length) throw new Error("repeat_value_rows_incomplete")
+      rows.push(...read.data as CampaignPurchaseRow[])
+    }
+    const campaignIds = new Set(args.campaigns.map((campaign) => campaign.campaignId))
+    const cohortRows = rows.filter((row) => {
+      const paidAt = Date.parse(row.paid_at ?? "")
+      return campaignIds.has(resolveGoogleAdsPurchaseCampaignId(row) ?? "")
+        && paidAt >= cohortStart.getTime() && paidAt <= cohortEnd.getTime()
+    })
+    if (cohortRows.some((row) => !row.patient_id)) throw new Error("repeat_value_identity_unavailable")
+    const patientIds = [...new Set(cohortRows.map((row) => row.patient_id!))]
+    const history: CohortPurchaseRow[] = []
+    for (let index = 0; index < patientIds.length; index += CHUNK_SIZE) {
+      const read = await filterReportableIntakes(args.supabase.from("intakes")
+        .select("id, patient_id, paid_at, amount_cents, stripe_fee_cents, stripe_balance_transaction_id, stripe_fee_synced_at", { count: "exact" })
+        .in("patient_id", patientIds.slice(index, index + CHUNK_SIZE))
+        .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
+        .not("paid_at", "is", null).lte("paid_at", until.toISOString()).limit(MAX_HISTORY_ROWS))
+      if (read.error || typeof read.count !== "number" || read.count !== read.data?.length) throw new Error("repeat_value_history_incomplete")
+      history.push(...read.data as CohortPurchaseRow[])
+    }
+    for (const campaign of args.campaigns) {
+      try {
+        result.set(campaign.campaignId, aggregateCampaignRepeatValue({
+          campaignId: campaign.campaignId, cohortEnd, cohortRows, cohortStart, evidence, history, until,
+        }))
+      } catch {
+        result.set(campaign.campaignId, null)
+      }
+    }
+    return result
+  } catch {
+    return result
   }
 }

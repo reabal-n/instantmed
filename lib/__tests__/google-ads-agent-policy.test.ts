@@ -274,12 +274,49 @@ describe("Google Ads Agent policy", () => {
     }
   })
 
+  it("lifts the Scripts cash ceiling with matured-cohort repeat value, still under the 50% tier", () => {
+    const scripts = campaign({
+      biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
+      budgetAmountMicros: 120_000_000,
+      budgetResourceName: "customers/9205010513/campaignBudgets/15589755119",
+      targetRoas: 1.5,
+      orders: 134,
+      serviceOrders: { scripts: 134 },
+      spendCents: 282_318,
+      netRetainedRevenueCents: 407_795,
+      stripeFeeCents: 12_071,
+      contributionCents: 407_795 - 12_071 - 282_318,
+      firstOrder: {
+        orders: 97, stripeFeeCents: 8_563, netRetainedRevenueCents: 313_470, contributionCents: 22_589,
+        repeatValue: {
+          cohortWindowDays: 60, cohortStartUtc: "2026-04-11T00:00:00.000Z", cohortEndUtc: "2026-07-20T13:59:59.999Z",
+          maturedFirstOrders: 60, repeatOrders: 14, repeatNetRetainedRevenueCents: 90_000, repeatStripeFeeCents: 6_540,
+          estimatedFeeOrders: 3, repeatContributionPerFirstOrderCents: 1_391,
+        },
+      },
+    })
+    const blendedCeiling = Math.floor(120_000_000 * (407_795 - 12_071 - 1) / 282_318)
+    const cohortCeiling = Math.floor(120_000_000 * (313_470 - 8_563 + 97 * 1_391 - 1) / 282_318)
+    expect(cohortCeiling).toBeGreaterThan(blendedCeiling)
+    expect(cohortCeiling).toBeGreaterThan(180_000_000)
+    const authorized = authorizeScriptsBudgetScale({ campaign: scripts, expectedMicros: 120_000_000, nextMicros: 180_000_000 })
+    expect(authorized.maximumNextMicros).toBe(180_000_000)
+    expect(authorized.advisoryReasonCodes).toContain("REPEAT_VALUE_COHORT_APPLIED")
+
+    const thin = { ...scripts, firstOrder: { ...scripts.firstOrder!, repeatValue: { ...scripts.firstOrder!.repeatValue!, maturedFirstOrders: 10 } } }
+    const withoutCohort = authorizeScriptsBudgetScale({ campaign: thin, expectedMicros: 120_000_000, nextMicros: 150_000_000 })
+    expect(withoutCohort.maximumNextMicros).toBe(blendedCeiling)
+    expect(withoutCohort.advisoryReasonCodes).not.toContain("REPEAT_VALUE_COHORT_APPLIED")
+    expect(() => authorizeScriptsBudgetScale({ campaign: thin, expectedMicros: 120_000_000, nextMicros: blendedCeiling + 1 })).toThrow("scripts_budget_authorization_exceeded")
+  })
+
   it("pins the campaign constitution and safety limits", () => {
     expect(POLICY.attribution.minimumExpectedServiceOrderShare).toBe(0.90)
     expect(POLICY.scripts.scale.refundRateReviewThreshold).toBe(0.10)
     expect(POLICY.scripts.scale.smallSampleOrderThreshold).toBe(10)
     expect(POLICY.scripts.scale.initialTargetRoas).toBe(1.35)
     expect(POLICY.scripts.scale.maximumBudgetStep).toBe(0.50)
+    expect(POLICY.scripts.scale.repeatValue).toEqual({ cohortWindowDays: 60, cohortSpanDays: 90, minimumMaturedFirstOrders: 20 })
     expect(POLICY.scripts.scale.budgetStepTiers).toEqual([
       expect.objectContaining({ name: "positive", maximumBudgetStep: 0.50 }),
     ])
