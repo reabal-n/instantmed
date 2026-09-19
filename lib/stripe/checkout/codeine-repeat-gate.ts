@@ -29,9 +29,9 @@ import { checkoutFailure, type CheckoutFailureResult } from "../checkout-failure
 
 type SupabaseClient = ReturnType<typeof createServiceRoleClient>
 
-export const CODEINE_REPEAT_RULE_ID = "codeine_repeat_within_7d"
+const CODEINE_REPEAT_RULE_ID = "codeine_repeat_within_7d"
 
-export const CODEINE_REPEAT_GUEST_MESSAGE = "Please sign in to request this medicine again."
+const CODEINE_REPEAT_GUEST_MESSAGE = "Please sign in to request this medicine again."
 
 export type CodeineRepeatGateResult =
   | { blocked: false }
@@ -39,7 +39,7 @@ export type CodeineRepeatGateResult =
 
 export type BlockedCodeineRepeatGate = Extract<CodeineRepeatGateResult, { blocked: true }>
 
-export function requestsCodeineCombinationMedicine(answers: Record<string, unknown>): boolean {
+function requestsCodeineCombinationMedicine(answers: Record<string, unknown>): boolean {
   return extractRepeatScriptMedications(answers).some((entry) =>
     isCodeineCombinationMedication(buildRepeatScriptMedicationValidationText(entry)),
   )
@@ -73,7 +73,7 @@ export async function evaluateCodeineRepeatGate(args: {
   }
 }
 
-export function codeineRepeatBlockMessage(gate: BlockedCodeineRepeatGate): string {
+function codeineRepeatBlockMessage(gate: BlockedCodeineRepeatGate): string {
   return (
     `We issued a prescription containing codeine for you on ${formatRequestAgainDate(gate.latestIssuedDate)}. `
     + "Our doctors prescribe codeine combination medicines at most once every 7 days, so this request can't be paid for yet. "
