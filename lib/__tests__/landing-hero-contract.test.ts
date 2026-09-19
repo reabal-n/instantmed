@@ -17,7 +17,7 @@ describe("landing hero contract (19 Sep 2026 audit)", () => {
     const pillStart = hero.indexOf("function buildDefaultPill")
     const pillEnd = hero.indexOf("const DEFAULT_TITLE")
     expect(pillStart).toBeGreaterThan(-1)
-    expect(hero.slice(pillStart, pillEnd)).toContain('<GoogleReviewsBadge variant="inline" />')
+    expect(hero.slice(pillStart, pillEnd)).toContain('<GoogleReviewsBadge />')
   })
 
   it("keeps the trust row to two marks on one row", () => {

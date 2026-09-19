@@ -14,7 +14,7 @@ const PHONE = { width: 375, height: 812 }
 const DESKTOP = { width: 1440, height: 900 }
 
 /** Phase-1 phone height budgets in 812px screens. Ratchet down, never up. */
-export const LANDING_PAGES = [
+const LANDING_PAGES = [
   // 9.0: the how-it-works proof section (Task 15) outweighs the hidden hero mock; the six-card chooser is ~2.5 screens on its own.
   { path: "/", maxPhoneScreens: 9.0 },
   { path: "/medical-certificate", maxPhoneScreens: 10.0 },
@@ -48,10 +48,11 @@ test.describe("landing page geometry", () => {
       await expect(pill).toBeVisible()
       const pillBox = await pill.boundingBox()
       expect(pillBox).not.toBeNull()
+      const header = await headerHeight(page)
       expect(
         pillBox!.y,
-        `${landing.path}: pill top ${pillBox!.y} sits under the ${await headerHeight(page)}px fixed header`,
-      ).toBeGreaterThanOrEqual(await headerHeight(page))
+        `${landing.path}: pill top ${pillBox!.y} sits under the ${header}px fixed header`,
+      ).toBeGreaterThanOrEqual(header)
     })
 
     test(`${landing.path} keeps the primary CTA inside the first phone viewport`, async ({ page }) => {
@@ -193,15 +194,15 @@ test.describe("landing page length", () => {
     test(`${landing.path} fits ${landing.maxPhoneScreens} phone screens`, async ({ page }) => {
       test.fixme(
         landing.path === "/medical-certificate",
-        "10.4 screens at 375×812 against a 10.0 budget; follow-up F1 in docs/plans/2026-09-19-landing-pages-95-plan.md",
+        "10.8 screens at 375×812 against a 10.0 budget; follow-up F1 in docs/plans/2026-09-19-landing-pages-95-plan.md",
       )
       test.fixme(
         landing.path === "/erectile-dysfunction",
-        "10.7 screens at 375×812 against a 9.5 budget; follow-up F2 in docs/plans/2026-09-19-landing-pages-95-plan.md",
+        "11.3 screens at 375×812 against a 9.5 budget; follow-up F2 in docs/plans/2026-09-19-landing-pages-95-plan.md",
       )
       test.fixme(
         landing.path === "/hair-loss",
-        "12.0 screens at 375×812 against a 9.5 budget; follow-up F3 in docs/plans/2026-09-19-landing-pages-95-plan.md",
+        "12.3 screens at 375×812 against a 9.5 budget; follow-up F3 in docs/plans/2026-09-19-landing-pages-95-plan.md",
       )
       test.fixme(
         landing.path === "/womens-health",
@@ -235,7 +236,7 @@ test.describe("landing page type floor", () => {
           const text = node.textContent?.trim()
           if (!text) continue
           const el = node.parentElement
-          if (!el || el.closest("[data-hero-mockup], [aria-label='Specimen'], .hero-mockup-enter")) continue
+          if (!el || el.closest("[data-hero-facsimile], .hero-mockup-enter, .hero-mobile-mockup-enter")) continue
           const cs = getComputedStyle(el)
           if (cs.display === "none" || cs.visibility === "hidden") continue
           const rect = el.getBoundingClientRect()

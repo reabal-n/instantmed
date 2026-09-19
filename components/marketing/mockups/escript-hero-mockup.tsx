@@ -81,6 +81,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
     // 2026-05-25 (/prescriptions #2): "hero phone mockup clips on right
     // margin at 375px".
     <div
+      data-hero-facsimile=""
       className={cn(
         "relative",
         compact ? "w-full" : "w-72 xl:w-80 max-w-full",

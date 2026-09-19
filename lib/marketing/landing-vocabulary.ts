@@ -11,6 +11,8 @@
 /** Files whose rendered strings patients read on a landing page. */
 export const LANDING_SURFACES = [
   "app/(marketing)/page.tsx",
+  "components/marketing/regulatory-partners.tsx",
+  "components/marketing/home-service-links.tsx",
   "components/marketing/portfolio-route-map.tsx",
   "components/marketing/med-cert-landing.tsx",
   "components/marketing/med-cert-client-controls.tsx",

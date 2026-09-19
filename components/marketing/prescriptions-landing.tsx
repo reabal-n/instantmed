@@ -314,7 +314,7 @@ export function PrescriptionsLanding() {
             )}
             mockup={<EScriptHeroMockup />}
           >
-            <p className="mx-auto mb-6 max-w-xl text-balance text-base leading-7 text-muted-foreground sm:mb-7 sm:text-base sm:leading-7 lg:mx-0 lg:text-lg">
+            <p className="mx-auto mb-6 max-w-xl text-balance text-base leading-7 text-muted-foreground sm:mb-7 lg:mx-0 lg:text-lg">
               {FORM_FIRST_WEDGE} For one regular medicine you already take. If approved, your eScript token is sent by SMS for any Australian pharmacy.
             </p>
           </Hero>

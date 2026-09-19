@@ -15,23 +15,20 @@ import { GOOGLE_REVIEWS } from '@/lib/social-proof'
  * Gates on GOOGLE_REVIEWS.enabled — renders nothing until the flag is
  * flipped on `lib/social-proof/index.ts`.
  *
- * Usage: trust strips. Do not render in portals.
+ * Usage: leading mark inside the shared Hero pill (see DESIGN.md §9). Do not
+ * render in portals. The bordered-pill "badge" rendering had no remaining
+ * consumer after the Hero pill composition change and was removed 2026-09-20.
  */
 interface GoogleReviewsBadgeProps {
   className?: string
-  /** "badge" is the bordered pill; "inline" is G mark + stars for use inside another pill. */
-  variant?: 'badge' | 'inline'
 }
 
-export function GoogleReviewsBadge({ className, variant = 'badge' }: GoogleReviewsBadgeProps) {
+export function GoogleReviewsBadge({ className }: GoogleReviewsBadgeProps) {
   if (!GOOGLE_REVIEWS.enabled) return null
 
   const rating = GOOGLE_REVIEWS.rating
   const filled = Math.round(rating)
-  const frame =
-    variant === 'inline'
-      ? 'inline-flex items-center gap-1.5'
-      : 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-sm'
+  const frame = 'inline-flex items-center gap-1.5'
 
   return (
     <div role="img" aria-label="Google star rating" className={`${frame} ${className ?? ''}`}>

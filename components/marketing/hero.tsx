@@ -117,7 +117,7 @@ function buildDefaultPill(liveWait: WaitState | undefined, pillLabel: string) {
     <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-2.5 rounded-full px-3 py-1.5 text-sm font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
       {GOOGLE_REVIEWS.enabled && (
         <>
-          <GoogleReviewsBadge variant="inline" />
+          <GoogleReviewsBadge />
           <span className="text-border/70" aria-hidden="true">·</span>
         </>
       )}

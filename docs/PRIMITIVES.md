@@ -126,6 +126,8 @@ Metric-backed wait display per service. No fake randomization.
 
 The medical-certificate page passes `getWaitState(new Date(), 'med-cert')` into `<Hero liveWait>`; the home page passes the default (med-cert) state.
 
+`/medical-certificate` and `/` both set `revalidate = 3600`, so each ISR regeneration re-runs `getWaitState()`'s two service-role Supabase reads; the displayed wait figure in the cached HTML can lag the true queue state by up to that one-hour window.
+
 **Components:** `LiveWaitTime` (single service), `WaitTimeStrip` (all services in a row).
 
 ---

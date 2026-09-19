@@ -2,13 +2,11 @@ import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
-import { GoogleAdsCert } from '@/components/marketing/google-ads-cert'
 import { Hero } from '@/components/marketing/hero'
 import { HeroDoctorReviewMockup } from '@/components/marketing/hero-doctor-review-mockup'
 import { HomeClientControls } from '@/components/marketing/home-client-controls'
 import { HomeServiceLinks } from '@/components/marketing/home-service-links'
 import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
-import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { PortfolioRouteMap } from '@/components/marketing/portfolio-route-map'
 import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
@@ -179,12 +177,6 @@ export default async function HomePage() {
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
             mockupClassName="hidden lg:block"
-            trustRow={(
-              <>
-                <GoogleAdsCert size="sm" />
-                <LegitScriptSeal size="sm" />
-              </>
-            )}
           >
             <h2 className="text-xl sm:text-2xl lg:text-3xl text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-4 sm:mb-6 leading-snug font-normal tracking-tight">
               {PROP_PHRASE}
@@ -195,7 +187,7 @@ export default async function HomePage() {
             </p>
           </Hero>
 
-          {/* Card-based service chooser: common requests first, then focused assessments. */}
+          {/* Card-based service chooser: common requests first, then the specialty assessments. */}
           <PortfolioRouteMap />
 
           <HowItWorksInline

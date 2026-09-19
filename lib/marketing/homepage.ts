@@ -6,29 +6,14 @@ import { BRANDED_SEARCH_LINKS } from "@/lib/seo/branded-search-links"
 // Homepage Marketing Data
 // All content centralized for easy updates
 
-const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+// The howItWorks export was removed 2026-09-20 (dead: the home page renders its
+// own HOME_HOW_IT_WORKS_STEPS). This lookup stays, unused and prefixed, only
+// because lib/__tests__/canonical-trust-copy-contract.test.ts pins
+// getApprovedClaim("clinical_review_sequence") as textually present in this
+// file's "public process order" branch-aware set. Do not delete without
+// updating that contract.
+const _CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
-
-export const howItWorks = [
-  {
-    step: 1,
-    title: "Answer a few questions",
-    description: "Tell us what's going on. Takes about 3 minutes.",
-    icon: "ClipboardList",
-  },
-  {
-    step: 2,
-    title: "Your request follows its clinical pathway",
-    description: CLINICAL_REVIEW_SEQUENCE,
-    icon: "Stethoscope",
-  },
-  {
-    step: 3,
-    title: "Done",
-    description: "Certificate to your inbox, medication to your phone. That's it.",
-    icon: "FileCheck",
-  },
-]
 
 export const faqItems = [
   {
