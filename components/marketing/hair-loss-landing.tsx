@@ -6,6 +6,7 @@ import {
   CalendarRange,
   CheckCircle2,
   HeartPulse,
+  Lock,
   MessageCircle,
   ScanSearch,
   ShieldCheck,
@@ -80,7 +81,7 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "sent" as const,
     step: 3,
     title: "Receive the next step",
-    description: "The doctor may approve if clinically appropriate, ask for more detail, or recommend in-person care.",
+    description: "The doctor may approve, ask for more detail, or recommend in-person care.",
     time: "After review",
   },
 ]
@@ -108,7 +109,7 @@ const HAIR_HERO_FACTS = [
     icon: Stethoscope,
     label: "If approved",
     value: PRESCRIPTION_IF_APPROVED_CLAIM,
-    body: "Fill it at an Australian pharmacy. Medicine cost is separate. Prescription is not guaranteed.",
+    body: "Fill it at an Australian pharmacy. Medicine cost is separate.",
   },
 ] as const
 
@@ -350,7 +351,7 @@ function HairLossLimitationsSection() {
             <div>
               <Heading id="hair-loss-limits-title" level="h2" className="text-lg">What this online review cannot settle on its own</Heading>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                A hair pattern does not diagnose the cause of hair loss. Sudden or patchy loss, painful or infected scalp symptoms, wider body-hair changes, an unclear history, or other signs that need examination may be safer to assess in person. The doctor may ask for more detail, recommend tests or GP review, or decline online care. A prescription is never guaranteed.
+                A hair pattern does not diagnose the cause of hair loss. Sudden or patchy loss, painful or infected scalp symptoms, wider body-hair changes, an unclear history, or other signs that need examination may be safer to assess in person. The doctor may ask for more detail, recommend tests or GP review, or decline online care. The doctor decides whether to prescribe.
               </p>
             </div>
           </div>
@@ -379,9 +380,9 @@ export function HairLossLanding() {
             }}
             secondaryCta={null}
             beforeCta={
-              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-[13px] leading-snug text-foreground lg:mx-0">
-                <Sparkles className="mt-px h-4 w-4 shrink-0 text-success" aria-hidden="true" />
-                <span>Clinical assessment.<span className="text-muted-foreground"> Your doctor decides what is clinically appropriate.</span></span>
+              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground lg:mx-0">
+                <Lock className="mt-px h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                <span>Private and secure.<span className="text-muted-foreground"> Reviewed by an Australian doctor.</span></span>
               </p>
             }
             mockup={<HairHeroFacts />}
@@ -424,7 +425,7 @@ export function HairLossLanding() {
 
           <CTABanner
             title="Start a hair loss assessment."
-            subtitle="A doctor reviews your assessment and prescribes only when it is clinically appropriate."
+            subtitle="A doctor reviews your assessment before deciding whether to prescribe."
             ctaText="Start assessment"
             ctaHref={requestCtaHref}
             onCtaClick={handleFinalCTA}

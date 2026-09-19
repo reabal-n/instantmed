@@ -50,9 +50,9 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "consult",
   analyticsId: "womens-health",
   sticky: {
-    ctaText: "Start private assessment",
+    ctaText: `Start assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
     ctaHref: REQUEST_HREF,
-    mobileSummary: "Two focused women's-health pathways",
+    mobileSummary: "UTI or the pill",
     responseTime: "Doctor-reviewed after submission",
   },
 }
@@ -62,7 +62,7 @@ const COMMON_FACTS = [
     icon: ShieldCheck,
     label: "Eligibility",
     value: "Australia only · Ages 18+",
-    body: "Both pathways are for adults in Australia.",
+    body: "Both assessments are for adults in Australia.",
   },
   {
     icon: BadgeCheck,
@@ -107,13 +107,13 @@ function WomensHealthCommonFacts() {
 
 function WomensHealthPathwaysSection() {
   return (
-    <section id="pathways" className="py-14 sm:py-16 lg:py-20">
+    <section id="assessments" className="py-14 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Choose the right screen</SectionPill>
-          <Heading level="h2" className="mt-4">Two focused pathways, not a general consultation</Heading>
+          <Heading level="h2" className="mt-4">Two assessments, not a general consultation</Heading>
           <p className="mt-3 text-base leading-7 text-muted-foreground">
-            Each child page explains its own form and safety checks before you start. Choose the concern that matches today.
+            Each assessment page explains its own form and safety checks before you start. Choose the concern that matches today.
           </p>
         </Reveal>
 
@@ -169,7 +169,7 @@ function WomensHealthBoundarySection() {
           <SectionPill>Safety boundary</SectionPill>
           <Heading id="womens-health-boundary-title" level="h2" className="mt-4">Check what takes you out of online care</Heading>
           <p className="mt-3 text-base leading-7 text-muted-foreground">
-            The forms screen these issues before payment where possible. Do not start with an online pathway when the safer route is already clear.
+            The forms screen these issues before payment where possible. Do not start online when the safer route is already clear.
           </p>
         </Reveal>
 
@@ -190,13 +190,13 @@ function WomensHealthBoundarySection() {
                 <Heading level="h3">Starting or switching the pill</Heading>
               </div>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                Possible pregnancy, migraine with aura, clot history, or smoking route you away from this online start-or-switch pathway before payment. Missing blood pressure context, pelvic pain, heavy bleeding, STI concerns, or other safety uncertainty may also require in-person review or a different pathway.
+                Possible pregnancy, migraine with aura, clot history, or smoking stop this online start-or-switch assessment before payment. Missing blood pressure context, pelvic pain, heavy bleeding, STI concerns, or other safety uncertainty may also require in-person review or a different assessment.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3 border-t border-rose-200 bg-rose-50 px-5 py-4 text-sm leading-6 text-rose-950 dark:border-rose-900 dark:bg-rose-950/20 dark:text-rose-100 sm:px-6">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-            <p><span className="font-semibold">Prescription is never guaranteed.</span> The reviewing doctor decides whether online care is clinically appropriate after the complete safety screen.</p>
+            <p><span className="font-semibold">Prescription is never guaranteed.</span> The reviewing doctor decides whether online care is suitable after the complete safety screen.</p>
           </div>
         </Reveal>
       </div>
@@ -210,9 +210,9 @@ function WomensHealthReviewAndPriceSection() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Doctor review and fee</SectionPill>
-          <Heading id="womens-health-review-title" level="h2" className="mt-4">One fee across either focused pathway</Heading>
+          <Heading id="womens-health-review-title" level="h2" className="mt-4">One fee for either assessment</Heading>
           <p className="mt-3 text-base leading-7 text-muted-foreground">
-            The UTI and pill pathways use different safety screens, but the review, refund, and pharmacy-cost boundaries are the same.
+            The UTI and pill forms use different safety screens, but the review, refund and pharmacy-cost boundaries are the same.
           </p>
         </Reveal>
 
@@ -264,10 +264,10 @@ function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean
     <section id="choose-care" className="py-14 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="rounded-3xl border border-border/50 bg-[color:var(--morning-ivory)]/65 p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
-          <SectionPill>Choose your pathway</SectionPill>
+          <SectionPill>Choose your assessment</SectionPill>
           <Heading level="h2" className="mt-4">What do you need reviewed?</Heading>
           <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-            Choose a pathway to begin its focused safety screen. You can review the detailed pathway pages above first if you prefer.
+            Choose an assessment to begin its safety screen. You can read the detailed pages above first if you prefer.
           </p>
           <div className="mt-7 grid gap-3 sm:grid-cols-2">
             <Button asChild size="lg" className="h-auto min-h-12 whitespace-normal py-3" disabled={isDisabled} onClick={onChoose}>
@@ -302,9 +302,9 @@ export function WomensHealthLanding() {
       {({ isDisabled, heroCTARef, handleHeroCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           <Hero
-            title="Women's health: choose the right online assessment."
+            title="UTI or the pill. Reviewed by a doctor, from home."
             primaryCta={{
-              text: isDisabled ? "Contact us" : "Start private assessment",
+              text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
               href: isDisabled ? "/contact" : REQUEST_HREF,
               onClick: handleHeroCTA,
               ref: heroCTARef,
@@ -319,7 +319,7 @@ export function WomensHealthLanding() {
             mockup={<WomensHealthDecisionFork />}
           >
             <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0 lg:text-lg">
-              {FORM_FIRST_WEDGE} Choose UTI symptoms or starting and switching the pill, then complete the pathway-specific safety screen before payment.
+              {FORM_FIRST_WEDGE} Choose UTI symptoms, or starting or switching the pill. Each form has its own safety screen before payment.
             </p>
           </Hero>
 
@@ -331,7 +331,7 @@ export function WomensHealthLanding() {
           <FAQSection
             pill="FAQ"
             title="Women's health assessment questions"
-            subtitle="The essentials before choosing the UTI or pill pathway."
+            subtitle="The essentials before choosing the UTI or pill assessment."
             items={WOMENS_HEALTH_HUB_FAQ}
             initialCount={6}
             onFAQOpen={handleFAQOpen}

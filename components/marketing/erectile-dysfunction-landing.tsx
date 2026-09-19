@@ -92,7 +92,7 @@ const ELIGIBILITY_ITEMS = [
   getApprovedClaim("prescribing_identity_required"),
   "You can provide current medicines, allergies, conditions, and heart or stroke history.",
   "Your main concern is ongoing difficulty getting or keeping an erection, and you can describe the pattern clearly.",
-  "You understand that a prescription is not guaranteed and doctor contact may be needed before a decision.",
+  "You understand that the doctor decides whether to prescribe, and contact may be needed before a decision.",
 ] as const
 
 const ED_DECISION_SIGNALS = [
@@ -139,17 +139,17 @@ const ED_DECISION_OUTCOMES = [
 const SCOPE_ITEMS = [
   {
     icon: CheckCircle2,
-    title: "This pathway covers",
+    title: "What this assessment covers",
     body: "A structured doctor review for erectile dysfunction concerns when the history and safety screen are complete enough for remote assessment.",
   },
   {
     icon: MessageCircle,
     title: "The doctor may contact you",
-    body: "Unclear medicines, cardiovascular risk, conflicting answers, or symptoms outside a straightforward ED pattern can require a call or message.",
+    body: "Unclear medicines, cardiovascular risk, conflicting answers, or symptoms outside a straightforward ED pattern can need a call or message.",
   },
   {
     icon: AlertTriangle,
-    title: "This pathway does not cover",
+    title: "What it does not cover",
     body: "Emergencies, prolonged painful erection, injury, fertility or libido workups, testosterone investigation, or requests for a guaranteed medicine.",
   },
 ] as const
@@ -163,7 +163,7 @@ const REVIEW_STEPS = [
   {
     number: "02",
     title: "Doctor review and clarification",
-    body: "An AHPRA-registered Australian doctor reviews the request and may call or message if a safety detail needs clarification.",
+    body: "An AHPRA-registered Australian doctor reviews the request and can call or message if a safety detail needs clarification.",
   },
   {
     number: "03",
@@ -176,17 +176,17 @@ const ALTERNATIVES = [
   {
     title: "Repeat prescriptions",
     href: "/prescriptions",
-    body: "For a stable medicine you already take, use the separate repeat-prescription pathway.",
+    body: "For a stable medicine you already take, use the repeat prescription service.",
   },
   {
     title: "Hair loss assessment",
     href: "/hair-loss",
-    body: "A separate men's-health pathway with its own history and safety screen.",
+    body: "A separate men's-health assessment with its own history and safety screen.",
   },
   {
     title: "Chest pain",
     href: "/symptoms/chest-pain",
-    body: "Chest pain leaves the ED pathway. Read the urgent-care boundary before doing anything else.",
+    body: "Chest pain is not an ED question. Read the urgent-care boundary before doing anything else.",
   },
 ] as const
 
@@ -255,10 +255,6 @@ function EdHero({
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
-
-          <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-            {REFUND_GUARANTEE_CLAIM} Prescription is not guaranteed. The doctor may call or message before deciding.
-          </p>
         </Reveal>
 
         <Reveal instant className="min-w-0">
@@ -412,7 +408,7 @@ function EdScopeBoundarySection() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Scope and red flags</SectionPill>
-          <Heading level="h2" className="mt-4">Know when this pathway stops</Heading>
+          <Heading level="h2" className="mt-4">Know where this assessment stops</Heading>
           <p className="mt-3 text-base leading-7 text-muted-foreground">
             This is a bounded ED review, not an emergency service, a full sexual-health clinic, or a guarantee of prescription medicine.
           </p>
@@ -454,7 +450,7 @@ function EdReviewCostOutcomeSection({
           <SectionPill>Process, outcome, and cost</SectionPill>
           <Heading level="h2" className="mt-4">One review path, with the fee clear</Heading>
           <p className="mt-3 text-base leading-7 text-muted-foreground">
-            Complete the form, let the doctor review the safety picture, then receive the clinically appropriate next step.
+            Complete the form, let the doctor review the safety picture, then get the next step the doctor decides on.
           </p>
         </Reveal>
 
@@ -509,7 +505,7 @@ function EdAlternativesSection() {
             <SectionPill>Other routes</SectionPill>
             <Heading level="h2" className="mt-4">If ED assessment is not the right fit</Heading>
           </div>
-          <p className="max-w-md text-sm leading-6 text-muted-foreground">Choose the pathway that matches the problem you need help with today.</p>
+          <p className="max-w-md text-sm leading-6 text-muted-foreground">Choose the service that matches the problem you need help with today.</p>
         </Reveal>
         <div className="mt-7 grid gap-4 md:grid-cols-3">
           {ALTERNATIVES.map((item) => (
@@ -573,7 +569,7 @@ function EdFinalCta({
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto" onClick={onStart}>
               <Link href={isDisabled ? "/contact" : requestCtaHref}>
-                {isDisabled ? "Contact us" : `Request assessment - ${PRICING_DISPLAY.MENS_HEALTH}`}
+                {isDisabled ? "Contact us" : `Start private assessment · ${PRICING_DISPLAY.MENS_HEALTH}`}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -602,7 +598,7 @@ export function ErectileDysfunctionLanding() {
           <FAQSection
             pill="FAQ"
             title="Erectile dysfunction assessment FAQ"
-            subtitle="The key clinical, cost, privacy, and pathway questions before you start."
+            subtitle="The key clinical, cost, privacy and service questions before you start."
             items={ED_LANDING_FAQ}
             initialCount={6}
             onFAQOpen={handleFAQOpen}
