@@ -560,6 +560,7 @@ jobs:
             e2e/doctor.prescription-ui.spec.ts \
             e2e/clinical-review-concise.spec.ts \
             e2e/intake-terminal-blocks.spec.ts \
+            e2e/prescription-codeine-recency.spec.ts \
             e2e/parchment-webhook.spec.ts || e2e_status=$?
           PLAYWRIGHT_HTML_OUTPUT_DIR=playwright-report/paid-clinical-mobile \
           PLAYWRIGHT_OUTPUT_DIR=test-results/paid-clinical-mobile \

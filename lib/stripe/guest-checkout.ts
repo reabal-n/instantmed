@@ -7,6 +7,7 @@ import {
   logRequestCreated,
   type RequestType,
 } from "@/lib/audit/compliance-audit"
+import { resolveGuestPatientIdsForRecency } from "@/lib/clinical/recent-codeine-script"
 import {
   getRepeatRxDoseMissingFields,
   hasRepeatRxDoseContractMarker,
@@ -42,6 +43,7 @@ import {
   checkSafetyForServer,
   validateSafetyFieldsPresent,
 } from "@/lib/safety/evaluate"
+import { evaluateCodeineRepeatGate, refuseCodeineRepeatCheckout } from "@/lib/stripe/checkout/codeine-repeat-gate"
 import { CHECKOUT_CONSENT_ERROR, hasCheckoutConsent } from "@/lib/stripe/checkout/consent"
 import { getServiceSlug } from "@/lib/stripe/checkout/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -667,6 +669,32 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       )
     }
 
+    // Codeine combination repeats are prescribed at most once every 7 days
+    // (operator decision 2026-09-19). A guest has not proven control of the
+    // typed email, so a match on email or name + date of birth asks them to
+    // sign in rather than disclosing prescription dates to the form.
+    if (isRepeatPrescriptionRequest(input.category, input.subtype)) {
+      const relatedPatientIds = await resolveGuestPatientIdsForRecency(supabase, {
+        dateOfBirth: input.guestDateOfBirth,
+        email: normalizedEmail,
+        fullName: input.guestName,
+      })
+      const codeineGate = await evaluateCodeineRepeatGate({
+        answers: input.answers,
+        patientIds: [guestProfileId, ...relatedPatientIds],
+        supabase,
+      })
+      if (codeineGate.blocked) {
+        return refuseCodeineRepeatCheckout({
+          answers: input.answers,
+          audience: "guest",
+          context: "checkout",
+          gate: codeineGate,
+          serviceSlug: input.serviceSlug || getServiceSlug(input.category, input.subtype),
+        })
+      }
+    }
+
     if (requiresPrescribingIdentityForRequest({ category: input.category, subtype: input.subtype })) {
       const prescribingUpdates = buildPrescribingProfileUpdates(input.answers, reusableGuestProfile)
       if (Object.keys(prescribingUpdates).length > 0) {
@@ -957,6 +985,24 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
               },
             })
             return checkoutFailure("clinical_or_input_validation", routingBlock.error)
+          }
+
+          if (isRepeatPrescriptionRequest(existingIntake.category, existingIntake.subtype)) {
+            const codeineGate = await evaluateCodeineRepeatGate({
+              answers: storedAnswersForSafety,
+              patientIds: [guestProfileId],
+              supabase,
+            })
+            if (codeineGate.blocked) {
+              return refuseCodeineRepeatCheckout({
+                answers: storedAnswersForSafety,
+                audience: "guest",
+                context: "guest_resume",
+                gate: codeineGate,
+                requestId: existingIntake.id,
+                serviceSlug: storedServiceSlugForSafety,
+              })
+            }
           }
 
           const storedSafetyCheck = checkSafetyForServer(
