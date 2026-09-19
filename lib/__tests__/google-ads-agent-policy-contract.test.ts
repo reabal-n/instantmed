@@ -69,16 +69,20 @@ describe("Google Ads Agent policy documentation", () => {
     expect(policy).not.toContain("proposal:send")
   })
 
-  it("records the September 9 profit decision without weakening real holds", () => {
+  it("records the September 9 profit decision and the September 19 repeat-revenue decision without weakening real holds", () => {
     for (const document of [operations, revenue]) {
       expect(document).toContain("2026-09-09")
-      expect(document).toContain("positive first-order")
+      expect(document).toContain("2026-09-19")
+      expect(document).toContain("campaign contribution")
       expect(document).toContain("clinical incident")
       expect(document).toContain("explicit service hold")
       expect(document).toContain("advisory")
     }
     expect(operations).toContain("No operational state mutates Google Ads autonomously")
-    expect(revenue).toContain("Repeat revenue cannot subsidise a first-order loss")
+    expect(revenue).toContain("repeat orders from campaign-attributed patients count")
+    expect(revenue).toContain("First-order contribution stays visible as a diagnostic")
+    expect(revenue).not.toContain("Repeat revenue cannot subsidise a first-order loss")
+    expect(revenue).not.toContain("until repeat purchasing is proven with real cohort data")
   })
 
   it("keeps the current Scripts read-back and Hair-loss checkpoint operator-owned", () => {

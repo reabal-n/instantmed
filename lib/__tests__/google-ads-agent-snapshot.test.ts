@@ -476,7 +476,7 @@ describe("Google Ads Agent snapshot", () => {
       )).toEqual({
         kind: "APPROVAL_NEEDED",
         proposedMutationFamily: "campaign_budget",
-        reasonCodes: ["FIRST_ORDER_CONTRIBUTION_POSITIVE", ...(queueState === "unavailable" ? ["OPERATIONAL_EVIDENCE_UNAVAILABLE"] : queueState === "watch" ? ["QUEUE_P95_OVER_2H_WATCH"] : [])],
+        reasonCodes: ["CAMPAIGN_CONTRIBUTION_POSITIVE", ...(queueState === "unavailable" ? ["OPERATIONAL_EVIDENCE_UNAVAILABLE"] : queueState === "watch" ? ["QUEUE_P95_OVER_2H_WATCH"] : [])],
         service: "scripts",
       })
       expect(supabase.from).toHaveBeenCalledWith("operational_metrics")
