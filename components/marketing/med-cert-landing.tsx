@@ -11,9 +11,8 @@ import {
 import dynamic from "next/dynamic"
 import Link from "next/link"
 
-import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
+import { Hero } from "@/components/marketing/hero"
 import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
-import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { MedCertClientControls } from "@/components/marketing/med-cert-client-controls"
@@ -27,6 +26,7 @@ import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
 import { Navbar } from "@/components/shared/navbar"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { Heading } from "@/components/ui/heading"
+import type { WaitState } from "@/lib/brand/wait-counter"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { MED_CERT_LANDING_FAQ } from "@/lib/data/med-cert-faq"
 import { moneyH1Font } from "@/lib/fonts/money-h1"
@@ -75,21 +75,6 @@ const HOW_IT_WORKS_STEPS = [
 
 const MED_CERT_START_HREF = buildMedCertRequestHref({ duration: "1" })
 const MED_CERT_HERO_CTA_ID = "med-cert-hero-cta"
-
-const MED_CERT_PILL = (
-  <div className="inline-flex items-center gap-2.5 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
-    <span className="text-muted-foreground">Routine short absences</span>
-    <span className="text-border/70 hidden sm:inline" aria-hidden="true">&middot;</span>
-    <span className="hidden sm:inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
-      <span
-        className="w-1.5 h-1.5 rounded-full bg-emerald-500"
-        style={{ animation: "pulse 3s ease-in-out infinite" }}
-        aria-hidden="true"
-      />
-      Open now
-    </span>
-  </div>
-)
 
 const FEE_DETAILS = [
   {
@@ -239,79 +224,6 @@ function FeeSuitabilityPanel() {
   )
 }
 
-function MedCertHero() {
-  return (
-    <section className="relative overflow-x-clip pt-6 pb-12 sm:pt-14 sm:pb-20 lg:pt-20 lg:pb-24">
-      <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
-        <div className="flex flex-col items-center lg:flex-row lg:items-start lg:gap-12 xl:gap-14">
-          <div className="min-w-0 flex-1 text-center lg:text-left">
-            <div className="hero-availability-enter mb-5 flex justify-center sm:mb-7 lg:justify-start">
-              {MED_CERT_PILL}
-            </div>
-
-            <div
-              className="hero-availability-enter mb-4 flex justify-center lg:justify-start"
-              aria-hidden="true"
-            >
-              <span className="h-1.5 w-10 rounded-full bg-brand-coral" />
-            </div>
-
-            <Heading level="display" className={`mb-5 sm:mb-7 ${moneyH1Font.className}`}>
-              Medical certificate. From your bed.
-            </Heading>
-
-            <div>
-              <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:mb-7 sm:text-base lg:mx-0 lg:text-lg">
-                For suitable form-only requests: {MED_CERT_WEDGE} Tell us what kept you from work, study or caring duties. If suitable, your certificate arrives as a secure PDF. {GUARANTEE}
-              </p>
-            </div>
-
-            <div className="hero-cta-enter mb-6 sm:mb-7">
-              <ul aria-label="Medical certificate eligibility" className="mx-auto flex max-w-xl flex-wrap justify-center gap-x-3 gap-y-1 text-[13px] text-foreground lg:mx-0 lg:justify-start">
-                <li>Australia only</li>
-                <li aria-hidden="true" className="text-border">&middot;</li>
-                <li>Ages 18+</li>
-                <li aria-hidden="true" className="text-border">&middot;</li>
-                <li>No Medicare needed</li>
-              </ul>
-              <p className="mx-auto mt-3 inline-flex max-w-xl items-start gap-2 text-left text-[13px] leading-snug text-foreground sm:items-center sm:text-center lg:mx-0 lg:text-left">
-                <CheckCircle2 className="mt-px h-4 w-4 shrink-0 text-success sm:mt-0" aria-hidden="true" />
-                <span>
-                  Issued by AHPRA-registered Australian doctors.
-                  <span className="text-muted-foreground"> Employer and institution policies may vary.</span>
-                </span>
-              </p>
-            </div>
-
-            <div
-              id={MED_CERT_HERO_CTA_ID}
-              className="hero-cta-enter mb-6 flex flex-col justify-center gap-3 sm:mb-7 sm:flex-row lg:justify-start"
-            >
-              <Link
-                href={MED_CERT_START_HREF}
-                data-med-cert-cta="hero"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-primary px-8 text-base font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 focus-visible:ring-offset-2 dark:focus-visible:ring-dawn-500/40"
-              >
-                Get your certificate · {PRICING_DISPLAY.FROM_MED_CERT}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </div>
-
-            <div className="hero-trust-enter flex flex-wrap items-center justify-center gap-x-3 gap-y-2 pt-1 lg:justify-start">
-              <GoogleAdsCert size="sm" />
-              <LegitScriptSeal size="sm" />
-            </div>
-          </div>
-
-          <div className="relative mt-12 shrink-0 self-center max-[240px]:hidden lg:mt-0">
-            <MedCertHeroMockup />
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function MedCertFinalCta() {
   return (
     <section className="px-4 py-8 sm:py-10 lg:py-16">
@@ -345,7 +257,7 @@ function MedCertFinalCta() {
 // MAIN PAGE COMPONENT
 // =============================================================================
 
-export function MedCertLanding() {
+export function MedCertLanding({ liveWait }: { liveWait?: WaitState }) {
   return (
     <MarketingPageShell>
       <div className="min-h-screen overflow-x-hidden pt-[calc(5rem+env(safe-area-inset-top))]">
@@ -355,7 +267,44 @@ export function MedCertLanding() {
 
         <main className="relative">
           <IntakeResumeChip className="mx-4 mt-2 max-w-5xl sm:mx-auto" />
-          <MedCertHero />
+          <Hero
+            title="Medical certificate. From your bed."
+            titleClassName={moneyH1Font.className}
+            immediateSubheadline
+            pillLabel="Routine short absences"
+            liveWait={liveWait}
+            primaryCta={{
+              text: `Get your certificate · ${PRICING_DISPLAY.FROM_MED_CERT}`,
+              href: MED_CERT_START_HREF,
+              wrapperId: MED_CERT_HERO_CTA_ID,
+              dataAttributes: { "data-med-cert-cta": "hero" },
+            }}
+            secondaryCta={null}
+            beforeCta={(
+              <>
+                <ul aria-label="Medical certificate eligibility" className="mx-auto flex max-w-xl flex-wrap justify-center gap-x-3 gap-y-1 text-sm text-foreground lg:mx-0 lg:justify-start">
+                  <li>Australia only</li>
+                  <li aria-hidden="true" className="text-border">&middot;</li>
+                  <li>Ages 18+</li>
+                  <li aria-hidden="true" className="text-border">&middot;</li>
+                  <li>No Medicare needed</li>
+                </ul>
+                <p className="mx-auto mt-3 inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground sm:items-center sm:text-center lg:mx-0 lg:text-left">
+                  <CheckCircle2 className="mt-px h-4 w-4 shrink-0 text-success sm:mt-0" aria-hidden="true" />
+                  <span>
+                    Issued by AHPRA-registered Australian doctors.
+                    <span className="text-muted-foreground"> Employer and institution policies may vary.</span>
+                  </span>
+                </p>
+              </>
+            )}
+            reassuranceRow={null}
+            mockup={<MedCertHeroMockup />}
+          >
+            <p className="mx-auto mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground sm:mb-7 lg:mx-0 lg:text-lg">
+              For suitable form-only requests: {MED_CERT_WEDGE} Tell us what kept you from work, study or caring duties. If suitable, your certificate arrives as a secure PDF. {GUARANTEE}
+            </p>
+          </Hero>
           <LimitationsSection />
           <WorkplaceProofPanel />
 

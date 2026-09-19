@@ -74,7 +74,7 @@ describe("money-page narrative compression", () => {
     expect(source.slice(workplaceStart, workplaceEnd)).toContain("Fair Work Act 2009")
 
     expectInOrder(source, [
-      "<MedCertHero />",
+      "<Hero",
       "<LimitationsSection />",
       "<WorkplaceProofPanel />",
       "<HowItWorksInline",

@@ -104,8 +104,8 @@ test.describe("landing page desktop rhythm", () => {
   for (const landing of LANDING_PAGES) {
     test(`${landing.path} keeps the hero and the next section within 120px`, async ({ page }) => {
       test.fixme(
-        (["/medical-certificate", "/erectile-dysfunction"] as string[]).includes(landing.path),
-        "hero migrates to the shared primitive in Tasks 20 and 21",
+        landing.path === "/erectile-dysfunction",
+        "hero migrates to the shared primitive in Task 21",
       )
       await page.setViewportSize(DESKTOP)
       await seedMoneyPageState(page, "light")
