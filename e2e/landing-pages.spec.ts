@@ -191,7 +191,18 @@ test("home services grid has no orphan row at desktop width", async ({ page }) =
 test.describe("landing page length", () => {
   for (const landing of LANDING_PAGES) {
     test(`${landing.path} fits ${landing.maxPhoneScreens} phone screens`, async ({ page }) => {
-      test.fixme(landing.path !== "/", "budgets for service pages land in PR 5")
+      test.fixme(
+        landing.path === "/medical-certificate",
+        "10.4 screens at 375×812 against a 10.0 budget; follow-up F1 in docs/plans/2026-09-19-landing-pages-95-plan.md",
+      )
+      test.fixme(
+        landing.path === "/erectile-dysfunction",
+        "10.7 screens at 375×812 against a 9.5 budget; follow-up F2 in docs/plans/2026-09-19-landing-pages-95-plan.md",
+      )
+      test.fixme(
+        landing.path === "/hair-loss",
+        "12.0 screens at 375×812 against a 9.5 budget; follow-up F3 in docs/plans/2026-09-19-landing-pages-95-plan.md",
+      )
       await page.setViewportSize(PHONE)
       await seedMoneyPageState(page, "light")
       await gotoPublicRoute(page, landing.path)

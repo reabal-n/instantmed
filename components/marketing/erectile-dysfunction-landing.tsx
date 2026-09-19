@@ -202,7 +202,7 @@ function EdHeroFacts() {
 
 function EdEligibilitySection() {
   return (
-    <section id="eligibility" className="py-14 sm:py-16">
+    <section id="eligibility" className="py-10 sm:py-12">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
           <Reveal instant>
@@ -230,7 +230,7 @@ function EdEligibilitySection() {
 
 function EdSafetyDecisionMap() {
   return (
-    <section id="decision-map" aria-labelledby="ed-decision-map-title" className="bg-muted/30 py-14 dark:bg-white/[0.02] sm:py-16 lg:py-20">
+    <section id="decision-map" aria-labelledby="ed-decision-map-title" className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12 lg:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Safety decision map</SectionPill>
@@ -307,7 +307,7 @@ function EdSafetyDecisionMap() {
 
 function EdScopeBoundarySection() {
   return (
-    <section id="red-flags" className="py-14 sm:py-16 lg:py-20">
+    <section id="red-flags" className="py-10 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Scope and red flags</SectionPill>
@@ -343,7 +343,7 @@ function EdReviewCostOutcomeSection({
   requestCtaHref: string
 }) {
   return (
-    <section id="how-it-works" className="bg-muted/30 py-14 dark:bg-white/[0.02] sm:py-16 lg:pb-20 lg:pt-12">
+    <section id="how-it-works" className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12 lg:pb-20 lg:pt-12">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Process, outcome, and cost</SectionPill>
@@ -415,7 +415,7 @@ function EdFinalCta({
   requestCtaHref: string
 }) {
   return (
-    <section className="py-14 sm:py-16 lg:py-20">
+    <section className="py-10 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal className="rounded-3xl border border-border/50 bg-white p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
           <SectionPill>Start privately</SectionPill>
