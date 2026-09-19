@@ -10,8 +10,10 @@ import type {
 const REPORT_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 
 const guardrailCopy: Record<string, string> = {
-  FIRST_ORDER_CONTRIBUTION_POSITIVE: "Measured first-order cash contribution is positive",
-  FIRST_ORDER_CONTRIBUTION_NOT_POSITIVE: "First-order cash contribution is not positive",
+  CAMPAIGN_CONTRIBUTION_POSITIVE: "Measured campaign cash contribution (first and repeat orders) is positive",
+  CAMPAIGN_CONTRIBUTION_NOT_POSITIVE: "Campaign cash contribution is not positive",
+  FIRST_ORDER_CONTRIBUTION_NEGATIVE: "First-order cash is negative; repeat orders carry this campaign",
+  FIRST_ORDER_EVIDENCE_UNAVAILABLE: "First-order cash evidence unavailable; campaign cash used",
   SMALL_SAMPLE_UNCERTAINTY: "Small sample; profit may not persist",
   REFUND_RATE_REVIEW: "Review refund causes and eligibility/copy weekly",
   RECENT_CHANGE_MONITORING: "Recent change; keep before/after evidence separate",
@@ -32,7 +34,7 @@ const guardrailCopy: Record<string, string> = {
   EXPLICIT_SERVICE_HOLD: "The service has an explicit operating hold",
   FULFILMENT_UNHEALTHY: "Fulfilment is unhealthy for this service",
   MEDCERT_NEGATIVE_CONTRIBUTION:
-    "Medical certificates remain below first-order break-even",
+    "Medical certificates remain below campaign break-even",
   MULTIPLE_SERVICE_CAMPAIGNS: "More than one campaign owns a service",
   POST_CHANGE_SAMPLE_IMMATURE: "Scripts refund data still immature",
   SCRIPTS_REFUND_GATE: "Scripts refund data still immature",
