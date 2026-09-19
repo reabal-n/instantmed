@@ -44,6 +44,7 @@ import { ArrowRight, HeartPulse, Info, ShieldAlert, Stethoscope } from "lucide-r
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+import { checkCodeineRepeatWindowAction, type CodeineRepeatCheckResult } from "@/app/actions/codeine-repeat-check"
 import {
   BinaryChoice,
   CompactChoiceRow,
@@ -66,6 +67,7 @@ import {
   type IntakeBlockType,
 } from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import { isCodeineCombinationMedication } from "@/lib/clinical/controlled-substances"
 import { isControlledMedicationName } from "@/lib/clinical/intake-validation"
 import { type DedicatedServiceMatch, detectDedicatedServiceForMedication, ROUTING_CONTEXT_LABELS } from "@/lib/clinical/medication-service-routing"
 import { normalizePrescriptionHistory } from "@/lib/clinical/prescription-history"
@@ -128,6 +130,8 @@ const PRESCRIPTION_HISTORY_OPTIONS = [
 
 const DOSE_CONFIRMATION_REQUIRED = "Please confirm whether the dose or the way you take this medicine has changed"
 const DOSE_CHANGE_REQUIRES_REVIEW = "A dose or directions change needs review by your regular GP or specialist"
+const CODEINE_WINDOW_BLOCKED =
+  "This medicine was prescribed for you within the last 7 days, so it can't be requested again yet."
 const DECLINE_ADVISORY_REQUIRED = "Read and acknowledge the online-prescribing note before continuing"
 const MEDICATION_STRENGTH_REQUIRED = "Enter the strength shown on the medication label (for example, 100 mg)"
 
@@ -355,6 +359,46 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     declineAdvisoryAcknowledgement !== likelyDeclinedMedication.token,
   )
 
+  // Codeine combination repeats inside 7 days of a prior script are refused
+  // before payment (lib/stripe/checkout/codeine-repeat-gate.ts). A signed-in
+  // patient learns that here instead of after three more screens; a guest has
+  // no identity yet, gets `unknown`, and meets the same gate at checkout.
+  const codeineCandidate = useMemo(() => {
+    if (!steerEnabled) return null
+    for (const med of medications) {
+      const medicationText = [med.name, med.strength, med.form].filter(Boolean).join(" ")
+      if (med.name.trim() && isCodeineCombinationMedication(medicationText)) return med
+    }
+    return null
+  }, [steerEnabled, medications])
+  const [codeineWindow, setCodeineWindow] = useState<CodeineRepeatCheckResult | null>(null)
+  const codeineAlertRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!codeineCandidate) {
+      setCodeineWindow(null)
+      return
+    }
+    let cancelled = false
+    const timer = window.setTimeout(() => {
+      checkCodeineRepeatWindowAction({
+        medicationName: codeineCandidate.name,
+        strength: codeineCandidate.strength || undefined,
+        form: codeineCandidate.form || undefined,
+      })
+        .then((result) => {
+          if (!cancelled) setCodeineWindow(result)
+        })
+        .catch(() => {
+          if (!cancelled) setCodeineWindow(null)
+        })
+    }, 500)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [codeineCandidate])
+  const codeineWindowActive = codeineWindow?.status === "blocked"
+
   useEffect(() => {
     if (!controlledBlockKind) return
     captureMedicationBlock({
@@ -552,6 +596,11 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     // A controlled substance is a hard clinical block — the destructive alert
     // above already explains it; never advance past it.
     if (controlledBlock) return
+    if (codeineWindowActive) {
+      setBlockedReasons([CODEINE_WINDOW_BLOCKED])
+      codeineAlertRef.current?.focus()
+      return
+    }
     if (declineRiskActive) {
       setBlockedReasons((reasons) => [
         ...reasons.filter((reason) => reason !== DECLINE_ADVISORY_REQUIRED),
@@ -585,7 +634,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       }
       onNext()
     }
-  }, [controlledBlock, declineRiskActive, steerActive, serviceSteer, validate, medications, onNext])
+  }, [controlledBlock, codeineWindowActive, declineRiskActive, steerActive, serviceSteer, validate, medications, onNext])
 
   const activeMedications = useMemo(
     () => medications.filter((m) => m.name.trim()),
@@ -632,7 +681,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   )
   // Live-computed; controlledBlock stays (a real clinical block), the stale
   // `errors` object does not gate readiness.
-  const canContinue = isComplete && !controlledBlock && !declineRiskActive && !steerActive
+  const canContinue = isComplete && !controlledBlock && !declineRiskActive && !steerActive && !codeineWindowActive
 
   useEffect(() => {
     if (canContinue && blockedReasons.length > 0) setBlockedReasons([])
@@ -677,6 +726,27 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         </Alert>
       )}
 
+      {/* Codeine combination repeat inside the 7-day window (signed-in patients) */}
+      {codeineWindow?.status === "blocked" && (
+        <div ref={codeineAlertRef} tabIndex={-1} className="outline-none">
+          <Alert variant="destructive" data-testid="codeine-repeat-window-early-block">
+            <ShieldAlert className="w-4 h-4" />
+            <p className="mb-1 font-medium leading-none tracking-tight">
+              This medicine can&apos;t be requested again yet
+            </p>
+            <AlertDescription className="text-base">
+              <p>
+                We issued you a prescription containing codeine on {codeineWindow.latestIssuedLabel}.
+                Our doctors prescribe codeine combination medicines at most once every 7 days.
+              </p>
+              <p className="mt-2">
+                You can request it again from {codeineWindow.requestAgainLabel}. No payment is taken for this request.
+              </p>
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       {/* Dedicated-service steer (ED / hair loss / women's health / weight management) */}
       {steerActive && serviceSteer && (
         <div ref={steerAlertRef} tabIndex={-1} className="outline-none">
@@ -714,7 +784,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         </div>
       )}
 
-      {declineRiskActive && likelyDeclinedMedication && (
+      {declineRiskActive && likelyDeclinedMedication && !codeineWindowActive && (
         <div ref={declineAlertRef} tabIndex={-1} className="outline-none">
           <Alert variant="warning">
             <Info className="size-4" />
