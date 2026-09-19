@@ -72,5 +72,27 @@ test.describe("landing page geometry", () => {
       )
       expect(overflow, `${landing.path}: horizontal overflow at 375px`).toBe(false)
     })
+
+    test(`${landing.path} keeps hero trust marks on one row on a phone`, async ({ page }) => {
+      await page.setViewportSize(PHONE)
+      await seedMoneyPageState(page, "light")
+      await gotoPublicRoute(page, landing.path)
+      await settle(page)
+
+      const row = page.locator("[data-hero-trust-row]").first()
+      if ((await row.count()) === 0) return // pages that pass trustRow={null}
+      const tops = await row.evaluate((el) =>
+        Array.from(el.children).map((child) => Math.round(child.getBoundingClientRect().top)),
+      )
+      expect(tops.length, `${landing.path}: trust row should carry at most 2 marks`).toBeLessThanOrEqual(2)
+      // Same-row marks can still land a few px apart: globals.css forces a
+      // 44px min touch target on `a[href]` under 768px (WCAG target size),
+      // taller than GoogleAdsCert's plain div, so `items-center` centers
+      // them at slightly different tops even on one line (~2px, measured).
+      // A real wrap to a second flex line moves a mark down by a full row
+      // height (40px+), far past this tolerance.
+      const spread = Math.max(...tops) - Math.min(...tops)
+      expect(spread, `${landing.path}: trust marks wrapped to a second row`).toBeLessThanOrEqual(8)
+    })
   }
 })

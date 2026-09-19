@@ -1,4 +1,4 @@
-import { ArrowRight, Star } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import type { WaitState } from '@/lib/brand/wait-counter'
 import { GUARANTEE, ICONIC_HOOK } from '@/lib/marketing/voice'
+import { GOOGLE_REVIEWS } from '@/lib/social-proof'
 import { cn } from '@/lib/utils'
 
 interface CtaConfig {
@@ -49,6 +50,8 @@ interface HeroProps {
    * stars + doctor-review + Open now pill. Pass `null` to suppress.
    */
   pill?: ReactNode | null
+  /** Text beside the Google badge in the default pill. Service pages may narrow it, e.g. "Routine short absences". */
+  pillLabel?: string
   /**
    * Subhead body. Pass a <p> so the consumer controls copy verbatim.
    */
@@ -109,23 +112,19 @@ const DEFAULT_OPEN_NOW = (
   </span>
 )
 
-function buildDefaultPill(liveWait?: WaitState) {
+function buildDefaultPill(liveWait: WaitState | undefined, pillLabel: string) {
   return (
-    <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-2.5 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
-      <span
-        className="inline-flex items-center gap-0.5 text-amber-400"
-        role="img"
-        aria-label="Google star rating"
-      >
-        {[1, 2, 3, 4, 5].map((i) => (
-          <Star key={i} className="w-3 h-3 fill-current" aria-hidden="true" />
-        ))}
-      </span>
-      <span className="text-border/70" aria-hidden="true">·</span>
-      <span className="text-muted-foreground min-[241px]:whitespace-nowrap">AHPRA-registered doctors</span>
+    <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-2.5 rounded-full px-3 py-1.5 text-sm font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
+      {GOOGLE_REVIEWS.enabled && (
+        <>
+          <GoogleReviewsBadge variant="inline" />
+          <span className="text-border/70" aria-hidden="true">·</span>
+        </>
+      )}
+      <span className="text-muted-foreground min-[241px]:whitespace-nowrap">{pillLabel}</span>
       <span className="text-border/70 hidden sm:inline" aria-hidden="true">·</span>
       {liveWait ? (
-        <span className="hidden sm:inline-flex">
+        <span className="inline-flex">
           <WaitCounter state={liveWait} variant="inline" />
         </span>
       ) : (
@@ -148,7 +147,6 @@ const DEFAULT_SECONDARY: SecondaryCtaConfig = { text: 'How it works', href: '#ho
 const DEFAULT_TRUST_ROW = (
   <>
     <GoogleAdsCert size="sm" />
-    <GoogleReviewsBadge />
     <LegitScriptSeal size="sm" />
   </>
 )
@@ -159,6 +157,7 @@ export function Hero({
   titleClassName,
   immediateSubheadline = false,
   pill,
+  pillLabel = "AHPRA-registered doctors",
   children,
   primaryCta = DEFAULT_PRIMARY,
   primaryCtaContent,
@@ -170,7 +169,7 @@ export function Hero({
   trustRow,
   liveWait,
 }: HeroProps) {
-  const resolvedPill = pill === undefined ? buildDefaultPill(liveWait) : pill
+  const resolvedPill = pill === undefined ? buildDefaultPill(liveWait, pillLabel) : pill
   const resolvedSecondary = secondaryCta === undefined ? DEFAULT_SECONDARY : secondaryCta
   const resolvedMockup = mockup ?? null
   const resolvedTrustRow = trustRow === undefined ? DEFAULT_TRUST_ROW : trustRow
@@ -189,7 +188,7 @@ export function Hero({
     // overflow-x-clip (not overflow-hidden) so the mockup's floating cards
     // can extend slightly outside the section without horizontal scrollbars
     // on iOS.
-    <section className={cn("relative overflow-x-clip pt-6 pb-12 sm:pt-14 sm:pb-20 lg:pt-20 lg:pb-24", className)}>
+    <section data-hero="" className={cn("relative overflow-x-clip pt-6 pb-12 sm:pt-14 sm:pb-20 lg:pt-20 lg:pb-24", className)}>
       <div className="mx-auto max-w-5xl px-4 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:items-start lg:gap-12 xl:gap-14">
           {/* ── Text column ───────────────────────────────────────── */}
@@ -219,6 +218,7 @@ export function Hero({
               level="display"
               className={cn(
                 "mb-5 sm:mb-7 min-h-[5rem] sm:min-h-[6.5rem] lg:min-h-[8rem]",
+                "hyphens-none",
                 titleClassName,
               )}
             >
@@ -291,16 +291,15 @@ export function Hero({
                 users learn the pattern. Pages with their own trust badges
                 below the hero pass `trustRow={null}`. */}
             {resolvedTrustRow && (
-              // items-center + a 40px cap on every direct child keeps all
-              // three trust marks (GoogleAdsCert, GoogleReviewsBadge,
-              // LegitScript) on one optical baseline. LegitScript was the
-              // outlier before (its native seal is 79px tall, vs ~36-37px
-              // for the two pills). Tier 1 review 2026-05-25
-              // (/erectile-dysfunction #1) flagged "different heights
-              // breaking the line of the CTA". The [&>*]:max-h-10 selector
-              // applies whether a consumer passes the default trust row
-              // or their own list of marks.
-              <div className="hero-trust-enter flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-2 pt-1 min-h-10 [&>*]:max-h-10">
+              // items-center + a 40px cap on every direct child keeps both
+              // trust marks (GoogleAdsCert, LegitScript) on one optical
+              // baseline. LegitScript was the outlier before (its native
+              // seal is 79px tall, vs ~36-37px for the GoogleAdsCert pill).
+              // Tier 1 review 2026-05-25 (/erectile-dysfunction #1) flagged
+              // "different heights breaking the line of the CTA". The
+              // [&>*]:max-h-10 selector applies whether a consumer passes
+              // the default trust row or their own list of marks.
+              <div data-hero-trust-row="" className="hero-trust-enter flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-2 pt-1 min-h-10 [&>*]:max-h-10">
                 {resolvedTrustRow}
               </div>
             )}
