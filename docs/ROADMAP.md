@@ -3,7 +3,7 @@
 > **Authority:** the sole source of truth for the current operating phase, ordered active work, status, and checkpoints.
 > `docs/BUSINESS_PLAN.md` owns durable strategy. `docs/REVENUE_MODEL.md` owns milestones and economic gates. Implementation plans may elaborate one item but may not redefine this queue.
 >
-> **Last refreshed:** 2026-09-15. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
+> **Last refreshed:** 2026-09-19. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
 
 ---
 
@@ -15,17 +15,19 @@ Acquisition is in scope for launched services. The current job is to prove repea
 
 This phase does not authorise new services, subscriptions, broad general consults, pharmacy fulfilment, or uncontrolled advertising spend. (Weight management launched 2026-08-10 by explicit operator decision (decisions adopted 2026-08-07) — see docs/plans/2026-08-07-weight-loss-launch-plan.md.)
 
-## 2. Active Revenue Rung
+## 2. Revenue Rung Status
 
-**Active target:** `$5,000/month` rolling net-retained revenue run-rate within 90 days.
+**Ladder status — 2026-09-19:** the `$2,000`, `$5,000`, and `$10,000` rungs are all closed by explicit operator decision. The complete ladder in `docs/REVENUE_MODEL.md` is attained. No new rung is set here; the next target is an open operator decision and the ladder is not extended by inference.
 
-The `$2,000` rung was crossed with 71 real paid orders and `$2,066.30` rolling 30-day net-retained revenue as of 2026-07-22. At the same snapshot, `$29.10` net AOV implies approximately 172 monthly orders for the active `$5,000` rung.
+The `$2,000` rung was crossed with 71 real paid orders and `$2,066.30` rolling 30-day net-retained revenue as of 2026-07-22. At the same snapshot, `$29.10` net AOV implied approximately 172 monthly orders for the `$5,000` rung.
 
-**Numeric threshold crossed; formal rung remains open.** The closed 30-day window ending 2026-08-14 contained 171 reportable paid orders, `$5,355.50` gross revenue, `$229.55` of refund events, zero dispute events, and `$5,125.95` net-retained revenue. Do not mark the rung achieved yet: the same-window Gmail aggregate returned 12 unique inbound support-address threads (9 Gmail-personal, 3 updates), so even the personal-only proxy is 5.3 contacts per 100 orders against the below-5 target; no message bodies were inspected. The reportable manual clinical cohort also had first-review P95 5.27h against the below-2h target. Revenue volume has arrived before the support and queue controls needed to certify it.
+**`$5,000` rung — numeric threshold crossed 2026-08-14, closed 2026-09-19.** The closed 30-day window ending 2026-08-14 contained 171 reportable paid orders, `$5,355.50` gross revenue, `$229.55` of refund events, zero dispute events, and `$5,125.95` net-retained revenue. It stayed formally open because the same-window Gmail aggregate returned 12 unique inbound support-address threads (9 Gmail-personal, 3 updates), a 5.3-contacts-per-100-orders proxy against the below-5 target (no message bodies were inspected), and the reportable manual clinical cohort had first-review P95 5.27h against the below-2h target. On 2026-09-19 the operator closed the rung and waived the support-ticket classification precondition; support contacts remain an advisory weekly signal under `docs/REVENUE_MODEL.md` §5.
 
-**Owner operating decision — 2026-08-18:** No staffing or rota project is active. Requests may wait for the owner-doctor within the existing public timing language and the internal 24-hour maximum; the owner will decide when workload requires another doctor. Keep measuring queue age and escalate only a patient-safety issue or a breach of that maximum. The current first-review P95 remains evidence to watch, but it does not block the approved acquisition tests. A privacy-safe support-ticket classification still must demonstrate fewer than five contacts per 100 orders before the `$5,000` rung is formally certified. The proposed support-email agent is deferred until the operator reopens it and the existing privacy approval gates are satisfied.
+**`$10,000` rung — crossed and closed 2026-09-19.** The closed 30-day window 2026-08-20 to 2026-09-18 (Sydney days) contained 345 reportable paid orders, `$11,455.25` gross revenue, `$623.55` of refund cash events, zero dispute events, and `$10,831.70` net-retained revenue, with every enabled campaign either first-order contribution-positive or inside an approved bounded test. September month-to-date net-retained revenue was `$6,918.55` on 223 orders through 2026-09-19. The capacity and staffing review that `docs/REVENUE_MODEL.md` §8 attaches to this rung was held the same day: **the owner-doctor keeps sole clinical coverage and no second doctor is hired**, because at current volume a hire would consume the margin the rung was meant to protect. The only automatic extra-doctor trigger remains sustained 20+ prescription requests per hour.
 
-The complete `$2k -> $5k -> $10k` ladder, definitions, contribution formula, and capacity thresholds live only in `docs/REVENUE_MODEL.md`. Live values continue to come from the admin dashboard; the figures above are a dated rung-attainment checkpoint.
+**Owner operating decision — 2026-08-18 (still in force):** No staffing or rota project is active. Requests may wait for the owner-doctor within the existing public timing language and the internal 24-hour maximum; the owner will decide when workload requires another doctor. Keep measuring queue age and escalate only a patient-safety issue or a breach of that maximum. Queue P95 remains evidence to watch, but it does not block approved acquisition tests. The proposed support-email agent is deferred until the operator reopens it and the existing privacy approval gates are satisfied.
+
+The complete `$2k -> $5k -> $10k` ladder, definitions, contribution formula, and capacity thresholds live only in `docs/REVENUE_MODEL.md`. Live values continue to come from the admin dashboard; the figures above are dated rung-attainment checkpoints.
 
 ## 3. Standing Operator Rhythm
 
@@ -42,7 +44,7 @@ Surface without waiting for the daily brief:
 
 One bounded operator brief should show:
 
-- progress against the active net-retained revenue rung
+- rolling 30-day net-retained revenue and its trend (the `$2k -> $5k -> $10k` ladder closed 2026-09-19; the next rung is an open operator decision)
 - Google Ads spend, retained revenue, service-level contribution readiness, and exact proposed mutations
 - support issues that need an operator decision; conversations stay in Gmail and are handled manually
 - operational issues requiring a decision rather than another dashboard visit
