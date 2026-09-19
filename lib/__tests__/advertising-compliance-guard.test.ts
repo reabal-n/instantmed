@@ -97,7 +97,7 @@ const PAID_PRESCRIPTION_DESTINATION_SURFACES = [
   "app/erectile-dysfunction/page.tsx",
   "app/hair-loss/page.tsx",
   "app/weight-loss/page.tsx",
-  "app/weight-loss/weight-loss-client.tsx",
+  "components/marketing/weight-loss-landing.tsx",
   "app/prescriptions/page.tsx",
   "app/womens-health/page.tsx",
   "app/uti-assessment-online/page.tsx",
@@ -643,7 +643,7 @@ describe("advertising compliance guard", () => {
     // live, priced from constants, indexed, and free of drug names (the
     // PAID_PRESCRIPTION_DESTINATION_SURFACES scan covers both files).
     expect(existsSync(toFullPath("app/weight-loss/page.tsx"))).toBe(true)
-    expect(existsSync(toFullPath("app/weight-loss/weight-loss-client.tsx"))).toBe(true)
+    expect(existsSync(toFullPath("components/marketing/weight-loss-landing.tsx"))).toBe(true)
 
     expect(SERVICE_CATALOG["weight-loss"]).toMatchObject({
       price: "$89.95",
@@ -656,7 +656,7 @@ describe("advertising compliance guard", () => {
     expect(getActiveServices().map((service) => service.id)).toContain("weight-loss")
 
     const weightLossPageSource = readFileSync(toFullPath("app/weight-loss/page.tsx"), "utf8")
-    expect(weightLossPageSource).toContain("WeightLossClient")
+    expect(weightLossPageSource).toContain("WeightLossLanding")
     expect(weightLossPageSource).toContain("index: true")
     expect(weightLossPageSource).not.toContain('redirect("/request")')
 

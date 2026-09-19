@@ -132,8 +132,8 @@ function WeightHeroFacts() {
               </span>
               <span>{fact.label}</span>
             </dt>
-            <dd className="ml-12 mt-1 text-sm font-semibold text-foreground">{fact.value}</dd>
-            <dd className="ml-12 mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</dd>
+            <dd className="ml-12 mt-1 text-sm font-semibold text-foreground"><span>{fact.value}</span></dd>
+            <dd className="ml-12 mt-1 text-sm leading-6 text-muted-foreground"><span>{fact.body}</span></dd>
           </div>
         ))}
       </dl>
@@ -184,6 +184,7 @@ export function WeightLossLanding() {
       {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           <Hero
+            className="lg:pb-4"
             title="Weight management, reviewed by a doctor."
             primaryCta={{
               text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.WEIGHT_LOSS}`,
@@ -200,6 +201,7 @@ export function WeightLossLanding() {
           </Hero>
 
           <ServiceClaimSection
+            className="lg:pt-6"
             eyebrow="Clinical, not cosmetic"
             headline={<><span className="text-primary">Doctor-supervised</span> weight management.</>}
             body="Not a meal-plan subscription. Not a wellness program. A structured doctor review for adults with BMI 30+ (or 27+ with related conditions). Your doctor checks suitability, safety, and whether online care is appropriate."

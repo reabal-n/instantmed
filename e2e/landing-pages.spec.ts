@@ -40,8 +40,8 @@ test.describe("landing page geometry", () => {
   for (const landing of LANDING_PAGES) {
     test(`${landing.path} hero pill clears the fixed header on a phone`, async ({ page }) => {
       test.fixme(
-        landing.path === "/erectile-dysfunction" || landing.path === "/weight-loss",
-        "bespoke hero has no shared pill until Tasks 18 and 21",
+        landing.path === "/erectile-dysfunction",
+        "bespoke hero has no shared pill until Task 21",
       )
       await page.setViewportSize(PHONE)
       await seedMoneyPageState(page, "light")
@@ -104,8 +104,8 @@ test.describe("landing page desktop rhythm", () => {
   for (const landing of LANDING_PAGES) {
     test(`${landing.path} keeps the hero and the next section within 120px`, async ({ page }) => {
       test.fixme(
-        (["/medical-certificate", "/erectile-dysfunction", "/weight-loss"] as string[]).includes(landing.path),
-        "hero migrates to the shared primitive in Tasks 18, 20 and 21",
+        (["/medical-certificate", "/erectile-dysfunction"] as string[]).includes(landing.path),
+        "hero migrates to the shared primitive in Tasks 20 and 21",
       )
       await page.setViewportSize(DESKTOP)
       await seedMoneyPageState(page, "light")
@@ -135,7 +135,7 @@ test.describe("landing page desktop rhythm", () => {
 })
 
 /** Pages that own a sticky CTA today. Tasks 14 and 18 add "/" and "/weight-loss". */
-const STICKY_PAGES = LANDING_PAGES.filter((p) => p.path !== "/weight-loss")
+const STICKY_PAGES = LANDING_PAGES
 
 test.describe("landing page sticky CTA", () => {
   for (const landing of STICKY_PAGES) {
