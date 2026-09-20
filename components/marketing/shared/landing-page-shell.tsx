@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
-import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { hasScrolledPastTarget, StickyCTA } from "@/components/marketing/shared/sticky-cta"
 import { UnavailableBanner } from "@/components/marketing/shared/unavailable-banner"
 import { type ServiceId,useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Navbar } from "@/components/shared/navbar"
@@ -91,7 +91,7 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
     const el = heroCTARef.current
     if (!el) return
     const observer = new IntersectionObserver(
-      ([entry]) => setShowStickyCTA(!entry.isIntersecting),
+      ([entry]) => setShowStickyCTA(hasScrolledPastTarget(entry)),
       { threshold: 0 }
     )
     observer.observe(el)

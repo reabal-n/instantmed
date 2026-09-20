@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
-import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { hasScrolledPastTarget, StickyCTA } from "@/components/marketing/shared/sticky-cta"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Navbar } from "@/components/shared/navbar"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -48,9 +48,9 @@ export function InformationalPageShell({ config, children, afterFooter }: Inform
   const heroCTARef = useRef<HTMLDivElement>(null!)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
   const prefersReducedMotion = useReducedMotion()
-  const analytics = useLandingAnalytics(config.analyticsId)
-  // The platform kill switch must swap the bar to the contact action here too.
-  const { maintenanceMode } = useServiceAvailability()
+  // The platform kill switch swaps the bar to the contact action; those clicks are not CTA engagement.
+  const { isLoading, maintenanceMode } = useServiceAvailability()
+  const analytics = useLandingAnalytics(config.analyticsId, null, !isLoading && !maintenanceMode)
 
   const hasSticky = !!config.sticky
 
@@ -59,7 +59,7 @@ export function InformationalPageShell({ config, children, afterFooter }: Inform
     const el = heroCTARef.current
     if (!el) return
     const observer = new IntersectionObserver(
-      ([entry]) => setShowStickyCTA(!entry.isIntersecting),
+      ([entry]) => setShowStickyCTA(hasScrolledPastTarget(entry)),
       { threshold: 0 }
     )
     observer.observe(el)

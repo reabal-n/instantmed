@@ -7,6 +7,16 @@ import { useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
+/**
+ * Show the bar only once the reader has scrolled past its target. A hero CTA
+ * pushed below the first viewport by a banner or resume chip is also "not
+ * intersecting", and the bare check opened the bar before any scroll, stacking
+ * it against the resume action and eating the bottom of the first viewport.
+ */
+export function hasScrolledPastTarget(entry: IntersectionObserverEntry): boolean {
+  return !entry.isIntersecting && entry.boundingClientRect.top < 0
+}
+
 interface StickyCTAProps {
   /** Whether the sticky CTA is visible */
   show: boolean

@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
-import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { hasScrolledPastTarget, StickyCTA } from "@/components/marketing/shared/sticky-cta"
 import { UnavailableBanner } from "@/components/marketing/shared/unavailable-banner"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Button } from "@/components/ui/button"
@@ -42,8 +42,10 @@ interface PrescriptionsClientControlsProps {
 export function PrescriptionsClientControls({
   stickyTargetId,
 }: PrescriptionsClientControlsProps) {
-  const isDisabled = useServiceAvailability().isServiceDisabled("scripts")
-  const analytics = useLandingAnalytics("prescription")
+  const { isLoading, isServiceDisabled } = useServiceAvailability()
+  const isDisabled = isServiceDisabled("scripts")
+  // Disabled-state contact clicks are not CTA engagement; the tracker stays off until availability resolves enabled.
+  const analytics = useLandingAnalytics("prescription", null, !isLoading && !isDisabled)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
 
   useEffect(() => {
@@ -51,7 +53,7 @@ export function PrescriptionsClientControls({
     if (!target) return
 
     const observer = new IntersectionObserver(
-      ([entry]) => setShowStickyCTA(!entry.isIntersecting),
+      ([entry]) => setShowStickyCTA(hasScrolledPastTarget(entry)),
       { threshold: 0 },
     )
 

@@ -235,6 +235,11 @@ describe("specialty landing analytics", () => {
     for (const path of consumers) {
       const component = readFileSync(join(process.cwd(), path), "utf8")
       expect(component, `${path} must pass isDisabled to StickyCTA so maintenance mode swaps the request link for the contact action`).toContain("isDisabled=")
+      // A CTA pushed below the first viewport is also "not intersecting"; only a target scrolled past may open the bar.
+      expect(component, `${path} must open the bar with hasScrolledPastTarget, not the bare intersection check`).toContain("setShowStickyCTA(hasScrolledPastTarget(entry))")
+      expect(component, path).not.toContain("setShowStickyCTA(!entry.isIntersecting)")
+      // Contact-state clicks are not CTA engagement: the tracker follows availability like the landing shell.
+      expect(component, `${path} must create its landing analytics with !isLoading && !<disabled state>`).toMatch(/!isLoading && !(isDisabled|maintenanceMode)\b/)
     }
   })
 
