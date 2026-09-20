@@ -38,7 +38,7 @@ export function HomeServiceLinks() {
   return (
     <nav
       aria-label="Learn more about InstantMed"
-      className="border-t border-border/30 bg-muted/20 py-8 dark:bg-white/[0.02]"
+      className="border-t border-border/30 bg-muted/20 py-6 dark:bg-white/[0.02] sm:py-8"
     >
       <div className="mx-auto max-w-4xl space-y-2 px-4 text-center sm:px-6 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground/70">

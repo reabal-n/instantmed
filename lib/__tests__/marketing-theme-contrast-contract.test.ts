@@ -75,9 +75,9 @@ describe("marketing theme and serious-contrast contract", () => {
 
     expect(doctorProfile).toContain('className="text-xs font-medium text-primary-strong"')
     for (const pricingSource of pricingSources) {
-      expect(pricingSource).toMatch(/text-\[11px\][^"\n]*bg-primary\/10 text-primary-strong border border-primary\/20/)
+      expect(pricingSource).toMatch(/text-sm[^"\n]*bg-primary\/10 text-primary-strong border border-primary\/20/)
     }
-    expect(prescription).toContain("text-xs font-medium text-primary-strong")
+    expect(prescription).toContain("text-sm font-medium text-primary-strong")
   })
 
   it("keeps the active consult decision board legible without fading its text", () => {

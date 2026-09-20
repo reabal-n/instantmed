@@ -89,10 +89,10 @@ export function RegulatoryPartners({ className, exclude = [] }: RegulatoryPartne
 
   return (
     <div className={cn('py-6 sm:py-8', className)}>
-      <p className="text-[10px] font-semibold text-muted-foreground text-center mb-4 uppercase tracking-[0.15em]">
+      <p className="text-xs font-semibold text-muted-foreground text-center mb-4 uppercase tracking-[0.15em]">
         Regulatory and delivery context
       </p>
-      <p className="mx-auto mb-5 max-w-2xl px-4 text-center text-xs leading-relaxed text-muted-foreground">
+      <p className="mx-auto mb-5 max-w-2xl px-4 text-center text-sm leading-relaxed text-muted-foreground">
         These organisations regulate practitioners or therapeutic goods, administer health programs,
         or provide service infrastructure. Listed for context only; none endorses InstantMed.
       </p>

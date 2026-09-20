@@ -93,7 +93,7 @@ export function FAQSection({
                   id={contentId}
                   aria-labelledby={triggerId}
                   forceMount
-                  className="text-sm text-muted-foreground leading-relaxed"
+                  className="text-base text-muted-foreground leading-relaxed"
                 >
                   {item.answer}
                 </AccordionContent>

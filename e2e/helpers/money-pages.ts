@@ -9,6 +9,7 @@ export const MONEY_ROUTES = [
   { name: "Erectile Dysfunction", path: "/erectile-dysfunction" },
   { name: "Hair Loss", path: "/hair-loss" },
   { name: "Women's Health", path: "/womens-health" },
+  { name: "Weight Management", path: "/weight-loss" },
   { name: "UTI Assessment", path: "/uti-assessment-online" },
   { name: "Contraceptive Pill Assessment", path: "/contraceptive-pill-assessment-online" },
   { name: "Pricing", path: "/pricing" },

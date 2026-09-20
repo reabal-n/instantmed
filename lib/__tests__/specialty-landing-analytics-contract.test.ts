@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it, vi } from "vitest"
@@ -13,6 +13,21 @@ import {
   resolveAvailableLandingGrowthExperienceVersion,
   resolveLandingGrowthExperienceVersion,
 } from "@/lib/growth/specialty-landing"
+
+const STICKY_CTA_COMPONENT = "components/marketing/shared/sticky-cta.tsx"
+
+function listTsxFiles(roots: string[]): string[] {
+  const files: string[] = []
+  const walk = (relativeDirectory: string) => {
+    for (const entry of readdirSync(join(process.cwd(), relativeDirectory), { withFileTypes: true })) {
+      const relativePath = join(relativeDirectory, entry.name)
+      if (entry.isDirectory()) walk(relativePath)
+      else if (entry.name.endsWith(".tsx")) files.push(relativePath)
+    }
+  }
+  for (const root of roots) walk(root)
+  return files.sort()
+}
 
 describe("specialty landing analytics", () => {
   it("uses the code-owned active landing version for each specialty", () => {
@@ -208,5 +223,46 @@ describe("specialty landing analytics", () => {
       expect(component, path).toContain('isDisabled ? "/contact"')
       expect(component, path).not.toContain("disabled={isDisabled}")
     }
+  })
+
+  it("gives every sticky bar the kill-switch fallback", () => {
+    // Discovered from the tree, not hand-listed: a new bar that forgets the prop
+    // keeps offering a live request link while the platform is in maintenance.
+    const consumers = listTsxFiles(["app", "components"]).filter(
+      (path) => path !== STICKY_CTA_COMPONENT && readFileSync(join(process.cwd(), path), "utf8").includes("<StickyCTA")
+    )
+    expect(consumers.length).toBeGreaterThanOrEqual(5)
+    for (const path of consumers) {
+      const component = readFileSync(join(process.cwd(), path), "utf8")
+      expect(component, `${path} must pass isDisabled to StickyCTA so maintenance mode swaps the request link for the contact action`).toContain("isDisabled=")
+      // A CTA pushed below the first viewport is also "not intersecting"; only a target scrolled past may open the bar.
+      expect(component, `${path} must open the bar with hasScrolledPastTarget, not the bare intersection check`).toContain("setShowStickyCTA(hasScrolledPastTarget(entry))")
+      expect(component, path).not.toContain("setShowStickyCTA(!entry.isIntersecting)")
+      // Contact-state clicks are not CTA engagement: the tracker is gated on the disabled state.
+      expect(component, `${path} must create its landing analytics gated on the disabled state`).toMatch(/useLandingAnalytics\((?:[^()]|\([^()]*\))*,\s*(?:!isDisabled|!maintenanceMode|analyticsEnabled)\s*,?\s*\)/)
+      if (path !== "components/marketing/shared/landing-page-shell.tsx") {
+        // Only the shell waits for availability to resolve (its versioned view latch needs it);
+        // a bare bar keeps tracking while availability loads because the action is live then.
+        expect(component, `${path} must keep tracking while availability loads`).not.toMatch(/!isLoading && !(isDisabled|maintenanceMode)/)
+      }
+    }
+  })
+
+  it("keeps server-rendered status chrome behind the availability gate", () => {
+    const hero = readFileSync(join(process.cwd(), "components/marketing/hero.tsx"), "utf8")
+    expect(hero).toMatch(/<ServiceAvailabilityGate serviceId=\{pillServiceId\}>\s*<div className="hero-availability-enter/)
+    const medCert = readFileSync(join(process.cwd(), "components/marketing/med-cert-landing.tsx"), "utf8")
+    expect(medCert).toContain('pillServiceId="med-cert"')
+    const inline = readFileSync(join(process.cwd(), "components/marketing/sections/how-it-works-inline.tsx"), "utf8")
+    expect(inline).toContain("isDisabledProp ?? maintenanceMode")
+  })
+
+  it("instruments the home page CTAs through delegated data attributes", () => {
+    const page = readFileSync(join(process.cwd(), "app/(marketing)/page.tsx"), "utf8")
+    expect(page).toContain('dataAttributes: { "data-home-cta": "hero" }')
+    expect(page).toContain('ctaDataAttributes={{ "data-home-cta": "how_it_works" }}')
+    const controls = readFileSync(join(process.cwd(), "components/marketing/home-client-controls.tsx"), "utf8")
+    expect(controls).toContain('closest<HTMLElement>("[data-home-cta]")')
+    expect(controls).toContain('new Set(["hero", "how_it_works"])')
   })
 })

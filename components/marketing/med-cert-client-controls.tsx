@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 
 import { StripePaymentLogos } from "@/components/checkout/payment-logos"
-import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { hasScrolledPastTarget, StickyCTA } from "@/components/marketing/shared/sticky-cta"
 import { UnavailableBanner } from "@/components/marketing/shared/unavailable-banner"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
@@ -25,7 +25,9 @@ interface MedCertClientControlsProps {
 
 export function MedCertClientControls({ stickyTargetId }: MedCertClientControlsProps) {
   const isDisabled = useServiceAvailability().isServiceDisabled("med-cert")
-  const analytics = useLandingAnalytics("med-cert")
+  // Disabled-state contact clicks are not CTA engagement. Tracking stays on while
+  // availability loads: the page presents an enabled action then.
+  const analytics = useLandingAnalytics("med-cert", null, !isDisabled)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
 
   useSectionVisibilityFunnel(analytics.trackSectionView)
@@ -35,7 +37,7 @@ export function MedCertClientControls({ stickyTargetId }: MedCertClientControlsP
     if (!el) return
 
     const observer = new IntersectionObserver(
-      ([entry]) => setShowStickyCTA(!entry.isIntersecting),
+      ([entry]) => setShowStickyCTA(hasScrolledPastTarget(entry)),
       { threshold: 0 },
     )
 

@@ -31,12 +31,12 @@ const UTI_FAQ_ITEMS = [
     answer: "Not every urinary symptom episode needs a urine test before a doctor can make a decision, but testing can be important when symptoms are recurrent, severe, atypical, pregnancy-related, not improving, or associated with blood in the urine.",
   },
   {
-    question: "Can men or children use this UTI pathway?",
-    answer: "This pathway is designed for adult women's-health UTI assessment. Men and children with urinary symptoms usually need a different assessment pathway because the causes and safety checks are different.",
+    question: "Can men or children use this UTI assessment?",
+    answer: "This assessment is designed for adult women's-health UTI assessment. Men and children with urinary symptoms usually need a different assessment because the causes and safety checks are different.",
   },
   {
     question: "What if my symptoms could be an STI or vaginal infection?",
-    answer: "If you have vaginal discharge, genital sores, pelvic pain, STI exposure, sexual assault, or symptoms that do not fit a simple urinary infection, seek in-person sexual health or GP care rather than using this online UTI pathway.",
+    answer: "If you have vaginal discharge, genital sores, pelvic pain, STI exposure, sexual assault, or symptoms that do not fit a simple urinary infection, seek in-person sexual health or GP care rather than using this online UTI assessment.",
   },
   {
     question: "What happens if symptoms do not improve?",
@@ -47,7 +47,7 @@ const UTI_FAQ_ITEMS = [
 const PILL_FAQ_ITEMS = [
   {
     question: "Can I start or switch a contraceptive pill online?",
-    answer: "You can request an assessment to start a new contraceptive pill or switch from your current one. The doctor reviews your health history and decides what is clinically appropriate after review. The specific option is determined by the doctor, not chosen from a menu.",
+    answer: "You can request an assessment to start a new contraceptive pill or switch from your current one. The doctor reviews your health history and decides what is suitable after review. The specific option is determined by the doctor, not chosen from a menu.",
   },
   {
     question: "Is the contraceptive pill safety screen complicated?",
@@ -63,7 +63,7 @@ const PILL_FAQ_ITEMS = [
   },
   {
     question: "Can the doctor choose between a combined pill and a mini-pill?",
-    answer: "The doctor decides what is clinically appropriate from your answers. Some people are not suitable for oestrogen-containing options and may need a progestogen-only option, another contraceptive method, a call, or in-person review.",
+    answer: "The doctor decides what is suitable from your answers. Some people are not suitable for oestrogen-containing options and may need a progestogen-only option, another contraceptive method, a call, or in-person review.",
   },
   {
     question: "Do I need a blood pressure reading?",
@@ -71,7 +71,7 @@ const PILL_FAQ_ITEMS = [
   },
   {
     question: "Can I use this if I might be pregnant?",
-    answer: "If you are pregnant or could be pregnant, this paid pathway stops before checkout. Arrange a pregnancy test and speak with your GP, sexual health clinic, or another appropriate clinician before starting or switching contraception.",
+    answer: "If you are pregnant or could be pregnant, this paid assessment stops before checkout. Arrange a pregnancy test and speak with your GP, sexual health clinic, or another appropriate clinician before starting or switching contraception.",
   },
   {
     question: "Can I request a specific pill brand?",

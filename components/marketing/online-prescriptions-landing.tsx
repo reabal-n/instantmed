@@ -409,7 +409,7 @@ function OnlinePrescriptionsHero({
   handleHeroCTA: () => void
 }) {
   return (
-    <section className="relative overflow-x-clip bg-background/95 px-4 pb-12 pt-28 dark:bg-background sm:px-6 sm:pb-16 sm:pt-32 lg:px-8 lg:pb-20">
+    <section className="relative overflow-x-clip bg-background/95 px-4 pb-12 pt-10 dark:bg-background sm:px-6 sm:pb-16 sm:pt-14 lg:px-8 lg:pb-20">
       <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
         <Reveal className="max-w-3xl">
           <div className="mb-5 flex flex-wrap items-center gap-2">

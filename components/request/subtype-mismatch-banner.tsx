@@ -10,7 +10,7 @@ const SUBTYPE_LABELS: Record<string, string> = {
   general: 'General consultation',
   new_medication: 'General consultation', // legacy backward compat
   ed: 'Erectile dysfunction',
-  hair_loss: 'Hair loss treatment',
+  hair_loss: 'Hair loss assessment',
   womens_health: "Women's health",
   weight_loss: 'Weight management',
 }

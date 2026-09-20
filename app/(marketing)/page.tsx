@@ -2,12 +2,11 @@ import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
-import { GoogleAdsCert } from '@/components/marketing/google-ads-cert'
 import { Hero } from '@/components/marketing/hero'
 import { HeroDoctorReviewMockup } from '@/components/marketing/hero-doctor-review-mockup'
+import { HomeClientControls } from '@/components/marketing/home-client-controls'
 import { HomeServiceLinks } from '@/components/marketing/home-service-links'
 import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
-import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { PortfolioRouteMap } from '@/components/marketing/portfolio-route-map'
 import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
@@ -18,6 +17,8 @@ import { getWaitState } from '@/lib/brand/wait-counter'
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { isMaintenanceMode } from '@/lib/feature-flags'
 import { homeH1Font } from '@/lib/fonts/home-h1'
+import { getApprovedClaim } from '@/lib/marketing/approved-claims'
+import { HOME_HERO_CTA_ID } from '@/lib/marketing/home-anchors'
 import { faqItems } from '@/lib/marketing/homepage'
 import { PROP_PHRASE, TAGLINE } from '@/lib/marketing/voice'
 import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo/social-image"
@@ -30,6 +31,9 @@ const CTABanner = dynamic(
 )
 const FAQSection = dynamic(
   () => import('@/components/sections/faq-section').then(m => ({ default: m.FAQSection })),
+)
+const HowItWorksInline = dynamic(
+  () => import('@/components/marketing/sections/how-it-works-inline').then(m => ({ default: m.HowItWorksInline })),
 )
 const MarketingFooter = dynamic(
   () => import('@/components/marketing/marketing-footer').then(m => ({ default: m.MarketingFooter })),
@@ -92,11 +96,35 @@ async function MaintenanceBanner() {
       </svg>
       <div>
         <p className="text-sm font-medium text-amber-900">We&apos;re currently performing maintenance.</p>
-        <p className="text-xs text-warning">{maintenance.message || "New requests will be accepted soon."}</p>
+        <p className="text-sm text-warning">{maintenance.message || "New requests will be accepted soon."}</p>
       </div>
     </div>
   )
 }
+
+const HOME_HOW_IT_WORKS_STEPS = [
+  {
+    sticker: 'medical-history' as const,
+    step: 1,
+    title: 'Fill in a short form',
+    description: 'Tell us what you need and answer the safety questions. Each service page shows how long its form takes.',
+    time: 'A few minutes',
+  },
+  {
+    sticker: 'stethoscope' as const,
+    step: 2,
+    title: 'Clinical review',
+    description: getApprovedClaim('clinical_review_sequence'),
+    time: 'Reviewed 24/7',
+  },
+  {
+    sticker: 'certificate' as const,
+    step: 3,
+    title: 'If approved, certificate to your inbox or eScript to your phone',
+    description: 'Delivery is digital and only follows a clinical decision. Every certificate carries a reference your employer can check at instantmed.com.au/verify.',
+    time: 'Digital delivery',
+  },
+]
 
 export default async function HomePage() {
   // Transform FAQ items for schema
@@ -112,6 +140,8 @@ export default async function HomePage() {
   return (
     <MarketingPageShell>
       <div className="min-h-screen overflow-x-hidden pt-[calc(5rem+env(safe-area-inset-top))]">
+        <HomeClientControls />
+
         {/* SEO Structured Data */}
         <MedicalBusinessSchema />
         <FAQSchema faqs={faqSchemaData} />
@@ -140,32 +170,35 @@ export default async function HomePage() {
         <main className="relative">
           {/* Hero owns the first-fold action and states the service boundary. */}
           <Hero
-            className="pt-6 sm:pt-6 lg:pt-6"
+            className="pt-6 pb-6 sm:pt-6 sm:pb-12 lg:pt-6 lg:pb-10"
             title={TAGLINE}
             titleClassName={`${homeH1Font.className} min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5`}
             liveWait={waitState}
+            primaryCta={{ text: "Get started", href: "/request", wrapperId: HOME_HERO_CTA_ID, dataAttributes: { "data-home-cta": "hero" } }}
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
-            trustRow={(
-              <>
-                <GoogleAdsCert size="sm" />
-                <LegitScriptSeal size="sm" />
-              </>
-            )}
+            mockupClassName="hidden lg:block"
           >
             <h2 className="text-xl sm:text-2xl lg:text-3xl text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-4 sm:mb-6 leading-snug font-normal tracking-tight">
               {PROP_PHRASE}
             </h2>
             <p className="text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed text-balance">
-              Medical certificates, repeat prescriptions and focused assessments for Australian
+              Medical certificates, repeat prescriptions and doctor assessments for Australian
               adults 18+. From {PRICING_DISPLAY.MED_CERT} AUD.
             </p>
           </Hero>
 
-          {/* Card-based service chooser: common requests first, then focused assessments. */}
+          {/* Card-based service chooser: common requests first, then the specialty assessments. */}
           <PortfolioRouteMap />
 
-          <RegulatoryPartners className="border-t border-b border-border/30 bg-muted/20 dark:bg-white/[0.02]" />
+          <HowItWorksInline
+            steps={HOME_HOW_IT_WORKS_STEPS}
+            ctaHref="/request"
+            ctaText="Get started"
+            ctaDataAttributes={{ "data-home-cta": "how_it_works" }}
+            heading="How it works"
+            subheading="One secure form, one clinical decision, the result to your inbox or phone."
+          />
 
           <FAQSection
             pill="FAQ"
@@ -181,6 +214,8 @@ export default async function HomePage() {
             ctaText="Get started"
             ctaHref="/request"
           />
+
+          <RegulatoryPartners className="border-t border-b border-border/30 bg-muted/20 dark:bg-white/[0.02]" />
 
           {/* Active service links already render in the server-owned route map. */}
           <HomeServiceLinks />

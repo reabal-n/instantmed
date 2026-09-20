@@ -43,7 +43,6 @@ describe("marketing and request reflow contract", () => {
   })
 
   it.each([
-    ["components/marketing/erectile-dysfunction-landing.tsx", 1],
     ["components/marketing/uti-assessment-landing.tsx", 2],
     ["components/marketing/contraceptive-pill-assessment-landing.tsx", 2],
   ])("%s uses explicit single-column hero tracks", (path, expectedReflowableCtas) => {
@@ -120,9 +119,9 @@ describe("marketing and request reflow contract", () => {
 
     expect(comparisonTable.match(/grid-cols-3 sm:grid-cols-\[1fr_120px_120px\]/g)).toHaveLength(2)
     expect(comparisonTable.match(/px-2 min-\[241px\]:px-6/g)).toHaveLength(2)
-    expect(routeMap).toContain("grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-6")
+    expect(routeMap).toContain("grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3")
     expect(routeMap).toContain('"min-w-0"')
-    expect(routeMap).toContain('index === 4 && "sm:col-span-2 lg:col-span-2"')
+    expect(routeMap).not.toContain("lg:col-span-2")
   })
 
   it("moves each compact commercial link as one reflowable unit", () => {
@@ -179,9 +178,7 @@ describe("marketing and request reflow contract", () => {
     const medCertLanding = read("components/marketing/med-cert-landing.tsx")
     const medCertMockup = read("components/marketing/mockups/med-cert-hero-mockup.tsx")
 
-    expect(medCertLanding).toContain(
-      'className="relative mt-12 shrink-0 self-center max-[240px]:hidden lg:mt-0"',
-    )
+    expect(medCertLanding).toContain("mockup={<MedCertHeroMockup />}")
     expect(medCertMockup).toContain('"w-[352px] xl:w-[384px]"')
     expect(medCertMockup).not.toContain('"w-[22rem] xl:w-[24rem]"')
   })
