@@ -1,7 +1,7 @@
 import "server-only"
 
 import { resolveGoogleAdsPurchaseCampaignId } from "@/lib/ads-agent/campaign-attribution"
-import type { AdsFirstOrderEconomics, AdsRepeatValueEvidence } from "@/lib/ads-agent/types"
+import type { AdsFirstOrderEconomics, AdsRepeatValueEvidence, CampaignEconomics } from "@/lib/ads-agent/types"
 import type { GoogleAdsAttributionRow } from "@/lib/analytics/google-ads-post-payment"
 import {
   buildCustomerGrowthRevenueForIntakeIds,
@@ -20,6 +20,45 @@ export interface CampaignPurchaseRow extends PurchaseHistoryRow, GoogleAdsAttrib
   stripe_fee_cents: number | null
   stripe_balance_transaction_id: string | null
   stripe_fee_synced_at: string | null
+}
+
+/** Refresh campaign financial truth before optional first-order classification. */
+export function refreshCampaignCash(args: {
+  campaign: CampaignEconomics
+  evidence: CustomerGrowthRevenueEvidence
+  rows: CampaignPurchaseRow[]
+  since: Date
+  until: Date
+}): CampaignEconomics {
+  const { campaign, evidence, since, until } = args
+  if (!Number.isSafeInteger(campaign.spendCents) || campaign.spendCents! < 0) throw new Error("first_order_spend_unavailable")
+  const rows = args.rows.filter((row) => resolveGoogleAdsPurchaseCampaignId(row) === campaign.campaignId)
+  const ids = new Set(rows.map((row) => row.id))
+  const cash = buildCustomerGrowthRevenueForIntakeIds(evidence, ids, since, until)
+  let stripeFeeCents = 0
+  let refundedOrders = 0
+  for (const row of rows) {
+    const paidAt = Date.parse(row.paid_at ?? "")
+    if (paidAt >= since.getTime() && paidAt <= until.getTime()) {
+      if (!hasSyncedFee(row)) throw new Error("first_order_fees_unavailable")
+      stripeFeeCents += row.stripe_fee_cents!
+    }
+    const orderCash = buildCustomerGrowthRevenueForIntakeIds(evidence, new Set([row.id]), since, until)
+    if (orderCash.refundCents + orderCash.disputeCents > 0) refundedOrders += 1
+  }
+  const contributionCents = cash.netCents - stripeFeeCents - campaign.spendCents!
+  return {
+    ...campaign,
+    contributionCents,
+    contributionMargin: cash.netCents > 0 ? contributionCents / cash.netCents : null,
+    grossRevenueCents: cash.grossCents,
+    netRetainedRevenueCents: cash.netCents,
+    orders: cash.orderCount,
+    refundCents: cash.refundCents + cash.disputeCents,
+    refundedOrders,
+    refundRate: cash.orderCount > 0 ? refundedOrders / cash.orderCount : null,
+    stripeFeeCents,
+  }
 }
 
 /** Pure cash reducer. Identifiers are used only for joins and never returned. */

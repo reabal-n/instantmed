@@ -9,6 +9,7 @@ import {
   type CampaignPurchaseRow,
   type CohortPurchaseRow,
   type PurchaseHistoryRow,
+  refreshCampaignCash,
   REPEAT_COHORT_WINDOW_DAYS,
 } from "@/lib/ads-agent/first-order-economics-core"
 import { POLICY } from "@/lib/ads-agent/policy"
@@ -60,9 +61,13 @@ export async function readFirstOrderCampaignEconomicsEvidence(args: {
   // The canonical cash reader uses an inclusive end; Ads windows are exclusive.
   const until = new Date(Date.parse(args.range.endUtcExclusive) - 1)
   const financialFailures = new Map<string, string>()
+  let financialCampaigns = args.campaigns
   const unavailable = (campaign: CampaignEconomics, error: unknown): CampaignEconomics => {
     const reason = failureReason(error)
-    if (!ATTRIBUTION_ONLY_FAILURES.has(reason)) financialFailures.set(campaign.campaignId, reason)
+    if (!ATTRIBUTION_ONLY_FAILURES.has(reason)) {
+      financialFailures.set(campaign.campaignId, reason)
+      return { ...campaign, firstOrder: null, contributionCents: null, contributionMargin: null, netRetainedRevenueCents: null, stripeFeeCents: null }
+    }
     return { ...campaign, firstOrder: null }
   }
   try {
@@ -77,6 +82,13 @@ export async function readFirstOrderCampaignEconomicsEvidence(args: {
       if (result.error || result.count !== chunk.length || result.data?.length !== chunk.length) throw new Error("first_order_rows_incomplete")
       rows.push(...result.data as CampaignPurchaseRow[])
     }
+    financialCampaigns = args.campaigns.map((campaign) => {
+      try {
+        return refreshCampaignCash({ campaign, evidence, rows, since, until })
+      } catch (error) {
+        return unavailable(campaign, error)
+      }
+    })
     const campaignIds = new Set(args.campaigns.map((campaign) => campaign.campaignId))
     const relevant = rows.filter((row) => campaignIds.has(resolveGoogleAdsPurchaseCampaignId(row) ?? ""))
     if (relevant.some((row) => !row.patient_id)) throw new Error("first_order_identity_unavailable")
@@ -91,7 +103,8 @@ export async function readFirstOrderCampaignEconomicsEvidence(args: {
       if (result.error || typeof result.count !== "number" || result.count !== result.data?.length) throw new Error("first_order_history_incomplete")
       history.push(...result.data as PurchaseHistoryRow[])
     }
-    const campaigns = args.campaigns.map((campaign) => {
+    const campaigns = financialCampaigns.map((campaign) => {
+      if (financialFailures.has(campaign.campaignId)) return campaign
       try {
         return { ...campaign, firstOrder: aggregateFirstOrderCampaignEconomics({ campaignId: campaign.campaignId, evidence, history, rows, since, until, spendCents: campaign.spendCents }) }
       } catch (error) {
@@ -100,7 +113,7 @@ export async function readFirstOrderCampaignEconomicsEvidence(args: {
     })
     return { campaigns, financialFailures }
   } catch (error) {
-    return { campaigns: args.campaigns.map((campaign) => unavailable(campaign, error)), financialFailures }
+    return { campaigns: financialCampaigns.map((campaign) => unavailable(campaign, error)), financialFailures }
   }
 }
 
@@ -110,7 +123,10 @@ export async function readFirstOrderCampaignEconomics(args: {
   range: AdsSnapshotWindow
   supabase: SupabaseClient
 }): Promise<CampaignEconomics[]> {
-  return (await readFirstOrderCampaignEconomicsEvidence(args)).campaigns
+  const fresh = await readFirstOrderCampaignEconomicsEvidence(args)
+  // Stored snapshots already own their financial read. This legacy wrapper
+  // enriches only the diagnostic; authorization consumes the full fresh result.
+  return args.campaigns.map((campaign, index) => ({ ...campaign, firstOrder: fresh.campaigns[index].firstOrder }))
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000

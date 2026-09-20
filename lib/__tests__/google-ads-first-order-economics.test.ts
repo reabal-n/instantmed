@@ -184,4 +184,25 @@ describe("fresh first-order reader boundary", () => {
     expect(result.campaigns[1].firstOrder).toEqual({ orders: 1, stripeFeeCents: 100, netRetainedRevenueCents: 3000, contributionCents: 1900 })
     expect(result.financialFailures.has("456")).toBe(false)
   })
+  it("refreshes campaign cash and contribution when a refund is reconciled after the stored snapshot", async () => {
+    vi.mocked(readCustomerGrowthRevenueEvidence).mockResolvedValue({ ...evidence,
+      refundRows: [{ id: "first", amount_cents: 3000, refund_amount_cents: 3000, refunded_at: "2026-08-15T00:00:00Z", refund_status: "succeeded", stripe_refund_id: "re_late" }],
+    })
+    const result = await readFirstOrderCampaignEconomicsEvidence({
+      campaigns: [{ ...campaigns[0], spendCents: 4000, netRetainedRevenueCents: 6000, contributionCents: 1800 }],
+      range, supabase: database(),
+    })
+    expect(result.financialFailures.size).toBe(0)
+    expect(result.campaigns[0]).toMatchObject({ netRetainedRevenueCents: 3000, stripeFeeCents: 200, contributionCents: -1200 })
+  })
+
+  it.each([false, true])("rejects missing repeat fees independently of identity gaps (%s)", async (missingIdentity) => {
+    vi.mocked(readCustomerGrowthRevenueEvidence).mockResolvedValue(evidence)
+    const result = await readFirstOrderCampaignEconomicsEvidence({ campaigns, range,
+      supabase: projectedDatabase([first, { ...repeat, stripe_fee_cents: null, patient_id: missingIdentity ? null : repeat.patient_id }], [first, repeat]),
+    })
+    expect(result.financialFailures.has("123")).toBe(true)
+    expect(result.campaigns[0].contributionCents).toBeNull()
+  })
+
 })
