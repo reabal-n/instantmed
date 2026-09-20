@@ -1,4 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+
+import { sydneyCalendarDateDaysAgo } from "@/lib/clinical/codeine-repeat-window"
 
 const mocks = vi.hoisted(() => ({
   getAuthenticatedUserWithProfile: vi.fn(),
@@ -20,6 +22,15 @@ import { checkCodeineRepeatWindowAction } from "@/app/actions/codeine-repeat-che
 
 const PATIENT_ID = "11111111-1111-4111-8111-111111111111"
 
+/**
+ * The gate measures in Australia/Sydney calendar days. The clock is pinned to
+ * 15:00 UTC on 19 September, which is already 01:00 on 20 September in Sydney:
+ * the hour band in which UTC day arithmetic disagrees with the gate by a day.
+ * Dates are then built with the gate's own Sydney-day helper, so the test
+ * proves the arithmetic at every wall-clock hour and on UTC CI runners.
+ */
+const NOW = new Date("2026-09-19T15:00:00.000Z")
+
 /** In-memory prescriptions query, same shape as the gate's own unit test. */
 function mockSupabase(rows: Array<Record<string, unknown>>, error: { message: string } | null = null) {
   const from = vi.fn(() => {
@@ -36,18 +47,20 @@ function mockSupabase(rows: Array<Record<string, unknown>>, error: { message: st
   return { from }
 }
 
-function twoDaysAgo(): string {
-  return new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-}
-
 describe("checkCodeineRepeatWindowAction", () => {
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] })
+    vi.setSystemTime(NOW)
     vi.clearAllMocks()
     mocks.checkServerActionRateLimit.mockResolvedValue({ success: true })
     mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
       user: { id: "auth-1" },
       profile: { id: PATIENT_ID, role: "patient" },
     })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it("returns unknown for a guest, without touching the database", async () => {
@@ -72,18 +85,25 @@ describe("checkCodeineRepeatWindowAction", () => {
   })
 
   it("returns blocked with patient-facing dates when a codeine script was issued inside 7 days", async () => {
-    const issued = twoDaysAgo()
+    const issued = sydneyCalendarDateDaysAgo(NOW, 2)
+    expect(issued).toBe("2026-09-18") // two Sydney days before 20 Sep, not two UTC days before 19 Sep
     mocks.createServiceRoleClient.mockReturnValue(mockSupabase([
-      { patient_id: PATIENT_ID, medication_name: "Paracetamol + Codeine 500/30", status: "active", issued_date: issued },
+      {
+        patient_id: PATIENT_ID,
+        medication_name: "Paracetamol + Codeine 500/30",
+        status: "active",
+        issued_date: issued,
+        created_at: `${issued}T00:00:00.000Z`, // webhook sync at 10:00 Sydney on the issue day
+      },
     ]))
     const result = await checkCodeineRepeatWindowAction({ medicationName: "Panadeine Forte", strength: "500 mg/30 mg" })
     expect(result.status).toBe("blocked")
     if (result.status !== "blocked") return
-    expect(result.latestIssuedDate).toBe(issued)
+    expect(result.latestIssuedDate).toBe("2026-09-18")
     expect(result.daysSince).toBe(2)
-    expect(result.requestAgainOn > issued).toBe(true)
-    expect(result.latestIssuedLabel).toMatch(/^\d{1,2} [A-Z][a-z]+ \d{4}$/)
-    expect(result.requestAgainLabel).toMatch(/^\d{1,2} [A-Z][a-z]+ \d{4}$/)
+    expect(result.requestAgainOn).toBe("2026-09-25")
+    expect(result.latestIssuedLabel).toBe("18 September 2026")
+    expect(result.requestAgainLabel).toBe("25 September 2026")
   })
 
   it("returns clear once the window has passed", async () => {
