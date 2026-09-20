@@ -40,7 +40,11 @@ export type CodeineRepeatCheckResult =
       requestAgainLabel: string
     }
 
-export async function checkCodeineRepeatWindowAction(input: unknown): Promise<CodeineRepeatCheckResult> {
+export async function checkCodeineRepeatWindowAction(input: unknown): Promise<{ success: true; data: CodeineRepeatCheckResult }> {
+  return { success: true, data: await checkCodeineRepeatWindow(input) }
+}
+
+async function checkCodeineRepeatWindow(input: unknown): Promise<CodeineRepeatCheckResult> {
   try {
     const parsed = inputSchema.safeParse(input)
     if (!parsed.success) return { status: "unknown" }

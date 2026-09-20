@@ -67,20 +67,20 @@ describe("checkCodeineRepeatWindowAction", () => {
     mocks.getAuthenticatedUserWithProfile.mockResolvedValue(null)
     const supabase = mockSupabase([])
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    expect(await checkCodeineRepeatWindowAction({ medicationName: "Panadeine Forte" })).toEqual({ status: "unknown" })
+    expect(await checkCodeineRepeatWindowAction({ medicationName: "Panadeine Forte" })).toEqual({ success: true, data: { status: "unknown" } })
     expect(supabase.from).not.toHaveBeenCalled()
   })
 
   it("returns unknown for malformed input", async () => {
-    expect(await checkCodeineRepeatWindowAction({ medicationName: "" })).toEqual({ status: "unknown" })
-    expect(await checkCodeineRepeatWindowAction(null)).toEqual({ status: "unknown" })
-    expect(await checkCodeineRepeatWindowAction({ medicationName: "x".repeat(201) })).toEqual({ status: "unknown" })
+    expect(await checkCodeineRepeatWindowAction({ medicationName: "" })).toEqual({ success: true, data: { status: "unknown" } })
+    expect(await checkCodeineRepeatWindowAction(null)).toEqual({ success: true, data: { status: "unknown" } })
+    expect(await checkCodeineRepeatWindowAction({ medicationName: "x".repeat(201) })).toEqual({ success: true, data: { status: "unknown" } })
   })
 
   it("returns clear for a non-codeine medicine without querying", async () => {
     const supabase = mockSupabase([])
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    expect(await checkCodeineRepeatWindowAction({ medicationName: "Sertraline", strength: "100 mg" })).toEqual({ status: "clear" })
+    expect(await checkCodeineRepeatWindowAction({ medicationName: "Sertraline", strength: "100 mg" })).toEqual({ success: true, data: { status: "clear" } })
     expect(supabase.from).not.toHaveBeenCalled()
   })
 
@@ -97,32 +97,32 @@ describe("checkCodeineRepeatWindowAction", () => {
       },
     ]))
     const result = await checkCodeineRepeatWindowAction({ medicationName: "Panadeine Forte", strength: "500 mg/30 mg" })
-    expect(result.status).toBe("blocked")
-    if (result.status !== "blocked") return
-    expect(result.latestIssuedDate).toBe("2026-09-18")
-    expect(result.daysSince).toBe(2)
-    expect(result.requestAgainOn).toBe("2026-09-25")
-    expect(result.latestIssuedLabel).toBe("18 September 2026")
-    expect(result.requestAgainLabel).toBe("25 September 2026")
+    expect(result.data.status).toBe("blocked")
+    if (result.data.status !== "blocked") return
+    expect(result.data.latestIssuedDate).toBe("2026-09-18")
+    expect(result.data.daysSince).toBe(2)
+    expect(result.data.requestAgainOn).toBe("2026-09-25")
+    expect(result.data.latestIssuedLabel).toBe("18 September 2026")
+    expect(result.data.requestAgainLabel).toBe("25 September 2026")
   })
 
   it("returns clear once the window has passed", async () => {
     mocks.createServiceRoleClient.mockReturnValue(mockSupabase([
       { patient_id: PATIENT_ID, medication_name: "Panadeine Forte", status: "active", issued_date: "2020-01-01" },
     ]))
-    expect(await checkCodeineRepeatWindowAction({ medicationName: "Panadeine Forte" })).toEqual({ status: "clear" })
+    expect(await checkCodeineRepeatWindowAction({ medicationName: "Panadeine Forte" })).toEqual({ success: true, data: { status: "clear" } })
   })
 
   it("fails open to clear on a lookup error, matching the checkout gate", async () => {
     mocks.createServiceRoleClient.mockReturnValue(mockSupabase([], { message: "boom" }))
-    expect(await checkCodeineRepeatWindowAction({ medicationName: "Panadeine Forte" })).toEqual({ status: "clear" })
+    expect(await checkCodeineRepeatWindowAction({ medicationName: "Panadeine Forte" })).toEqual({ success: true, data: { status: "clear" } })
   })
 
   it("returns unknown when rate limited", async () => {
     mocks.checkServerActionRateLimit.mockResolvedValue({ success: false, error: "slow down" })
     const supabase = mockSupabase([])
     mocks.createServiceRoleClient.mockReturnValue(supabase)
-    expect(await checkCodeineRepeatWindowAction({ medicationName: "Panadeine Forte" })).toEqual({ status: "unknown" })
+    expect(await checkCodeineRepeatWindowAction({ medicationName: "Panadeine Forte" })).toEqual({ success: true, data: { status: "unknown" } })
     expect(supabase.from).not.toHaveBeenCalled()
   })
 })

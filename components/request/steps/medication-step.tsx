@@ -387,7 +387,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         form: codeineCandidate.form || undefined,
       })
         .then((result) => {
-          if (!cancelled) setCodeineWindow(result)
+          if (!cancelled) setCodeineWindow(result.data)
         })
         .catch(() => {
           if (!cancelled) setCodeineWindow(null)
