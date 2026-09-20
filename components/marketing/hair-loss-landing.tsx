@@ -1,13 +1,11 @@
 "use client"
 
 import {
-  ArrowDown,
   ArrowRight,
   CalendarRange,
   CheckCircle2,
   HeartPulse,
   Lock,
-  MessageCircle,
   ScanSearch,
   ShieldCheck,
   Sparkles,
@@ -34,10 +32,6 @@ import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 const HowItWorksInline = dynamic(
   () => import("@/components/marketing/sections/how-it-works-inline").then((module) => module.HowItWorksInline),
   { loading: () => <div className="min-h-[400px]" /> },
-)
-const DoctorProfileSection = dynamic(
-  () => import("@/components/marketing/sections/doctor-profile-section").then((module) => module.DoctorProfileSection),
-  { loading: () => <div className="min-h-[200px]" /> },
 )
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((module) => module.FAQSection),
@@ -114,47 +108,25 @@ const HAIR_ASSESSMENT_SIGNALS = [
     id: "pattern",
     icon: ScanSearch,
     label: "Pattern",
-    prompt: "Where is it changing?",
     detail: "Hairline, crown, or more general thinning, described through the pattern and history answers you provide.",
   },
   {
     id: "tempo",
     icon: CalendarRange,
     label: "Tempo",
-    prompt: "When did it start?",
     detail: "Recent, six to twelve months, or longer-running change helps the doctor understand the timeline.",
   },
   {
     id: "scalp",
     icon: Sparkles,
     label: "Scalp symptoms",
-    prompt: "What else is happening?",
     detail: "Dandruff, psoriasis, persistent irritation, or infected follicles can change whether an examination is needed.",
   },
   {
     id: "safety",
     icon: HeartPulse,
     label: "Health context",
-    prompt: "Is remote care suitable?",
     detail: "Current medicines, allergies, conditions, blood pressure, heart history, and reproductive context complete the safety picture.",
-  },
-] as const
-
-const HAIR_SUITABILITY_OUTCOMES = [
-  {
-    icon: CheckCircle2,
-    title: "Online review may continue",
-    body: "The history and pattern give the doctor enough information to assess the request remotely.",
-  },
-  {
-    icon: MessageCircle,
-    title: "More detail may be needed",
-    body: "The doctor may call or message to clarify the pattern, scalp symptoms, medicines, or health history.",
-  },
-  {
-    icon: Stethoscope,
-    title: "In-person review may be safer",
-    body: "A GP or skin examination may be more appropriate when the pattern or symptoms cannot be assessed safely online.",
   },
 ] as const
 
@@ -216,66 +188,16 @@ function HairAssessmentModel() {
           </p>
         </Reveal>
 
-        <figure
-          data-art-direction="hair-pattern-tempo-assessment"
-          className="mt-9 overflow-hidden rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none"
-        >
-          <div className="grid min-w-0 lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,0.88fr)]">
-            <dl className="min-w-0 divide-y divide-border/50 p-5 sm:p-6">
-              {HAIR_ASSESSMENT_SIGNALS.map((signal) => (
-                <div
-                  key={signal.id}
-                  className="min-w-0 py-4 first:pt-0 last:pb-0"
-                >
-                  <dt className="flex items-center gap-3 text-sm font-semibold text-foreground">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--service-hair)]/10 text-[color:var(--service-hair)]">
-                      <signal.icon className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                    <span>{signal.label}</span>
-                  </dt>
-                  <dd className="ml-[3.25rem] mt-2 text-sm font-medium text-foreground">{signal.prompt}</dd>
-                  <dd className="ml-[3.25rem] mt-1 text-sm leading-6 text-muted-foreground">
-                    {signal.detail}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-
-            <div className="flex min-w-0 flex-col justify-center border-t border-border/50 bg-[color:var(--morning-ivory)]/70 p-5 dark:border-white/10 dark:bg-white/[0.04] sm:p-6 lg:border-l lg:border-t-0">
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--service-hair)] text-[color:var(--warning-foreground)] shadow-sm shadow-primary/[0.04]">
-                <ShieldCheck className="h-6 w-6" aria-hidden="true" />
-              </span>
-              <Heading level="h3" className="mt-4">The combination matters</Heading>
-              <p className="mt-2 text-base leading-7 text-muted-foreground">
-                Pattern does not decide suitability on its own. The doctor reviews all four signals before recommending the next step.
-              </p>
-              <div className="mt-5 flex flex-wrap items-center gap-2 text-sm font-medium text-foreground">
-                <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Pattern</span>
-                <span aria-hidden="true">+</span>
-                <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Tempo</span>
-                <span aria-hidden="true">+</span>
-                <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Scalp</span>
-                <span aria-hidden="true">+</span>
-                <span className="rounded-full border border-border/50 bg-white px-3 py-1.5 dark:border-white/15 dark:bg-card">Health</span>
+        <figure data-art-direction="hair-pattern-tempo-assessment" className="mt-6 rounded-2xl border border-border/50 bg-white p-5 dark:border-white/15 dark:bg-card sm:p-6">
+          <dl className="grid gap-5 sm:grid-cols-2">
+            {HAIR_ASSESSMENT_SIGNALS.map((signal) => (
+              <div key={signal.id} className="min-w-0">
+                <dt className="flex items-center gap-2 text-base font-semibold"><signal.icon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />{signal.label}</dt>
+                <dd className="mt-1 text-base leading-6 text-muted-foreground">{signal.detail}</dd>
               </div>
-              <ArrowDown className="mt-5 h-5 w-5 text-[color:var(--service-hair)]" aria-hidden="true" />
-            </div>
-          </div>
-
-          <div className="border-t border-border/50 p-5 dark:border-white/10 sm:p-6">
-            <Heading level="h3">What the review can lead to</Heading>
-            <ul className="mt-4 grid min-w-0 divide-y divide-border/50 md:grid-cols-3 md:divide-x md:divide-y-0">
-              {HAIR_SUITABILITY_OUTCOMES.map((outcome) => (
-                <li key={outcome.title} className="min-w-0 py-4 first:pt-0 last:pb-0 md:px-5 md:py-0 md:first:pl-0 md:last:pr-0">
-                  <outcome.icon className="h-5 w-5 text-[color:var(--service-hair)]" aria-hidden="true" />
-                  <p className="mt-3 text-sm font-semibold text-foreground">{outcome.title}</p>
-                  <p className="mt-1 text-base leading-7 text-muted-foreground">{outcome.body}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <figcaption className="border-t border-border/50 bg-muted/30 px-5 py-3 text-base leading-7 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
+            ))}
+          </dl>
+          <figcaption className="mt-5 border-t border-border/50 pt-5 text-base leading-6 text-muted-foreground">
             This model explains the information reviewed. It does not diagnose the cause of hair loss or guarantee a prescription. Sudden or patchy loss, painful or infected scalp symptoms, wider body-hair changes, an unclear history, or other signs that need examination may be safer to assess in person. The doctor may ask for more detail, recommend tests or GP review, or decline online care. The doctor decides whether to prescribe.
           </figcaption>
         </figure>
@@ -294,17 +216,9 @@ function HairLossPricingSection({
   requestCtaHref: string
 }) {
   return (
-    <section id="pricing" aria-label="Hair loss assessment pricing" className="py-10 sm:py-12 lg:pt-14 lg:pb-20">
+    <section id="pricing" aria-label="Hair loss assessment pricing" className="py-10 sm:py-12 lg:pt-6 lg:pb-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <Reveal instant className="mx-auto max-w-2xl text-center">
-          <SectionPill>Fee and dispensing</SectionPill>
-          <Heading level="h2" className="mt-4">One review fee. Clear pharmacy boundary.</Heading>
-          <p className="mt-3 text-base leading-7 text-muted-foreground">
-            Doctor review comes first. A prescription is issued only when clinically appropriate.
-          </p>
-        </Reveal>
-
-        <Reveal instant className="mx-auto mt-8 max-w-2xl overflow-hidden rounded-2xl border border-primary/30 bg-white shadow-xl shadow-primary/[0.1] dark:border-white/15 dark:bg-card dark:shadow-none">
+        <Reveal instant className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-primary/30 bg-white shadow-xl shadow-primary/[0.1] dark:border-white/15 dark:bg-card dark:shadow-none">
           <div className="grid divide-y divide-border/50 sm:grid-cols-[0.72fr_1.28fr] sm:divide-x sm:divide-y-0">
             <div className="p-6">
               <div className="flex items-center justify-between gap-3">
@@ -382,9 +296,8 @@ export function HairLossLanding() {
             isDisabled={isDisabled}
             subheading="A private form first, then an Australian doctor reviews the complete picture and decides the safest next step."
             revealInstant
+            compact
           />
-
-          <DoctorProfileSection instant />
 
           <FAQSection
             pill="FAQ"

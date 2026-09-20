@@ -32,7 +32,6 @@ import { cn } from "@/lib/utils"
 
 const ASSESSMENT_HREF = "/request?service=consult&subtype=womens_health&intent=ocp_new"
 const WOMENS_HEALTH_HREF = "/womens-health"
-const REPEAT_PRESCRIPTION_HREF = "/prescriptions"
 
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "womens-health",
@@ -40,7 +39,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   sticky: {
     ctaText: `Start pill assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
     ctaHref: ASSESSMENT_HREF,
-    mobileSummary: "Start or switch pill",
+    mobileSummary: "Start, switch or continue pill",
     responseTime: "Doctor review 24/7",
   },
 }
@@ -88,13 +87,12 @@ const SAFETY_CHECKS = [
 const ELIGIBILITY_ITEMS = [
   "You are in Australia and aged 18 or over.",
   getApprovedClaim("prescribing_identity_required"),
-  "You want to start an oral contraceptive pill or switch from another method.",
+  "You want to start, switch or continue an oral contraceptive pill.",
   "Your pre-checkout answers allow this online pathway to continue.",
   "You can provide current contraception, blood-pressure context, medical history, and medicine details clearly.",
 ] as const
 
 const OUTSIDE_SCOPE_ITEMS = [
-  "Continuing the exact same established pill and dose. Use repeat prescriptions instead.",
   "Emergency contraception, implants, IUDs, injections, ring fitting, cervical screening, or STI testing.",
   "Pregnancy or possible pregnancy, migraine with aura, blood clot history, or an unsafe smoking context: the form stops before checkout.",
   "Severe pelvic pain, heavy unexplained bleeding, sexual assault, chest pain, sudden shortness of breath, collapse, or other urgent symptoms.",
@@ -104,7 +102,7 @@ const REVIEW_COST_OUTCOMES = [
   {
     icon: ShieldCheck,
     title: "1 · Complete the safety questions",
-    body: "Confirm start or switch pill in the form, then answer the health questions. Answers that rule out this pathway direct you to in-person care before payment.",
+    body: "Confirm start, switch or continue pill in the form, then answer the health questions. Answers that rule out this pathway direct you to in-person care before payment.",
   },
   {
     icon: Stethoscope,
@@ -120,14 +118,14 @@ const REVIEW_COST_OUTCOMES = [
 
 const ALTERNATIVES = [
   {
-    title: "Repeat prescription",
-    href: REPEAT_PRESCRIPTION_HREF,
-    body: "For an unchanged pill and dose you are already established on.",
+    title: "Continue your current pill",
+    href: ASSESSMENT_HREF,
+    body: "Use this same safety assessment. Have your current pill name, strength and directions ready.",
   },
   {
     title: "Women's health hub",
     href: WOMENS_HEALTH_HREF,
-    body: "Compare the start-or-switch pill and UTI symptom pathways.",
+    body: "Compare the pill and UTI symptom pathways.",
   },
   {
     title: "High blood pressure guide",
@@ -351,7 +349,7 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
                   Contraceptive pill assessment online
                 </Heading>
                 <p data-speakable className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-                  An online doctor assessment for starting or switching the contraceptive pill. For adults in Australia. One-off doctor review: {PRICING_DISPLAY.WOMENS_HEALTH}. Pharmacy costs are separate if a prescription is approved.
+                  An online doctor assessment for starting, switching or continuing the contraceptive pill. For adults in Australia. One-off doctor review: {PRICING_DISPLAY.WOMENS_HEALTH}. Pharmacy costs are separate if a prescription is approved.
                 </p>
                 <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
                   {FORM_FIRST_WEDGE}
@@ -451,8 +449,8 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
           <SectionShell
             id="eligibility-and-scope"
             pill="Eligibility and scope"
-            title="For starting or switching the oral contraceptive pill"
-            intro="This pathway does not replace a sexual health clinic, physical examination, emergency contraception service, procedure, or repeat-prescription pathway."
+            title="For starting, switching or continuing the oral contraceptive pill"
+            intro="This pathway does not replace a sexual health clinic, physical examination, emergency contraception service, or procedure."
             muted
           >
             <div className="grid gap-6 lg:grid-cols-2">
@@ -478,14 +476,14 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
             id="alternatives"
             pill="Other routes"
             title="If this is not the right pathway"
-            intro="Choose the route that matches whether you need an unchanged repeat, a different women's-health assessment, or in-person care."
+            intro="Choose the route that matches whether you need a pill assessment, UTI assessment, or in-person care."
             muted
           >
             <div className="grid gap-4 sm:grid-cols-3">
               {ALTERNATIVES.map((item) => (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={item.href === ASSESSMENT_HREF && isDisabled ? "/contact" : item.href}
                   className="rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white/15 dark:bg-card dark:shadow-none"
                 >
                   <Heading level="h3" className="text-base">
@@ -493,7 +491,7 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
                   </Heading>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.body}</p>
                   <span className="mt-4 inline-flex items-center text-sm font-medium text-primary">
-                    Read more
+                    {item.href === ASSESSMENT_HREF ? (isDisabled ? "Contact us" : "Start pill assessment") : "Read more"}
                     <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden="true" />
                   </span>
                 </Link>
@@ -540,7 +538,7 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
                   Request a contraceptive pill assessment
                 </Heading>
                 <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-                  Confirm start or switch pill and complete the secure health questions. Safety checks happen before payment. A doctor reviews suitable requests and decides whether prescribing is appropriate.
+                  Confirm start, switch or continue pill and complete the secure health questions. Safety checks happen before payment. A doctor reviews suitable requests and decides whether prescribing is appropriate.
                 </p>
                 <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <Button asChild size="lg" className="w-full sm:w-auto" disabled={isDisabled} onClick={handleFinalCTA}>

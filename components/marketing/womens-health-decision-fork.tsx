@@ -6,10 +6,10 @@ import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"
 
 /**
  * Two-lane visual for the narrow women's-health hub. It makes UTI symptoms
- * and starting/switching the pill equal first-class pathways, then reunites
+ * and starting, switching or continuing the pill equal first-class pathways, then reunites
  * them at the shared doctor-review boundary.
  */
-export function WomensHealthDecisionFork() {
+export function WomensHealthDecisionFork({ isDisabled = false }: { isDisabled?: boolean }) {
   return (
     <figure
       aria-labelledby="womens-health-decision-title"
@@ -29,7 +29,7 @@ export function WomensHealthDecisionFork() {
         />
 
         <Link
-          href="/request?service=consult&subtype=womens_health&intent=uti"
+          href={isDisabled ? "/contact" : "/request?service=consult&subtype=womens_health&intent=uti"}
           className="relative mr-8 flex min-h-24 items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 p-4 outline-none hover:border-sky-400 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-sky-800 dark:bg-sky-950/35"
         >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-600 text-white dark:bg-sky-400 dark:text-sky-950">
@@ -52,14 +52,14 @@ export function WomensHealthDecisionFork() {
         </div>
 
         <Link
-          href="/request?service=consult&subtype=womens_health&intent=ocp_new"
+          href={isDisabled ? "/contact" : "/request?service=consult&subtype=womens_health&intent=ocp_new"}
           className="relative ml-8 flex min-h-24 items-start gap-3 rounded-xl border border-pink-200 bg-pink-50 p-4 outline-none hover:border-pink-400 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-pink-800 dark:bg-pink-950/35"
         >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pink-600 text-white dark:bg-pink-400 dark:text-pink-950">
             <HeartPulse className="h-4 w-4" aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold text-foreground">Start or switch the pill</span>
+            <span className="block text-sm font-semibold text-foreground">Start, switch or continue the pill</span>
             <span className="mt-1 block text-sm leading-6 text-muted-foreground">
               Health history and prescribing safety screen.
             </span>
@@ -84,12 +84,12 @@ export function WomensHealthDecisionFork() {
       </div>
 
       <Link
-        href="/prescriptions"
+        href={isDisabled ? "/contact" : "/request?service=consult&subtype=womens_health&intent=ocp_new"}
         className="flex items-center justify-between gap-3 border-t border-border/50 px-5 py-3 text-sm text-muted-foreground outline-none hover:bg-muted/35 hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary dark:border-white/10"
       >
         <span className="inline-flex items-center gap-2">
           <RefreshCw className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-          Continuing the same pill? Check repeat prescriptions.
+          Continuing the same pill uses this assessment too.
         </span>
         <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       </Link>

@@ -87,7 +87,8 @@ describe("money-page narrative compression", () => {
     const ed = read("components/marketing/erectile-dysfunction-landing.tsx")
 
     expect(ed.match(/Call 000 for chest pain/g)).toHaveLength(1)
-    expect(ed).toContain("Safety answers can change the care route")
+    expect(ed).toContain("decline the online request")
+    expect(ed).toContain("recommend GP, sexual-health, or cardiovascular follow-up")
   })
 
   it("keeps ED E1 identity, timing, and outcome copy truthful", () => {

@@ -4,11 +4,9 @@ import {
   Activity,
   AlertTriangle,
   ArrowRight,
-  CheckCircle2,
   Clock3,
   HeartPulse,
   Lock,
-  MessageCircle,
   Pill,
   ShieldCheck,
   Stethoscope,
@@ -86,14 +84,6 @@ const HERO_FACTS = [
   },
 ] as const
 
-const ELIGIBILITY_ITEMS = [
-  "You are in Australia and aged 18 or over.",
-  getApprovedClaim("prescribing_identity_required"),
-  "You can provide current medicines, allergies, conditions, and heart or stroke history.",
-  "Your main concern is ongoing difficulty getting or keeping an erection, and you can describe the pattern clearly.",
-  "You understand that the doctor decides whether to prescribe, and contact may be needed before a decision.",
-] as const
-
 const ED_DECISION_SIGNALS = [
   {
     icon: Activity,
@@ -114,24 +104,6 @@ const ED_DECISION_SIGNALS = [
     icon: AlertTriangle,
     title: "Red flags",
     body: "A prolonged or painful erection, injury, sudden severe genital pain, or symptoms that need urgent assessment.",
-  },
-] as const
-
-const ED_DECISION_OUTCOMES = [
-  {
-    icon: CheckCircle2,
-    title: "Online care may be suitable",
-    body: "The doctor decides whether the complete history supports remote care and whether prescribing is clinically appropriate.",
-  },
-  {
-    icon: MessageCircle,
-    title: "A detail needs clarification",
-    body: "The doctor may call or message about symptoms, medicines, heart context, or previous treatment before deciding.",
-  },
-  {
-    icon: Stethoscope,
-    title: "In-person care is safer",
-    body: "The doctor may decline or redirect when examination, urgent assessment, or broader investigation is needed.",
   },
 ] as const
 
@@ -202,27 +174,10 @@ function EdHeroFacts() {
 
 function EdEligibilitySection() {
   return (
-    <section id="eligibility" className="py-10 sm:py-12">
+    <section id="eligibility" aria-label="ED assessment eligibility" className="py-8">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-          <Reveal instant>
-            <SectionPill>Eligibility</SectionPill>
-            <Heading level="h2" className="mt-4">A focused starting point for ED concerns</Heading>
-            <p className="mt-3 text-base leading-7 text-muted-foreground">
-              {FORM_FIRST_CLAIM} The form gives the doctor the information needed to decide whether remote assessment is suitable.
-            </p>
-          </Reveal>
-          <Reveal instant>
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {ELIGIBILITY_ITEMS.map((item) => (
-                <li key={item} className="flex gap-3 rounded-2xl border border-border/50 bg-white p-4 text-sm leading-6 text-muted-foreground shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </Reveal>
-        </div>
+        <Heading level="h2">Is this assessment right for you?</Heading>
+        <p className="mt-3 text-base leading-7 text-muted-foreground">Your main concern should be ongoing difficulty getting or keeping an erection. Have your current medicines, allergies, conditions, and heart or stroke history ready. The doctor decides whether remote care is suitable and may contact you before a decision.</p>
       </div>
     </section>
   )
@@ -240,64 +195,17 @@ function EdSafetyDecisionMap() {
           </p>
         </Reveal>
 
-        <figure
-          data-art-direction="ed-safety-decision-map"
-          aria-labelledby="ed-decision-map-title"
-          aria-describedby="ed-decision-map-warning"
-          className="mt-9 overflow-hidden rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none"
-        >
-          <div className="grid min-w-0 lg:grid-cols-[minmax(0,1.1fr)_minmax(13rem,0.62fr)_minmax(0,0.95fr)]">
-            <div className="min-w-0 p-5 sm:p-6">
-              <div className="flex items-center justify-between gap-3 border-b border-border/50 pb-4">
-                <Heading level="h3">Your private safety screen</Heading>
-                <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-sm font-medium text-primary-strong dark:text-primary">Four signals</span>
+        <figure data-art-direction="ed-safety-decision-map" aria-labelledby="ed-decision-map-title" aria-describedby="ed-decision-map-warning" className="mt-6 rounded-2xl border border-border/50 bg-white p-5 dark:border-white/15 dark:bg-card sm:p-6">
+          <dl className="grid gap-5 sm:grid-cols-2">
+            {ED_DECISION_SIGNALS.map((signal) => (
+              <div key={signal.title} className="min-w-0">
+                <dt className="flex items-center gap-2 text-base font-semibold"><signal.icon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />{signal.title}</dt>
+                <dd className="mt-1 text-base leading-6 text-muted-foreground">{signal.body}</dd>
               </div>
-              <ol className="divide-y divide-border/50">
-                {ED_DECISION_SIGNALS.map((signal, index) => (
-                  <li key={signal.title} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-3 py-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted/70 text-primary dark:bg-white/[0.06]">
-                      <signal.icon className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground"><span className="mr-2 text-muted-foreground" aria-hidden="true">{index + 1}.</span>{signal.title}</p>
-                      <p className="mt-1 text-base leading-7 text-muted-foreground">{signal.body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            <div className="flex min-w-0 flex-col items-center justify-center border-y border-border/50 bg-[color:var(--morning-ivory)]/70 p-5 text-center dark:border-white/10 dark:bg-white/[0.04] lg:border-x lg:border-y-0">
-              <ArrowRight className="mb-3 h-5 w-5 rotate-90 text-primary lg:rotate-0" aria-hidden="true" />
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm shadow-primary/20">
-                <Stethoscope className="h-6 w-6" aria-hidden="true" />
-              </span>
-              <Heading level="h3" className="mt-4">Doctor review</Heading>
-              <p className="mt-2 max-w-xs text-base leading-7 text-muted-foreground">
-                {DOCTOR_REGISTRATION_CLAIM} The doctor weighs the combined clinical picture before any prescribing decision.
-              </p>
-              <ArrowRight className="mt-3 h-5 w-5 rotate-90 text-primary lg:rotate-0" aria-hidden="true" />
-            </div>
-
-            <div className="min-w-0 p-5 sm:p-6">
-              <Heading level="h3">Possible next steps</Heading>
-              <ul className="mt-4 divide-y divide-border/50">
-                {ED_DECISION_OUTCOMES.map((outcome) => (
-                  <li key={outcome.title} className="flex gap-3 py-4 first:pt-0 last:pb-0">
-                    <outcome.icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{outcome.title}</p>
-                      <p className="mt-1 text-base leading-7 text-muted-foreground">{outcome.body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <figcaption id="ed-decision-map-warning" className="border-t border-border/50 bg-muted/30 px-5 py-4 text-sm leading-6 text-muted-foreground dark:border-white/10 dark:bg-white/[0.03] sm:px-6">
-            <span className="font-semibold text-foreground">Safety answers can change the care route.</span>{" "}
-            The doctor may ask for non-urgent clarification, decline the online request, or recommend GP, sexual-health, or cardiovascular follow-up. The urgent-care boundary is set out next.
+            ))}
+          </dl>
+          <figcaption id="ed-decision-map-warning" className="mt-5 border-t border-border/50 pt-5 text-base leading-6 text-muted-foreground">
+            {DOCTOR_REGISTRATION_CLAIM} The doctor may call or message for clarification, decline the online request, or recommend GP, sexual-health, or cardiovascular follow-up. The urgent-care boundary is set out next.
           </figcaption>
         </figure>
       </div>

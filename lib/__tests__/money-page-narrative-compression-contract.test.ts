@@ -29,7 +29,7 @@ describe("money-page narrative compression", () => {
       ["components/marketing/erectile-dysfunction-landing.tsx", "ED assessment"],
       ["components/marketing/hair-loss-landing.tsx", "3-min form"],
       ["components/marketing/uti-assessment-landing.tsx", "UTI symptom assessment"],
-      ["components/marketing/contraceptive-pill-assessment-landing.tsx", "Start or switch pill"],
+      ["components/marketing/contraceptive-pill-assessment-landing.tsx", "Start, switch or continue pill"],
     ] as const
 
     for (const [path, summary] of summaries) {
@@ -256,7 +256,6 @@ describe("money-page narrative compression", () => {
       "<HairLossPricingSection",
       "<HairAssessmentModel />",
       "<HowItWorksInline",
-      "<DoctorProfileSection",
       "items={HAIR_LOSS_LANDING_FAQ}",
       "<CTABanner",
     ])
@@ -270,7 +269,7 @@ describe("money-page narrative compression", () => {
       "Australia only",
       "Ages 18+",
       "PRICING_DISPLAY.WOMENS_HEALTH",
-      "Full refund if the doctor declines",
+      "GUARANTEE",
     ]) {
       expect(source, commonFact).toContain(commonFact)
     }
@@ -297,7 +296,7 @@ describe("money-page narrative compression", () => {
 
     expect(source).toContain('href="/uti-assessment-online"')
     expect(source).toContain('href="/contraceptive-pill-assessment-online"')
-    expect(source).toContain('href="/prescriptions"')
+    expect(source).not.toContain('href="/prescriptions"')
     expect(source).toContain("migraine with aura")
     expect(source).toContain("clot history")
     expect(source).toContain("blood in your urine")
@@ -313,7 +312,7 @@ describe("money-page narrative compression", () => {
     expect(source.slice(reviewStart, reviewEnd)).toContain("AHPRA")
 
     expectInOrder(source, [
-      "<WomensHealthDecisionFork />",
+      "<WomensHealthDecisionFork isDisabled={isDisabled} />",
       "<WomensHealthCommonFacts />",
       "<WomensHealthBoundarySection />",
       "<WomensHealthReviewAndPriceSection />",
