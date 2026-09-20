@@ -253,6 +253,36 @@ describe("Google Ads Agent policy", () => {
     expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [{ ...women, campaignStatus: "PAUSED" }] })), "womens_health")).toMatchObject({ kind: "HOLD", proposedMutationFamily: null })
   })
 
+  it.each([
+    { service: "ed" },
+    { service: "hair_loss" },
+    { service: "womens_health" },
+  ] satisfies Array<{ service: SpecialtyService }>)(
+    "qualifies a positive-cash $service pilot on campaign contribution when first-order evidence is absent",
+    ({ service }) => {
+      // Same campaign-contribution policy as Scripts and med certs (owner
+      // decision 2026-09-19): missing first-order evidence is advisory, not a veto.
+      const positive = specialtyCampaign(service, {
+        contributionCents: 500, netRetainedRevenueCents: 2000, spendCents: 1400, stripeFeeCents: 100,
+        orders: 1, serviceOrders: { [service]: 1 }, refundRate: 0,
+      })
+      for (const firstOrder of [undefined, null]) {
+        const enabled = { ...positive, firstOrder }
+        expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [enabled] })), service)).toMatchObject({
+          kind: "APPROVAL_NEEDED",
+          proposedMutationFamily: "campaign_budget",
+          reasonCodes: expect.arrayContaining(["CAMPAIGN_CONTRIBUTION_POSITIVE", "FIRST_ORDER_EVIDENCE_UNAVAILABLE"]),
+        })
+        expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [{ ...enabled, campaignStatus: "PAUSED" }] })), service)).toEqual({
+          kind: "HOLD",
+          proposedMutationFamily: null,
+          reasonCodes: ["CAMPAIGN_ALREADY_PAUSED"],
+          service,
+        })
+      }
+    },
+  )
+
   it("surfaces a first-order loss as an advisory when repeat cash keeps the campaign positive", () => {
     const firstOrder = { contributionCents: -100, netRetainedRevenueCents: 34000, stripeFeeCents: 100, orders: 2 }
     const result = recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [campaign({ firstOrder, refundRate: 0.5 })] })), "scripts")

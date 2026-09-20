@@ -678,7 +678,10 @@ function evaluateSpecialty(
     }
   }
 
-  return (campaign.firstOrder ? profitRecommendation(service, campaign) : null) ?? hold(service, "PILOT_WITHIN_LOSS_CAP")
+  // Same campaign-contribution policy as Scripts and med certs: missing
+  // first-order evidence is an advisory reason code inside
+  // profitRecommendation, never a veto (owner decision 2026-09-19).
+  return profitRecommendation(service, campaign) ?? hold(service, "PILOT_WITHIN_LOSS_CAP")
 }
 
 /**
