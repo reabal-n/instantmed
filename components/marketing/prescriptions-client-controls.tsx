@@ -42,10 +42,10 @@ interface PrescriptionsClientControlsProps {
 export function PrescriptionsClientControls({
   stickyTargetId,
 }: PrescriptionsClientControlsProps) {
-  const { isLoading, isServiceDisabled } = useServiceAvailability()
-  const isDisabled = isServiceDisabled("scripts")
-  // Disabled-state contact clicks are not CTA engagement; the tracker stays off until availability resolves enabled.
-  const analytics = useLandingAnalytics("prescription", null, !isLoading && !isDisabled)
+  const isDisabled = useServiceAvailability().isServiceDisabled("scripts")
+  // Disabled-state contact clicks are not CTA engagement. Tracking stays on while
+  // availability loads: the page presents an enabled action then.
+  const analytics = useLandingAnalytics("prescription", null, !isDisabled)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
 
   useEffect(() => {

@@ -238,8 +238,13 @@ describe("specialty landing analytics", () => {
       // A CTA pushed below the first viewport is also "not intersecting"; only a target scrolled past may open the bar.
       expect(component, `${path} must open the bar with hasScrolledPastTarget, not the bare intersection check`).toContain("setShowStickyCTA(hasScrolledPastTarget(entry))")
       expect(component, path).not.toContain("setShowStickyCTA(!entry.isIntersecting)")
-      // Contact-state clicks are not CTA engagement: the tracker follows availability like the landing shell.
-      expect(component, `${path} must create its landing analytics with !isLoading && !<disabled state>`).toMatch(/!isLoading && !(isDisabled|maintenanceMode)\b/)
+      // Contact-state clicks are not CTA engagement: the tracker is gated on the disabled state.
+      expect(component, `${path} must create its landing analytics gated on the disabled state`).toMatch(/useLandingAnalytics\((?:[^()]|\([^()]*\))*,\s*(?:!isDisabled|!maintenanceMode|analyticsEnabled)\s*,?\s*\)/)
+      if (path !== "components/marketing/shared/landing-page-shell.tsx") {
+        // Only the shell waits for availability to resolve (its versioned view latch needs it);
+        // a bare bar keeps tracking while availability loads because the action is live then.
+        expect(component, `${path} must keep tracking while availability loads`).not.toMatch(/!isLoading && !(isDisabled|maintenanceMode)/)
+      }
     }
   })
 
@@ -250,5 +255,14 @@ describe("specialty landing analytics", () => {
     expect(medCert).toContain('pillServiceId="med-cert"')
     const inline = readFileSync(join(process.cwd(), "components/marketing/sections/how-it-works-inline.tsx"), "utf8")
     expect(inline).toContain("isDisabledProp ?? maintenanceMode")
+  })
+
+  it("instruments the home page CTAs through delegated data attributes", () => {
+    const page = readFileSync(join(process.cwd(), "app/(marketing)/page.tsx"), "utf8")
+    expect(page).toContain('dataAttributes: { "data-home-cta": "hero" }')
+    expect(page).toContain('ctaDataAttributes={{ "data-home-cta": "how_it_works" }}')
+    const controls = readFileSync(join(process.cwd(), "components/marketing/home-client-controls.tsx"), "utf8")
+    expect(controls).toContain('closest<HTMLElement>("[data-home-cta]")')
+    expect(controls).toContain('new Set(["hero", "how_it_works"])')
   })
 })

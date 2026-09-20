@@ -174,7 +174,7 @@ export default async function HomePage() {
             title={TAGLINE}
             titleClassName={`${homeH1Font.className} min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5`}
             liveWait={waitState}
-            primaryCta={{ text: "Get started", href: "/request", wrapperId: HOME_HERO_CTA_ID }}
+            primaryCta={{ text: "Get started", href: "/request", wrapperId: HOME_HERO_CTA_ID, dataAttributes: { "data-home-cta": "hero" } }}
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
             mockupClassName="hidden lg:block"
@@ -195,8 +195,9 @@ export default async function HomePage() {
             steps={HOME_HOW_IT_WORKS_STEPS}
             ctaHref="/request"
             ctaText="Get started"
+            ctaDataAttributes={{ "data-home-cta": "how_it_works" }}
             heading="How it works"
-            subheading="One secure form, one clinical decision, one email."
+            subheading="One secure form, one clinical decision, the result to your inbox or phone."
           />
 
           <FAQSection

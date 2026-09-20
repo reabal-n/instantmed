@@ -24,10 +24,10 @@ interface MedCertClientControlsProps {
 }
 
 export function MedCertClientControls({ stickyTargetId }: MedCertClientControlsProps) {
-  const { isLoading, isServiceDisabled } = useServiceAvailability()
-  const isDisabled = isServiceDisabled("med-cert")
-  // Disabled-state contact clicks are not CTA engagement; the tracker stays off until availability resolves enabled.
-  const analytics = useLandingAnalytics("med-cert", null, !isLoading && !isDisabled)
+  const isDisabled = useServiceAvailability().isServiceDisabled("med-cert")
+  // Disabled-state contact clicks are not CTA engagement. Tracking stays on while
+  // availability loads: the page presents an enabled action then.
+  const analytics = useLandingAnalytics("med-cert", null, !isDisabled)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
 
   useSectionVisibilityFunnel(analytics.trackSectionView)

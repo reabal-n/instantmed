@@ -48,9 +48,10 @@ export function InformationalPageShell({ config, children, afterFooter }: Inform
   const heroCTARef = useRef<HTMLDivElement>(null!)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
   const prefersReducedMotion = useReducedMotion()
-  // The platform kill switch swaps the bar to the contact action; those clicks are not CTA engagement.
-  const { isLoading, maintenanceMode } = useServiceAvailability()
-  const analytics = useLandingAnalytics(config.analyticsId, null, !isLoading && !maintenanceMode)
+  // The platform kill switch swaps the bar to the contact action; those clicks are not
+  // CTA engagement. Tracking stays on while availability loads (the action is live then).
+  const { maintenanceMode } = useServiceAvailability()
+  const analytics = useLandingAnalytics(config.analyticsId, null, !maintenanceMode)
 
   const hasSticky = !!config.sticky
 
