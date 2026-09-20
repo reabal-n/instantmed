@@ -23,7 +23,7 @@ describe("portfolio money-page art direction", () => {
     expect(map).toContain("regular GP or an in-person service")
     expect(homepage).not.toContain("ServiceCards")
     expect(homepage).not.toContain("HomeFactsBlock")
-    expect(homepage).not.toContain("<HowItWorks")
+    expect(homepage).not.toMatch(/<HowItWorks\s*\/>/)
     expect(homepage).not.toContain("ComplianceMarquee")
     expect(homepage.indexOf("<CTABanner")).toBeLessThan(
       homepage.indexOf("<HomeServiceLinks />"),
@@ -39,8 +39,8 @@ describe("portfolio money-page art direction", () => {
     expect(map).toContain("What do you need?")
     expect(map).toContain("UTI symptoms or start/switch pill")
     expect(map).toContain("FORM_FIRST_WEDGE")
-    expect(map).toContain("sm:grid-cols-2 lg:grid-cols-6")
-    expect(map).toContain('isCoreService ? "lg:col-span-3" : "lg:col-span-2"')
+    expect(map).toContain("sm:grid-cols-2 lg:grid-cols-3")
+    expect(map).not.toContain("lg:col-span-3")
     expect(map).toContain("useServiceAvailability()")
     expect(map).toContain("focus-visible:ring-2")
     expect(map).not.toContain("group-hover:translate")

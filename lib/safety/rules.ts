@@ -616,7 +616,7 @@ const consultRules: SafetyRule[] = [
     conditionLogic: 'AND',
     outcome: 'DECLINE',
     riskTier: 'high',
-    patientMessage: 'Hair loss treatment is only available for adults 18 years and over. Please speak with your GP.',
+    patientMessage: 'Hair loss assessment is only available for adults 18 years and over. Please speak with your GP.',
     doctorNote: 'Patient under 18 - not eligible for hair loss treatment',
     priority: 900,
     services: ['gp-consult', 'consult'],

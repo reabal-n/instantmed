@@ -2,9 +2,20 @@
 
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useRef } from "react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+
+/**
+ * Show the bar only once the reader has scrolled past its target. A hero CTA
+ * pushed below the first viewport by a banner or resume chip is also "not
+ * intersecting", and the bare check opened the bar before any scroll, stacking
+ * it against the resume action and eating the bottom of the first viewport.
+ */
+export function hasScrolledPastTarget(entry: IntersectionObserverEntry): boolean {
+  return !entry.isIntersecting && entry.boundingClientRect.top < 0
+}
 
 interface StickyCTAProps {
   /** Whether the sticky CTA is visible */
@@ -37,6 +48,29 @@ export function StickyCTA({
 }: StickyCTAProps) {
   const resolvedHref = isDisabled ? "/contact" : ctaHref
   const resolvedCtaText = isDisabled ? "Contact us" : ctaText
+  const regionRef = useRef<HTMLDivElement>(null)
+
+  // While the bar is shown, publish its rendered height so the shared footer
+  // reserves it on phones (globals.css `html[data-sticky-cta] footer[role="contentinfo"]`).
+  // The bar stays usable at maximum scroll and the footer's last links sit above
+  // it; while the bar is hidden (page top) the page keeps its natural length.
+  useEffect(() => {
+    const region = regionRef.current
+    if (!region || !show) return
+    const root = document.documentElement
+    const publish = () => {
+      root.style.setProperty("--sticky-cta-height", `${Math.ceil(region.getBoundingClientRect().height)}px`)
+    }
+    root.setAttribute("data-sticky-cta", "")
+    publish()
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(publish)
+    observer?.observe(region)
+    return () => {
+      observer?.disconnect()
+      root.removeAttribute("data-sticky-cta")
+      root.style.removeProperty("--sticky-cta-height")
+    }
+  }, [show])
 
   return (
     <>
@@ -47,6 +81,7 @@ export function StickyCTA({
           (aria-hidden-focus). `inert` removes the subtree from BOTH the
           accessibility tree AND the focus order, which is what we want here. */}
       <div
+        ref={regionRef}
         role="region"
         aria-label="Quick purchase"
         className={cn(
@@ -58,14 +93,8 @@ export function StickyCTA({
         )}
         inert={!show ? true : undefined}
       >
-        {/*
-          Compact layout - Tier 1 review 2026-05-25 flagged the ED sticky
-          bar as "eating 20% of the viewport". Tighter padding (pt-1.5 pb-2),
-          summary line compact, response time bumped to text-[13px] on
-          solid surface so the number actually reads.
-        */}
         <div className="bg-white dark:bg-card border-t border-border/50 px-4 pt-1.5 pb-2 safe-area-pb">
-          <p className="mb-1.5 min-w-0 break-words text-center text-[11px] leading-tight text-muted-foreground">
+          <p className="mb-1.5 min-w-0 break-words text-center text-sm leading-tight text-muted-foreground">
             {mobileSummary}
             {responseTime && (
               <span className="text-foreground/80 font-medium"> &middot; {responseTime}</span>

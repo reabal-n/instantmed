@@ -108,7 +108,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     { feature: "Pricing model", instantmed: "Pay-per-request, no subscription", competitor: "Membership-based programs", winner: "tie" },
     { feature: "Medical certificate available", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "Not a core focus", winner: "instantmed" },
     { feature: "Repeat prescription", instantmed: PRICING_DISPLAY.REPEAT_SCRIPT, competitor: "Included in program fees", winner: "tie" },
-    { feature: "Hair loss treatment", instantmed: PRICING_DISPLAY.HAIR_LOSS, competitor: "Program-based, ongoing", winner: "tie" },
+    { feature: "Hair loss assessment", instantmed: PRICING_DISPLAY.HAIR_LOSS, competitor: "Program-based, ongoing", winner: "tie" },
     { feature: "Weight management", instantmed: "Not currently available", competitor: "Subscription program", winner: "competitor" },
     { feature: "Ongoing nurse/coach support", instantmed: "Doctor messaging per request", competitor: "Program care team", winner: "competitor" },
     { feature: "Commitment required", instantmed: "None - one-off", competitor: "Ongoing subscription", winner: "instantmed" },

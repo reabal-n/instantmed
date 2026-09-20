@@ -23,7 +23,7 @@ export const MED_CERT_FAQ = [
   {
     question: "Can I use this for uni or TAFE?",
     answer:
-      'Yes, for routine study absences where your institution accepts medical certificates as supporting evidence. We do not issue assessment-specific certificates through this short online pathway.',
+      'Yes, for routine study absences where your institution accepts medical certificates as supporting evidence. We do not issue assessment-specific certificates through this short online service.',
   },
   {
     question: "What happens after I submit?",

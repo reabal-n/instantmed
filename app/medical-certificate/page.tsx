@@ -2,10 +2,11 @@ import type { Metadata } from "next"
 
 import { MedCertLanding } from "@/components/marketing/med-cert-landing"
 import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,MedCertHowToSchema, MedicalServiceSchema, SpeakableSchema } from "@/components/seo"
+import { getWaitState } from "@/lib/brand/wait-counter"
 import { PRICING_DISPLAY, PRICING_SCHEMA } from "@/lib/constants"
 import { MED_CERT_LANDING_FAQ } from "@/lib/data/med-cert-faq"
 
-export const revalidate = 86400
+export const revalidate = 3600
 
 const SEARCH_DESCRIPTION = `Online medical certificates for routine 1-3 day work, study or carer's leave. Secure form, no appointment, from ${PRICING_DISPLAY.MED_CERT}. Issued only when clinically appropriate.`
 
@@ -39,7 +40,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default function Page() {
+export default async function Page() {
+  const liveWait = await getWaitState(new Date(), "med-cert")
+
   return (
     <>
       <SpeakableSchema
@@ -65,7 +68,7 @@ export default function Page() {
         description="Request routine absence evidence for work or study through a Medical Director-approved clinical pathway."
         url="/medical-certificate"
       />
-      <MedCertLanding />
+      <MedCertLanding liveWait={liveWait} />
     </>
   )
 }

@@ -8,7 +8,7 @@ const PRESCRIPTION_FAQ = [
   {
     question: "What can the doctor review?",
     answer:
-      "The doctor can review common repeat medicine requests for stable, ongoing care. We do not handle controlled, dependence-forming, emergency, or complex monitoring requests through this pathway.",
+      "The doctor can review common repeat medicine requests for stable, ongoing care. We do not handle controlled, dependence-forming, emergency, or complex monitoring requests through this service.",
   },
   {
     question: "Is the eScript accepted at any pharmacy?",
@@ -18,7 +18,7 @@ const PRESCRIPTION_FAQ = [
   {
     question: "Do I need a previous prescription?",
     answer:
-      "Yes. This pathway is for medications you've already been prescribed. If you need a new medicine, see your regular GP unless your request matches one of our active specialty pathways.",
+      "Yes. This service is for medicines you've already been prescribed. If you need a new medicine, see your regular GP unless your request matches one of our active specialty services.",
   },
   {
     question: "Why do you need my Medicare details?",

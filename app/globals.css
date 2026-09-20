@@ -1,5 +1,44 @@
 @import "tailwindcss" source(none);
 @import "./tailwind-shared.css";
+
+/* Metric-matched fallbacks for hosts without Arial (Linux runners, and any
+   fontconfig setup where local("Arial") does not resolve). next/font only
+   generates an Arial-based size-adjusted fallback; Liberation Sans is
+   metric-identical to Arial, so the same overrides apply. Each font's
+   `fallback` list names these families after the generated one, so a late
+   webfont swap does not reflow the first viewport on those hosts. */
+@font-face {
+  font-family: "Source Sans 3 Fallback Liberation";
+  src: local("Liberation Sans");
+  ascent-override: 109.21%;
+  descent-override: 42.66%;
+  line-gap-override: 0.00%;
+  size-adjust: 93.76%;
+}
+@font-face {
+  font-family: "Plus Jakarta Sans Fallback Liberation";
+  src: local("Liberation Sans");
+  ascent-override: 98.88%;
+  descent-override: 21.15%;
+  line-gap-override: 0.00%;
+  size-adjust: 104.98%;
+}
+@font-face {
+  font-family: "homeH1Font Fallback Liberation";
+  src: local("Liberation Sans");
+  ascent-override: 103.80%;
+  descent-override: 22.20%;
+  line-gap-override: 0.00%;
+  size-adjust: 100.00%;
+}
+@font-face {
+  font-family: "moneyH1Font Fallback Liberation";
+  src: local("Liberation Sans");
+  ascent-override: 103.80%;
+  descent-override: 22.20%;
+  line-gap-override: 0.00%;
+  size-adjust: 100.00%;
+}
 @source "../app";
 @source not "../app/admin";
 @source not "../app/doctor";
@@ -411,6 +450,15 @@ body {
   --gradient-orb-2: rgba(168, 204, 232, 0.04);
 }
 
+
+/* Pages that mount the mobile sticky call to action publish its height on the
+   root (components/marketing/shared/sticky-cta.tsx). Reserve that height under
+   the footer on phones so the bar never covers the footer's legal links. */
+@media (max-width: 1023px) {
+  html[data-sticky-cta] footer[role="contentinfo"] {
+    padding-bottom: calc(var(--sticky-cta-height, 6rem) + 0.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
 
 @layer base {
   * {
