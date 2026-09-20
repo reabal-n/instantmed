@@ -107,8 +107,8 @@
 
 @theme inline {
   /* Typography: Source Sans 3 (body), Plus Jakarta Sans (display), JetBrains Mono (code) */
-  --font-sans: "Source Sans 3", "Source Sans 3 Fallback", system-ui, sans-serif;
-  --font-display: "Plus Jakarta Sans", "Plus Jakarta Sans Fallback", system-ui, sans-serif;
+  --font-sans: "Source Sans 3", "Source Sans 3 Fallback", "Source Sans 3 Fallback Liberation", system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Plus Jakarta Sans Fallback", "Plus Jakarta Sans Fallback Liberation", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);

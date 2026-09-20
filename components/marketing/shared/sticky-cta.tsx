@@ -2,6 +2,7 @@
 
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useRef } from "react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -37,6 +38,29 @@ export function StickyCTA({
 }: StickyCTAProps) {
   const resolvedHref = isDisabled ? "/contact" : ctaHref
   const resolvedCtaText = isDisabled ? "Contact us" : ctaText
+  const regionRef = useRef<HTMLDivElement>(null)
+
+  // While the bar is shown, publish its rendered height so the shared footer
+  // reserves it on phones (globals.css `html[data-sticky-cta] footer[role="contentinfo"]`).
+  // The bar stays usable at maximum scroll and the footer's last links sit above
+  // it; while the bar is hidden (page top) the page keeps its natural length.
+  useEffect(() => {
+    const region = regionRef.current
+    if (!region || !show) return
+    const root = document.documentElement
+    const publish = () => {
+      root.style.setProperty("--sticky-cta-height", `${Math.ceil(region.getBoundingClientRect().height)}px`)
+    }
+    root.setAttribute("data-sticky-cta", "")
+    publish()
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(publish)
+    observer?.observe(region)
+    return () => {
+      observer?.disconnect()
+      root.removeAttribute("data-sticky-cta")
+      root.style.removeProperty("--sticky-cta-height")
+    }
+  }, [show])
 
   return (
     <>
@@ -47,6 +71,7 @@ export function StickyCTA({
           (aria-hidden-focus). `inert` removes the subtree from BOTH the
           accessibility tree AND the focus order, which is what we want here. */}
       <div
+        ref={regionRef}
         role="region"
         aria-label="Quick purchase"
         className={cn(
