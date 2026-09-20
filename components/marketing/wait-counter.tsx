@@ -78,7 +78,11 @@ function renderText(state: WaitState): ReactNode {
       )
     }
     case "reviewing":
-      return <>A doctor is reviewing requests right now</>
+      // `getWaitState` returns this variant when metrics are missing, the
+      // window is empty, or the lookup failed, so it carries no evidence of
+      // doctor activity. Render the approved 24/7 availability fact
+      // (approved claim `availability_24_7`), never a live-activity claim.
+      return <>Requests open 24/7</>
     case "queued": {
       const n = state.queueLength
       if (typeof n !== "number") return <>In review</>
