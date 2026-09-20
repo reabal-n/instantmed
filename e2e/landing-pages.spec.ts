@@ -34,6 +34,13 @@ async function headerHeight(page: Page): Promise<number> {
 async function settle(page: Page) {
   // Hero entrance animations run for up to 600ms; wait for the CSS keyframes to finish.
   await page.waitForTimeout(900)
+  // Measure the settled page: webfonts applied and every running animation finished
+  // (a slow runner can still be mid-swap or mid-entrance after the fixed wait).
+  await page.evaluate(async () => {
+    await document.fonts.ready
+    const running = document.getAnimations().map((animation) => animation.finished.catch(() => undefined))
+    await Promise.race([Promise.all(running), new Promise((resolve) => setTimeout(resolve, 1500))])
+  })
 }
 
 /**
@@ -200,7 +207,10 @@ test.describe("landing page health", () => {
         expect(errors, `${landing.path}: console errors`).toEqual([])
         const results = await new AxeBuilder({ page }).analyze()
         const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical")
-        expect(serious.map((v) => `${v.id}: ${v.nodes.length} nodes`), `${landing.path}: axe`).toEqual([])
+        expect(
+          serious.map((v) => `${v.id}: ${v.nodes.length} nodes (${v.nodes.slice(0, 4).map((n) => n.target.join(" ")).join("; ")})`),
+          `${landing.path}: axe`,
+        ).toEqual([])
       })
     }
   }
@@ -243,8 +253,27 @@ test.describe("landing page length", () => {
       await seedMoneyPageState(page, "light")
       await gotoPublicRoute(page, landing.path)
       await settle(page)
-      const screens = await page.evaluate(() => document.documentElement.scrollHeight / window.innerHeight)
-      expect(screens, `${landing.path}: ${screens.toFixed(1)} screens`).toBeLessThanOrEqual(landing.maxPhoneScreens)
+      const { screens, sections } = await page.evaluate(() => {
+        const main = document.querySelector("main")
+        const rows: string[] = []
+        const walk = (el: Element) => {
+          for (const child of Array.from(el.children)) {
+            const tag = child.tagName.toLowerCase()
+            if (tag === "section" || tag === "footer" || tag === "nav" || tag === "header") {
+              const heading = child.querySelector("h1, h2")?.textContent?.trim().slice(0, 32) ?? ""
+              rows.push(`${(child.getBoundingClientRect().height / window.innerHeight).toFixed(2)} ${tag}${child.id ? `#${child.id}` : ""} "${heading}"`)
+            } else if (tag === "div" && child.children.length) {
+              walk(child)
+            }
+          }
+        }
+        if (main) walk(main)
+        return { screens: document.documentElement.scrollHeight / window.innerHeight, sections: rows }
+      })
+      expect(
+        screens,
+        `${landing.path}: ${screens.toFixed(2)} screens (sections: ${sections.join(" | ")})`,
+      ).toBeLessThanOrEqual(landing.maxPhoneScreens)
     })
   }
 })
