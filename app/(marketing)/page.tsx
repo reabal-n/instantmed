@@ -170,7 +170,7 @@ export default async function HomePage() {
         <main className="relative">
           {/* Hero owns the first-fold action and states the service boundary. */}
           <Hero
-            className="pt-6 sm:pt-6 lg:pt-6"
+            className="pt-6 pb-6 sm:pt-6 sm:pb-12 lg:pt-6 lg:pb-10"
             title={TAGLINE}
             titleClassName={`${homeH1Font.className} min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5`}
             liveWait={waitState}

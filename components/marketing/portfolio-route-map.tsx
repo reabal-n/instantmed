@@ -123,7 +123,7 @@ export function PortfolioRouteMap() {
     <section
       id="pricing"
       aria-labelledby="portfolio-route-map-title"
-      className="scroll-mt-20 px-4 pt-8 pb-12 sm:px-6 sm:pt-10 sm:pb-16 lg:pt-14 lg:pb-24"
+      className="scroll-mt-20 px-4 pt-8 pb-10 sm:px-6 sm:pt-10 sm:pb-16 lg:pt-14 lg:pb-24"
     >
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
@@ -142,7 +142,7 @@ export function PortfolioRouteMap() {
           ))}
         </ul>
 
-        <div className="mt-8 flex max-w-4xl items-start gap-3 border-t border-border/60 pt-6 dark:border-white/15">
+        <div className="mt-6 flex max-w-4xl items-start gap-3 border-t border-border/60 pt-5 dark:border-white/15 sm:mt-8 sm:pt-6">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Stethoscope className="h-4 w-4" aria-hidden="true" />
           </span>
