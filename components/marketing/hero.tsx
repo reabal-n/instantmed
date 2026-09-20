@@ -124,7 +124,9 @@ function buildDefaultPill(liveWait: WaitState | undefined, pillLabel: string) {
       <span className="text-muted-foreground min-[241px]:whitespace-nowrap">{pillLabel}</span>
       <span className="text-border/70 hidden sm:inline" aria-hidden="true">·</span>
       {liveWait ? (
-        <span className="inline-flex">
+        // Always its own row on phones so a slow webfont swap cannot change
+        // the pill's height (the CI slow-font layout-shift gate); inline from sm up.
+        <span className="inline-flex basis-full justify-center sm:basis-auto sm:justify-start">
           <WaitCounter state={liveWait} variant="inline" />
         </span>
       ) : (
