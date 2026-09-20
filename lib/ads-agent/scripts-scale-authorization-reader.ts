@@ -2,7 +2,10 @@ import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { readCampaignRepeatValue, readFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics"
+import {
+  readCampaignRepeatValue,
+  readFirstOrderCampaignEconomicsEvidence,
+} from "@/lib/ads-agent/first-order-economics"
 import { isAdsAgentSnapshot } from "@/lib/ads-agent/runs"
 import {
   type AdsScaleAuthorizationEvidence,
@@ -10,6 +13,11 @@ import {
   sydneyDateKey,
 } from "@/lib/ads-agent/scripts-scale-authorization"
 
+/**
+ * Null when the stored run or change history is unusable. Throws
+ * `scripts_scale_financial_evidence_unavailable` when the fresh financial read
+ * for the target campaign failed, so every consumer aborts the authorization.
+ */
 export async function readScriptsScaleAuthorizationEvidence(args: {
   budgetResourceName: string
   campaignResourceName: string
@@ -117,11 +125,26 @@ export async function readScriptsScaleAuthorizationEvidence(args: {
   })
   if (!evidence) return null
   // Fresh enrichment of the immutable run's exact window. Never overwrite the stored run.
-  const firstOrderRolling30 = await readFirstOrderCampaignEconomics({
+  const fresh = await readFirstOrderCampaignEconomicsEvidence({
     campaigns: evidence.snapshot.rolling30,
     range: evidence.snapshot.windows.rolling30,
     supabase: args.supabase,
   })
+  // Missing exact cash or actual fee evidence cannot qualify profitable scale
+  // (docs/OPERATIONS.md). A failed or incomplete fresh financial read for the
+  // campaign under authorization aborts here instead of letting the policy
+  // size the step on the stored run's older cash. Identity or purchase-history
+  // gaps only leave the first-order diagnostic null, which stays advisory.
+  const targetFinancialFailure = fresh.campaigns.some((campaign) =>
+    fresh.financialFailures.has(campaign.campaignId)
+    && (
+      campaign.budgetResourceName === args.budgetResourceName
+      || campaign.campaignResourceName === args.campaignResourceName
+    ))
+  if (targetFinancialFailure) {
+    throw new Error("scripts_scale_financial_evidence_unavailable")
+  }
+  const firstOrderRolling30 = fresh.campaigns
   // Matured-cohort repeat cash for the ceiling (owner decision 2026-09-19).
   // Null when unavailable; the ceiling then falls back to window cash.
   const repeatValues = await readCampaignRepeatValue({

@@ -1393,6 +1393,21 @@ describe("Google Ads mutation gateway", () => {
     }
   })
 
+  it("aborts a Scripts increase before any Google call when the fresh financial evidence read fails", async () => {
+    const state = accountState()
+    const harness = gateway({ accountReads: [state] })
+    vi.mocked(harness.store.repository.getScaleAuthorizationEvidence).mockRejectedValue(
+      new Error("scripts_scale_financial_evidence_unavailable"),
+    )
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({
+      errorCode: "scripts_scale_financial_evidence_unavailable",
+      outcome: "aborted",
+    })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+
   it("enforces the fee-aware economic ceiling below the 50% constitution", async () => {
     const state = accountState()
     const operations: AdsMutationOperation[] = [{

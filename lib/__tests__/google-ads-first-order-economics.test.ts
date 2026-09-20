@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("server-only", () => ({}))
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { readFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics"
+import {
+  readFirstOrderCampaignEconomics,
+  readFirstOrderCampaignEconomicsEvidence,
+} from "@/lib/ads-agent/first-order-economics"
 import { aggregateFirstOrderCampaignEconomics } from "@/lib/ads-agent/first-order-economics-core"
 import type { AdsSnapshotWindow,CampaignEconomics } from "@/lib/ads-agent/types"
 import { readCustomerGrowthRevenueEvidence } from "@/lib/data/customer-growth-revenue-read"
@@ -123,5 +126,62 @@ describe("fresh first-order reader boundary", () => {
     expect((await readFirstOrderCampaignEconomics({ campaigns, range, supabase: database(false) }))[0].firstOrder).toBeNull()
     vi.mocked(readCustomerGrowthRevenueEvidence).mockRejectedValue(new Error("cash_unavailable"))
     expect((await readFirstOrderCampaignEconomics({ campaigns, range, supabase: database() }))[0].firstOrder).toBeNull()
+  })
+
+  // Financial-integrity failures (cash ledger, purchase rows, actual fees, spend)
+  // are reported separately from attribution gaps (identity, purchase history):
+  // the first class must block a spending increase, the second stays advisory.
+  function queuedDatabase(results: Array<{ data: unknown[]; count: number | null; error: null | { message: string } }>) {
+    const queue = [...results]
+    return { from: vi.fn(() => {
+      const result = queue.shift()
+      const query = { then: (resolve: (value: unknown) => unknown) => Promise.resolve(result).then(resolve) } as Record<string, unknown>
+      for (const key of ["select", "in", "not", "lte", "limit", "or", "neq"]) query[key] = vi.fn(() => query)
+      return query
+    }) } as unknown as SupabaseClient
+  }
+
+  it("reports an unavailable or incomplete cash ledger as a financial failure for every campaign", async () => {
+    vi.mocked(readCustomerGrowthRevenueEvidence).mockRejectedValue(new Error("Customer growth revenue evidence is incomplete"))
+    const result = await readFirstOrderCampaignEconomicsEvidence({ campaigns, range, supabase: database() })
+    expect(result.campaigns[0].firstOrder).toBeNull()
+    expect(result.financialFailures.get("123")).toBe("Customer growth revenue evidence is incomplete")
+  })
+
+  it("reports incomplete purchase rows as a financial failure", async () => {
+    vi.mocked(readCustomerGrowthRevenueEvidence).mockResolvedValue(evidence)
+    const result = await readFirstOrderCampaignEconomicsEvidence({ campaigns, range, supabase: queuedDatabase([
+      { data: [first], count: 1, error: null },
+    ]) })
+    expect(result.campaigns[0].firstOrder).toBeNull()
+    expect(result.financialFailures.get("123")).toBe("first_order_rows_incomplete")
+  })
+
+  it("keeps truncated purchase history and unknown identity advisory: first-order null, no financial failure", async () => {
+    vi.mocked(readCustomerGrowthRevenueEvidence).mockResolvedValue(evidence)
+    const truncated = await readFirstOrderCampaignEconomicsEvidence({ campaigns, range, supabase: database(false) })
+    expect(truncated.campaigns[0].firstOrder).toBeNull()
+    expect(truncated.financialFailures.size).toBe(0)
+
+    const unknownIdentity = await readFirstOrderCampaignEconomicsEvidence({ campaigns, range, supabase: projectedDatabase([{ ...first, patient_id: null }, repeat], [first, repeat]) })
+    expect(unknownIdentity.campaigns[0].firstOrder).toBeNull()
+    expect(unknownIdentity.financialFailures.size).toBe(0)
+  })
+
+  it("scopes a missing actual fee to the campaign it belongs to", async () => {
+    const otherFirst = row("other-first", "patient-b", "2026-08-13T00:00:00Z", "456")
+    vi.mocked(readCustomerGrowthRevenueEvidence).mockResolvedValue({
+      ...evidence,
+      paidRows: [...evidence.paidRows, { ...otherFirst, amount_cents: 3000, category: "prescription", subtype: null, status: "approved", payment_status: "paid" }],
+    })
+    const result = await readFirstOrderCampaignEconomicsEvidence({
+      campaigns: [campaigns[0], { campaignId: "456", spendCents: 1000 } as CampaignEconomics],
+      range,
+      supabase: projectedDatabase([{ ...first, stripe_fee_cents: null }, repeat, otherFirst], [first, repeat, otherFirst]),
+    })
+    expect(result.campaigns[0].firstOrder).toBeNull()
+    expect(result.financialFailures.get("123")).toBe("first_order_fees_unavailable")
+    expect(result.campaigns[1].firstOrder).toEqual({ orders: 1, stripeFeeCents: 100, netRetainedRevenueCents: 3000, contributionCents: 1900 })
+    expect(result.financialFailures.has("456")).toBe(false)
   })
 })

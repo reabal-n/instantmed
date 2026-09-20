@@ -24,15 +24,47 @@ import { REVENUE_PURCHASE_PAYMENT_STATUSES } from "@/lib/monitoring/revenue-safe
 const MAX_HISTORY_ROWS = 5_000
 const CHUNK_SIZE = 100
 
+/**
+ * Reader failures that only leave the first-order diagnostic unknown (which
+ * purchase was a patient's first). They never touch the cash-ledger,
+ * purchase-row, actual-fee or spend truth, so they stay advisory. Every other
+ * failure, including an unexpected one, is a financial-integrity failure.
+ */
+const ATTRIBUTION_ONLY_FAILURES: ReadonlySet<string> = new Set([
+  "first_order_history_incomplete",
+  "first_order_history_unavailable",
+  "first_order_identity_unavailable",
+])
+
+export interface FirstOrderCampaignEconomicsEvidence {
+  campaigns: CampaignEconomics[]
+  /**
+   * Campaign IDs whose fresh cash-ledger, purchase-row, actual-fee or spend
+   * evidence failed or came back incomplete, with the reason. Identity and
+   * purchase-history gaps are not listed; they only leave `firstOrder` null.
+   */
+  financialFailures: ReadonlyMap<string, string>
+}
+
+function failureReason(error: unknown): string {
+  return error instanceof Error && error.message ? error.message : "first_order_read_failed"
+}
+
 /** Read only: exact cash-ledger evidence plus all historical purchases for affected patients. */
-export async function readFirstOrderCampaignEconomics(args: {
+export async function readFirstOrderCampaignEconomicsEvidence(args: {
   campaigns: CampaignEconomics[]
   range: AdsSnapshotWindow
   supabase: SupabaseClient
-}): Promise<CampaignEconomics[]> {
+}): Promise<FirstOrderCampaignEconomicsEvidence> {
   const since = new Date(args.range.startUtc)
   // The canonical cash reader uses an inclusive end; Ads windows are exclusive.
   const until = new Date(Date.parse(args.range.endUtcExclusive) - 1)
+  const financialFailures = new Map<string, string>()
+  const unavailable = (campaign: CampaignEconomics, error: unknown): CampaignEconomics => {
+    const reason = failureReason(error)
+    if (!ATTRIBUTION_ONLY_FAILURES.has(reason)) financialFailures.set(campaign.campaignId, reason)
+    return { ...campaign, firstOrder: null }
+  }
   try {
     const evidence = await readCustomerGrowthRevenueEvidence(args.supabase, since, until)
     const ids = [...collectCustomerGrowthAttributionIntakeIds(evidence)]
@@ -59,16 +91,26 @@ export async function readFirstOrderCampaignEconomics(args: {
       if (result.error || typeof result.count !== "number" || result.count !== result.data?.length) throw new Error("first_order_history_incomplete")
       history.push(...result.data as PurchaseHistoryRow[])
     }
-    return args.campaigns.map((campaign) => {
+    const campaigns = args.campaigns.map((campaign) => {
       try {
         return { ...campaign, firstOrder: aggregateFirstOrderCampaignEconomics({ campaignId: campaign.campaignId, evidence, history, rows, since, until, spendCents: campaign.spendCents }) }
-      } catch {
-        return { ...campaign, firstOrder: null }
+      } catch (error) {
+        return unavailable(campaign, error)
       }
     })
-  } catch {
-    return args.campaigns.map((campaign) => ({ ...campaign, firstOrder: null }))
+    return { campaigns, financialFailures }
+  } catch (error) {
+    return { campaigns: args.campaigns.map((campaign) => unavailable(campaign, error)), financialFailures }
   }
+}
+
+/** Campaigns only: any failure leaves `firstOrder` null (stored-snapshot diagnostic use). */
+export async function readFirstOrderCampaignEconomics(args: {
+  campaigns: CampaignEconomics[]
+  range: AdsSnapshotWindow
+  supabase: SupabaseClient
+}): Promise<CampaignEconomics[]> {
+  return (await readFirstOrderCampaignEconomicsEvidence(args)).campaigns
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
