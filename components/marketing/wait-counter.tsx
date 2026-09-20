@@ -43,7 +43,7 @@ export function WaitCounter({ state, variant = "inline", className }: WaitCounte
         "inline-flex items-center gap-1.5 font-medium",
         isStandalone
           ? "text-sm sm:text-base text-foreground/85"
-          : "text-xs sm:text-sm text-muted-foreground",
+          : "text-sm text-muted-foreground",
         className,
       )}
       role="status"
@@ -67,18 +67,22 @@ function renderText(state: WaitState): ReactNode {
   switch (state.variant) {
     case "live": {
       const minutes = state.medianMinutes
-      if (typeof minutes !== "number") return <>Reviewing requests today</>
+      if (typeof minutes !== "number") return <>Reviewing requests 24/7</>
       const subject = subjectFor(state.service)
       return (
         <>
           {subject} reviewed in{" "}
           <strong className="text-foreground tabular-nums font-semibold">~{minutes} min</strong>{" "}
-          today
+          in the last 24 hours
         </>
       )
     }
     case "reviewing":
-      return <>A doctor is reviewing requests right now</>
+      // `getWaitState` returns this variant when metrics are missing, the
+      // window is empty, or the lookup failed, so it carries no evidence of
+      // doctor activity. Render the approved 24/7 availability fact
+      // (approved claim `availability_24_7`), never a live-activity claim.
+      return <>Requests open 24/7</>
     case "queued": {
       const n = state.queueLength
       if (typeof n !== "number") return <>In review</>

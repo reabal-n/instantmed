@@ -19,7 +19,7 @@ const HAIR_LOSS_FAQ = [
   {
     question: "Do I need doctor review?",
     answer:
-      "Yes. The assessment is reviewed by an Australian doctor, who decides what is clinically appropriate based on your pattern, medical history, and suitability.",
+      "Yes. The assessment is reviewed by an Australian doctor, who decides whether treatment is suitable based on your pattern, medical history, and suitability.",
   },
   {
     question: "Is the service really discreet?",

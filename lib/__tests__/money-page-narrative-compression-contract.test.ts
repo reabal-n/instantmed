@@ -74,14 +74,13 @@ describe("money-page narrative compression", () => {
     expect(source.slice(workplaceStart, workplaceEnd)).toContain("Fair Work Act 2009")
 
     expectInOrder(source, [
-      "<MedCertHero />",
+      "<Hero",
       "<LimitationsSection />",
       "<WorkplaceProofPanel />",
       "<HowItWorksInline",
       "<FeeSuitabilityPanel />",
       "items={MED_CERT_LANDING_FAQ}",
       "<MedCertFinalCta />",
-      "<RegulatoryPartners />",
       "<MedCertReasonLinks />",
     ])
   })
@@ -135,7 +134,6 @@ describe("money-page narrative compression", () => {
       "<PrescriptionLifecycleGraphic />",
       "<PrescriptionFeePanel />",
       "items={PRESCRIPTION_LANDING_FAQ}",
-      "<RegulatoryPartners",
       "<CTABanner",
       "<PrescriptionResourceNav />",
     ])
@@ -168,7 +166,7 @@ describe("money-page narrative compression", () => {
     expect(source).toContain('getApprovedClaim("prescribing_identity_required")')
 
     expect(source).toContain("Start private assessment")
-    expect(source).toContain('href="#how-it-works"')
+    expect(source).toContain('href: "#how-it-works"')
     expect(source).toContain("See how it works")
     expect(source).not.toContain("About 3 minutes")
     expect(source).not.toContain("exercise tolerance")
@@ -195,13 +193,12 @@ describe("money-page narrative compression", () => {
     expect(page).toContain("ED_LANDING_FAQ")
 
     expectInOrder(source, [
-      "function EdHero",
-      "<EdHero",
+      "function EdHeroFacts",
+      "<Hero",
       "<EdReviewCostOutcomeSection",
       "<EdEligibilitySection />",
       "<EdSafetyDecisionMap />",
       "<EdScopeBoundarySection />",
-      "<EdAlternativesSection />",
       "<EdSourcesSection />",
       "items={ED_LANDING_FAQ}",
       "<EdFinalCta",
@@ -242,10 +239,10 @@ describe("money-page narrative compression", () => {
     }
 
     const pricingStart = source.indexOf("function HairLossPricingSection")
-    const pricingEnd = source.indexOf("function HairLossLimitationsSection")
+    const pricingEnd = source.indexOf("export function HairLossLanding")
     expect(pricingStart).toBeGreaterThan(-1)
     expect(pricingEnd).toBeGreaterThan(pricingStart)
-    expect(source.slice(pricingStart, pricingEnd)).toContain("<RegulatoryPartners")
+    expect(source.slice(pricingStart, pricingEnd)).not.toContain("<RegulatoryPartners")
     expect(source.slice(pricingStart, pricingEnd)).toContain("Medicine cost is separate")
     expect(source.slice(pricingStart, pricingEnd)).toContain("Australian pharmacy")
     expect(source.slice(pricingStart, pricingEnd)).toContain("Prescription is not guaranteed")
@@ -260,7 +257,6 @@ describe("money-page narrative compression", () => {
       "<HairAssessmentModel />",
       "<HowItWorksInline",
       "<DoctorProfileSection",
-      "<HairLossLimitationsSection />",
       "items={HAIR_LOSS_LANDING_FAQ}",
       "<CTABanner",
     ])
@@ -313,13 +309,12 @@ describe("money-page narrative compression", () => {
     const reviewEnd = source.indexOf("function WomensHealthFinalChoice")
     expect(reviewStart).toBeGreaterThan(-1)
     expect(reviewEnd).toBeGreaterThan(reviewStart)
-    expect(source.slice(reviewStart, reviewEnd)).toContain("<RegulatoryPartners")
+    expect(source.slice(reviewStart, reviewEnd)).not.toContain("<RegulatoryPartners")
     expect(source.slice(reviewStart, reviewEnd)).toContain("AHPRA")
 
     expectInOrder(source, [
       "<WomensHealthDecisionFork />",
       "<WomensHealthCommonFacts />",
-      "<WomensHealthPathwaysSection />",
       "<WomensHealthBoundarySection />",
       "<WomensHealthReviewAndPriceSection />",
       "items={WOMENS_HEALTH_HUB_FAQ}",

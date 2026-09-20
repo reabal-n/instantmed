@@ -148,3 +148,22 @@ export function ServiceAvailabilityProvider({ children }: { children: ReactNode 
     </ServiceAvailabilityContext.Provider>
   )
 }
+
+interface ServiceAvailabilityGateProps {
+  /** Hide while this service is disabled. Without it, only the platform kill switch hides the content. */
+  serviceId?: ServiceId
+  children: ReactNode
+}
+
+/**
+ * Renders its children only while requests can be made. Server-rendered
+ * status chrome (the hero pill's open-24/7 beat or live wait) must never
+ * contradict the unavailable banner the client controls add during
+ * maintenance mode or a per-service kill switch.
+ */
+export function ServiceAvailabilityGate({ serviceId, children }: ServiceAvailabilityGateProps) {
+  const { maintenanceMode, isServiceDisabled } = useServiceAvailability()
+  const hidden = serviceId ? isServiceDisabled(serviceId) : maintenanceMode
+  if (hidden) return null
+  return <>{children}</>
+}

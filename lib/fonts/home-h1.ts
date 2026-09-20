@@ -11,5 +11,5 @@ export const homeH1Font = localFont({
   weight: "200 800",
   style: "normal",
   preload: true,
-  fallback: ["Plus Jakarta Sans", "Arial", "sans-serif"],
+  fallback: ["homeH1Font Fallback Liberation", "Plus Jakarta Sans", "Arial", "sans-serif"],
 })

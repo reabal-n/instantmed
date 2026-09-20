@@ -277,7 +277,7 @@ export function HowItWorksContent({ faqs, processSteps }: HowItWorksContentProps
           subtitle="Pick what you need, fill in a quick form, and a doctor takes care of the rest."
           ctaText="Get Med Cert"
           ctaHref="/request?service=med-cert"
-          secondaryText="Renew medication"
+          secondaryText="Get your repeat"
           secondaryHref="/request?service=repeat-script"
         />
         </>

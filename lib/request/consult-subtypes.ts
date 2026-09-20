@@ -44,7 +44,7 @@ export function normalizeWomensHealthIntentParam(value: unknown): WomensHealthIn
 
 export const CONSULT_SUBTYPE_LABELS: Record<ConsultSubtype, string> = {
   ed: "Erectile dysfunction",
-  hair_loss: "Hair loss treatment",
+  hair_loss: "Hair loss assessment",
   womens_health: "Women's health",
   weight_loss: "Weight management",
 }

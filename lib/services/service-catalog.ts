@@ -98,8 +98,8 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   },
   "repeat-rx": {
     id: "repeat-rx",
-    title: "Refill a prescription",
-    subtitle: "Form-first medication review",
+    title: "Repeat prescription",
+    subtitle: "Your regular medicine, reviewed by a doctor",
     slug: "prescriptions",
     price: PRICING_DISPLAY.REPEAT_SCRIPT,
     priceFrom: PRICING.REPEAT_SCRIPT,
@@ -111,7 +111,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   ed: {
     id: "ed",
     title: "Erectile dysfunction",
-    subtitle: "Discreet form-first assessment",
+    subtitle: "Private doctor assessment",
     slug: "erectile-dysfunction",
     price: PRICING_DISPLAY.MENS_HEALTH,
     priceFrom: PRICING.MENS_HEALTH,
@@ -123,8 +123,8 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   },
   "hair-loss": {
     id: "hair-loss",
-    title: "Hair loss treatment",
-    subtitle: "Private form-first assessment",
+    title: "Hair loss assessment",
+    subtitle: "Doctor-reviewed, from home",
     slug: "hair-loss",
     price: PRICING_DISPLAY.HAIR_LOSS,
     priceFrom: PRICING.HAIR_LOSS,

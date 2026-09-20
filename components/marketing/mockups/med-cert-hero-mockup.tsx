@@ -24,7 +24,7 @@ interface MedCertHeroMockupProps {
  */
 export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
   return (
-    <div className={cn("relative", compact ? "w-full" : "w-[352px] xl:w-[384px]")}>
+    <div data-hero-facsimile="" className={cn("relative", compact ? "w-full" : "w-[352px] xl:w-[384px]")}>
       {/* Paper card */}
       <div
         className={cn(

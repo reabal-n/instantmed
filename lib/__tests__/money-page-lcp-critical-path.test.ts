@@ -38,9 +38,7 @@ describe("money-page LCP critical path", () => {
     const hero = source("components/marketing/hero.tsx")
 
     expect(medCertLanding).toContain('moneyH1Font.className')
-    expect(medCertLanding).toMatch(
-      /<Heading level="display"[\s\S]*?Medical certificate\. From your bed\./,
-    )
+    expect(medCertLanding).toMatch(/<Hero[\s\S]*?title="Medical certificate\. From your bed\."/)
     expect(hero).toMatch(/<Heading[\s\S]*?level="display"/)
     expect(hero).toContain("titleClassName")
     expect(source("components/marketing/prescriptions-landing.tsx")).toContain(
