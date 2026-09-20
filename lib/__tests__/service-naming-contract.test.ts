@@ -33,5 +33,12 @@ describe("one name per service (19 Sep 2026 audit)", () => {
     expect(ed).toContain("Start private assessment · ${PRICING_DISPLAY.MENS_HEALTH}")
     expect(ed).not.toContain("Request assessment -")
     expect(wh).toContain("Start assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}")
+
+    const medCertOnline = read("components/marketing/medical-certificate-online-landing.tsx")
+    const medCertIntent = read("components/marketing/med-cert-intent-page.tsx")
+    expect(medCertOnline).toContain("Request a certificate · ${PRICING_DISPLAY.FROM_MED_CERT}")
+    expect(medCertOnline).not.toContain("Request a certificate -")
+    expect(medCertIntent).toContain("} · ${PRICING_DISPLAY.MED_CERT}")
+    expect(medCertIntent).not.toContain("} - ${PRICING_DISPLAY.MED_CERT}")
   })
 })

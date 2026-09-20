@@ -43,7 +43,7 @@ export const LANDING_BLOCKED_TERMS = [
   { pattern: /\bchild page\b/i, reason: "CMS vocabulary; say the page name" },
   { pattern: /Start Consultation/, reason: 'retired vocabulary; use "Start assessment"' },
   { pattern: /\bdoctor-owned\b/i, reason: "governance vocabulary; say what the doctor does" },
-  { pattern: /\b(?:Renew|Request|Start|Get)\b[^"'`\n]{0,40} - \$\d/, reason: 'the price separator is " · ", not " - "' },
+  { pattern: /\b(?:Renew|Request|Start|Get)\b[^"'`\n]{0,40} - \$(?:\d|\{)/, reason: 'the price separator is " · ", not " - "' },
 ] as const
 
 /** Every repeat of a caveat lowers the confidence the page is trying to build. */
