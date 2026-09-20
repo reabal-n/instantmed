@@ -45,7 +45,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "med-cert",
   analyticsId: "medical-certificate-online",
   sticky: {
-    ctaText: `Request a certificate - ${PRICING_DISPLAY.FROM_MED_CERT}`,
+    ctaText: `Request a certificate · ${PRICING_DISPLAY.FROM_MED_CERT}`,
     ctaHref: REQUEST_HREF,
     mobileSummary: "Medical certificate - Clinically assessed",
     responseTime: "Requests submit 24/7",
