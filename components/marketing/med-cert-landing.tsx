@@ -272,6 +272,7 @@ export function MedCertLanding({ liveWait }: { liveWait?: WaitState }) {
             immediateSubheadline
             pillLabel="Routine short absences"
             liveWait={liveWait}
+            pillServiceId="med-cert"
             primaryCta={{
               text: `Get your certificate · ${PRICING_DISPLAY.FROM_MED_CERT}`,
               href: MED_CERT_START_HREF,

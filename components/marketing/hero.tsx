@@ -7,6 +7,7 @@ import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
 import { WaitCounter } from '@/components/marketing/wait-counter'
+import { ServiceAvailabilityGate, type ServiceId } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import type { WaitState } from '@/lib/brand/wait-counter'
@@ -52,6 +53,12 @@ interface HeroProps {
   pill?: ReactNode | null
   /** Text beside the Google badge in the default pill. Service pages may narrow it, e.g. "Routine short absences". */
   pillLabel?: string
+  /**
+   * Hides the pill while this service is disabled. Without it the pill still
+   * hides during platform maintenance, so server-rendered status never
+   * contradicts the unavailable banner.
+   */
+  pillServiceId?: ServiceId
   /**
    * Subhead body. Pass a <p> so the consumer controls copy verbatim.
    */
@@ -160,6 +167,7 @@ export function Hero({
   immediateSubheadline = false,
   pill,
   pillLabel = "AHPRA-registered doctors",
+  pillServiceId,
   children,
   primaryCta = DEFAULT_PRIMARY,
   primaryCtaContent,
@@ -197,9 +205,11 @@ export function Hero({
           <div className="flex-1 w-full min-w-0 text-center lg:text-left">
             {/* Announcement pill */}
             {resolvedPill && (
-              <div className="hero-availability-enter flex justify-center lg:justify-start mb-5 sm:mb-7">
-                {resolvedPill}
-              </div>
+              <ServiceAvailabilityGate serviceId={pillServiceId}>
+                <div className="hero-availability-enter flex justify-center lg:justify-start mb-5 sm:mb-7">
+                  {resolvedPill}
+                </div>
+              </ServiceAvailabilityGate>
             )}
 
             <div

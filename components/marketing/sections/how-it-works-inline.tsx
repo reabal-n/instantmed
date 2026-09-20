@@ -1,8 +1,11 @@
+"use client"
+
 import { ArrowRight, Clock } from "lucide-react"
 import Link from "next/link"
 
 import type { StickerIconName } from "@/components/icons/stickers"
 import { StickerIcon } from "@/components/icons/stickers"
+import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
@@ -19,6 +22,7 @@ interface HowItWorksInlineProps {
   steps: HowItWorksStep[]
   ctaHref: string
   onCTAClick?: () => void
+  /** Per-service state from a shell. When omitted, the section follows the platform kill switch itself. */
   isDisabled?: boolean
   heading?: string
   subheading?: string
@@ -32,13 +36,15 @@ export function HowItWorksInline({
   steps,
   ctaHref,
   onCTAClick,
-  isDisabled,
+  isDisabled: isDisabledProp,
   heading = "Three steps. Completely private.",
   subheading = "No booked appointment or waiting room. A doctor reviews your form and may call briefly before deciding.",
   ctaText,
   ctaDataAttributes,
   revealInstant = false,
 }: HowItWorksInlineProps) {
+  const { maintenanceMode } = useServiceAvailability()
+  const isDisabled = isDisabledProp ?? maintenanceMode
   return (
     <section id="how-it-works" aria-label="How it works" className="py-16 lg:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
