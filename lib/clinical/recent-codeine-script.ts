@@ -4,7 +4,6 @@ import {
   CODEINE_REPEAT_WINDOW_DAYS,
   type CodeineRepeatWindowResult,
   evaluateCodeineRepeatWindow,
-  resolveIssuedSydneyDate,
   sydneyCalendarDateDaysAgo,
 } from "@/lib/clinical/codeine-repeat-window"
 import { isCodeineCombinationMedication } from "@/lib/clinical/controlled-substances"
@@ -34,13 +33,11 @@ export async function findRecentCodeineScript(
   if (patientIds.length === 0) return null
   const now = params.now ?? new Date()
 
-  // `created_at` is the sync instant that pins a stored day to its Sydney day
-  // (see resolveIssuedSydneyDate). Resolution moves a stored day forward by at
-  // most one and the window excludes day 7, so a stored day older than this
-  // bound can never block and the bound stays at the window itself.
+  // issued_date is the recorded issue day. Insertion time may be a delayed
+  // webhook or history import and cannot establish a different issue day.
   const { data, error } = await supabase
     .from("prescriptions")
-    .select("patient_id, medication_name, status, issued_date, created_at")
+    .select("patient_id, medication_name, status, issued_date")
     .in("patient_id", patientIds)
     .in("status", [...RECENT_SCRIPT_STATUSES])
     .gte("issued_date", sydneyCalendarDateDaysAgo(now, CODEINE_REPEAT_WINDOW_DAYS))
@@ -54,7 +51,7 @@ export async function findRecentCodeineScript(
 
   const issuedDates = (data ?? [])
     .filter((row) => typeof row.medication_name === "string" && isCodeineCombinationMedication(row.medication_name))
-    .map((row) => resolveIssuedSydneyDate({ issuedDate: row.issued_date, createdAt: row.created_at }))
+    .map((row) => row.issued_date)
     .filter((date): date is string => date != null)
   const window = evaluateCodeineRepeatWindow({ issuedDates, now })
   return window.withinWindow ? window : null

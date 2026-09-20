@@ -206,6 +206,34 @@ test.describe("Prescription: codeine combination repeat inside 7 days", () => {
     await expect(page.locator('button[data-intake-primary-action="true"]').last()).toHaveAttribute("data-intake-primary-ready", "false")
     await expect(page).toHaveURL(/\/request/)
 
+    // Trigger the blocked summary, then replace the candidate while still blocked.
+    await page.locator('button[data-intake-primary-action="true"]').last().click()
+    const staleReason = page.getByText("This medicine was prescribed for you within the last 7 days, so it can't be requested again yet.", { exact: true })
+    await expect(staleReason).toBeVisible()
+    await page.locator("#medication-name-0").fill("Sertraline")
+    await expect(block).toHaveCount(0)
+    await expect(staleReason).toHaveCount(0)
+    await page.locator("#medication-name-0").fill("Panadeine Forte")
+    await expect(block).toBeVisible({ timeout: 20_000 })
+
+    // A sleeping tab must release yesterday's advisory block at the allowed date.
+    const realNow = new Date()
+    await page.clock.install({ time: realNow })
+    await page.clock.setSystemTime(new Date(realNow.getTime() + 8 * 24 * 60 * 60 * 1000))
+    await page.clock.runFor(30_001)
+    await expect(block).toHaveCount(0)
+    await page.clock.setSystemTime(realNow)
+
+    // A terminally unsupported product must never receive a request-again date.
+    await page.locator("#medication-name-0").fill("codeine phosphate")
+    await page.clock.runFor(600)
+    await expect(block).toHaveCount(0)
+    await expect(page.locator('button[data-intake-primary-action="true"]').last()).toHaveAttribute("data-intake-primary-ready", "false")
+
+    await page.locator("#medication-name-0").fill("Sertraline")
+    await expect(block).toHaveCount(0)
+    await expect(page.getByText("This medicine was prescribed for you within the last 7 days, so it can't be requested again yet.", { exact: true })).toHaveCount(0)
+
     await logoutTestUser(page).catch(() => {})
   })
 })

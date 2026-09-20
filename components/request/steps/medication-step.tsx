@@ -67,6 +67,7 @@ import {
   type IntakeBlockType,
 } from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import { toSydneyCalendarDate } from "@/lib/clinical/codeine-repeat-window"
 import { isCodeineCombinationMedication } from "@/lib/clinical/controlled-substances"
 import { isControlledMedicationName } from "@/lib/clinical/intake-validation"
 import { type DedicatedServiceMatch, detectDedicatedServiceForMedication, ROUTING_CONTEXT_LABELS } from "@/lib/clinical/medication-service-routing"
@@ -364,20 +365,20 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   // patient learns that here instead of after three more screens; a guest has
   // no identity yet, gets `unknown`, and meets the same gate at checkout.
   const codeineCandidate = useMemo(() => {
-    if (!steerEnabled) return null
+    if (!steerEnabled || controlledBlock) return null
     for (const med of medications) {
       const medicationText = [med.name, med.strength, med.form].filter(Boolean).join(" ")
       if (med.name.trim() && isCodeineCombinationMedication(medicationText)) return med
     }
     return null
-  }, [steerEnabled, medications])
+  }, [steerEnabled, controlledBlock, medications])
   const [codeineWindow, setCodeineWindow] = useState<CodeineRepeatCheckResult | null>(null)
   const codeineAlertRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!codeineCandidate) {
-      setCodeineWindow(null)
-      return
-    }
+    setCodeineWindow(null)
+    setBlockedReasons((reasons) => reasons.includes(CODEINE_WINDOW_BLOCKED)
+      ? reasons.filter((reason) => reason !== CODEINE_WINDOW_BLOCKED) : reasons)
+    if (!codeineCandidate) return
     let cancelled = false
     const timer = window.setTimeout(() => {
       checkCodeineRepeatWindowAction({
@@ -397,7 +398,24 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       window.clearTimeout(timer)
     }
   }, [codeineCandidate])
-  const codeineWindowActive = codeineWindow?.status === "blocked"
+  useEffect(() => {
+    if (codeineWindow?.status !== "blocked") return
+    const expire = () => {
+      if (toSydneyCalendarDate(new Date()) < codeineWindow.requestAgainOn) return
+      setCodeineWindow(null)
+      setBlockedReasons((reasons) => reasons.filter((reason) => reason !== CODEINE_WINDOW_BLOCKED))
+    }
+    expire()
+    const timer = window.setInterval(expire, 30_000)
+    window.addEventListener("focus", expire)
+    document.addEventListener("visibilitychange", expire)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener("focus", expire)
+      document.removeEventListener("visibilitychange", expire)
+    }
+  }, [codeineWindow])
+  const codeineWindowActive = Boolean(codeineCandidate && !controlledBlock && codeineWindow?.status === "blocked")
 
   useEffect(() => {
     if (!controlledBlockKind) return
