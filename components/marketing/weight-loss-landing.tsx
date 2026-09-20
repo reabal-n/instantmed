@@ -4,7 +4,7 @@
  * Weight-management landing. LIVE since 2026-08-10. Rebuilt 2026-09 on the
  * shared Hero + LandingPageShell after the 19 Sep audit (no price on the page,
  * off-system hero, no sticky bar). Copy rules: no prescription medicine names,
- * no outcome guarantees, BMI thresholds match lib/clinical/weight-loss-eligibility.
+ * no outcome guarantees, BMI thresholds derive from lib/clinical/weight-loss-eligibility.
  */
 import { CheckCircle2, Clock3, ShieldCheck, Stethoscope, WalletCards } from "lucide-react"
 import dynamic from "next/dynamic"
@@ -15,6 +15,7 @@ import { type LandingPageConfig, LandingPageShell } from "@/components/marketing
 import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
+import { WEIGHT_LOSS_BMI_FLOOR, WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY } from "@/lib/clinical/weight-loss-eligibility"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { WEIGHT_LOSS_LANDING_FAQ } from "@/lib/data/weight-loss-faq"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
@@ -55,7 +56,7 @@ const HERO_FACTS = [
     icon: ShieldCheck,
     label: "Eligibility",
     value: "Australia only · Ages 18+",
-    body: "BMI 30 or higher, or 27 or higher with a weight-related condition. " + IDENTITY_CLAIM,
+    body: `BMI ${WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY} or higher, or ${WEIGHT_LOSS_BMI_FLOOR} or higher with a weight-related condition. ${IDENTITY_CLAIM}`,
   },
   {
     icon: WalletCards,
@@ -78,8 +79,8 @@ const HERO_FACTS = [
 ] as const
 
 const ELIGIBLE = [
-  "Adults 18+ with BMI of 30 or higher",
-  "BMI 27+ with weight-related conditions (diabetes, high blood pressure)",
+  `Adults 18+ with BMI of ${WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY} or higher`,
+  `BMI ${WEIGHT_LOSS_BMI_FLOOR}+ with weight-related conditions (diabetes, high blood pressure)`,
   "Have tried diet and exercise without adequate results",
   "No contraindications that make online care unsuitable",
 ] as const
@@ -206,7 +207,7 @@ export function WeightLossLanding() {
             className="lg:pt-6"
             eyebrow="Clinical, not cosmetic"
             headline={<><span className="text-primary">Doctor-supervised</span> weight management.</>}
-            body="Not a meal-plan subscription. Not a wellness program. A structured doctor review for adults with BMI 30+ (or 27+ with related conditions). Your doctor checks suitability, safety, and whether online care is appropriate."
+            body={`Not a meal-plan subscription. Not a wellness program. A structured doctor review for adults with BMI ${WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY}+ (or ${WEIGHT_LOSS_BMI_FLOOR}+ with related conditions). Your doctor checks suitability, safety, and whether online care is appropriate.`}
           />
 
           <WeightEligibilitySection />

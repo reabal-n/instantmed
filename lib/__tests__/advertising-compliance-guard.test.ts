@@ -98,6 +98,8 @@ const PAID_PRESCRIPTION_DESTINATION_SURFACES = [
   "app/hair-loss/page.tsx",
   "app/weight-loss/page.tsx",
   "components/marketing/weight-loss-landing.tsx",
+  // The weight FAQ renders visibly and as FAQ schema on the paid destination.
+  "lib/data/weight-loss-faq.ts",
   "app/prescriptions/page.tsx",
   "app/womens-health/page.tsx",
   "app/uti-assessment-online/page.tsx",
@@ -711,5 +713,15 @@ describe("advertising compliance guard", () => {
     expect(existsSync(toFullPath("components/marketing/hero-testimonial-rotator.tsx"))).toBe(false)
     expect(existsSync(toFullPath("components/marketing/recent-reviews-ticker.tsx"))).toBe(false)
     expect(existsSync(toFullPath("components/ui/testimonials-columns-wrapper.tsx"))).toBe(false)
+  })
+
+  it("derives the public weight-management BMI thresholds from the clinical floors", () => {
+    const landing = readFileSync(toFullPath("components/marketing/weight-loss-landing.tsx"), "utf8")
+    expect(landing).toContain("WEIGHT_LOSS_BMI_FLOOR")
+    expect(landing).toContain("WEIGHT_LOSS_BMI_FLOOR_WITHOUT_COMORBIDITY")
+    for (const relative of ["components/marketing/weight-loss-landing.tsx", "lib/data/weight-loss-faq.ts"]) {
+      const source = readFileSync(toFullPath(relative), "utf8")
+      expect(source, `${relative} must interpolate the eligibility floors, not restate them as literals`).not.toMatch(/BMI (?:of )?(?:27|30)\b|\b(?:27|30)\+ with/)
+    }
   })
 })
