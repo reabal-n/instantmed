@@ -243,6 +243,7 @@ export function WomensHealthLanding() {
       {({ isDisabled, heroCTARef, handleHeroCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           <Hero
+            pill={isDisabled ? null : undefined}
             title="UTI or the pill. Reviewed by a doctor, from home."
             primaryCta={{
               text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 
 import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
 import { HOME_HERO_CTA_ID } from "@/lib/marketing/home-anchors"
@@ -15,6 +16,8 @@ import { GUARANTEE } from "@/lib/marketing/voice"
  */
 export function HomeClientControls() {
   const analytics = useLandingAnalytics("home")
+  // During the platform kill switch the bar must not offer an active request link.
+  const { maintenanceMode } = useServiceAvailability()
   const [showStickyCTA, setShowStickyCTA] = useState(false)
 
   useEffect(() => {
@@ -33,6 +36,7 @@ export function HomeClientControls() {
       show={showStickyCTA}
       ctaText="Get started"
       ctaHref="/request"
+      isDisabled={maintenanceMode}
       mobileSummary={`From ${PRICING_DISPLAY.MED_CERT} · ${GUARANTEE}`}
       onCTAClick={() => analytics.trackCTAClick("sticky_mobile")}
     />

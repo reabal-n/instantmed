@@ -184,6 +184,7 @@ export function WeightLossLanding() {
       {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           <Hero
+            pill={isDisabled ? null : undefined}
             className="lg:pb-4"
             title="Weight management, reviewed by a doctor."
             primaryCta={{

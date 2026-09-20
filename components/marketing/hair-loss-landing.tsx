@@ -344,6 +344,7 @@ export function HairLossLanding() {
       {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handlePricingCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           <Hero
+            pill={isDisabled ? null : undefined}
             title="Private hair loss assessment, from home."
             titleClassName="max-[240px]:text-[1.75rem] max-[240px]:hyphens-none max-[240px]:[overflow-wrap:normal]"
             primaryCta={{

@@ -446,6 +446,7 @@ export function ErectileDysfunctionLanding() {
       {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <div className="bg-background text-foreground">
           <Hero
+            pill={isDisabled ? null : undefined}
             className="lg:pb-4"
             title="Private ED assessment, from home."
             titleClassName="max-[240px]:text-[1.75rem] max-[240px]:hyphens-none max-[240px]:[overflow-wrap:normal]"

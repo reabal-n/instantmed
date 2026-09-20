@@ -67,13 +67,13 @@ function renderText(state: WaitState): ReactNode {
   switch (state.variant) {
     case "live": {
       const minutes = state.medianMinutes
-      if (typeof minutes !== "number") return <>Reviewing requests today</>
+      if (typeof minutes !== "number") return <>Reviewing requests 24/7</>
       const subject = subjectFor(state.service)
       return (
         <>
           {subject} reviewed in{" "}
           <strong className="text-foreground tabular-nums font-semibold">~{minutes} min</strong>{" "}
-          today
+          in the last 24 hours
         </>
       )
     }
