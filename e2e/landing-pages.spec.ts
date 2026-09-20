@@ -36,6 +36,37 @@ async function settle(page: Page) {
   await page.waitForTimeout(900)
 }
 
+/**
+ * The landing gates assert the ENABLED experience (request CTAs, prices).
+ * Shared environments can carry maintenance or service-disable flags, so pin
+ * an all-enabled availability response for every test in this file; the
+ * unavailable-state behaviour has its own explicit tests elsewhere.
+ */
+async function stubAvailabilityEnabled(page: Page) {
+  await page.route("**/api/availability", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        maintenance_mode: false,
+        disable_med_cert: false,
+        disable_repeat_scripts: false,
+        disable_consults: false,
+        disable_weight_loss: false,
+        urgent_notice_enabled: false,
+        urgent_notice_message: "",
+        business_hours_open: 8,
+        business_hours_close: 22,
+        business_hours_timezone: "Australia/Sydney",
+        business_hours_enabled: true,
+      }),
+    })
+  })
+}
+
+test.beforeEach(async ({ page }) => {
+  await stubAvailabilityEnabled(page)
+})
+
 test.describe("landing page geometry", () => {
   for (const landing of LANDING_PAGES) {
     test(`${landing.path} hero pill clears the fixed header on a phone`, async ({ page }) => {
