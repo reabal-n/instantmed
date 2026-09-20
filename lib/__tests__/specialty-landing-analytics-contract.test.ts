@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it, vi } from "vitest"
@@ -13,6 +13,21 @@ import {
   resolveAvailableLandingGrowthExperienceVersion,
   resolveLandingGrowthExperienceVersion,
 } from "@/lib/growth/specialty-landing"
+
+const STICKY_CTA_COMPONENT = "components/marketing/shared/sticky-cta.tsx"
+
+function listTsxFiles(roots: string[]): string[] {
+  const files: string[] = []
+  const walk = (relativeDirectory: string) => {
+    for (const entry of readdirSync(join(process.cwd(), relativeDirectory), { withFileTypes: true })) {
+      const relativePath = join(relativeDirectory, entry.name)
+      if (entry.isDirectory()) walk(relativePath)
+      else if (entry.name.endsWith(".tsx")) files.push(relativePath)
+    }
+  }
+  for (const root of roots) walk(root)
+  return files.sort()
+}
 
 describe("specialty landing analytics", () => {
   it("uses the code-owned active landing version for each specialty", () => {
@@ -207,6 +222,19 @@ describe("specialty landing analytics", () => {
       const component = readFileSync(join(process.cwd(), path), "utf8")
       expect(component, path).toContain('isDisabled ? "/contact"')
       expect(component, path).not.toContain("disabled={isDisabled}")
+    }
+  })
+
+  it("gives every sticky bar the kill-switch fallback", () => {
+    // Discovered from the tree, not hand-listed: a new bar that forgets the prop
+    // keeps offering a live request link while the platform is in maintenance.
+    const consumers = listTsxFiles(["app", "components"]).filter(
+      (path) => path !== STICKY_CTA_COMPONENT && readFileSync(join(process.cwd(), path), "utf8").includes("<StickyCTA")
+    )
+    expect(consumers.length).toBeGreaterThanOrEqual(5)
+    for (const path of consumers) {
+      const component = readFileSync(join(process.cwd(), path), "utf8")
+      expect(component, `${path} must pass isDisabled to StickyCTA so maintenance mode swaps the request link for the contact action`).toContain("isDisabled=")
     }
   })
 })

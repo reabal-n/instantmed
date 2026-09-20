@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Navbar } from "@/components/shared/navbar"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
@@ -48,6 +49,8 @@ export function InformationalPageShell({ config, children, afterFooter }: Inform
   const [showStickyCTA, setShowStickyCTA] = useState(false)
   const prefersReducedMotion = useReducedMotion()
   const analytics = useLandingAnalytics(config.analyticsId)
+  // The platform kill switch must swap the bar to the contact action here too.
+  const { maintenanceMode } = useServiceAvailability()
 
   const hasSticky = !!config.sticky
 
@@ -86,6 +89,7 @@ export function InformationalPageShell({ config, children, afterFooter }: Inform
             show={showStickyCTA}
             ctaText={config.sticky.ctaText}
             ctaHref={config.sticky.ctaHref}
+            isDisabled={maintenanceMode}
             mobileSummary={config.sticky.mobileSummary}
             onCTAClick={() => analytics.trackCTAClick("sticky_mobile")}
             mobileFooter={config.sticky.mobileFooter}
