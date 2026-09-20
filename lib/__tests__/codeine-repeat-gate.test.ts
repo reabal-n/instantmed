@@ -4,6 +4,8 @@ import {
   CODEINE_REPEAT_WINDOW_DAYS,
   evaluateCodeineRepeatWindow,
   formatRequestAgainDate,
+  resolveIssuedSydneyDate,
+  sydneyCalendarDateDaysAgo,
 } from "@/lib/clinical/codeine-repeat-window"
 import { isCodeineCombinationMedication } from "@/lib/clinical/controlled-substances"
 import {
@@ -116,8 +118,78 @@ describe("evaluateCodeineRepeatWindow", () => {
   })
 })
 
+describe("sydneyCalendarDateDaysAgo", () => {
+  it("counts back in Sydney calendar days, not UTC days", () => {
+    // 15:00 UTC on 19 Sep is already 01:00 on 20 Sep in Sydney.
+    const now = new Date("2026-09-19T15:00:00.000Z")
+    expect(sydneyCalendarDateDaysAgo(now, 0)).toBe("2026-09-20")
+    expect(sydneyCalendarDateDaysAgo(now, 2)).toBe("2026-09-18")
+    expect(sydneyCalendarDateDaysAgo(now, CODEINE_REPEAT_WINDOW_DAYS)).toBe("2026-09-13")
+  })
+})
+
+describe("resolveIssuedSydneyDate", () => {
+  // Rows written before the Sydney-day sync hold the UTC day of the Parchment
+  // issue instant. 13 Sep 08:00 Sydney is 12 Sep 22:00 UTC, so such a script was
+  // stored as 2026-09-12, with the webhook sync stamped on the row seconds later.
+  it("pins a stored UTC day to the Sydney day of its issue-time sync", () => {
+    expect(resolveIssuedSydneyDate({ issuedDate: "2026-09-12", createdAt: "2026-09-12T22:00:05.000Z" })).toBe("2026-09-13")
+  })
+
+  it("keeps a stored day that already is the Sydney day of its sync", () => {
+    expect(resolveIssuedSydneyDate({ issuedDate: "2026-09-13", createdAt: "2026-09-12T22:00:05.000Z" })).toBe("2026-09-13")
+    expect(resolveIssuedSydneyDate({ issuedDate: "2026-09-13", createdAt: "2026-09-13T05:00:00.000Z" })).toBe("2026-09-13")
+  })
+
+  it("is DST-correct through Intl (10 Oct 08:00 AEDT is 9 Oct 21:00 UTC)", () => {
+    expect(resolveIssuedSydneyDate({ issuedDate: "2026-10-09", createdAt: "2026-10-09T21:00:05.000Z" })).toBe("2026-10-10")
+  })
+
+  it("takes the later of the two possible days when the row was written long after issue", () => {
+    // A history refresh or retried sync days later cannot say whether "2026-09-12"
+    // was the UTC day or the Sydney day; the strict read only delays by a day.
+    expect(resolveIssuedSydneyDate({ issuedDate: "2026-09-12", createdAt: "2026-09-15T02:00:00.000Z" })).toBe("2026-09-13")
+  })
+
+  it("never moves a stored day earlier than written", () => {
+    // Sync instant just before Sydney midnight, stored day already the next day.
+    expect(resolveIssuedSydneyDate({ issuedDate: "2026-09-14", createdAt: "2026-09-13T13:59:50.000Z" })).toBe("2026-09-14")
+  })
+
+  it("uses the stored day as-is without a usable sync instant", () => {
+    expect(resolveIssuedSydneyDate({ issuedDate: "2026-09-12", createdAt: null })).toBe("2026-09-12")
+    expect(resolveIssuedSydneyDate({ issuedDate: "2026-09-12", createdAt: "not a date" })).toBe("2026-09-12")
+  })
+
+  it("returns null for an unusable stored day", () => {
+    expect(resolveIssuedSydneyDate({ issuedDate: "nope", createdAt: "2026-09-12T22:00:05.000Z" })).toBeNull()
+    expect(resolveIssuedSydneyDate({ issuedDate: null, createdAt: "2026-09-12T22:00:05.000Z" })).toBeNull()
+  })
+})
+
 describe("findRecentCodeineScript", () => {
   const now = new Date("2026-09-19T03:00:00.000Z")
+
+  it("reads a pre-fix UTC-day row through its sync instant: 13 Sep 08:00 Sydney blocks on 19 Sep and clears on 20 Sep", async () => {
+    const supabase = () => mockSupabase({
+      prescriptions: [
+        // Stored as the UTC day (12 Sep) by the old sync; the webhook wrote the row seconds after issue.
+        { patient_id: PATIENT_ID, medication_name: "Panadeine Forte", status: "active", issued_date: "2026-09-12", created_at: "2026-09-12T22:00:05.000Z" },
+      ],
+    })
+    const lastDay = supabase()
+    // 19 Sep 23:00 Sydney
+    expect(await findRecentCodeineScript(lastDay, { patientIds: [PATIENT_ID], now: new Date("2026-09-19T13:00:00.000Z") })).toEqual({
+      withinWindow: true,
+      latestIssuedDate: "2026-09-13",
+      daysSince: 6,
+      requestAgainOn: "2026-09-20",
+    })
+    // The lookup must fetch the sync instant it resolves the day with.
+    expect(lastDay.from.mock.results[0].value.select).toHaveBeenCalledWith(expect.stringContaining("created_at"))
+    // 20 Sep 00:30 Sydney
+    expect(await findRecentCodeineScript(supabase(), { patientIds: [PATIENT_ID], now: new Date("2026-09-19T14:30:00.000Z") })).toBeNull()
+  })
 
   it("returns the latest codeine script inside the window for the patient", async () => {
     const supabase = mockSupabase({
@@ -222,5 +294,27 @@ describe("evaluateCodeineRepeatGate", () => {
       prescriptions: [{ patient_id: PATIENT_ID, medication_name: "Panadeine Forte", status: "active", issued_date: "2026-09-12" }],
     })
     expect(await evaluateCodeineRepeatGate({ supabase, answers: codeineAnswers, patientIds: [PATIENT_ID], now })).toEqual({ blocked: false })
+  })
+
+  it("blocks a pre-fix UTC-day row on the last Sydney day of the window and allows it the next Sydney day", async () => {
+    // Script issued 13 Sep 08:00 Sydney; the old sync stored the UTC day, 12 Sep.
+    const rows = [
+      { patient_id: PATIENT_ID, medication_name: "Panadeine Forte", status: "active", issued_date: "2026-09-12", created_at: "2026-09-12T22:00:05.000Z" },
+    ]
+    const lastDay = await evaluateCodeineRepeatGate({
+      supabase: mockSupabase({ prescriptions: rows }),
+      answers: codeineAnswers,
+      patientIds: [PATIENT_ID],
+      now: new Date("2026-09-19T13:00:00.000Z"), // 19 Sep 23:00 Sydney
+    })
+    expect(lastDay).toEqual({ blocked: true, latestIssuedDate: "2026-09-13", daysSince: 6, requestAgainOn: "2026-09-20" })
+
+    const nextDay = await evaluateCodeineRepeatGate({
+      supabase: mockSupabase({ prescriptions: rows }),
+      answers: codeineAnswers,
+      patientIds: [PATIENT_ID],
+      now: new Date("2026-09-19T14:30:00.000Z"), // 20 Sep 00:30 Sydney
+    })
+    expect(nextDay).toEqual({ blocked: false })
   })
 })

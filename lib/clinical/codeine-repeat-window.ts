@@ -39,6 +39,46 @@ function utcMsToCalendarDate(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10)
 }
 
+/** Sydney calendar date (YYYY-MM-DD) `days` before the Sydney day of `now`. */
+export function sydneyCalendarDateDaysAgo(now: Date, days: number): string {
+  const [year, month, day] = toSydneyCalendarDate(now).split("-").map(Number)
+  return utcMsToCalendarDate(Date.UTC(year, month - 1, day - days))
+}
+
+/**
+ * Australia/Sydney calendar day a stored `prescriptions` row was issued on.
+ *
+ * `issued_date` is a bare day. Rows written before the Sydney-day sync
+ * (2026-09-20) hold the UTC day of the Parchment issue instant, which for a
+ * script written between midnight and 10-11am Sydney is the day BEFORE the
+ * Sydney day; rows written since hold the Sydney day itself. `created_at` is
+ * the instant the row was synced, and the webhook that creates almost every
+ * row fires seconds after the script is written, so when a row was created
+ * within a day of its stored day that instant fixes the Sydney day for both
+ * generations without rewriting anything. A row created two or more days
+ * after its stored day (a history refresh, a retried sync) carries no usable
+ * instant, so the later of the two possible days is taken: a lenient read
+ * lets a patient pay for a request the doctor must decline and refund, while
+ * a strict read only delays the request by a day. A missing or unreadable
+ * instant leaves the stored day untouched.
+ */
+export function resolveIssuedSydneyDate(args: { issuedDate: unknown; createdAt: unknown }): string | null {
+  const storedMs = typeof args.issuedDate === "string" ? calendarDateToUtcMs(args.issuedDate) : null
+  if (storedMs == null) return null
+  const stored = utcMsToCalendarDate(storedMs)
+
+  const createdAt = args.createdAt instanceof Date
+    ? args.createdAt
+    : typeof args.createdAt === "string" ? new Date(args.createdAt) : null
+  if (createdAt == null || Number.isNaN(createdAt.getTime())) return stored
+
+  const syncedMs = calendarDateToUtcMs(toSydneyCalendarDate(createdAt))
+  if (syncedMs == null) return stored
+  const daysAfterStored = Math.round((syncedMs - storedMs) / DAY_MS)
+  if (daysAfterStored >= 2) return utcMsToCalendarDate(storedMs + DAY_MS)
+  return daysAfterStored === 1 ? utcMsToCalendarDate(syncedMs) : stored
+}
+
 export function evaluateCodeineRepeatWindow(args: {
   issuedDates: ReadonlyArray<string>
   now: Date

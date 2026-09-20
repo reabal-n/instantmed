@@ -202,3 +202,47 @@ describe("syncParchmentPrescriptionListToPms", () => {
   })
 
 })
+
+describe("issued_date is the Australia/Sydney calendar day", () => {
+  const listInput = {
+    userId: "parchment-user-1", parchmentPatientId: "parchment-patient-1",
+    patientProfileId: "patient-profile-1", prescriberProfileId: null, intakeId: null, limit: 50,
+  }
+
+  async function storedIssuedDate(fields: Record<string, unknown>) {
+    mocks.getPatientPrescriptions.mockResolvedValue({
+      prescriptions: [{ scid: "SCID-DAY", item_name: "Panadeine Forte", ...fields }],
+    })
+    const db = makeSupabase()
+    await syncParchmentPrescriptionListToPms({ ...listInput, supabase: db.client as never })
+    return db.upserts[0]?.issued_date
+  }
+
+  // The codeine repeat gate measures in Sydney days, so a script issued at
+  // 08:00 Sydney on 13 Sep must be stored as 13 Sep, not the UTC day it began on.
+  it("stores the Sydney day of a UTC issue instant", async () => {
+    expect(await storedIssuedDate({ created_date: "2026-09-12T22:00:00.000Z" })).toBe("2026-09-13")
+  })
+
+  it("stores the Sydney day of an offset-bearing issue instant", async () => {
+    expect(await storedIssuedDate({ created_date: "2026-09-13T08:00:00+10:00" })).toBe("2026-09-13")
+    expect(await storedIssuedDate({ created_date: "2026-09-13T23:30:00+10:00" })).toBe("2026-09-13")
+  })
+
+  it("keeps a bare day, and a wall-clock timestamp without a zone, on the day they name whatever the runtime zone", async () => {
+    expect(await storedIssuedDate({ created_date: "2026-09-13" })).toBe("2026-09-13")
+    expect(await storedIssuedDate({ created_date: "2026-09-13T08:00:00" })).toBe("2026-09-13")
+    expect(await storedIssuedDate({ created_date: "2026-09-13T23:30:00" })).toBe("2026-09-13")
+  })
+
+  it("falls back to the Sydney day of the sync instant for a missing or unparseable created_date", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] })
+    vi.setSystemTime(new Date("2026-09-12T22:00:00.000Z")) // 13 Sep 08:00 Sydney
+    try {
+      expect(await storedIssuedDate({})).toBe("2026-09-13")
+      expect(await storedIssuedDate({ created_date: "2026-13-45" })).toBe("2026-09-13")
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
