@@ -172,7 +172,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                       className={cn(isDisabled ? '' : 'px-8 h-12 font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-[transform,box-shadow]')}
                     >
                       <Link href={ctaHref}>
-                        {isDisabled ? 'Contact us' : `${config.ctaButtonText} - ${PRICING_DISPLAY.MED_CERT}`}
+                        {isDisabled ? 'Contact us' : `${config.ctaButtonText} · ${PRICING_DISPLAY.MED_CERT}`}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
