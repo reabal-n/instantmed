@@ -409,6 +409,9 @@ test.describe("Doctor prescription UI flow", () => {
       drawer.getByRole("link", { name: "Open full record" }).click(),
     ])
     const clinicalPanel = page.getByRole("tabpanel", { name: "Clinical" })
+    // App Router commits the URL while the patient record is still streaming.
+    // Wait for the actual destination before checking its clinical content.
+    await expect(clinicalPanel).toBeVisible({ timeout: 30_000 })
     await expect(clinicalPanel.getByText("Review differences", { exact: true })).toBeVisible()
     await expect(clinicalPanel.getByText("No known allergies", { exact: true })).toBeVisible()
     await expect(clinicalPanel.getByText("Penicillin", { exact: true })).toBeVisible()
