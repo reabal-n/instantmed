@@ -37,7 +37,8 @@ test("guest checkout without browser proof offers verified email recovery", asyn
   expect(attempts).toBe(1)
   await page.screenshot({ path: testInfo.outputPath("guest-email-recovery.png"), fullPage: true })
   await verify.click()
-  await expect(page).toHaveURL(/\/sign-up\?redirect_url=%2Fpatient/)
+  // The destination compiles on first access in the CI dev server.
+  await expect(page).toHaveURL(/\/sign-up\?redirect_url=%2Fpatient/, { timeout: 30_000 })
   await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible()
 })
 import { waitForPageLoad } from "./helpers/test-utils"
