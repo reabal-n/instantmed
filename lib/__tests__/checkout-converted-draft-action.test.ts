@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { inspectCheckoutSession } from "@/lib/stripe/checkout/checkout-session-safety"
 import { ensureCheckoutConsentEvidence } from "@/lib/stripe/checkout/consent-evidence"
-const mocks = vi.hoisted(() => ({ auth: vi.fn(), draft: vi.fn(), reconcile: vi.fn(), create: vi.fn(), guest: vi.fn(), retry: vi.fn() }))
+const mocks = vi.hoisted(() => ({ auth: vi.fn(), draft: vi.fn(), reconcile: vi.fn(), create: vi.fn(), guest: vi.fn(), retry: vi.fn(), receipt: vi.fn(), remember: vi.fn() }))
+vi.mock("@/lib/stripe/checkout/browser-receipt", () => ({ findBrowserCheckoutReceipt: mocks.receipt, rememberBrowserCheckout: mocks.remember }))
 vi.mock("@/lib/auth/helpers", () => ({ getAuthenticatedUserWithProfile: mocks.auth }))
 vi.mock("@/lib/request/server-draft-conversion", () => ({ findConvertedPartialIntakeForCheckout: mocks.draft }))
 vi.mock("@/lib/stripe/checkout/restored-draft-recovery", () => ({ reconcileTerminalDraftCheckout: mocks.reconcile }))
@@ -22,8 +23,29 @@ describe("unified converted draft checkout", () => {
   beforeEach(() => {
     vi.resetAllMocks()
     mocks.auth.mockResolvedValue(null)
+    mocks.receipt.mockResolvedValue({ kind: "none", reason: "not_found" })
     mocks.draft.mockResolvedValue({ kind: "reusable", intake })
     mocks.reconcile.mockResolvedValue({ success: false, failureCode: "payment_provider", error: "Provider unresolved" })
+  })
+  it("recovers a guest with a signed browser receipt when the server draft is missing", async () => {
+    mocks.draft.mockResolvedValue({ kind: "none", reason: "not_found" })
+    mocks.receipt.mockResolvedValue({ kind: "reusable", intake: { ...intake, status: "pending_payment", paymentId: null } })
+    expect(await createCheckoutFromUnifiedFlow(input())).toMatchObject({ success: true, checkoutUrl: "/resume/fixture-signed" })
+    expect(mocks.guest).not.toHaveBeenCalled()
+    expect(mocks.remember).toHaveBeenCalledWith(intake.id)
+  })
+  it("does not let a receipt override a discarded draft", async () => {
+    mocks.draft.mockResolvedValue({ kind: "blocked", reason: "discarded" })
+    expect(await createCheckoutFromUnifiedFlow(input())).toMatchObject({ success: false, requiresSupport: true })
+    expect(mocks.receipt).not.toHaveBeenCalled()
+    expect(mocks.remember).not.toHaveBeenCalled()
+  })
+  it("does not use a guest receipt as authenticated ownership", async () => {
+    mocks.auth.mockResolvedValue({ user: { email: "fixture@example.test" }, profile: { id: "foreign-owner" } })
+    mocks.draft.mockResolvedValue({ kind: "none", reason: "not_found" })
+    mocks.create.mockResolvedValue({ success: false })
+    await createCheckoutFromUnifiedFlow(input())
+    expect(mocks.receipt).not.toHaveBeenCalled()
   })
   it.each(["paid", "payment_in_flight"] as const)("preserves provider %s handoff without writing a new receipt", async state => {
     mocks.draft.mockResolvedValue({ kind: "reusable", intake: { ...intake, status: "pending_payment", paymentStatus: "unpaid" } })

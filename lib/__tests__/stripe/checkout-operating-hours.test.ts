@@ -1011,6 +1011,7 @@ describe("checkout operating hours", () => {
         serverDraftSessionId: proof === "missing" ? undefined : proof === "invalid" ? "invalid" : proof === "foreign_bearer" ? "55555555-5555-4555-8555-555555555555" : SPECIALTY_DRAFT_SESSION_ID,
       })
       expect(result).toMatchObject({ success: false, failureCode: "auth_or_session", requiresSupport: true })
+      expect(result).toMatchObject({ requiresEmailVerification: true })
       expect(JSON.stringify(result)).not.toMatch(/intake-existing|cs_current|hair_loss|patient@example|checkoutUrl|savedRequestUrl|requiresFreshRequest|requiresSignIn/)
       expect(mocks.stripeSessionRetrieve).not.toHaveBeenCalled()
       expect(mocks.stripeSessionExpire).not.toHaveBeenCalled()

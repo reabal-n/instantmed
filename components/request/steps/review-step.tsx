@@ -4,8 +4,8 @@
  * Review Step - Summary of request before checkout
  * Shows all collected information for patient to verify
  */
-
 import { Check, ChevronDown, ChevronUp, CreditCard, Edit2, Loader2, Lock } from "lucide-react"
+import Link from "next/link"
 import { useEffect, useRef,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
@@ -303,6 +303,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const [error, setError] = useState<string | null>(null)
   const [requiresFreshRequest, setRequiresFreshRequest] = useState(false)
   const [requiresSignIn, setRequiresSignIn] = useState(false)
+  const [requiresEmailVerification, setRequiresEmailVerification] = useState(false)
   const [requiresSupport, setRequiresSupport] = useState(false)
   const [savedRequestUrl, setSavedRequestUrl] = useState<string | null>(null)
   // Codeine combination repeats inside the 7-day window: the server names the
@@ -366,6 +367,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
     setError(null)
     setRequiresFreshRequest(false)
     setRequiresSignIn(false)
+    setRequiresEmailVerification(false)
     setRequiresSupport(false)
     setSavedRequestUrl(null)
     setRequestAgainOn(null)
@@ -419,6 +421,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         })
         setRequiresFreshRequest(Boolean(result.requiresFreshRequest))
         setRequiresSignIn(Boolean(result.requiresSignIn))
+        setRequiresEmailVerification(Boolean(result.requiresEmailVerification))
         const providerUncertain = result.failureCode === "payment_provider" || result.failureCode === "unexpected"
         setRequiresSupport(Boolean(result.requiresSupport) || providerUncertain)
         setSavedRequestUrl(result.savedRequestUrl ?? null)
@@ -1233,6 +1236,13 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             <Alert variant="destructive" role="alert">
               <AlertDescription className="space-y-3">
                 <p>{error}</p>
+                {requiresEmailVerification && (
+                  <Button asChild variant="outline" className="min-h-11 w-full">
+                    <Link href="/sign-up?redirect_url=%2Fpatient" onClick={markIntentionalNavigation}>
+                      Verify email to continue
+                    </Link>
+                  </Button>
+                )}
                 {savedRequestUrl && (
                   <Button asChild variant="outline" className="min-h-11 w-full">
                     <a href={savedRequestUrl} onClick={markIntentionalNavigation}>Return to saved request</a>
