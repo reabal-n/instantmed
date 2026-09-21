@@ -85,11 +85,17 @@ export const POLICY = {
       initialTargetRoas: 1.35,
       maximumBudgetStep: 0.50,
       refundRateReviewThreshold: 0.10,
+      // Matured first-order cohort: first orders 60-150 days before the window
+      // end, their 60-day repeat cash on any channel. Needs a real cohort.
+      repeatValue: { cohortWindowDays: 60, cohortSpanDays: 90, minimumMaturedFirstOrders: 20 },
       smallSampleOrderThreshold: 10,
     },
   },
   womensHealth: {
-    dailyBudgetCents: 5_000,
+    // Owner delegated 2026-09-19 ("do what's best for the business"): AUD 75/day
+    // ceiling so the Sep 22 read of the AUD 4 bid test can step the budget
+    // without another policy cycle. The step itself stays an exact proposal.
+    dailyBudgetCents: 7_500,
     pilot: {
       initialCpcCeilingCents: 400,
       investigateClicks: 10,
@@ -319,8 +325,24 @@ export function authorizeScriptsBudgetScale(args: {
 
   // Preserve at least one cent of measured campaign cash contribution
   // (first and repeat orders attributed to the campaign in the window).
-  const maximumWindowSpendCents = campaign.netRetainedRevenueCents
+  const blendedWindowCashCents = campaign.netRetainedRevenueCents
     - campaign.stripeFeeCents - 1
+  // Owner decision 2026-09-19: click-attributed repeats miss the repeats that
+  // come back direct. When the campaign has a matured first-order cohort, the
+  // ceiling may instead use first-order cash plus that cohort's measured
+  // 60-day repeat contribution per first order.
+  const repeatValue = campaign.firstOrder?.repeatValue ?? null
+  const cohortApplies = firstOrderEconomicsAvailable(campaign)
+    && repeatValue != null
+    && Number.isSafeInteger(repeatValue.maturedFirstOrders)
+    && repeatValue.maturedFirstOrders >= POLICY.scripts.scale.repeatValue.minimumMaturedFirstOrders
+    && Number.isSafeInteger(repeatValue.repeatContributionPerFirstOrderCents)
+  const cohortWindowCashCents = cohortApplies
+    ? campaign.firstOrder!.netRetainedRevenueCents! - campaign.firstOrder!.stripeFeeCents!
+      + campaign.firstOrder!.orders! * repeatValue!.repeatContributionPerFirstOrderCents - 1
+    : null
+  const cohortApplied = cohortWindowCashCents != null && cohortWindowCashCents > blendedWindowCashCents
+  const maximumWindowSpendCents = cohortApplied ? cohortWindowCashCents! : blendedWindowCashCents
   if (campaign.spendCents <= 0 || maximumWindowSpendCents <= 0) {
     throw new Error("scripts_scale_economic_ceiling_unavailable")
   }
@@ -347,6 +369,7 @@ export function authorizeScriptsBudgetScale(args: {
 
   const advisoryReasonCodes = [
     ...(operatorApprovedGrowthTest ? ["OPERATOR_APPROVED_GROWTH_TEST"] : []),
+    ...(cohortApplied ? ["REPEAT_VALUE_COHORT_APPLIED"] : []),
     ...firstOrderAdvisoryReasonCodes(campaign),
     ...(campaign.orders! < POLICY.scripts.scale.smallSampleOrderThreshold ? ["SMALL_SAMPLE_UNCERTAINTY"] : []),
     ...(args.closedDaysAfterPreviousChange != null || args.ordersAfterPreviousChange != null
@@ -655,7 +678,10 @@ function evaluateSpecialty(
     }
   }
 
-  return (campaign.firstOrder ? profitRecommendation(service, campaign) : null) ?? hold(service, "PILOT_WITHIN_LOSS_CAP")
+  // Same campaign-contribution policy as Scripts and med certs: missing
+  // first-order evidence is an advisory reason code inside
+  // profitRecommendation, never a veto (owner decision 2026-09-19).
+  return profitRecommendation(service, campaign) ?? hold(service, "PILOT_WITHIN_LOSS_CAP")
 }
 
 /**

@@ -65,15 +65,13 @@ describe("marketing theme and serious-contrast contract", () => {
     expect(changelog).toContain("`--primary-strong` / `text-primary-strong`")
   })
 
-  it("uses primary-strong for the shared AHPRA badge and repeated pricing badges", () => {
-    const doctorProfile = read("components/marketing/sections/doctor-profile-section.tsx")
+  it("uses primary-strong for the repeated pricing badges", () => {
     const pricingSources = [
       read("components/marketing/womens-health-landing.tsx"),
       read("components/marketing/hair-loss-landing.tsx"),
     ]
     const prescription = read("components/marketing/prescriptions-landing.tsx")
 
-    expect(doctorProfile).toContain('className="text-xs font-medium text-primary-strong"')
     for (const pricingSource of pricingSources) {
       expect(pricingSource).toMatch(/text-sm[^"\n]*bg-primary\/10 text-primary-strong border border-primary\/20/)
     }

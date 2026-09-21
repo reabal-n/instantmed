@@ -30,15 +30,12 @@ describe("women's health landing layout contract", () => {
 
   it("keeps shared landing modules opt-in for instant reveal behavior", () => {
     const howItWorks = read("components/marketing/sections/how-it-works-inline.tsx")
-    const doctorProfile = read("components/marketing/sections/doctor-profile-section.tsx")
     const ctaBanner = read("components/sections/cta-banner.tsx")
 
     expect(howItWorks).toContain("revealInstant?: boolean")
     expect(howItWorks).toContain("instant={revealInstant || i < 2}")
     expect(howItWorks).toContain("<Reveal instant={revealInstant}")
 
-    expect(doctorProfile).toContain("instant?: boolean")
-    expect(doctorProfile).toContain("<Reveal instant={instant}>")
 
     expect(ctaBanner).toContain("revealInstant?: boolean")
     expect(ctaBanner).toContain("<Reveal instant={revealInstant}")

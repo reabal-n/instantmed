@@ -253,6 +253,36 @@ describe("Google Ads Agent policy", () => {
     expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [{ ...women, campaignStatus: "PAUSED" }] })), "womens_health")).toMatchObject({ kind: "HOLD", proposedMutationFamily: null })
   })
 
+  it.each([
+    { service: "ed" },
+    { service: "hair_loss" },
+    { service: "womens_health" },
+  ] satisfies Array<{ service: SpecialtyService }>)(
+    "qualifies a positive-cash $service pilot on campaign contribution when first-order evidence is absent",
+    ({ service }) => {
+      // Same campaign-contribution policy as Scripts and med certs (owner
+      // decision 2026-09-19): missing first-order evidence is advisory, not a veto.
+      const positive = specialtyCampaign(service, {
+        contributionCents: 500, netRetainedRevenueCents: 2000, spendCents: 1400, stripeFeeCents: 100,
+        orders: 1, serviceOrders: { [service]: 1 }, refundRate: 0,
+      })
+      for (const firstOrder of [undefined, null]) {
+        const enabled = { ...positive, firstOrder }
+        expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [enabled] })), service)).toMatchObject({
+          kind: "APPROVAL_NEEDED",
+          proposedMutationFamily: "campaign_budget",
+          reasonCodes: expect.arrayContaining(["CAMPAIGN_CONTRIBUTION_POSITIVE", "FIRST_ORDER_EVIDENCE_UNAVAILABLE"]),
+        })
+        expect(recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [{ ...enabled, campaignStatus: "PAUSED" }] })), service)).toEqual({
+          kind: "HOLD",
+          proposedMutationFamily: null,
+          reasonCodes: ["CAMPAIGN_ALREADY_PAUSED"],
+          service,
+        })
+      }
+    },
+  )
+
   it("surfaces a first-order loss as an advisory when repeat cash keeps the campaign positive", () => {
     const firstOrder = { contributionCents: -100, netRetainedRevenueCents: 34000, stripeFeeCents: 100, orders: 2 }
     const result = recommendationFor(evaluatePolicyWithoutHolds(snapshot({ rolling30: [campaign({ firstOrder, refundRate: 0.5 })] })), "scripts")
@@ -274,12 +304,49 @@ describe("Google Ads Agent policy", () => {
     }
   })
 
+  it("lifts the Scripts cash ceiling with matured-cohort repeat value, still under the 50% tier", () => {
+    const scripts = campaign({
+      biddingStrategyType: "MAXIMIZE_CONVERSION_VALUE",
+      budgetAmountMicros: 120_000_000,
+      budgetResourceName: "customers/9205010513/campaignBudgets/15589755119",
+      targetRoas: 1.5,
+      orders: 134,
+      serviceOrders: { scripts: 134 },
+      spendCents: 282_318,
+      netRetainedRevenueCents: 407_795,
+      stripeFeeCents: 12_071,
+      contributionCents: 407_795 - 12_071 - 282_318,
+      firstOrder: {
+        orders: 97, stripeFeeCents: 8_563, netRetainedRevenueCents: 313_470, contributionCents: 22_589,
+        repeatValue: {
+          cohortWindowDays: 60, cohortStartUtc: "2026-04-11T00:00:00.000Z", cohortEndUtc: "2026-07-20T13:59:59.999Z",
+          maturedFirstOrders: 60, repeatOrders: 14, repeatNetRetainedRevenueCents: 90_000, repeatStripeFeeCents: 6_540,
+          estimatedFeeOrders: 3, repeatContributionPerFirstOrderCents: 1_391,
+        },
+      },
+    })
+    const blendedCeiling = Math.floor(120_000_000 * (407_795 - 12_071 - 1) / 282_318)
+    const cohortCeiling = Math.floor(120_000_000 * (313_470 - 8_563 + 97 * 1_391 - 1) / 282_318)
+    expect(cohortCeiling).toBeGreaterThan(blendedCeiling)
+    expect(cohortCeiling).toBeGreaterThan(180_000_000)
+    const authorized = authorizeScriptsBudgetScale({ campaign: scripts, expectedMicros: 120_000_000, nextMicros: 180_000_000 })
+    expect(authorized.maximumNextMicros).toBe(180_000_000)
+    expect(authorized.advisoryReasonCodes).toContain("REPEAT_VALUE_COHORT_APPLIED")
+
+    const thin = { ...scripts, firstOrder: { ...scripts.firstOrder!, repeatValue: { ...scripts.firstOrder!.repeatValue!, maturedFirstOrders: 10 } } }
+    const withoutCohort = authorizeScriptsBudgetScale({ campaign: thin, expectedMicros: 120_000_000, nextMicros: 150_000_000 })
+    expect(withoutCohort.maximumNextMicros).toBe(blendedCeiling)
+    expect(withoutCohort.advisoryReasonCodes).not.toContain("REPEAT_VALUE_COHORT_APPLIED")
+    expect(() => authorizeScriptsBudgetScale({ campaign: thin, expectedMicros: 120_000_000, nextMicros: blendedCeiling + 1 })).toThrow("scripts_budget_authorization_exceeded")
+  })
+
   it("pins the campaign constitution and safety limits", () => {
     expect(POLICY.attribution.minimumExpectedServiceOrderShare).toBe(0.90)
     expect(POLICY.scripts.scale.refundRateReviewThreshold).toBe(0.10)
     expect(POLICY.scripts.scale.smallSampleOrderThreshold).toBe(10)
     expect(POLICY.scripts.scale.initialTargetRoas).toBe(1.35)
     expect(POLICY.scripts.scale.maximumBudgetStep).toBe(0.50)
+    expect(POLICY.scripts.scale.repeatValue).toEqual({ cohortWindowDays: 60, cohortSpanDays: 90, minimumMaturedFirstOrders: 20 })
     expect(POLICY.scripts.scale.budgetStepTiers).toEqual([
       expect.objectContaining({ name: "positive", maximumBudgetStep: 0.50 }),
     ])
@@ -312,7 +379,9 @@ describe("Google Ads Agent policy", () => {
     // under a AUD 22 target CPA (the only lane where budget alone buys volume).
     expect(POLICY.medCerts.dailyBudgetCents).toBe(5000)
     expect(POLICY.medCerts.targetCpaCents).toBe(2200)
-    expect(POLICY.womensHealth.dailyBudgetCents).toBe(5000)
+    // Owner delegated 2026-09-19: Women's Health may run to AUD 75/day once the
+    // Sep 22 read of the AUD 4 bid test holds; the ceiling moves ahead of the read.
+    expect(POLICY.womensHealth.dailyBudgetCents).toBe(7500)
     expect(POLICY.womensHealth.pilot.initialCpcCeilingCents).toBe(400)
     expect(POLICY.womensHealth.pilot.investigateClicks).toBe(10)
     expect(POLICY.womensHealth.pilot.maximumLossCents).toBe(15000)
@@ -452,8 +521,8 @@ describe("Google Ads Agent policy", () => {
     expect(() => authorizeScriptsBudgetScale({ campaign: scripts, expectedMicros: 120_000_000, nextMicros: campaignCashCeiling + 1 })).toThrow("scripts_budget_authorization_exceeded")
   })
 
-  it("uses the operator-approved AUD 50 women's health ceiling", () => {
-    expect(POLICY.womensHealth.dailyBudgetCents).toBe(5_000)
+  it("uses the delegated AUD 75 women's health ceiling (2026-09-19)", () => {
+    expect(POLICY.womensHealth.dailyBudgetCents).toBe(7_500)
   })
 
   it("blocks scale proposals whenever tracking is not GREEN", () => {

@@ -307,4 +307,14 @@ describe("getBusinessAdsActionEvidence", () => {
       service: "scripts",
     })
   })
+
+  it("reports unavailable instead of inviting a proposal when the fresh financial evidence read fails", async () => {
+    getProposalMock.mockImplementation(async () => null)
+    readScaleEvidenceMock.mockRejectedValue(new Error("scripts_scale_financial_evidence_unavailable"))
+    expect(await getBusinessAdsActionEvidence({
+      now: NOW,
+      run: run(),
+      supabase: supabaseWithProposalKeys([]),
+    })).toEqual({ kind: "unavailable" })
+  })
 })

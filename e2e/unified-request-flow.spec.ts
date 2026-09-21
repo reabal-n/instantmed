@@ -1,6 +1,46 @@
 import { expect, type Page, test } from "@playwright/test"
 
 import { installProductionSyntheticIsolation } from "./helpers/production-synthetic-isolation"
+
+test("guest checkout without browser proof offers verified email recovery", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await installProductionSyntheticIsolation(page)
+  const sessionId = "77777777-7777-4777-8777-777777777777"
+  await page.route("**/api/draft**", async route => {
+    await route.fulfill({ json: {
+      sessionId, flowInstanceId: "88888888-8888-4888-8888-888888888888",
+      serviceType: "prescription", currentStepId: "review",
+      answers: { medications: [{ name: "Synthetic medicine", strength: "10 mg" }] },
+      identity: { firstName: "Synthetic", lastName: "Patient", email: "synthetic@example.com", phone: "0400000000", dob: "1990-01-01" },
+      updatedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 86400000).toISOString(),
+    } })
+  })
+  let attempts = 0
+  await page.route("**/*", async route => {
+    if (!route.request().headers()["next-action"]) return route.fallback()
+    attempts += 1
+    await route.fulfill({ contentType: "text/x-component", body: `0:${JSON.stringify({
+      a: { success: false, failureCode: "auth_or_session", requiresSupport: true, requiresEmailVerification: true,
+        error: "Verify your email to reopen your saved request and check its payment status. Use the same email address you entered for this request." },
+      f: [],
+    })}\n` })
+  })
+  await page.goto(`/request?service=repeat-script&d=${sessionId}`)
+  await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible()
+  await page.getByRole("checkbox", { name: /Confirm request and payment terms/i }).check()
+  const pay = page.locator('[data-intake-mobile-action-bar="true"] button').last()
+  await pay.click()
+  const verify = page.getByRole("link", { name: "Verify email to continue" })
+  await expect(verify).toBeVisible()
+  await expect(verify).toHaveAttribute("href", "/sign-up?redirect_url=%2Fpatient")
+  await expect(pay).toBeDisabled()
+  expect(attempts).toBe(1)
+  await page.screenshot({ path: testInfo.outputPath("guest-email-recovery.png"), fullPage: true })
+  await verify.click()
+  // The destination compiles on first access in the CI dev server.
+  await expect(page).toHaveURL(/\/sign-up\?redirect_url=%2Fpatient/, { timeout: 30_000 })
+  await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible()
+})
 import { waitForPageLoad } from "./helpers/test-utils"
 
 async function clickReadyPrimaryAction(page: Page) {

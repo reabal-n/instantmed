@@ -2,6 +2,7 @@ import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { toSydneyCalendarDate } from "@/lib/clinical/codeine-repeat-window"
 import { getPatientPrescriptions } from "@/lib/parchment/client"
 import type { ParchmentPrescription } from "@/lib/parchment/types"
 
@@ -47,11 +48,26 @@ function parseInteger(value: string | number | null | undefined): number | null 
   return Number.isFinite(parsed) ? parsed : null
 }
 
-function toDateOnly(value: unknown): string | null {
-  if (typeof value !== "string" || !value.trim()) return null
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return null
-  return date.toISOString().slice(0, 10)
+const CALENDAR_DATE = /^(\d{4}-\d{2}-\d{2})$/
+const WALL_CLOCK_DATE_TIME = /^(\d{4}-\d{2}-\d{2})[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/
+
+/**
+ * Australia/Sydney calendar day for a Parchment date field: the same day the
+ * codeine repeat gate measures with (`lib/clinical/recent-codeine-script.ts`),
+ * so a script issued at 08:00 Sydney is stored on that day rather than on the
+ * UTC day it began. A bare day already names the day. A wall-clock timestamp
+ * without a zone is taken on the day it names, which is what a UTC runtime
+ * stored before this conversion, and no longer depends on the runtime zone.
+ */
+function toSydneyDateOnly(value: unknown): string | null {
+  if (typeof value !== "string") return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  const named = CALENDAR_DATE.exec(trimmed) ?? WALL_CLOCK_DATE_TIME.exec(trimmed)
+  if (named) return Number.isNaN(new Date(named[1]).getTime()) ? null : named[1]
+  const instant = new Date(trimmed)
+  if (Number.isNaN(instant.getTime())) return null
+  return toSydneyCalendarDate(instant)
 }
 
 function mapStatus(status: string | undefined): PrescriptionStatus {
@@ -92,8 +108,8 @@ async function upsertParchmentPrescriptionToPms(
   const record = prescription as Record<string, unknown>
   const quantity = parseInteger(prescription.quantity)
   const repeats = parseInteger(prescription.number_of_repeats_authorised)
-  const issuedDate = toDateOnly(prescription.created_date) ?? new Date().toISOString().slice(0, 10)
-  const expiryDate = toDateOnly(getStringField(record, ["expiry_date", "expires_at", "valid_until"]))
+  const issuedDate = toSydneyDateOnly(prescription.created_date) ?? toSydneyCalendarDate(new Date())
+  const expiryDate = toSydneyDateOnly(getStringField(record, ["expiry_date", "expires_at", "valid_until"]))
   const overwriteNullableLinks = input.overwriteNullableLinks === true
 
   const payload: Record<string, unknown> = {

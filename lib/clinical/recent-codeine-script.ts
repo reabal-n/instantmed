@@ -4,7 +4,7 @@ import {
   CODEINE_REPEAT_WINDOW_DAYS,
   type CodeineRepeatWindowResult,
   evaluateCodeineRepeatWindow,
-  toSydneyCalendarDate,
+  sydneyCalendarDateDaysAgo,
 } from "@/lib/clinical/codeine-repeat-window"
 import { isCodeineCombinationMedication } from "@/lib/clinical/controlled-substances"
 import { createLogger } from "@/lib/observability/logger"
@@ -25,12 +25,6 @@ type SupabaseClient = ReturnType<typeof createServiceRoleClient>
 
 const RECENT_SCRIPT_STATUSES = ["active", "completed"] as const
 
-function calendarDateDaysAgo(now: Date, days: number): string {
-  const today = toSydneyCalendarDate(now)
-  const [year, month, day] = today.split("-").map(Number)
-  return new Date(Date.UTC(year, month - 1, day - days)).toISOString().slice(0, 10)
-}
-
 export async function findRecentCodeineScript(
   supabase: SupabaseClient,
   params: { patientIds: ReadonlyArray<string>; now?: Date },
@@ -39,12 +33,14 @@ export async function findRecentCodeineScript(
   if (patientIds.length === 0) return null
   const now = params.now ?? new Date()
 
+  // issued_date is the recorded issue day. Insertion time may be a delayed
+  // webhook or history import and cannot establish a different issue day.
   const { data, error } = await supabase
     .from("prescriptions")
     .select("patient_id, medication_name, status, issued_date")
     .in("patient_id", patientIds)
     .in("status", [...RECENT_SCRIPT_STATUSES])
-    .gte("issued_date", calendarDateDaysAgo(now, CODEINE_REPEAT_WINDOW_DAYS))
+    .gte("issued_date", sydneyCalendarDateDaysAgo(now, CODEINE_REPEAT_WINDOW_DAYS))
     .order("issued_date", { ascending: false })
     .limit(50)
 
@@ -55,7 +51,8 @@ export async function findRecentCodeineScript(
 
   const issuedDates = (data ?? [])
     .filter((row) => typeof row.medication_name === "string" && isCodeineCombinationMedication(row.medication_name))
-    .map((row) => String(row.issued_date))
+    .map((row) => row.issued_date)
+    .filter((date): date is string => date != null)
   const window = evaluateCodeineRepeatWindow({ issuedDates, now })
   return window.withinWindow ? window : null
 }

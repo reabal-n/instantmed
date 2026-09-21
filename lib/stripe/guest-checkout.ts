@@ -830,7 +830,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         }
         if ((draft.kind !== "reusable" && draft.kind !== "service_changed") || draft.intake.patientId !== guestProfileId ||
           draft.intake.guestEmail?.trim().toLowerCase() !== normalizedEmail) {
-          return checkoutFailure("auth_or_session", "We couldn't verify access to the request linked to this browser. Contact support to recover access before starting another payment.", { requiresSupport: true })
+          return checkoutFailure("auth_or_session", "Verify your email to reopen your saved request and check its payment status. Use the same email address you entered for this request.", { requiresSupport: true, requiresEmailVerification: true })
         }
         const lookup = (column: "idempotency_key" | "id", value: string) => {
           let query = supabase
@@ -853,7 +853,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         if (existingIntake) {
           if (existingIntake.id !== draft.intake.id || existingIntake.flow_instance_id !== input.flowInstanceId ||
             existingIntake.guest_email?.trim().toLowerCase() !== normalizedEmail) {
-            return checkoutFailure("auth_or_session", "We couldn't verify access to the request linked to this browser. Contact support to recover access before starting another payment.", { requiresSupport: true })
+            return checkoutFailure("auth_or_session", "Verify your email to reopen your saved request and check its payment status. Use the same email address you entered for this request.", { requiresSupport: true, requiresEmailVerification: true })
           }
           if (existingIntake.category !== input.category || existingIntake.subtype !== input.subtype) {
             return checkoutFailure("auth_or_session", "Your saved request is for a different service. Return to it to check its payment status before starting another request.", {
@@ -1181,8 +1181,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (intakeError?.code === "23505") {
         return checkoutFailure(
           "auth_or_session",
-          "We couldn't verify access to the request linked to this browser. Contact support to recover access before starting another payment.",
-          { requiresSupport: true },
+          "Verify your email to reopen your saved request and check its payment status. Use the same email address you entered for this request.",
+          { requiresSupport: true, requiresEmailVerification: true },
         )
       }
 

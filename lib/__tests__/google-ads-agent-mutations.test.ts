@@ -1393,6 +1393,21 @@ describe("Google Ads mutation gateway", () => {
     }
   })
 
+  it("aborts a Scripts increase before any Google call when the fresh financial evidence read fails", async () => {
+    const state = accountState()
+    const harness = gateway({ accountReads: [state] })
+    vi.mocked(harness.store.repository.getScaleAuthorizationEvidence).mockRejectedValue(
+      new Error("scripts_scale_financial_evidence_unavailable"),
+    )
+    await expect(
+      harness.gateway.applyProposal("ADS-20260730-01"),
+    ).resolves.toMatchObject({
+      errorCode: "scripts_scale_financial_evidence_unavailable",
+      outcome: "aborted",
+    })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+
   it("enforces the fee-aware economic ceiling below the 50% constitution", async () => {
     const state = accountState()
     const operations: AdsMutationOperation[] = [{
@@ -1515,6 +1530,19 @@ describe("Google Ads mutation gateway", () => {
       }],
       state: medCerts,
     })).toThrow("service_budget_ceiling_exceeded")
+
+    // Delegated decision 2026-09-19: Women's Health ceiling AUD 75/day.
+    const women = stateWithBudget(accountState(), 50_000_000)
+    const womenCampaign = women.campaigns[0].values.campaign as Record<string, unknown>
+    womenCampaign.name = "IM | Search | Women's Health | AU"
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...budgetOperation, expectedMicros: 50_000_000, nextMicros: 75_000_000 }],
+      state: women,
+    })).not.toThrow()
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...budgetOperation, expectedMicros: 50_000_000, nextMicros: 75_010_000 }],
+      state: women,
+    })).toThrow("service_budget_ceiling_exceeded")
   })
 
   it("keeps at most one enabled Search campaign per launched service", () => {
@@ -1599,6 +1627,27 @@ describe("Google Ads mutation gateway", () => {
     })
     if (allowed) expect(validate).not.toThrow()
     else expect(validate).toThrow("specialty_cpc_ceiling_exceeded")
+  })
+
+  it("keeps medical-certificate bidding on Maximize Conversions with a target CPA at or under policy", () => {
+    const state = accountState()
+    const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
+    campaign.name = "JDM | Search | Med Certs"
+    campaign.biddingStrategyType = "MAXIMIZE_CONVERSIONS"
+    campaign.maximizeConversions = { targetCpaMicros: "20000000" }
+    const bidding = (next: Record<string, unknown>) => () => validateAdsMutationPolicy({
+      operations: [{
+        expected: { strategy: "MAXIMIZE_CONVERSIONS", targetCpaMicros: 20_000_000 },
+        kind: "campaign_bidding",
+        next,
+        resourceName: campaignResourceName,
+      } as unknown as AdsMutationOperation],
+      state,
+    })
+    expect(bidding({ strategy: "MAXIMIZE_CONVERSIONS", targetCpaMicros: 22_000_000 })).not.toThrow()
+    expect(bidding({ strategy: "MAXIMIZE_CONVERSIONS", targetCpaMicros: 22_000_001 })).toThrow("medcerts_target_cpa_ceiling_exceeded")
+    expect(bidding({ strategy: "MAXIMIZE_CONVERSIONS" })).toThrow("medcerts_target_cpa_required")
+    expect(bidding({ strategy: "MANUAL_CPC" })).toThrow("medcerts_bidding_strategy_rejected")
   })
 
   it.each([3_500_000, 4_010_000])("checks Women's Health Manual CPC keyword bids at %i", (cpcBidMicros) => {

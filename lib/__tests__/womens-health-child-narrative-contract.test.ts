@@ -76,7 +76,7 @@ describe("women's-health child-page narrative compression", () => {
       "Request a contraceptive pill assessment",
     ])
 
-    expectFirstFoldContract(pill, 'id="safety"', "Confirm start or switch pill")
+    expectFirstFoldContract(pill, 'id="safety"', "Confirm start, switch or continue pill")
 
     const safety = pill.slice(
       pill.indexOf('id="safety"'),

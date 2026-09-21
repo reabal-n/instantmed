@@ -58,7 +58,7 @@ const COMMON_FACTS = [
     icon: ShieldCheck,
     label: "Eligibility",
     value: "Australia only · Ages 18+",
-    body: "Both assessments are for adults in Australia.",
+    body: null,
   },
   {
     icon: BadgeCheck,
@@ -76,7 +76,7 @@ const COMMON_FACTS = [
     icon: CheckCircle2,
     label: "If declined",
     value: "Full refund",
-    body: "Full refund if the doctor declines the request.",
+    body: null,
   },
 ] as const
 
@@ -93,7 +93,7 @@ function WomensHealthCommonFacts() {
               <span>{fact.label}</span>
             </dt>
             <dd className="ml-12 mt-1 text-sm font-semibold text-foreground">{fact.value}</dd>
-            <dd className="ml-12 mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</dd>
+            {fact.body && <dd className="ml-12 mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</dd>}
           </div>
         ))}
       </dl>
@@ -103,7 +103,7 @@ function WomensHealthCommonFacts() {
 
 function WomensHealthBoundarySection() {
   return (
-    <section aria-labelledby="womens-health-boundary-title" className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12 lg:py-16">
+    <section aria-labelledby="womens-health-boundary-title" className="bg-muted/30 py-7 dark:bg-white/[0.02] sm:py-12 lg:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Safety boundary</SectionPill>
@@ -127,10 +127,10 @@ function WomensHealthBoundarySection() {
             <div className="p-5 sm:p-6">
               <div className="flex items-center gap-3">
                 <HeartPulse className="h-5 w-5 text-pink-700 dark:text-pink-300" aria-hidden="true" />
-                <Heading level="h3">Starting or switching the pill</Heading>
+                <Heading level="h3">The contraceptive pill</Heading>
               </div>
               <p className="mt-3 text-base leading-7 text-muted-foreground">
-                Possible pregnancy, migraine with aura, clot history, or smoking stop this online start-or-switch assessment before payment. Missing blood pressure context, pelvic pain, heavy bleeding, STI concerns, or other safety uncertainty may also require in-person review or a different assessment.
+                Possible pregnancy, migraine with aura, clot history, or smoking stop this online pill assessment before payment. Missing blood pressure context, pelvic pain, heavy bleeding, STI concerns, or other safety uncertainty may also require in-person review or a different assessment.
               </p>
             </div>
           </div>
@@ -146,7 +146,7 @@ function WomensHealthBoundarySection() {
 
 function WomensHealthReviewAndPriceSection() {
   return (
-    <section id="review-and-price" aria-labelledby="womens-health-review-title" className="py-10 sm:py-12 lg:py-16">
+    <section id="review-and-price" aria-labelledby="womens-health-review-title" className="py-7 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Doctor review and fee</SectionPill>
@@ -199,14 +199,11 @@ function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean
   const pillHref = isDisabled ? "/contact" : PILL_REQUEST_HREF
 
   return (
-    <section id="choose-care" className="py-10 sm:py-12 lg:py-16">
+    <section id="choose-care" className="py-7 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="rounded-3xl border border-border/50 bg-[color:var(--morning-ivory)]/65 p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
           <SectionPill>Choose your assessment</SectionPill>
           <Heading level="h2" className="mt-4">What do you need reviewed?</Heading>
-          <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-            Choose an assessment to begin its safety screen. You can read the detailed pages above first if you prefer.
-          </p>
           <div className="mt-7 grid gap-3 sm:grid-cols-2">
             <Button asChild size="lg" className="h-auto min-h-12 whitespace-normal py-3" disabled={isDisabled} onClick={onChoose}>
               <Link href={utiHref}>
@@ -216,7 +213,7 @@ function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean
             </Button>
             <Button asChild size="lg" variant="outline" className="h-auto min-h-12 whitespace-normal py-3" disabled={isDisabled} onClick={onChoose}>
               <Link href={pillHref}>
-                {isDisabled ? "Contact us" : "Start or switch the pill"}
+                {isDisabled ? "Contact us" : "Start, switch or continue the pill"}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -224,9 +221,9 @@ function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean
           <p className="mt-4 text-sm text-muted-foreground">
             Want the detail first? Read the <Link href="/uti-assessment-online" className="font-medium text-primary underline-offset-4 hover:underline">UTI assessment page</Link> or the <Link href="/contraceptive-pill-assessment-online" className="font-medium text-primary underline-offset-4 hover:underline">contraceptive pill page</Link>.
           </p>
-          <Link href="/prescriptions" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+          <Link href={pillHref} onClick={onChoose} className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            Continuing the same pill? Use repeat prescriptions.
+            Continuing the same pill? Use the pill assessment.
           </Link>
         </Reveal>
       </div>
@@ -258,10 +255,10 @@ export function WomensHealthLanding() {
                 <span>Private and secure.<span className="text-muted-foreground"> Each focused form is reviewed by an Australian doctor.</span></span>
               </p>
             }
-            mockup={<WomensHealthDecisionFork />}
+            mockup={<WomensHealthDecisionFork isDisabled={isDisabled} />}
           >
             <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0 lg:text-lg">
-              {FORM_FIRST_WEDGE} Choose UTI symptoms, or starting or switching the pill. Each form has its own safety screen before payment.
+              {FORM_FIRST_WEDGE} Choose UTI symptoms, or starting, switching or continuing the pill. Each form has its own safety screen before payment.
             </p>
           </Hero>
 

@@ -314,10 +314,19 @@ describe("Google Ads campaign creation boundary", () => {
       state,
     })).not.toThrow()
 
+    // Delegated decision 2026-09-19: the Women's Health service ceiling is
+    // AUD 75/day, so a launch may be sized up to it and not one micro past it.
     expect(() => validateAdsMutationPolicy({
       operations: [{
         ...campaignCreateOperation as unknown as Record<string, unknown>,
-        dailyBudgetMicros: 50_000_001,
+        dailyBudgetMicros: 75_000_000,
+      }],
+      state,
+    })).not.toThrow()
+    expect(() => validateAdsMutationPolicy({
+      operations: [{
+        ...campaignCreateOperation as unknown as Record<string, unknown>,
+        dailyBudgetMicros: 75_000_001,
       }],
       state,
     })).toThrow("service_budget_ceiling_exceeded")

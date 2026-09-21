@@ -2,7 +2,6 @@ import {
   ArrowRight,
   Building2,
   CheckCircle2,
-  ClipboardCheck,
   CreditCard,
   MessageSquareText,
   RotateCcw,
@@ -178,21 +177,13 @@ function WorkplaceProofPanel() {
 
 function FeeSuitabilityPanel() {
   return (
-    <section aria-label="Medical certificate fee and suitability" className="py-10 sm:py-14">
+    <section aria-label="Medical certificate fee and suitability" className="py-4 sm:py-14">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-4 rounded-[1.75rem] border border-border/50 bg-white p-4 shadow-lg shadow-primary/[0.07] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-5 lg:grid-cols-[0.9fr_1.1fr] lg:p-6">
-          <div className="rounded-2xl bg-muted/35 p-5 dark:bg-white/[0.04]">
-            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-sm font-semibold text-primary">
-              <ClipboardCheck className="h-3.5 w-3.5" aria-hidden="true" />
-              Before payment
-            </p>
+          <div className="rounded-2xl bg-muted/35 p-3 dark:bg-white/[0.04]">
             <Heading level="h2" className="mb-3 text-balance">
               Clear fee. Clear fallback.
             </Heading>
-            <p className="text-base leading-relaxed text-muted-foreground">
-              Choose the absence length in the form. The request fee, what it
-              covers, and the fallback are clear before checkout.
-            </p>
             <dl className="mt-5 divide-y divide-border/50 rounded-xl border border-border/50 bg-white px-4 dark:divide-white/10 dark:border-white/10 dark:bg-card">
               {CERTIFICATE_FEES.map((fee) => (
                 <div key={fee.label} className="flex items-center justify-between gap-4 py-3 text-sm">
@@ -203,16 +194,16 @@ function FeeSuitabilityPanel() {
             </dl>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <div className="divide-y divide-border/50">
             {FEE_DETAILS.map((item) => (
               <div
                 key={item.title}
-                className="group rounded-2xl border border-border/50 bg-white p-4 shadow-sm shadow-primary/[0.04] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/[0.08] dark:border-white/10 dark:bg-card dark:shadow-none"
+                className="py-3 first:pt-0 last:pb-0"
               >
-                <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-primary/8 text-primary transition-transform duration-200 group-hover:scale-105">
-                  <item.icon className="h-4 w-4" aria-hidden="true" />
+                <div className="flex items-center gap-2">
+                  <item.icon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                  <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
                 </div>
-                <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
                 <p className="mt-1.5 text-base leading-relaxed text-muted-foreground">{item.body}</p>
               </div>
             ))}
@@ -310,6 +301,7 @@ export function MedCertLanding({ liveWait }: { liveWait?: WaitState }) {
 
           <div data-track-section="how_it_works">
             <HowItWorksInline
+              compact
               steps={HOW_IT_WORKS_STEPS}
               ctaHref={MED_CERT_START_HREF}
               ctaText={`Get your certificate · ${PRICING_DISPLAY.FROM_MED_CERT}`}
