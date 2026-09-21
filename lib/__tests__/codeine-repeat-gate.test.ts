@@ -224,3 +224,12 @@ describe("evaluateCodeineRepeatGate", () => {
     expect(await evaluateCodeineRepeatGate({ supabase, answers: codeineAnswers, patientIds: [PATIENT_ID], now })).toEqual({ blocked: false })
   })
 })
+
+describe("late-synced Sydney issue dates", () => {
+  it("does not extend a correctly recorded seven-day window using insertion time", async () => {
+    for (const created_at of ["2026-09-21T14:00:05Z", "2026-09-24T03:00:00Z"]) {
+      const supabase = mockSupabase({ prescriptions: [{ patient_id: PATIENT_ID, medication_name: "Panadeine Forte", status: "active", issued_date: "2026-09-21", created_at }] })
+      expect(await findRecentCodeineScript(supabase, { patientIds: [PATIENT_ID], now: new Date("2026-09-28T03:00:00Z") })).toBeNull()
+    }
+  })
+})

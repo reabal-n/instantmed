@@ -39,6 +39,12 @@ function utcMsToCalendarDate(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10)
 }
 
+/** Sydney calendar date (YYYY-MM-DD) `days` before the Sydney day of `now`. */
+export function sydneyCalendarDateDaysAgo(now: Date, days: number): string {
+  const [year, month, day] = toSydneyCalendarDate(now).split("-").map(Number)
+  return utcMsToCalendarDate(Date.UTC(year, month - 1, day - days))
+}
+
 export function evaluateCodeineRepeatWindow(args: {
   issuedDates: ReadonlyArray<string>
   now: Date
