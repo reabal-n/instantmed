@@ -31,7 +31,7 @@ const ED_FAQ = [
   },
   {
     question: "Which treatment can I be prescribed?",
-    answer: "The page does not offer a medicine menu. The doctor assesses your individual health profile and decides what, if anything, is clinically appropriate. The specific option and clinical details are determined only after review.",
+    answer: "The page does not offer a medicine menu. The doctor assesses your individual health profile and decides what, if anything, is suitable. The specific option and clinical details are determined only after review.",
   },
   {
     question: "Is this service discreet?",
@@ -51,7 +51,7 @@ const ED_FAQ = [
   },
   {
     question: "Can I use this for low libido, fertility, or testosterone concerns?",
-    answer: "Not as the main reason for the request. Those problems may need a broader history, examination, blood tests, counselling, or specialist review. This pathway is focused on erectile dysfunction assessment and safety screening.",
+    answer: "Not as the main reason for the request. Those problems may need a broader history, examination, blood tests, counselling, or specialist review. This assessment is focused on erectile dysfunction assessment and safety screening.",
   },
 ] as const
 

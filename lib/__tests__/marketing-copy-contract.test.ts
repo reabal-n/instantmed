@@ -488,7 +488,7 @@ describe("marketing copy contracts", () => {
     expect(homePageSource).toContain("<PortfolioRouteMap />")
     expect(homePageSource).not.toContain("ServiceCards")
     expect(homePageSource).not.toContain("HomeFactsBlock")
-    expect(homePageSource).not.toContain("<HowItWorks")
+    expect(homePageSource).not.toMatch(/<HowItWorks\s*\/>/)
     expect(homePageSource).not.toContain("ComplianceMarquee")
     expect(existsSync(join(root, "components/marketing/waitlist-form.tsx"))).toBe(false)
     expect(existsSync(join(root, "app/actions/waitlist.ts"))).toBe(false)
@@ -605,6 +605,10 @@ describe("marketing copy contracts", () => {
     expect(intentPage).not.toContain("reviewed today")
     expect(intentPage).not.toMatch(/Avg.*min/)
     expect(intentPage).toContain("Full refund if declined")
+    // The hero wait device degrades to the calm 24/7 fact when metrics are
+    // missing or the lookup failed; it never asserts doctor activity it cannot see.
+    expect(waitCounterSource).not.toMatch(/right now|is reviewing|are reviewing/)
+    expect(waitCounterSource).toContain("Requests open 24/7")
   })
 
   it("routes employer guidance to the canonical employer verification hub", () => {

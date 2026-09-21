@@ -36,7 +36,7 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 6. **Motion:** entrance is `fadeUp`, entrance uses `easing.out`, panels/drawers use `easing.panel`. Duration caps at 250ms (`duration.slower`). Whilehover scale caps at 1.02 for elements, 1.1 for icons. No elastic, no parallax.
 7. **Reduced motion:** always respect. Use `const prefersReducedMotion = useReducedMotion()` and `initial={prefersReducedMotion ? {} : { ... }}`. Never `initial={false}` (invalid prop).
 8. **Portal exception:** doctor portal (`app/doctor/`) and admin portal (`app/admin/`) get NO decorative motion. Time-pressure surfaces. `transition-colors` only.
-9. **16px min body on patient flows.** Non-negotiable. Patients are often anxious.
+9. **16px min body on patient flows.** Non-negotiable. Patients are often anxious. On the seven landing pages this is pinned further by `landing-type-floor-contract.test.ts`, which blocks any non-uppercase `text-xs` and any sub-14px arbitrary size.
 10. **Service definitions:** update `lib/services/service-catalog.ts`, not consumers. If you're adding a new service, update the catalog AND these consumers: home (`lib/marketing/homepage.ts`), intake hub (`service-hub-screen.tsx`), pricing (`pricing-content.tsx`), nav dropdown, mobile menu.
 11. **Staff cockpit:** admin-doctor-support work is one product. `/dashboard` is the canonical staff URL (Phase 2 of dashboard remaster, 2026-05-12); `/admin`, `/doctor`, and `/doctor/dashboard` redirect there from `next.config.mjs`, while `/doctor/queue` and `/doctor/scripts` preserve queue intent as filtered `/dashboard` views. Keep pages bounded/scannable and use `components/operator/*` instead of inventing a new staff shell.
 
@@ -55,6 +55,8 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 - **Brand-surfaces smoke spec** (`e2e/brand-surfaces.smoke.spec.ts`) verifies `GUARANTEE` literal renders on every brand surface. If you change voice canon, update the test's `GUARANTEE_LITERAL` constant in the same commit.
 - **Em-dashes (U+2014) are banned from marketing surfaces.** `voice-guard.test.ts` enforces three layers: literal U+2014, JS escape, and HTML entities (`&mdash;` / `&#8212;` / `&#x2014;`). Use commas, periods, colons, or parens.
 - **No patient-count claim exists.** Synthetic interpolation, its public API, and its client hook were retired 2026-07-14. Do not add a patient-count claim without a verified persisted source and a fresh compliance review.
+- **Landing pages are gated (2026-09).** `lib/__tests__/landing-vocabulary-contract.test.ts` bans "pathway", "form-first", "focused assessment", "child page", "Start Consultation" and "doctor-owned" on the files in `lib/marketing/landing-vocabulary.ts`, and budgets caveats per file. `landing-type-floor-contract.test.ts` allows `text-xs` only with `uppercase`. `e2e/landing-pages.spec.ts` measures pill-under-header, CTA above the fold, sticky bar, page length and the 16px share. Fix the copy or layout; never widen a budget.
+- **`app/weight-loss/weight-loss-client.tsx` is retired.** `/weight-loss` renders `components/marketing/weight-loss-landing.tsx` on `LandingPageShell`.
 
 ## When you're in doubt
 

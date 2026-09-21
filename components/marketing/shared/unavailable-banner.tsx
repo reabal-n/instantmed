@@ -12,8 +12,9 @@ export function UnavailableBanner({ show }: UnavailableBannerProps) {
 
   return (
     <div
-      className="relative z-40 mx-4 mb-0 rounded-2xl border border-warning-border bg-warning-light px-4 py-3 flex items-center gap-3"
-      style={{ marginTop: "calc(max(0.5rem, env(safe-area-inset-top)) + 4.5rem)" }}
+      // The landing wrappers reserve the fixed header (pt-[calc(5rem+env(safe-area-inset-top))]),
+      // so the banner only needs a small gap below it.
+      className="relative z-40 mx-4 mt-2 mb-0 rounded-2xl border border-warning-border bg-warning-light px-4 py-3 flex items-center gap-3"
     >
       <AlertCircle className="h-5 w-5 text-warning shrink-0" aria-hidden="true" />
       <div>

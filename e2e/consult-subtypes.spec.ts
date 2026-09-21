@@ -791,7 +791,7 @@ test.describe("Consult Sub-Services", () => {
     await page.waitForURL(/service=consult.*subtype=ed/, { timeout: 15000 })
 
     await page.goto("/request")
-    await page.getByRole("button", { name: /Hair loss treatment/i }).click()
+    await page.getByRole("button", { name: /Hair loss assessment/i }).click()
     await page.waitForURL(/service=consult.*subtype=hair_loss/, { timeout: 15000 })
 
     // General Consult was retired publicly on 2026-05-20, and the hub no longer

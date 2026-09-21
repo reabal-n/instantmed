@@ -31,10 +31,11 @@ interface LegitScriptSealProps {
 
 export function LegitScriptSeal({ size = "sm", className }: LegitScriptSealProps) {
   // sm cap matches the hero trust row's max height so LegitScript no longer
-  // bobs taller than GoogleAdsCert + GoogleReviewsBadge. The native seal
-  // (73x79) is preserved at size="md" for dedicated certification blocks
-  // where it stands alone. Tier 1 review 2026-05-25 (/erectile-dysfunction
-  // #1): "trust badges different heights breaking the line of the CTA".
+  // bobs taller than GoogleAdsCert, its lone trust-row partner. The native
+  // seal (73x79) is preserved at size="md" for dedicated certification
+  // blocks where it stands alone. Tier 1 review 2026-05-25
+  // (/erectile-dysfunction #1): "trust badges different heights breaking
+  // the line of the CTA".
   const isLarge = size === "md"
   const targetHeight = isLarge ? NATIVE_HEIGHT : 36
   const scale = targetHeight / NATIVE_HEIGHT

@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
-import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { hasScrolledPastTarget, StickyCTA } from "@/components/marketing/shared/sticky-cta"
 import { UnavailableBanner } from "@/components/marketing/shared/unavailable-banner"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Button } from "@/components/ui/button"
@@ -28,7 +28,7 @@ export function PrescriptionHeroCTA() {
       >
         {isDisabled
           ? "Contact us"
-          : `Renew medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`}
+          : `Get your repeat · ${PRICING_DISPLAY.REPEAT_SCRIPT}`}
         <ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" />
       </Link>
     </Button>
@@ -43,7 +43,9 @@ export function PrescriptionsClientControls({
   stickyTargetId,
 }: PrescriptionsClientControlsProps) {
   const isDisabled = useServiceAvailability().isServiceDisabled("scripts")
-  const analytics = useLandingAnalytics("prescription")
+  // Disabled-state contact clicks are not CTA engagement. Tracking stays on while
+  // availability loads: the page presents an enabled action then.
+  const analytics = useLandingAnalytics("prescription", null, !isDisabled)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
 
   useEffect(() => {
@@ -51,7 +53,7 @@ export function PrescriptionsClientControls({
     if (!target) return
 
     const observer = new IntersectionObserver(
-      ([entry]) => setShowStickyCTA(!entry.isIntersecting),
+      ([entry]) => setShowStickyCTA(hasScrolledPastTarget(entry)),
       { threshold: 0 },
     )
 
@@ -98,7 +100,7 @@ export function PrescriptionsClientControls({
       <UnavailableBanner show={isDisabled} />
       <StickyCTA
         show={showStickyCTA}
-        ctaText={isDisabled ? "Contact us" : `Renew your medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`}
+        ctaText={isDisabled ? "Contact us" : `Get your repeat · ${PRICING_DISPLAY.REPEAT_SCRIPT}`}
         ctaHref={isDisabled ? "/contact" : "/request?service=repeat-script"}
         mobileSummary="Repeat medication request"
         isDisabled={isDisabled}

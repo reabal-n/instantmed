@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
-import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { hasScrolledPastTarget, StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Navbar } from "@/components/shared/navbar"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
@@ -47,7 +48,10 @@ export function InformationalPageShell({ config, children, afterFooter }: Inform
   const heroCTARef = useRef<HTMLDivElement>(null!)
   const [showStickyCTA, setShowStickyCTA] = useState(false)
   const prefersReducedMotion = useReducedMotion()
-  const analytics = useLandingAnalytics(config.analyticsId)
+  // The platform kill switch swaps the bar to the contact action; those clicks are not
+  // CTA engagement. Tracking stays on while availability loads (the action is live then).
+  const { maintenanceMode } = useServiceAvailability()
+  const analytics = useLandingAnalytics(config.analyticsId, null, !maintenanceMode)
 
   const hasSticky = !!config.sticky
 
@@ -56,7 +60,7 @@ export function InformationalPageShell({ config, children, afterFooter }: Inform
     const el = heroCTARef.current
     if (!el) return
     const observer = new IntersectionObserver(
-      ([entry]) => setShowStickyCTA(!entry.isIntersecting),
+      ([entry]) => setShowStickyCTA(hasScrolledPastTarget(entry)),
       { threshold: 0 }
     )
     observer.observe(el)
@@ -86,6 +90,7 @@ export function InformationalPageShell({ config, children, afterFooter }: Inform
             show={showStickyCTA}
             ctaText={config.sticky.ctaText}
             ctaHref={config.sticky.ctaHref}
+            isDisabled={maintenanceMode}
             mobileSummary={config.sticky.mobileSummary}
             onCTAClick={() => analytics.trackCTAClick("sticky_mobile")}
             mobileFooter={config.sticky.mobileFooter}
