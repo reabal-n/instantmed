@@ -376,11 +376,23 @@ test("an actual SDK account switch discards the old protected document and priva
       await target.goto("/sign-in?redirect=/dashboard")
       await target.getByLabel("Email address", { exact: true }).fill(account.email)
       await target.getByLabel("Password", { exact: true }).fill(account.password)
-      const authenticated = target.waitForResponse(response => response.url().includes("/auth/v1/token?grant_type=password"))
-      await target.locator('button[type="submit"]').click()
-      const response = await authenticated
-      expect(response.ok()).toBe(true)
-      tokens.push((await response.json()).access_token)
+      const tokenUrl = "**/auth/v1/token?grant_type=password"
+      // Capture the real local SDK response before releasing it to the browser:
+      // the session-change reload can otherwise discard its DevTools body.
+      const captureToken = async (route: Route) => {
+        const response = await route.fetch()
+        expect(response.ok()).toBe(true)
+        tokens.push((await response.json()).access_token)
+        await route.fulfill({ response })
+      }
+      await target.route(tokenUrl, captureToken)
+      try {
+        const authenticated = target.waitForResponse(response => response.url().includes("/auth/v1/token?grant_type=password"))
+        await target.locator('button[type="submit"]').click()
+        expect((await authenticated).ok()).toBe(true)
+      } finally {
+        await target.unroute(tokenUrl, captureToken)
+      }
     }
     await signIn(page, accounts[0])
     await expect(page).toHaveURL(/\/dashboard/)
@@ -695,8 +707,10 @@ test("Queue request then patient record retains the Queue destination on browser
   await expect(page).toHaveURL(/\/doctor\/intakes\/[^/?]+$/)
   const requestUrl = page.url()
   await page.getByRole("button", { name: "Patient details", exact: true }).click()
-  await page.getByRole("link", { name: "Open full record", exact: true }).click()
-  await expect(page).toHaveURL(/\/doctor\/patients\/[^/?]+$/)
+  const patientRecord = page.getByRole("link", { name: "Open full record", exact: true })
+  const patientUrl = new URL((await patientRecord.getAttribute("href"))!, requestUrl).href
+  await patientRecord.click()
+  await expect(page).toHaveURL(patientUrl)
   await expect(page.getByRole("link", { name: "Back to Queue", exact: true })).toBeVisible()
   await page.goBack()
   await expect(page).toHaveURL(requestUrl)
