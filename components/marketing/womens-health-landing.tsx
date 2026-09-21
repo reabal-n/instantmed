@@ -103,7 +103,7 @@ function WomensHealthCommonFacts() {
 
 function WomensHealthBoundarySection() {
   return (
-    <section aria-labelledby="womens-health-boundary-title" className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12 lg:py-16">
+    <section aria-labelledby="womens-health-boundary-title" className="bg-muted/30 py-7 dark:bg-white/[0.02] sm:py-12 lg:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Safety boundary</SectionPill>
@@ -146,7 +146,7 @@ function WomensHealthBoundarySection() {
 
 function WomensHealthReviewAndPriceSection() {
   return (
-    <section id="review-and-price" aria-labelledby="womens-health-review-title" className="py-10 sm:py-12 lg:py-16">
+    <section id="review-and-price" aria-labelledby="womens-health-review-title" className="py-7 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Doctor review and fee</SectionPill>
@@ -199,7 +199,7 @@ function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean
   const pillHref = isDisabled ? "/contact" : PILL_REQUEST_HREF
 
   return (
-    <section id="choose-care" className="py-10 sm:py-12 lg:py-16">
+    <section id="choose-care" className="py-7 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="rounded-3xl border border-border/50 bg-[color:var(--morning-ivory)]/65 p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
           <SectionPill>Choose your assessment</SectionPill>

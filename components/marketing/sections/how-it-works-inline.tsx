@@ -49,7 +49,7 @@ export function HowItWorksInline({
   const { maintenanceMode } = useServiceAvailability()
   const isDisabled = isDisabledProp ?? maintenanceMode
   return (
-    <section id="how-it-works" aria-label="How it works" className={compact ? "py-10 lg:py-16" : "py-16 lg:py-20"}>
+    <section id="how-it-works" aria-label="How it works" className={compact ? "py-10 lg:py-16" : "py-12 sm:py-16 lg:py-20"}>
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className={compact ? "text-center mb-6" : "text-center mb-12"}>
           <Heading level="h2" className="mb-3">

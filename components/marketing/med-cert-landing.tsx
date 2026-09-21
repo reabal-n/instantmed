@@ -177,7 +177,7 @@ function WorkplaceProofPanel() {
 
 function FeeSuitabilityPanel() {
   return (
-    <section aria-label="Medical certificate fee and suitability" className="py-10 sm:py-14">
+    <section aria-label="Medical certificate fee and suitability" className="py-4 sm:py-14">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-4 rounded-[1.75rem] border border-border/50 bg-white p-4 shadow-lg shadow-primary/[0.07] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-5 lg:grid-cols-[0.9fr_1.1fr] lg:p-6">
           <div className="rounded-2xl bg-muted/35 p-3 dark:bg-white/[0.04]">

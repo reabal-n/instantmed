@@ -182,6 +182,9 @@ test.describe("Prescription: codeine combination repeat inside 7 days", () => {
   })
 
   test("signed-in patient is stopped at the medication step with the request-again date", async ({ page }) => {
+    // Install before the component schedules its expiry timer.
+    const realNow = new Date()
+    await page.clock.install({ time: realNow })
     const login = await loginAsTestUser(page, "patient")
     expect(login.success, login.error).toBe(true)
 
@@ -217,8 +220,6 @@ test.describe("Prescription: codeine combination repeat inside 7 days", () => {
     await expect(block).toBeVisible({ timeout: 20_000 })
 
     // A sleeping tab must release yesterday's advisory block at the allowed date.
-    const realNow = new Date()
-    await page.clock.install({ time: realNow })
     await page.clock.setSystemTime(new Date(realNow.getTime() + 8 * 24 * 60 * 60 * 1000))
     await page.clock.runFor(30_001)
     await expect(block).toHaveCount(0)
