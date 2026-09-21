@@ -702,7 +702,7 @@ test("Queue request then patient record retains the Queue destination on browser
 test("incomplete setup fits the desktop staff frame and admin mobile navigation stays available", async ({ page }) => {
   await page.goto("/admin/patients")
   await expect(page.getByTestId("doctor-onboarding-banner")).toBeVisible()
-  const bounded = page.getByTestId("operator-page")
+  const bounded = page.locator("#main-content").getByTestId("operator-page")
   await expect(bounded).toBeVisible()
   const box = await bounded.boundingBox()
   expect(box!.y + box!.height).toBeLessThanOrEqual(900)
@@ -748,6 +748,8 @@ test("Patients restores directory pagination and internal scroll after a full-re
     await expect(page.locator('[data-row-id]:visible')).toHaveCount(2)
     const lastPageOpen = page.locator(`[data-row-id="${ids[51]}"]:visible`).getByRole("link", { name: /^Open / })
     await lastPageOpen.click()
+    await expect(page).toHaveURL(new RegExp(`/doctor/patients/${ids[51]}$`))
+    await expect(page.getByRole("link", { name: "Back to Patients", exact: true })).toBeVisible()
     await page.goBack()
     await expect(search).toHaveValue(term)
     await expect(page).toHaveURL(/page=2/)

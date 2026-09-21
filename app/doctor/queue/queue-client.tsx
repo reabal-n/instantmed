@@ -1231,7 +1231,7 @@ export function QueueClient({
               key={`${statusFilter}:${committedSearchQuery}`}
               className="flex h-full min-h-0 flex-col overflow-hidden"
             >
-              <div className="min-h-0 flex-1 overflow-hidden">
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                 <QueueTable
                   filteredIntakes={filteredIntakes}
                   expandedId={expandedId}
