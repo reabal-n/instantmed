@@ -45,10 +45,12 @@ export async function StaffLayout({ profile, children }: {
     >
       {hasClinicalAccess ? (
         <DoctorShell isAdmin={isAdmin}>
-          <DoctorOnboardingBanner data={onboardingStatus} />
-          {children}
+          <div className="staff-workspace">
+            <DoctorOnboardingBanner data={onboardingStatus} />
+            {children}
+          </div>
         </DoctorShell>
-      ) : children}
+      ) : <div className="staff-workspace">{children}</div>}
     </OperatorShell>
   )
 }

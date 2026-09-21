@@ -309,7 +309,7 @@ function CockpitIntakeDetailClient({
   return (
     <>
       <IntakeReviewProvider value={contextValue}>
-        <div className="flex h-[calc(100dvh-4rem)] min-h-0 flex-col gap-3 overflow-hidden">
+        <div data-staff-bounded className="flex h-[calc(100dvh-4rem)] min-h-0 flex-col gap-3 overflow-hidden">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
             <Button variant="ghost" size="sm" asChild className="-ml-2 text-muted-foreground">
               <Link href={backHref} onClick={async (event) => {
@@ -414,7 +414,7 @@ function CockpitIntakeDetailClient({
 
 export function IntakeDetailClient(props: IntakeDetailClientProps) {
   const destination = useStaffReturnDestination()
-  const contextualProps = destination ? { ...props, backHref: destination.href, backLabel: destination.origin === 'queue' ? 'Back to Queue' : 'Back to Requests' } : props
+  const contextualProps = destination ? { ...props, backHref: destination.href, backLabel: destination.origin === 'queue' ? 'Back to Queue' : destination.origin === 'patients' ? 'Back to Patients' : 'Back to Requests' } : props
   if (props.compact) {
     return <CockpitIntakeDetailClient {...contextualProps} />
   }

@@ -26,3 +26,21 @@
 @source "../components/operator";
 @source "../components/doctor";
 @source "../components/admin";
+
+/* Setup guidance and the active workspace share the desktop viewport budget. */
+@media (min-width: 1024px) {
+  .staff-workspace:has(> [data-staff-bounded]) {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 2.5rem);
+    min-height: 0;
+  }
+  .staff-workspace > [data-testid="doctor-onboarding-banner"] {
+    flex-shrink: 0;
+  }
+  .staff-workspace > [data-staff-bounded] {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+  }
+}

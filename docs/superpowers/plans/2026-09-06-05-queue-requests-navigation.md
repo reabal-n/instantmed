@@ -212,3 +212,14 @@ Merge/source SHA **`1122d772c2cc2c8921df7ec89d215f18a8776a28`** is verified on p
 Source and browser receipts were copied and content-verified into the main checkout's ignored `output/plan5-navigation/` before deleting the merged implementation branch/worktree. `evidence/production-release.json` and `evidence/ci-passed-release.log` retain the production and CI observations. The earlier incomplete identity-rail interaction remains a separate unconfirmed observation; it was not repaired or accepted by this navigation release. Rollback is a governed revert of #563, preserving saved notes, clinical outcomes and payment state. No environment, migration or dependency change was part of Plan 5.
 
 **Remaining gates:** owner visual acceptance and the deferred physical-phone check remain unaccepted. The separate readiness owner retains the fixed September 14 06:19:01 UTC → September 15 06:19:01 UTC monitoring window, maximum gap 150 minutes, and Sentry recipient-inbox evidence. No window reset or test notification occurred. The checkout/weight repair in #564 and broader attached audit remain separate workstreams. Unchecked preparation or compound acceptance items above are not retroactively certified by the release. No clinician-throughput or conversion improvement is claimed, and Plan 6 is not started.
+
+
+## Staff navigation continuity follow-up — September 21
+
+Operator-approved Plan 6 applies three steps in order:
+
+1. Share the staff frame across dashboard, doctor and admin routes; standardise Patient details and its admin context. Preserve Request record and Open full record. Remove the duplicate admin Patient record action and label excluded-current-request history Prior activity.
+2. Preserve Patients search, sort, page, exception filter, selection, scroll and focus through record navigation. Preserve multi-hop Queue/Requests return destinations, rejected note saves and session isolation.
+3. Verify synthetic desktop/mobile record journeys, failed note-save recovery and direct role access, then merge and deploy. Production source verification and the operator's production walkthrough remain separate gates.
+
+Implementation is in progress on one branch, `codex/staff-navigation-continuity`. The shared frame has focused role-rendering coverage. Browser, release and production acceptance are not yet complete. The independent review identified an auth-bootstrap search retry, detail-hop scroll overwrites and banner height accounting; the implementation addresses these before browser verification.

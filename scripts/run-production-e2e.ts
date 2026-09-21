@@ -350,6 +350,7 @@ async function main() {
       "--exclude=.env.*",
       "--exclude=.superpowers",
       "--exclude=coverage",
+      "--exclude=output",
       "--exclude=playwright-report",
       "--exclude=test-results",
       `${root}/`,

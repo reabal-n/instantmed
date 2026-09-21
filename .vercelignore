@@ -14,3 +14,4 @@ playwright-report*/
 .codex/
 .agents/
 skills-lock.json
+output/

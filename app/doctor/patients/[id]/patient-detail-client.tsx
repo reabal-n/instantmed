@@ -452,7 +452,7 @@ export function PatientDetailClient({
           <Button variant="ghost" className="px-0 text-muted-foreground hover:bg-transparent hover:text-foreground" asChild>
             <Link href={returnDestination?.href ?? STAFF_DOCTOR_PATIENTS_HREF}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {returnDestination ? (returnDestination.origin === "queue" ? "Back to Queue" : "Back to Requests") : "Back to Patients"}
+              {returnDestination ? (returnDestination.origin === "queue" ? "Back to Queue" : returnDestination.origin === "patients" ? "Back to Patients" : "Back to Requests") : "Back to Patients"}
             </Link>
           </Button>
           <div>
