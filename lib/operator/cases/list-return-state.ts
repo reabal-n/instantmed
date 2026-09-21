@@ -3,7 +3,7 @@ import { ADMIN_INTAKE_STATUS_FILTER_OPTIONS, ADMIN_WORK_LANE_FILTER_OPTIONS } fr
 import { QUEUE_STATUS_FILTERS, sanitizeQueueSearchQuery, STAFF_DASHBOARD_HREF, STAFF_LEDGER_HREF } from '@/lib/dashboard/routes'
 import { ADMIN_SERVICE_FILTER_OPTIONS } from '@/lib/services/service-presentation'
 
-export type ListOrigin = 'queue' | 'requests'
+export type ListOrigin = 'queue' | 'requests' | 'patients'
 export interface ListReturnSnapshot {
   origin: ListOrigin
   href: string
@@ -22,12 +22,16 @@ const values: Record<string, readonly string[]> = {
   showTestData: ['1'], onlyTestData: ['1'],
 }
 function safeListHref(origin: ListOrigin, href: string): string {
-  const base = origin === 'queue' ? STAFF_DASHBOARD_HREF : STAFF_LEDGER_HREF
+  const base = origin === 'patients'
+    ? (href === '/admin/patients' || href.startsWith('/admin/patients?') ? '/admin/patients' : '/doctor/patients')
+    : origin === 'queue' ? STAFF_DASHBOARD_HREF : STAFF_LEDGER_HREF
   if (!href.startsWith(`${base}?`) && href !== base && !href.startsWith(`${base}#`)) return base
   const input = new URL(href, 'https://navigation.invalid')
   const params = new URLSearchParams()
   for (const [key, value] of input.searchParams) {
     if ((key === 'page' || key === 'pageSize') && /^\d+$/.test(value) && Number(value) > 0 && Number(value) <= 100000) params.set(key, value)
+    else if (origin === 'patients' && key === 'sort' && ['newest', 'name'].includes(value)) params.set(key, value)
+    else if (origin === 'patients' && key === 'exception' && ['all', 'needs_details', 'sync_needed', 'duplicates'].includes(value)) params.set(key, value)
     else if (values[key] && value.split(',').every(item => values[key].includes(item))) params.set(key, value)
   }
   return `${base}${params.size ? `?${params}` : ''}${input.hash === '#doctor-queue' ? input.hash : ''}`
@@ -51,25 +55,29 @@ export function resolveReturnedSelection(selectedId: string | null, freshIds: re
 export function createListReturnState() {
   let scope: string | null = null
   let entries: Partial<Record<ListOrigin, ListReturnSnapshot>> = {}
-  let intent: { origin: ListOrigin; path: string } | null = null
+  const intents = new Map<string, ListOrigin>()
   return {
-    setScope(next: string | null) { if (next !== scope || !next) { entries = {}; intent = null }; scope = next },
+    setScope(next: string | null) { if (next !== scope || !next) { entries = {}; intents.clear() }; scope = next },
     isCurrent(expected: string | null) { return !!expected && scope === expected },
     read(expected: string | null, origin: ListOrigin) { return expected && scope === expected ? entries[origin] ?? null : null },
     write(expected: string | null, data: ListReturnSnapshot) {
-      if (!expected || scope !== expected || !['queue', 'requests'].includes(data.origin)) return
+      if (!expected || scope !== expected || !['queue', 'requests', 'patients'].includes(data.origin)) return
       // Explicit projection: never retain caller objects, rows, notes or clinical payloads.
       const href = new URL(safeListHref(data.origin, data.href), 'https://navigation.invalid')
       if (data.page > 1) href.searchParams.set('page', String(data.page))
       else href.searchParams.delete('page')
-      entries[data.origin] = { origin: data.origin, href: `${href.pathname}${href.search}${href.hash}`, query: data.origin === 'queue' ? sanitizeQueueSearchQuery(data.query) : sanitizeAdminLedgerSearchTerm(data.query), page: Math.max(1, data.page), selectedId: data.selectedId, focusId: data.focusId, scrollTop: data.scrollTop, windowY: data.windowY }
+      entries[data.origin] = { origin: data.origin, href: `${href.pathname}${href.search}${href.hash}`, query: data.origin === 'patients' ? data.query.replace(/\s+/g, ' ').trim() : data.origin === 'queue' ? sanitizeQueueSearchQuery(data.query) : sanitizeAdminLedgerSearchTerm(data.query), page: Math.max(1, data.page), selectedId: data.selectedId, focusId: data.focusId, scrollTop: data.scrollTop, windowY: data.windowY }
     },
     bind(expected: string | null, origin: ListOrigin, path: string) {
       if (!expected || scope !== expected || !entries[origin] || !/^\/(doctor\/(patients|intakes)|admin\/intakes)\/[^/?#]+$/.test(path)) return
-      intent = { origin, path }
+      intents.delete(path)
+      intents.set(path, origin)
+      // Bound metadata retained for multi-hop Back/Forward journeys.
+      if (intents.size > 50) intents.delete(intents.keys().next().value!)
     },
     destination(expected: string | null, path: string) {
-      return expected && scope === expected && intent?.path === path ? entries[intent.origin] ?? null : null
+      const origin = intents.get(path)
+      return expected && scope === expected && origin ? entries[origin] ?? null : null
     },
   }
 }

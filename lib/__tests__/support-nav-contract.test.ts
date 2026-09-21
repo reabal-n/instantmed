@@ -118,8 +118,8 @@ describe("support nav contract", () => {
     ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
 
     expect(supportRouteSources).toContain('requireRole(["admin", "support"]')
-    expect(supportRouteSources).toContain("navSections={navSections}")
-    expect(supportRouteSources).toContain("getStaffNav")
+    expect(supportRouteSources).toContain("StaffLayout")
+    expect(readFileSync(join(root, "components/operator/staff-layout.tsx"), "utf8")).toContain("navSections={getStaffNav(profile)}")
 
     const adminOnlySources = [
       "app/admin/emails/hub/page.tsx",

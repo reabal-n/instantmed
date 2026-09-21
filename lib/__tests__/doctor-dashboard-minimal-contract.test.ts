@@ -120,11 +120,11 @@ describe("doctor dashboard minimalism contract", () => {
   })
 
   it("keeps the canonical dashboard inside the clinical panel and mobile-nav shell", () => {
-    const layout = read("app/dashboard/layout.tsx")
+    const layout = read("components/operator/staff-layout.tsx")
     const page = read("app/dashboard/page.tsx")
 
     expect(layout).toContain("DoctorShell")
-    expect(layout).toContain("const isAdmin = hasAdminAccess(authUser.profile)")
+    expect(layout).toContain("const isAdmin = hasAdminAccess(profile)")
     expect(layout).toContain("hideMobileHamburger={hasClinicalAccess && !isAdmin}")
     expect(layout).toContain("pb-[calc(7rem+env(safe-area-inset-bottom))]")
     expect(layout).toContain("isAdmin={isAdmin}")

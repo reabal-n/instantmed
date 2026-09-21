@@ -12,7 +12,7 @@ const sidebarSource = readFileSync(
   "utf8",
 )
 const doctorLayoutSource = readFileSync(
-  join(process.cwd(), "app/doctor/layout.tsx"),
+  join(process.cwd(), "components/operator/staff-layout.tsx"),
   "utf8",
 )
 const sharedUserMenuSource = readFileSync(
@@ -260,7 +260,7 @@ describe("doctor navigation contract", () => {
       "utf8",
     )
     const doctorLayoutSource = readFileSync(
-      join(process.cwd(), "app/doctor/layout.tsx"),
+      join(process.cwd(), "components/operator/staff-layout.tsx"),
       "utf8",
     )
 

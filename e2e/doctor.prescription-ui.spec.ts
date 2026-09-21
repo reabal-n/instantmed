@@ -389,7 +389,7 @@ test.describe("Doctor prescription UI flow", () => {
         await response.finished()
         return true
       }, { timeout: 30_000 }),
-      page.getByRole("button", { name: "View profile" }).click(),
+      page.getByRole("button", { name: "Patient details" }).click(),
     ])
     expect(summaryResponse.ok()).toBe(true)
     expect(await summaryResponse.finished()).toBeNull()
@@ -409,6 +409,9 @@ test.describe("Doctor prescription UI flow", () => {
       drawer.getByRole("link", { name: "Open full record" }).click(),
     ])
     const clinicalPanel = page.getByRole("tabpanel", { name: "Clinical" })
+    // App Router commits the URL while the patient record is still streaming.
+    // Wait for the actual destination before checking its clinical content.
+    await expect(clinicalPanel).toBeVisible({ timeout: 30_000 })
     await expect(clinicalPanel.getByText("Review differences", { exact: true })).toBeVisible()
     await expect(clinicalPanel.getByText("No known allergies", { exact: true })).toBeVisible()
     await expect(clinicalPanel.getByText("Penicillin", { exact: true })).toBeVisible()
@@ -422,7 +425,7 @@ test.describe("Doctor prescription UI flow", () => {
 
     await page.goto(`/doctor/intakes/${intakeId}`)
     await waitForPageLoad(page)
-    await page.getByRole("button", { name: "View profile" }).click()
+    await page.getByRole("button", { name: "Patient details" }).click()
 
     const drawer = page.getByRole("dialog", { name: "Patient profile" })
     await expect(drawer).toBeVisible()
@@ -559,7 +562,7 @@ test.describe("Doctor prescription UI flow", () => {
         await response.finished()
         return true
       }, { timeout: 30_000 }),
-      page.getByRole("button", { name: "View profile" }).click(),
+      page.getByRole("button", { name: "Patient details" }).click(),
     ])
     expect(summaryResponse.ok()).toBe(true)
     expect(await summaryResponse.finished()).toBeNull()
@@ -604,7 +607,7 @@ test.describe("Doctor prescription UI flow", () => {
     await expect(page.getByText("No other requests or notes.", { exact: true })).toBeVisible()
     await expect(page.getByText(checkoutIntake.reference_number)).toHaveCount(0)
 
-    await page.getByRole("button", { name: "View profile" }).click()
+    await page.getByRole("button", { name: "Patient details" }).click()
     const drawer = page.getByRole("dialog", { name: "Patient profile" })
     await expect(drawer.getByText("1 request total · 0 notes total", { exact: true })).toBeVisible({ timeout: 15000 })
     await expect(drawer.getByText(checkoutIntake.reference_number)).toHaveCount(0)

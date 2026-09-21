@@ -170,3 +170,23 @@ describe('browser fixture session ownership', () => {
     } finally { vi.unstubAllEnvs() }
   })
 })
+
+
+describe('patient-directory return journeys', () => {
+  it.each(['/admin/patients', '/doctor/patients'])('keeps private search and safe view state for %s', base => {
+    const state = createListReturnState(); state.setScope('a:s1')
+    state.write('a:s1', { ...snapshot, origin: 'patients', href: `${base}?sort=name&exception=duplicates&q=private`, query: ' Patient@example.test ' })
+    state.bind('a:s1', 'patients', '/doctor/patients/patient-a')
+    expect(state.destination('a:s1', '/doctor/patients/patient-a')).toMatchObject({ origin: 'patients', query: 'Patient@example.test', href: `${base}?sort=name&exception=duplicates&page=2` })
+    state.setScope('b:s2')
+    expect(state.destination('b:s2', '/doctor/patients/patient-a')).toBeNull()
+  })
+  it('retains both destinations through request to patient and browser Back', () => {
+    const state = createListReturnState(); state.setScope('a:s1'); state.write('a:s1', snapshot)
+    state.bind('a:s1', 'queue', '/doctor/intakes/request-a')
+    state.bind('a:s1', 'queue', '/doctor/patients/patient-a')
+    expect(state.destination('a:s1', '/doctor/intakes/request-a')?.origin).toBe('queue')
+    expect(state.destination('a:s1', '/doctor/patients/patient-a')?.origin).toBe('queue')
+    expect(state.destination('a:s1', '/doctor/patients/unrelated')).toBeNull()
+  })
+})

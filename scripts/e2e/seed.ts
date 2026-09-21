@@ -168,6 +168,7 @@ async function seedOperatorProfile() {
     .from("profiles")
     .upsert({
       id: OPERATOR_PROFILE_ID,
+      referral_code: "E2E00001",
       auth_user_id: null,
       email: "e2e-operator@test.instantmed.com.au",
       full_name: FIXTURE_COPY.operatorName,
@@ -228,6 +229,7 @@ async function seedDoctorProfile() {
     .from("profiles")
     .upsert({
       id: DOCTOR_PROFILE_ID,
+      referral_code: "E2E00003",
       auth_user_id: null,
       email: "e2e-doctor@test.instantmed.com.au",
       full_name: FIXTURE_COPY.doctorName,
@@ -285,6 +287,7 @@ async function seedSupportProfile() {
     .from("profiles")
     .upsert({
       id: SUPPORT_PROFILE_ID,
+      referral_code: "E2E00004",
       auth_user_id: null,
       email: "e2e-support@test.instantmed.com.au",
       full_name: FIXTURE_COPY.supportName,
@@ -344,6 +347,7 @@ async function seedPatientProfile() {
     .from("profiles")
     .upsert({
       id: PATIENT_PROFILE_ID,
+      referral_code: "E2E00002",
       auth_user_id: null,
       email: "e2e-patient@test.instantmed.com.au",
       full_name: FIXTURE_COPY.patientName,

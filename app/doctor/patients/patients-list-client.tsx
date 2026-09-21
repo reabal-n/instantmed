@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { DashboardPageHeader } from "@/components/dashboard"
+import { findListScrollHost, initiatingListAction, restoreListFocus, useStaffListReturn } from "@/components/operator/staff-list-navigation-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -161,14 +162,21 @@ export function PatientsListClient({
   description = "Find a patient and continue their care.",
 }: PatientsListClientProps) {
   const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState("")
+  const { restored, capture, bind, navigation } = useStaffListReturn("patients")
+  const restoredView = restored && new URL(restored.href, "https://navigation.invalid").pathname === baseHref ? restored : null
+  const pendingRestore = useRef(restoredView)
+  const directoryRef = useRef<HTMLDivElement>(null)
+  const [searchQuery, setSearchQuery] = useState(restoredView?.query ?? "")
   const debouncedSearch = useDebounce(searchQuery, 350)
   const [activeSearchView, setActiveSearchView] = useState<ActivePatientDirectorySearchView | null>(null)
   const [isSearchPending, setIsSearchPending] = useState(false)
   const searchRequestSequenceRef = useRef(0)
-  const previousDebouncedQueryRef = useRef("")
+  const previousDebouncedQueryRef = useRef(restoredView?.query ?? "")
   const lastSearchEffectKeyRef = useRef("")
-  const [exceptionFilter, setExceptionFilter] = useState<ExceptionFilter>("all")
+  const [exceptionFilter, setExceptionFilter] = useState<ExceptionFilter>(() => {
+    const value = restoredView ? new URL(restoredView.href, "https://navigation.invalid").searchParams.get("exception") : null
+    return value === "needs_details" || value === "sync_needed" || value === "duplicates" ? value : "all"
+  })
   const patients = activeSearchView?.patients ?? initialPatients
   const currentPage = activeSearchView?.page ?? initialPage
   const totalPatients = activeSearchView ? activeSearchView.total : initialTotalPatients
@@ -191,6 +199,8 @@ export function PatientsListClient({
     const normalizedQuery = normalizeDirectorySearchQuery(query)
     if (!normalizedQuery) return
 
+    const expectedScope = navigation?.scope ?? null
+    const isCurrent = () => !navigation || navigation.store.isCurrent(expectedScope)
     const sequence = ++searchRequestSequenceRef.current
     setIsSearchPending(true)
     try {
@@ -200,7 +210,7 @@ export function PatientsListClient({
         pageSize,
         sort: options.sort,
       })
-      if (sequence !== searchRequestSequenceRef.current) return
+      if (sequence !== searchRequestSequenceRef.current || !isCurrent()) return
 
       if (result.success) {
         setActiveSearchView({
@@ -223,7 +233,7 @@ export function PatientsListClient({
       })
       toast.error(result.error)
     } catch {
-      if (sequence !== searchRequestSequenceRef.current) return
+      if (sequence !== searchRequestSequenceRef.current || !isCurrent()) return
       setActiveSearchView({
         query: normalizedQuery,
         sort: options.sort,
@@ -236,9 +246,9 @@ export function PatientsListClient({
       })
       toast.error("The patient-directory lookup could not be completed.")
     } finally {
-      if (sequence === searchRequestSequenceRef.current) setIsSearchPending(false)
+      if (sequence === searchRequestSequenceRef.current && isCurrent()) setIsSearchPending(false)
     }
-  }, [pageSize])
+  }, [navigation, pageSize])
 
   useEffect(() => {
     const normalizedSearch = normalizeDirectorySearchQuery(debouncedSearch)
@@ -254,7 +264,7 @@ export function PatientsListClient({
     }
 
     const requestedPage = queryChanged ? 1 : initialPage
-    const effectKey = `${normalizedSearch}\u0000${initialSort}\u0000${requestedPage}`
+    const effectKey = `${navigation?.scope ?? "pending"}\u0000${normalizedSearch}\u0000${initialSort}\u0000${requestedPage}`
     if (effectKey === lastSearchEffectKeyRef.current) return
     lastSearchEffectKeyRef.current = effectKey
 
@@ -270,7 +280,12 @@ export function PatientsListClient({
       page: requestedPage,
       sort: initialSort,
     })
-  }, [baseHref, debouncedSearch, initialPage, initialSort, router, runDirectorySearch])
+  }, [baseHref, debouncedSearch, initialPage, initialSort, navigation?.scope, router, runDirectorySearch])
+
+  useEffect(() => () => {
+    searchRequestSequenceRef.current += 1
+    lastSearchEffectKeyRef.current = ""
+  }, [])
 
   const duplicateGroups = useMemo(
     () => findPotentialDuplicatePatients(patients),
@@ -303,6 +318,14 @@ export function PatientsListClient({
     return true
   }), [duplicatePatientIds, exceptionFilter, patients])
 
+  useEffect(() => {
+    const snapshot = pendingRestore.current
+    if (!snapshot || isSearchPending) return
+    if (snapshot.query && (activeSearchView?.query !== snapshot.query || activeSearchView.page !== snapshot.page)) return
+    pendingRestore.current = null
+    restoreListFocus(snapshot, filteredPatients.some(patient => patient.id === snapshot.selectedId), directoryRef.current)
+  }, [activeSearchView, filteredPatients, isSearchPending])
+
   const firstDuplicatePatient = patients.find((patient) => duplicatePatientIds.has(patient.id)) ?? null
   const firstDuplicateHref = firstDuplicatePatient
     ? `${patientHrefBase}/${firstDuplicatePatient.id}`
@@ -326,7 +349,18 @@ export function PatientsListClient({
   }
 
   return (
-    <div className="space-y-4">
+    <div ref={directoryRef} className="space-y-4" onClickCapture={(event) => {
+      const anchor = (event.target as Element).closest<HTMLAnchorElement>("a[href]")
+      if (!anchor || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      const path = new URL(anchor.href, window.location.href).pathname
+      if (!path.startsWith(`${patientHrefBase}/`)) return
+      const id = path.slice(patientHrefBase.length + 1)
+      const href = new URL(buildPatientDirectoryHref({ baseHref, page: currentPage, sort: initialSort }), window.location.origin)
+      href.searchParams.set("exception", exceptionFilter)
+      const host = findListScrollHost(directoryRef.current)
+      capture({ href: `${href.pathname}${href.search}`, query: normalizeDirectorySearchQuery(searchQuery), page: currentPage, selectedId: id, focusId: initiatingListAction(id), scrollTop: host?.scrollTop ?? 0, windowY: window.scrollY })
+      bind(path)
+    }}>
       {showHeader ? (
         <DashboardPageHeader
           title={title}
@@ -492,7 +526,7 @@ export function PatientsListClient({
                   const patientHref = `${patientHrefBase}/${patient.id}`
                   const isDuplicate = duplicatePatientIds.has(patient.id)
                   return (
-                    <TableRow key={patient.id} className={cn(isDuplicate && "bg-warning-light/20")}>
+                    <TableRow key={patient.id} data-row-id={patient.id} className={cn(isDuplicate && "bg-warning-light/20")}>
                       <TableCell>
                         <Link href={patientHref} prefetch={false} className="block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                           <UserCard
@@ -583,6 +617,7 @@ export function PatientsListClient({
               return (
                 <Link
                   key={patient.id}
+                  data-row-id={patient.id}
                   href={patientHref}
                   prefetch={false}
                   className={cn(

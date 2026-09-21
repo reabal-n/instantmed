@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { getAIDraftsForIntake } from "@/app/actions/drafts/draft-retrieval"
@@ -8,7 +7,6 @@ import type { DoctorFollowupRow } from "@/app/doctor/intakes/[id]/intake-detail-
 import { AdminRequestSummaryButton } from "@/components/admin/admin-request-summary-button"
 import { HistoricalAutoIssuedReviewActions } from "@/components/doctor/review/historical-auto-issued-review-actions"
 import { PanelProvider } from "@/components/panels/panel-provider"
-import { Button } from "@/components/ui/button"
 import {
   type HistoricalAutoIssuedReviewOpenOutcome,
   openHistoricalAutoIssuedReviewCase,
@@ -17,7 +15,6 @@ import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireRole } from "@/lib/auth/helpers"
 import {
   ADMIN_HISTORICAL_AUTO_ISSUED_REVIEW_HREF,
-  buildStaffPatientHref,
   HISTORICAL_AUTO_ISSUED_REVIEW_QUERY_VALUE,
   STAFF_DASHBOARD_HREF,
 } from "@/lib/dashboard/routes"
@@ -138,6 +135,7 @@ export default async function AdminIntakeDetailPage({
           : STAFF_DASHBOARD_HREF}
         backLabel={isHistoricalReview ? "Back to historical reviews" : "Back to work"}
         viewerActionAccess={getClinicalReviewActionAccess(auth.profile, intake)}
+        viewerIsAdmin
         viewerCanRevokeAutoIssued
         historicalReviewActions={isHistoricalReview ? (
           <HistoricalAutoIssuedReviewActions
@@ -151,9 +149,6 @@ export default async function AdminIntakeDetailPage({
         compact
         supplementaryActions={
           <>
-            <Button variant="outline" size="sm" asChild>
-              <Link href={buildStaffPatientHref(intake.patient.id)}>Patient record</Link>
-            </Button>
             <AdminRequestSummaryButton
               intake={intake}
               serviceLabel={serviceLabel}

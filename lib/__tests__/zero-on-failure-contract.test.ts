@@ -46,12 +46,12 @@ describe("zero-on-failure honesty contract", () => {
   })
 
   it("admin layout logs nav-count failures at Sentry-reaching error level instead of a silent catch", () => {
-    const source = read("app/admin/layout.tsx")
+    const source = read("components/operator/staff-layout.tsx")
 
     expect(source).not.toContain(".catch(() => EMPTY_STAFF_NAV_COUNTS)")
     expect(source).toContain("log.error")
     // The doctor layout set this pattern; the admin layout must match it.
-    expect(read("app/doctor/layout.tsx")).toContain("log.error")
+    expect(read("app/doctor/layout.tsx")).toContain("StaffLayout")
   })
 
   it("staff nav-count sub-query failures report at error level with an Error object", () => {

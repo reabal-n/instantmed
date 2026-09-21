@@ -34,6 +34,8 @@ test.beforeAll(async () => {
     if (!seeded.success || !seeded.intakeId) throw new Error(seeded.error)
     intakeIds.push(seeded.intakeId)
   }
+  // Navigation owns no AI generation; pre-existing synthetic notes avoid provider calls.
+  expect((await db.from("intakes").update({ doctor_notes: "Synthetic navigation fixture note." }).in("id", intakeIds)).error).toBeNull()
   const { error: nameError } = await db.from("profiles").update({ full_name: query }).eq("id", patient)
   if (nameError) throw nameError
 })
@@ -47,7 +49,9 @@ async function cleanupOwnedIntakes() {
   expect(count).toBe(0)
 }
 test.afterAll(cleanupOwnedIntakes)
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page }, testInfo) => {
+  // Independent browser scenarios must not share the standard API IP quota.
+  await page.setExtraHTTPHeaders({ "x-forwarded-for": `192.0.2.${testInfo.line % 250 + 1}` })
   const leaks: string[] = []
   privateLeaks.set(page, leaks)
   page.on("request", request => {
@@ -305,6 +309,8 @@ test("a removed selection announces the changed view and focuses the list headin
   const id = href!.split("/").pop()!
   expect(intakeIds).toContain(id)
   await record.click()
+  await expect(page).toHaveURL(new RegExp(`/admin/intakes/${id}$`))
+  await expect(page.getByRole("region", { name: "Request packet" })).toBeVisible()
   // Change only our disposable row so it no longer matches this private search.
   const replacement = "e2e00000-0000-0000-0000-000000000005"
   const profile = await db.from("profiles").upsert({ id: replacement, referral_code: "E2ENAVOTHER", role: "patient", full_name: "Synthetic Different Patient", email: "navigation-other@example.test" })
@@ -370,11 +376,23 @@ test("an actual SDK account switch discards the old protected document and priva
       await target.goto("/sign-in?redirect=/dashboard")
       await target.getByLabel("Email address", { exact: true }).fill(account.email)
       await target.getByLabel("Password", { exact: true }).fill(account.password)
-      const authenticated = target.waitForResponse(response => response.url().includes("/auth/v1/token?grant_type=password"))
-      await target.locator('button[type="submit"]').click()
-      const response = await authenticated
-      expect(response.ok()).toBe(true)
-      tokens.push((await response.json()).access_token)
+      const tokenUrl = "**/auth/v1/token?grant_type=password"
+      // Capture the real local SDK response before releasing it to the browser:
+      // the session-change reload can otherwise discard its DevTools body.
+      const captureToken = async (route: Route) => {
+        const response = await route.fetch()
+        expect(response.ok()).toBe(true)
+        tokens.push((await response.json()).access_token)
+        await route.fulfill({ response })
+      }
+      await target.route(tokenUrl, captureToken)
+      try {
+        const authenticated = target.waitForResponse(response => response.url().includes("/auth/v1/token?grant_type=password"))
+        await target.locator('button[type="submit"]').click()
+        expect((await authenticated).ok()).toBe(true)
+      } finally {
+        await target.unroute(tokenUrl, captureToken)
+      }
     }
     await signIn(page, accounts[0])
     await expect(page).toHaveURL(/\/dashboard/)
@@ -652,6 +670,111 @@ test("Requests completion response failure retains the sheet and success closes 
     expect(persisted.error).toBeNull()
     expect(persisted.data?.status).toBe("awaiting_script")
   } finally { await page.unroute("**/*", mockCompletion) }
+})
+
+for (const origin of ["/admin/patients", "/doctor/patients"]) {
+  test(`Patients restores search, sort and focus through a request hop from ${origin}`, async ({ page }) => {
+    await page.goto(`${origin}?sort=name`)
+    const search = page.getByRole("textbox", { name: "Search patients" })
+    await search.fill(query)
+    await expect(search).toHaveAttribute("aria-busy", "false")
+    const row = page.locator(`[data-row-id="${patient}"]:visible`)
+    await expect(row).toBeVisible()
+    const open = row.getByRole("link", { name: `Open ${query}`, exact: true })
+    await open.focus()
+    await open.click()
+    await expect(page.getByRole("link", { name: "Back to Patients", exact: true })).toHaveAttribute("href", `${origin}?sort=name&exception=all`)
+    await page.getByRole("tab", { name: "History", exact: true }).click()
+    const request = page.getByRole("link", { name: "View request", exact: true }).first()
+    await request.click()
+    await expect(page).toHaveURL(/\/intakes\//)
+    await expect(page.getByRole("link", { name: "Back to Patients", exact: true })).toHaveAttribute("href", `${origin}?sort=name&exception=all`)
+    await page.goBack()
+    await page.getByRole("link", { name: "Back to Patients", exact: true }).click()
+    await expect(search).toHaveValue(query)
+    await expect(page.getByRole("combobox", { name: "Sort patients" })).toHaveText("Name A–Z")
+    await expect(open).toBeFocused()
+    const storage = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage } }))
+    expect(storage).not.toContain(query)
+    expect(page.url()).not.toContain(query)
+  })
+}
+
+test("Queue request then patient record retains the Queue destination on browser Back", async ({ page }) => {
+  await page.goto("/dashboard?showTestData=1&onlyTestData=1")
+  await page.locator('[data-testid^="queue-row-"]').first().getByRole("button", { name: /^Open case for/ }).click()
+  await page.getByTestId("intake-review-panel").getByRole("link", { name: "Request record", exact: true }).click()
+  await expect(page).toHaveURL(/\/doctor\/intakes\/[^/?]+$/)
+  const requestUrl = page.url()
+  await page.getByRole("button", { name: "Patient details", exact: true }).click()
+  const patientRecord = page.getByRole("link", { name: "Open full record", exact: true })
+  const patientUrl = new URL((await patientRecord.getAttribute("href"))!, requestUrl).href
+  await patientRecord.click()
+  await expect(page).toHaveURL(patientUrl)
+  await expect(page.getByRole("link", { name: "Back to Queue", exact: true })).toBeVisible()
+  await page.goBack()
+  await expect(page).toHaveURL(requestUrl)
+  await expect(page.getByRole("link", { name: "Back to Queue", exact: true })).toBeVisible()
+})
+
+test("incomplete setup fits the desktop staff frame and admin mobile navigation stays available", async ({ page }) => {
+  await page.goto("/admin/patients")
+  await expect(page.getByTestId("doctor-onboarding-banner")).toBeVisible()
+  const bounded = page.locator("#main-content").getByTestId("operator-page")
+  await expect(bounded).toBeVisible()
+  const box = await bounded.boundingBox()
+  expect(box!.y + box!.height).toBeLessThanOrEqual(900)
+  for (const path of ["/dashboard?showTestData=1&onlyTestData=1", `/doctor/intakes/${intakeIds[0]}`, "/admin/patients"]) {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(path)
+    await page.getByRole("button", { name: "Open staff navigation", exact: true }).click()
+    await expect(page.getByRole("navigation", { name: "Staff navigation", exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Close navigation", exact: true }).click()
+    await expect(page.getByRole("navigation", { name: "Staff navigation", exact: true, includeHidden: true })).toHaveAttribute("inert", "")
+    await page.screenshot({ animations: "disabled", path: `${output}/staff-frame-${path.startsWith('/dashboard') ? 'queue' : path.startsWith('/doctor') ? 'request' : 'patients'}-mobile.png` })
+  }
+})
+
+test("Patients restores directory pagination and internal scroll after a full-record visit", async ({ page }) => {
+  const ids = Array.from({ length: 52 }, () => randomUUID())
+  const term = "Synthetic Directory Return"
+  const rows = ids.map((id, index) => ({ id, role: "patient", full_name: `${term} ${String(index).padStart(2, '0')}`, email: `${id}@example.test`, referral_code: `NAV${id.slice(0, 8)}`, onboarding_completed: true }))
+  expect((await db.from("profiles").insert(rows)).error).toBeNull()
+  try {
+    await page.goto("/admin/patients?sort=name")
+    const search = page.getByRole("textbox", { name: "Search patients" })
+    await search.fill(term)
+    await expect(page.locator('[data-row-id]:visible')).toHaveCount(50)
+    const open = page.locator(`[data-row-id="${ids[40]}"]:visible`).getByRole("link", { name: /^Open / })
+    await open.scrollIntoViewIfNeeded()
+    const scrollBefore = await open.evaluate(element => {
+      let host = element.parentElement
+      while (host && !(host.scrollHeight > host.clientHeight && /^(auto|scroll|overlay)$/.test(getComputedStyle(host).overflowY))) host = host.parentElement
+      return host?.scrollTop ?? 0
+    })
+    expect(scrollBefore).toBeGreaterThan(0)
+    await open.click()
+    await page.getByRole("link", { name: "Back to Patients", exact: true }).click()
+    await expect(open).toBeFocused()
+    await expect.poll(() => open.evaluate(element => {
+      let host = element.parentElement
+      while (host && !(host.scrollHeight > host.clientHeight && /^(auto|scroll|overlay)$/.test(getComputedStyle(host).overflowY))) host = host.parentElement
+      return host?.scrollTop ?? 0
+    })).toBe(scrollBefore)
+    await page.getByRole("button", { name: /^Next/ }).click()
+    await expect(page).toHaveURL(/page=2/)
+    await expect(page.locator('[data-row-id]:visible')).toHaveCount(2)
+    const lastPageOpen = page.locator(`[data-row-id="${ids[51]}"]:visible`).getByRole("link", { name: /^Open / })
+    await lastPageOpen.click()
+    await expect(page).toHaveURL(new RegExp(`/doctor/patients/${ids[51]}$`))
+    await expect(page.getByRole("link", { name: "Back to Patients", exact: true })).toBeVisible()
+    await page.goBack()
+    await expect(search).toHaveValue(term)
+    await expect(page).toHaveURL(/page=2/)
+    await expect(lastPageOpen).toBeFocused()
+  } finally {
+    expect((await db.from("profiles").delete().in("id", ids)).error).toBeNull()
+  }
 })
 
 test("a genuinely caught-up Queue retains collapsed actor and protocol history", async ({ page }) => {

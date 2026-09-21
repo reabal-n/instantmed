@@ -212,3 +212,20 @@ Merge/source SHA **`1122d772c2cc2c8921df7ec89d215f18a8776a28`** is verified on p
 Source and browser receipts were copied and content-verified into the main checkout's ignored `output/plan5-navigation/` before deleting the merged implementation branch/worktree. `evidence/production-release.json` and `evidence/ci-passed-release.log` retain the production and CI observations. The earlier incomplete identity-rail interaction remains a separate unconfirmed observation; it was not repaired or accepted by this navigation release. Rollback is a governed revert of #563, preserving saved notes, clinical outcomes and payment state. No environment, migration or dependency change was part of Plan 5.
 
 **Remaining gates:** owner visual acceptance and the deferred physical-phone check remain unaccepted. The separate readiness owner retains the fixed September 14 06:19:01 UTC → September 15 06:19:01 UTC monitoring window, maximum gap 150 minutes, and Sentry recipient-inbox evidence. No window reset or test notification occurred. The checkout/weight repair in #564 and broader attached audit remain separate workstreams. Unchecked preparation or compound acceptance items above are not retroactively certified by the release. No clinician-throughput or conversion improvement is claimed, and Plan 6 is not started.
+
+
+## Staff navigation continuity follow-up — September 21
+
+Operator-approved Plan 6 applies three steps in order:
+
+1. Share the staff frame across dashboard, doctor and admin routes; standardise Patient details and its admin context. Preserve Request record and Open full record. Remove the duplicate admin Patient record action and label excluded-current-request history Prior activity.
+2. Preserve Patients search, sort, page, exception filter, selection, scroll and focus through record navigation. Preserve multi-hop Queue/Requests return destinations, rejected note saves and session isolation.
+3. Verify synthetic desktop/mobile record journeys, failed note-save recovery and direct role access, then merge and deploy. Production source verification and the operator's production walkthrough remain separate gates.
+
+Implementation is on one branch, `codex/staff-navigation-continuity`, in [PR #595](https://github.com/reabal-n/instantmed/pull/595). Independent review findings are addressed: auth-bootstrap search retries, detail-hop scroll capture, Strict Mode search cleanup and banner height accounting. Browser verification exposed a Queue list whose flex sizing was ineffective inside a non-flex wrapper; the wrapper now constrains the intended row scroll pane while pagination stays outside it.
+
+Verification to date: 8,504 unit tests pass with 122 existing skips; typecheck, lint, documentation audit, dead-code baseline and the session-bootstrap browser harness pass. All 32 isolated compiled navigation cases pass on implementation commit `f8fba1cbd`. This covers desktop/mobile light and dark views, Queue/Requests/Patients return journeys, pagination, scroll, focus, rejected note saves, role access and real local SDK account switching. The test harness now waits for each destination URL before Back and captures the real local authentication response before an expected reload can discard its browser response body. Independent review confirmed those corrections retain test fidelity. Screenshots are retained in ignored `output/plan5-navigation/after/`.
+
+The local release command completed its build but failed the `/request` first-load JavaScript budget at 181 kB against 180 kB. A clean archive of unchanged `main` (`26fb7293768760a6c7ddf94c7b8b64170a38e631`) reproduces 181 kB with the same local environment; this branch is slightly smaller. The CI build and bundle gate passed on `aa429603016d1a990e5bfe1bd8dd5b45f2709a58`; required CI must still pass on the final source commit. No budget was raised.
+
+Remaining release gates: final-commit CI, merge, verified production deployment, and the operator production walkthrough. Synthetic local checks do not prove production clinical/provider delivery or human acceptance.

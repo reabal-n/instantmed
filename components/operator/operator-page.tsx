@@ -29,6 +29,7 @@ export function OperatorPage({
   return (
     <div
       data-testid="operator-page"
+      data-staff-bounded={bounded || undefined}
       className={cn(
         "flex flex-col gap-3",
         bounded && "lg:h-[calc(100vh-4rem)] lg:min-h-0 lg:overflow-hidden",

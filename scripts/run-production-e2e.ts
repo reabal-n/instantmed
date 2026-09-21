@@ -7,7 +7,7 @@ import { basename, join, resolve } from "node:path"
 import { Redis } from "@upstash/redis"
 import { Ratelimit } from "@upstash/ratelimit"
 
-const ALLOWED_SPECS = ["e2e/certificate-resend-render.spec.ts", "e2e/plan5-navigation.spec.ts", "e2e/checkout-resume.spec.ts"]
+const ALLOWED_SPECS = ["e2e/certificate-resend-render.spec.ts", "e2e/plan5-navigation.spec.ts", "e2e/checkout-resume.spec.ts", "e2e/doctor.prescription-ui.spec.ts"]
 const LOCAL_PORTS = [3060, 55320, 55321, 55322, 55323, 55324, 55325, 55326, 55329, 55330]
 const REDIS_TOKEN = "production-e2e-local-only"
 const REDIS_IMAGE = "redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf"
@@ -350,6 +350,7 @@ async function main() {
       "--exclude=.env.*",
       "--exclude=.superpowers",
       "--exclude=coverage",
+      "--exclude=output",
       "--exclude=playwright-report",
       "--exclude=test-results",
       `${root}/`,
@@ -408,6 +409,15 @@ async function main() {
     const local = parseSupabaseEnv(status.stdout)
     requireLocalSupabaseCoordinates(local)
     const env = testEnvironment(local, providerPreload, temporaryApp)
+
+    if (spec === "e2e/doctor.prescription-ui.spec.ts") {
+      // This suite uses the same canonical clinician fixtures as CI global setup.
+      // Seed only the disposable backend, from the dotenv-free application copy.
+      await run(process.execPath, [
+        join(temporaryApp, "node_modules/tsx/dist/cli.mjs"),
+        "scripts/e2e/seed.ts",
+      ], { ...env, E2E_SEED_CLI: "1" }, { cwd: temporaryApp })
+    }
 
     // Real local Redis keeps fail-closed download/auth protection enabled.
     // Names are unique to this runner and removed before its Supabase stack.

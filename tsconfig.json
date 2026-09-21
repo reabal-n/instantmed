@@ -38,6 +38,7 @@
     ".next/dev/dev/types/**/*.ts"
   ],
   "exclude": [
+    "output",
     "node_modules",
     "__tests__",
     "_deprecated",
