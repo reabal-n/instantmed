@@ -43,6 +43,7 @@ export interface CheckoutFailureResult {
   requestAgainOn?: string
   requiresFreshRequest?: boolean
   requiresSignIn?: boolean
+  requiresEmailVerification?: boolean
   requiresSupport?: boolean
   /** Server-built destination, returned only after saved-request ownership proof. */
   savedRequestUrl?: string
@@ -50,7 +51,7 @@ export interface CheckoutFailureResult {
 
 type CheckoutFailureOptions = Pick<
   CheckoutFailureResult,
-  "paymentRecoveryReason" | "requestAgainOn" | "requiresFreshRequest" | "requiresSignIn" | "requiresSupport" | "savedRequestUrl"
+  "paymentRecoveryReason" | "requestAgainOn" | "requiresFreshRequest" | "requiresSignIn" | "requiresEmailVerification" | "requiresSupport" | "savedRequestUrl"
 >
 
 export function getCheckoutFailureCategory(

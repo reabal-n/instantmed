@@ -23,6 +23,7 @@ import {
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
 import { createIntakeAndCheckoutAction, retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
+import { findBrowserCheckoutReceipt, rememberBrowserCheckout } from "@/lib/stripe/checkout/browser-receipt"
 import { inspectCheckoutSession } from "@/lib/stripe/checkout/checkout-session-safety"
 import { CONSENT_EVIDENCE_ERROR, ensureCheckoutConsentEvidence } from "@/lib/stripe/checkout/consent-evidence"
 import { reconcileTerminalDraftCheckout } from "@/lib/stripe/checkout/restored-draft-recovery"
@@ -149,7 +150,7 @@ async function createCheckoutFromUnifiedFlowInternal(
   if (authResult?.user && !authResult.profile) {
     return checkoutFailure("auth_or_session", "We couldn't verify your profile. Please sign in again.")
   }
-  const convertedDraft = await findConvertedPartialIntakeForCheckout(
+  let convertedDraft = await findConvertedPartialIntakeForCheckout(
     createServiceRoleClient(),
     {
       category,
@@ -162,6 +163,13 @@ async function createCheckoutFromUnifiedFlowInternal(
       subtype: finalSubtype,
     },
   )
+
+  if (convertedDraft.kind === "none" && !authResult?.user) {
+    const receipt = await findBrowserCheckoutReceipt(createServiceRoleClient(), {
+      flowInstanceId, email: identity.email, category, subtype: finalSubtype,
+    })
+    if (receipt.kind !== "none") convertedDraft = receipt
+  }
 
   if (convertedDraft.kind === "blocked") {
     const blockedMessages = {
@@ -360,7 +368,9 @@ export async function createCheckoutFromUnifiedFlow(
   input: UnifiedCheckoutInput,
 ): Promise<CheckoutResult> {
   try {
-    return await createCheckoutFromUnifiedFlowInternal(input)
+    const result = await createCheckoutFromUnifiedFlowInternal(input)
+    if (result.success) await rememberBrowserCheckout(result.intakeId)
+    return result
   } catch {
     return checkoutFailure(
       "unexpected",
