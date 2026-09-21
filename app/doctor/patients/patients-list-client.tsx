@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { DashboardPageHeader } from "@/components/dashboard"
-import { initiatingListAction, restoreListFocus, useStaffListReturn } from "@/components/operator/staff-list-navigation-provider"
+import { findListScrollHost, initiatingListAction, restoreListFocus, useStaffListReturn } from "@/components/operator/staff-list-navigation-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -357,8 +357,7 @@ export function PatientsListClient({
       const id = path.slice(patientHrefBase.length + 1)
       const href = new URL(buildPatientDirectoryHref({ baseHref, page: currentPage, sort: initialSort }), window.location.origin)
       href.searchParams.set("exception", exceptionFilter)
-      let host: HTMLElement | null = directoryRef.current
-      while (host && host.scrollHeight <= host.clientHeight) host = host.parentElement
+      const host = findListScrollHost(directoryRef.current)
       capture({ href: `${href.pathname}${href.search}`, query: normalizeDirectorySearchQuery(searchQuery), page: currentPage, selectedId: id, focusId: initiatingListAction(id), scrollTop: host?.scrollTop ?? 0, windowY: window.scrollY })
       bind(path)
     }}>

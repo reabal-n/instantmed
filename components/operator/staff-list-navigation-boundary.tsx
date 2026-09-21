@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 
-import { findVisibleRow, StaffNavigationContext as Context } from '@/components/operator/staff-list-navigation-provider'
+import { findListScrollHost, findVisibleRow, StaffNavigationContext as Context } from '@/components/operator/staff-list-navigation-provider'
 import type { ListReturnState } from '@/lib/operator/cases/list-return-state'
 import { createGuardedHistoryTraversal, preserveStaffHistoryEntry } from '@/lib/operator/cases/list-return-state'
 import { useAuth } from '@/lib/supabase/auth-provider'
@@ -39,8 +39,7 @@ function StaffListNavigationProvider({ children, store, scope, generation }: { c
       if (!snapshot) return
       if (listOrigin) {
         const row = snapshot.selectedId ? findVisibleRow(snapshot.selectedId) : null
-        let host = row?.parentElement ?? null
-        while (host && host.scrollHeight <= host.clientHeight) host = host.parentElement
+        const host = findListScrollHost(row)
         store.write(scope, { ...snapshot, scrollTop: host?.scrollTop ?? 0, windowY: window.scrollY })
       }
       store.bind(scope, origin, path)

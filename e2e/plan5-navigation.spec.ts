@@ -309,6 +309,8 @@ test("a removed selection announces the changed view and focuses the list headin
   const id = href!.split("/").pop()!
   expect(intakeIds).toContain(id)
   await record.click()
+  await expect(page).toHaveURL(new RegExp(`/admin/intakes/${id}$`))
+  await expect(page.getByRole("region", { name: "Request packet" })).toBeVisible()
   // Change only our disposable row so it no longer matches this private search.
   const replacement = "e2e00000-0000-0000-0000-000000000005"
   const profile = await db.from("profiles").upsert({ id: replacement, referral_code: "E2ENAVOTHER", role: "patient", full_name: "Synthetic Different Patient", email: "navigation-other@example.test" })
@@ -710,7 +712,8 @@ test("incomplete setup fits the desktop staff frame and admin mobile navigation 
     await page.getByRole("button", { name: "Open staff navigation", exact: true }).click()
     await expect(page.getByRole("navigation", { name: "Staff navigation", exact: true })).toBeVisible()
     await page.getByRole("button", { name: "Close navigation", exact: true }).click()
-    await page.screenshot({ path: `${output}/staff-frame-${path.startsWith('/dashboard') ? 'queue' : path.startsWith('/doctor') ? 'request' : 'patients'}-mobile.png` })
+    await expect(page.getByRole("navigation", { name: "Staff navigation", exact: true, includeHidden: true })).toHaveAttribute("inert", "")
+    await page.screenshot({ animations: "disabled", path: `${output}/staff-frame-${path.startsWith('/dashboard') ? 'queue' : path.startsWith('/doctor') ? 'request' : 'patients'}-mobile.png` })
   }
 })
 
@@ -728,7 +731,7 @@ test("Patients restores directory pagination and internal scroll after a full-re
     await open.scrollIntoViewIfNeeded()
     const scrollBefore = await open.evaluate(element => {
       let host = element.parentElement
-      while (host && host.scrollHeight <= host.clientHeight) host = host.parentElement
+      while (host && !(host.scrollHeight > host.clientHeight && /^(auto|scroll|overlay)$/.test(getComputedStyle(host).overflowY))) host = host.parentElement
       return host?.scrollTop ?? 0
     })
     expect(scrollBefore).toBeGreaterThan(0)
@@ -737,7 +740,7 @@ test("Patients restores directory pagination and internal scroll after a full-re
     await expect(open).toBeFocused()
     await expect.poll(() => open.evaluate(element => {
       let host = element.parentElement
-      while (host && host.scrollHeight <= host.clientHeight) host = host.parentElement
+      while (host && !(host.scrollHeight > host.clientHeight && /^(auto|scroll|overlay)$/.test(getComputedStyle(host).overflowY))) host = host.parentElement
       return host?.scrollTop ?? 0
     })).toBe(scrollBefore)
     await page.getByRole("button", { name: /^Next/ }).click()

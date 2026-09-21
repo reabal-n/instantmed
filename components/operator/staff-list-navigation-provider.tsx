@@ -41,11 +41,19 @@ export function restoreListFocus(snapshot: ListReturnSnapshot, exists: boolean, 
     const index = snapshot.focusId?.startsWith('action:') ? Number(snapshot.focusId.slice(7)) : 0
     const target = actions[index] ?? actions[0] ?? row ?? fallback
     if (target) { if (!target.hasAttribute('tabindex') && (target === row || target === fallback)) target.tabIndex = -1; target.focus({ preventScroll: true }) }
-    let host = row?.parentElement ?? fallback
-    while (host && host.scrollHeight <= host.clientHeight) host = host.parentElement
-    host?.scrollTo({ top: snapshot.scrollTop })
+    findListScrollHost(row ?? fallback)?.scrollTo({ top: snapshot.scrollTop })
     window.scrollTo({ top: snapshot.windowY })
   })
+}
+
+/** Ignore clipped wrappers; only a user-scrollable pane owns list position. */
+export function findListScrollHost(element: HTMLElement | null): HTMLElement | null {
+  let host = element
+  while (host) {
+    if (host.scrollHeight > host.clientHeight && /^(auto|scroll|overlay)$/.test(getComputedStyle(host).overflowY)) return host
+    host = host.parentElement
+  }
+  return null
 }
 
 export function findVisibleRow(id: string) {
