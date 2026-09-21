@@ -6,7 +6,7 @@
  */
 
 import { Check, ChevronDown, ChevronUp, CreditCard, Edit2, Loader2, Lock } from "lucide-react"
-import { useEffect, useRef,useState } from "react"
+import { useEffect, useMemo, useRef,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { type AttributionData, getAttribution } from "@/lib/analytics/attribution"
 import { capture } from "@/lib/analytics/capture"
+import { createCheckoutConsentTracker } from "@/lib/analytics/checkout-consent-events"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/lib/analytics/priority-review-events"
@@ -317,6 +318,38 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const [priorityOffered] = useState(() => isPriorityReviewOffered())
   const totalDue = price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)
   const primaryActionLabel = safetyConfirmed ? `Pay $${totalDue.toFixed(2)}` : "Review & confirm"
+  const consentTracker = useMemo(
+    // Existing safe capture waits for the lazily loaded SDK, so a restored
+    // draft's first tap is not lost while the context is still null.
+    () => createCheckoutConsentTracker({ capture }, flowInstanceId, serviceType),
+    [flowInstanceId, serviceType],
+  )
+
+  useEffect(() => {
+    consentTracker.state(safetyConfirmed && answers.telehealthConsentVersion === TELEHEALTH_CONSENT_VERSION)
+  }, [consentTracker, safetyConfirmed, answers.telehealthConsentVersion])
+
+  useEffect(() => {
+    const element = consentRef.current
+    if (!element || typeof IntersectionObserver === "undefined") return
+    // Geometric visibility, not proof of reading: half the consent card must
+    // enter the visible viewport, excluding the mobile sticky action bar.
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!document.hidden && entry?.isIntersecting && entry.intersectionRatio >= 0.5) {
+        consentTracker.viewed()
+        observer.disconnect()
+      }
+    }, { threshold: 0.5, rootMargin: "0px 0px -96px 0px" })
+    const observeWhenVisible = () => {
+      if (!document.hidden) { observer.unobserve(element); observer.observe(element) }
+    }
+    observer.observe(element)
+    document.addEventListener("visibilitychange", observeWhenVisible)
+    return () => {
+      observer.disconnect()
+      document.removeEventListener("visibilitychange", observeWhenVisible)
+    }
+  }, [consentTracker])
 
   // review-step is the single review+pay step for EVERY service (the unification
   // retired the separate consult checkout-step + med-cert checkout-step on
@@ -474,6 +507,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   }
 
   const handleReviewConfirmation = () => {
+    consentTracker.reviewClicked()
     consentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     // Focus the checkbox to make the requirement visually obvious
     consentRef.current?.querySelector('button')?.focus()
