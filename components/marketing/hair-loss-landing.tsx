@@ -175,7 +175,7 @@ function HairAssessmentModel() {
     <section
       id="assessment-model"
       aria-labelledby="hair-assessment-model-title"
-      className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12 lg:py-16"
+      className="bg-muted/30 py-6 dark:bg-white/[0.02] sm:py-12 lg:py-16"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-3xl text-center">
@@ -216,7 +216,7 @@ function HairLossPricingSection({
   requestCtaHref: string
 }) {
   return (
-    <section id="pricing" aria-label="Hair loss assessment pricing" className="py-6 sm:py-12 lg:pt-6 lg:pb-20">
+    <section id="pricing" aria-label="Hair loss assessment pricing" className="py-4 sm:py-12 lg:pt-6 lg:pb-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-primary/30 bg-white shadow-xl shadow-primary/[0.1] dark:border-white/15 dark:bg-card dark:shadow-none">
           <div className="grid divide-y divide-border/50 sm:grid-cols-[0.72fr_1.28fr] sm:divide-x sm:divide-y-0">
