@@ -124,6 +124,10 @@ Metric-backed wait display per service. No fake randomization.
 
 `getWaitState()` reads recent medical-certificate rows and degrades to neutral review copy when metrics are missing, stale, or the queue is pressured. Client-only `LiveWaitTime` surfaces must use neutral "fast doctor review" or submit/review copy unless a server-fed metric state is passed in. Prescription, ED, hair-loss, and broad consult surfaces must not render under-hour approval or prescribing claims.
 
+The medical-certificate page passes `getWaitState(new Date(), 'med-cert')` into `<Hero liveWait>`; the home page passes the default (med-cert) state.
+
+`/medical-certificate` and `/` both set `revalidate = 3600`, so each ISR regeneration re-runs `getWaitState()`'s two service-role Supabase reads; the displayed wait figure in the cached HTML can lag the true queue state by up to that one-hour window.
+
 **Components:** `LiveWaitTime` (single service), `WaitTimeStrip` (all services in a row).
 
 ---

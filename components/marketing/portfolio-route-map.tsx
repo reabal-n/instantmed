@@ -25,14 +25,14 @@ const SERVICE_DETAILS: Record<
   },
   "repeat-rx": {
     benefits: ["For your regular medication", "Doctor review before prescribing"],
-    cta: "Renew medication",
+    cta: "Get your repeat",
   },
   ed: {
-    benefits: ["Private, focused assessment", "eScript if clinically appropriate"],
+    benefits: ["Private doctor assessment", "eScript if the doctor prescribes"],
     cta: "View ED assessment",
   },
   "hair-loss": {
-    benefits: ["Doctor-assessed options", "eScript if clinically appropriate"],
+    benefits: ["Doctor-assessed options", "eScript if the doctor prescribes"],
     cta: "View hair loss assessment",
   },
   "womens-health": {
@@ -51,20 +51,13 @@ function getHomepageServiceHref(service: ServiceDef): string {
     : getServiceMarketingHref(service)
 }
 
-function ServiceCard({ service, index }: { service: ServiceDef; index: number }) {
+function ServiceCard({ service }: { service: ServiceDef }) {
   const { isServiceDisabled } = useServiceAvailability()
   const disabled = isServiceDisabled(service.id)
   const detail = SERVICE_DETAILS[service.id]
-  const isCoreService = index < 2
 
   return (
-    <li
-      className={cn(
-        "min-w-0",
-        isCoreService ? "lg:col-span-3" : "lg:col-span-2",
-        index === 4 && "sm:col-span-2 lg:col-span-2",
-      )}
-    >
+    <li className="min-w-0">
       <Link
         href={getHomepageServiceHref(service)}
         aria-disabled={disabled || undefined}
@@ -77,7 +70,7 @@ function ServiceCard({ service, index }: { service: ServiceDef; index: number })
         )}
       >
         {disabled ? (
-          <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-lg bg-warning-light px-2.5 py-1 text-xs font-medium text-warning">
+          <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-lg bg-warning-light px-2.5 py-1 text-sm font-medium text-warning">
             <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
             Unavailable
           </span>
@@ -91,7 +84,7 @@ function ServiceCard({ service, index }: { service: ServiceDef; index: number })
             variant="sticker"
             stickerLoading="eager"
           />
-          <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+          <p className="shrink-0 text-base font-semibold tabular-nums text-foreground">
             {service.pricePrefix ? `${service.pricePrefix} ` : null}
             {service.price}
           </p>
@@ -100,11 +93,11 @@ function ServiceCard({ service, index }: { service: ServiceDef; index: number })
         <Heading level="h3" className="mt-5 text-xl sm:text-2xl">
           {service.title}
         </Heading>
-        <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+        <p className="mt-1.5 text-base leading-6 text-muted-foreground">
           {service.subtitle}
         </p>
 
-        <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+        <ul className="mt-4 space-y-2 text-base text-muted-foreground">
           {detail.benefits.map((benefit) => (
             <li key={benefit} className="flex items-start gap-2">
               <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
@@ -113,7 +106,7 @@ function ServiceCard({ service, index }: { service: ServiceDef; index: number })
           ))}
         </ul>
 
-        <span className="mt-auto flex items-center gap-2 pt-6 text-sm font-semibold text-primary">
+        <span className="mt-auto flex items-center gap-2 pt-6 text-base font-semibold text-primary">
           {detail.cta}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </span>
@@ -130,7 +123,7 @@ export function PortfolioRouteMap() {
     <section
       id="pricing"
       aria-labelledby="portfolio-route-map-title"
-      className="scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16 lg:py-24"
+      className="scroll-mt-20 px-4 pt-6 pb-10 sm:px-6 sm:pt-10 sm:pb-16 lg:pt-14 lg:pb-24"
     >
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
@@ -139,26 +132,26 @@ export function PortfolioRouteMap() {
             What do you need?
           </Heading>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            Choose the focused service that fits. The fee is shown before you start.
+            Choose the service that fits. The fee is shown before you start.
           </p>
         </div>
 
-        <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-6">
-          {services.map((service, index) => (
-            <ServiceCard key={service.id} service={service} index={index} />
+        <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((service) => (
+            <ServiceCard key={service.id} service={service} />
           ))}
         </ul>
 
-        <div className="mt-8 flex max-w-4xl items-start gap-3 border-t border-border/60 pt-6 dark:border-white/15">
+        <div className="mt-5 flex max-w-4xl items-start gap-3 border-t border-border/60 pt-4 dark:border-white/15 sm:mt-8 sm:pt-6">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Stethoscope className="h-4 w-4" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-foreground">Doctor-owned clinical pathways</p>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            <p className="text-sm font-semibold text-foreground">One secure form per service</p>
+            <p className="mt-1 text-base leading-6 text-muted-foreground">
               Each service has its own secure form and safety rules. {FORM_FIRST_WEDGE}
             </p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <p className="mt-2 text-base leading-6 text-muted-foreground">
               Broader concerns, ongoing care, or anything needing an examination belongs with
               your regular GP or an in-person service.
             </p>

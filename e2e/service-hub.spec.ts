@@ -4,9 +4,9 @@ import { waitForPageLoad } from "./helpers/test-utils"
 
 const ACTIVE_SERVICE_ROWS = [
   { id: "med-cert", name: "Medical certificate", url: /service=med-cert/ },
-  { id: "repeat-rx", name: "Refill a prescription", url: /service=repeat-script/ },
+  { id: "repeat-rx", name: "Repeat prescription", url: /service=repeat-script/ },
   { id: "ed", name: "Erectile dysfunction", url: /service=consult.*subtype=ed/ },
-  { id: "hair-loss", name: "Hair loss treatment", url: /service=consult.*subtype=hair_loss/ },
+  { id: "hair-loss", name: "Hair loss assessment", url: /service=consult.*subtype=hair_loss/ },
   { id: "womens-health", name: "Women's health", url: /service=consult.*subtype=womens_health/ },
   { id: "weight-loss", name: "Weight management", url: /service=consult.*subtype=weight_loss/ },
 ] as const

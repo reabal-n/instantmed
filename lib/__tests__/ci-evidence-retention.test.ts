@@ -92,9 +92,9 @@ describe("CI diagnostic evidence retention", () => {
 
   it("reserves three minutes for reports within the measured suite runtime allowance", () => {
     const e2e = workflow.slice(workflow.indexOf("  e2e:"))
-    expect(e2e).toContain("timeout-minutes: 65")
+    expect(e2e).toContain("timeout-minutes: 78")
     expect(e2e).toContain("PLAYWRIGHT_CI_DEADLINE_MS")
-    expect(e2e).toContain("62 * 60")
+    expect(e2e).toContain("75 * 60")
     expect(config).toContain("globalTimeout: getCiPlaywrightGlobalTimeout()")
   })
 

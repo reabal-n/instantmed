@@ -24,6 +24,7 @@ const sourceSans = Source_Sans_3({
   variable: "--font-sans",
   display: "swap",
   weight: ["400", "500", "600"],
+  fallback: ["Source Sans 3 Fallback Liberation", "Arial", "sans-serif"],
 })
 
 // Display face for hero headlines (48px+) and signature brand moments.
@@ -37,6 +38,7 @@ const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-display",
   display: "optional",
+  fallback: ["Plus Jakarta Sans Fallback Liberation", "Arial", "sans-serif"],
   // The canonical display scale includes 300 as well as 500-700. Loading the
   // variable face keeps those weights honest without duplicating @font-face
   // declarations. The two fixed money-page H1s preload a 5 KB glyph subset

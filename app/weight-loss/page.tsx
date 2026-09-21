@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 
-import { WeightLossClient } from "./weight-loss-client"
+import { WeightLossLanding } from "@/components/marketing/weight-loss-landing"
+import { FAQSchema } from "@/components/seo/healthcare-schema"
+import { WEIGHT_LOSS_LANDING_FAQ } from "@/lib/data/weight-loss-faq"
 
 export const metadata: Metadata = {
   title: "Weight Management Assessment Online",
@@ -28,5 +30,10 @@ export const metadata: Metadata = {
 }
 
 export default function WeightLossPage() {
-  return <WeightLossClient />
+  return (
+    <>
+      <FAQSchema faqs={WEIGHT_LOSS_LANDING_FAQ.map(({ question, answer }) => ({ question, answer }))} />
+      <WeightLossLanding />
+    </>
+  )
 }

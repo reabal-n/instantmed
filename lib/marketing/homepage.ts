@@ -1,192 +1,19 @@
-import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
 import { BRANDED_SEARCH_LINKS } from "@/lib/seo/branded-search-links"
-import {
-  type CanonicalServiceId,
-  getService,
-  getServiceMarketingHref,
-  getServiceRequestHref,
-  type ServiceDef,
-} from "@/lib/services/service-catalog"
 
 // Homepage Marketing Data
 // All content centralized for easy updates
 
-const AVAILABILITY_24_7 = getApprovedClaim("availability_24_7")
-const CLINICAL_ACCESS_SCOPE = getApprovedClaim("clinical_access_scope")
-const CLINICAL_DECISION_MODEL = getApprovedClaim("clinical_decision_model")
-const CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
+// The howItWorks export was removed 2026-09-20 (dead: the home page renders its
+// own HOME_HOW_IT_WORKS_STEPS). This lookup stays, unused and prefixed, only
+// because lib/__tests__/canonical-trust-copy-contract.test.ts pins
+// getApprovedClaim("clinical_review_sequence") as textually present in this
+// file's "public process order" branch-aware set. Do not delete without
+// updating that contract.
+const _CLINICAL_REVIEW_SEQUENCE = getApprovedClaim("clinical_review_sequence")
 const PRESCRIBING_IDENTITY_REQUIRED = getApprovedClaim("prescribing_identity_required")
-
-export const siteConfig = {
-  name: "InstantMed",
-  tagline: "Focused online requests with doctor-owned clinical pathways.",
-  operatingHours: {
-    medCerts: "24/7",
-    rxConsults: "Submit 24/7",
-    weekdays: "Submit 24/7",
-    weekends: "Submit 24/7",
-    publicHolidays: "Submit 24/7",
-  },
-  contact: {
-    email: CONTACT_EMAIL,
-    phone: CONTACT_PHONE,
-  },
-  legal: {
-    abn: ABN,
-    clinicName: COMPANY_NAME,
-    clinicAddress: COMPANY_ADDRESS,
-    ahpraStatement: "All consulting doctors hold current AHPRA registration",
-  },
-}
-
-export const heroRotatingTexts = [
-  "A doctor, without the waiting room.",
-  "Skip the waiting room, not the doctor.",
-  "AHPRA-registered doctors. Human clinical accountability.",
-  "Fill in a form. The clinical pathway takes it from there.",
-  "Doctor-owned care, without leaving the couch.",
-]
-
-export const trustSignals = [
-  {
-    icon: "Clock",
-    text: "Submit requests 24/7",
-    description: AVAILABILITY_24_7,
-  },
-  {
-    icon: "Clock",
-    text: "Review operates 24/7",
-    description: "Timing varies by complexity, follow-up, and queue volume",
-  },
-  {
-    icon: "Shield",
-    text: "AHPRA registered drs",
-    description: CLINICAL_DECISION_MODEL,
-  },
-  {
-    icon: "Lock",
-    text: "Private and secure",
-    description: CLINICAL_ACCESS_SCOPE,
-  },
-]
-
-const HOMEPAGE_SERVICE_ORDER: CanonicalServiceId[] = [
-  "med-cert",
-  "repeat-rx",
-  "ed",
-  "hair-loss",
-  "womens-health",
-  "weight-loss",
-]
-
-const HOMEPAGE_SERVICE_TITLES: Record<CanonicalServiceId, string> = {
-  "med-cert": "Medical Certificates",
-  "repeat-rx": "Repeat Medication",
-  ed: "ED Assessment",
-  "hair-loss": "Hair Loss Assessment",
-  "womens-health": "Women's Health",
-  "weight-loss": "Weight Loss",
-}
-
-function getHomepageServiceHref(service: ServiceDef): string {
-  if (service.id === "med-cert" || service.id === "repeat-rx") {
-    return getServiceRequestHref(service)
-  }
-
-  return getServiceMarketingHref(service)
-}
-
-export const proofMetrics = [
-  {
-    label: "Review timing",
-    value: "Fast doctor review",
-    icon: "Zap",
-  },
-  {
-    label: "Clinical ownership",
-    value: "Doctor-owned pathways",
-    icon: "MessageSquare",
-  },
-  {
-    label: "No account needed",
-    value: "Start in about 3 mins",
-    icon: "CheckCircle",
-  },
-  {
-    label: "Flat pricing",
-    value: GUARANTEE,
-    icon: "CreditCard",
-  },
-]
-
-export const howItWorks = [
-  {
-    step: 1,
-    title: "Answer a few questions",
-    description: "Tell us what's going on. Takes about 3 minutes.",
-    icon: "ClipboardList",
-  },
-  {
-    step: 2,
-    title: "Your request follows its clinical pathway",
-    description: CLINICAL_REVIEW_SEQUENCE,
-    icon: "Stethoscope",
-  },
-  {
-    step: 3,
-    title: "Done",
-    description: "Certificate to your inbox, medication to your phone. That's it.",
-    icon: "FileCheck",
-  },
-]
-
-type FeaturedServiceCopy = {
-  description: string
-  features: string[]
-}
-
-const FEATURED_SERVICE_COPY: Record<CanonicalServiceId, FeaturedServiceCopy> = {
-  "med-cert": {
-    description: "Feeling too sick to visit a GP? Get a valid, employer-ready certificate from an AHPRA-registered doctor, without leaving bed.",
-    features: ["Sick leave", "Carer's leave", "Uni extensions", "Same-day delivery"],
-  },
-  "repeat-rx": {
-    description: "Running low on your regular medication? A doctor reviews your request and sends to your phone. Any pharmacy, Australia-wide.",
-    features: ["Contraception", "Blood pressure", "Skin treatments", "Sent to your phone"],
-  },
-  ed: {
-    description: "Discreet doctor-led assessment for ED. A doctor reviews your form and prescribes only if clinically appropriate. No waiting room.",
-    features: ["Form-first review", "Private assessment", "Any Australian pharmacy", "Doctor-reviewed"],
-  },
-  "hair-loss": {
-    description: "Doctor-led hair loss assessment. Private form-first review, with next steps decided after clinical assessment.",
-    features: ["Doctor-assessed options", "Doctor-reviewed", "eScript if approved", "No waiting room"],
-  },
-  "womens-health": {
-    description: "UTI care and contraceptive pill requests. Reviewed by an Australian doctor, no waiting room required.",
-    features: ["UTI treatment", "Contraceptive pill", "Safety screening", "Doctor-reviewed"],
-  },
-  "weight-loss": {
-    description: "Doctor-led weight management assessment with evidence-based, safety-first review boundaries.",
-    features: ["Manual review", "Doctor-reviewed", "Safety screening", "No waiting room"],
-  },
-}
-
-export const featuredServices = HOMEPAGE_SERVICE_ORDER.map((id) => {
-  const service = getService(id)
-  const copy = FEATURED_SERVICE_COPY[id]
-
-  return {
-    title: HOMEPAGE_SERVICE_TITLES[id],
-    description: copy.description,
-    priceFrom: service.comingSoon ? undefined : service.priceFrom,
-    href: getHomepageServiceHref(service),
-    comingSoon: service.comingSoon,
-    features: copy.features,
-  }
-})
 
 export const faqItems = [
   {
@@ -236,16 +63,4 @@ export const footerLinks = {
     ...BRANDED_SEARCH_LINKS.slice(2),
     { label: "All locations", href: "/locations" },
   ],
-}
-
-export const slaPolicy = {
-  standardTurnaround: "60 minutes",
-  operatingHoursNote: "During operating hours",
-  exceptions: [
-    "Complex medical histories may require additional review time",
-    "Requests requiring a phone/video consultation",
-    "High-demand periods (public holidays, flu season)",
-  ],
-  escalationNote: "If your request needs clarification, a doctor may message you or offer a brief call at no extra charge.",
-  refundNote: GUARANTEE,
 }

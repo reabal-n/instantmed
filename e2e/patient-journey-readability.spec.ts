@@ -17,12 +17,28 @@ for (const width of [375, 1440]) {
       await route.continue()
     })
     await page.addInitScript(() => {
-      const probe = { cls: 0 }
+      // Records each shift's value and the elements that moved so a CI-only
+      // failure names its cause instead of just a number.
+      const probe = { cls: 0, shifts: [] as string[] }
       Object.assign(window, { __e2eHomepageFontProbe: probe })
+      const describe = (node: Node | null | undefined) => {
+        const el = node instanceof Element ? node : node?.parentElement
+        if (!el) return "?"
+        const cls = typeof el.className === "string" ? el.className.split(" ").slice(0, 3).join(".") : ""
+        const text = (el.textContent ?? "").trim().slice(0, 32).replace(/\s+/g, " ")
+        return `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ""}${cls ? `.${cls}` : ""}:"${text}"`
+      }
       new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
-          const shift = entry as PerformanceEntry & { value: number; hadRecentInput: boolean }
-          if (!shift.hadRecentInput) probe.cls += shift.value
+          const shift = entry as PerformanceEntry & {
+            value: number
+            hadRecentInput: boolean
+            sources?: { node?: Node | null }[]
+          }
+          if (shift.hadRecentInput) continue
+          probe.cls += shift.value
+          const sources = (shift.sources ?? []).map(source => describe(source.node)).join(" | ")
+          probe.shifts.push(`${shift.value.toFixed(4)} ${sources}`)
         }
       }).observe({ type: "layout-shift", buffered: true })
     })
@@ -42,15 +58,15 @@ for (const width of [375, 1440]) {
         const { fonts } = await cdp.send("CSS.getPlatformFontsForNode", { nodeId })
         evidence.push({ selector, family, fonts })
       }
-      const cls = await page.evaluate(() => {
+      const { cls, shifts } = await page.evaluate(() => {
         const probe = (window as typeof window & {
-          __e2eHomepageFontProbe?: { cls: number }
+          __e2eHomepageFontProbe?: { cls: number; shifts: string[] }
         }).__e2eHomepageFontProbe
         if (!probe) throw new Error("Homepage layout-shift probe did not start")
-        return probe.cls
+        return { cls: probe.cls, shifts: probe.shifts.slice(0, 12) }
       })
       const evidencePath = testInfo.outputPath("rendered-fonts.json")
-      await writeFile(evidencePath, JSON.stringify({ width, cls, evidence }, null, 2))
+      await writeFile(evidencePath, JSON.stringify({ width, cls, shifts, evidence }, null, 2))
       await testInfo.attach("rendered-fonts", { path: evidencePath, contentType: "application/json" })
       await page.screenshot({ path: testInfo.outputPath(`homepage-fonts-${width}.png`) })
       for (const { selector, family, fonts } of evidence) {
@@ -60,7 +76,10 @@ for (const width of [375, 1440]) {
           expect(font.familyName).toContain(family)
         }
       }
-      expect(cls, "Slow fonts must not cause a disruptive homepage layout shift").toBeLessThanOrEqual(0.1)
+      expect(
+        cls,
+        `Slow fonts must not cause a disruptive homepage layout shift (cls ${cls.toFixed(4)}; shifts: ${shifts.join(" || ") || "none"})`,
+      ).toBeLessThanOrEqual(0.1)
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1)
     } finally {
       await cdp.detach()
