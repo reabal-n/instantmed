@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined, set: vi.fn() }) }))
+
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(), db: vi.fn(), create: vi.fn(), guest: vi.fn(), retry: vi.fn(),
   retrieve: vi.fn(), expire: vi.fn(), resume: vi.fn(),
