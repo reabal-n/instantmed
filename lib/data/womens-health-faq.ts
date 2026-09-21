@@ -46,8 +46,8 @@ const UTI_FAQ_ITEMS = [
 
 const PILL_FAQ_ITEMS = [
   {
-    question: "Can I start or switch a contraceptive pill online?",
-    answer: "You can request an assessment to start a new contraceptive pill or switch from your current one. The doctor reviews your health history and decides what is suitable after review. The specific option is determined by the doctor, not chosen from a menu.",
+    question: "Can I start, switch or continue a contraceptive pill online?",
+    answer: "You can request an assessment to start, switch or continue a contraceptive pill. The doctor reviews your health history and decides what is suitable after review. The specific option is determined by the doctor, not chosen from a menu.",
   },
   {
     question: "Is the contraceptive pill safety screen complicated?",
@@ -55,7 +55,7 @@ const PILL_FAQ_ITEMS = [
   },
   {
     question: "I already take the pill. Can I get a repeat?",
-    answer: "If you are continuing a contraceptive you are already established on, that is handled as a repeat prescription. Start there if your medication and dose are unchanged. The women's health assessment is for starting a new pill, switching, or a UTI concern.",
+    answer: `Yes. Continuing the same pill uses the women's health assessment, with a one-off doctor review fee of ${PRICING_DISPLAY.WOMENS_HEALTH}. Have your current pill name, strength and dose or directions ready. The same safety screen applies even when your pill is unchanged. Pharmacy costs are separate; prescribing depends on the doctor's review.`,
   },
   {
     question: "What information does the doctor need for a pill assessment?",

@@ -22,7 +22,7 @@ const pages = [
     route: "/contraceptive-pill-assessment-online",
     canonical: "https://instantmed.com.au/contraceptive-pill-assessment-online",
     renderMarker: "ContraceptivePillAssessmentLanding",
-    requiredCopy: ["Start or switch the contraceptive pill", "doctor review"],
+    requiredCopy: ["Start, switch or continue the contraceptive pill", "doctor review"],
   },
 ]
 
@@ -63,14 +63,14 @@ describe("women's-health intent entry pages", () => {
       '"/request?service=consult&subtype=womens_health&intent=ocp_new"',
     )
     expect(fork).toContain(
-      'href="/request?service=consult&subtype=womens_health&intent=uti"',
+      'href={isDisabled ? "/contact" : "/request?service=consult&subtype=womens_health&intent=uti"}',
     )
     expect(fork).toContain(
-      'href="/request?service=consult&subtype=womens_health&intent=ocp_new"',
+      'href={isDisabled ? "/contact" : "/request?service=consult&subtype=womens_health&intent=ocp_new"}',
     )
     expect(landing).toContain('href="/uti-assessment-online"')
     expect(landing).toContain('href="/contraceptive-pill-assessment-online"')
-    expect(landing).toContain('href="/prescriptions"')
+    expect(landing).not.toContain('href="/prescriptions"')
     expect(landing).not.toContain("WomensHealthIntent")
     expect(landing).not.toContain("INTENT_COPY")
     expect(contentHubLinks).toContain("/uti-assessment-online")
@@ -100,7 +100,9 @@ describe("women's-health intent entry pages", () => {
 
     expect(combinedSource).toContain("pregnancy or possible pregnancy")
     expect(combinedSource).toContain("migraine with aura")
-    expect(combinedSource).toContain("Continuing the same pill? Use repeat prescriptions.")
+    expect(combinedSource).not.toContain("Continuing the same pill? Use repeat prescriptions.")
+    expect(combinedSource).not.toContain("Use repeat prescriptions instead.")
+    expect(combinedSource).toContain("Start, switch or continue the pill")
     expect(combinedSource).toContain("may call or message if a safety detail needs clarification")
     expect(combinedSource).not.toMatch(/\b(antibiotics?|same[- ]day|no call needed|no phone call)\b/i)
     expect(combinedSource).not.toMatch(/\b(guaranteed prescription|guaranteed treatment|treatment guaranteed|prescription guaranteed|guaranteed outcome)\b/i)

@@ -39,7 +39,6 @@ const whatHappensNextSource = readFileSync(join(root, "components/patient/what-h
 const designSource = readFileSync(join(root, "DESIGN.md"), "utf8")
 const brandSource = readFileSync(join(root, "docs/BRAND.md"), "utf8")
 const medCertLandingSource = readFileSync(join(root, "components/marketing/med-cert-landing.tsx"), "utf8")
-const doctorProfileSource = readFileSync(join(root, "components/marketing/sections/doctor-profile-section.tsx"), "utf8")
 const requestPageSource = readFileSync(join(root, "app/request/page.tsx"), "utf8")
 const requestFlowSource = readFileSync(join(root, "components/request/request-flow.tsx"), "utf8")
 const requestStepRouterSource = readFileSync(join(root, "components/request/step-router.tsx"), "utf8")
@@ -52,10 +51,6 @@ const nextConfigSource = readFileSync(join(root, "next.config.mjs"), "utf8")
 const trustBadgesSource = readFileSync(join(root, "lib/marketing/trust-badges.ts"), "utf8")
 const howItWorksContentSource = readFileSync(join(root, "components/marketing/how-it-works-content.tsx"), "utf8")
 const speedClaimsSource = readFileSync(join(root, "lib/marketing/speed-claims.ts"), "utf8")
-const doctorProfileSectionSource = readFileSync(
-  join(root, "components/marketing/sections/doctor-profile-section.tsx"),
-  "utf8",
-)
 const rootOgImageSource = readFileSync(join(root, "app/opengraph-image.tsx"), "utf8")
 const medCertOgImageSource = readFileSync(join(root, "app/medical-certificate/opengraph-image.tsx"), "utf8")
 const workplaceClaimSources = [
@@ -505,10 +500,10 @@ describe("marketing copy contracts", () => {
   })
 
   it("does not imply prescribing requests are guaranteed to be approved", () => {
-    expect(doctorProfileSource).toContain('getApprovedClaim("doctor_registration")')
-    expect(doctorProfileSource).toContain('getApprovedClaim("clinical_decision_model")')
-    expect(doctorProfileSource).not.toContain("reviewed and approved")
-    expect(doctorProfileSource).not.toContain("med-cert page only")
+    const hairLanding = readFileSync(join(root, "components/marketing/hair-loss-landing.tsx"), "utf8")
+    expect(hairLanding).toContain("Prescription is not guaranteed")
+    expect(hairLanding).toContain("The doctor decides whether to prescribe")
+    expect(hairLanding).not.toContain("reviewed and approved")
   })
 
   it("keeps route Open Graph image text wrappers compatible with next/og", () => {
@@ -540,13 +535,6 @@ describe("marketing copy contracts", () => {
     expect(heroSource).toContain("GoogleReviewsBadge")
     expect(stickyCtaSource).not.toContain("hidden lg:block fixed")
     expect(stickyCtaSource).not.toContain("top: '62px'")
-  })
-
-  it("keeps shared doctor trust copy to review, not approval outcome language", () => {
-    expect(doctorProfileSectionSource).toContain('getApprovedClaim("doctor_registration")')
-    expect(doctorProfileSectionSource).toContain('getApprovedClaim("clinical_decision_model")')
-    expect(doctorProfileSectionSource).not.toContain("reviewed and approved")
-    expect(doctorProfileSectionSource).not.toContain("med-cert page only")
   })
 
   it("renders the employer logo marquee on the medical certificate landing page", () => {

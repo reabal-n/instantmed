@@ -49,12 +49,12 @@ async function settle(page: Page) {
  * an all-enabled availability response for every test in this file; the
  * unavailable-state behaviour has its own explicit tests elsewhere.
  */
-async function stubAvailabilityEnabled(page: Page) {
+async function stubAvailabilityEnabled(page: Page, maintenanceMode = false) {
   await page.route("**/api/availability", async (route) => {
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({
-        maintenance_mode: false,
+        maintenance_mode: maintenanceMode,
         disable_med_cert: false,
         disable_repeat_scripts: false,
         disable_consults: false,
@@ -233,22 +233,6 @@ test("home services grid has no orphan row at desktop width", async ({ page }) =
 test.describe("landing page length", () => {
   for (const landing of LANDING_PAGES) {
     test(`${landing.path} fits ${landing.maxPhoneScreens} phone screens`, async ({ page }) => {
-      test.fixme(
-        landing.path === "/medical-certificate",
-        "10.8 screens at 375×812 against a 10.0 budget; follow-up F1 in docs/plans/2026-09-19-landing-pages-95-plan.md",
-      )
-      test.fixme(
-        landing.path === "/erectile-dysfunction",
-        "11.3 screens at 375×812 against a 9.5 budget; follow-up F2 in docs/plans/2026-09-19-landing-pages-95-plan.md",
-      )
-      test.fixme(
-        landing.path === "/hair-loss",
-        "12.3 screens at 375×812 against a 9.5 budget; follow-up F3 in docs/plans/2026-09-19-landing-pages-95-plan.md",
-      )
-      test.fixme(
-        landing.path === "/womens-health",
-        "9.6 screens at 375×812 against a 9.5 budget; follow-up F4 in docs/plans/2026-09-19-landing-pages-95-plan.md",
-      )
       await page.setViewportSize(PHONE)
       await seedMoneyPageState(page, "light")
       await gotoPublicRoute(page, landing.path)
@@ -313,4 +297,27 @@ test.describe("landing page type floor", () => {
       expect(census.share, `${landing.path}: ${(census.share * 100).toFixed(0)}% of words at 16px+`).toBeGreaterThanOrEqual(0.45)
     })
   }
+})
+
+for (const path of ["/womens-health", "/contraceptive-pill-assessment-online"]) {
+  test(`${path} sends continuing-pill patients to the correct assessment and fee`, async ({ page }) => {
+    await page.setViewportSize(PHONE)
+    await seedMoneyPageState(page, "light")
+    await gotoPublicRoute(page, path)
+    const continuation = page.locator("main").getByRole("link").filter({ hasText: /Continu(?:ing the same pill|e your current pill)/ }).first()
+    await expect(continuation).toHaveAttribute("href", "/request?service=consult&subtype=womens_health&intent=ocp_new")
+    await page.getByRole("button", { name: "I already take the pill. Can I get a repeat?", exact: true }).click()
+    await expect(page.getByText("Yes. Continuing the same pill uses", { exact: false })).toContainText("$49.95")
+    await expect(page.getByText("Yes. Continuing the same pill uses", { exact: false })).toContainText("same safety screen")
+  })
+}
+
+test("pill continuation respects maintenance mode", async ({ page }) => {
+  await page.unroute("**/api/availability")
+  await stubAvailabilityEnabled(page, true)
+  await seedMoneyPageState(page)
+  await gotoPublicRoute(page, "/contraceptive-pill-assessment-online")
+  const continuation = page.getByRole("link").filter({ hasText: "Continue your current pill" })
+  await expect(continuation).toHaveAttribute("href", "/contact")
+  await expect(continuation).toContainText("Contact us")
 })

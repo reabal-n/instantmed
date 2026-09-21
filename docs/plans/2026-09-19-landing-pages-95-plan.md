@@ -2496,3 +2496,21 @@ Task 28 re-measured all seven pages locally (see `.superpowers/sdd/2026-09-19-la
 **F7 (new).** `/weight-loss` re-scores at 91/100, the largest single improvement of all seven pages (was 48). It does not reach 95 because Content and Copy score 85 and 90: this is the newest and least field-tested page (it needed a same-task follow-up fix, commit `93f332e86`, for loading placeholders and a labelled eligibility section), so its depth was scored conservatively rather than confirmed defective. No new work is authorised by this entry; it is reference only.
 
 **F8 (new, final-review S7).** Two gates on `/medical-certificate` and one on `/prescriptions` pass with almost no margin, so a future content addition could turn the required `e2e` check red for a reason nobody connects back to their change. `/medical-certificate`'s sticky bar measures 126.1px against the 130px cap (`e2e/landing-pages.spec.ts:150`); its 16px word share is 47.8% against the 45% floor, the narrowest of all seven pages (see the F1 addendum above); `/prescriptions` clears its 8.5-screen Scroll budget by 0.05 screens (8.45 measured, see F6 above). None of this is a failure today. No new work is authorised by this entry; it is reference only.
+
+
+## F1–F4 closure — 2026-09-21
+
+The production follow-up removes repeated explanations and decorative card structure while retaining clinical warnings, pricing, prescribing identity and doctor-review boundaries. The original phone budgets remain unchanged, and all four `test.fixme` deferrals are removed. `HowItWorksInline` now has an opt-in `compact` presentation for medical certificates and hair loss: it retains every step, description and timing label, omits decorative stickers and tightens spacing. Other consumers keep their existing presentation.
+
+Local Chromium measurements at 375×812, with fonts settled, match in light and dark mode:
+
+| Follow-up | Route | Before (Task 28) | After | Budget |
+|---|---|---:|---:|---:|
+| F1 | `/medical-certificate` | 10.81 | 9.916 | 10.0 |
+| F2 | `/erectile-dysfunction` | 11.26 | 9.393 | 9.5 |
+| F3 | `/hair-loss` | 12.28 | 9.475 | 9.5 |
+| F4 | `/womens-health` | 9.62 | 9.482 | 9.5 |
+
+All 67 landing-page browser tests pass, including page length, desktop hero spacing, sticky CTA, typography, light/dark accessibility and continuation routing/fee checks. Rendered mobile and desktop screenshots were inspected. Independent source reviews found no remaining actionable clinical/routing or shared-component regressions. These are local evidence, not a production measurement or a new subjective 95-point score; F5–F8 retain their prior status.
+
+The same follow-up reconciles women's-health hub, pill landing page, metadata and FAQs with the existing 2026-09-17 policy: continuing the pill uses the women's-health assessment and fee, with the same safety screen. Continuation links follow availability; the dedicated-page maintenance regression has browser coverage. No clinical logic, checkout price or environment change is introduced.

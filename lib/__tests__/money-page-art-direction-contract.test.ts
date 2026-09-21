@@ -37,9 +37,9 @@ describe("money-page art-direction contract", () => {
     expect(edLanding).toContain("Medicine safety")
     expect(edLanding).toContain("Red flags")
     expect(edLanding).toContain("Doctor review")
-    expect(edLanding).toContain("Online care may be suitable")
-    expect(edLanding).toContain("A detail needs clarification")
-    expect(edLanding).toContain("In-person care is safer")
+    expect(edLanding).toContain("whether remote care is suitable")
+    expect(edLanding).toContain("may call or message for clarification")
+    expect(edLanding).toContain("recommend GP, sexual-health, or cardiovascular follow-up")
     expect(edLanding.indexOf("<EdReviewCostOutcomeSection", renderStart)).toBeLessThan(
       edLanding.indexOf("<EdSafetyDecisionMap />", renderStart),
     )
@@ -63,9 +63,9 @@ describe("money-page art-direction contract", () => {
     expect(hairLanding).toContain("Tempo")
     expect(hairLanding).toContain("Scalp symptoms")
     expect(hairLanding).toContain("Health context")
-    expect(hairLanding).toContain("Online review may continue")
-    expect(hairLanding).toContain("More detail may be needed")
-    expect(hairLanding).toContain("In-person review may be safer")
+    expect(hairLanding).toContain("The doctor may approve")
+    expect(hairLanding).toContain("The doctor may ask for more detail")
+    expect(hairLanding).toContain("may be safer to assess in person")
     expect(hairLanding.indexOf("<HairAssessmentModel />")).toBeLessThan(
       hairLanding.indexOf("<HowItWorksInline"),
     )
@@ -93,8 +93,8 @@ describe("money-page art-direction contract", () => {
       expect(source).not.toMatch(/no call needed|guaranteed prescription/i)
     }
 
-    expect(edLanding).toContain("lg:grid-cols-[minmax(0,1.1fr)_minmax(13rem,0.62fr)_minmax(0,0.95fr)]")
-    expect(hairLanding).toContain("lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,0.88fr)]")
+    expect(edLanding).toContain("sm:grid-cols-2")
+    expect(hairLanding).toContain("sm:grid-cols-2")
     expect(hairLanding).toContain("3-min form")
     expect(hairLanding).not.toContain("2-min")
   })
