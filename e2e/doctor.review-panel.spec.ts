@@ -170,7 +170,7 @@ test.describe("Doctor review cockpit", () => {
     await expect(safetyBand.getByText("Phone", { exact: true })).toBeVisible()
     await expect(safetyBand.getByText("Medicare / IHI", { exact: true })).toBeVisible()
     await expect(safetyBand.getByText("Visits", { exact: true })).toHaveCount(0)
-    await expect(safetyBand.getByRole("button", { name: "View profile" })).toBeVisible()
+    await expect(safetyBand.getByRole("button", { name: "Patient details" })).toBeVisible()
     await expect(safetyBand.getByRole("link", { name: "Open full record" })).toHaveAttribute(
       "href",
       `/doctor/intakes/${INTAKE_ID}`,
@@ -241,7 +241,7 @@ test.describe("Doctor review cockpit", () => {
     const cockpit = await openSeededReviewCockpit(page)
     const activeIntake = await getIntakeById(INTAKE_ID)
 
-    await cockpit.getByRole("button", { name: "View profile" }).click()
+    await cockpit.getByRole("button", { name: "Patient details" }).click()
     const drawer = page.getByRole("dialog", { name: "Patient profile" })
 
     await expect(drawer).toBeVisible()
@@ -252,7 +252,7 @@ test.describe("Doctor review cockpit", () => {
     await expect(drawer.getByText("Asthma", { exact: true })).toBeVisible()
     await expect(drawer.getByText("Salbutamol", { exact: true })).toBeVisible()
     await expect(drawer.getByText(/requests? total · \d+ notes? total/)).toBeVisible()
-    await expect(drawer.getByText("Recent activity", { exact: true })).toBeVisible()
+    await expect(drawer.getByText("Prior activity", { exact: true })).toBeVisible()
     if (activeIntake?.reference_number) {
       await expect(drawer.getByText(activeIntake.reference_number, { exact: true })).toHaveCount(0)
     }
@@ -274,7 +274,7 @@ test.describe("Doctor review cockpit", () => {
     await expect(cockpit.getByRole("region", { name: "Patient safety context" })).toBeVisible()
     await expect(cockpit.getByRole("region", { name: "Request packet" })).toBeVisible()
 
-    await cockpit.getByRole("button", { name: "View profile" }).click()
+    await cockpit.getByRole("button", { name: "Patient details" }).click()
     const drawer = page.getByRole("dialog", { name: "Patient profile" })
     await expect(drawer).toBeVisible()
     await expect(drawer.getByText("Saved clinical profile", { exact: true })).toBeVisible()
@@ -287,7 +287,7 @@ test.describe("Doctor review cockpit", () => {
 
   test("full patient record opens on Clinical and separates history from operations", async ({ page }) => {
     const cockpit = await openSeededReviewCockpit(page)
-    await cockpit.getByRole("button", { name: "View profile" }).click()
+    await cockpit.getByRole("button", { name: "Patient details" }).click()
 
     const drawer = page.getByRole("dialog", { name: "Patient profile" })
     await Promise.all([

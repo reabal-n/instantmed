@@ -28,7 +28,7 @@ import {
   isConcerningValue,
 } from "@/components/doctor/review/utils"
 import { useReviewActions } from "@/components/doctor/review-actions"
-import { useStaffLeaveGuard, useStaffReturnDestination } from "@/components/operator/staff-list-navigation-provider"
+import { useStaffLeaveGuard, useStaffNavigation, useStaffReturnDestination } from "@/components/operator/staff-list-navigation-provider"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -74,6 +74,7 @@ interface IntakeDetailClientProps {
   followups?: DoctorFollowupRow[]
   certDelivery?: CertDeliveryStatus | null
   parchmentEnabled?: boolean
+  viewerIsAdmin?: boolean
   /**
    * Admin-only: may the viewer revoke an auto-issued certificate?
    * `revokeAIApproval` is admin-gated server-side; this hides a control that
@@ -128,6 +129,7 @@ function CockpitIntakeDetailClient({
   nextIntakeId,
   draftId,
   certDelivery,
+  viewerIsAdmin = false,
   viewerCanRevokeAutoIssued = false,
   viewerActionAccess,
   patientMessages = [],
@@ -141,6 +143,8 @@ function CockpitIntakeDetailClient({
 }: IntakeDetailClientProps) {
   const router = useRouter()
   const { openPanel } = usePanel()
+  const staffNavigation = useStaffNavigation()
+  const returnDestination = useStaffReturnDestination()
   const [redFlagsAcknowledged, setRedFlagsAcknowledged] = useState(false)
   const initialReviewData = useMemo<ReviewData>(() => ({
     intake,
@@ -357,6 +361,9 @@ function CockpitIntakeDetailClient({
                   size="sm"
                   onClick={async () => {
                     if (!await actions.flushNotes()) return
+                    if (returnDestination) {
+                      staffNavigation?.store.bind(staffNavigation.scope, returnDestination.origin, `/doctor/patients/${reviewData.intake.patient.id}`)
+                    }
                     openPanel({
                       id: `detail-patient-profile-${reviewData.intake.patient.id}`,
                       type: "drawer",
@@ -364,12 +371,13 @@ function CockpitIntakeDetailClient({
                         <PatientProfilePanel
                           patient={reviewData.intake.patient}
                           currentRequestId={intake.id}
+                          admin={viewerIsAdmin}
                         />
                       ),
                     })
                   }}
                 >
-                  View profile
+                  Patient details
                 </Button>
                 {supplementaryActions}
               </>

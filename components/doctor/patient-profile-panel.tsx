@@ -237,11 +237,11 @@ export function PatientProfilePanel({
           </div>
         </section>
 
-        <section aria-label="Recent activity">
+        <section aria-label="Prior activity">
           {summary.status === "loading" ? (
             <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-background p-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              Loading recent activity
+              Loading prior activity
             </div>
           ) : null}
 
@@ -258,7 +258,7 @@ export function PatientProfilePanel({
               admin={admin}
               compact
               maxItems={3}
-              title="Recent activity"
+              title="Prior activity"
               emptyLabel="No prior activity recorded."
             />
           ) : null}

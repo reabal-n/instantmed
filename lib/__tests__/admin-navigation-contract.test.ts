@@ -206,7 +206,7 @@ describe("admin navigation contract", () => {
     expect(operatorNavSource).not.toContain('href: "/doctor/dashboard"')
     expect(sidebarSource).not.toContain('href: "/doctor/patients"')
     expect(sidebarSource).not.toContain('href: "/doctor/scripts"')
-    expect(adminLayoutSource).toContain("OperatorShell")
+    expect(adminLayoutSource).toContain("StaffLayout")
     expect(operatorShellSource).toContain("AdminSidebar")
     expect(operatorShellSource).toContain("MobileAdminNav")
   })

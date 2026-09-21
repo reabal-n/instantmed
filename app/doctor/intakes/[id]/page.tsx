@@ -101,6 +101,7 @@ export default async function DoctorIntakeDetailPage({
       followups={followups}
       certDelivery={certDelivery}
       viewerActionAccess={getClinicalReviewActionAccess(profile, intake)}
+      viewerIsAdmin={hasAdminAccess(profile)}
       viewerCanRevokeAutoIssued={hasAdminAccess(profile)}
       parchmentEnabled={featureFlags.parchment_embedded_prescribing}
       patientMessages={patientMessages}
