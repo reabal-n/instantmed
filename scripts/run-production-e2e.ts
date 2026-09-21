@@ -410,6 +410,15 @@ async function main() {
     requireLocalSupabaseCoordinates(local)
     const env = testEnvironment(local, providerPreload, temporaryApp)
 
+    if (spec === "e2e/doctor.prescription-ui.spec.ts") {
+      // This suite uses the same canonical clinician fixtures as CI global setup.
+      // Seed only the disposable backend, from the dotenv-free application copy.
+      await run(process.execPath, [
+        join(temporaryApp, "node_modules/tsx/dist/cli.mjs"),
+        "scripts/e2e/seed.ts",
+      ], { ...env, E2E_SEED_CLI: "1" }, { cwd: temporaryApp })
+    }
+
     // Real local Redis keeps fail-closed download/auth protection enabled.
     // Names are unique to this runner and removed before its Supabase stack.
     const redisName = `${supabaseProjectId}-redis`
