@@ -44,6 +44,7 @@ export type GoogleAdsConversionAdjustmentSource =
 
 type GoogleAdsConversionAdjustmentStatus =
   | "failed"
+  | "waiting_for_match"
   | "resolved_not_counted"
   | "skipped_already_adjusted"
   | "skipped_in_progress"
@@ -786,7 +787,11 @@ export async function runGoogleAdsConversionAdjustment({
       successfulUpload,
       supabase,
     })
-    return { attempted: false, error: DM_REQUEST_PROCESSING_ERROR, status: "failed" }
+    return {
+      attempted: false,
+      error: DM_REQUEST_PROCESSING_ERROR,
+      status: isUploadPastConversionMatchGrace(successfulUpload) ? "failed" : "waiting_for_match",
+    }
   }
 
   let result: GoogleAdsConversionUploadResult
@@ -868,6 +873,10 @@ export async function runGoogleAdsConversionAdjustment({
     attempted: result.attempted,
     error: result.error,
     ok: result.ok,
-    status,
+    // Keep the provider failure and retryable claim intact. A bounded matching
+    // delay is pending work, not an outage of the otherwise completed cron.
+    status: status === "failed" && errorDisposition?.kind === "not_found" && !uploadPastGrace
+      ? "waiting_for_match"
+      : status,
   }
 }

@@ -381,6 +381,7 @@ export async function GET(request: NextRequest) {
     }
 
     const adjustmentSkipped = adjustmentResults.filter((result) => result.status.startsWith("skipped"))
+    const adjustmentWaiting = adjustmentResults.filter((result) => result.status === "waiting_for_match")
     const adjustmentFailed = adjustmentResults.filter((result) =>
       result.status === "failed" || result.status === "unknown_outcome",
     )
@@ -397,6 +398,7 @@ export async function GET(request: NextRequest) {
       failed: failed.length,
       adjustmentCandidates: preparedAdjustmentCandidates.length,
       adjustmentFailed: adjustmentFailed.length,
+      adjustmentWaitingForMatch: adjustmentWaiting.length,
     })
 
     // Row-level missing/expired attribution and already-resolved adjustment
@@ -430,6 +432,7 @@ export async function GET(request: NextRequest) {
       adjustment_processed: adjustmentResults.length,
       adjustment_skipped: adjustmentSkipped.length,
       adjustment_failed: adjustmentFailed.length,
+      adjustment_waiting_for_match: adjustmentWaiting.length,
       adjustment_uncertain: uncertainAdjustmentCount,
       adjustment_blocked_legacy_zero: blockedLegacyZeroCount,
       adjustment_expired_targets: expiredConversionTargetCount,
