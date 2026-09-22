@@ -1865,6 +1865,12 @@ The owner approved the previously presented certificate-first A$50 to A$20/day s
 
 Only the process-scoped mutation switch was enabled; no hosted flags, ads, keywords, clinical settings or other campaign controls changed. This proves provider configuration, not improved CPA or revenue. The September 20–26 A$50-budget observation ends at this apply timestamp; do not mix subsequent days into an unchanged-budget comparison. Any return to A$50 needs a fresh approved proposal and current economics. The agent initially attempted to validate the already-validated old packet and used an invalid approval-reference suffix; both attempts failed before a state change, then the canonical task reference was accepted. No duplicate Google mutation occurred.
 
+### September 22 medical-certificate middle-ground test
+
+After the A$20 rollback, the owner explicitly selected a middle-ground A$30/day certificate test in Codex task `01a0bef4-906b-7c30-b208-151894b1aa61`. The previous A$20 setting was an inverse to the prior budget, not an empirically optimal acquisition budget. `ADS-20260922-07` changes only budget `15429766260` from 20,000,000 to 30,000,000 micros. The A$22 target CPA remains unchanged. Validation request `Zwc4R-hdI69vol2BhbhoOg` passed; Google apply request `4D-svTcd1VKgfgcBTqFg4w` succeeded at 2026-09-22T04:50:51.234Z; independent read-back verified at 04:51:37.126Z. Only the process-scoped mutation switch was enabled.
+
+Current certificate average daily budget is A$30. Actual single-day spend can exceed an average daily budget. The A$20 exposure lasted only about 20 minutes and cannot establish comparative performance. Review September 23–24 (two completed Sydney days) and September 23–29 (seven), separating September 22 partial exposure. Existing CPA above A$25 or non-positive campaign contribution prompts an inverse-proposal review, not an automatic action. A$30 → A$20 rollback needs an exact new approved proposal. No recurring monitor was created and no keyword, ad, destination or clinical setting changed.
+
 ### September 19 Scripts efficiency packets
 
 The owner approved re-issuing the two Scripts packets that expired unapplied on 2026-09-17 (decision reference `codex-task:claude-48977fd4-5d38-4141-9a44-319f11a125ec`). Same run, same guarded path as above.
