@@ -11,7 +11,7 @@ import { AttributionCapture } from "@/components/providers/attribution-capture"
 import { DraftDiscardRetry } from "@/components/providers/draft-discard-retry"
 import { GlobalDeferredClients } from "@/components/providers/global-deferred-clients"
 import { PostHogLoader } from "@/components/providers/posthog-loader"
-import { ServiceAvailabilityProvider } from "@/components/providers/service-availability-provider"
+import { ServiceAvailabilityBoundary } from "@/components/providers/service-availability-boundary"
 import { OrganizationSchema } from "@/components/seo/schemas/organization"
 import { WebSiteSchema } from "@/components/seo/schemas/website"
 import { SkipToContent } from "@/components/shared/skip-to-content"
@@ -186,13 +186,13 @@ export default function RootLayout({
           <DraftDiscardRetry />
           <PostHogLoader>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-                <ServiceAvailabilityProvider>
+                <ServiceAvailabilityBoundary>
                 <GlobalDeferredClients />
                 <SkipToContent />
                 <div id="main-content" tabIndex={-1} className="relative z-10 focus:outline-none">
                   <StreamedContent>{children}</StreamedContent>
                 </div>
-                </ServiceAvailabilityProvider>
+                </ServiceAvailabilityBoundary>
           </ThemeProvider>
           </PostHogLoader>
           </StaffListNavigationBoundary>

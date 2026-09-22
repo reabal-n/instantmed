@@ -847,7 +847,13 @@ test.describe("Unified Request Flow - Mobile sticky CTA", () => {
   test.use({ viewport: { width: 375, height: 812 } })
 
   test("advances certificate -> symptoms via the sticky bar only", async ({ page }) => {
-    await page.goto("/request?service=med-cert")
+    const response = await page.goto("/request?service=med-cert")
+    // Check the actual production HTML, not component source or chunk counts.
+    // A shared root provider previously pulled the homepage entry into intake.
+    const html = await response!.text()
+    const initialScripts = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map((match) => match[1])
+    expect(initialScripts.length).toBeGreaterThan(0)
+    expect(initialScripts.filter((src) => src.includes("/app/(marketing)/page-"))).toEqual([])
     await waitForPageLoad(page)
 
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
