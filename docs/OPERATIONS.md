@@ -1855,6 +1855,16 @@ The owner approved medical certificates from AUD 20 to AUD 50/day under a AUD 22
 
 Source run: the delivered GREEN 2026-09-18 report (`68be3908-10b2-4355-b382-a242fe078c01`). The local mutation switch was enabled only for the single apply execution; hosted environment flags were not changed. Provider read-back proves the budget is live; it is not proof of revenue lift. First review after two completed Sydney days, full comparison Sep 20–26 against the preceding seven days, criteria in `docs/REVENUE_MODEL.md`.
 
+### September 22 medical-certificate budget rollback
+
+The owner approved the previously presented certificate-first A$50 to A$20/day step in Codex task `01a0bef4-906b-7c30-b208-151894b1aa61`. September 20–21 had four attributed orders, A$122.75 spend, A$30.69 CPA and minus A$16.03 campaign contribution, meeting the existing review criteria. `ADS-20260922-01` was approved but aborted before Google mutation on `baseline_drift`. Its byte-identical budget operation was rebound to fresh account state as `ADS-20260922-06`, validated, approved under the same owner instruction, applied and independently read back.
+
+| Proposal | Change | Validate-only request ID | Applied UTC | Google request ID | Read-back UTC |
+|---|---|---|---|---|---|
+| ADS-20260922-06 | Certificate budget `15429766260`: A$50 to A$20/day; A$22 target CPA retained | `8trXx67EnbbLB8rgY_Iobw` | 2026-09-22T04:30:25.052Z | `GsBrzqNzB1pzCFUfJwuNJQ` | verified 2026-09-22T04:31:15.585Z |
+
+Only the process-scoped mutation switch was enabled; no hosted flags, ads, keywords, clinical settings or other campaign controls changed. This proves provider configuration, not improved CPA or revenue. The September 20–26 A$50-budget observation ends at this apply timestamp; do not mix subsequent days into an unchanged-budget comparison. Any return to A$50 needs a fresh approved proposal and current economics. The agent initially attempted to validate the already-validated old packet and used an invalid approval-reference suffix; both attempts failed before a state change, then the canonical task reference was accepted. No duplicate Google mutation occurred.
+
 ### September 19 Scripts efficiency packets
 
 The owner approved re-issuing the two Scripts packets that expired unapplied on 2026-09-17 (decision reference `codex-task:claude-48977fd4-5d38-4141-9a44-319f11a125ec`). Same run, same guarded path as above.
