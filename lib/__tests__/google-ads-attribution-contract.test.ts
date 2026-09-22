@@ -89,6 +89,12 @@ describe("Google Ads attribution contract", () => {
     expect(cron).toContain("targetNetValueCents")
   })
 
+  it("passes exact cash to refund retries separately from Google's reversible floor", () => {
+    const cron = read("app/api/cron/google-ads-conversions/route.ts")
+    expect(cron).toContain("exact_target_net_value_cents")
+    expect(cron).toContain("targetNetValueCents: row.exact_target_net_value_cents")
+  })
+
   it("documents net retained purchase value as the Google Ads bidding truth", () => {
     const context = read("CONTEXT.md")
     const adr = read("docs/adr/0001-google-ads-net-retained-purchase-value.md")

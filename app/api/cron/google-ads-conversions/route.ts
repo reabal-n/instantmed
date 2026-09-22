@@ -55,6 +55,7 @@ type GoogleAdsAdjustmentDueRow = {
   payment_status: string
   refund_amount_cents: number | null
   target_net_value_cents: number
+  exact_target_net_value_cents: number
 }
 
 type PreparedGoogleAdsAdjustment = {
@@ -265,7 +266,7 @@ export async function GET(request: NextRequest) {
     const { data: adjustmentData, error: adjustmentError } = await supabase
       .from("google_ads_conversion_adjustment_due")
       .select(
-        "intake_id, amount_cents, refund_amount_cents, payment_status, target_net_value_cents, adjustment_at",
+        "intake_id, amount_cents, refund_amount_cents, payment_status, target_net_value_cents, exact_target_net_value_cents, adjustment_at",
       )
       .gte("paid_at", adjustmentSince)
       .order("adjustment_at", { ascending: true })
@@ -341,15 +342,18 @@ export async function GET(request: NextRequest) {
         const adjustmentDateTime = new Date(row.adjustment_at)
         if (
           !Number.isFinite(adjustmentDateTime.getTime()) ||
-          !Number.isInteger(row.target_net_value_cents) ||
-          row.target_net_value_cents < 0
+          !Number.isInteger(row.exact_target_net_value_cents) ||
+          row.exact_target_net_value_cents < 0 ||
+          row.amount_cents === null ||
+          row.exact_target_net_value_cents > row.amount_cents ||
+          row.target_net_value_cents !== Math.max(row.exact_target_net_value_cents, 1)
         ) {
           throw new Error(`Google Ads exact adjustment target is invalid for intake ${row.intake_id}`)
         }
         return {
           adjustmentDateTime,
           row,
-          targetNetValueCents: row.target_net_value_cents,
+          targetNetValueCents: row.exact_target_net_value_cents,
         }
       })
     const adjustmentResults: Array<{ id: string; status: string; ok?: boolean; error?: string }> = []
