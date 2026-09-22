@@ -19,7 +19,9 @@ import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
+import { capture } from "@/lib/analytics/capture"
 import {
+  buildIntakeContinueClickedProperties,
   buildIntakeValidationBlockedProperties,
   captureIntakeEvent,
   INTAKE_ANALYTICS_EVENTS,
@@ -392,6 +394,13 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
   }, [certType, selectedDays, serviceType, startOffset, posthog, flowInstanceId])
 
   const handleNext = useCallback(() => {
+    // Record the attempt before validation; the parent Continue event records
+    // the successful handoff. Queue through SDK initialization like consent.
+    captureIntakeEvent(
+      { capture },
+      INTAKE_ANALYTICS_EVENTS.certificateContinueClicked,
+      buildIntakeContinueClickedProperties({ flowInstanceId, serviceType, stepId: "certificate" }),
+    )
     if (validate()) {
       // Persist the selection in the same event as advancing.
       //
@@ -422,7 +431,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
       recordStepCompletion("certificate", { certType, duration: String(selectedDays) })
       onNext()
     }
-  }, [validate, certType, selectedDays, startOffset, setAnswer, onNext])
+  }, [validate, certType, selectedDays, startOffset, setAnswer, onNext, flowInstanceId, serviceType])
 
   // Live-computed from the selections, NOT the `errors` object (which would stay
   // stale after the patient fixes a field, leaving the button looking not-ready).

@@ -8,6 +8,7 @@ export const INTAKE_ANALYTICS_EVENTS = {
   stepCompleted: "step_completed",
   checkoutViewed: "checkout_viewed",
   continueClicked: "intake_continue_clicked",
+  certificateContinueClicked: "certificate_continue_clicked",
   validationBlocked: "intake_validation_blocked",
   answerChanged: "intake_answer_changed",
   abandoned: "intake_abandoned",

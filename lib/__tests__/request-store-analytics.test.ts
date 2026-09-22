@@ -68,4 +68,16 @@ describe("request store analytics", () => {
 
     expect(captureMock.mock.calls.some(([event]) => event === "intake_engaged")).toBe(false)
   })
+
+  it("does not report automatic certificate defaults as patient answer changes", () => {
+    useRequestStore.setState({ serviceType: "med-cert", flowInstanceId: PREFILL_FLOW_ID, currentStepId: "certificate", answers: {} })
+    for (const [key, value] of Object.entries({ certType: "work", duration: "1", startDate: "2026-09-22" })) {
+      useRequestStore.getState().setAnswer(key, value, { touch: false })
+    }
+    expect(captureMock).not.toHaveBeenCalled()
+    expect(useRequestStore.getState().answers.duration).toBe("1")
+
+    useRequestStore.getState().setAnswer("duration", "2")
+    expect(captureMock).toHaveBeenCalledWith("intake_answer_changed", expect.objectContaining({ answer_key: "duration" }))
+  })
 })
