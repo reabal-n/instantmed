@@ -1032,18 +1032,21 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           }
         }
 
-        const event = buildIntakeAnswerChangedEvent({
-          flowInstanceId,
-          serviceType: state.serviceType,
-          subtype: typeof nextAnswers.consultSubtype === "string"
-            ? nextAnswers.consultSubtype
-            : undefined,
-          stepId: state.currentStepId,
-          answerKey: key,
-          previousValue,
-          nextValue: value,
-        })
-        if (event) capture(event.event, event.properties)
+        // Defaults and restored/profile values are not patient interactions.
+        if (tracksProgress) {
+          const event = buildIntakeAnswerChangedEvent({
+            flowInstanceId,
+            serviceType: state.serviceType,
+            subtype: typeof nextAnswers.consultSubtype === "string"
+              ? nextAnswers.consultSubtype
+              : undefined,
+            stepId: state.currentStepId,
+            answerKey: key,
+            previousValue,
+            nextValue: value,
+          })
+          if (event) capture(event.event, event.properties)
+        }
       },
 
       setAnswers: (nextAnswers) => {

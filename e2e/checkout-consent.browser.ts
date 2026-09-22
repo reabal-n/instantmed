@@ -89,3 +89,41 @@ for (const mode of ['light', 'dark'] as const) {
     })
   }
 }
+
+test('fresh certificate: defaults are not interactions and Continue records the tap before progression', async ({ page }) => {
+  const events: { event: string; properties: Record<string, unknown> }[] = []
+  await page.route('**/*', async route => {
+    const request = route.request()
+    const url = new URL(request.url())
+    if (!['localhost', '127.0.0.1'].includes(url.hostname)) return route.abort()
+    if (url.pathname.startsWith('/ingest/')) {
+      if (url.pathname.endsWith('.js')) return route.fulfill({ status: 200, contentType: 'application/javascript', body: '' })
+      if (url.pathname.endsWith('/e/')) {
+        const body = request.postDataBuffer()
+        if (body) {
+          const raw = url.searchParams.get('compression') === 'gzip-js' ? gunzipSync(body).toString() : body.toString()
+          const payload = JSON.parse(raw)
+          events.push(...(Array.isArray(payload) ? payload : [payload]))
+        }
+      }
+      return route.fulfill({ status: 200, json: { status: 1, featureFlags: {}, supportedCompression: [] } })
+    }
+    if (url.pathname.startsWith('/api/draft')) return route.fulfill({ status: 404, json: {} })
+    if (request.headers()['next-action']) return route.abort()
+    return route.continue()
+  })
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => false })
+    Object.defineProperty(navigator, 'userAgentData', { get: () => undefined })
+  })
+  await page.goto('/request?service=med-cert')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Certificate details')
+  await page.locator('[data-intake-mobile-action-bar="true"]').getByRole('button', { name: /^Continue/ }).tap()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Your symptoms')
+  await expect.poll(() => events.filter(e => e.event === 'certificate_continue_clicked').length, { timeout: 15000 }).toBe(1)
+  expect(events.filter(e => e.event === 'intake_answer_changed' && e.properties.step_id === 'certificate')).toEqual([])
+  const tap = events.find(e => e.event === 'certificate_continue_clicked')!
+  expect(tap.properties.service_type).toBe('med-cert')
+  expect(tap.properties.step_id).toBe('certificate')
+  expect(tap.properties.flow_instance_id).toMatch(/^[\da-f-]{36}$/)
+})
