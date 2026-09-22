@@ -28,6 +28,7 @@ import {
 const DEFAULT_REPORT_DAYS = 30
 const MAX_REPORT_DAYS = 90
 const DEFAULT_ROW_LIMIT = 100
+const AUDIT_INTAKE_JOIN_BATCH_SIZE = 100
 
 export type GoogleAdsReportRange = {
   endDate: string
@@ -1221,11 +1222,13 @@ export async function getGoogleAdsUploadAuditReconciliation({
   )
   const intakeIds = Array.from(new Set(rows.map((row) => row.intake_id).filter((id): id is string => Boolean(id))))
   const validIntakeIds = new Set<string>()
-  if (intakeIds.length > 0) {
+  // PostgREST encodes .in() in the URL; a full audit window can exceed
+  // the gateway request-line limit. Preserve every ID with bounded reads.
+  for (let offset = 0; offset < intakeIds.length; offset += AUDIT_INTAKE_JOIN_BATCH_SIZE) {
     const { data: intakeRows, error: intakeError } = await supabase
       .from("intakes")
       .select("id")
-      .in("id", intakeIds)
+      .in("id", intakeIds.slice(offset, offset + AUDIT_INTAKE_JOIN_BATCH_SIZE))
     if (intakeError) throw new Error(`Google Ads upload audit intake join failed: ${intakeError.message}`)
     for (const row of intakeRows || []) {
       const id = clean((row as { id?: string | null }).id)
