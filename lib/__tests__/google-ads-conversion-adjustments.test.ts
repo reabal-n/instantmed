@@ -605,7 +605,7 @@ describe("Google Ads conversion adjustments", () => {
     expect(result).toMatchObject({
       attempted: true,
       ok: false,
-      status: "failed",
+      status: "waiting_for_match",
     })
     expect(inserted[0]).toMatchObject({
       payload: {
@@ -838,7 +838,7 @@ describe("Google Ads conversion adjustments", () => {
       ok: true,
       status: "PROCESSING",
     })
-    const { inserted, supabase } = adjustmentSupabaseMock([successfulPurchaseUpload()])
+    const { inserted, supabase } = adjustmentSupabaseMock([successfulPurchaseUpload("intake_123", { ageHours: WITHIN_GRACE_HOURS })])
 
     const result = await runGoogleAdsConversionAdjustment({
       amountCents: 2495,
@@ -852,7 +852,7 @@ describe("Google Ads conversion adjustments", () => {
     expect(result).toMatchObject({
       attempted: false,
       error: "dm_request_processing",
-      status: "failed",
+      status: "waiting_for_match",
     })
     expect(mocks.fireGoogleAdsConversionAdjustment).not.toHaveBeenCalled()
     expect(inserted[0]).toMatchObject({
@@ -864,6 +864,20 @@ describe("Google Ads conversion adjustments", () => {
         }),
       },
     })
+  })
+
+  it("keeps overdue Data Manager processing visible as a failure", async () => {
+    mocks.retrieveGoogleDataManagerRequestStatus.mockResolvedValue({ attempted: true, ok: true, status: "PROCESSING" })
+    const { rpc, supabase } = adjustmentSupabaseMock([
+      successfulPurchaseUpload("intake_123", { ageHours: PAST_GRACE_HOURS }),
+    ])
+    const result = await runGoogleAdsConversionAdjustment({
+      amountCents: 2495, intakeId: "intake_123", paymentStatus: "refunded",
+      refundAmountCents: 2495, source: "cron_backfill", supabase: supabase as never,
+    })
+    expect(result).toMatchObject({ attempted: false, error: "dm_request_processing", status: "failed" })
+    expect(rpc).toHaveBeenCalledWith("complete_google_ads_conversion_adjustment_claim",
+      expect.objectContaining({ p_outcome: "retryable_failed" }))
   })
 
   it("proceeds with the Google Ads adjustment when the Data Manager status lookup fails", async () => {

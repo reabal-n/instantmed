@@ -164,6 +164,12 @@ Evidence at decision: Aug 20–Sep 18 Sydney, 27 campaign-attributed orders, AUD
 
 Review criteria: compare Sep 20–26 Sydney CPA, orders and campaign contribution against the preceding seven completed days, with an earlier look after two completed days. If CPA exceeds AUD 25 or campaign contribution turns non-positive, prepare an exact inverse proposal returning the budget to AUD 20/day. These are review criteria, not automatic actions. Apply and read-back receipts live in `docs/OPERATIONS.md`.
 
+### September 22 review-window correction
+
+The owner requires **14–28 completed days before routine Ads performance judgments**, with the latest 30 completed days as the keyword-efficiency baseline. This supersedes the two-day/seven-day reversal-review timing above; those dated decisions and receipts remain historical evidence. Short windows are diagnostic observations, not grounds alone for another bid, budget or keyword change. Compare paid orders, actual fees, refunds and campaign contribution; pool identical keyword text across match types where purchase attribution cannot distinguish them. Do not infer that a keyword caused an intake drop without a verified join.
+
+The current certificate A$30/day test retains A$22 target CPA. Exclude September 22's mixed exposure: the first 14 full days are September 23–October 6 (review October 7), and 28 days end October 20 (review October 21). Separate any intervening material changes and conversion lag. These dates are review criteria, not scheduled jobs or authorization for further mutations.
+
 ### Bounded Learning Exception
 
 A campaign may temporarily be contribution-negative only as an operator-approved learning experiment with:

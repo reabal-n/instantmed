@@ -149,12 +149,12 @@ describe("project docs drift contract", () => {
     for (const source of [agents, claude]) {
       const migrationCount = readdirSync(join(root, "supabase/migrations")).filter((name) => name.endsWith(".sql")).length
       expect(source).toContain(`Current count on disk: **${migrationCount} migration files**`)
-      expect(source).toContain("Newest on-disk migration is `20260915131638_checkout_consent_receipts.sql` (revision-bound consent receipts; applied and verified in production on 2026-09-15)")
+      expect(source).toContain("Newest on-disk migration is `20260922081547_google_ads_adjustment_exact_cash.sql` (exact cash and NULL-safe first adjustment attempts; applied and verified in production on 2026-09-22)")
       expect(source).toContain(
         "`20260905120000_refill_reminder_funnel.sql`",
       )
       expect(source).toContain("were applied in order on 2026-09-05")
-      expect(source).toContain("Latest applied production migration is `20260915131638_checkout_consent_receipts.sql` (service-only receipt and audit transaction; zero historical receipts at application)")
+      expect(source).toContain("Latest applied production migration is `20260922081547_google_ads_adjustment_exact_cash.sql` (service-only adjustment view; one recent target remains due)")
       expect(source).toContain(
         "The earlier applied production migration is `20260906100000_monitor_observation_state.sql`",
       )
@@ -204,13 +204,13 @@ describe("project docs drift contract", () => {
     }
 
     expect(architecture).toContain(
-      "Latest applied production migration: `20260915131638_checkout_consent_receipts.sql`",
+      "Latest applied production migration: `20260922081547_google_ads_adjustment_exact_cash.sql`",
     )
     expect(architecture).toContain(
       "All four pending migrations, including runtime-schema convergence `20260904160000`, were applied in order on 2026-09-05",
     )
     expect(architecture).toContain(
-      "Latest applied/verified production timestamp is `20260915131638`",
+      "Latest applied/verified production timestamp is `20260922081547`",
     )
     expect(architecture).toContain("Production receipt (2026-08-16)")
     expect(architecture).toContain("Production receipt (2026-08-17)")
