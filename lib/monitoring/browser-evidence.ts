@@ -72,7 +72,7 @@ export function browserHealth(state: Pick<BrowserState, "enabledAt" | "latest" |
 class ObservationError extends Error {
   constructor(readonly backoffUntil = 0, readonly reason: UnavailableReason = "invalid_source") { super("browser_observer_unavailable") }
 }
-async function getJson(path: string, now: number): Promise<unknown> {
+async function getJsonOnce(path: string, now: number): Promise<unknown> {
   const token = process.env.GITHUB_BROWSER_MONITOR_TOKEN
   const response = await fetch(`${API}/${path}`, {
     headers: { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28",
@@ -92,15 +92,29 @@ async function getJson(path: string, now: number): Promise<unknown> {
   return response.json()
 }
 
+async function getJson(path: string, now: number, retryBudget: { remaining: number }): Promise<unknown> {
+  try {
+    // Await body consumption too: the connection can fail after headers arrive.
+    return await getJsonOnce(path, now)
+  } catch (error) {
+    // HTTP refusals (including rate limits) and invalid JSON need observation,
+    // not a retry. Retry transport failures once with the same auth boundary.
+    if (error instanceof ObservationError || error instanceof SyntaxError || retryBudget.remaining === 0) throw error
+    retryBudget.remaining -= 1
+    return getJsonOnce(path, now)
+  }
+}
+
 export async function collectBrowserEvidence(previous: BrowserState, now: number, scheduledRunIds: ReadonlySet<number> = new Set()): Promise<{ state: BrowserState; completions: Evidence[]; sourceInvocation?: Evidence; unavailableReason?: UnavailableReason }> {
   const state: BrowserState = { ...previous, checkedAt: now, cache: [...previous.cache], observerOk: false }
   const completions: Evidence[] = []
+  const retryBudget = { remaining: 1 }
   let sourceInvocation: Evidence | undefined
   let unavailableReason: UnavailableReason | undefined
   try {
     if (now < state.backoffUntil) throw new ObservationError(state.backoffUntil, "backoff")
     const body = z.object({ total_count: z.number().int().nonnegative(), workflow_runs: z.array(runSchema).max(10) }).parse(
-      await getJson(`workflows/${BROWSER_WORKFLOW.file}/runs?branch=main&per_page=10`, now),
+      await getJson(`workflows/${BROWSER_WORKFLOW.file}/runs?branch=main&per_page=10`, now, retryBudget),
     )
     const runs = body.workflow_runs.map(run => {
       const evidence: Evidence = { event: run.event === "schedule" ? 0 : 1, id: run.id, number: run.run_number, attempt: run.run_attempt,
@@ -122,9 +136,10 @@ export async function collectBrowserEvidence(previous: BrowserState, now: number
     const observableRuns = floor === undefined ? runs : runs.filter(run =>
       !(run.status === 2 && run.attempt === 1 && run.number < floor))
     const pending = observableRuns.filter(run => run.status === 2 && !state.cache.some(cached => cached.id === run.id && cached.attempt === run.attempt))
-    // At most one list + two job reads per poll (36/hour worst case, normally12).
+    // At most one list + two job reads plus one shared transport retry per
+    // poll (four requests / 10 seconds maximum, normally one request).
     for (const run of pending.slice(0, 2)) {
-      const jobs = jobsSchema.parse(await getJson(`runs/${run.id}/attempts/${run.attempt}/jobs?per_page=10`, now))
+      const jobs = jobsSchema.parse(await getJson(`runs/${run.id}/attempts/${run.attempt}/jobs?per_page=10`, now, retryBudget))
       const matching = jobs.jobs.filter(job => job.name === BROWSER_WORKFLOW.job && job.run_id === run.id && job.run_attempt === run.attempt)
       if (jobs.total_count !== jobs.jobs.length || matching.length !== 1) throw new ObservationError(0, "job_unavailable")
       const job = matching[0]

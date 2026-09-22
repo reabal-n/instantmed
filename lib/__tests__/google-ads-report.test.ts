@@ -24,6 +24,34 @@ describe("google ads spend report", () => {
     vi.unstubAllEnvs()
   })
 
+  it.each([false, true])("batches audit joins without hiding later missing rows or failures (failure=%s)", async failLater => {
+    const ids = Array.from({ length: 664 }, (_, index) => `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`)
+    const auditRows = [...ids, ids[0]].map(intake_id => ({
+      intake_id, created_at: "2026-09-21T06:00:00Z", metadata: { runtime_source: "vercel", status: "success" },
+    }))
+    const readIntakes = vi.fn(async (_column: string, batch: string[]) => {
+      if (batch.length > 100 || (failLater && batch.includes(ids[600]))) {
+        return { data: null, error: { message: "Bad Request" } }
+      }
+      return { data: batch.filter(id => id !== ids[663]).map(id => ({ id })), error: null }
+    })
+    const query = {
+      select: () => query, eq: () => query, gte: () => query, order: () => query,
+      limit: async () => ({ data: auditRows, error: null }), in: readIntakes,
+    }
+    const result = getGoogleAdsUploadAuditReconciliation({
+      generatedAt: "2026-09-22T00:00:00Z", since: "2026-09-01T00:00:00Z",
+      supabase: { from: () => query } as never,
+    })
+    if (failLater) {
+      await expect(result).rejects.toThrow("Google Ads upload audit intake join failed")
+    } else {
+      await expect(result).resolves.toMatchObject({ orphanRows: { total: 1, invalidIntakeJoin: 1 } })
+    }
+    expect(readIntakes).toHaveBeenCalledTimes(7)
+    expect(readIntakes.mock.calls.flatMap(([, batch]) => batch)).toEqual(ids)
+  })
+
   it("builds a campaign performance query with spend, click, conversion, and device fields", () => {
     expect(buildGoogleAdsCampaignPerformanceQuery({
       endDate: "2026-06-02",

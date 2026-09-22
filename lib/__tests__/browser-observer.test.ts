@@ -367,7 +367,7 @@ describe("bounded public GitHub observer", () => {
     const db = store(fullCache())
     const fetcher = replies({ total_count: 12, workflow_runs: [run(12), run(11)] }, jobs(12, "failure"))
     if (failure === "malformed") fetcher.mockResolvedValueOnce(new Response("{}"))
-    else fetcher.mockRejectedValueOnce(new DOMException("timeout", "TimeoutError"))
+    else fetcher.mockRejectedValue(new DOMException("timeout", "TimeoutError"))
     const result = await checkBrowserObserver()
     expect(result).not.toHaveProperty("persistenceAvailable", false)
     expect(result.healthy).toBe(false)
@@ -503,6 +503,51 @@ describe("bounded public GitHub observer", () => {
     expect(result.state.observerOk).toBe(false)
     expect(result.state.latest).toBeUndefined()
   })
+  it.each(["list", "jobs", "body"])("recovers a single %s transport failure within the poll", async boundary => {
+    vi.stubEnv("GITHUB_BROWSER_MONITOR_TOKEN", "synthetic-monitor-token")
+    const fetcher = vi.fn()
+    const list = () => new Response(JSON.stringify({ total_count: 1, workflow_runs: [run()] }))
+    const job = () => new Response(JSON.stringify(jobs()))
+    if (boundary === "jobs") fetcher.mockResolvedValueOnce(list())
+    if (boundary === "body") {
+      fetcher.mockResolvedValueOnce({ ok: true, json: async () => { throw new TypeError("terminated") } })
+    } else fetcher.mockRejectedValueOnce(new DOMException("timeout", "TimeoutError"))
+    if (boundary !== "jobs") fetcher.mockResolvedValueOnce(list())
+    fetcher.mockResolvedValueOnce(job())
+    vi.stubGlobal("fetch", fetcher)
+    const result = await collectBrowserEvidence(state(), now)
+    expect(result.state.observerOk).toBe(true)
+    expect(result.state.latest?.outcome).toBe(1)
+    expect(result.unavailableReason).toBeUndefined()
+    expect(fetcher).toHaveBeenCalledTimes(3)
+    for (const [, options] of fetcher.mock.calls) {
+      expect(options.headers.Authorization).toBe("Bearer synthetic-monitor-token")
+      expect(options.redirect).toBe("error")
+    }
+  })
+  it("shares one transport retry across the entire poll", async () => {
+    const fetcher = vi.fn()
+      .mockRejectedValueOnce(new TypeError("list connection failed"))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ total_count: 1, workflow_runs: [run()] })))
+      .mockRejectedValueOnce(new TypeError("job connection failed"))
+    vi.stubGlobal("fetch", fetcher)
+    const result = await collectBrowserEvidence(state(), now)
+    expect(fetcher).toHaveBeenCalledTimes(3)
+    expect(result.state.observerOk).toBe(false)
+    expect(result.unavailableReason).toBe("transport_error")
+  })
+
+  it("stops after two failed transport attempts and preserves stale failure evidence", async () => {
+    const previous = { ...state(), latest: evidence(1, 2, now - 180 * 60000) }
+    const fetcher = vi.fn().mockRejectedValue(new TypeError("fetch failed"))
+    vi.stubGlobal("fetch", fetcher)
+    const result = await collectBrowserEvidence(previous, now)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(result.state.observerOk).toBe(false)
+    expect(result.unavailableReason).toBe("transport_error")
+    expect(browserHealth(result.state, now)).toEqual({ failed: true, stale: true })
+  })
+
   it("handles a fetch timeout as observation failure", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("timeout", "TimeoutError")))
     expect((await collectBrowserEvidence(state(), now)).state.observerOk).toBe(false)
