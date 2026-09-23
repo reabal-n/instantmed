@@ -8,6 +8,35 @@ const services = ["/medical-certificate", "/prescriptions", "/erectile-dysfuncti
 
 test.beforeEach(async ({ page }) => { await installProductionSyntheticIsolation(page) })
 
+test("tablet hero copy aligns with its headline on every service", async ({ page }, testInfo) => {
+  test.setTimeout(90_000)
+  await page.setViewportSize({ width: 768, height: 1024 })
+  await seedMoneyPageState(page)
+  for (const route of ["/", ...services]) {
+    await page.goto(route)
+    await page.evaluate(() => document.fonts.ready)
+    const headline = page.locator('[data-hero] h1')
+    const description = page.locator('[data-hero] h1 + div > p').first()
+    await expect(description).toBeVisible()
+    const headingBox = await headline.boundingBox()
+    const copyBox = await description.boundingBox()
+    expect(Math.abs(copyBox!.x - headingBox!.x), route).toBeLessThanOrEqual(1)
+    await page.screenshot({ path: testInfo.outputPath(`${route.slice(1) || 'home'}-tablet.png`) })
+  }
+})
+
+test("weight management examples describe its own assessment", async ({ page }, testInfo) => {
+  await page.goto("/weight-loss")
+  const steps = page.locator('#how-it-works')
+  await expect(steps).not.toContainText(/certificate|eScript/)
+  await expect(steps.getByLabel('Illustrative example')).toHaveCount(3)
+  await expect(steps).toContainText('Your health and weight history')
+  await steps.screenshot({
+    path: testInfo.outputPath('weight-management-steps.png'),
+    style: 'header, [aria-label="Quick purchase"] { visibility: hidden !important; }',
+  })
+})
+
 for (const theme of ["light", "dark"] as const) {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     test(`${theme} ${viewport.width}px front-door visual pack`, async ({ page }, testInfo) => {

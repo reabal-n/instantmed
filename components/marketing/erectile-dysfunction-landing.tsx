@@ -366,13 +366,13 @@ export function ErectileDysfunctionLanding() {
             }}
             secondaryCta={{ text: "See how it works", href: "#how-it-works" }}
             reassuranceRow={(
-              <p className="text-center text-sm leading-6 text-muted-foreground lg:text-left">
+              <p className="text-left text-sm leading-6 text-muted-foreground">
                 {REFUND_GUARANTEE_CLAIM}
               </p>
             )}
             mockup={<EdHeroFacts />}
           >
-            <p data-speakable className="mx-auto mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground lg:mx-0 lg:text-lg">
+            <p data-speakable className="mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground lg:text-lg">
               A one-off private doctor assessment for {PRICING_DISPLAY.MENS_HEALTH}. Complete a secure form from home, then an Australian doctor reviews the full picture.
             </p>
           </Hero>

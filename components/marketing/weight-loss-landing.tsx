@@ -100,6 +100,10 @@ const HOW_IT_WORKS_STEPS = [
     title: "Complete the health form",
     description: "Your BMI, health history, current medicines, previous attempts and what support you want the doctor to consider.",
     time: "~6 minutes",
+    example: {
+      title: "Your health and weight history",
+      description: "Health conditions, current medicines and previous approaches.",
+    },
   },
   {
     sticker: "stethoscope" as const,
@@ -107,6 +111,10 @@ const HOW_IT_WORKS_STEPS = [
     title: "A doctor reviews it",
     description: "An AHPRA-registered Australian doctor reviews the full picture. Extra information or a call may be required for safety.",
     time: "Review operates 24/7",
+    example: {
+      title: "An individual assessment",
+      description: "A doctor considers your history and may ask for more information.",
+    },
   },
   {
     sticker: "scales" as const,
@@ -114,6 +122,10 @@ const HOW_IT_WORKS_STEPS = [
     title: "Receive the next step",
     description: "The doctor explains the outcome: a suitable option, more information needed, or GP or in-person care.",
     time: "After review",
+    example: {
+      title: "Your next step",
+      description: "A suitable option, further information, or advice to seek in-person care.",
+    },
   },
 ]
 
@@ -198,7 +210,7 @@ export function WeightLossLanding() {
             reassuranceRow={null}
             mockup={<WeightHeroFacts />}
           >
-            <p className="mx-auto mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground lg:mx-0 lg:text-lg">
+            <p className="mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground lg:text-lg">
               A one-off doctor assessment for {PRICING_DISPLAY.WEIGHT_LOSS}. {FORM_FIRST_CLAIM} Extra information or a call may be required for safety.
             </p>
           </Hero>

@@ -269,14 +269,14 @@ export function HairLossLanding() {
             }}
             secondaryCta={null}
             beforeCta={
-              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground lg:mx-0">
+              <p className="inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground">
                 <Lock className="mt-px h-4 w-4 shrink-0 text-success" aria-hidden="true" />
                 <span>Private and secure.<span className="text-muted-foreground"> Reviewed by an Australian doctor.</span></span>
               </p>
             }
             mockup={<HairHeroFacts />}
           >
-            <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0 lg:text-lg">
+            <p className="mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg">
               A one-off private doctor assessment for {PRICING_DISPLAY.HAIR_LOSS}. {FORM_FIRST_CLAIM}
             </p>
           </Hero>

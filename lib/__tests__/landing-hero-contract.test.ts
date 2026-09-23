@@ -31,6 +31,12 @@ describe("landing hero contract (19 Sep 2026 audit)", () => {
     expect(hero).not.toMatch(/hidden sm:inline-flex">\s*<WaitCounter/)
   })
 
+  it("gates homepage certificate timing with certificate availability", () => {
+    const homepage = read("app/(marketing)/page.tsx")
+    expect(homepage).toMatch(/<Hero\b[^>]*availabilityServiceId="med-cert"/)
+    expect(hero).toContain('<ServiceAvailabilityGate serviceId={availabilityServiceId}>')
+  })
+
   it("marks the hero section for geometry gates", () => {
     expect(hero).toContain('data-hero=""')
   })

@@ -359,7 +359,7 @@ Rey authorised the full core plan. The implementation preserves the earlier navi
 - CI's newly-unused-code failure is resolved by deleting obsolete marketing components and their unused helpers/tests, rather than adding exceptions. The baseline shrank from 2,276 to 2,274 existing findings, and both Knip modes pass. Footer wording now uses its canonical voice constant.
 - Dependency security audit reports no known vulnerabilities. Runtime, stack pins, route conflicts, cron routes, placeholder configuration, orphaned-file and dependency-deduplication checks passed.
 - ProductReview's linked InstantMed listing was checked during implementation against the existing verified five-star configuration.
-- Independent review findings fixed: empty fallback mobile icons, missing homepage timing availability gate, and an About heading that overstated the review sequence. Final screenshot inspection also corrected footer contact wrapping and Contact radio sizing/nested labels.
+- Earlier independent review fixed empty fallback mobile icons and an About heading that overstated the review sequence. Final screenshot inspection also corrected footer contact wrapping and Contact radio sizing/nested labels. The homepage timing gate was incorrectly reported as fixed at this checkpoint; the missing prop was confirmed and corrected in the Opus follow-up below.
 - Local visual pack: `.superpowers/front-door/review.html` (44 final screenshots, theme/viewport selector, supplied-original footer comparison). Logs and screenshots live alongside it and are ignored build artifacts. Footer-only captures temporarily hide fixed chrome to avoid screenshot overlays; sticky behavior is tested separately. A matched pre-change full-hero screenshot was not retained.
 
 ### Release limits
@@ -377,3 +377,18 @@ Suggested review request:
 > Review the entire PR read-only before making edits. Compare it with the accepted plan and inspect the running pages, not only screenshots. Prioritise hero hierarchy and CTA visibility, mobile navigation/focus, footer badge balance, Contact validation/pending/failure recovery, all six service links and availability states, and shared-shell regressions. Verify the request-bundle fix preserves the canonical certificate sentence and first-step server rendering. Check that removed components and old tests truly have no active consumers. Preserve the accepted ProductReview/trust-mark direction and public wording decisions. Return concrete findings with severity and file/line evidence, distinguish defects from optional aesthetic preferences, and state any verification limits. Do not merge or deploy.
 
 The implementation is ready for that review. Production deployment and owner visual acceptance remain separate steps; provider-delivery smoke tests and physical-device verification have not been performed as part of this UI task.
+
+### Opus review follow-up
+
+- Wired the homepage's certificate turnaround indicator to certificate availability, so the existing gate suppresses it when that service is disabled or the platform is in maintenance.
+- Aligned descriptions, eligibility rows and reassurance with the left-aligned headline below the desktop breakpoint across the homepage and all six service pages.
+- Replaced weight management's generic certificate/eScript examples with health-history, individual-assessment and next-step examples. The shared component now accepts optional per-step example copy; general-service examples remain on the general pages.
+- Corrected the obsolete `GoogleReviewsBadge` reference in `CLAUDE.md` and regenerated `AGENTS.md`. Updated the compact-section comment to describe the examples it actually omits.
+- Preserved the operator-approved public wording and ProductReview logo with five stars. The accessible rating continues to describe the visible stars rather than hiding that information from screen-reader users.
+- The four unspecified minor findings were not supplied and cannot be individually verified or marked resolved. They did not block the concrete fixes above.
+
+Regression evidence: the new homepage wiring check and both browser regressions failed against the previous implementation before the fixes.
+
+Follow-up validation: **292 focused unit checks and 87 Chromium checks passed**, with no browser retries. Full lint, TypeScript, documentation audit, both dead-code modes, production build (72-second compilation), server-action boundaries and bundle gates passed. `/request` remains 177 kB against its unchanged 180 kB limit. A separate browser check intercepted only local availability responses: the homepage displayed its measured timing when enabled, hid it when certificates were disabled and during maintenance, and restored it when enabled again. No service settings were changed.
+
+The refreshed visual pack contains 44 desktop/mobile captures plus seven tablet hero captures and the weight-management steps. Evidence lives in `.superpowers/front-door/opus-browser/`, `.superpowers/front-door/opus-step-detail/` and the adjacent `opus-*` logs. The earlier full-unit/coverage result above predates this small follow-up; the final build was checked with the focused unit suites and full public-page browser suite. The PR remains a draft for review; nothing was merged or deployed to production.

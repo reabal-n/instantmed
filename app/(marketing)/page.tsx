@@ -173,12 +173,13 @@ export default async function HomePage() {
             title={TAGLINE}
             titleClassName={`${homeH1Font.className} min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5`}
             liveWait={waitState}
+            availabilityServiceId="med-cert"
             primaryCta={{ text: "Get started", href: "/request", wrapperId: HOME_HERO_CTA_ID, dataAttributes: { "data-home-cta": "hero" } }}
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
             mockupClassName="max-w-sm lg:max-w-md"
           >
-            <p className="text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed text-balance">
+            <p className="text-base lg:text-lg text-muted-foreground max-w-xl mb-6 sm:mb-8 leading-relaxed text-balance">
               Medical certificates, repeat prescriptions and doctor assessments for Australian
               adults 18+. AHPRA-registered doctors. From {PRICING_DISPLAY.MED_CERT} AUD.
             </p>

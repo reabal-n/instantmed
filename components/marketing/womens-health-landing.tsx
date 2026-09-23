@@ -250,14 +250,14 @@ export function WomensHealthLanding() {
             }}
             secondaryCta={null}
             beforeCta={
-              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground lg:mx-0">
+              <p className="inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground">
                 <Lock className="mt-px h-4 w-4 shrink-0 text-success" aria-hidden="true" />
                 <span>Private and secure.<span className="text-muted-foreground"> Each focused form is reviewed by an Australian doctor.</span></span>
               </p>
             }
             mockup={<WomensHealthDecisionFork isDisabled={isDisabled} />}
           >
-            <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0 lg:text-lg">
+            <p className="mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg">
               {FORM_FIRST_WEDGE} Choose UTI symptoms, or starting, switching or continuing the pill. Each form has its own safety screen before payment.
             </p>
           </Hero>

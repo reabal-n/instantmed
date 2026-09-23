@@ -271,14 +271,14 @@ export function MedCertLanding({ liveWait }: { liveWait?: WaitState }) {
             secondaryCta={null}
             beforeCta={(
               <>
-                <ul aria-label="Medical certificate eligibility" className="mx-auto flex max-w-xl flex-wrap justify-start gap-x-3 gap-y-1 text-sm text-foreground lg:mx-0 lg:justify-start">
+                <ul aria-label="Medical certificate eligibility" className="flex max-w-xl flex-wrap justify-start gap-x-3 gap-y-1 text-sm text-foreground">
                   <li>Australia only</li>
                   <li aria-hidden="true" className="text-border">&middot;</li>
                   <li>Ages 18+</li>
                   <li aria-hidden="true" className="text-border">&middot;</li>
                   <li>No Medicare needed</li>
                 </ul>
-                <p className="mx-auto mt-3 inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground sm:items-center sm:text-left lg:mx-0 lg:text-left">
+                <p className="mt-3 inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground sm:items-center">
                   <CheckCircle2 className="mt-px h-4 w-4 shrink-0 text-success sm:mt-0" aria-hidden="true" />
                   <span>
                     Issued by AHPRA-registered Australian doctors.
@@ -289,7 +289,7 @@ export function MedCertLanding({ liveWait }: { liveWait?: WaitState }) {
             )}
             mockup={<MedCertHeroMockup />}
           >
-            <p className="mx-auto mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground sm:mb-7 lg:mx-0 lg:text-lg">
+            <p className="mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground sm:mb-7 lg:text-lg">
               {MED_CERT_WEDGE} For short absences from work, study or caring duties. If suitable, receive a secure link to your certificate.
             </p>
           </Hero>
