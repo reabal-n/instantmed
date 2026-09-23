@@ -17,7 +17,7 @@ export function createCheckoutConsentTracker(
       posthog?.capture(event, {
         flow_instance_id: flow,
         service_type: service,
-        telemetry_version: "checkout-consent-v1",
+        telemetry_version: "checkout-consent-v2",
         ...properties,
       })
     } catch {

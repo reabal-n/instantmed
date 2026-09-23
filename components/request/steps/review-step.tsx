@@ -331,23 +331,45 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   }, [consentTracker, safetyConfirmed, answers.telehealthConsentVersion])
 
   useEffect(() => {
-    const element = consentRef.current
+    const element = consentRef.current?.querySelector('button')
     if (!element || typeof IntersectionObserver === "undefined") return
-    // Geometric visibility, not proof of reading: half the consent card must
-    // enter the visible viewport, excluding the mobile sticky action bar.
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!document.hidden && entry?.isIntersecting && entry.intersectionRatio >= 0.5) {
-        consentTracker.viewed()
-        observer.disconnect()
-      }
-    }, { threshold: 0.5, rootMargin: "0px 0px -96px 0px" })
-    const observeWhenVisible = () => {
-      if (!document.hidden) { observer.unobserve(element); observer.observe(element) }
+    // v2 measures the complete consent control, not half a potentially very
+    // tall text card. Visibility is not evidence of reading or agreeing.
+    let observer: IntersectionObserver | undefined
+    let seen = false
+    const coveredBottom = () => {
+      const bounds = document.querySelector('[data-intake-mobile-action-bar="true"]')?.getBoundingClientRect()
+      return bounds && bounds.height > 0 ? Math.max(0, window.innerHeight - bounds.top) : 0
     }
-    observer.observe(element)
+    const observeWhenVisible = () => {
+      observer?.disconnect()
+      if (seen || document.hidden) return
+      const bottom = coveredBottom()
+      observer = new IntersectionObserver(([entry]) => {
+        // A fixed bar can mount without resizing the body. Recheck before
+        // accepting visibility so its first appearance cannot produce a hit.
+        if (coveredBottom() !== bottom) { observeWhenVisible(); return }
+        if (!document.hidden && entry?.isIntersecting && entry.intersectionRatio >= 1) {
+          seen = true
+          consentTracker.viewed()
+          observer?.disconnect()
+        }
+      }, { threshold: 1, rootMargin: `0px 0px -${bottom}px 0px` })
+      observer.observe(element)
+    }
+    // The mobile action bar mounts after the review action is discovered.
+    // Layout changes (including text enlargement) update its excluded area.
+    const resizeObserver = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(observeWhenVisible)
+    resizeObserver?.observe(document.body)
+    observeWhenVisible()
+    window.addEventListener("resize", observeWhenVisible)
+    window.visualViewport?.addEventListener("resize", observeWhenVisible)
     document.addEventListener("visibilitychange", observeWhenVisible)
     return () => {
-      observer.disconnect()
+      observer?.disconnect()
+      resizeObserver?.disconnect()
+      window.removeEventListener("resize", observeWhenVisible)
+      window.visualViewport?.removeEventListener("resize", observeWhenVisible)
       document.removeEventListener("visibilitychange", observeWhenVisible)
     }
   }, [consentTracker])
@@ -1181,7 +1203,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             id="safety-consent"
             checked={safetyConfirmed}
             onCheckedChange={(checked) => handleConsentChange(checked === true)}
-            className={`w-full max-w-none items-start rounded-xl border-2 p-3.5 text-left transition-[background-color,border-color,box-shadow] duration-200 ${
+            className={`w-full max-w-none items-start rounded-xl border-2 p-3.5 text-left [&>span]:min-w-0 transition-[background-color,border-color,box-shadow] duration-200 ${
               safetyConfirmed
                 ? "border-primary bg-primary/5 shadow-sm shadow-primary/[0.05]"
                 : "border-border bg-white hover:border-primary/40 dark:bg-card"
@@ -1189,7 +1211,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
             boxClassName="mt-0.5 h-5 w-5 rounded-lg border-2"
             aria-label="Confirm request and payment terms"
           >
-            <span className="block text-base leading-relaxed text-foreground">
+            <span className="block text-base leading-relaxed text-foreground [overflow-wrap:anywhere]">
               I agree to a telehealth assessment. I understand that a doctor may need to call me and may recommend in-person care. I confirm this is not a medical emergency, my information is accurate, and I agree to the{" "}
               <a href="/terms" className="text-primary underline" target="_blank" onClick={(event) => event.stopPropagation()}>
                 Terms
