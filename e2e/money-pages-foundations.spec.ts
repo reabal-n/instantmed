@@ -1518,7 +1518,7 @@ test.describe("money-page keyboard foundations", () => {
 })
 
 test.describe("money-page reduced-motion foundations", () => {
-  test("hero first paint explains review without simulating a live request for either motion preference", async ({ browser }, testInfo) => {
+  test("hero first paint shows a specimen without simulating a live request for either motion preference", async ({ browser }, testInfo) => {
     for (const reducedMotion of ["no-preference", "reduce"] as const) {
       const context = await browser.newContext({
         baseURL: projectBaseURL(testInfo),
@@ -1542,18 +1542,16 @@ test.describe("money-page reduced-motion foundations", () => {
         expect(response?.ok(), `${reducedMotion} first-paint response`).toBe(true)
 
         const navigation = await page.getByRole("navigation", { name: "Main navigation", exact: true }).boundingBox()
-        const availability = await page.locator("main .hero-availability-enter").first().boundingBox()
-        expect(availability!.y, "availability must clear the fixed navigation at first paint")
+        const headline = await page.getByRole("heading", { level: 1 }).boundingBox()
+        expect(headline!.y, "headline must clear the fixed navigation at first paint")
           .toBeGreaterThanOrEqual(navigation!.y + navigation!.height)
 
-        const doctorCard = page.locator('[data-reduced-motion-final="doctor-card"]')
-        await expect(doctorCard).toBeAttached()
-        await expect(doctorCard.getByText("Example", { exact: true })).toBeVisible()
-        await expect(doctorCard.getByRole("listitem")).toHaveText([
-          "1Identity check", "2Clinical assessment", "3Decision",
-        ])
-        await expect(doctorCard.getByText("Reviewing", { exact: true })).toHaveCount(0)
-        await expect(doctorCard.locator('[style*="spin"], [style*="pulse"]')).toHaveCount(0)
+        const specimen = page.getByRole("figure", { name: "Example medical certificate, specimen only" })
+        await expect(specimen).toBeVisible()
+        await expect(specimen.getByText("Specimen", { exact: true })).toBeVisible()
+        await expect(specimen.getByText("Reference: SPECIMEN", { exact: true })).toBeVisible()
+        await expect(specimen.getByText("Reviewing", { exact: true })).toHaveCount(0)
+        await expect(specimen.locator('[style*="spin"], [style*="pulse"]')).toHaveCount(0)
       } finally {
         await context.close()
       }
@@ -1584,7 +1582,7 @@ test.describe("money-page reduced-motion foundations", () => {
           `${route.path} reduced-motion final paint:\n${JSON.stringify(finalState.failures, null, 2)}`,
         ).toEqual([])
         if (route.path === "/") {
-          expect(finalState.count, "homepage reduced-motion final-state markers").toBeGreaterThan(1)
+          await expect(page.getByRole("figure", { name: "Example medical certificate, specimen only" })).toBeAttached()
         }
 
         if (route.path === "/") {
