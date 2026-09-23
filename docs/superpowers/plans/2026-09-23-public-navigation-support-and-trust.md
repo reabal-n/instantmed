@@ -1,280 +1,337 @@
-# InstantMed Public Navigation, Support and Trust Implementation Plan
+# InstantMed Front Door Redesign Implementation Plan
 
-> **Status: DRAFT FOR FABLE REVIEW. Do not implement.** Rey requested a comprehensive plan on 2026-09-23, with Fable review before implementation. Review does not itself authorise deployment.
+> **Status: revised proposal for Rey's review, 23 September 2026. Implementation has not started.** This replaces the earlier draft in this file and incorporates Rey's decisions after the Opus review. The hero is the first implementation batch; there is no October hold.
 >
-> **For agentic workers:** After review and Rey's implementation approval, use `superpowers:executing-plans` task by task. Check the actual checkout before starting; do not repeat completed work or assume this draft is approved.
+> **Execution:** Once the plan is accepted, use `superpowers:executing-plans` task by task. Preserve existing work, verify each deliverable and commit each coherent batch. This document does not authorise deployment.
 
-**Goal:** Make it easy to choose a service, understand the evidence, find support and navigate on a phone, with less repetition and no loss of clinical, privacy or legal information.
+**Goal:** Make InstantMed feel calm, clear and considered, with an immediately understandable service, an obvious next step, accessible support and fewer competing elements.
 
-**Architecture:** Refine the existing shared Navbar, Footer, Hero and contact page. Separate operational status, independent reviews, certifications and practical reassurance into distinct components and locations. Use existing auth, service-availability, analytics and design primitives.
+**Architecture:** Refine the shared Hero, Navbar, Footer, service chooser and Contact page. Give status, reviews, certification and support distinct places. Preserve shared service, pricing, availability, routing and form infrastructure.
 
-**Tech stack:** Next.js 15.5.24, React 18.3.1, TypeScript, Tailwind 4.2.2, Framer Motion 11.18.2; Node 24 and pnpm 10.23.0. No dependency or stack upgrades.
+**Tech stack:** Next.js 15.5.24, React 18.3.1, TypeScript 5.9, Tailwind 4.2.2, Framer Motion 11.18.2; Node 24 and pnpm 10.23.0. No dependency upgrades or new providers.
 
-**Spec:** The supplied requirements and proposed design are captured in sections 1–4 below. This combined review document is intentionally not an approved specification. Fable should resolve the decisions in section 10 before execution.
+**Spec:** Sections 1–5 contain the proposed experience and settled constraints. Sections 6–9 define execution, verification and completion. This is one consolidated plan, not a second source of business or clinical policy.
 
-## 1. Scope, authority and current baseline
+## 1. Direction and boundaries
 
-Sources: this conversation; AGENTS.md; DESIGN.md; PRODUCT.md; docs/BRAND.md; docs/VOICE.md; docs/PRIMITIVES.md; docs/ADVERTISING_COMPLIANCE.md; docs/SEO_CONTENT_POLICY.md; docs/ROADMAP.md; implementation files listed below.
+### Settled decisions
 
-The roadmap prioritises women's-health growth and diagnosis of mobile certificate checkout abandonment. This work supports public usability and support access; it does not replace that queue, establish a checkout-abandonment cause, authorise advertising changes or promise revenue uplift.
+- Redesign the hero first, including the medical-certificate and prescription pages. Do not wait for the advertising observation window to close.
+- Keep ProductReview's logo and five-star presentation, linked to the InstantMed listing, using the verified rating configuration rather than hardcoded decorative stars.
+- Keep the existing footer trust marks, including Stripe, LegitScript and Google certification. Improve their placement, size and spacing.
+- Remove the oversized hero capsule and its redundant credential/service labels.
+- Keep Contact us directly visible in the navigation.
+- Keep the footer concise and make Help more prominent than company information.
+- Remove the internal-process references Rey flagged from public-facing copy. Do not replace them with other sweeping process claims. Explain the patient's actions, outcome and support options in plain language.
+- Incorporate useful visual and usability findings from Opus's review. Do not add a separate preliminary workstream that delays the design.
+- Produce desktop and mobile previews before wider release.
 
-### Already implemented locally in this conversation
+### Included surfaces
 
-| Commit | Delivered | Evidence boundary |
-|---|---|---|
-| `d3c01c6ad` | Desktop Services / How it works / Pricing / Contact us / account / Get started; expandable mobile Services; footer directory reduced to six links; trust badges retained; signature and apple tagline removed; certificate guidance disclosure; site-map links retained | Earlier local browser checks, lint, typecheck and 99 focused tests. No deployment established in this conversation. |
-| `8df290876` | ProductReview logo and five stars replace Google review stars; links to the listing; dated rating configuration; relevant docs/contracts updated | Listing observed at 5.0/5 on 2026-09-23; earlier local rendering checks, lint, typecheck and 56 tests. Rating is a manual snapshot, not a live feed. |
+The homepage and six primary service pages: `/medical-certificate`, `/prescriptions`, `/erectile-dysfunction`, `/hair-loss`, `/womens-health` and `/weight-loss`. Also: shared navigation/footer, `/contact`, `/how-it-works`, and targeted copy/layout cleanup on `/about`, `/pricing`, `/faq` and `/trust`. Trust & Safety uses the existing `/trust` route.
 
-Recheck branch, working tree, commits and any intervening changes before execution. These commits are the starting point, not items to rebuild. Full build, full E2E, CI and production verification were not established by those local results. Local browser checks reported PostHog fetch failures; do not call analytics delivery verified.
+Shared changes also require regression checks on a guide, a certificate-guidance page and any alternate landing page that consumes the same components. They do not authorise rewriting those pages wholesale.
 
-### Settled user decisions
+### Excluded work
 
-- Keep the trust badges, but organise their placement and spacing.
-- Keep the new direct Contact us navigation and simpler footer.
-- Use ProductReview's logo plus five stars instead of Google review stars. The earlier recommendation to remove review stars entirely is superseded.
-- Keep Google certification distinct from review ratings and clinical credentials.
-- Remove redundant AHPRA/service-label text from the large top announcement treatment.
-- Fable reviews this plan before implementation.
+No intake or checkout redesign, clinical workflow changes, service launches, pricing changes, new tracking/lookup system, advertising account changes or site-wide rebrand. Photography commissioning, generated assets and broader education-content work remain optional. Internal records and operational documentation retain accurate technical detail; public-copy cleanup is not deletion of internal evidence.
 
-### Non-goals
+### Current local baseline
 
-No new services, intake redesign, checkout/payment changes, clinical-policy changes, support automation, provider replacement, review solicitation, new review excerpts, rating schema, advertising spend, public release, or dependency upgrades. Do not change public URLs, the identity model or request fulfilment. Optional enhancements below are not prerequisites to the core cleanup.
+The previous work is preserved on `codex/simplify-public-navigation`:
 
-## 2. Proposed experience
+| Commit | Existing work to retain |
+|---|---|
+| `d3c01c6ad` | Simplified navigation, direct Contact us, smaller footer, retained badges and expandable certificate guidance |
+| `8df290876` | ProductReview badge replaces Google review stars |
+| `a30f906f5` | Original planning document |
+
+The shared checkout was subsequently on `main` at `5e836d1a0`. Before implementation, reconcile the feature branch with current main in an isolated worktree, preserving newer request-performance and measurement work. Do not rebuild completed changes or assume the local branch is deployed.
+
+The [Opus review](https://claude.ai/artifact/MEMzk99nC3ccaviVDLTQ7e) was accessible and reviewed; Rey's subsequent direction takes precedence over its proposed schedule and badge removals. Source inspection confirms the crowded hero composition, small footer contact links, mismatched certification treatments, Contact's repeated promotional sections and a button transition list missing the individual CSS movement properties. Opus's additional runtime findings remain review evidence until reproduced on the execution branch.
+
+## 2. Hero: the first implementation batch
+
+### Composition
+
+| Position | Proposed treatment |
+|---|---|
+| Above heading | One quiet, left-aligned status sentence when reliable service-specific timing exists |
+| Main heading | Short, clear headline with deliberate line breaks; no highlighted keyword treatment |
+| Supporting copy | One concise service explanation, followed only by information needed to decide whether to start |
+| Action | One dominant button with visible price where relevant; a quieter explanatory link when useful |
+| Under action | One compact reassurance line; no separate row of oversized certification cards |
+| Independent reviews | ProductReview logo and stars, linked and visually separate from operational status |
+| Hero visual | A large, readable representation of the actual outcome |
+
+The copy, status and CTA share a left edge on desktop. Mobile uses the same reading order; the visual follows the action and review row. Do not put the visual between the explanation and the button.
+
+### Headline and copy direction
+
+- Homepage: retain **“Faster than your GP.”** and make the supporting sentence clearly identify the available services.
+- Medical certificate: recommended headline **“Your medical certificate. Without the waiting room.”** Retain **“No video. No call. No appointment.”** on this service only.
+- Prescriptions: recommended headline **“Your regular medication. A simpler repeat.”** Explain the request and delivery outcome without promising a prescription or a fixed turnaround.
+- Specialty pages: lead with the service and the patient's need; keep practical eligibility and any necessary contact expectations close to the action.
+- Stop repeating “from bed” across the headline, body, footer and closing CTA. Keep distinctive language where it earns its place.
+
+These are proposed headline directions for the visual preview, not a mandate to rewrite every service headline identically.
+
+### Status and reassurance
+
+- Remove the capsule, divider dots, repeated service label and credential text from the top status area.
+- Wrap the entire timing sentence in one text element beside a static indicator. It must not split into separate flex columns.
+- Keep the service and observation window explicit. Use a median label if that is the statistic; do not describe a median as “most”. Example format: “Medical certificates: median turnaround ~24 min over the last 24 hours.” The number must come from current qualifying data, never this example.
+- Retain existing stale-data and queue-pressure protections. Verify how test records are excluded before showing the metric; reuse the project's existing test-record exclusion convention.
+- If a valid figure is unavailable, omit the timing line. The hero redesign can ship with no timing line while a data issue is repaired. Do not substitute a pulsing availability claim or a personal queue position.
+- Remove the second “last reviewed” signal from the hero. One recency signal is enough.
+- Keep “AHPRA-registered doctors” once in nearby explanatory copy or a short reassurance line where it is otherwise absent. Do not force another badge into an already adequate service explanation.
+- Use the existing refund wording once around the first action. Retain its concise footer reference; remove additional decorative repetitions elsewhere on the same page. A direct FAQ answer can still explain the policy.
+
+### ProductReview
+
+Keep the linked logo and stars below the action/reassurance group on the seven primary landing pages. Keep the listing URL, score and verification date together in `lib/social-proof/index.ts`. The earlier 5.0/5 observation is dated 23 September 2026; recheck the listing before release and represent any changed score accurately.
+
+Maintain logo proportions and readable contrast. In dark mode, use a deliberate monochrome treatment rather than a colour inversion that changes the brand to pink. Do not add a weekly automation, an arbitrary 45-day expiry, testimonials, review-count promotion or a new external widget as part of this redesign.
+
+### Hero visuals
+
+**Certificate:** Make the specimen the main visual. Reference the actual PDF renderer for structure, document details and verification treatment. Use synthetic information and a visible SPECIMEN label. Show the real verification mechanism and secure-link delivery treatment. Remove decorative elements that are not on the delivered document. Use a readable crop on mobile rather than shrinking an entire sheet until its text is illegible.
+
+**Homepage:** Replace the small status tiles with a certificate-led composition and a restrained eScript delivery example. Use a single clear composition on desktop; prioritise the certificate on mobile. Do not show an invented dashboard or multiply floating cards.
+
+**Prescriptions:** Refine the existing eScript specimen using the actual delivery format. Use synthetic content and avoid invented delivery times, repeat counts or outcome guarantees.
+
+**Motion:** Allow one short delivery-notice entrance. No perpetual floating, pulsing or repeatedly replayed hero entrances. Reduced-motion mode shows the complete static composition immediately. The CTA and headline must not wait for the decorative sequence.
+
+## 3. Navigation, footer and trust
 
 ### Navigation
 
-Desktop: `Logo | Services ▾ | How it works | Pricing | Contact us | Log in/account | Get started`.
+Desktop structure:
 
-Use 14px minimum navigation text, moving toward 16px where space permits. Aim for a roughly 56–64px header, but do not force a fixed height when text enlarges. Switch to the mobile layout before items collide, including with the wider signed-in Dashboard label. Preserve the existing role-aware account handoff.
+`Logo | Services ▾ | How it works | Pricing | Contact us | Log in/account | Get started`
 
-Mobile: simple, consistently styled text rows for Services, How it works, Pricing and Contact us. Services expands to six service links. Avoid coloured icon tiles for some rows and plain text for others. Keep Get started and account access easy to reach, but allow scrolling when short viewports or enlarged text make a fixed action area obstructive.
+- Use 15–16px link text and comfortable hit areas. Target 48px on mobile in line with the existing design system.
+- Keep one primary button style and a restrained active-link treatment, such as an underline or weight change.
+- Keep all six active services in the dropdown. Use their existing canonical names and routes.
+- On mobile, use consistent text rows. Services has an obvious disclosure control; remove the mixed coloured icon tiles.
+- Keep Contact us reachable without expanding Services. Preserve keyboard operation, focus return, Escape dismissal and scrolling in short screens.
+- Choose a CSS breakpoint from the widest signed-in layout. Do not add JavaScript collision detection.
+- Move theme switching out of the main desktop link sequence, into the footer utility area and mobile menu utility area. Preserve explicit light/dark control.
 
-### Hero and trust hierarchy
+### Footer information architecture
 
-1. **Above the headline:** a quiet service-specific operational status line, with no white capsule, stars, AHPRA label, service slogan or dangling separators.
-2. **Headline and explanatory copy:** explain the service and essential clinical boundaries. This is where the patient's task gets priority.
-3. **Primary action:** one relevant reassurance immediately adjacent, normally the approved refund promise. Do not remove clinically necessary prescribing/call qualifications to meet a visual quota.
-4. **Independent reviews:** one compact linked ProductReview logo-and-stars row below the CTA/reassurance group. It is visually separate from the wait status and from certification. Default proposal: only the marketing landing pages that currently inherit the review badge, not support/legal pages, guides, intake or staff surfaces.
-5. **Footer:** one organised certification/payment group and one quieter factual reassurance group. Google and LegitScript move out of the default hero. Trust & Safety explains what each mark does and does not mean.
+1. Brand and concise support details.
+2. **Help:** Contact us, FAQs, Verify a certificate.
+3. **About:** About InstantMed, Health Guides, What we won't do.
+4. A compact **Explore services** disclosure containing six server-rendered service-page links.
+5. Organised trust marks and quieter reassurance.
+6. Emergency wording, legal links and entity details.
 
-This placement reconciles the user's ProductReview decision with the earlier 'wait information only above the headline' recommendation. Do not silently remove ProductReview or keep it inside a renamed multi-purpose pill.
+Use **“Telehealth without the small talk.”** as the single brand line. Label the number **“24/7 voice message support”**; keep the email and phone actionable. Help precedes About in both reading order and layout.
 
-### Footer
+The Explore services disclosure is collapsed by default on desktop and mobile. It avoids rebuilding a third permanent directory column while keeping all six landing-page links in the HTML. A native `details`/`summary` treatment works without JavaScript. Do not hide emergency or legal information in a disclosure.
 
-Brand/support details, then **Help** before **About**, followed by certification/payment marks, factual reassurance, emergency wording and legal/entity information.
+Legal links should be at least 14px, wrap comfortably and have generous hit areas. Keep Privacy, Terms, Refund, Complaints, Trust & Safety, Site map, copyright and the unbroken ABN.
 
-- Help: Contact us, FAQs, Verify a certificate.
-- About: About InstantMed, Health Guides, What we won't do.
-- Phone: show '24/7 voice message support'; this does not imply a live staffed telephone line or immediate reply.
-- Retain Stripe, LegitScript, Google certification and the existing footer reassurance information, subject to factual review.
-- Keep Privacy, Terms, Refund, Complaints, Trust & Safety, Site map and ABN accessible. Do not put emergency or legal information behind a collapsed accordion.
-- No new promotional slogan, signature or directory column.
+### Trust arrangement
 
-### Contact page
+- Desktop: one horizontally aligned group for Stripe, LegitScript and Google certification, with consistent surrounding space and optical balance.
+- Mobile: an explicit two-row grid. Stripe and LegitScript share the first row; the wider Google certification treatment is centred on the second. Avoid accidental flex wrapping.
+- Render LegitScript close to its native 73×79 proportions so the mark is readable. Preserve intrinsic proportions for every logo.
+- Use a common, quiet presentation rather than a heavily bordered Google card beside a tiny floating seal. Keep the Google logo and qualification label requested by Rey.
+- Put registration, refund and privacy reassurance in a separate quieter row beneath. Avoid three different pill styles within that row.
+- Keep fuller explanations on Trust & Safety. Do not repeat complete certification groups above and below the same page.
 
-Compact heading and one sentence, followed immediately by practical actions and the form. 'View my request' is available without making login a requirement for contacting support. Desktop can retain a two-column layout; on mobile use a short support-action group followed by the form, with detailed company/complaints information below.
+Do not introduce a blanket logo-removal task or change the requested retained badge set. Any redundant strip removed during page polish is a page-composition decision, not a prerequisite for the hero.
 
-Remove the repeated 'real humans' promotional section, empty response-stats wrapper and unrelated credibility/live clinical wait sections. Remove the large acquisition banner from the support flow; retain the standard navigation action. Keep email, accurately labelled voice-message support, FAQs and formal complaints access.
+## 4. Contact, discovery and page polish
 
-## 3. Requirements coverage
+### Contact
 
-| Conversation recommendation | Planned treatment | Task |
+Use a plain **“Contact support”** heading and one practical sentence. On desktop, support methods sit left and the form right. On mobile, concise support actions come first, followed immediately by the form.
+
+- Remove the repeated promotional introduction, empty wrapper, clinical wait display and acquisition banner.
+- Keep email, voice-message support and the form easy to reach.
+- Add **“Already submitted a request?”** with two clear routes: account holders can sign in to their existing requests; guests are directed to the tracking link in their confirmation email. Do not imply that every guest can sign in.
+- Keep Contact available without login. Reuse existing safe auth return paths and tracking behaviour.
+- Put the Complaints page link alongside the complaints email and existing response information.
+- Remove named-assistant and internal-process messaging. Describe the support action and what happens next without inventing an immediate-response promise.
+- Preserve entered text on failure, prevent duplicate pending submissions, associate errors with fields and show success only after the server action succeeds.
+
+### Discovery without link walls
+
+Remove the homepage Popular pages strip once the replacement footer links are in place and rendered-HTML checks pass. Its current six links cover two service pages plus Pricing, How it works, Verify and Contact; the review's claim that it alone covers all six services is not supported by that component.
+
+The homepage chooser already links four specialties to their landing pages, while certificate and repeat-prescription cards lead directly into requests. Preserve those intended CTA destinations. The new footer disclosure supplies all six service-page anchors without changing those conversion paths.
+
+Keep certificate guidance in its existing disclosure. Use short navigation labels such as “Certificates for work”, “Certificates for study” and “Carer's leave certificates”. Keep **“Employer evidence guide”**. Preserve the URLs and full page titles.
+
+### Core visual polish after hero, navigation and Contact
+
+- Replace tall mobile service cards with compact rows: service name, one-line description, price and chevron. Keep useful desktop card detail. Target roughly 80–96px rows at default text size, allowing expansion for long text and accessibility settings; do not promise six rows plus surrounding content fit every phone.
+- Use one restrained icon language on public service surfaces. Prefer existing Lucide marks in a consistent size and colour; use no icon where it adds nothing. Keep specialty imagery respectful and literal.
+- Align the outer edges of header, hero, main sections and footer using the existing `max-w-5xl` shell. Long prose retains a narrower measure. Do not force every component to the same text width.
+- Standardise public primary CTAs on the design system's rounded button shape, with consistent size, focus and press behaviour. Avoid a global control restyle that spills into staff or patient forms.
+- Make CTA verbs match destinations: “Get…” or “Start…” when entering a request; “View…” when opening a service explanation. Do not label an informational link as starting an assessment.
+- Keep the existing body/display font roles: Source Sans 3 for body and section text, Plus Jakarta Sans for hero/display moments. Do not silently extend the display font to every heading.
+- Vary section composition according to content. Remove redundant eyebrow pills and isolated coloured words. Prefer left-aligned explanatory sections, readable prose and fewer nested cards.
+- Rework How it works around three concrete stages: complete the form, receive an outcome or request for more information, and access the document or eScript when issued. Use actual product examples, not three decorative icon boxes.
+- Fix button/card movement transitions by including CSS `translate` and `scale` where used. Keep shared motion tokens, short durations and reduced-motion behaviour.
+- Clean up repeated refund language, forced casual phrases and inaccurate output details alongside each changed page. Cover visible text, accessible labels, metadata and FAQ schema so removed public wording does not survive elsewhere.
+
+## 5. Optional enhancements, outside core acceptance
+
+1. A photography pass using the existing brief, only where a real scene improves understanding. No stock doctor portraits and no asset generation required to finish this plan.
+2. Display-face section headings as a separate visual option. Preview before changing the current typography contract.
+3. More extensive redesign of About, Pricing and educational content after the shared system is proven.
+4. A broader customer-discovery or conversion experiment once reliable traffic supports a useful comparison. No speculative uplift target.
+
+None of these delays the hero or becomes an implementation prerequisite.
+
+## 6. Implementation tasks and ownership
+
+Every task ends with a diff review, its relevant checks and a focused commit. Use behavioural tests for interaction changes and browser inspection for visual decisions; do not create tests that merely pin utility classes.
+
+### Task 1 — Hero hierarchy and review placement
+
+**Modify:** `components/marketing/hero.tsx`, `components/marketing/wait-counter.tsx`, `components/marketing/product-review-badge.tsx`, `components/marketing/med-cert-landing.tsx`, the five other service landing components, `app/(marketing)/page.tsx`.
+
+**Inspect/conditionally repair:** `lib/brand/wait-counter.ts`, `lib/brand/wait-counter-types.ts`, `lib/social-proof/index.ts`.
+
+**Tests:** `lib/__tests__/landing-hero-contract.test.ts`, `lib/__tests__/wait-counter-unverified-state-contract.test.tsx`, `e2e/landing-pages.spec.ts`, `e2e/brand-surfaces.smoke.spec.ts`.
+
+- [ ] Capture homepage and certificate hero at 1440×900 and 390×844 on the execution branch.
+- [ ] Inventory every Hero caller, including explicit `pill`, `trustRow` and `reassuranceRow` overrides. Migrate the composition deliberately; do not retain an obsolete multipurpose pill API solely to appease a source-string test.
+- [ ] Separate status, CTA reassurance and ProductReview. Remove default hero certification injection; the existing footer still retains the marks throughout this change.
+- [ ] Repair sentence wrapping, eliminate duplicate recency and suppress unsupported timing states.
+- [ ] Check eligible timing population and stale handling. If unreliable, render the redesigned hero without timing while the metric correction is reviewed.
+- [ ] Verify one H1, readable wrapping, existing service-availability gating, CTA destinations and ProductReview link behaviour on all seven pages.
+- [ ] Replace old hero tests with assertions for the new hierarchy; preserve geometry and slow-font layout-shift checks.
+- [ ] Update relevant Hero/status documentation in `DESIGN.md`, `docs/PRIMITIVES.md` and source-owned instruction references. Commit the complete hierarchy change.
+
+**Acceptance:** The large capsule is gone; the first action is clearly visible at 390×844 with default text; status does not break into columns; unavailable services remain unavailable; ProductReview remains linked; the footer retains the certification marks. At enlarged text sizes, natural scrolling takes precedence over forcing everything above the fold.
+
+### Task 2 — Hero specimens and motion
+
+**Modify:** `components/marketing/mockups/med-cert-hero-mockup.tsx`, `components/marketing/mockups/escript-hero-mockup.tsx`, `components/marketing/hero-doctor-review-mockup.tsx`, their route compositions.
+
+**Reference:** `lib/pdf/template-renderer.ts`, actual delivery templates, `lib/motion/index.ts`.
+
+- [ ] Compare the existing specimen with the actual document/delivery format using synthetic data only.
+- [ ] Build the larger certificate composition and homepage outcome visual; refine the prescription specimen.
+- [ ] Remove invented document adornments and unsupported sample details. Keep specimen references clearly non-live.
+- [ ] Implement one delivery-notice entrance and static reduced-motion mode; remove looping and duplicate entrances from these heroes.
+- [ ] Inspect mobile crop, desktop balance, light/dark contrast, image dimensions and loading behaviour. Confirm decorative assets do not displace the CTA or add a new render-blocking dependency.
+- [ ] Commit with before/after screenshots.
+
+**Acceptance:** Patients can recognise the actual output; important specimen text is legible without zoom; no real patient information appears; no hero animation loops or restarts after hydration. Tasks 1 and 2 together form the first implementation batch.
+
+### Task 3 — Navigation, footer and discovery
+
+**Modify:** `components/shared/navbar.tsx`, `components/shared/navbar/{animated-nav-link,services-dropdown,mobile-menu-content,mobile-drawer,user-menu,theme-switch}.tsx`, `components/ui/animated-mobile-menu.tsx`, `components/shared/footer.tsx`, `components/marketing/{google-ads-cert,legitscript-seal,home-service-links,med-cert-reason-links}.tsx`, `lib/marketing/homepage.ts`, `lib/marketing/med-cert-intent-config.ts`, `app/(marketing)/page.tsx`.
+
+**Tests:** `lib/__tests__/support-nav-contract.test.ts`, `lib/__tests__/navigation-routing-contract.test.ts`, `lib/__tests__/seo-indexing-contract.test.ts`, `e2e/marketing-dashboard-nav.spec.ts`.
+
+- [ ] Enlarge nav text, unify mobile rows and active treatment, and measure the widest account state before choosing the desktop breakpoint.
+- [ ] Reorder footer Help/About, label voice support and improve contact/legal hit areas.
+- [ ] Add native Explore services disclosure with all six real landing-page links in server-rendered markup.
+- [ ] Organise retained trust marks into the desktop row/mobile grid and quieter reassurance group.
+- [ ] Remove Popular pages only after verifying its destinations and all six service pages remain discoverable in HTML without scripts. Keep any other useful branded-search-link consumer.
+- [ ] Improve certificate-guidance labels without altering destination routes or page titles.
+- [ ] Verify tab order, Enter/Space, Escape, focus return, theme controls, long labels, 320px width and short landscape screens. Commit.
+
+**Acceptance:** Contact is directly accessible; all six services remain discoverable; no crowded permanent footer directory returns; trust marks are readable and evenly spaced; keyboard and no-JavaScript discovery work.
+
+### Task 4 — Contact and bounded measurement
+
+**Modify:** `app/contact/contact-client.tsx`, `app/contact/page.tsx`; inspect `app/actions/contact-form.ts`, `lib/navigation/auth-handoff.ts`, `lib/auth/redirects.ts`, existing `/track` and patient-request routes.
+
+**Add:** `e2e/contact-support.spec.ts` for synthetic, stubbed-delivery cases using the repository's existing test conventions. No real support email is sent.
+
+- [ ] Build the concise support-first layout and guest/account guidance.
+- [ ] Preserve existing form validation, delivery and abuse controls; remove repeated promotional blocks.
+- [ ] Preserve the historical meaning of `contact_form_submitted` as an attempted submission, or explicitly document its migration. Add a distinct success event only after confirmed server success.
+- [ ] Replace raw analytics error strings with fixed categories. Payloads exclude message text, identity, request IDs and health information. Reuse the existing consent-aware transport; analytics failure cannot block the form.
+- [ ] Exercise invalid input, pending submit, confirmed success, server failure with text retained, retry and blocked analytics. Check account-holder return routing and guest guidance.
+- [ ] Check the form begins within the first 390×844 screen after the short support actions. Commit.
+
+**Acceptance:** A visitor immediately understands how to get help, guests are not forced into sign-in, entered text survives failure and the form never reports success early. This plan adds no navigation analytics programme or before/after conversion claim.
+
+### Task 5 — Service chooser, page rhythm and copy
+
+**Modify:** `components/marketing/portfolio-route-map.tsx`, `components/marketing/sections/how-it-works-inline.tsx`, `components/marketing/how-it-works-content.tsx`, `components/sections/{section-header,cta-banner}.tsx`, `components/ui/button.tsx`, relevant public route copy and its canonical source modules.
+
+**Reference:** `lib/services/service-catalog.ts`, `lib/marketing/{voice,approved-claims,homepage}.ts`, `components/ui/heading.tsx`, `DESIGN.md`.
+
+- [ ] Convert mobile service cards to compact rows with unchanged price sources and destinations.
+- [ ] Apply the consistent public icon/button treatment and common outer container alignment.
+- [ ] Correct CSS transitions for individual movement properties, checking staff/patient controls for unintended shared effects.
+- [ ] Build the output-led How it works sequence and simplify section headings/eyebrows.
+- [ ] Remove the public-copy references specified by Rey from rendered copy, accessible text, metadata and structured data. Use neutral, accurate descriptions; do not introduce absolute claims about who sees or processes every request.
+- [ ] Reduce repeated slogans/refund decoration and correct factual specimen or delivery wording during the same page pass.
+- [ ] Update design documentation and its changelog for the patterns actually adopted. Commit after responsive, availability and reduced-motion checks.
+
+**Acceptance:** Services are substantially quicker to compare on a phone; CTA labels accurately describe their destinations; section layouts follow their content; public copy contains no remaining instances of the references Rey asked to remove. No new typeface, service, price or patient-flow change is introduced.
+
+### Task 6 — Final verification and review pack
+
+- [ ] Review homepage, all six service pages, Contact and How it works at 1440×900 and 390×844 in light and dark mode.
+- [ ] Target edge cases at 320×568, 768×900 and 844×390, plus 200% text/zoom: navigation, footer, hero wrapping, sticky CTA, menu and focused Contact inputs.
+- [ ] Check one guide and one alternate landing shell for shared-component regressions. Exercise reduced motion and keyboard access. Distinguish Chromium checks from WebKit or physical-device evidence.
+- [ ] Recheck CTA routes, availability states, no-script service anchors, page metadata, document specimens and the current ProductReview source.
+- [ ] Run lint, typecheck, focused tests and relevant existing E2E, followed by required release checks before any release claim.
+- [ ] Prepare before/after contact sheets, a changed-route list, checks run and known limitations. Record the actual release time in the existing change/Ads observation record when eventually released; this records a confounder without delaying the work.
+- [ ] Update documentation references and commit the verified batch. Present the visual pack for Rey's judgement.
+
+## 7. Verification commands and failure cases
+
+Run from the implementation worktree on the pinned runtime. Start with the tests that own each changed surface:
+
+```bash
+corepack pnpm test run lib/__tests__/landing-hero-contract.test.ts lib/__tests__/wait-counter-unverified-state-contract.test.tsx lib/__tests__/support-nav-contract.test.ts lib/__tests__/navigation-routing-contract.test.ts lib/__tests__/seo-indexing-contract.test.ts
+corepack pnpm lint
+corepack pnpm typecheck
+corepack pnpm e2e --project=chromium e2e/landing-pages.spec.ts e2e/brand-surfaces.smoke.spec.ts e2e/marketing-dashboard-nav.spec.ts e2e/contact-support.spec.ts
+corepack pnpm doc:audit
+```
+
+The Contact spec is created in Task 4; do not run it before it exists. Use the established E2E server/seed setup and isolated message-delivery stubs. Before release, run `corepack pnpm release:check` and the relevant CI gates. Report unrelated failures explicitly rather than weakening checks.
+
+| Failure case | Required outcome | Owner |
 |---|---|---|
-| Larger nav text | 14–16px with collision-driven breakpoint | 1 |
-| Consistent mobile navigation | Plain text rows and consistent disclosure styling | 1 |
-| Larger tap targets | Target 44×44 CSS px or equivalent full-row hit area; legal links wrap rather than crowd | 1, 2 |
-| Clear support phone label | Explicit voice-message wording | 2, 4 |
-| Help before About | Visual and DOM order agree | 2 |
-| Simpler Contact | Remove repeated marketing blocks; support/form first | 4 |
-| Existing-request shortcut | Reuse guarded auth return flow; retain guest access to contact | 4 |
-| Remove Popular pages duplication | Remove redundant homepage strip after link audit | 5 |
-| Reduce repeated trust sections | Route inventory and explicit ownership of each signal | 3 |
-| Plain certificate guidance labels | Dedicated navigation labels, preserving page titles and meaning | 5 |
-| Short-screen sticky checks | Viewport, keyboard, zoom and safe-area matrix | 6 |
-| Measure support discoverability | Small allowlisted event set and honest comparison | 7 |
-| Remove AHPRA / Routine short absences from top pill | Remove label from operational status composition | 3 |
-| Preserve wait evidence/timeframe | One wrapping text container; unchanged metric semantics | 3 |
-| Replace Google review stars | Already done; retain ProductReview and define its separate placement | 3 |
-| Move hero certifications into footer | Default Hero no longer injects them; deliberate trust-page exception | 2, 3 |
-| Balance marks and spacing | Equal visual treatment, intrinsic proportions, responsive grouping | 2 |
-| Separate certifications from reassurance | Two distinct groups with descriptive semantics | 2 |
-| Explain Google qualification | Accessible visible explanation on Trust & Safety; never imply endorsement | 2, 3 |
+| Missing/stale timing or test-contaminated data | Hero remains useful without a displayed figure | Task 1 |
+| Service disabled or maintenance active | No contradictory active status or enabled request action | Tasks 1, 3, 5 |
+| Guest cannot sign in | Clear confirmation-email tracking guidance and available support | Task 4 |
+| Small screen, enlarged text, open menu or keyboard | Natural scrolling, visible focused control, no overlapping actions | Tasks 3, 4, 6 |
+| Message delivery/analytics failure | No false success, no lost entered text, no sensitive telemetry | Task 4 |
+| Link strip removed | All intended service/help destinations still present as real anchors | Task 3 |
+| Reduced motion or slow font load | Stable, readable hero with no delayed action or repeating animation | Tasks 1, 2, 6 |
 
-## 4. Additional recommendations worth including
+This planning revision is documentation-only. Application behaviour, current rating, source populations and release readiness must be verified during execution; writing this plan establishes none of those outcomes.
 
-These address concrete adjacent weaknesses without expanding into a site redesign.
+## 8. Release order and rollback
 
-1. **Repair wait-time wrapping at the source.** `WaitCounter` currently places text fragments and a strong element directly inside an inline-flex container. Wrap the entire sentence in one text element beside the dot so '~24 min' and the timeframe do not form separate columns on mobile.
-2. **Distinguish historical performance from current availability.** A retrospective median is not a promised turnaround or proof a doctor is currently online. Keep the service name, observation window and existing stale/hidden-state rules intact.
-3. **Audit fallback truthfulness.** The shared hero has an 'Open now' fallback; WaitCounter also defines queued/standby states. Establish which are reachable on public routes before changing display. Do not expose legacy 'next session' hours copy on a 24/7 service, or show a personalised queue position on an anonymous page. Escalate any actual policy mismatch separately rather than silently changing clinical operations.
-4. **Make review provenance maintainable.** Keep the listing URL, actual rating and verification date together. Specify who rechecks the manual snapshot; do not claim live synchronisation. If the score changes, represent it accurately rather than rounding up to five full stars. Verify logo-use conditions and do not distort the logo.
-5. **Fix semantic link mismatches.** Contact's current 'See how it works' CTA points to `/faq`. Removing that banner resolves this instance; check retained help labels against destinations.
-6. **Separate attempted from successful contact submission.** The current `contact_form_submitted` capture occurs before the server result. Do not use it as a delivered-message metric. Preserve or migrate event meaning explicitly; never silently reinterpret historical charts.
-7. **Keep support form failures recoverable.** Preserve entered text when delivery fails, prevent duplicate submits while pending, keep validation accessible, and show success only after the action confirms success. Verify existing behaviour before changing it.
-8. **Check actual focus, contrast and reduced motion.** Subtle grey links and small legal text need measured checks, not aesthetic judgement alone. Do not add ornamental animation to compensate for removed content.
+1. **Hero hierarchy, specimens and motion.** First implementation batch, with the existing footer marks retained.
+2. **Navigation, footer, badge layout and link cleanup.** Ship discovery replacement and strip removal together.
+3. **Contact and its bounded submission measurement.**
+4. **Service chooser, How it works and remaining visual/copy polish.**
 
-Optional later work: improve service-dropdown descriptions from observed user confusion; revisit the contact reason categories after seeing anonymised usage; run a separate service-page first-screen audit. These are not authorised implementation tasks in this draft and must not displace current roadmap work.
+Each batch is independently reviewable. Do not wait for optional photography, a typography experiment or the October observation checkpoint. Keep required public disclosures and clinical boundaries accurate throughout; their layout should not dominate the page.
 
-## 5. Implementation sequence and file ownership
+Rollback means reverting the affected batch, retaining accurate review attribution and working support/service routes. Do not restore old Google review stars merely to reverse spacing changes. No database migration or new environment variable is expected.
 
-Each task should be independently reviewable and committed separately after its checks. Add behavioural tests for changed interactions; do not add brittle source-string tests merely to pin class names. Existing source contracts must be revised to express the approved final behaviour, not weakened to make failures disappear.
+## 9. Completion checklist
 
-### Task 1 — Navigation readability and interaction
+- [ ] Rey accepts this consolidated plan before implementation.
+- [ ] Hero redesign is implemented in the first batch, including certificate and prescription surfaces.
+- [ ] ProductReview remains linked and accurate; all requested certification marks remain present.
+- [ ] Navigation is readable, Contact is direct and the footer is concise.
+- [ ] Guest/account support paths and recoverable form states work.
+- [ ] Every service page remains discoverable without a link wall.
+- [ ] Mobile service comparison, button feedback and page rhythm improve visibly.
+- [ ] Public wording cleanup covers visible, accessible and search-facing copy.
+- [ ] Light/dark, keyboard, reduced-motion and responsive checks are recorded.
+- [ ] Rey receives a desktop/mobile visual review pack; local checks, CI and deployment status are reported separately.
 
-**Files:** `components/shared/navbar.tsx`, `components/shared/navbar/animated-nav-link.tsx`, `components/shared/navbar/user-menu.tsx`, `components/shared/navbar/services-dropdown.tsx`, `components/shared/navbar/mobile-menu-content.tsx`, `components/shared/navbar/mobile-drawer.tsx`, `components/ui/animated-mobile-menu.tsx`.
-
-- [ ] Reproduce current text sizes, target dimensions and keyboard paths on logged-out and synthetic signed-in states.
-- [ ] Increase text/targets; use a content-fit breakpoint and consistent mobile rows. Keep Services disclosure and disabled-service behaviour.
-- [ ] Verify open/close, Enter/Space activation, Tab/Shift+Tab containment, Escape, focus return, navigation after drawer close and account handoff.
-- [ ] Verify the menu remains usable after reopening, resizing and toggling reduced motion; preserve existing motion contracts.
-- [ ] Update relevant cases in `e2e/money-pages-foundations.spec.ts` and `e2e/marketing-dashboard-nav.spec.ts`; run focused routing and reduced-motion contracts; commit.
-
-**Acceptance:** Contact is visible in the collapsed-services mobile menu without scrolling at 390×844; all items remain reachable on shorter screens. No header collisions, clipped focus rings, horizontal overflow or hidden last action. Keyboard order matches the visual order.
-
-### Task 2 — Footer organisation and certification presentation
-
-**Files:** `components/shared/footer.tsx`, `lib/marketing/homepage.ts`, `components/marketing/google-ads-cert.tsx`, `components/marketing/legitscript-seal.tsx`, `components/checkout/trust-badges.tsx`, `components/shared/trust-badge.tsx`, `app/trust/trust-client.tsx`.
-
-- [ ] Inventory all usages before modifying badge primitives; preserve checkout-specific behaviour and content.
-- [ ] Move Help before About, add the phone label and improve link hit areas/text legibility.
-- [ ] Prefer one compact shared certification-row composition where reuse is real; do not build a general badge framework.
-- [ ] Use a deliberate mobile grid or stack. Remove the visually dominant Google card treatment, or give the entire group a common restrained presentation. Retain intrinsic logo proportions and readable LegitScript artwork.
-- [ ] Preserve the LegitScript verification link, correct Google advertising qualification and truthful Stripe description. Avoid a group heading such as 'Accredited by' that would misrepresent these different relationships.
-- [ ] Keep the factual reassurance row separate. Make relevant existing links usable without adding repetitive cards or unsupported certification claims.
-- [ ] Check footer variants, all logos loading, light/dark contrast, wrapping and keyboard focus; update applicable tests and commit.
-
-**Acceptance:** All requested badges remain; none is clipped or disproportionately dominant. At 320px, 390px and desktop widths, marks form intentional rows with consistent gaps. Emergency and legal content remains visible and the ABN does not fragment unnecessarily.
-
-### Task 3 — Hero status, ProductReview and trust repetition
-
-**Files:** `components/marketing/hero.tsx`, `components/marketing/wait-counter.tsx`, `components/marketing/product-review-badge.tsx`, `lib/social-proof/index.ts`; inspect `lib/brand/wait-counter.ts` and `lib/brand/wait-counter-types.ts` without changing metric logic; all shared Hero callers, including `components/marketing/med-cert-landing.tsx` and `app/(marketing)/page.tsx`.
-
-- [ ] Build a route matrix of status, review, reassurance and certification slots. Distinguish shared defaults, custom slots, paid variants and informational pages before editing defaults.
-- [ ] Remove redundant pill labels, capsule styling and separators from the top status treatment. Keep service-availability gating.
-- [ ] Wrap the full wait sentence as text beside the indicator. Preserve observation window, approximate value, service label and metric computation; avoid an empty reserved badge when hidden.
-- [ ] Exercise live, missing-data, hidden, queued and standby fixtures. Verify reachability and approved public fallback before retiring or replacing legacy wording.
-- [ ] Place ProductReview below the CTA/reassurance group as a separate linked element on the approved route set. Keep stars directly associated with the logo and accurate accessible label. No review text, counts or aggregate-rating schema.
-- [ ] Remove default hero Google/LegitScript injection; retain footer marks and deliberate explanatory usage on Trust & Safety. Inspect explicit overrides so duplicates do not survive accidentally.
-- [ ] Keep one refund reassurance adjacent to the action; remove redundant nearby repetition only after preserving necessary clinical qualifications.
-- [ ] Update `landing-hero-contract`, `marketing-copy-contract`, `social-proof-banned-metrics`, relevant wait-state and paid-route guards, `DESIGN.md`, `docs/BRAND.md`, `docs/PRIMITIVES.md` and design changelog as appropriate; commit.
-
-**Acceptance:** Top status contains operational information only. ProductReview is present once on the approved landing surfaces and links to the correct listing. The wait sentence reads naturally at narrow widths and 200% text size. No future turnaround guarantee, fabricated live activity, misleading credential or duplicated hero certification row.
-
-**Review note:** The earlier operator-approved ProductReview exception in `docs/ADVERTISING_COMPLIANCE.md` records requested display scope, not independent legal clearance. Fable should assess the consistency of the proposed placement with the public-claims policy; do not treat passing tests or other sites' badges as legal proof. Preserve Rey's requested design while identifying any concrete release blocker.
-
-### Task 4 — Contact as a support task
-
-**Files:** `app/contact/contact-client.tsx`, `app/contact/page.tsx`; inspect `app/actions/contact-form.ts`, `lib/navigation/auth-handoff.ts`, `lib/auth/redirects.ts` and existing sign-in flow. Preserve server delivery, validation and abuse controls.
-
-- [ ] Reduce the heading area and delete the repeated promotional/empty blocks described in section 2.
-- [ ] Present request access, email and voice-message support concisely; keep the form close to the top and accessible without login.
-- [ ] Add 'View my request' using the existing safe post-sign-in redirect machinery and verified patient destination. Do not link everyone directly to the staff `/dashboard`.
-- [ ] Verify signed-out return, signed-in patient, expired session, staff visiting the public page and users whose original request was made as a guest. Do not invent a guest lookup endpoint or auto-create an account; retain the support route when request access is unavailable.
-- [ ] Preserve complaints timing from approved claims. Do not convert clinical queue wait times into support response promises.
-- [ ] Test empty/invalid input, keyboard validation, pending submit, failure/retry with text preserved and confirmed success through isolated delivery stubs. No live support email during browser QA.
-- [ ] Remove or replace raw error strings in contact analytics with fixed error categories as part of Task 7, without changing user-visible error handling unintentionally.
-- [ ] Commit with local visual and interaction evidence.
-
-**Acceptance:** At 390×844, users see the contact purpose, useful support actions and the beginning of the form without passing a marketing section. Desktop presents methods and form together. Login is optional for contacting support. Success requires a successful server-action result; production delivery remains a separate verification layer.
-
-### Task 5 — Remove redundant link blocks without losing discovery
-
-**Files:** `app/(marketing)/page.tsx`, `components/marketing/home-service-links.tsx`, `components/marketing/med-cert-reason-links.tsx`, `lib/marketing/med-cert-intent-config.ts`, `app/sitemap-html/page.tsx`, related SEO indexing contracts.
-
-- [ ] Confirm all destinations from HomeServiceLinks remain available through navigation, page content or site map. Remove the homepage's duplicate Popular pages strip; retire the component only if no consumers remain.
-- [ ] Keep the certificate-guidance disclosure server-rendered, keyboard accessible and collapsed by default.
-- [ ] Add navigation-specific labels instead of changing `explainerTitle` globally. Proposed examples: 'Certificates for work', 'Certificates for study', 'Carer’s leave certificates', 'Employer acceptance'. Review all 15 labels against their destinations; avoid promises of acceptance or special consideration.
-- [ ] Retain all existing guidance URLs, canonical metadata, child links, source meaning and footer site-map path.
-- [ ] Test disclosure with keyboard and without JavaScript, broken links and crawlable HTML; update existing SEO contracts and commit.
-
-**Acceptance:** No deleted public route or newly orphaned supporting page. The homepage loses a redundant strip; the certificate page retains a short disclosure, with recognisable labels when opened. Do not claim SEO improvement from this visual cleanup.
-
-### Task 6 — Cross-route responsive and accessibility verification
-
-**Files:** existing `e2e/money-pages-foundations.spec.ts`, `e2e/landing-pages.spec.ts`, related public accessibility tests; targeted component fixes only when defects are reproduced.
-
-- [ ] Cover homepage, six service landing pages, Pricing, How it works, Contact, FAQ, Trust & Safety and site map. Include one guide and any separate paid landing shell as regression samples.
-- [ ] Test 320×568, 390×844, 768×900, 1440×900 and 844×390 landscape; light/dark, keyboard, reduced motion and 200% text/zoom. These are test sizes, not new CSS breakpoints.
-- [ ] Test menu plus sticky CTA, cookie/consent UI if present, returning-patient/resume notices and focused contact inputs with the software keyboard. Use owned synthetic state for personalised UI.
-- [ ] Confirm no sticky overlay obscures a form field, error, legal link or primary action. On small screens, prefer natural scrolling over multiple pinned layers.
-- [ ] Check normal text contrast against WCAG AA thresholds, visible focus and descriptive labels. The 44px target is this plan's design target, not a claim of a universal WCAG minimum.
-- [ ] Recheck hero CTA visibility and existing layout-shift/page-length budgets after moving ProductReview. Do not hide content or loosen guard thresholds merely to pass.
-- [ ] Record actual routes, viewport, theme, browser and interactions checked. Chromium emulation is not physical iPhone/Safari proof; include WebKit coverage and owner physical-device review before calling that layer complete.
-
-**Acceptance:** No critical navigation/support regression, unreadable trust marks, overlapping sticky elements or broken focus behaviour. Distinguish automated checks, browser observations and owner visual acceptance.
-
-### Task 7 — Minimal privacy-safe measurement
-
-**Files:** `lib/analytics/capture.ts`, applicable existing analytics event registry/privacy tests, navigation/footer/contact call sites. Inspect current conventions before choosing exact event names.
-
-- [ ] Inventory existing explicit events and reuse them where semantics match. Do not add duplicate page views, autocapture or session recording.
-- [ ] Proposed minimal events: navigation selection; support action selection; contact submit attempted/succeeded/failed. Use fixed allowlisted placement and action enums, plus approved layout-version marker where useful.
-- [ ] Default payload excludes full URLs/query strings, free text, email, phone, request identifiers, clinical/service selections and raw error strings. Do not introduce user identification or cross-session joins for this UI question.
-- [ ] On contact, use fixed failure categories; preserve the distinction between attempted send and successful action response. A successful response is not evidence of a later human reply.
-- [ ] Test blocked analytics, offline mode and capture errors: links and support submission must still work. Verify outbound payloads with synthetic actions and browser network evidence; a local PostHog error is not a delivery pass.
-- [ ] Record release time and compare equal-length, weekday-matched windows, split by device and only already-permitted acquisition categories. Show raw counts, denominators, missing-data limits and concurrent changes. Select duration after inspecting traffic; no invented sample-size or significance claim.
-- [ ] Review contact visits per observed eligible page view, request-access usage, form attempt-to-success ratio and aggregate support themes if available through authorised privacy-safe reporting. More Contact clicks can mean either better discovery or greater confusion; fewer messages are not automatically success. Use existing checkout metrics as guardrails without altering their contracts.
-
-**Acceptance:** Payloads pass existing privacy controls; analytics failure never blocks a user action. Measurement is observational unless a separately designed experiment establishes causality. No guaranteed conversion or support-volume uplift.
-
-## 6. Review focus: failure cases not to miss
-
-- Long account labels and 200% text size: navbar switches layout before collision.
-- Services expanded, then close/reopen or route change: correct focus, scroll restoration and accessible state.
-- Wait data absent/stale or service disabled: no misleading active-status claim or empty pill.
-- Review score changes after the snapshot: update or suppress the rating accurately; never display rounded-up evidence.
-- Signed-out/guest request access: no redirect loop and no account requirement to contact support.
-- Contact delivery or analytics unavailable: preserve input; do not show false success or leak raw errors.
-- Short landscape screen with software keyboard/sticky CTA: focused controls remain visible.
-- Removed link strip: all former destinations remain reachable without relying only on XML sitemaps.
-
-## 7. Verification, release and rollback
-
-During implementation, use the narrowest useful tests for each task, then lint/typecheck and rendered UI checks. Extend existing behavioural E2E where interaction contracts change. Keep screenshots and logs free of real patient data; never submit a real support message or enter payment/prescribing flows as part of this cleanup.
-
-Before a release claim, run the repository's current required release checks on Node 24/pnpm 10.23.0, including build, relevant E2E, privacy/marketing/SEO contracts and any required CI gates. Use the maintained scripts rather than copying a stale command list from this plan. Document unrelated failures by name; do not describe a partial run as a passing suite. For docs changes, run `corepack pnpm doc:audit` and reconcile bookkeeping.
-
-Release batches: (A) navigation/footer, (B) hero/trust, (C) Contact, (D) link cleanup and measurement as appropriate. Measurement baseline must be established before the first release it is intended to evaluate. Prefer reviewable commits; do not split closely coupled badge placement and footer availability changes across releases.
-
-Prepare draft PRs only when execution reaches that stage, with Problem, Changes, Verification, Risk/Rollback, Compliance/Privacy impact and Env/Migration changes. No schema/env migration is expected. If one appears necessary, stop and explain the scope change. Production deployment and operator visual acceptance are separate from Fable's plan review.
-
-Rollback is a revert of the affected batch to the accepted local baseline, followed by required deployment checks. Keep review-source truth intact during rollback: do not automatically restore old Google stars as a way to reverse a layout problem. Avoid deleting public routes or historical analytics definitions, making reversal straightforward.
-
-## 8. Completion criteria
-
-- [ ] Fable review recorded; requested revisions resolved; Rey authorises implementation.
-- [ ] All core requirements mapped in section 3 completed and verified.
-- [ ] Existing navbar/footer work preserved; remaining work visibly improves readability, support access and trust hierarchy.
-- [ ] ProductReview decision honoured with accurate attribution and declared snapshot freshness.
-- [ ] Trust badges retained with intentional desktop/mobile composition and correct meanings.
-- [ ] Public legal/clinical wording, service gating, account routing and contact delivery contracts preserved.
-- [ ] Owner reviews representative desktop/mobile before-and-after screens before wider release.
-- [ ] Tests/build/E2E/CI and any release status reported separately from local checks.
-- [ ] No PHI-bearing telemetry, third-party review excerpts, fabricated ratings or unapproved external actions.
-
-## 9. Suggested priority
-
-1. Approve the final hierarchy and ProductReview placement.
-2. Fix navigation readability, mobile consistency and footer grouping.
-3. Repair wait wrapping and implement the hero/trust hierarchy.
-4. Simplify Contact and verify request access and failure recovery.
-5. Finish link-label/duplicate-strip cleanup.
-6. Complete cross-route QA; use the measurement baseline prepared before release.
-
-Core scope is deliberate public-interface refinement, not a whole-site redesign. Additional commercial, intake or clinical changes remain governed by ROADMAP.md and their own review.
-
-## 10. Questions for Fable's review
-
-Please return **approve / revise / block** for each task, with evidence and severity for concerns.
-
-1. Does the proposed separation of status, ProductReview, CTA reassurance and footer certifications resolve the visual problem without diluting trust?
-2. Is below-CTA ProductReview placement appropriate on the specified marketing routes? Confirm route scope, freshness ownership and any concrete advertising-policy blocker; do not silently substitute another review source.
-3. Does the first screen still prioritise service explanation and action on a 390×844 phone after placement changes?
-4. Are the proposed badge proportions and mobile grouping readable and faithful to the marks' usage requirements?
-5. Does Contact remain quick for guests and existing patients, with a verified safe auth return path?
-6. Are any links or mandatory clinical/complaints statements lost by the proposed removals?
-7. Are analytics changes sufficiently bounded, with correct attempt/success semantics and no health-data collection?
-8. Are the verification and rollback boundaries sufficient, and is any proposed work unnecessary relative to the roadmap?
-
-**Handoff:** Review this document against commits `d3c01c6ad` and `8df290876` plus current HEAD. Do not implement, merge, deploy, solicit reviews, alter ratings or send messages while reviewing. Return suggested changes for Rey's decision.
+**Review request:** Confirm the proposed hierarchy, certificate-led imagery, compact footer service disclosure and core-versus-optional scope. The review should focus on the patient experience and any concrete implementation defect. No additional preliminary workstream is required to start the hero after plan acceptance.

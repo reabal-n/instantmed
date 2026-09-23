@@ -147,7 +147,7 @@ Root plan files preserve implementation detail only. They are not active merely 
 
 | File | Purpose |
 |------|---------|
-| [docs/superpowers/plans/2026-09-23-public-navigation-support-and-trust.md](../superpowers/plans/2026-09-23-public-navigation-support-and-trust.md) | Draft for Fable review: navigation readability, support access, trust hierarchy, ProductReview placement and privacy-safe measurement; implementation not authorised |
+| [docs/superpowers/plans/2026-09-23-public-navigation-support-and-trust.md](../superpowers/plans/2026-09-23-public-navigation-support-and-trust.md) | Revised proposal for Rey: hero-first redesign, navigation/footer and retained badges, Contact, service discovery and public-page polish; implementation pending review |
 | [docs/superpowers/plans/2026-06-06-customer-growth-phased-plan.md](../superpowers/plans/2026-06-06-customer-growth-phased-plan.md) | Phased customer-growth execution plan covering recovery, paid ads, and organic/LLM authority work |
 | [docs/superpowers/plans/2026-06-26-01-shared-addressfinder-primitive.md](../superpowers/plans/2026-06-26-01-shared-addressfinder-primitive.md) | Prescribing rebuild 01: Addressfinder-first shared address primitive — manual-entry escape, provider-neutral labels (QOL + consolidation; Google fallback kept) |
 | [docs/superpowers/plans/2026-06-26-02-prescribing-identity-profile.md](../superpowers/plans/2026-06-26-02-prescribing-identity-profile.md) | Prescribing rebuild 02: canonical patient-profile prescribing identity — split names, Medicare-or-IHI, focused identity editor |
