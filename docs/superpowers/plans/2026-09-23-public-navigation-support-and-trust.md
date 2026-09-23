@@ -348,14 +348,16 @@ Rey authorised the full core plan. The implementation preserves the earlier navi
 
 ### Verification and artifacts
 
-- Full unit suite: **809 files passed, 1 skipped; 8,508 tests passed, 122 skipped**.
+- Full unit suite: **808 files passed, 1 skipped; 8,489 tests passed, 122 skipped**, with coverage thresholds passing (87.87% statements, 81.09% branches, 93.31% functions, 89.62% lines).
 - Full lint and TypeScript checks passed; final changed Contact/footer/browser files were linted again.
 - **85 Chromium browser checks passed** across the existing landing/brand suites and new front-door/contact suites. The final Contact control correction and refreshed 36 page captures plus eight footer/service captures passed a further six focused checks.
 - Covered: seven landing routes, Contact and How it works at 1440×900 and 390×844, light and dark; menu at 320×568, 768×900 and 844×390; 200% text, reduced motion, Escape/focus return, no-script service links, CTA visibility/routes, sticky bar behavior, no serious axe violations on the seven landing routes, and contact validation/pending/error/retry with blocked analytics.
 - Mobile regression checks passed for `/blog/same-day-medical-certificate`, `/medical-certificate-online`, `/about`, `/pricing`, `/faq` and `/trust`.
-- Production build passed in **114 seconds**, including the bundled WebSocket and server-action boundary checks. A further **12 Chromium checks passed against that local production build**. Pinned-runtime, stack-pin and route-conflict checks passed.
+- Final production build passed in **80 seconds**, including the bundled WebSocket and server-action boundary checks. A further **19 Chromium checks passed against the final local production build**, including service entry, certificate choices, Continue transitions and narrow-phone interactions. Pinned-runtime, stack-pin and route-conflict checks passed.
 - Documentation audit passed. Content audit: **107 guides, zero issues**.
-- The bundle gate reports `/request` at **181 kB against its 180 kB budget**. A clean build of unchanged main (`5e836d1a0`) on the same runtime/environment reports the same **181 kB**. Summed gzip bytes of request-manifest JavaScript are 180,613 on main and 180,611 on this branch. This is an existing gate failure; no budget or intake code was changed.
+- **Bundle issue resolved:** `/request` first-load JavaScript fell from **181 kB to 177 kB**, below the unchanged **180 kB** limit. All bundle gates pass. The request shell now imports its unchanged certificate-scope sentence from a small shared module rather than loading the entire public-copy registry and metadata. Compiled-chunk inspection confirms the sentence remains and the registry is absent. A regression test checks the narrow import and exact text parity with the registry.
+- CI's newly-unused-code failure is resolved by deleting obsolete marketing components and their unused helpers/tests, rather than adding exceptions. The baseline shrank from 2,276 to 2,274 existing findings, and both Knip modes pass. Footer wording now uses its canonical voice constant.
+- Dependency security audit reports no known vulnerabilities. Runtime, stack pins, route conflicts, cron routes, placeholder configuration, orphaned-file and dependency-deduplication checks passed.
 - ProductReview's linked InstantMed listing was checked during implementation against the existing verified five-star configuration.
 - Independent review findings fixed: empty fallback mobile icons, missing homepage timing availability gate, and an About heading that overstated the review sequence. Final screenshot inspection also corrected footer contact wrapping and Contact radio sizing/nested labels.
 - Local visual pack: `.superpowers/front-door/review.html` (44 final screenshots, theme/viewport selector, supplied-original footer comparison). Logs and screenshots live alongside it and are ignored build artifacts. Footer-only captures temporarily hide fixed chrome to avoid screenshot overlays; sticky behavior is tested separately. A matched pre-change full-hero screenshot was not retained.
@@ -363,3 +365,15 @@ Rey authorised the full core plan. The implementation preserves the earlier navi
 ### Release limits
 
 No production deployment or merge was performed. CI, the complete `release:check` integration/security suite, signed-in staff dashboard navigation, WebKit and physical-device checks are not represented by the local Chromium evidence. Run the required release checks and record the release time before shipping. Owner visual acceptance remains separate from these technical results.
+
+## 11. Opus review handoff
+
+Review [PR #599](https://github.com/reabal-n/instantmed/pull/599), branch `codex/front-door-plan-revision`, against `5e836d1a0` (the unchanged main baseline used for measurement). The full diff includes the retained navigation/ProductReview commits, the accepted plan, the redesign and the final bundle/dead-code cleanup.
+
+Local checkout: `/Users/rey/.codex/worktrees/instantmed-front-door-plan/instantmed`. Preview: `http://127.0.0.1:3060/medical-certificate`. Visual pack: `.superpowers/front-door/review.html`. Browser output for the final build: `.superpowers/front-door/review-ready-browser/`.
+
+Suggested review request:
+
+> Review the entire PR read-only before making edits. Compare it with the accepted plan and inspect the running pages, not only screenshots. Prioritise hero hierarchy and CTA visibility, mobile navigation/focus, footer badge balance, Contact validation/pending/failure recovery, all six service links and availability states, and shared-shell regressions. Verify the request-bundle fix preserves the canonical certificate sentence and first-step server rendering. Check that removed components and old tests truly have no active consumers. Preserve the accepted ProductReview/trust-mark direction and public wording decisions. Return concrete findings with severity and file/line evidence, distinguish defects from optional aesthetic preferences, and state any verification limits. Do not merge or deploy.
+
+The implementation is ready for that review. Production deployment and owner visual acceptance remain separate steps; provider-delivery smoke tests and physical-device verification have not been performed as part of this UI task.

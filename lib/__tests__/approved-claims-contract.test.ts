@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { APPROVED_CLAIMS, getApprovedClaim } from "@/lib/marketing/approved-claims"
+import { MED_CERT_DOCUMENT_SCOPE } from "@/lib/marketing/certificate-copy"
 import {
   BRAND_THESIS,
   FORM_FIRST_WEDGE,
@@ -19,6 +20,13 @@ import {
 const root = process.cwd()
 
 describe("approved claims registry", () => {
+  it("exposes the exact certificate scope without a dynamic registry lookup", () => {
+    expect(MED_CERT_DOCUMENT_SCOPE).toBe(getApprovedClaim("med_cert_document_scope"))
+    const source = readFileSync(join(root, "components/request/step-components.tsx"), "utf8")
+    expect(source).toContain('import { MED_CERT_DOCUMENT_SCOPE } from "@/lib/marketing/certificate-copy"')
+    expect(source).not.toContain('from "@/lib/marketing/approved-claims"')
+    expect(source).not.toContain("getApprovedClaim")
+  })
   it("feeds the canonical brand voice constants", () => {
     expect(BRAND_THESIS).toBe(getApprovedClaim("brand_thesis"))
     expect(TAGLINE).toBe(getApprovedClaim("tagline"))

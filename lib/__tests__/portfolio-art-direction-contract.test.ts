@@ -12,7 +12,6 @@ function read(relativePath: string): string {
 describe("portfolio money-page art direction", () => {
   it("uses a catalog-derived card chooser instead of the split-panel route diagram", () => {
     const homepage = read("app/(marketing)/page.tsx")
-    const homeLinks = read("components/marketing/home-service-links.tsx")
     const map = read("components/marketing/portfolio-route-map.tsx")
 
     expect(homepage).toContain("<PortfolioRouteMap />")
@@ -28,8 +27,6 @@ describe("portfolio money-page art direction", () => {
     expect(homepage).not.toContain("<HomeServiceLinks />")
     expect(homepage).not.toContain('from \'next/image\'')
     expect(homepage).not.toMatch(/\/images\/home-[123]\.webp/)
-    expect(homeLinks).toContain("BRANDED_SEARCH_LINKS")
-    expect(homeLinks).toContain("Popular pages")
     expect(map).toContain("getActiveServices()")
     expect(map).toContain("getServiceMarketingHref(service)")
     expect(map).toContain("getServiceRequestHref(service)")

@@ -124,7 +124,8 @@ describe("medical certificate checkout contract", () => {
       "utf8",
     )
 
-    expect(stepComponentsSource).toContain('getApprovedClaim("med_cert_document_scope")')
+    expect(stepComponentsSource).toContain('import { MED_CERT_DOCUMENT_SCOPE } from "@/lib/marketing/certificate-copy"')
+    expect(stepComponentsSource).toContain('${MED_CERT_DOCUMENT_SCOPE}')
     expect(symptomsStepSource).toContain('getApprovedClaim("med_cert_document_scope")')
     expect(reviewStepSource).toContain('getApprovedClaim("med_cert_document_scope")')
     expect(reviewStepSource).toContain('data-med-cert-document-scope="true"')

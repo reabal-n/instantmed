@@ -9,6 +9,7 @@ import { ThemeSwitch } from "@/components/shared/navbar/theme-switch"
 import { ABN, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_TEL } from "@/lib/constants"
 import { footerLinks } from "@/lib/marketing/homepage"
 import { BADGE_REGISTRY } from "@/lib/marketing/trust-badges"
+import { PROP_PHRASE } from "@/lib/marketing/voice"
 
 const LEGAL_LINKS = [
   ["Privacy", "/privacy"], ["Terms", "/terms"], ["Refund", "/refund-policy"],
@@ -24,7 +25,7 @@ export function Footer({ variant = "marketing" }: { variant?: "marketing" | "min
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-[1.4fr_1fr_1fr] sm:gap-6">
           <div className="col-span-2 min-w-0 sm:col-span-1">
             <BrandLogo size="md" />
-            <p className="mt-3 text-base text-muted-foreground">Telehealth without the small talk.</p>
+            <p className="mt-3 text-base text-muted-foreground">{PROP_PHRASE}</p>
             <div className="mt-3"><a href={`mailto:${CONTACT_EMAIL}`} className={`${linkClass} max-w-full gap-2 [overflow-wrap:anywhere]`}><Mail className="h-4 w-4 shrink-0" aria-hidden="true" />{CONTACT_EMAIL}</a></div>
             <div><a href={`tel:${CONTACT_PHONE_TEL}`} className={`${linkClass} gap-2`}><Phone className="h-4 w-4 shrink-0" aria-hidden="true" />{CONTACT_PHONE}</a></div>
             <p className="text-sm text-muted-foreground">24/7 voice message support</p>

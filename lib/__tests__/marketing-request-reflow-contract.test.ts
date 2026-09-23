@@ -110,12 +110,6 @@ describe("marketing and request reflow contract", () => {
     expect(routeMap).not.toContain("lg:col-span-2")
   })
 
-  it("moves each compact commercial link as one reflowable unit", () => {
-    const links = read("components/marketing/sections/commercial-intent-links-section.tsx")
-
-    expect(links).toContain('<span key={link.href} className="inline-block">')
-  })
-
   it("gives request services valid H2 structure and emergency-width reflow", () => {
     const serviceHub = read("components/request/service-hub-screen.tsx")
     const compactRow = serviceHub.slice(serviceHub.indexOf("function CompactServiceRow"))

@@ -4,7 +4,7 @@ import { useInView } from "framer-motion"
 import type React from "react"
 
 /** Scroll reveal defaults for IntersectionObserver-based animations. */
-export const scrollRevealConfig = {
+const scrollRevealConfig = {
   threshold: 0,
   once: true,
   margin: "-100px",

@@ -73,6 +73,8 @@ Canonical control point for repeated public claims with clinical, operational, p
 
 Core PR5 claims include `availability_24_7`, `clinical_decision_model`, `clinical_review_sequence`, `clinical_access_scope`, `complaints_timing`, `doctor_registration`, `refund_payment_process`, and the LegitScript/Google certification labels and tooltips. The clinical-model text must remain branch-aware: AI never prescribes; standard certificate requests may follow the Medical Director-approved protocol; concerning or uncertain certificate requests and every prescribing request require individual doctor review before issue.
 
+The request shell imports `MED_CERT_DOCUMENT_SCOPE` from `lib/marketing/certificate-copy.ts`; the registry uses the same constant for `med_cert_document_scope`. This keeps the full registry and review metadata out of the initial request bundle without duplicating the sentence. Preserve this narrow import boundary.
+
 **Rule:** A high-risk factual string is changed in this registry together with its contexts, risk, notes, and receipts. Do not fork it in `voice.ts`, a badge config, schema, metadata, or page copy. Public doctor claims use "AHPRA-registered doctors" without count or names.
 
 ---

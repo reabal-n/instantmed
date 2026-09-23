@@ -57,7 +57,7 @@ General Consult is retired publicly; the consult service type remains only as th
 - Prescribing (if any) occurs entirely in Parchment (external)
 - The Medical Director owns the certificate protocol; the treating doctor remains accountable for individual review and prescribing decisions
 
-**Canonical public clinical-model claim:** "AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue." Public surfaces must read this from `clinical_decision_model` in `lib/marketing/approved-claims.ts`, which also owns its risk classification, allowed contexts, and evidence receipts.
+**Canonical public clinical-model claim:** "Your request is assessed for suitability. If more information is needed, a doctor may contact you. Every prescription requires a decision by an AHPRA-registered doctor." Public surfaces must read this from `clinical_decision_model` in `lib/marketing/approved-claims.ts`, which also owns its risk classification, allowed contexts, and evidence receipts.
 
 ## Form-First Clinical Review Model
 

@@ -6,6 +6,8 @@
  * human, but do not fork these strings in page components.
  */
 
+import { MED_CERT_DOCUMENT_SCOPE } from "@/lib/marketing/certificate-copy"
+
 export type ClaimRisk = "low" | "medium" | "high"
 
 export type ClaimContext =
@@ -201,7 +203,7 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
   },
   med_cert_document_scope: {
     id: "med_cert_document_scope",
-    text: "If approved, the standard certificate confirms the absence dates and does not include a diagnosis or symptom details.",
+    text: MED_CERT_DOCUMENT_SCOPE,
     contexts: ["medical_certificate", "checkout", "privacy"],
     risk: "high",
     sources: ["docs/CLINICAL.md", "lib/pdf/template-renderer.ts"],

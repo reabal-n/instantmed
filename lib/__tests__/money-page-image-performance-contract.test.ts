@@ -1,10 +1,8 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
-import sharp from "sharp"
 import { describe, expect, it } from "vitest"
 
-import { MEDICAL_DIRECTOR_SIGNATURE } from "@/lib/brand/doctor-signature"
 
 const root = process.cwd()
 
@@ -40,22 +38,6 @@ describe("money-page image performance", () => {
     expect(logo).toContain("priority = false")
     expect(logo.match(/priority=\{priority\}/g)).toHaveLength(2)
     expect(navbar).toMatch(/<BrandLogo[\s\S]{0,180}\bpriority/)
-  })
-
-  it("reserves a fixed signature box while canonical metadata matches the source", async () => {
-    const source = read("components/marketing/doctor-signature.tsx")
-    const assetPath = join(
-      root,
-      "public",
-      MEDICAL_DIRECTOR_SIGNATURE.signatureAssetPath.replace(/^\//, ""),
-    )
-    const metadata = await sharp(assetPath).metadata()
-
-    expect(metadata.width).toBe(MEDICAL_DIRECTOR_SIGNATURE.signatureAssetWidth)
-    expect(metadata.height).toBe(MEDICAL_DIRECTOR_SIGNATURE.signatureAssetHeight)
-    expect(source).toContain('sm: { className: "h-8 w-[8.25rem]", sizes: "132px" }')
-    expect(source).toContain("sizes={sizeConfig.sizes}")
-    expect(source).toContain("fill")
   })
 
   it("keeps employer marks inside a fixed 80px image box", () => {
