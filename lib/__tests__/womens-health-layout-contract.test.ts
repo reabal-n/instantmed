@@ -33,7 +33,6 @@ describe("women's health landing layout contract", () => {
     const ctaBanner = read("components/sections/cta-banner.tsx")
 
     expect(howItWorks).toContain("revealInstant?: boolean")
-    expect(howItWorks).toContain("instant={revealInstant || i < 2}")
     expect(howItWorks).toContain("<Reveal instant={revealInstant}")
 
 

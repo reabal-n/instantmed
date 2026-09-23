@@ -75,8 +75,8 @@ test.describe("IntakeResumeChip", () => {
       "chip should be hidden when no draft",
     ).not.toBeVisible()
     const navigation = await page.getByRole("navigation", { name: "Main navigation", exact: true }).boundingBox()
-    const availability = await page.locator("main .hero-availability-enter").first().boundingBox()
-    expect(availability!.y, "fresh homepage content must clear fixed navigation")
+    const headline = await page.getByRole("heading", { level: 1 }).boundingBox()
+    expect(headline!.y, "fresh homepage content must clear fixed navigation")
       .toBeGreaterThanOrEqual(navigation!.y + navigation!.height)
   })
 

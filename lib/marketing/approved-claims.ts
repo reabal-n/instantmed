@@ -6,6 +6,8 @@
  * human, but do not fork these strings in page components.
  */
 
+import { MED_CERT_DOCUMENT_SCOPE } from "@/lib/marketing/certificate-copy"
+
 export type ClaimRisk = "low" | "medium" | "high"
 
 export type ClaimContext =
@@ -185,23 +187,23 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
   },
   clinical_decision_model: {
     id: "clinical_decision_model",
-    text: "AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue.",
+    text: "Your request is assessed for suitability. If more information is needed, a doctor may contact you. Every prescription requires a decision by an AHPRA-registered doctor.",
     contexts: ["platform", "medical_certificate", "prescribing", "specialty", "governance"],
     risk: "high",
     sources: CLINICAL_RECEIPTS,
-    notes: "Canonical branch-aware clinical disclosure. Never imply that AI prescribes, that protocol issuance covers a concerning or uncertain request, or that prescribing can occur without individual doctor review.",
+    notes: "Operator-approved public wording (2026-09-23): describe suitability assessment, follow-up and outcomes without internal processing detail. Every prescription requires an individual doctor decision. Internal clinical boundaries remain unchanged.",
   },
   clinical_review_sequence: {
     id: "clinical_review_sequence",
-    text: "Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.",
+    text: "Complete the secure form with your symptoms, relevant history and requested dates. You will receive an outcome or a request for more information. Prescriptions require an individual doctor decision.",
     contexts: ["platform", "medical_certificate", "prescribing", "specialty", "governance"],
     risk: "high",
     sources: CLINICAL_RECEIPTS,
-    notes: "Current public process order for the active bounded certificate protocol and the individually reviewed prescribing pathway.",
+    notes: "Operator-approved public sequence (2026-09-23): secure form, outcome or follow-up, with an individual doctor decision for prescriptions. Keep internal workflow descriptions in clinical documentation.",
   },
   med_cert_document_scope: {
     id: "med_cert_document_scope",
-    text: "If approved, the standard certificate confirms the absence dates and does not include a diagnosis or symptom details.",
+    text: MED_CERT_DOCUMENT_SCOPE,
     contexts: ["medical_certificate", "checkout", "privacy"],
     risk: "high",
     sources: ["docs/CLINICAL.md", "lib/pdf/template-renderer.ts"],

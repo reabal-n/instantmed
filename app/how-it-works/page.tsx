@@ -19,7 +19,7 @@ const howItWorksFaqs = [
   { question: "Do I need a Medicare card?", answer: `For medical certificates, no. ${PRESCRIBING_IDENTITY_REQUIRED} This is a private service and no Medicare rebate is claimed.` },
   { question: "What if my request is declined?", answer: `${GUARANTEE} If your situation requires in-person care or falls outside what telehealth can safely manage, the doctor will recommend appropriate next steps.` },
   { question: "Is my information private?", answer: getApprovedClaim("clinical_access_scope") },
-  { question: "How do I receive my documents?", answer: "Medical certificates are emailed as PDFs. Prescriptions are sent as eScripts via SMS - take your phone to any pharmacy. Consultation notes are available in your dashboard." },
+  { question: "How do I receive my documents?", answer: "Medical certificates are delivered through a secure email link to download the PDF. Prescriptions are sent as eScripts via SMS - take your phone to any pharmacy. Consultation notes are available in your dashboard." },
   { question: "Is this available outside major cities?", answer: "Yes. Eligible adults can start a request from anywhere in Australia with internet access." },
   { question: "What hours are you open?", answer: AVAILABILITY_24_7 },
   { question: "How is this different from calling a GP clinic?", answer: "There is no appointment booking or waiting room. You submit the structured form when it suits you, and a doctor may call or message if more information is needed before a prescribing decision." },
@@ -33,24 +33,24 @@ const howItWorksSteps = [
     description: "Pick your service and answer the relevant clinical questions. Takes about 3 minutes. No account needed to get started.",
   },
   {
-    title: "The clinical pathway reviews it",
+    title: "Your request is assessed",
     description: `${CLINICAL_DECISION_MODEL} ${AVAILABILITY_24_7}`,
   },
   {
-    title: "Get your outcome",
-    description: `If approved, a medical certificate is emailed as a PDF or an eScript is sent to your phone. ${GUARANTEE}`,
+    title: "Receive your outcome",
+    description: `If approved, a secure download link for your medical certificate is emailed or an eScript is sent to your phone. ${GUARANTEE}`,
   },
 ]
 
 export const metadata: Metadata = {
   title: 'How It Works | Fill a Form, Get Reviewed, Done',
-  description: 'Submit a focused request online through a doctor-owned clinical pathway, with digital delivery if approved. Three simple steps.',
+  description: 'Complete a secure form, receive your outcome and access your certificate or eScript if issued. See how InstantMed works.',
   alternates: {
     canonical: 'https://instantmed.com.au/how-it-works',
   },
   openGraph: {
     title: 'How It Works | Fill a Form, Get Reviewed, Done',
-    description: 'Submit a focused request online through a doctor-owned clinical pathway, with digital delivery if approved. Three simple steps.',
+    description: 'Complete a secure form, receive your outcome and access your certificate or eScript if issued. See how InstantMed works.',
     url: 'https://instantmed.com.au/how-it-works',
     type: 'website',
   },

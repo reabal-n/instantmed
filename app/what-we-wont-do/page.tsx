@@ -72,7 +72,7 @@ const clinicalLimits: ChecklistItem[] = [
 
 const honestyLimits: ChecklistItem[] = [
   {
-    text: "We won't pretend AI is a doctor.",
+    text: "We won’t prescribe without a doctor’s decision.",
     subtext: CLINICAL_DECISION_MODEL,
   },
   {
@@ -81,7 +81,7 @@ const honestyLimits: ChecklistItem[] = [
       "We publish a median delivery time and we update you as your request moves. We do not guarantee a specific number of minutes, because clinical follow-up legitimately takes longer on some days. We guarantee an outcome, not a clock.",
   },
   {
-    text: "We won't blur protocol with prescribing.",
+    text: "We won't issue a prescription just because you ask.",
     subtext: CLINICAL_DECISION_MODEL,
   },
   {
@@ -95,7 +95,7 @@ const treatmentLimits: ChecklistItem[] = [
   {
     text: "We won't ghost you.",
     subtext:
-      "Each paid request reaches a documented clinical outcome. Routine certificate requests may follow the bounded protocol; concerns and every prescribing request go to a doctor. Recorded clinical declines start the refund process automatically.",
+      "Each paid request reaches a documented clinical outcome. You will receive an outcome or a request for more information. Recorded clinical declines start the refund process automatically.",
   },
   {
     text: "We won't sell your health data.",

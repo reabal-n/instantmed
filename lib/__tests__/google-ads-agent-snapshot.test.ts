@@ -863,10 +863,8 @@ describe("Google Ads Agent operational queue evidence", () => {
     expect(recent.or).toHaveBeenCalledWith(
       "exclude_from_reporting.is.null,exclude_from_reporting.eq.false",
     )
-    expect(recent.not).toHaveBeenCalledWith(
-      "patient_id",
-      "in",
-      expect.any(String),
+    expect(recent.or).toHaveBeenCalledWith(
+      expect.stringMatching(/^patient_id\.is\.null,patient_id\.not\.in\.\(e2e/),
     )
     expect(recent.in).toHaveBeenCalledWith(
       "payment_status",

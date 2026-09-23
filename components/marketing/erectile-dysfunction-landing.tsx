@@ -175,7 +175,7 @@ function EdHeroFacts() {
 function EdEligibilitySection() {
   return (
     <section id="eligibility" aria-label="ED assessment eligibility" className="py-8">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Heading level="h2">Is this assessment right for you?</Heading>
         <p className="mt-3 text-base leading-7 text-muted-foreground">Your main concern should be ongoing difficulty getting or keeping an erection. Have your current medicines, allergies, conditions, and heart or stroke history ready. The doctor decides whether remote care is suitable and may contact you before a decision.</p>
       </div>
@@ -186,7 +186,7 @@ function EdEligibilitySection() {
 function EdSafetyDecisionMap() {
   return (
     <section id="decision-map" aria-labelledby="ed-decision-map-title" className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12 lg:py-16">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Safety decision map</SectionPill>
           <Heading id="ed-decision-map-title" level="h2" className="mt-4">The doctor reviews the whole picture</Heading>
@@ -216,7 +216,7 @@ function EdSafetyDecisionMap() {
 function EdScopeBoundarySection() {
   return (
     <section id="red-flags" className="py-10 sm:py-12 lg:py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Scope and red flags</SectionPill>
           <Heading level="h2" className="mt-4">Know where this assessment stops</Heading>
@@ -252,7 +252,7 @@ function EdReviewCostOutcomeSection({
 }) {
   return (
     <section id="how-it-works" className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12 lg:pb-20 lg:pt-12">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Process, outcome, and cost</SectionPill>
           <Heading level="h2" className="mt-4">One review path, with the fee clear</Heading>
@@ -289,7 +289,7 @@ function EdReviewCostOutcomeSection({
 function EdSourcesSection() {
   return (
     <section className="bg-muted/30 py-10 dark:bg-white/[0.02] sm:py-12">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
           <Reveal instant>
             <SectionPill>References</SectionPill>
@@ -324,7 +324,7 @@ function EdFinalCta({
 }) {
   return (
     <section className="py-10 sm:py-12 lg:py-16">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6">
         <Reveal className="rounded-3xl border border-border/50 bg-white p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
           <SectionPill>Start privately</SectionPill>
           <Heading level="h2" className="mt-4">Request an ED assessment</Heading>
@@ -354,11 +354,10 @@ export function ErectileDysfunctionLanding() {
       {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <div className="bg-background text-foreground">
           <Hero
-            pill={isDisabled ? null : undefined}
+            availabilityServiceId="ed"
             className="lg:pb-4"
             title="Private ED assessment, from home."
             titleClassName="max-[240px]:text-[1.75rem] max-[240px]:hyphens-none max-[240px]:[overflow-wrap:normal]"
-            immediateSubheadline
             primaryCta={{
               text: isDisabled ? "Contact us" : `Start private assessment · ${PRICING_DISPLAY.MENS_HEALTH}`,
               href: isDisabled ? "/contact" : requestCtaHref,
@@ -367,13 +366,13 @@ export function ErectileDysfunctionLanding() {
             }}
             secondaryCta={{ text: "See how it works", href: "#how-it-works" }}
             reassuranceRow={(
-              <p className="text-center text-sm leading-6 text-muted-foreground lg:text-left">
+              <p className="text-left text-sm leading-6 text-muted-foreground">
                 {REFUND_GUARANTEE_CLAIM}
               </p>
             )}
             mockup={<EdHeroFacts />}
           >
-            <p data-speakable className="mx-auto mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground lg:mx-0 lg:text-lg">
+            <p data-speakable className="mb-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground lg:text-lg">
               A one-off private doctor assessment for {PRICING_DISPLAY.MENS_HEALTH}. Complete a secure form from home, then an Australian doctor reviews the full picture.
             </p>
           </Hero>

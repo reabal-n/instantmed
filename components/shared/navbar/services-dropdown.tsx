@@ -4,7 +4,6 @@ import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 
-import { ServiceIconTile } from "@/components/icons/service-icons"
 import { type ServiceId,useServiceAvailability } from "@/components/providers/service-availability-provider"
 import {
   DropdownMenu,
@@ -13,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  type CanonicalServiceId,
   getActiveServices,
   getServiceMarketingHref,
   type ServiceDef,
@@ -27,10 +25,7 @@ type NavService = {
   description: string
   iconKey: ServiceDef["iconKey"]
   color: ServiceDef["colorToken"]
-  badge?: string
 }
-
-const POPULAR_NAV_SERVICE_IDS = new Set<CanonicalServiceId>(["ed"])
 
 export const services: NavService[] = getActiveServices().map((service) => ({
   serviceId: service.id,
@@ -39,7 +34,6 @@ export const services: NavService[] = getActiveServices().map((service) => ({
   description: service.subtitle,
   iconKey: service.iconKey,
   color: service.colorToken,
-  badge: POPULAR_NAV_SERVICE_IDS.has(service.id) ? "Popular" : undefined,
 }))
 
 interface ServicesDropdownProps {
@@ -55,7 +49,8 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
     isActivePath("/prescriptions") ||
     isActivePath("/erectile-dysfunction") ||
     isActivePath("/hair-loss") ||
-    isActivePath("/womens-health")
+    isActivePath("/womens-health") ||
+    isActivePath("/weight-loss")
 
   return (
     <div className="relative">
@@ -63,8 +58,8 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
         <DropdownMenuTrigger asChild>
           <button
             className={cn(
-              "group/services relative z-10 flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-              isServiceActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              "group/services relative z-10 flex items-center gap-1 min-h-11 px-3 py-2 text-base font-medium rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+              isServiceActive ? "text-foreground underline underline-offset-8 decoration-primary/50" : "text-muted-foreground hover:text-foreground"
             )}
           >
             Services
@@ -92,10 +87,9 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                     >
                       {disabled ? (
                         <div className="flex items-center gap-3 px-3 py-2.5 w-full">
-                          <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" variant="sticker" stickerLoading="eager" />
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">{service.title}</p>
-                            <p className="text-xs text-muted-foreground">Temporarily unavailable</p>
+                            <p className="text-sm text-muted-foreground">Temporarily unavailable</p>
                           </div>
                         </div>
                       ) : (
@@ -106,17 +100,12 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                           onKeyDown={(event) => event.stopPropagation()}
                           className="flex items-center gap-3 px-3 py-2.5 w-full"
                         >
-                          <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" variant="sticker" stickerLoading="eager" />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <p className="text-sm font-medium text-foreground">{service.title}</p>
-                              {service.badge && (
-                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary leading-none">
-                                  {service.badge}
-                                </span>
-                              )}
+
                             </div>
-                            <p className="text-xs text-muted-foreground">{service.description}</p>
+                            <p className="text-sm text-muted-foreground">{service.description}</p>
                           </div>
                         </Link>
                       )}
@@ -127,14 +116,7 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Tubelight active indicator - mirrors AnimatedNavLink pattern */}
-      {isServiceActive && (
-        <div className="absolute inset-0 rounded-lg bg-primary/10 -z-0 pointer-events-none">
-          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full">
-            <div className="absolute w-8 h-4 bg-primary/20 rounded-full blur-md -top-1 -left-1" />
-          </div>
-        </div>
-      )}
+
     </div>
   )
 }

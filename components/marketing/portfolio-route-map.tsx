@@ -1,9 +1,8 @@
 "use client"
 
-import { AlertCircle, ArrowRight, Check, Stethoscope } from "lucide-react"
+import { AlertCircle, ArrowRight, Check, ClipboardCheck, Heart, Leaf, Pill, Scale, Sparkles, Stethoscope } from "lucide-react"
 import Link from "next/link"
 
-import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { Heading } from "@/components/ui/heading"
 import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"
@@ -41,7 +40,7 @@ const SERVICE_DETAILS: Record<
   },
   "weight-loss": {
     benefits: ["Eligibility screening first", "Doctor calls when history needs it"],
-    cta: "Start assessment",
+    cta: "View weight management",
   },
 }
 
@@ -55,15 +54,16 @@ function ServiceCard({ service }: { service: ServiceDef }) {
   const { isServiceDisabled } = useServiceAvailability()
   const disabled = isServiceDisabled(service.id)
   const detail = SERVICE_DETAILS[service.id]
+  const Icon = { "med-cert": ClipboardCheck, "repeat-rx": Pill, ed: Heart, "hair-loss": Leaf, "womens-health": Sparkles, "weight-loss": Scale }[service.id]
 
   return (
     <li className="min-w-0">
       <Link
-        href={getHomepageServiceHref(service)}
+        href={disabled ? "/contact" : getHomepageServiceHref(service)}
         aria-disabled={disabled || undefined}
         tabIndex={disabled ? -1 : undefined}
         className={cn(
-          "group relative flex h-full min-h-64 flex-col rounded-2xl border border-border/60 bg-white p-5 shadow-sm shadow-primary/[0.04] outline-none transition-[transform,box-shadow,border-color] duration-200 motion-reduce:transform-none motion-reduce:transition-none dark:border-white/15 dark:bg-card dark:shadow-none sm:p-6",
+          "group relative grid h-full grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 rounded-xl border border-border/60 bg-white p-4 sm:flex sm:min-h-64 sm:flex-col sm:items-stretch sm:rounded-2xl sm:p-6 shadow-sm shadow-primary/[0.04] outline-none transition-[transform,translate,box-shadow,border-color] duration-200 motion-reduce:transform-none motion-reduce:transition-none dark:border-white/15 dark:bg-card dark:shadow-none sm:p-6",
           disabled
             ? "pointer-events-none opacity-60"
             : "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/[0.06] focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25",
@@ -76,28 +76,13 @@ function ServiceCard({ service }: { service: ServiceDef }) {
           </span>
         ) : null}
 
-        <div className="flex items-start justify-between gap-4">
-          <ServiceIconTile
-            iconKey={service.iconKey}
-            color={service.colorToken}
-            size="lg"
-            variant="sticker"
-            stickerLoading="eager"
-          />
-          <p className="shrink-0 text-base font-semibold tabular-nums text-foreground">
-            {service.pricePrefix ? `${service.pricePrefix} ` : null}
-            {service.price}
-          </p>
-        </div>
+        <Icon className="row-span-2 h-5 w-5 text-primary sm:mb-3 sm:h-7 sm:w-7" aria-hidden="true" />
+        <Heading level="h3" className="col-start-2 row-start-1 text-base sm:mt-2 sm:text-xl">{service.title}</Heading>
+        <p className="col-start-2 row-start-2 text-sm leading-5 text-muted-foreground sm:mt-1.5 sm:text-base sm:leading-6">{service.subtitle}</p>
+        <p className="col-start-3 row-start-1 self-center text-sm font-semibold tabular-nums sm:mt-4 sm:text-lg">{service.pricePrefix ? `${service.pricePrefix} ` : null}{service.price}</p>
+        <ArrowRight className="col-start-3 row-start-2 ml-auto h-4 w-4 text-primary sm:hidden" aria-hidden="true" />
 
-        <Heading level="h3" className="mt-5 text-xl sm:text-2xl">
-          {service.title}
-        </Heading>
-        <p className="mt-1.5 text-base leading-6 text-muted-foreground">
-          {service.subtitle}
-        </p>
-
-        <ul className="mt-4 space-y-2 text-base text-muted-foreground">
+        <ul className="mt-4 hidden space-y-2 sm:block text-base text-muted-foreground">
           {detail.benefits.map((benefit) => (
             <li key={benefit} className="flex items-start gap-2">
               <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
@@ -106,7 +91,7 @@ function ServiceCard({ service }: { service: ServiceDef }) {
           ))}
         </ul>
 
-        <span className="mt-auto flex items-center gap-2 pt-6 text-base font-semibold text-primary">
+        <span className="mt-auto hidden sm:flex items-center gap-2 pt-6 text-base font-semibold text-primary">
           {detail.cta}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </span>
@@ -125,7 +110,7 @@ export function PortfolioRouteMap() {
       aria-labelledby="portfolio-route-map-title"
       className="scroll-mt-20 px-4 pt-6 pb-10 sm:px-6 sm:pt-10 sm:pb-16 lg:pt-14 lg:pb-24"
     >
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-5xl">
         <div className="max-w-2xl">
           <p className="text-sm font-medium text-primary">Services and pricing</p>
           <Heading id="portfolio-route-map-title" level="h1" as="h2" className="mt-2">
@@ -136,7 +121,7 @@ export function PortfolioRouteMap() {
           </p>
         </div>
 
-        <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-8 grid grid-cols-1 gap-2 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((service) => (
             <ServiceCard key={service.id} service={service} />
           ))}

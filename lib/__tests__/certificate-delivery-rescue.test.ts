@@ -844,7 +844,7 @@ describe("certificate delivery rescue", () => {
       args: ["exclude_from_reporting.is.null,exclude_from_reporting.eq.false"],
     })
     expect(
-      intakeFilters.some((call) => call.method === "not" && call.args[0] === "patient_id"),
+      intakeFilters.some((call) => call.method === "or" && String(call.args[0]).startsWith("patient_id.is.null,patient_id.not.in.(e2e")),
     ).toBe(true)
   })
 })

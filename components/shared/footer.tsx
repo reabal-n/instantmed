@@ -1,160 +1,65 @@
-import { Mail, Phone } from "lucide-react"
+import { ChevronDown, Mail, Phone } from "lucide-react"
 import Link from "next/link"
 
 import { StripeBadge } from "@/components/checkout/trust-badges"
-import { DoctorSignatureView } from "@/components/marketing/doctor-signature"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { BrandLogo } from "@/components/shared/brand-logo"
-import { TrustBadgeRow } from '@/components/shared/trust-badge'
-import { MEDICAL_DIRECTOR_SIGNATURE } from "@/lib/brand/doctor-signature"
-import {
-  ABN,
-  COMPANY_NAME,
-  CONTACT_EMAIL,
-  CONTACT_PHONE,
-  CONTACT_PHONE_TEL,
-} from "@/lib/constants"
+import { ThemeSwitch } from "@/components/shared/navbar/theme-switch"
+import { ABN, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_TEL } from "@/lib/constants"
 import { footerLinks } from "@/lib/marketing/homepage"
+import { BADGE_REGISTRY } from "@/lib/marketing/trust-badges"
+import { PROP_PHRASE } from "@/lib/marketing/voice"
 
-interface FooterProps {
-  variant?: "marketing" | "minimal"
-}
+const LEGAL_LINKS = [
+  ["Privacy", "/privacy"], ["Terms", "/terms"], ["Refund", "/refund-policy"],
+  ["Complaints", "/complaints"], ["Trust & Safety", "/trust"], ["Site map", "/sitemap-html"],
+] as const
+const linkClass = "inline-flex min-h-12 items-center rounded-md py-2 text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 
-export function Footer({ variant = "marketing" }: FooterProps) {
-  const currentYear = new Date().getFullYear()
+export function Footer({ variant = "marketing" }: { variant?: "marketing" | "minimal" }) {
   const isMarketing = variant === "marketing"
-
   return (
-    <footer className="mt-6 mb-4 px-4 max-w-5xl mx-auto" role="contentinfo">
-      {/* Main card */}
-      <div
-        data-nosnippet=""
-        className="min-w-0 bg-white dark:bg-card rounded-3xl px-5 sm:px-8 py-7 sm:py-9 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none"
-      >
-        <div className="flex flex-col md:flex-row gap-6 md:gap-10">
-          {/* Brand + Contact */}
-          <div className="min-w-0 md:w-[200px] shrink-0">
+    <footer className="mx-auto mt-8 max-w-5xl px-4 pb-6 sm:px-6" role="contentinfo">
+      <div data-nosnippet="" className="rounded-2xl border border-border/50 bg-white px-5 py-6 shadow-sm shadow-primary/[0.04] dark:bg-card dark:shadow-none sm:p-8">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-[1.4fr_1fr_1fr] sm:gap-6">
+          <div className="col-span-2 min-w-0 sm:col-span-1">
             <BrandLogo size="md" />
-            <p className="text-muted-foreground text-sm mt-3 leading-snug">
-              See a doctor from bed. Requests open 24/7.
-            </p>
-            {isMarketing && (
-              <div className="mt-3 flex flex-col gap-1 text-xs text-muted-foreground">
-                <a href={`mailto:${CONTACT_EMAIL}`} className="flex min-h-6 min-w-0 flex-wrap items-center gap-1.5 py-1 [overflow-wrap:anywhere] hover:text-foreground transition-colors">
-                  <Mail className="w-3 h-3 shrink-0" />
-                  {CONTACT_EMAIL}
-                </a>
-                <a href={`tel:${CONTACT_PHONE_TEL}`} className="flex min-h-6 items-center gap-1.5 py-1 hover:text-foreground transition-colors">
-                  <Phone className="w-3 h-3 shrink-0" />
-                  {CONTACT_PHONE}
-                </a>
-              </div>
-            )}
-            {!isMarketing && (
-              <a href={`tel:${CONTACT_PHONE_TEL}`} className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                <Phone className="w-3 h-3 shrink-0" />
-                {CONTACT_PHONE}
-              </a>
-            )}
-            {/* Signature brand device #2 (docs/BRAND.md §6.2). Mark-only on
-                marketing surfaces per CLAUDE.md identity rule (no individual
-                doctor names on marketing pages). Logo-adjacent placement. */}
-            {isMarketing && (
-              <div className="mt-5 pt-4 border-t border-border/40">
-                <DoctorSignatureView data={MEDICAL_DIRECTOR_SIGNATURE} variant="mark" size="sm" />
-                <p className="mt-1.5 text-[10px] text-muted-foreground/80 italic leading-snug">
-                  Reviewed by your InstantMed doctor.
-                </p>
-              </div>
-            )}
+            <p className="mt-3 text-base text-muted-foreground">{PROP_PHRASE}</p>
+            <div className="mt-3"><a href={`mailto:${CONTACT_EMAIL}`} className={`${linkClass} max-w-full gap-2 [overflow-wrap:anywhere]`}><Mail className="h-4 w-4 shrink-0" aria-hidden="true" />{CONTACT_EMAIL}</a></div>
+            <div><a href={`tel:${CONTACT_PHONE_TEL}`} className={`${linkClass} gap-2`}><Phone className="h-4 w-4 shrink-0" aria-hidden="true" />{CONTACT_PHONE}</a></div>
+            <p className="text-sm text-muted-foreground">24/7 voice message support</p>
           </div>
-
-          {/* Link columns */}
-          <div className={`min-w-0 flex-1 grid grid-cols-1 min-[241px]:grid-cols-2 gap-x-4 gap-y-5 md:gap-x-8 ${isMarketing ? "md:grid-cols-3" : ""}`}>
-            <nav aria-label="Services">
-              <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Services</p>
-              <div className="flex flex-col gap-1.5">
-                {footerLinks.services.map((link) => (
-                  <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
+          {[{ title: 'Help', label: 'Helpful links', links: footerLinks.help }, { title: 'About', label: 'About InstantMed', links: footerLinks.company }].map(group => (
+            <nav key={group.title} aria-label={group.label}>
+              <p className="mb-2 text-sm font-semibold text-foreground">{group.title}</p>
+              <ul>{group.links.map(link => <li key={link.href}><Link href={link.href} className={linkClass}>{link.label}</Link></li>)}</ul>
             </nav>
-
-            <nav aria-label="Company">
-              <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Company</p>
-              <div className="flex flex-col gap-1.5">
-                {footerLinks.company.map((link) => (
-                  <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </nav>
-
-            {/* Useful branded-search shortcuts. City pages remain linked from
-                /locations instead of competing for sitewide prominence. */}
-            {isMarketing && (
-              <nav aria-label="Helpful links">
-                <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Helpful</p>
-                <div className="flex flex-col gap-1.5">
-                  {footerLinks.help.map((link) => (
-                    <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              </nav>
-            )}
-          </div>
+          ))}
         </div>
+        <details className="group mt-6 border-t border-border/50 pt-2">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 rounded-md text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden">Explore services<ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden="true" /></summary>
+          <nav aria-label="Services"><ul className="grid gap-x-6 pb-2 sm:grid-cols-2 lg:grid-cols-3">{footerLinks.services.map(link => <li key={link.href}><Link href={link.href} className={linkClass}>{link.label}</Link></li>)}</ul></nav>
+        </details>
       </div>
-
-      {/* Certifications + trust badges (marketing only) */}
-      {isMarketing && (
-        <div data-nosnippet="" className="py-4 sm:py-5">
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 mb-3">
-            <StripeBadge variant="powered-by" />
-            <span className="hidden sm:block h-5 w-px bg-border/50" aria-hidden="true" />
-            <LegitScriptSeal size="sm" />
-            <span className="hidden sm:block h-5 w-px bg-border/50" aria-hidden="true" />
-            <GoogleAdsCert size="sm" />
-          </div>
-          <TrustBadgeRow preset="footer" className="text-xs" />
+      {isMarketing && <div data-nosnippet="" className="py-6 sm:py-8">
+        <div aria-label="Payments and certifications" className="mx-auto grid max-w-2xl grid-cols-2 items-center justify-items-center gap-x-6 gap-y-4 sm:grid-cols-[1fr_auto_1.5fr] sm:gap-10">
+          <StripeBadge variant="powered-by" />
+          <LegitScriptSeal size="md" />
+          <div className="col-span-2 sm:col-span-1"><GoogleAdsCert size="md" /></div>
         </div>
-      )}
-
-      {/* Disclaimer (marketing only) */}
-      {isMarketing && (
-        <div data-nosnippet="" className="px-1 mb-3 text-[10px] text-muted-foreground">
-          <p>
-            <strong className="text-foreground">Important:</strong> Online assessment is not suitable for medical emergencies.
-            If you are experiencing a medical emergency, call <strong className="text-muted-foreground">000</strong> immediately.
-          </p>
-        </div>
-      )}
-
-      {/* Bottom bar */}
-      <div
-        data-nosnippet=""
-        className="min-w-0 px-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 text-[10px] text-muted-foreground"
-      >
-        <div className="min-w-0 flex flex-wrap gap-x-3 gap-y-1 items-center">
-          <p>
-            &copy; {currentYear} {COMPANY_NAME}. All rights reserved.
-          </p>
-          <div className="flex flex-row flex-wrap gap-x-2.5 gap-y-1">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-            <Link href="/refund-policy" className="hover:text-foreground transition-colors">Refund</Link>
-            <Link href="/complaints" className="hover:text-foreground transition-colors">Complaints</Link>
-            <Link href="/trust" className="hover:text-foreground transition-colors">Trust & Safety</Link>
-          </div>
-        </div>
-        <p className="text-pretty italic">An apple a day keeps the doctor away. We&apos;re here for when that fails.</p>
-        <p>ABN: {ABN}</p>
+        <ul aria-label="Service reassurance" className="mt-6 flex flex-col items-center justify-center gap-x-6 gap-y-3 sm:flex-row sm:flex-wrap">
+          {(['ahpra', 'refund', 'privacy'] as const).map(id => {
+            const badge = BADGE_REGISTRY[id]
+            const Icon = badge.icon
+            return <li key={id} className="flex items-center gap-2 text-sm text-muted-foreground"><Icon className="h-4 w-4 shrink-0" aria-hidden="true" />{badge.label}</li>
+          })}
+        </ul>
+      </div>}
+      {isMarketing && <p data-nosnippet="" className="border-t border-border/50 py-5 text-sm leading-6 text-muted-foreground"><strong className="font-medium text-foreground">Medical emergency?</strong> Online assessment is not suitable for medical emergencies. If you are experiencing a medical emergency, call <strong>000</strong> immediately.</p>}
+      <div data-nosnippet="" className="border-t border-border/50 pt-3 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-x-4"><nav aria-label="Legal"><ul className="flex flex-wrap gap-x-4">{LEGAL_LINKS.map(([label, href]) => <li key={href}><Link className={linkClass} href={href}>{label}</Link></li>)}</ul></nav><ThemeSwitch /></div>
+        <div className="mt-2 flex flex-wrap justify-between gap-x-6 gap-y-2"><p>&copy; {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</p><p className="whitespace-nowrap">ABN: {ABN}</p></div>
       </div>
     </footer>
   )

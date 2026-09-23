@@ -28,7 +28,7 @@ import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { PRESCRIPTION_LANDING_FAQ } from "@/lib/data/prescription-faq"
 import { moneyH1Font } from "@/lib/fonts/money-h1"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
-import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"
+import { FORM_FIRST_WEDGE,GUARANTEE } from "@/lib/marketing/voice"
 
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((m) => ({ default: m.FAQSection })),
@@ -290,9 +290,9 @@ export function PrescriptionsLanding() {
 
         <main className="relative">
           <Hero
-            title="Repeat prescription, reviewed from home."
+            title="Your regular medication. A simpler repeat."
             titleClassName={moneyH1Font.className}
-            immediateSubheadline
+            availabilityServiceId="repeat-rx"
             primaryCta={{
               text: `Get your repeat · ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
               href: "/request?service=repeat-script",
@@ -301,20 +301,20 @@ export function PrescriptionsLanding() {
             primaryCtaContent={<PrescriptionHeroCTA />}
             secondaryCta={null}
             beforeCta={(
-              <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-medium text-foreground/75 lg:justify-start">
+              <ul className="flex flex-wrap items-center justify-start gap-x-5 gap-y-2 text-sm font-medium text-foreground/75">
                 <li>Australia only</li>
                 <li>Ages 18+</li>
                 <li>{getApprovedClaim("prescribing_identity_required")}</li>
               </ul>
             )}
             reassuranceRow={(
-              <p className="text-center text-sm leading-6 text-muted-foreground lg:text-left">
-                Takes about 3 minutes. Every request is reviewed before a prescribing decision.
+              <p className="text-left text-sm leading-6 text-muted-foreground">
+                AHPRA-registered doctors. {GUARANTEE}
               </p>
             )}
             mockup={<EScriptHeroMockup />}
           >
-            <p className="mx-auto mb-6 max-w-xl text-balance text-base leading-7 text-muted-foreground sm:mb-7 lg:mx-0 lg:text-lg">
+            <p className="mb-6 max-w-xl text-balance text-base leading-7 text-muted-foreground sm:mb-7 lg:text-lg">
               {FORM_FIRST_WEDGE} For one regular medicine you already take. If approved, your eScript token is sent by SMS for any Australian pharmacy.
             </p>
           </Hero>

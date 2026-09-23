@@ -3,7 +3,7 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { BRANDED_SEARCH_LINKS } from "@/lib/seo/branded-search-links"
+import { footerLinks } from "@/lib/marketing/homepage"
 import { getAllIntentSlugs } from "@/lib/seo/intents"
 
 const root = process.cwd()
@@ -36,25 +36,19 @@ function read(path: string) {
 
 describe("SEO indexing contracts", () => {
   it("prioritizes useful branded sitelinks and excludes footer boilerplate from snippets", () => {
-    expect(BRANDED_SEARCH_LINKS).toEqual([
-      { label: "Medical certificates", href: "/medical-certificate" },
-      { label: "Repeat prescriptions", href: "/prescriptions" },
-      { label: "Pricing", href: "/pricing" },
-      { label: "How InstantMed works", href: "/how-it-works" },
-      { label: "Verify a certificate", href: "/verify" },
-      { label: "Contact support", href: "/contact" },
-    ])
+    const destinations = [...footerLinks.services, ...footerLinks.help].map(link => link.href)
+    for (const href of ["/medical-certificate", "/prescriptions", "/erectile-dysfunction", "/hair-loss", "/womens-health", "/weight-loss", "/verify", "/contact"]) {
+      expect(destinations).toContain(href)
+    }
 
-    const homepageRail = read("components/marketing/home-service-links.tsx")
     const homepageData = read("lib/marketing/homepage.ts")
     const footer = read("components/shared/footer.tsx")
     const medCertLayout = read("app/medical-certificate/layout.tsx")
     const contactPage = read("app/contact/contact-client.tsx")
 
-    expect(homepageRail).toContain("BRANDED_SEARCH_LINKS")
-    expect(homepageRail).toContain("Popular pages")
     expect(homepageData).not.toMatch(/\/locations\/(?:sydney|melbourne|canberra)/)
-    expect(homepageData).toContain("...BRANDED_SEARCH_LINKS.slice(2)")
+    expect(homepageData).toContain('href: "/contact"')
+    expect(homepageData).toContain('href: "/verify"')
     expect(footer).toContain('data-nosnippet=""')
     expect(footer).toContain("footerLinks.help")
     expect(footer).toContain("All rights reserved.")

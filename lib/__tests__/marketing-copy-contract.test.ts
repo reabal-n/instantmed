@@ -466,7 +466,6 @@ describe("marketing copy contracts", () => {
     expect(readFileSync(join(root, "lib/marketing/approved-claims.ts"), "utf8")).toContain(
       'text: "Start with a secure form. Takes about 3 minutes."',
     )
-    expect(homePageSource).toContain("text-foreground/85")
     expect(homePageSource).not.toContain("text-[color:var(--brand-coral)]")
   })
 
@@ -519,7 +518,7 @@ describe("marketing copy contracts", () => {
   })
 
   it("keeps live reviewing indicators green instead of urgent coral", () => {
-    expect(waitCounterSource).toContain("bg-emerald-500")
+    expect(waitCounterSource).toContain("bg-success")
     expect(waitCounterSource).not.toContain("var(--brand-coral)")
     expect(whatHappensNextSource).toContain("bg-emerald-500")
     expect(whatHappensNextSource).not.toContain("var(--brand-coral)")
@@ -532,7 +531,7 @@ describe("marketing copy contracts", () => {
     expect(medCertLandingSource).not.toContain("SocialProofSection")
     expect(homePageSource).not.toContain("Real patients. Real reviews.")
     expect(medCertLandingSource).not.toContain("Real patients. Real reviews.")
-    expect(heroSource).toContain("GoogleReviewsBadge")
+    expect(heroSource).toContain("ProductReviewBadge")
     expect(stickyCtaSource).not.toContain("hidden lg:block fixed")
     expect(stickyCtaSource).not.toContain("top: '62px'")
   })
@@ -633,7 +632,7 @@ describe("marketing copy contracts", () => {
   })
 
   it("keeps index-depth copy specific, safe, and internally linked", () => {
-    expect(howItWorksContentSource).toContain("Service pathway detail")
+    expect(howItWorksContentSource).toContain("What you receive")
     expect(howItWorksContentSource).toContain("/medical-certificate")
     expect(howItWorksContentSource).toContain("/prescriptions")
     expect(howItWorksContentSource).toContain("/consult")
@@ -669,9 +668,9 @@ describe("marketing copy contracts", () => {
   it("describes the active protocol boundary without implying post-issue review", () => {
     expect(eligibilityAndAutomationSources).not.toMatch(/individually reviewed afterward/i)
     expect(eligibilityAndAutomationSources).toContain(
-      "Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.",
+      "Complete the secure form with your symptoms, relevant history and requested dates. You will receive an outcome or a request for more information. Prescriptions require an individual doctor decision.",
     )
-    expect(eligibilityAndAutomationSources).toContain("AI never prescribes")
+    expect(eligibilityAndAutomationSources).not.toContain("AI never prescribes")
   })
 
   it("keeps static public response-time claims out until fresh evidence supports them", () => {

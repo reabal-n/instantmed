@@ -60,7 +60,7 @@ describe("money-page narrative compression", () => {
 
     expect(hair).toContain('text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.HAIR_LOSS}`')
     expect(hair).toContain('href: isDisabled ? "/contact" : requestCtaHref')
-    expect(medCert).toContain("For suitable form-only requests: {MED_CERT_WEDGE}")
+    expect(medCert).toContain("{MED_CERT_WEDGE} For short absences")
     expect(medCert).not.toMatch(/^\s*\{MED_CERT_WEDGE\} Tell us/m)
   })
 

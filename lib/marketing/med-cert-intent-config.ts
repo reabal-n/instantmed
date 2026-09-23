@@ -464,7 +464,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     explainerSubtitle: "For routine short absences, with doctor review for concerns.",
     explainerParagraphs: [
       "Sometimes the last thing you want to do when you are unwell is travel to a clinic and sit in a waiting room. This page is for routine sick leave evidence: short-term illness or injury where a doctor can make a safe decision from your history without a physical examination.",
-      `You answer a structured health form covering your symptoms, when they started, the dates you need covered, and any red flags that make protocol issue unsuitable. ${CLINICAL_REVIEW_SEQUENCE}`,
+      `You answer a structured health form covering your symptoms, when they started, the dates you need covered, and any red flags that make online care unsuitable. ${CLINICAL_REVIEW_SEQUENCE}`,
       "If approved, your certificate is emailed as a PDF with the usual workplace evidence details. If the doctor needs more context, they can message you through the secure platform. If online review is not suitable, the request is declined and you are directed toward the right care pathway.",
     ],
     detailSections: [

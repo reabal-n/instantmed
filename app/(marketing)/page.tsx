@@ -5,7 +5,6 @@ import { Suspense } from 'react'
 import { Hero } from '@/components/marketing/hero'
 import { HeroDoctorReviewMockup } from '@/components/marketing/hero-doctor-review-mockup'
 import { HomeClientControls } from '@/components/marketing/home-client-controls'
-import { HomeServiceLinks } from '@/components/marketing/home-service-links'
 import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { PortfolioRouteMap } from '@/components/marketing/portfolio-route-map'
@@ -20,7 +19,7 @@ import { homeH1Font } from '@/lib/fonts/home-h1'
 import { getApprovedClaim } from '@/lib/marketing/approved-claims'
 import { HOME_HERO_CTA_ID } from '@/lib/marketing/home-anchors'
 import { faqItems } from '@/lib/marketing/homepage'
-import { PROP_PHRASE, TAGLINE } from '@/lib/marketing/voice'
+import { TAGLINE } from '@/lib/marketing/voice'
 import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo/social-image"
 
 // All below-fold sections are lazy-loaded to keep framer-motion and client
@@ -174,17 +173,15 @@ export default async function HomePage() {
             title={TAGLINE}
             titleClassName={`${homeH1Font.className} min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5`}
             liveWait={waitState}
+            timingServiceId="med-cert"
             primaryCta={{ text: "Get started", href: "/request", wrapperId: HOME_HERO_CTA_ID, dataAttributes: { "data-home-cta": "hero" } }}
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
-            mockupClassName="hidden lg:block"
+            mockupClassName="max-w-sm lg:max-w-md"
           >
-            <h2 className="text-xl sm:text-2xl lg:text-3xl text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-4 sm:mb-6 leading-snug font-normal tracking-tight">
-              {PROP_PHRASE}
-            </h2>
-            <p className="text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed text-balance">
+            <p className="text-base lg:text-lg text-muted-foreground max-w-xl mb-6 sm:mb-8 leading-relaxed text-balance">
               Medical certificates, repeat prescriptions and doctor assessments for Australian
-              adults 18+. From {PRICING_DISPLAY.MED_CERT} AUD.
+              adults 18+. AHPRA-registered doctors. From {PRICING_DISPLAY.MED_CERT} AUD.
             </p>
           </Hero>
 
@@ -218,7 +215,6 @@ export default async function HomePage() {
           <RegulatoryPartners className="border-t border-b border-border/30 bg-muted/20 dark:bg-white/[0.02]" />
 
           {/* Active service links already render in the server-owned route map. */}
-          <HomeServiceLinks />
         </main>
 
         <MarketingFooter />

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { GOOGLE_REVIEWS, SOCIAL_PROOF } from "@/lib/social-proof"
+import { PRODUCT_REVIEWS, SOCIAL_PROOF } from "@/lib/social-proof"
 
 // Deleted 2026-07-16 (audit finding): unverifiable outcome and identity
 // claims that regulated-health advertising rules ban from ever rendering —
@@ -24,12 +24,12 @@ describe("banned social-proof metrics stay deleted", () => {
     expect(SOCIAL_PROOF).not.toHaveProperty(key)
   })
 
-  it("keeps the Google badge config stars-only (no review counts)", () => {
-    expect(Object.keys(GOOGLE_REVIEWS).sort()).toEqual([
+  it("keeps the ProductReview badge config stars-only (no review counts)", () => {
+    expect(Object.keys(PRODUCT_REVIEWS).sort()).toEqual([
       "enabled",
-      "placeId",
       "rating",
       "reviewsUrl",
+      "verifiedAt",
     ])
   })
 })

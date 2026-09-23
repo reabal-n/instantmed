@@ -217,9 +217,7 @@ export default async function BusinessLandingPage() {
             Co-branded URL, monthly invoicing, and form-first review by Australian doctors. Built
             for HR teams that don't want to chase clinics or reimburse out-of-pocket bills.
           </p>
-          <div className="mt-4 flex items-center justify-center">
-            <WaitCounter state={liveWait} variant="inline" />
-          </div>
+          <WaitCounter state={liveWait} variant="inline" className="mt-4 inline-flex" />
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg">
               <Link href="#contact">

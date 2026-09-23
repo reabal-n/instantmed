@@ -233,7 +233,7 @@ describe("guest account linkage", () => {
     expect(calls).toContainEqual(["gte", "paid_at", FROM.toISOString()])
     expect(calls).toContainEqual(["lt", "paid_at", TO.toISOString()])
     expect(calls).toContainEqual(["or", "exclude_from_reporting.is.null,exclude_from_reporting.eq.false"])
-    expect(calls.some(([method, column]) => method === "not" && column === "patient_id")).toBe(true)
+    expect(calls.some(([method, column]) => method === "or" && String(column).startsWith("patient_id.is.null,patient_id.not.in.(e2e"))).toBe(true)
   })
 
   it("fails closed instead of treating a truncated exact-count result as zero", async () => {

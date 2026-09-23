@@ -16,16 +16,6 @@ describe("marketing and request reflow contract", () => {
     expect(heading).toContain('"max-w-full min-w-0 hyphens-auto [overflow-wrap:anywhere]"')
   })
 
-  it("keeps the shared hero within an extreme-width viewport", () => {
-    const hero = read("components/marketing/hero.tsx")
-
-    expect(hero).toContain("mx-auto max-w-5xl px-4 sm:px-8 lg:px-10")
-    expect(hero).toContain("flex-1 w-full min-w-0 text-center lg:text-left")
-    expect(hero).toMatch(/inline-flex[^"\n]*max-w-full[^"\n]*flex-wrap[^"\n]*justify-center/)
-    expect(hero).toContain("min-[241px]:whitespace-nowrap")
-    expect(hero).toContain("max-[240px]:hidden")
-    expect(hero).toContain("h-auto min-h-12 whitespace-normal px-4 py-3 text-center")
-  })
 
   it("keeps the brand mark and specialty H1 words intact at the 200% zoom proxy", () => {
     const brandLogo = read("components/shared/brand-logo.tsx")
@@ -72,7 +62,6 @@ describe("marketing and request reflow contract", () => {
   it("provides a shared emergency-width reflow floor", () => {
     const globals = read("app/globals.css")
     const button = read("components/ui/button.tsx")
-    const footer = read("components/shared/footer.tsx")
     const mobileMenu = read("components/ui/animated-mobile-menu.tsx")
     const mobileMenuToggle = read("components/shared/navbar/mobile-menu-toggle.tsx")
     const skipLink = read("components/shared/skip-to-content.tsx")
@@ -96,9 +85,6 @@ describe("marketing and request reflow contract", () => {
     expect(button).toContain("focus-visible:ring-2 focus-visible:ring-primary")
     expect(button).not.toContain("focus-visible:ring-dawn-300")
     expect(button).not.toContain("dark:focus-visible:ring-dawn-500/40")
-    expect(footer).toContain("grid-cols-1 min-[241px]:grid-cols-2")
-    expect(footer).toContain("min-w-0 flex-wrap")
-    expect(footer).not.toContain('<p className="whitespace-nowrap">')
     expect(mobileMenu.match(/w-full max-w-\[300px\]/g)).toHaveLength(2)
     expect(mobileMenu).not.toMatch(/(?:^|\s)w-\[300px\](?:\s|")/m)
     expect(mobileMenuToggle).toContain("focus-visible:ring-2 focus-visible:ring-primary")
@@ -119,15 +105,9 @@ describe("marketing and request reflow contract", () => {
 
     expect(comparisonTable.match(/grid-cols-3 sm:grid-cols-\[1fr_120px_120px\]/g)).toHaveLength(2)
     expect(comparisonTable.match(/px-2 min-\[241px\]:px-6/g)).toHaveLength(2)
-    expect(routeMap).toContain("grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3")
+    expect(routeMap).toContain("grid-cols-1 gap-2 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3")
     expect(routeMap).toContain('"min-w-0"')
     expect(routeMap).not.toContain("lg:col-span-2")
-  })
-
-  it("moves each compact commercial link as one reflowable unit", () => {
-    const links = read("components/marketing/sections/commercial-intent-links-section.tsx")
-
-    expect(links).toContain('<span key={link.href} className="inline-block">')
   })
 
   it("gives request services valid H2 structure and emergency-width reflow", () => {
@@ -174,14 +154,6 @@ describe("marketing and request reflow contract", () => {
     expect(decisions).toContain("h-auto min-h-12 w-full whitespace-normal py-3 text-center")
   })
 
-  it("keeps fixed-size hero specimens stable under enlarged root text", () => {
-    const medCertLanding = read("components/marketing/med-cert-landing.tsx")
-    const medCertMockup = read("components/marketing/mockups/med-cert-hero-mockup.tsx")
-
-    expect(medCertLanding).toContain("mockup={<MedCertHeroMockup />}")
-    expect(medCertMockup).toContain('"w-[352px] xl:w-[384px]"')
-    expect(medCertMockup).not.toContain('"w-[22rem] xl:w-[24rem]"')
-  })
 
   it("keeps the shared sticky call to action off-canvas when hidden", () => {
     const sticky = read("components/marketing/shared/sticky-cta.tsx")

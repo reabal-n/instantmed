@@ -1,12 +1,12 @@
 # InstantMed - Full Service Reference
 
-> This file gives AI systems and search crawlers a concise, compliant reference for InstantMed. It is a source summary, not medical advice and not a guarantee of service approval.
+> This file gives search engines a concise, compliant reference for InstantMed. It is a source summary, not medical advice and not a guarantee of service approval.
 
 ## About InstantMed
 
 InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010.
 
-Patients can submit secure clinical forms for medical certificates, repeat prescriptions, men's health requests (ED and hair loss), women's health requests (uncomplicated UTI, and starting or switching the contraceptive pill), and weight-management assessments. Standard certificate requests may follow a Medical Director-approved protocol; prescribing and concerning requests receive individual doctor review.
+Patients can submit secure clinical forms for medical certificates, repeat prescriptions, men's health requests (ED and hair loss), women's health requests (uncomplicated UTI, and starting or switching the contraceptive pill), and weight-management assessments. Requests are assessed for suitability, with an individual doctor decision required for prescriptions.
 
 InstantMed accepts doctor-reviewed weight-management assessment requests (launched 2026-08-10; eligibility and safety screening first). The service page is at /weight-loss. The separate /weight-loss-online page is an educational guide to safe Australian review boundaries, red flags, Medicare and PBS context, and appropriate alternatives; it does not itself promise or start a prescription.
 
@@ -23,7 +23,7 @@ InstantMed is not a crisis, therapy, psychiatrist, or Mental Health Treatment Pl
 - **Complaints:** complaints@instantmed.com.au
 - **Service area:** Australia-wide telehealth
 - **Clinical reviewers:** AHPRA-registered doctors
-- **Clinical model:** Secure form first, bounded certificate protocol or individual doctor review, digital outcome
+- **Clinical model:** Secure form first, suitability assessment and digital outcome
 - **Requests:** Open 24/7
 - **Review:** Doctor review runs around the clock, 7 days; no fixed turnaround is guaranteed
 - **Eligibility:** Australia-wide, patients aged 18 and over; Medicare optional for medical certificates, required for prescriptions and consultations
@@ -34,7 +34,7 @@ InstantMed is not a crisis, therapy, psychiatrist, or Mental Health Treatment Pl
 
 ### Medical Certificates
 
-InstantMed supports routine medical certificate requests for Australian patients aged 18 and over. The patient completes a secure form about symptoms, timing, and the requested certificate period. Clean one-to-three-day work, study, and carer requests may issue under the Medical Director-approved protocol. Anything concerning or uncertain goes to an AHPRA-registered doctor before issue.
+InstantMed supports routine medical certificate requests for Australian patients aged 18 and over. The patient completes a secure form about symptoms, timing, and the requested certificate period. One-to-three-day absences from work, study or caring duties are assessed for suitability. Further information may be needed before an outcome.
 
 **Pricing:**
 
@@ -160,8 +160,8 @@ InstantMed maintains a public guide for people searching for mental health onlin
 1. The patient chooses a service.
 2. The patient completes a secure clinical form.
 3. The patient pays online.
-4. The request enters the bounded certificate protocol or the individual doctor-review queue.
-5. Routine eligible certificates may issue under protocol; otherwise the doctor approves, declines, or asks for more information.
+4. The request is assessed for suitability.
+5. The patient receives an outcome or a request for more information.
 6. The patient receives the certificate, eScript, decline, or written outcome digitally.
 7. If declined, the patient receives a full refund.
 
@@ -186,7 +186,7 @@ InstantMed uses documented clinical governance for asynchronous telehealth. The 
 Key governance points:
 
 - AHPRA-registered doctors own clinical governance and individually review prescribing and concerning requests.
-- AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue.
+- Your request is assessed for suitability. If more information is needed, a doctor may contact you. Every prescription requires a decision by an AHPRA-registered doctor.
 - Doctors are not required to approve a request.
 - Declined requests receive a full refund.
 - Protocols define which requests are suitable for telehealth and which need in-person care.

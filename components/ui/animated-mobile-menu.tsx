@@ -80,12 +80,7 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
         >
           {item.icon}
         </div>
-      ) : (
-        <div
-          className="h-10 w-10 rounded-xl border-2 transition-colors"
-          style={{ backgroundColor: `${accentColor}20`, borderColor: accentColor }}
-        />
-      )}
+      ) : null}
       <div className="min-w-0 flex-1">
         <span
           className={cn(
@@ -182,8 +177,8 @@ export function AnimatedMobileMenu({
       const opener = document.activeElement
       returnFocusRef.current = opener instanceof HTMLElement ? opener : null
       const focusFrame = requestAnimationFrame(() => {
-        const firstNavigationLink = contentRef.current?.querySelector<HTMLElement>("ul a[href]")
-        const firstControl = firstNavigationLink ?? getVisibleDrawerControls(contentRef.current)[0]
+        const firstNavigationControl = contentRef.current?.querySelector<HTMLElement>("ul a[href], ul button:not([disabled])")
+        const firstControl = firstNavigationControl ?? getVisibleDrawerControls(contentRef.current)[0]
         firstControl?.focus({ preventScroll: true })
       })
       wasOpenRef.current = true
@@ -234,8 +229,10 @@ export function AnimatedMobileMenu({
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : ""
+    document.documentElement.toggleAttribute("data-mobile-menu-open", isOpen)
     return () => {
       document.body.style.overflow = ""
+      document.documentElement.removeAttribute("data-mobile-menu-open")
     }
   }, [isOpen])
 
@@ -246,7 +243,7 @@ export function AnimatedMobileMenu({
       aria-label="Mobile navigation"
       aria-hidden={!isOpen}
       inert={!isOpen ? true : undefined}
-      className="md:hidden"
+      className="relative z-[55] lg:hidden"
     >
       <div
         aria-hidden="true"
@@ -266,7 +263,7 @@ export function AnimatedMobileMenu({
         className={cn(
           "fixed bottom-0 right-0 top-0 z-40 w-full max-w-[300px]",
           "border-l border-border/50 bg-card/85 shadow-[-20px_0_60px_rgb(59,130,246,0.12)] backdrop-blur-2xl",
-          "transition-[transform,visibility] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:!transition-none",
+          "transition-[translate,visibility] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:!transition-none",
           "dark:border-white/15 dark:bg-white/10 dark:shadow-[-20px_0_60px_rgb(93,184,201,0.15)]",
           isOpen
             ? "visible translate-x-0 [transition-duration:220ms,0ms]"
@@ -280,7 +277,7 @@ export function AnimatedMobileMenu({
         ref={contentRef}
         className={cn(
           "fixed bottom-0 right-0 top-0 z-50 flex w-full max-w-[300px] flex-col",
-          "transition-[transform,opacity,visibility] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:!transition-none",
+          "transition-[translate,opacity,visibility] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:!transition-none",
           isOpen
             ? "visible translate-x-0 opacity-100 [transition-duration:220ms,180ms,0ms]"
             : "invisible translate-x-full opacity-0 [transition-duration:160ms,120ms,0ms] [transition-delay:0ms,0ms,160ms]",

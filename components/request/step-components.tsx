@@ -31,11 +31,9 @@
 import dynamic from "next/dynamic"
 import type { ComponentType } from "react"
 
-import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+import { MED_CERT_DOCUMENT_SCOPE } from "@/lib/marketing/certificate-copy"
 
 import type { StepComponentProps } from "./step-loaders"
-
-const MED_CERT_DOCUMENT_SCOPE = getApprovedClaim("med_cert_document_scope")
 
 const stepIntroCopy: Partial<Record<string, { eyebrow?: string; title: string; description: string }>> = {
   "certificate-step": {

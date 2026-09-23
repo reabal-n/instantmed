@@ -14,15 +14,15 @@ const read = (path: string) => readFileSync(join(root, path), "utf8")
 
 // Fake the Supabase chainable query object the filter mutates.
 type FakeQuery = {
-  not(column: string, op: string, value: string): FakeQuery
-  __calls: Array<{ column: string; op: string; value: string }>
+  or(filters: string): FakeQuery
+  __calls: string[]
 }
 
 function fakeQuery(): FakeQuery {
   const calls: FakeQuery["__calls"] = []
   const q: FakeQuery = {
-    not(column, op, value) {
-      calls.push({ column, op, value })
+    or(filters) {
+      calls.push(filters)
       return q
     },
     __calls: calls,
@@ -37,14 +37,14 @@ describe("test-data toggle contract", () => {
     const q = fakeQuery()
     filterSeededE2EIntakes(q, EMPTY_ENV)
     expect(q.__calls).toEqual([
-      { column: "patient_id", op: "in", value: `(${SEEDED_E2E_PATIENT_PROFILE_IDS.join(",")})` },
+      `patient_id.is.null,patient_id.not.in.(${SEEDED_E2E_PATIENT_PROFILE_IDS.join(",")})`,
     ])
   })
 
   it("allows seeded data when allowSeeded: true is passed as the first arg", () => {
     const q = fakeQuery()
     filterSeededE2EIntakes(q, { allowSeeded: true })
-    // No `.not(...)` call — the filter is bypassed.
+    // No `.or(...)` call — the filter is bypassed.
     expect(q.__calls).toEqual([])
   })
 

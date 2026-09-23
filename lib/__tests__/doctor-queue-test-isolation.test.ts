@@ -40,6 +40,10 @@ function query(table: string) {
       if (expression === "id.is.null") filters.push(() => false)
       else if (expression === "category.eq.consult") filters.push(row => row.category === "consult")
       else if (expression === "ai_approved.is.false,ai_approved.is.null") filters.push(row => row.ai_approved !== true)
+      else if (expression.startsWith("patient_id.is.null,patient_id.not.in.(")) {
+        const excluded = expression.split("(")[1].slice(0, -1).split(",")
+        filters.push(row => row.patient_id == null || !excluded.includes(String(row.patient_id)))
+      }
       else throw new Error("Unsupported query expression")
       return chain
     },

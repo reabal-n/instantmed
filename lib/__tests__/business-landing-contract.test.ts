@@ -77,8 +77,8 @@ describe("/business B2B landing contract", () => {
     }
   })
 
-  it("/business is linked from the footer Company column", () => {
-    const homepage = read("lib/marketing/homepage.ts")
+  it("/business remains discoverable through the site map", () => {
+    const homepage = read("app/sitemap-html/page.tsx")
     expect(homepage).toContain('label: "For Business", href: "/business"')
   })
 })

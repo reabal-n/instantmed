@@ -140,7 +140,7 @@ describe("google ads spend report", () => {
       "exclude_from_reporting.is.null,exclude_from_reporting.eq.false",
     ])
     expect(calls.some(
-      ([method, column]) => method === "not" && column === "patient_id",
+      ([method, column]) => method === "or" && String(column).startsWith("patient_id.is.null,patient_id.not.in.(e2e"),
     )).toBe(true)
   })
 

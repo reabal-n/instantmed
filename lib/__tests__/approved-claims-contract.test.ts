@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { APPROVED_CLAIMS, getApprovedClaim } from "@/lib/marketing/approved-claims"
+import { MED_CERT_DOCUMENT_SCOPE } from "@/lib/marketing/certificate-copy"
 import {
   BRAND_THESIS,
   FORM_FIRST_WEDGE,
@@ -19,6 +20,13 @@ import {
 const root = process.cwd()
 
 describe("approved claims registry", () => {
+  it("exposes the exact certificate scope without a dynamic registry lookup", () => {
+    expect(MED_CERT_DOCUMENT_SCOPE).toBe(getApprovedClaim("med_cert_document_scope"))
+    const source = readFileSync(join(root, "components/request/step-components.tsx"), "utf8")
+    expect(source).toContain('import { MED_CERT_DOCUMENT_SCOPE } from "@/lib/marketing/certificate-copy"')
+    expect(source).not.toContain('from "@/lib/marketing/approved-claims"')
+    expect(source).not.toContain("getApprovedClaim")
+  })
   it("feeds the canonical brand voice constants", () => {
     expect(BRAND_THESIS).toBe(getApprovedClaim("brand_thesis"))
     expect(TAGLINE).toBe(getApprovedClaim("tagline"))
@@ -87,10 +95,10 @@ describe("approved claims registry", () => {
       "Clinical access is role-scoped. Doctors and the owner-admin can access records needed for care; support sees only bounded, masked operational data.",
     )
     expect(getApprovedClaim("clinical_decision_model")).toBe(
-      "AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue.",
+      "Your request is assessed for suitability. If more information is needed, a doctor may contact you. Every prescription requires a decision by an AHPRA-registered doctor.",
     )
     expect(getApprovedClaim("clinical_review_sequence")).toBe(
-      "Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.",
+      "Complete the secure form with your symptoms, relevant history and requested dates. You will receive an outcome or a request for more information. Prescriptions require an individual doctor decision.",
     )
     expect(getApprovedClaim("med_cert_document_scope")).toBe(
       "If approved, the standard certificate confirms the absence dates and does not include a diagnosis or symptom details.",

@@ -109,6 +109,10 @@ function createStuckViewQuery() {
       return query
     },
     or: (filter: string) => {
+      if (filter.startsWith("patient_id.is.null,patient_id.not.in.(")) {
+        const excludedIds = new Set(filter.split("(")[1].slice(0, -1).split(","))
+        visibleRows = visibleRows.filter(item => item.patient_id == null || !excludedIds.has(item.patient_id))
+      }
       if (filter === "exclude_from_reporting.is.null,exclude_from_reporting.eq.false") {
         visibleRows = visibleRows.filter((item) => item.exclude_from_reporting !== true)
       }

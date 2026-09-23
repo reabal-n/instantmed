@@ -38,7 +38,7 @@ describe("money-page LCP critical path", () => {
     const hero = source("components/marketing/hero.tsx")
 
     expect(medCertLanding).toContain('moneyH1Font.className')
-    expect(medCertLanding).toMatch(/<Hero[\s\S]*?title="Medical certificate\. From your bed\."/)
+    expect(medCertLanding).toMatch(/<Hero[\s\S]*?title="Your medical certificate\. Without the waiting room\."/)
     expect(hero).toMatch(/<Heading[\s\S]*?level="display"/)
     expect(hero).toContain("titleClassName")
     expect(source("components/marketing/prescriptions-landing.tsx")).toContain(
@@ -48,10 +48,8 @@ describe("money-page LCP critical path", () => {
       /<Heading level="display"[^>]*hero-(?:availability|subheadline|cta|trust|count|mockup)-enter/,
     )
     expect(medCertLanding).not.toContain("hero-subheadline-enter")
-    expect(hero).toContain('immediateSubheadline ? undefined : "hero-subheadline-enter"')
-    expect(source("components/marketing/prescriptions-landing.tsx")).toContain(
-      "immediateSubheadline",
-    )
+    expect(hero).not.toContain("hero-subheadline-enter")
+    expect(source("components/marketing/prescriptions-landing.tsx")).not.toContain("hero-subheadline-enter")
   })
 
   it("does not eagerly preload the offscreen sticky payment marks", () => {
@@ -70,7 +68,6 @@ describe("money-page LCP critical path", () => {
     const menuToggle = source("components/shared/navbar/mobile-menu-toggle.tsx")
     const stickyCta = source("components/marketing/shared/sticky-cta.tsx")
     const servicesDropdown = source("components/shared/navbar/services-dropdown.tsx")
-    const resourcesDropdown = source("components/shared/navbar/resources-dropdown.tsx")
     const motionHooks = source("components/ui/motion.tsx")
     const wordReveal = source("components/ui/morning/word-reveal.tsx")
     const mobileMenu = source("components/ui/animated-mobile-menu.tsx")
@@ -92,7 +89,6 @@ describe("money-page LCP critical path", () => {
     expect(menuToggle).not.toContain("framer-motion")
     expect(stickyCta).not.toContain("framer-motion")
     expect(servicesDropdown).not.toContain("framer-motion")
-    expect(resourcesDropdown).not.toContain("framer-motion")
     expect(motionHooks).not.toMatch(/from ["']framer-motion["']/)
     expect(wordReveal).not.toContain("framer-motion")
     expect(wordReveal).toContain("IntersectionObserver")
@@ -105,8 +101,7 @@ describe("money-page LCP critical path", () => {
     expect(authProvider).toContain("initialAuthResolvedRef.current = true")
     expect(medCertMockup).not.toContain("font-mono")
     expect(escriptMockup).not.toContain("font-mono")
-    expect(medCertMockup).toContain("font-[ui-monospace]")
-    expect(escriptMockup).toContain("font-[ui-monospace]")
+    expect(medCertMockup).toContain("font-[ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation_Mono','Courier_New',monospace]")
   })
 
   it("keeps the global 404 from assigning next/link to a money-page chunk group", () => {

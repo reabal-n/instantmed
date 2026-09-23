@@ -9,38 +9,32 @@ const read = (p: string) => readFileSync(join(root, p), "utf8")
 describe("landing hero contract (19 Sep 2026 audit)", () => {
   const hero = read("components/marketing/hero.tsx")
 
-  it("renders stars only inside the Google badge", () => {
-    // The old pill drew five bare stars next to "AHPRA-registered doctors",
-    // which reads as a doctor rating. Stars belong to the Google mark.
-    expect(hero).not.toMatch(/\[1, 2, 3, 4, 5\]\.map/)
-    expect(hero).not.toContain('aria-label="Google star rating"')
-    const pillStart = hero.indexOf("function buildDefaultPill")
-    const pillEnd = hero.indexOf("const DEFAULT_TITLE")
-    expect(pillStart).toBeGreaterThan(-1)
-    expect(hero.slice(pillStart, pillEnd)).toContain('<GoogleReviewsBadge />')
+  it("keeps attributed reviews separate from operational status", () => {
+    expect(hero).toContain('data-hero-reviews=""')
+    expect(hero).toContain('<ProductReviewBadge />')
+    expect(hero).not.toContain('buildDefaultPill')
   })
 
-  it("keeps the trust row to two marks on one row", () => {
-    const trustStart = hero.indexOf("const DEFAULT_TRUST_ROW")
-    const trustEnd = hero.indexOf("export function Hero")
-    const trustRow = hero.slice(trustStart, trustEnd)
-    expect(trustRow).toContain("<GoogleAdsCert")
-    expect(trustRow).toContain("<LegitScriptSeal")
-    expect(trustRow).not.toContain("GoogleReviewsBadge")
-    expect(hero).toContain('data-hero-trust-row=""')
-  })
-
-  it("exposes a pillLabel so service pages keep the shared pill", () => {
-    expect(hero).toContain("pillLabel?: string")
-    expect(hero).toContain('pillLabel = "AHPRA-registered doctors"')
+  it("leaves certification marks in the footer", () => {
+    expect(hero).not.toContain('GoogleAdsCert')
+    expect(hero).not.toContain('LegitScriptSeal')
+    const footer = read("components/shared/footer.tsx")
+    expect(footer).toContain('GoogleAdsCert')
+    expect(footer).toContain('LegitScriptSeal')
   })
 
   it("keeps display headlines unhyphenated inside the hero", () => {
-    expect(hero).toMatch(/<Heading[\s\S]*?level="display"[\s\S]*?"hyphens-none"/)
+    expect(hero).toMatch(/<Heading[\s\S]*?level="display"[\s\S]*?hyphens-none/)
   })
 
   it("shows the live wait counter on phones too", () => {
     expect(hero).not.toMatch(/hidden sm:inline-flex">\s*<WaitCounter/)
+  })
+
+  it("gates homepage certificate timing with certificate availability", () => {
+    const homepage = read("app/(marketing)/page.tsx")
+    expect(homepage).toMatch(/<Hero\b[^>]*timingServiceId="med-cert"/)
+    expect(hero).toContain('<ServiceAvailabilityGate serviceId={timingServiceId ?? availabilityServiceId}>')
   })
 
   it("marks the hero section for geometry gates", () => {

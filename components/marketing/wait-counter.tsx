@@ -1,120 +1,21 @@
-"use client"
-
-import type { ReactNode } from "react"
-
-import { useReducedMotion } from "@/components/ui/motion"
-import { QUEUE_DISPLAY_CAP, type WaitState } from "@/lib/brand/wait-counter-types"
+import type { WaitState } from "@/lib/brand/wait-counter-types"
+import { buildMedCertSpeedClaimFromWaitState } from "@/lib/marketing/speed-claims"
 import { cn } from "@/lib/utils"
 
 interface WaitCounterProps {
   state: WaitState
-  /**
-   * Visual variant.
-   *  - `inline`: meant to drop into an existing pill / trust line. Renders as
-   *    a single inline element with a green live-state pulse + tight copy.
-   *  - `standalone`: meant to render on its own line above the hero. Larger
-   *    type, stronger contrast, ideal for a hero accent above the H1.
-   */
   variant?: "inline" | "standalone"
   className?: string
 }
 
-/**
- * Live wait-counter — signature brand device #1 (docs/BRAND.md §6.1).
- *
- * Renders a green pulsing dot plus current-state copy. Five state
- * variants drive five copy lines. Returns `null` when the data source signals
- * `hidden` (no recent data), so callers can render this unconditionally.
- *
- * The CSS keyframes `wait-pulse` are defined in `app/globals.css`. They
- * respect `prefers-reduced-motion` via the hook below.
- */
+/** Historical turnaround, never a personal queue position or a promise. */
 export function WaitCounter({ state, variant = "inline", className }: WaitCounterProps) {
-  const reduced = useReducedMotion()
-
-  if (state.variant === "hidden") return null
-
-  const text = renderText(state)
-  const isStandalone = variant === "standalone"
-
+  if (state.variant === "reviewing") return <span className={cn("text-sm text-muted-foreground", className)}>Requests open 24/7</span>
+  if (buildMedCertSpeedClaimFromWaitState(state).status !== "under_hour") return null
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 font-medium",
-        isStandalone
-          ? "text-sm sm:text-base text-foreground/85"
-          : "text-sm text-muted-foreground",
-        className,
-      )}
-      role="status"
-      aria-live="polite"
-    >
-      <span className="relative inline-flex h-2 w-2 shrink-0" aria-hidden="true">
-        <span
-          className={cn(
-            "absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60",
-            reduced ? "" : "animate-wait-pulse",
-          )}
-        />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-      </span>
-      {text}
+    <span className={cn("inline-flex items-start gap-2 text-sm leading-6 text-muted-foreground", variant === "standalone" && "sm:text-base", className)}>
+      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-success" aria-hidden="true" />
+      <span>Medical certificates: median turnaround <strong className="font-semibold tabular-nums text-foreground">~{state.medianMinutes} min</strong> over the last 24 hours</span>
     </span>
   )
-}
-
-function renderText(state: WaitState): ReactNode {
-  switch (state.variant) {
-    case "live": {
-      const minutes = state.medianMinutes
-      if (typeof minutes !== "number") return <>Reviewing requests 24/7</>
-      const subject = subjectFor(state.service)
-      return (
-        <>
-          {subject} reviewed in{" "}
-          <strong className="text-foreground tabular-nums font-semibold">~{minutes} min</strong>{" "}
-          in the last 24 hours
-        </>
-      )
-    }
-    case "reviewing":
-      // `getWaitState` returns this variant when metrics are missing, the
-      // window is empty, or the lookup failed, so it carries no evidence of
-      // doctor activity. Render the approved 24/7 availability fact
-      // (approved claim `availability_24_7`), never a live-activity claim.
-      return <>Requests open 24/7</>
-    case "queued": {
-      const n = state.queueLength
-      if (typeof n !== "number") return <>In review</>
-      const display = n >= QUEUE_DISPLAY_CAP ? `${QUEUE_DISPLAY_CAP}+` : String(n)
-      return (
-        <>
-          <strong className="text-foreground tabular-nums font-semibold">{display}</strong> ahead
-          in the queue
-        </>
-      )
-    }
-    case "standby": {
-      const at = state.resumeAt
-      return (
-        <>
-          On standby. {at ? <>First review at <strong className="text-foreground">{at}</strong></> : <>Doctor reviews next session.</>}
-        </>
-      )
-    }
-    default:
-      return null
-  }
-}
-
-function subjectFor(service: WaitState["service"]): string {
-  switch (service) {
-    case "rx":
-      return "Most repeat scripts"
-    case "consult":
-      return "Most consults"
-    case "med-cert":
-    default:
-      return "Most med certs"
-  }
 }

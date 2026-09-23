@@ -1,18 +1,15 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Check } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
-import { GoogleAdsCert } from '@/components/marketing/google-ads-cert'
-import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
-import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
-import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
+import { ProductReviewBadge } from '@/components/marketing/product-review-badge'
 import { WaitCounter } from '@/components/marketing/wait-counter'
 import { ServiceAvailabilityGate, type ServiceId } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import type { WaitState } from '@/lib/brand/wait-counter'
-import { GUARANTEE, ICONIC_HOOK } from '@/lib/marketing/voice'
-import { GOOGLE_REVIEWS } from '@/lib/social-proof'
+import { buildMedCertSpeedClaimFromWaitState } from '@/lib/marketing/speed-claims'
+import { GUARANTEE } from '@/lib/marketing/voice'
 import { cn } from '@/lib/utils'
 
 interface CtaConfig {
@@ -35,294 +32,72 @@ interface SecondaryCtaConfig {
 }
 
 interface HeroProps {
-  /** Optional page-level spacing/layout overrides for the hero section. */
   className?: string
-  /**
-   * H1 text. Defaults to the home headline. Service pages override with
-   * their own positioning line.
-   */
   title?: ReactNode
-  /** Optional H1 typography class for route-owned critical-font subsets. */
   titleClassName?: string
-  /** Render the subhead immediately when it can become the route's LCP node. */
-  immediateSubheadline?: boolean
-  /**
-   * Announcement pill content above the H1. Defaults to the canonical
-   * stars + doctor-review + Open now pill. Pass `null` to suppress.
-   */
-  pill?: ReactNode | null
-  /** Text beside the Google badge in the default pill. Service pages may narrow it, e.g. "Routine short absences". */
-  pillLabel?: string
-  /**
-   * Hides the pill while this service is disabled. Without it the pill still
-   * hides during platform maintenance, so server-rendered status never
-   * contradicts the unavailable banner.
-   */
-  pillServiceId?: ServiceId
-  /**
-   * Subhead body. Pass a <p> so the consumer controls copy verbatim.
-   */
+  /** Hide service-specific timing, reassurance and reviews while unavailable. */
+  availabilityServiceId?: ServiceId
+  /** A general hero can show timing from a different, specific service. */
+  timingServiceId?: ServiceId
   children?: ReactNode
-  /**
-   * Primary CTA. Defaults to "Get started → /request".
-   */
   primaryCta?: CtaConfig
-  /** Optional availability-aware CTA leaf while the hero remains server-owned. */
   primaryCtaContent?: ReactNode
-  /**
-   * Secondary CTA. Defaults to "How it works → #how-it-works". Pass `null`
-   * to render only the primary CTA.
-   */
   secondaryCta?: SecondaryCtaConfig | null
-  /**
-   * Optional content rendered between the subhead and the CTA row. Used by
-   * service-page heroes for service-specific reassurance lines, e.g. an
-   * employer-acceptance line for medical certificates.
-   */
   beforeCta?: ReactNode
-  /**
-   * Optional content in the reassurance row directly below the primary CTA.
-   * Pass `null` to suppress the default brand hook + last-reviewed signal.
-   */
   reassuranceRow?: ReactNode | null
-  /**
-   * Optional mockup override. Pass a custom mockup for service-page heroes.
-   * Pass an explicit mockup when the page needs one. Keeping this opt-in stops
-   * an animated homepage-only illustration entering every service bundle.
-   */
   mockup: ReactNode | null
-  /** Optional responsive/layout classes for the canonical mockup wrapper. */
   mockupClassName?: string
-  /**
-   * Optional trust-row override. Defaults to GoogleAdsCert + LegitScript.
-   * Pass `null` to suppress entirely when a page renders its own trust
-   * badges directly below the hero.
-   */
-  trustRow?: ReactNode | null
-  /**
-   * Optional live wait-counter state (signature brand device #1, see
-   * docs/BRAND.md §6.1). When provided, the default pill swaps the static
-   * "Open now" beat for the WaitCounter device. When omitted, the pill
-   * keeps the existing "Open now" indicator (back-compat for other heroes).
-   */
+  /** Server-fed certificate timing; never inferred from static marketing data. */
   liveWait?: WaitState
+  showReviews?: boolean
 }
-
-const DEFAULT_OPEN_NOW = (
-  <span className="hidden sm:inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
-    <span
-      className="w-1.5 h-1.5 rounded-full bg-emerald-500"
-      style={{ animation: 'pulse 3s ease-in-out infinite' }}
-      aria-hidden="true"
-    />
-    Open now
-  </span>
-)
-
-function buildDefaultPill(liveWait: WaitState | undefined, pillLabel: string) {
-  return (
-    <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-2.5 rounded-full px-3 py-1.5 text-sm font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
-      {GOOGLE_REVIEWS.enabled && (
-        <>
-          <GoogleReviewsBadge />
-          <span className="text-border/70" aria-hidden="true">·</span>
-        </>
-      )}
-      <span className="text-muted-foreground min-[241px]:whitespace-nowrap">{pillLabel}</span>
-      <span className="text-border/70 hidden sm:inline" aria-hidden="true">·</span>
-      {liveWait ? (
-        // Always its own row on phones so a slow webfont swap cannot change
-        // the pill's height (the CI slow-font layout-shift gate); inline from sm up.
-        <span className="inline-flex basis-full justify-center sm:basis-auto sm:justify-start">
-          <WaitCounter state={liveWait} variant="inline" />
-        </span>
-      ) : (
-        DEFAULT_OPEN_NOW
-      )}
-    </div>
-  )
-}
-
-const DEFAULT_TITLE = 'Consults, certs, and treatment. From your bed.'
-const DEFAULT_PRIMARY: CtaConfig = { text: 'Get started', href: '/request' }
-const DEFAULT_SECONDARY: SecondaryCtaConfig = { text: 'How it works', href: '#how-it-works' }
-
-// LastReviewedSignal moved out of the trust row and pulled up directly
-// under the primary CTA (see the markup below). Operators surfaced in
-// the 2026-05-26 video reviews that the "Last reviewed X min ago"
-// reassurance was stranded at the bottom of the trust row, far from the
-// click moment. Reading it AS the user is deciding to act delivers the
-// reassurance at the right beat.
-const DEFAULT_TRUST_ROW = (
-  <>
-    <GoogleAdsCert size="sm" />
-    <LegitScriptSeal size="sm" />
-  </>
-)
 
 export function Hero({
-  className,
-  title = DEFAULT_TITLE,
-  titleClassName,
-  immediateSubheadline = false,
-  pill,
-  pillLabel = "AHPRA-registered doctors",
-  pillServiceId,
-  children,
-  primaryCta = DEFAULT_PRIMARY,
-  primaryCtaContent,
-  secondaryCta,
-  beforeCta,
-  reassuranceRow,
-  mockup,
-  mockupClassName,
-  trustRow,
-  liveWait,
+  className, title = 'Healthcare that fits your day.', titleClassName,
+  availabilityServiceId, timingServiceId, children,
+  primaryCta = { text: 'Get started', href: '/request' }, primaryCtaContent,
+  secondaryCta, beforeCta, reassuranceRow, mockup, mockupClassName,
+  liveWait, showReviews = true,
 }: HeroProps) {
-  const resolvedPill = pill === undefined ? buildDefaultPill(liveWait, pillLabel) : pill
-  const resolvedSecondary = secondaryCta === undefined ? DEFAULT_SECONDARY : secondaryCta
-  const resolvedMockup = mockup ?? null
-  const resolvedTrustRow = trustRow === undefined ? DEFAULT_TRUST_ROW : trustRow
-  const resolvedReassuranceRow = reassuranceRow === undefined
-    ? (
-        <>
-          <p className="text-sm text-muted-foreground text-center lg:text-left">
-            {ICONIC_HOOK} {GUARANTEE}
-          </p>
-          <LastReviewedSignal className="justify-center lg:justify-start" />
-        </>
-      )
-    : reassuranceRow
+  const hasTiming = liveWait && buildMedCertSpeedClaimFromWaitState(liveWait).status === 'under_hour'
+  const status = hasTiming ? <WaitCounter state={liveWait} /> : null
+  const primaryButtonClassName = "h-auto min-h-12 rounded-lg px-6 py-3 text-base font-semibold whitespace-normal shadow-sm shadow-primary/15"
+  const reassurance = reassuranceRow === undefined ? (
+    <p className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
+      <Check className="mt-1 h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+      {GUARANTEE}
+    </p>
+  ) : reassuranceRow
 
   return (
-    // overflow-x-clip (not overflow-hidden) so the mockup's floating cards
-    // can extend slightly outside the section without horizontal scrollbars
-    // on iOS.
-    <section data-hero="" className={cn("relative overflow-x-clip pt-6 pb-8 sm:pt-14 sm:pb-12 lg:pt-20 lg:pb-10", className)}>
-      <div className="mx-auto max-w-5xl px-4 sm:px-8 lg:px-10">
-        <div className="flex flex-col lg:flex-row items-center lg:items-start lg:gap-12 xl:gap-14">
-          {/* ── Text column ───────────────────────────────────────── */}
-          <div className="flex-1 w-full min-w-0 text-center lg:text-left">
-            {/* Announcement pill */}
-            {resolvedPill && (
-              <ServiceAvailabilityGate serviceId={pillServiceId}>
-                <div className="hero-availability-enter flex justify-center lg:justify-start mb-5 sm:mb-7">
-                  {resolvedPill}
-                </div>
-              </ServiceAvailabilityGate>
-            )}
-
-            <div
-              className="hero-availability-enter mb-4 flex justify-center lg:justify-start"
-              aria-hidden="true"
-            >
-              <span className="h-1.5 w-10 rounded-full bg-brand-coral" />
-            </div>
-
-            {/* Headline (LCP element). Display scale: 36 / 48 / 60.
-                min-height locks the headline slot at the typical 2-line
-                wrap (mobile) so font-load swap can't reflow the page on
-                first paint. With display:optional on Plus Jakarta this
-                rarely matters, but the floor keeps CLS at zero even if
-                the fallback metrics drift. Tier 1 video-review fix
-                2026-05-26 (homepage-5jc7 / clkf / l0yn). */}
-            <Heading
-              level="display"
-              className={cn(
-                "mb-5 sm:mb-7 min-h-[5rem] sm:min-h-[6.5rem] lg:min-h-[8rem]",
-                "hyphens-none",
-                titleClassName,
-              )}
-            >
-              {title}
-            </Heading>
-
-            {/* Subhead */}
-            <div className={immediateSubheadline ? undefined : "hero-subheadline-enter"}>
-              {children ?? (
-                <p className="text-base lg:text-lg leading-relaxed text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 text-balance">
-                  {/*
-                    nowrap span on "AHPRA-registered" so the hyphen can't break
-                    mid-word on narrow viewports. Tier 1 review 2026-05-25
-                    (/medical-certificate #3): "the most important credential
-                    breaks mid-word".
-                  */}
-                  <span className="min-[241px]:whitespace-nowrap">AHPRA-registered</span> Australian doctors. A doctor reviews your secure form.
-                </p>
-              )}
-            </div>
-
-            {/* Optional service-specific reassurance line above the CTA. */}
-            {beforeCta && <div className="hero-cta-enter mb-6 sm:mb-7">{beforeCta}</div>}
-
-            {/* CTAs — primary button leads, secondary demoted to ghost so
-                it stops competing for the click (2026-05-25 video-review fix). */}
-            <div
-              id={primaryCta.wrapperId}
-              ref={primaryCta.ref}
-              className="hero-cta-enter flex flex-col sm:flex-row sm:items-center gap-2 justify-center lg:justify-start mb-3 sm:mb-4"
-            >
-              {primaryCtaContent ?? (
-                <Button
-                  asChild
-                  size="lg"
-                  className="h-auto min-h-12 whitespace-normal px-4 py-3 text-center text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 sm:px-8"
-                  onClick={primaryCta.onClick}
-                >
-                  <Link href={primaryCta.href} {...primaryCta.dataAttributes}>
-                    {primaryCta.text}
-                    <ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" />
-                  </Link>
+    <section data-hero="" className={cn('relative overflow-x-clip pt-8 pb-8 sm:pt-12 sm:pb-12 lg:pt-16 lg:pb-10', className)}>
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-12">
+          <div className="min-w-0 text-left">
+            {status && <ServiceAvailabilityGate serviceId={timingServiceId ?? availabilityServiceId}>
+              <div data-hero-status="" className="mb-5 max-w-lg">{status}</div>
+            </ServiceAvailabilityGate>}
+            <Heading level="display" className={cn('mb-5 hyphens-none text-balance', titleClassName)}>{title}</Heading>
+            <div>{children ?? <p className="mb-6 text-base leading-relaxed text-muted-foreground sm:text-lg">Start with a secure form. Care from AHPRA-registered Australian doctors.</p>}</div>
+            {beforeCta && <div className="mb-6">{beforeCta}</div>}
+            <div id={primaryCta.wrapperId} ref={primaryCta.ref} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              {primaryCtaContent ?? <ServiceAvailabilityGate serviceId={availabilityServiceId} fallback={
+                <Button asChild size="lg" className={primaryButtonClassName}>
+                  <Link href="/contact">Contact us<ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" /></Link>
                 </Button>
-              )}
-              {resolvedSecondary && (
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="lg"
-                  className="h-auto min-h-12 whitespace-normal px-4 py-3 text-center text-base font-medium text-muted-foreground hover:text-foreground"
-                >
-                  <Link href={resolvedSecondary.href}>{resolvedSecondary.text}</Link>
+              }>
+                <Button asChild size="lg" className={primaryButtonClassName} onClick={primaryCta.onClick}>
+                  <Link href={primaryCta.href} {...primaryCta.dataAttributes}>{primaryCta.text}<ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" /></Link>
                 </Button>
-              )}
+              </ServiceAvailabilityGate>}
+              {secondaryCta && <Button asChild variant="ghost" size="lg" className="h-auto min-h-12 px-4 py-3 text-base text-muted-foreground"><Link href={secondaryCta.href}>{secondaryCta.text}</Link></Button>}
             </div>
-
-            {/* Reassurance row under the CTA. Price/refund promise plus
-                the live "Last reviewed N min ago" signal both sit at the
-                decision moment, so the patient sees recency proof exactly
-                as they're about to click. The signal was previously
-                stranded at the end of the trust row, which buried it.
-                Tier 1 video-review fix 2026-05-26 (homepage-clkf). */}
-            {resolvedReassuranceRow && (
-              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-3 gap-y-1 mb-6 sm:mb-7 justify-center lg:justify-start">
-                {resolvedReassuranceRow}
-              </div>
-            )}
-
-            {/* Trust row: Google + LegitScript. Constant across pages so
-                users learn the pattern. Pages with their own trust badges
-                below the hero pass `trustRow={null}`. */}
-            {resolvedTrustRow && (
-              // items-center + a 40px cap on every direct child keeps both
-              // trust marks (GoogleAdsCert, LegitScript) on one optical
-              // baseline. LegitScript was the outlier before (its native
-              // seal is 79px tall, vs ~36-37px for the GoogleAdsCert pill).
-              // Tier 1 review 2026-05-25 (/erectile-dysfunction #1) flagged
-              // "different heights breaking the line of the CTA". The
-              // [&>*]:max-h-10 selector applies whether a consumer passes
-              // the default trust row or their own list of marks.
-              <div data-hero-trust-row="" className="hero-trust-enter flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-2 pt-1 min-h-10 [&>*]:max-h-10">
-                {resolvedTrustRow}
-              </div>
-            )}
+            <ServiceAvailabilityGate serviceId={availabilityServiceId}>
+              {reassurance && <div data-hero-reassurance="" className="mt-3">{reassurance}</div>}
+              {showReviews && <div data-hero-reviews="" className="mt-5"><ProductReviewBadge /></div>}
+            </ServiceAvailabilityGate>
           </div>
-
-          {/* ── Mockup column ─────────────────────────────────────── */}
-          {resolvedMockup && (
-            <div data-hero-mockup="" className={cn("relative shrink-0 mt-12 max-[240px]:hidden lg:mt-0 self-center", mockupClassName)}>
-              {resolvedMockup}
-            </div>
-          )}
+          {mockup && <div data-hero-mockup="" className={cn('relative min-w-0 w-full max-w-md justify-self-center', mockupClassName)}>{mockup}</div>}
         </div>
       </div>
     </section>

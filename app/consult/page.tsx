@@ -107,7 +107,7 @@ export default function ConsultOverviewPage() {
         <main aria-label="Online doctor services" className="min-w-0 flex-1 bg-background">
           <Hero
             className="pt-14"
-            pill={null}
+            showReviews={false}
             title="Choose a focused online service"
             primaryCta={{ text: "Choose a service", href: "#services" }}
             secondaryCta={null}
@@ -129,7 +129,6 @@ export default function ConsultOverviewPage() {
             )}
             mockup={<HeroDoctorReviewMockup />}
             mockupClassName="hidden lg:block"
-            trustRow={null}
             beforeCta={(
               <p className="mx-auto max-w-xl text-sm font-medium leading-6 text-foreground/75 lg:mx-0">
                 Australia only. 18+. Fees from {PRICING_DISPLAY.MED_CERT} AUD. Medical certificates

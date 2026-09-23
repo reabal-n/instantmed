@@ -167,7 +167,7 @@ describe("Phase 3 authority asset contracts", () => {
     expect(existsSync(join(root, "components/marketing/authority-asset-page.tsx"))).toBe(true)
 
     const sitemap = read("app/sitemap.ts")
-    const nav = read("components/shared/navbar/resources-dropdown.tsx")
+    const nav = read("app/sitemap-html/page.tsx")
     const llms = `${read("public/llms.txt")}\n${read("public/llms-full.txt")}`
     const renderer = read("components/marketing/authority-asset-page.tsx")
 

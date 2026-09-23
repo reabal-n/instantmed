@@ -153,6 +153,7 @@ interface ServiceAvailabilityGateProps {
   /** Hide while this service is disabled. Without it, only the platform kill switch hides the content. */
   serviceId?: ServiceId
   children: ReactNode
+  fallback?: ReactNode
 }
 
 /**
@@ -161,9 +162,9 @@ interface ServiceAvailabilityGateProps {
  * contradict the unavailable banner the client controls add during
  * maintenance mode or a per-service kill switch.
  */
-export function ServiceAvailabilityGate({ serviceId, children }: ServiceAvailabilityGateProps) {
+export function ServiceAvailabilityGate({ serviceId, children, fallback }: ServiceAvailabilityGateProps) {
   const { maintenanceMode, isServiceDisabled } = useServiceAvailability()
   const hidden = serviceId ? isServiceDisabled(serviceId) : maintenanceMode
-  if (hidden) return null
+  if (hidden) return <>{fallback}</>
   return <>{children}</>
 }

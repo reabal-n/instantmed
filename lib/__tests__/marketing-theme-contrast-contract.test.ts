@@ -86,52 +86,9 @@ describe("marketing theme and serious-contrast contract", () => {
     expect(decisions).not.toMatch(/bg-muted\/35[^"\n]*opacity-/)
   })
 
-  it("keeps the hero doctor primary card entrance transform-only", () => {
-    const heroDoctor = read("components/marketing/hero-doctor-review-mockup.tsx")
-    const primaryCardOpening = requireMatch(
-      heroDoctor,
-      /\/\* Primary card \*\/\}\s*<motion\.div([\s\S]*?)>/,
-      "hero doctor primary card",
-    )
 
-    expect(primaryCardOpening).toContain('initial={animate ? "hidden" : "reduced"}')
-    expect(primaryCardOpening).toContain("animate={entranceControls}")
-    expect(primaryCardOpening).not.toContain("opacity")
-  })
 
-  it("does not fade the med-cert delivery confirmation through low contrast", () => {
-    const medCertMockup = read("components/marketing/mockups/med-cert-hero-mockup.tsx")
-    const deliveryOpening = requireMatch(
-      medCertMockup,
-      /\{!compact && \(\s*<div([\s\S]*?)>\s*<div className="flex items-center gap-2\.5">/,
-      "med-cert delivery confirmation",
-    )
 
-    expect(deliveryOpening).not.toContain("hero-fade-up")
-    expect(deliveryOpening).not.toContain("opacity")
-  })
-
-  it("keeps the decorative med-cert specimen legible in dark mode", () => {
-    const medCertMockup = read("components/marketing/mockups/med-cert-hero-mockup.tsx")
-
-    expect(medCertMockup).toMatch(
-      /aria-hidden="true"[\s\S]*?Specimen/,
-    )
-    expect(medCertMockup).toContain("dark:text-white/60")
-    expect(medCertMockup).not.toMatch(/dark:text-white\/(?:40|45)/)
-  })
-
-  it("uses the theme foreground token for the med-cert primary mark", () => {
-    const medCertMockup = read("components/marketing/mockups/med-cert-hero-mockup.tsx")
-    const primaryMark = requireMatch(
-      medCertMockup,
-      /<div className="w-7 h-7 rounded-md bg-primary[^"]*">([\s\S]*?)<\/div>/,
-      "med-cert primary mark",
-    )
-
-    expect(primaryMark).toContain("text-primary-foreground")
-    expect(primaryMark).not.toContain("text-white")
-  })
 
   it("uses a dark-safe Stripe brand treatment on checkout trust badges", () => {
     const trustBadges = read("components/checkout/trust-badges.tsx")

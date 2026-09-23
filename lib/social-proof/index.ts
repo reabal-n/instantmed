@@ -41,32 +41,16 @@ export const SOCIAL_PROOF = {
   gpPriceComplex: "~$100",
 } as const
 
-// ─── Google Reviews ────────────────────────────────────────────────
+// ─── ProductReview ────────────────────────────────────────────────
 
 /**
- * Google Business Profile star-badge config.
- *
- * Set `enabled: true` once the Google Business Profile is verified. Keep
- * the visible badge to the Google mark + stars only; do not surface review
- * counts, review snippets, testimonial copy, or aggregateRating schema.
- *
- * The `GoogleReviewsBadge` component gates on `enabled` - nothing shows until
- * you flip this flag.
+ * Operator-approved logo + stars badge, verified against the public listing
+ * on 2026-09-23. This is a dated snapshot, not a live rating feed. Recheck the
+ * listing before changing the rating. No review counts, excerpts or schema.
  */
-export const GOOGLE_REVIEWS: {
-  enabled: boolean
-  placeId: string
-  reviewsUrl: string
-  rating: number
-} = {
-  /**
-   * Flip to true once the Google Business Profile is verified.
-   * Update rating from the Google Business dashboard first.
-   */
+export const PRODUCT_REVIEWS = {
   enabled: true,
-  placeId: "7941901494114695128",
-  /** Short link for patients to leave a review - share this directly */
-  reviewsUrl: "https://g.page/r/CWqy3A7IKcX6EAE/review",
-  /** Real rating from Google dashboard */
+  reviewsUrl: "https://www.productreview.com.au/listings/instantmed",
   rating: 5.0,
-}
+  verifiedAt: "2026-09-23",
+} as const

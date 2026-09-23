@@ -1233,16 +1233,16 @@ test.describe("money-page keyboard foundations", () => {
 
     const menu = page.locator('nav[data-mobile-menu-hydrated="true"]')
     const content = page.locator('[data-mobile-menu-content="true"]')
-    const focusedLink = content.locator("ul a[href]").first()
+    const focusedControl = content.locator("ul a[href], ul button:not([disabled])").first()
     await expect(menu).toBeAttached()
-    await expect(focusedLink).toBeFocused()
+    await expect(focusedControl).toBeFocused()
 
     await page.emulateMedia({ reducedMotion: "reduce" })
     await expect
       .poll(() => page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches))
       .toBe(true)
     await expect(menu).toHaveAttribute("data-mobile-menu-motion", "static")
-    await expect(focusedLink).toBeFocused()
+    await expect(focusedControl).toBeFocused()
     await waitTwoFrames(page)
     expect(await inspectActiveMeaningfulAnimations(page)).toEqual([])
 
@@ -1252,14 +1252,14 @@ test.describe("money-page keyboard foundations", () => {
       "reverse Tab should remain inside the open drawer after the live preference change",
     ).toBe(true)
     await page.keyboard.press("Tab")
-    await expect(focusedLink).toBeFocused()
+    await expect(focusedControl).toBeFocused()
 
     await page.emulateMedia({ reducedMotion: "no-preference" })
     await expect
       .poll(() => page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches))
       .toBe(false)
     await expect(menu).toHaveAttribute("data-mobile-menu-motion", "animated")
-    await expect(focusedLink).toBeFocused()
+    await expect(focusedControl).toBeFocused()
 
     await page.keyboard.press("Escape")
     await expect(content).toBeHidden()
@@ -1278,10 +1278,10 @@ test.describe("money-page keyboard foundations", () => {
 
       const close = page.getByRole("button", { name: "Close menu" })
       const content = page.locator('[data-mobile-menu-content="true"]')
-      const firstNavigationLink = content.locator("ul a[href]").first()
+      const firstNavigationControl = content.locator("ul a[href], ul button:not([disabled])").first()
       await expect(close).toHaveAttribute("aria-expanded", "true")
       await expect(content).toBeVisible()
-      await expect(firstNavigationLink).toBeFocused()
+      await expect(firstNavigationControl).toBeFocused()
       await expect(content.locator('li[tabindex="0"]')).toHaveCount(0)
 
       let reachedThemeSwitch = false
@@ -1518,7 +1518,7 @@ test.describe("money-page keyboard foundations", () => {
 })
 
 test.describe("money-page reduced-motion foundations", () => {
-  test("hero first paint explains review without simulating a live request for either motion preference", async ({ browser }, testInfo) => {
+  test("hero first paint shows a specimen without simulating a live request for either motion preference", async ({ browser }, testInfo) => {
     for (const reducedMotion of ["no-preference", "reduce"] as const) {
       const context = await browser.newContext({
         baseURL: projectBaseURL(testInfo),
@@ -1542,18 +1542,16 @@ test.describe("money-page reduced-motion foundations", () => {
         expect(response?.ok(), `${reducedMotion} first-paint response`).toBe(true)
 
         const navigation = await page.getByRole("navigation", { name: "Main navigation", exact: true }).boundingBox()
-        const availability = await page.locator("main .hero-availability-enter").first().boundingBox()
-        expect(availability!.y, "availability must clear the fixed navigation at first paint")
+        const headline = await page.getByRole("heading", { level: 1 }).boundingBox()
+        expect(headline!.y, "headline must clear the fixed navigation at first paint")
           .toBeGreaterThanOrEqual(navigation!.y + navigation!.height)
 
-        const doctorCard = page.locator('[data-reduced-motion-final="doctor-card"]')
-        await expect(doctorCard).toBeAttached()
-        await expect(doctorCard.getByText("Example", { exact: true })).toBeVisible()
-        await expect(doctorCard.getByRole("listitem")).toHaveText([
-          "1Identity check", "2Clinical assessment", "3Decision",
-        ])
-        await expect(doctorCard.getByText("Reviewing", { exact: true })).toHaveCount(0)
-        await expect(doctorCard.locator('[style*="spin"], [style*="pulse"]')).toHaveCount(0)
+        const specimen = page.getByRole("figure", { name: "Example medical certificate, specimen only" })
+        await expect(specimen).toBeVisible()
+        await expect(specimen.getByText("Specimen", { exact: true })).toBeVisible()
+        await expect(specimen.getByText("Reference: SPECIMEN", { exact: true })).toBeVisible()
+        await expect(specimen.getByText("Reviewing", { exact: true })).toHaveCount(0)
+        await expect(specimen.locator('[style*="spin"], [style*="pulse"]')).toHaveCount(0)
       } finally {
         await context.close()
       }
@@ -1584,7 +1582,7 @@ test.describe("money-page reduced-motion foundations", () => {
           `${route.path} reduced-motion final paint:\n${JSON.stringify(finalState.failures, null, 2)}`,
         ).toEqual([])
         if (route.path === "/") {
-          expect(finalState.count, "homepage reduced-motion final-state markers").toBeGreaterThan(1)
+          await expect(page.getByRole("figure", { name: "Example medical certificate, specimen only" })).toBeAttached()
         }
 
         if (route.path === "/") {

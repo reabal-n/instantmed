@@ -175,7 +175,7 @@ describe("commercial SEO contract", () => {
 
     const authoritySource = authorityFiles.map(read).join("\n")
 
-    expect(authoritySource).toContain("CommercialIntentLinksSection")
+    expect(authoritySource).toContain('aria-label="Service guidance"')
     expect(authoritySource).toContain("commercialCertificateLinks")
     expect(authoritySource).toContain("commercialPrescriptionLinks")
     expect(authoritySource).toContain("commercialComparisonLinks")

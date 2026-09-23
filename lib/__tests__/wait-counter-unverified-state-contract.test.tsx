@@ -44,8 +44,8 @@ type QueryResult = { data: unknown[] | null; error: { message: string } | null }
 /** Minimal thenable stand-in for a PostgREST builder: every filter returns itself. */
 function queryReturning(result: QueryResult) {
   const builder: Record<string, unknown> = {}
-  for (const method of ["select", "eq", "in", "not", "gte", "order", "limit"]) {
-    builder[method] = () => builder
+  for (const method of ["select", "eq", "in", "not", "gte", "order", "limit", "or"]) {
+    builder[method] = vi.fn(() => builder)
   }
   builder.then = (
     onFulfilled: (value: QueryResult) => unknown,
@@ -120,6 +120,18 @@ describe("wait counter never claims live doctor activity from unverified state",
     expect(html).not.toMatch(FABRICATED_NUMBER)
   })
 
+  it("uses one canonical reporting filter and retains unlinked patient requests", async () => {
+    const client = clientReturning(EMPTY, EMPTY)
+    mocks.createServiceRoleClient.mockReturnValue(client)
+    await getWaitState(NOW, "med-cert")
+    for (const { value: query } of client.from.mock.results) {
+      expect(query.or.mock.calls).toHaveLength(2)
+      expect(query.or.mock.calls[0]).toEqual(["exclude_from_reporting.is.null,exclude_from_reporting.eq.false"])
+      expect(query.or.mock.calls[1][0]).toMatch(/^patient_id\.is\.null,patient_id\.not\.in\.\(e2e/)
+      expect(query.not.mock.calls.some(([column]: string[]) => column === "patient_id")).toBe(false)
+    }
+  })
+
   it("keeps the data-backed branches' copy unchanged", async () => {
     mocks.createServiceRoleClient.mockReturnValue(
       clientReturning(
@@ -129,8 +141,8 @@ describe("wait counter never claims live doctor activity from unverified state",
     )
     const live = await getWaitState(NOW, "med-cert")
     expect(live.variant).toBe("live")
-    expect(render(live)).toContain("Most med certs reviewed in")
-    expect(render(live)).toContain("~11 min")
+    expect(render({ ...live, sampleSize: 5 })).toContain("Medical certificates: median turnaround")
+    expect(render({ ...live, sampleSize: 5 })).toContain("~11 min")
 
     mocks.createServiceRoleClient.mockReturnValue(
       clientReturning(EMPTY, {
@@ -143,8 +155,28 @@ describe("wait counter never claims live doctor activity from unverified state",
     )
     const queued = await getWaitState(NOW, "med-cert")
     expect(queued.variant).toBe("queued")
-    expect(render(queued)).toContain("ahead in the queue")
+    expect(render(queued)).toBe("")
 
     expect(render({ variant: "hidden" })).toBe("")
+  })
+})
+
+const healthy: WaitState = { variant: "live", service: "med-cert", medianMinutes: 24, sampleSize: 5, newestSampleAgeMinutes: 10, queueP95Minutes: 20 }
+describe("public timing evidence", () => {
+  it("suppresses stale, undersampled and pressured numeric timing", () => {
+    for (const state of [
+      { ...healthy, newestSampleAgeMinutes: 121 },
+      { ...healthy, sampleSize: 4 },
+      { ...healthy, queueP95Minutes: 61 },
+      { ...healthy, medianMinutes: Number.NaN },
+      { ...healthy, service: "rx" as const },
+    ]) expect(render(state)).toBe("")
+  })
+  it("renders the supported sentence as one text block with its timeframe", () => {
+    const html = render(healthy)
+    expect(html).toContain("Medical certificates: median turnaround")
+    expect(html).toContain("~24 min")
+    expect(html).toContain("over the last 24 hours")
+    expect(html).not.toContain("animate-wait-pulse")
   })
 })
