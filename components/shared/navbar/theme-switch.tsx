@@ -101,7 +101,7 @@ export function ThemeSwitch({ variant = "desktop", className }: ThemeSwitchProps
       aria-label={`Switch to ${nextTheme} mode`}
       onClick={toggleTheme}
       className={cn(
-        "inline-flex h-8 items-center rounded-full p-0.5",
+        "inline-flex min-h-12 items-center rounded-full p-0.5",
         "text-muted-foreground transition-[background-color,color] duration-200",
         "hover:bg-muted/50 hover:text-foreground dark:hover:bg-white/10",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",

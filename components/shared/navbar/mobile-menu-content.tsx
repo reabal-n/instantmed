@@ -3,10 +3,7 @@
 import {
   ChevronDown,
   ClipboardList,
-  DollarSign,
-  Info,
   LayoutDashboard,
-  Mail,
   Settings,
   User,
 } from "lucide-react"
@@ -55,7 +52,6 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
                       label: service.title,
                       href: service.href,
                       description: isServiceDisabled(service.serviceId) ? "Temporarily unavailable" : undefined,
-                      icon: <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" variant="sticker" />,
                       disabled: isServiceDisabled(service.serviceId),
                     }}
                     index={index}
@@ -67,17 +63,17 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
           </Collapsible>
         </li>
         <AnimatedMobileMenu.Item
-          item={{ label: "How it works", href: "/how-it-works", icon: <Info className="h-5 w-5" /> }}
+          item={{ label: "How it works", href: "/how-it-works" }}
           index={0}
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Pricing", href: "/pricing", icon: <DollarSign className="h-5 w-5" /> }}
+          item={{ label: "Pricing", href: "/pricing" }}
           index={1}
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Contact us", href: "/contact", icon: <Mail className="h-5 w-5" /> }}
+          item={{ label: "Contact us", href: "/contact" }}
           index={2}
           onClose={onClose}
         />

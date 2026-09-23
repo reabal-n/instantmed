@@ -25,8 +25,8 @@ export function GoogleAdsCert({ size = "sm", className }: GoogleAdsCertProps) {
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2 rounded-lg bg-white dark:bg-card",
-        "border border-[#4285F4]/20 shadow-sm transition-colors hover:border-[#4285F4]/50",
+        "inline-flex items-center gap-3",
+
         isLarge ? "px-4 py-2.5" : "px-3 py-1.5",
         className,
       )}
@@ -61,10 +61,10 @@ export function GoogleAdsCert({ size = "sm", className }: GoogleAdsCertProps) {
       </svg>
 
       <div className="leading-tight">
-        <p className={cn("font-semibold text-foreground", isLarge ? "text-sm" : "text-xs")}>
+        <p className={cn("font-semibold text-foreground", isLarge ? "text-base" : "text-sm")}>
           Google
         </p>
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-sm">
           Online Pharmacy Certification
         </p>
       </div>

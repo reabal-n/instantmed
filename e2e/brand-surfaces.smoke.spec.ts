@@ -22,7 +22,7 @@ import { expect, test } from "@playwright/test"
 // Kept as string literals (not imports) so the test fails if the module
 // breaks OR if the rendered text silently diverges from the SoT.
 // Regenerate these if GUARANTEE or the Trust Ribbon label changes.
-const GUARANTEE_LITERAL = "Full refund if our doctor can't help."
+const GUARANTEE_LITERAL = "Full refund if the doctor declines."
 const AHPRA_LITERAL = "AHPRA-registered doctors"
 
 const BRAND_SURFACES = [

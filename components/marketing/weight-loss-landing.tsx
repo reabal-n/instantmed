@@ -145,7 +145,7 @@ function WeightHeroFacts() {
 function WeightEligibilitySection() {
   return (
     <section id="eligibility" aria-labelledby="weight-eligibility-title" className="py-12 sm:py-14 lg:py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Reveal instant>
           <SectionPill>Eligibility</SectionPill>
           <Heading id="weight-eligibility-title" level="h2" className="mt-4">Who this assessment is for</Heading>
@@ -185,7 +185,7 @@ export function WeightLossLanding() {
       {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           <Hero
-            pill={isDisabled ? null : undefined}
+            availabilityServiceId="weight-loss"
             className="lg:pb-4"
             title="Weight management, reviewed by a doctor."
             primaryCta={{

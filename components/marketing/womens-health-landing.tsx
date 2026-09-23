@@ -83,7 +83,7 @@ const COMMON_FACTS = [
 function WomensHealthCommonFacts() {
   return (
     <section aria-label="Women's health assessment facts" className="border-y border-border/50 bg-muted/25 py-8 dark:border-white/10 dark:bg-white/[0.02]">
-      <dl className="mx-auto grid max-w-6xl divide-y divide-border/50 px-4 sm:grid-cols-2 sm:divide-x sm:divide-y-0 sm:px-6 lg:grid-cols-4 lg:px-8">
+      <dl className="mx-auto grid max-w-5xl divide-y divide-border/50 px-4 sm:grid-cols-2 sm:divide-x sm:divide-y-0 sm:px-6 lg:grid-cols-4 lg:px-8">
         {COMMON_FACTS.map((fact) => (
           <div key={fact.label} className="px-4 py-4 first:pl-0 last:pr-0 sm:first:pl-4 sm:last:pr-4">
             <dt className="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
@@ -104,7 +104,7 @@ function WomensHealthCommonFacts() {
 function WomensHealthBoundarySection() {
   return (
     <section aria-labelledby="womens-health-boundary-title" className="bg-muted/30 py-7 dark:bg-white/[0.02] sm:py-12 lg:py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Safety boundary</SectionPill>
           <Heading id="womens-health-boundary-title" level="h2" className="mt-4">Check what takes you out of online care</Heading>
@@ -147,7 +147,7 @@ function WomensHealthBoundarySection() {
 function WomensHealthReviewAndPriceSection() {
   return (
     <section id="review-and-price" aria-labelledby="womens-health-review-title" className="py-7 sm:py-12 lg:py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Doctor review and fee</SectionPill>
           <Heading id="womens-health-review-title" level="h2" className="mt-4">One fee for either assessment</Heading>
@@ -200,7 +200,7 @@ function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean
 
   return (
     <section id="choose-care" className="py-7 sm:py-12 lg:py-16">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6">
         <Reveal instant className="rounded-3xl border border-border/50 bg-[color:var(--morning-ivory)]/65 p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
           <SectionPill>Choose your assessment</SectionPill>
           <Heading level="h2" className="mt-4">What do you need reviewed?</Heading>
@@ -240,7 +240,7 @@ export function WomensHealthLanding() {
       {({ isDisabled, heroCTARef, handleHeroCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           <Hero
-            pill={isDisabled ? null : undefined}
+            availabilityServiceId="womens-health"
             title="UTI or the pill. Reviewed by a doctor, from home."
             primaryCta={{
               text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,

@@ -1,6 +1,6 @@
 # InstantMed Front Door Redesign Implementation Plan
 
-> **Status: revised proposal for Rey's review, 23 September 2026. Implementation has not started.** This replaces the earlier draft in this file and incorporates Rey's decisions after the Opus review. The hero is the first implementation batch; there is no October hold.
+> **Status: implemented locally following Rey's approval, 23 September 2026.** The hero, navigation/footer, Contact and supporting page changes are implemented on `codex/front-door-plan-revision`. See the execution record below for verification and release limits.
 >
 > **Execution:** Once the plan is accepted, use `superpowers:executing-plans` task by task. Preserve existing work, verify each deliverable and commit each coherent batch. This document does not authorise deployment.
 
@@ -10,7 +10,7 @@
 
 **Tech stack:** Next.js 15.5.24, React 18.3.1, TypeScript 5.9, Tailwind 4.2.2, Framer Motion 11.18.2; Node 24 and pnpm 10.23.0. No dependency upgrades or new providers.
 
-**Spec:** Sections 1–5 contain the proposed experience and settled constraints. Sections 6–9 define execution, verification and completion. This is one consolidated plan, not a second source of business or clinical policy.
+**Spec:** Sections 1–5 contain the accepted experience and settled constraints. Sections 6–9 define execution, verification and completion. This is one consolidated plan, not a second source of business or clinical policy.
 
 ## 1. Direction and boundaries
 
@@ -201,14 +201,14 @@ Every task ends with a diff review, its relevant checks and a focused commit. Us
 
 **Tests:** `lib/__tests__/landing-hero-contract.test.ts`, `lib/__tests__/wait-counter-unverified-state-contract.test.tsx`, `e2e/landing-pages.spec.ts`, `e2e/brand-surfaces.smoke.spec.ts`.
 
-- [ ] Capture homepage and certificate hero at 1440×900 and 390×844 on the execution branch.
-- [ ] Inventory every Hero caller, including explicit `pill`, `trustRow` and `reassuranceRow` overrides. Migrate the composition deliberately; do not retain an obsolete multipurpose pill API solely to appease a source-string test.
-- [ ] Separate status, CTA reassurance and ProductReview. Remove default hero certification injection; the existing footer still retains the marks throughout this change.
-- [ ] Repair sentence wrapping, eliminate duplicate recency and suppress unsupported timing states.
-- [ ] Check eligible timing population and stale handling. If unreliable, render the redesigned hero without timing while the metric correction is reviewed.
-- [ ] Verify one H1, readable wrapping, existing service-availability gating, CTA destinations and ProductReview link behaviour on all seven pages.
-- [ ] Replace old hero tests with assertions for the new hierarchy; preserve geometry and slow-font layout-shift checks.
-- [ ] Update relevant Hero/status documentation in `DESIGN.md`, `docs/PRIMITIVES.md` and source-owned instruction references. Commit the complete hierarchy change.
+- [x] Capture homepage and certificate hero at 1440×900 and 390×844 on the execution branch.
+- [x] Inventory every Hero caller, including explicit `pill`, `trustRow` and `reassuranceRow` overrides. Migrate the composition deliberately; do not retain an obsolete multipurpose pill API solely to appease a source-string test.
+- [x] Separate status, CTA reassurance and ProductReview. Remove default hero certification injection; the existing footer still retains the marks throughout this change.
+- [x] Repair sentence wrapping, eliminate duplicate recency and suppress unsupported timing states.
+- [x] Check eligible timing population and stale handling. If unreliable, render the redesigned hero without timing while the metric correction is reviewed.
+- [x] Verify one H1, readable wrapping, existing service-availability gating, CTA destinations and ProductReview link behaviour on all seven pages.
+- [x] Replace old hero tests with assertions for the new hierarchy; preserve geometry and slow-font layout-shift checks.
+- [x] Update relevant Hero/status documentation in `DESIGN.md`, `docs/PRIMITIVES.md` and source-owned instruction references. Commit the complete hierarchy change.
 
 **Acceptance:** The large capsule is gone; the first action is clearly visible at 390×844 with default text; status does not break into columns; unavailable services remain unavailable; ProductReview remains linked; the footer retains the certification marks. At enlarged text sizes, natural scrolling takes precedence over forcing everything above the fold.
 
@@ -218,12 +218,12 @@ Every task ends with a diff review, its relevant checks and a focused commit. Us
 
 **Reference:** `lib/pdf/template-renderer.ts`, actual delivery templates, `lib/motion/index.ts`.
 
-- [ ] Compare the existing specimen with the actual document/delivery format using synthetic data only.
-- [ ] Build the larger certificate composition and homepage outcome visual; refine the prescription specimen.
-- [ ] Remove invented document adornments and unsupported sample details. Keep specimen references clearly non-live.
-- [ ] Implement one delivery-notice entrance and static reduced-motion mode; remove looping and duplicate entrances from these heroes.
-- [ ] Inspect mobile crop, desktop balance, light/dark contrast, image dimensions and loading behaviour. Confirm decorative assets do not displace the CTA or add a new render-blocking dependency.
-- [ ] Commit with before/after screenshots.
+- [x] Compare the existing specimen with the actual document/delivery format using synthetic data only.
+- [x] Build the larger certificate composition and homepage outcome visual; refine the prescription specimen.
+- [x] Remove invented document adornments and unsupported sample details. Keep specimen references clearly non-live.
+- [x] Implement one delivery-notice entrance and static reduced-motion mode; remove looping and duplicate entrances from these heroes.
+- [x] Inspect mobile crop, desktop balance, light/dark contrast, image dimensions and loading behaviour. Confirm decorative assets do not displace the CTA or add a new render-blocking dependency.
+- [x] Commit with the supplied screenshot baseline and final desktop/mobile visual pack. A matched pre-change full-hero capture was not retained.
 
 **Acceptance:** Patients can recognise the actual output; important specimen text is legible without zoom; no real patient information appears; no hero animation loops or restarts after hydration. Tasks 1 and 2 together form the first implementation batch.
 
@@ -233,13 +233,13 @@ Every task ends with a diff review, its relevant checks and a focused commit. Us
 
 **Tests:** `lib/__tests__/support-nav-contract.test.ts`, `lib/__tests__/navigation-routing-contract.test.ts`, `lib/__tests__/seo-indexing-contract.test.ts`, `e2e/marketing-dashboard-nav.spec.ts`.
 
-- [ ] Enlarge nav text, unify mobile rows and active treatment, and measure the widest account state before choosing the desktop breakpoint.
-- [ ] Reorder footer Help/About, label voice support and improve contact/legal hit areas.
-- [ ] Add native Explore services disclosure with all six real landing-page links in server-rendered markup.
-- [ ] Organise retained trust marks into the desktop row/mobile grid and quieter reassurance group.
-- [ ] Remove Popular pages only after verifying its destinations and all six service pages remain discoverable in HTML without scripts. Keep any other useful branded-search-link consumer.
-- [ ] Improve certificate-guidance labels without altering destination routes or page titles.
-- [ ] Verify tab order, Enter/Space, Escape, focus return, theme controls, long labels, 320px width and short landscape screens. Commit.
+- [x] Enlarge nav text, unify mobile rows and active treatment, and use the 1024px desktop breakpoint. Signed-in staff navigation remains an explicit release verification limitation below.
+- [x] Reorder footer Help/About, label voice support and improve contact/legal hit areas.
+- [x] Add native Explore services disclosure with all six real landing-page links in server-rendered markup.
+- [x] Organise retained trust marks into the desktop row/mobile grid and quieter reassurance group.
+- [x] Remove Popular pages only after verifying its destinations and all six service pages remain discoverable in HTML without scripts. Keep any other useful branded-search-link consumer.
+- [x] Improve certificate-guidance labels without altering destination routes or page titles.
+- [x] Verify tab order, Enter/Space, Escape, focus return, theme controls, long labels, 320px width and short landscape screens. Commit.
 
 **Acceptance:** Contact is directly accessible; all six services remain discoverable; no crowded permanent footer directory returns; trust marks are readable and evenly spaced; keyboard and no-JavaScript discovery work.
 
@@ -249,12 +249,12 @@ Every task ends with a diff review, its relevant checks and a focused commit. Us
 
 **Add:** `e2e/contact-support.spec.ts` for synthetic, stubbed-delivery cases using the repository's existing test conventions. No real support email is sent.
 
-- [ ] Build the concise support-first layout and guest/account guidance.
-- [ ] Preserve existing form validation, delivery and abuse controls; remove repeated promotional blocks.
-- [ ] Preserve the historical meaning of `contact_form_submitted` as an attempted submission, or explicitly document its migration. Add a distinct success event only after confirmed server success.
-- [ ] Replace raw analytics error strings with fixed categories. Payloads exclude message text, identity, request IDs and health information. Reuse the existing consent-aware transport; analytics failure cannot block the form.
-- [ ] Exercise invalid input, pending submit, confirmed success, server failure with text retained, retry and blocked analytics. Check account-holder return routing and guest guidance.
-- [ ] Check the form begins within the first 390×844 screen after the short support actions. Commit.
+- [x] Build the concise support-first layout and guest/account guidance.
+- [x] Preserve existing form validation, delivery and abuse controls; remove repeated promotional blocks.
+- [x] Preserve the historical meaning of `contact_form_submitted` as an attempted submission, or explicitly document its migration. Add a distinct success event only after confirmed server success.
+- [x] Replace raw analytics error strings with fixed categories. Payloads exclude message text, identity, request IDs and health information. Reuse the existing consent-aware transport; analytics failure cannot block the form.
+- [x] Exercise invalid input, pending submit, confirmed success, server failure with text retained, retry and blocked analytics. Check account-holder return routing and guest guidance.
+- [x] Check the form begins within the first 390×844 screen after the short support actions. Commit.
 
 **Acceptance:** A visitor immediately understands how to get help, guests are not forced into sign-in, entered text survives failure and the form never reports success early. This plan adds no navigation analytics programme or before/after conversion claim.
 
@@ -264,25 +264,25 @@ Every task ends with a diff review, its relevant checks and a focused commit. Us
 
 **Reference:** `lib/services/service-catalog.ts`, `lib/marketing/{voice,approved-claims,homepage}.ts`, `components/ui/heading.tsx`, `DESIGN.md`.
 
-- [ ] Convert mobile service cards to compact rows with unchanged price sources and destinations.
-- [ ] Apply the consistent public icon/button treatment and common outer container alignment.
-- [ ] Correct CSS transitions for individual movement properties, checking staff/patient controls for unintended shared effects.
-- [ ] Build the output-led How it works sequence and simplify section headings/eyebrows.
-- [ ] Remove the public-copy references specified by Rey from rendered copy, accessible text, metadata and structured data. Use neutral, accurate descriptions; do not introduce absolute claims about who sees or processes every request.
-- [ ] Reduce repeated slogans/refund decoration and correct factual specimen or delivery wording during the same page pass.
-- [ ] Update design documentation and its changelog for the patterns actually adopted. Commit after responsive, availability and reduced-motion checks.
+- [x] Convert mobile service cards to compact rows with unchanged price sources and destinations.
+- [x] Apply the consistent public icon/button treatment and common outer container alignment.
+- [x] Correct CSS transitions for individual movement properties, checking staff/patient controls for unintended shared effects.
+- [x] Build the output-led How it works sequence and simplify section headings/eyebrows.
+- [x] Remove the public-copy references specified by Rey from rendered copy, accessible text, metadata and structured data. Use neutral, accurate descriptions; do not introduce absolute claims about who sees or processes every request.
+- [x] Reduce repeated slogans/refund decoration and correct factual specimen or delivery wording during the same page pass.
+- [x] Update design documentation and its changelog for the patterns actually adopted. Commit after responsive, availability and reduced-motion checks.
 
 **Acceptance:** Services are substantially quicker to compare on a phone; CTA labels accurately describe their destinations; section layouts follow their content; public copy contains no remaining instances of the references Rey asked to remove. No new typeface, service, price or patient-flow change is introduced.
 
 ### Task 6 — Final verification and review pack
 
-- [ ] Review homepage, all six service pages, Contact and How it works at 1440×900 and 390×844 in light and dark mode.
-- [ ] Target edge cases at 320×568, 768×900 and 844×390, plus 200% text/zoom: navigation, footer, hero wrapping, sticky CTA, menu and focused Contact inputs.
-- [ ] Check one guide and one alternate landing shell for shared-component regressions. Exercise reduced motion and keyboard access. Distinguish Chromium checks from WebKit or physical-device evidence.
-- [ ] Recheck CTA routes, availability states, no-script service anchors, page metadata, document specimens and the current ProductReview source.
-- [ ] Run lint, typecheck, focused tests and relevant existing E2E, followed by required release checks before any release claim.
-- [ ] Prepare before/after contact sheets, a changed-route list, checks run and known limitations. Record the actual release time in the existing change/Ads observation record when eventually released; this records a confounder without delaying the work.
-- [ ] Update documentation references and commit the verified batch. Present the visual pack for Rey's judgement.
+- [x] Review homepage, all six service pages, Contact and How it works at 1440×900 and 390×844 in light and dark mode.
+- [x] Target edge cases at 320×568, 768×900 and 844×390, plus 200% text/zoom: navigation, footer, hero wrapping, sticky CTA, menu and focused Contact inputs.
+- [x] Check one guide and one alternate landing shell for shared-component regressions. Exercise reduced motion and keyboard access. Distinguish Chromium checks from WebKit or physical-device evidence.
+- [x] Recheck CTA routes, availability states, no-script service anchors, page metadata, document specimens and the current ProductReview source.
+- [x] Run lint, typecheck, focused tests and relevant existing E2E, followed by required release checks before any release claim.
+- [x] Prepare the final contact sheets, supplied-original footer comparison, changed-route list, checks run and known limitations. Recording the actual release time in the change/Ads observation record remains release work.
+- [x] Update documentation references and commit the verified batch. Present the visual pack for Rey's judgement.
 
 ## 7. Verification commands and failure cases
 
@@ -308,7 +308,7 @@ The Contact spec is created in Task 4; do not run it before it exists. Use the e
 | Link strip removed | All intended service/help destinations still present as real anchors | Task 3 |
 | Reduced motion or slow font load | Stable, readable hero with no delayed action or repeating animation | Tasks 1, 2, 6 |
 
-This planning revision is documentation-only. Application behaviour, current rating, source populations and release readiness must be verified during execution; writing this plan establishes none of those outcomes.
+The execution record below reports observed local behavior. Neither this plan nor local checks establish production deployment or release readiness.
 
 ## 8. Release order and rollback
 
@@ -323,15 +323,43 @@ Rollback means reverting the affected batch, retaining accurate review attributi
 
 ## 9. Completion checklist
 
-- [ ] Rey accepts this consolidated plan before implementation.
-- [ ] Hero redesign is implemented in the first batch, including certificate and prescription surfaces.
-- [ ] ProductReview remains linked and accurate; all requested certification marks remain present.
-- [ ] Navigation is readable, Contact is direct and the footer is concise.
-- [ ] Guest/account support paths and recoverable form states work.
-- [ ] Every service page remains discoverable without a link wall.
-- [ ] Mobile service comparison, button feedback and page rhythm improve visibly.
-- [ ] Public wording cleanup covers visible, accessible and search-facing copy.
-- [ ] Light/dark, keyboard, reduced-motion and responsive checks are recorded.
-- [ ] Rey receives a desktop/mobile visual review pack; local checks, CI and deployment status are reported separately.
+- [x] Rey accepts this consolidated plan before implementation.
+- [x] Hero redesign is implemented in the first batch, including certificate and prescription surfaces.
+- [x] ProductReview remains linked and accurate; all requested certification marks remain present.
+- [x] Navigation is readable, Contact is direct and the footer is concise.
+- [x] Guest/account support paths and recoverable form states work.
+- [x] Every service page remains discoverable without a link wall.
+- [x] Mobile service comparison, button feedback and page rhythm improve visibly.
+- [x] Public wording cleanup covers visible, accessible and search-facing copy.
+- [x] Light/dark, keyboard, reduced-motion and responsive checks are recorded.
+- [x] Rey receives a desktop/mobile visual review pack; local checks, CI and deployment status are reported separately.
 
-**Review request:** Confirm the proposed hierarchy, certificate-led imagery, compact footer service disclosure and core-versus-optional scope. The review should focus on the patient experience and any concrete implementation defect. No additional preliminary workstream is required to start the hero after plan acceptance.
+## 10. Execution record — 23 September 2026
+
+Rey authorised the full core plan. The implementation preserves the earlier navigation/ProductReview commits, uses the pinned stack, and adds no dependency, migration or environment variable. Optional photography and a new typeface were not undertaken.
+
+### Implemented
+
+- Shared left-aligned Hero: qualifying certificate timing only, one main action, compact reassurance, ProductReview and readable certificate/eScript specimens. Removed obsolete pill/trust injection and looping hero effects.
+- Navigation: 16px desktop links, 48px primary controls, plain mobile rows, direct Contact and a 1024px breakpoint. Footer: Help before About, labelled voice support, native six-service disclosure, balanced Stripe/LegitScript/Google presentation and a separate quiet reassurance row.
+- Contact: immediate methods and guest/account guidance, shorter form, existing server action and validation, retained text on failure, pending protection and focus after error/success. Analytics preserve attempted-submit meaning and use bounded categories; synthetic browser tests send no email.
+- Compact mobile service chooser, output-led How it works, simpler shared headings/buttons, useful guidance links retained behind a native disclosure. Targeted public wording cleanup covers canonical strings, consumers and search-facing text without altering the underlying clinical workflow.
+- Timing queries now apply the existing reportability filter and explicitly exclude seeded patient records. Existing freshness, sample-size and queue-pressure guards remain.
+
+### Verification and artifacts
+
+- Full unit suite: **809 files passed, 1 skipped; 8,508 tests passed, 122 skipped**.
+- Full lint and TypeScript checks passed; final changed Contact/footer/browser files were linted again.
+- **85 Chromium browser checks passed** across the existing landing/brand suites and new front-door/contact suites. The final Contact control correction and refreshed 36 page captures plus eight footer/service captures passed a further six focused checks.
+- Covered: seven landing routes, Contact and How it works at 1440×900 and 390×844, light and dark; menu at 320×568, 768×900 and 844×390; 200% text, reduced motion, Escape/focus return, no-script service links, CTA visibility/routes, sticky bar behavior, no serious axe violations on the seven landing routes, and contact validation/pending/error/retry with blocked analytics.
+- Mobile regression checks passed for `/blog/same-day-medical-certificate`, `/medical-certificate-online`, `/about`, `/pricing`, `/faq` and `/trust`.
+- Production build passed in **114 seconds**, including the bundled WebSocket and server-action boundary checks. A further **12 Chromium checks passed against that local production build**. Pinned-runtime, stack-pin and route-conflict checks passed.
+- Documentation audit passed. Content audit: **107 guides, zero issues**.
+- The bundle gate reports `/request` at **181 kB against its 180 kB budget**. A clean build of unchanged main (`5e836d1a0`) on the same runtime/environment reports the same **181 kB**. Summed gzip bytes of request-manifest JavaScript are 180,613 on main and 180,611 on this branch. This is an existing gate failure; no budget or intake code was changed.
+- ProductReview's linked InstantMed listing was checked during implementation against the existing verified five-star configuration.
+- Independent review findings fixed: empty fallback mobile icons, missing homepage timing availability gate, and an About heading that overstated the review sequence. Final screenshot inspection also corrected footer contact wrapping and Contact radio sizing/nested labels.
+- Local visual pack: `.superpowers/front-door/review.html` (44 final screenshots, theme/viewport selector, supplied-original footer comparison). Logs and screenshots live alongside it and are ignored build artifacts. Footer-only captures temporarily hide fixed chrome to avoid screenshot overlays; sticky behavior is tested separately. A matched pre-change full-hero screenshot was not retained.
+
+### Release limits
+
+No production deployment or merge was performed. CI, the complete `release:check` integration/security suite, signed-in staff dashboard navigation, WebKit and physical-device checks are not represented by the local Chromium evidence. Run the required release checks and record the release time before shipping. Owner visual acceptance remains separate from these technical results.

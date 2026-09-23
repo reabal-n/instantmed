@@ -2,7 +2,6 @@ import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 import {
-  medCertIntentConfigs,
   type MedCertIntentSlug,
 } from "@/lib/marketing/med-cert-intent-config"
 
@@ -33,6 +32,11 @@ const REASON_SLUGS: MedCertIntentSlug[] = [
   "covid",
 ]
 
+const REASON_LABELS: Record<MedCertIntentSlug, string> = {
+  'return-to-work': 'Return to work', centrelink: 'Centrelink evidence',
+  'sick-leave': 'Sick leave certificates', work: 'Certificates for work', study: 'Certificates for study', carer: "Carer’s leave certificates", school: 'Adult student certificates', university: 'University certificates', 'work-from-home': 'Working from home', flu: 'Flu and work absence', gastro: 'Gastro and work absence', migraine: 'Migraine and work absence', 'back-pain': 'Back pain and work absence', anxiety: 'Anxiety and work absence', covid: 'COVID-19 and work absence',
+}
+
 export function MedCertReasonLinks() {
   return (
     <section
@@ -41,19 +45,18 @@ export function MedCertReasonLinks() {
     >
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <details>
-          <summary className="mx-auto w-fit cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+          <summary className="mx-auto w-fit cursor-pointer rounded-lg px-3 min-h-12 py-3 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             More certificate guidance
           </summary>
           <nav aria-label="More medical certificate guidance" className="mt-4 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
             {REASON_SLUGS.map((slug) => {
-              const config = medCertIntentConfigs[slug]
               return (
                 <Link
                   key={slug}
                   href={`/medical-certificate/${slug}`}
-                  className="text-muted-foreground transition-colors hover:text-primary"
+                  className="flex min-h-11 items-center text-muted-foreground transition-colors hover:text-primary"
                 >
-                  {config.explainerTitle}
+                  {REASON_LABELS[slug]}
                 </Link>
               )
             })}
@@ -63,7 +66,7 @@ export function MedCertReasonLinks() {
             >
               Employer evidence guide <ArrowRight className="h-3 w-3" aria-hidden="true" />
             </Link>
-            <Link href="/prescriptions" className="text-muted-foreground transition-colors hover:text-primary">
+            <Link href="/prescriptions" className="flex min-h-11 items-center text-muted-foreground transition-colors hover:text-primary">
               Repeat prescriptions
             </Link>
           </nav>

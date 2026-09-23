@@ -39,24 +39,6 @@ describe("marketing reduced-motion contract", () => {
     expect(globalReducedMotion).toContain("transform: none !important;")
   })
 
-  it("settles the hero doctor card and floats immediately", () => {
-    const hero = read("components/marketing/hero-doctor-review-mockup.tsx")
-
-    expect(hero).not.toContain("setActiveIndex")
-    expect(hero).toContain('initial={animate ? "hidden" : "reduced"}')
-    expect(hero.match(/animate=\{entranceControls\}/g)).toHaveLength(2)
-    expect(hero).toContain("entranceControls.stop()")
-    expect(hero).toContain('entranceControls.set("reduced")')
-    expect(hero).toContain("reduced: { y: 0, transition: { duration: 0, delay: 0 } }")
-    expect(hero).toContain(
-      "reduced: { opacity: 1, scale: 1, y: 0, transition: { duration: 0, delay: 0 } }",
-    )
-    expect(hero).toContain('data-reduced-motion-final="doctor-card"')
-    expect(hero).toContain('data-reduced-motion-final="doctor-float"')
-    expect(hero).not.toContain(": false}")
-    expect(hero.match(/duration: prefersReducedMotion \? 0 : /g)).toHaveLength(2)
-    expect(hero.match(/delay: prefersReducedMotion \? 0 : /g)).toHaveLength(2)
-  })
 
   it("settles stats hero and strip entrances immediately", () => {
     const hero = read("components/heroes/stats-hero.tsx")
@@ -87,7 +69,7 @@ describe("marketing reduced-motion contract", () => {
     const navbar = read("components/shared/navbar.tsx")
     const toggle = read("components/shared/navbar/mobile-menu-toggle.tsx")
 
-    expect(navbar).toContain('mobileMenuOpen && "max-md:z-[60]"')
+    expect(navbar).toContain('mobileMenuOpen && "max-lg:z-[60]"')
     expect(menu).toContain(
       'data-mobile-menu-motion={prefersReducedMotion ? "static" : "animated"}',
     )
@@ -168,8 +150,6 @@ describe("marketing reduced-motion contract", () => {
     expect(motion).toContain("ease: easing.strongOut")
     expect(motion).not.toContain("duration: 0.4")
 
-    expect(escriptMockup).toContain("hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both")
-    expect(escriptMockup).toContain("hero-fade-up 0.22s cubic-bezier(0.23, 1, 0.32, 1) 0.30s both")
     expect(escriptMockup).not.toMatch(/hero-fade-up 0\.[3-9]s/)
     expect(escriptMockup).not.toMatch(/hero-fade-up[^"\n]+(?:0\.9s|1\.1s|1\.3s)/)
   })

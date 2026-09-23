@@ -13,7 +13,7 @@ export function ProductReviewBadge() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`InstantMed on ProductReview, ${PRODUCT_REVIEWS.rating} out of 5 stars. Opens in a new tab.`}
-      className="inline-flex min-h-8 flex-wrap items-center justify-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+      className="inline-flex min-h-12 flex-wrap items-center justify-start gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
       <Image
         src="/logos/productreview.svg"
@@ -21,7 +21,7 @@ export function ProductReviewBadge() {
         width={140}
         height={24}
         unoptimized
-        className="h-6 w-[140px] dark:invert"
+        className="h-6 w-[140px] dark:brightness-0 dark:invert"
       />
       <span className="flex items-center gap-0.5" aria-hidden="true">
         {[1, 2, 3, 4, 5].map((star) => (

@@ -84,7 +84,7 @@ const HOW_IT_WORKS = [
   },
   {
     title: "Clinical assessment",
-    body: "Routine one-to-three-day work, study, and carer requests may follow the bounded certificate protocol. Anything concerning or uncertain goes to a doctor.",
+    body: "For one-to-three-day absences from work, study or caring duties. Your answers help determine whether an online certificate is suitable.",
   },
   {
     title: "Digital outcome",
@@ -370,8 +370,8 @@ function MedicalCertificateOnlineHero({
 
           <p data-speakable className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             Request a routine work, study, or carer's leave certificate from home.
-            Fill a secure form. Routine requests follow the bounded certificate protocol;
-            anything concerning or uncertain goes to an Australian doctor before issue.
+            Fill a secure form with your symptoms and absence dates. You will receive an
+            outcome or a request for more information.
           </p>
 
           <div className="mt-6 rounded-2xl border border-border/50 bg-white p-4 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
@@ -667,9 +667,8 @@ export function MedicalCertificateOnlineLanding({
                 Request a medical certificate review online.
               </Heading>
               <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-                Complete the secure form. Routine requests follow the bounded clinical
-                protocol; concerns go to a doctor. No guaranteed issue, no guaranteed
-                employer outcome.
+                Complete the secure form. Your request is assessed for suitability and more
+                information may be needed. A certificate is not guaranteed; workplace evidence policies vary.
               </p>
               <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button asChild size="lg" disabled={isDisabled} onClick={handleFinalCTA}>

@@ -1,13 +1,13 @@
 # InstantMed - Australian Telehealth Platform
 
-> InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform for one-off medical certificate, repeat prescription, men's health (ED and hair loss), women's health (UTI and contraceptive pill), and weight-management assessment requests. Standard certificate requests may follow a Medical Director-approved protocol; prescribing and concerning requests receive individual doctor review.
+> InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform for one-off medical certificate, repeat prescription, men's health (ED and hair loss), women's health (UTI and contraceptive pill), and weight-management assessment requests. Requests are assessed for suitability, with an individual doctor decision required for prescriptions.
 
 ## Quote-Ready Facts
 
 - **Registered entity:** InstantMed Pty Ltd (ABN 64 694 559 334)
 - **Address:** Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
 - **Service area:** Australia-wide telehealth
-- **Clinical model:** AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue.
+- **Clinical model:** Your request is assessed for suitability. If more information is needed, a doctor may contact you. Every prescription requires a decision by an AHPRA-registered doctor.
 - **Active services:** Medical certificates, repeat prescriptions, men's health (ED and hair loss), women's health (UTI and contraceptive pill), and weight-management assessment requests
 - **Weight management:** Doctor-reviewed weight-management assessments launched 2026-08-10 for eligible adults (structured eligibility and safety screening first; a doctor calls when history requires it). The public guide at /weight-loss-online explains safe review boundaries.
 - **Mental health:** InstantMed is not a crisis, therapy, psychiatrist, or Mental Health Treatment Plan service. The public guide explains crisis boundaries, GP pathways, and short certificate review only.
@@ -19,7 +19,7 @@
 
 ## What InstantMed Does
 
-1. **Medical certificates** - Routine one-to-three-day work, study, and carer's leave evidence requests may follow the Medical Director-approved clinical protocol. Anything concerning or uncertain goes to an AHPRA-registered doctor before issue. Employer and institution policies may vary. From $24.95.
+1. **Medical certificates** - For routine one-to-three-day absences from work, study or caring duties. Requests are assessed for suitability and may need further information. Employer and institution policies may vary. From $24.95.
 
 2. **Repeat prescriptions** - Doctor review for existing regular medications. Prescription only if clinically appropriate after doctor review. eScript sent if approved. From $29.95.
 
@@ -117,7 +117,7 @@ Situation-specific guidance pages. All are for routine short absences (maximum 3
 
 ## Full Reference
 
-For a longer AI-readable service reference, see: https://instantmed.com.au/llms-full.txt
+For a longer machine-readable service reference, see: https://instantmed.com.au/llms-full.txt
 
 ---
 

@@ -9,6 +9,7 @@
 - The canonical marketing `Hero` now accepts a `reassuranceRow` slot plus section and mockup class overrides so a multi-service page can use truthful portfolio-wide reassurance, clear floating navigation, and prioritize decisions over decorative mobile art. Existing heroes retain their default row and responsive mockup; this is additive and does not require a version bump.
 
 ### Changed
+- Front-door redesign (23 September 2026): quiet timing sentence, separate ProductReview attribution, readable synthetic specimens, larger text navigation, compact support footer with retained trust marks, support-first Contact and compact mobile service rows. Section headings use plain text and public CTA corners use rounded-lg. No font or stack change.
 - Set the dark `--primary-foreground` to `#0B1120` so text and icons on the unchanged teal primary clear AA contrast. Raised low-contrast medical-certificate mockup metadata and its decorative "Specimen" watermark to legible dark-mode treatments. No design-system version bump is required.
 - Corrected `GoogleAdsCert` to the exact label `Google Ads Online Pharmacy Certification`, with copy explaining that it is advertising eligibility rather than a clinical endorsement. The superseded label recorded under 1.1.0 remains below as historical release history; it is not current implementation or copy guidance.
 - Documented `lib/marketing/approved-claims.ts` as the owner of high-risk factual strings and evidence receipts. `lib/marketing/voice.ts` remains the stable brand-alias and voice-policy API.

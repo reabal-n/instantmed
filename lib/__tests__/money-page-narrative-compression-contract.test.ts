@@ -55,7 +55,7 @@ describe("money-page narrative compression", () => {
     expect(source).toContain("Australia only")
     expect(source).toContain("Ages 18+")
     expect(source).toContain("No Medicare needed")
-    expect(source).toContain("Routine short absences")
+    expect(source).toContain("For short absences from work, study or caring duties")
     expect(source).toContain("PRICING_DISPLAY.FROM_MED_CERT")
     expect(source).toContain("PRICING_DISPLAY.MED_CERT_2DAY")
     expect(source).toContain("PRICING_DISPLAY.MED_CERT_3DAY")
@@ -89,7 +89,7 @@ describe("money-page narrative compression", () => {
     const source = read("components/marketing/prescriptions-landing.tsx")
     const page = read("app/prescriptions/page.tsx")
 
-    expect(source).toContain('title="Repeat prescription, reviewed from home."')
+    expect(source).toContain('title="Your regular medication. A simpler repeat."')
     expect(source).toContain("Australia only")
     expect(source).toContain("Ages 18+")
     expect(source).toContain('getApprovedClaim("prescribing_identity_required")')

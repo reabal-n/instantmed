@@ -185,7 +185,7 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
   },
   clinical_decision_model: {
     id: "clinical_decision_model",
-    text: "AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue.",
+    text: "Your request is assessed for suitability. If more information is needed, a doctor may contact you. Every prescription requires a decision by an AHPRA-registered doctor.",
     contexts: ["platform", "medical_certificate", "prescribing", "specialty", "governance"],
     risk: "high",
     sources: CLINICAL_RECEIPTS,
@@ -193,7 +193,7 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
   },
   clinical_review_sequence: {
     id: "clinical_review_sequence",
-    text: "Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.",
+    text: "Complete the secure form with your symptoms, relevant history and requested dates. You will receive an outcome or a request for more information. Prescriptions require an individual doctor decision.",
     contexts: ["platform", "medical_certificate", "prescribing", "specialty", "governance"],
     risk: "high",
     sources: CLINICAL_RECEIPTS,

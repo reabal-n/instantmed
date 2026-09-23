@@ -28,7 +28,7 @@ import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { PRESCRIPTION_LANDING_FAQ } from "@/lib/data/prescription-faq"
 import { moneyH1Font } from "@/lib/fonts/money-h1"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
-import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"
+import { FORM_FIRST_WEDGE,GUARANTEE } from "@/lib/marketing/voice"
 
 const FAQSection = dynamic(
   () => import("@/components/sections/faq-section").then((m) => ({ default: m.FAQSection })),
@@ -290,9 +290,9 @@ export function PrescriptionsLanding() {
 
         <main className="relative">
           <Hero
-            title="Repeat prescription, reviewed from home."
+            title="Your regular medication. A simpler repeat."
             titleClassName={moneyH1Font.className}
-            immediateSubheadline
+            availabilityServiceId="repeat-rx"
             primaryCta={{
               text: `Get your repeat · ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
               href: "/request?service=repeat-script",
@@ -308,8 +308,8 @@ export function PrescriptionsLanding() {
               </ul>
             )}
             reassuranceRow={(
-              <p className="text-center text-sm leading-6 text-muted-foreground lg:text-left">
-                Takes about 3 minutes. Every request is reviewed before a prescribing decision.
+              <p className="text-left text-sm leading-6 text-muted-foreground lg:text-left">
+                AHPRA-registered doctors. {GUARANTEE}
               </p>
             )}
             mockup={<EScriptHeroMockup />}

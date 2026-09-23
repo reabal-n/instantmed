@@ -82,7 +82,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       <header
         className={cn(
           "fixed left-0 right-0 z-50 px-4 sm:px-6 top-0",
-          mobileMenuOpen && "max-md:z-[60]",
+          mobileMenuOpen && "max-lg:z-[60]",
         )}
         style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
         data-first-interaction-ignore="true"
@@ -94,19 +94,11 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             scrolled
               ? "bg-background/95 backdrop-blur-xl border-border/60 shadow-xl"
               : "bg-linear-to-b from-background/80 to-background/40 backdrop-blur-lg border-border/40",
-            mobileMenuOpen && "max-md:border-transparent max-md:bg-transparent max-md:shadow-none max-md:backdrop-blur-none",
+            mobileMenuOpen && "max-lg:border-transparent max-lg:bg-transparent max-lg:shadow-none max-lg:backdrop-blur-none",
           )}
           role="navigation"
           aria-label="Main navigation"
         >
-          {/* Nav glow effect - CSS group-hover replaces framer-motion whileHover */}
-          <div
-            className={cn(
-              "absolute -inset-2 rounded-3xl z-0 pointer-events-none",
-              "opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-              "bg-gradient-radial from-transparent via-primary/8 to-transparent dark:via-primary/15",
-            )}
-          />
           <div className="relative z-10 flex items-center justify-between px-3 py-1">
             {/* Logo */}
             <BrandLogo
@@ -115,12 +107,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               prefetch={false}
               className={cn(
                 "relative z-10",
-                mobileMenuOpen && "max-md:opacity-0"
+                mobileMenuOpen && "max-lg:opacity-0"
               )}
             />
 
             {/* Desktop Navigation */}
-            <div className="relative z-10 hidden items-center gap-1 md:flex">
+            <div className="relative z-10 hidden items-center gap-1 lg:flex">
               {variant === "marketing" && (
                 <>
                   <ServicesDropdown isActivePath={isActivePath} />
@@ -167,11 +159,11 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                 />
               )}
 
-              <ThemeSwitch className="ml-1" />
+              {variant !== "marketing" && <ThemeSwitch className="ml-1" />}
             </div>
 
             {/* Mobile Menu Toggle */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <MobileMenuToggle
                 toggle={toggleMobileDrawer}
                 isOpen={mobileMenuOpen}

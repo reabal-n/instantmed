@@ -266,7 +266,7 @@ Used on every landing page: home, medical certificate, prescriptions, ED, hair l
 
 ### Centered Hero (simpler pages)
 
-Centered text, no image. Used on: pricing, about, contact.
+Centered text, no image. Used on: pricing and about. Contact uses a plain support heading.
 
 ```tsx
 <CenteredHero
@@ -292,8 +292,9 @@ Centered headline + animated stat counters. Used on: pricing, trust.
 ### Hero Rules
 
 - The shell reserves the fixed header: every landing wrapper carries `pt-[calc(5rem+env(safe-area-inset-top))]` (`LandingPageShell`, `PrescriptionsLanding`, `MedCertLanding`, home).
-- Pill = `ProductReviewBadge` (ProductReview logo + stars) · `pillLabel` (default "AHPRA-registered doctors") · live `WaitCounter` when the page passes `liveWait`, otherwise "Open now". Stars never render without the ProductReview logo and listing link.
-- Trust row = `GoogleAdsCert` + `LegitScriptSeal`, two marks, one row. Pages with their own marks pass `trustRow={null}`.
+- Status: one quiet left-aligned `WaitCounter` sentence above the heading, only with qualifying server-fed timing. No capsule, default availability claim or credential label. Keep the service and 24-hour observation window together.
+- Action: one primary CTA, one compact reassurance, then a separate linked `ProductReviewBadge`. Stars always retain the logo and listing link. Certification/payment marks belong in the footer.
+- Visual: a readable, synthetic, labelled document or delivery specimen after the action in mobile reading order. One short notice entrance; no loops.
 - Display titles are `hyphens-none`; long words wrap with `overflow-wrap:anywhere`.
 - Bottom padding `pb-8 sm:pb-12 lg:pb-10`; the next section starts within 120px at 1440×900 (`e2e/landing-pages.spec.ts`).
 - Ambient `MorningSkyBackground` comes from `MarketingPageShell`; do not mount a second canvas per hero.
@@ -354,21 +355,13 @@ Reusable section building blocks. All accept `pill`, `title`, `subtitle`, `highl
 
 ---
 
-## 9. Announcement Pill (Hero Badge)
+## 9. Public navigation and reassurance
 
-Trust signal above the hero headline. Centered or left-aligned to match hero variant. See §6 Hero Rules for the
-composition rule (`ProductReviewBadge` · `pillLabel` · live `WaitCounter` or "Open now").
+Use 16px marketing navigation links with comfortable targets. Desktop navigation starts at `lg`; mobile uses plain text rows. Contact us is always outside the Services disclosure. Theme controls live in the footer and mobile utility area.
 
-```tsx
-// Tailwind pattern
-className="inline-flex max-w-full flex-wrap items-center justify-center gap-2.5 rounded-full px-3 py-1.5
-           text-sm font-medium bg-white dark:bg-card border border-border/60
-           shadow-sm shadow-primary/[0.04]"
-```
+Footer: brand/support, Help, About, a native Explore services disclosure containing six server-rendered links, then Stripe/LegitScript/Google certification. Balance visual weight while retaining logo proportions. On phones, Stripe and LegitScript share the first row and Google spans the next. Registration, refund and privacy form a quieter separate row. Legal links remain readable and at least 48px tall.
 
-Max ~40 chars. Examples (the `pillLabel` prop, see §6):
-- "AHPRA-registered doctors" (default)
-- "Routine short absences" (medical certificate)
+Use one `max-w-5xl` outer shell with `px-4 sm:px-6`. Public CTAs use rounded-lg corners, a minimum 48px height and natural wrapping when needed. Mobile service comparison uses compact rows; desktop retains useful detail. Plain section headings replace animated word highlights and redundant label capsules.
 
 ---
 
@@ -474,7 +467,7 @@ className="bg-white dark:bg-card border border-border
 
 ### Trust Logos
 
-Renders on explainer and audience pages (`/for/*`, `/employers`) and the homepage's closing compliance strip. The six service landing pages (medical certificate, prescriptions, ED, hair loss, women's health, weight management) do not mount this strip; they use the Hero trust row instead (`GoogleAdsCert` + `LegitScriptSeal`, see §6 Hero Rules).
+Renders on explainer and audience pages (`/for/*`, `/employers`) and the homepage's closing compliance strip. The six service landing pages (medical certificate, prescriptions, ED, hair loss, women's health, weight management) do not mount this strip; their certifications appear in the shared footer (see §6 Hero Rules).
 
 ```tsx
 // AHPRA, TGA, Medicare PNGs from /public/logos/
@@ -743,7 +736,7 @@ className="flex min-h-screen bg-background"
 
 ## 15. Trust Logos
 
-Three regulatory logos displayed on explainer and audience pages (/how-it-works, /employers, /for/*, /medical-certificate/[slug]) and the homepage's closing compliance strip. The six service landing pages use the Hero trust row instead (GoogleAdsCert + LegitScriptSeal, see §6).
+Three regulatory logos displayed on explainer and audience pages (/how-it-works, /employers, /for/*, /medical-certificate/[slug]) and the homepage's closing compliance strip. The six service landing pages use the shared footer certification group (see §6).
 
 | Logo | Source | Width |
 |------|--------|-------|

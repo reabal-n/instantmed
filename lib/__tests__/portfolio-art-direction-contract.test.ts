@@ -25,9 +25,7 @@ describe("portfolio money-page art direction", () => {
     expect(homepage).not.toContain("HomeFactsBlock")
     expect(homepage).not.toMatch(/<HowItWorks\s*\/>/)
     expect(homepage).not.toContain("ComplianceMarquee")
-    expect(homepage.indexOf("<CTABanner")).toBeLessThan(
-      homepage.indexOf("<HomeServiceLinks />"),
-    )
+    expect(homepage).not.toContain("<HomeServiceLinks />")
     expect(homepage).not.toContain('from \'next/image\'')
     expect(homepage).not.toMatch(/\/images\/home-[123]\.webp/)
     expect(homeLinks).toContain("BRANDED_SEARCH_LINKS")

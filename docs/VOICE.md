@@ -88,8 +88,8 @@ These are voice-layer strings, not permission to improvise factual claims. Sever
 Public factual copy with clinical, operational, privacy, complaint, refund, doctor, or certification risk comes from `lib/marketing/approved-claims.ts`. Use the relevant claim ID rather than a near-duplicate:
 
 - `availability_24_7`: *Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume.*
-- `clinical_decision_model`: *AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue.*
-- `clinical_review_sequence`: *Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.*
+- `clinical_decision_model`: *Your request is assessed for suitability. If more information is needed, a doctor may contact you. Every prescription requires a decision by an AHPRA-registered doctor.*
+- `clinical_review_sequence`: *Complete the secure form with your symptoms, relevant history and requested dates. You will receive an outcome or a request for more information. Prescriptions require an individual doctor decision.*
 - `clinical_access_scope`: *Clinical access is role-scoped. Doctors and the owner-admin can access records needed for care; support sees only bounded, masked operational data.*
 - `complaints_timing`: *We acknowledge complaints within 24 hours. Clinical complaints target resolution within 14 days.*
 - `doctor_registration`: *Clinical reviews are performed by AHPRA-registered doctors under documented clinical governance.*
@@ -123,12 +123,12 @@ These rules sit above normal brand voice.
 
 Weight-management entries below apply to the live one-off service. They do not authorise paid traffic; any Ads campaign or traffic change still requires separate exact operator approval under `docs/OPERATIONS.md`.
 
-Canonical review sequence: Standard medical-certificate requests are assessed under a Medical Director-approved clinical protocol. Concerning or uncertain certificate requests, and every prescribing request, require review by an AHPRA-registered doctor before issue.
+Canonical review sequence: Complete the secure form with your symptoms, relevant history and requested dates. You will receive an outcome or a request for more information. Prescriptions require an individual doctor decision.
 
 | Context | Approved copy | Avoid |
 |---|---|---|
 | Availability | Requests can be submitted and reviewed 24/7. Review timing varies with clinical complexity, follow-up questions, and queue volume. | Review-hours windows, vague availability caveats, or guaranteed turnaround. |
-| Clinical decisions | AI never prescribes. Standard medical-certificate requests may be issued under a clinical protocol approved by the Medical Director. Anything concerning or uncertain, and every prescription request, requires review by an AHPRA-registered doctor before issue. | "AI approves", a post-issue review claim, or any suggestion that a database flag can widen the code-owned protocol. |
+| Clinical decisions | Your request is assessed for suitability. If more information is needed, a doctor may contact you. Every prescription requires a decision by an AHPRA-registered doctor. | "AI approves", a post-issue review claim, or any suggestion that a database flag can widen the code-owned protocol. |
 | Medical certificates | No video. No call. No appointment. | Accepted by all employers, 98% accepted, special consideration, deferred exam. |
 | Prescription services | Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing. | No call needed, guaranteed prescription, get [drug] online. |
 | ED / hair loss | Private form-first assessment. A doctor reviews it and may call briefly before prescribing. | No call needed, drug names in ads, outcome guarantees. |

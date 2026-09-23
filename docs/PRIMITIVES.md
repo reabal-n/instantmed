@@ -122,7 +122,7 @@ Metric-backed wait display per service. No fake randomization.
 |----------|-------|
 | `SERVICE_CONFIG` | Internal to `live-wait-time.tsx`. Keys: `med-cert`, `scripts`, `consult`, `consult-ed`, `consult-hair-loss`. |
 
-`getWaitState()` reads recent medical-certificate rows and degrades to neutral review copy when metrics are missing, stale, or the queue is pressured. Client-only `LiveWaitTime` surfaces must use neutral "fast doctor review" or submit/review copy unless a server-fed metric state is passed in. Prescription, ED, hair-loss, and broad consult surfaces must not render under-hour approval or prescribing claims.
+`getWaitState()` reads medical-certificate completions over the last 24 hours, excluding report-excluded rows and seeded test patients. `Hero` omits status when metrics are missing, stale or the queue is pressured. Eligible status is labelled as median turnaround, with service and observation window. Client-only `LiveWaitTime` surfaces must use neutral "fast doctor review" or submit/review copy unless a server-fed metric state is passed in. Prescription, ED, hair-loss, and broad consult surfaces must not render under-hour approval or prescribing claims.
 
 The medical-certificate page passes `getWaitState(new Date(), 'med-cert')` into `<Hero liveWait>`; the home page passes the default (med-cert) state.
 
@@ -157,3 +157,7 @@ The generic service funnel template (`components/marketing/service-funnel-page.t
 | A patient-count claim | No current primitive; establish a verified persisted source and complete compliance review first |
 | Paid ads or acquisition copy | `docs/ADVERTISING_COMPLIANCE.md` |
 | Educational prescription/medicine SEO content | `docs/SEO_CONTENT_POLICY.md` |
+
+### Front-door composition (23 September 2026)
+
+`Hero` owns status, action, reassurance and linked ProductReview placement. `availabilityServiceId` gates timing; service-owned CTA gates remain unchanged. Certification marks render in `Footer`, separately from registration/refund/privacy reassurance. `Footer` contains native service discovery. Contact keeps `contact_form_submitted` as an attempt event, adds `contact_form_succeeded` only after successful delivery and uses fixed failure categories. Neither event carries entered text or identity.

@@ -3,11 +3,13 @@
  *
  * The brand-rehaul spec (docs/BRAND.md §6.1) defines this as a real-data
  * device: the median time from `request_submitted` to `request_approved`
- * across the rolling 4-hour window, with graceful-degradation fallbacks.
+ * across the rolling 24-hour window, with stale-data and queue-pressure guards.
  *
  * The displayed median is sourced from recent med-cert rows, not static
- * marketing constants. Missing/stale data degrades to neutral review copy.
+ * marketing constants. Missing or stale data is omitted from marketing heroes.
  */
+import { filterReportableIntakes } from "@/lib/data/reporting-filters"
+import { SEEDED_E2E_PATIENT_PROFILE_IDS } from "@/lib/data/seeded-e2e-data"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -90,7 +92,7 @@ export async function getWaitState(
     const since = new Date(now.getTime() - RECENT_COMPLETION_WINDOW_HOURS * 60 * 60 * 1000).toISOString()
 
     const [completedResult, queueResult] = await Promise.all([
-      supabase
+      filterReportableIntakes(supabase
         .from("intakes")
         .select(`paid_at, ${source.completedAtColumn}`)
         .eq("category", source.category)
@@ -99,13 +101,13 @@ export async function getWaitState(
         .not(source.completedAtColumn, "is", null)
         .gte(source.completedAtColumn, since)
         .order(source.completedAtColumn, { ascending: false })
-        .limit(100),
-      supabase
+        .limit(100)).not("patient_id", "in", `(${SEEDED_E2E_PATIENT_PROFILE_IDS.join(",")})`),
+      filterReportableIntakes(supabase
         .from("intakes")
         .select("paid_at, submitted_at, created_at")
         .eq("category", source.category)
         .eq("payment_status", "paid")
-        .in("status", MED_CERT_QUEUE_STATUSES),
+        .in("status", MED_CERT_QUEUE_STATUSES)).not("patient_id", "in", `(${SEEDED_E2E_PATIENT_PROFILE_IDS.join(",")})`),
     ])
 
     if (completedResult.error || queueResult.error) {

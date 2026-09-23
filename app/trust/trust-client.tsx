@@ -50,7 +50,7 @@ const trustFAQs = [
     answer: "Health records use Australian-hosted primary storage. Data is encrypted in transit and sensitive fields are encrypted at rest. The privacy policy explains service-provider processing, retention, access, and correction rights.",
   },
   {
-    question: "Is this actually reviewed by a doctor, or is it automated?",
+    question: "How is my request assessed?",
     answer: CLINICAL_DECISION_MODEL,
   },
   {
@@ -380,7 +380,7 @@ export default function TrustPage() {
             },
             {
               title: "Outcome or doctor follow-up",
-              description: "A prescribing doctor may ask for more information before deciding. Certificate requests outside protocol criteria go to a doctor before any outcome.",
+              description: "A doctor may ask for more information before deciding. If your request is unsuitable for online care, we will explain the next step.",
               icon: <StickerIcon name="user-check" size={48} />,
             },
             {

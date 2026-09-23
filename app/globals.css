@@ -3503,3 +3503,9 @@ button:not(.no-micro):active:not(:disabled),
     transform: none !important;
   }
 }
+
+/* One delivery moment; the document and primary action never wait for motion. */
+.hero-delivery-enter { animation: hero-fade-up 220ms cubic-bezier(0.23, 1, 0.32, 1) 120ms both; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-delivery-enter { animation: none; }
+}

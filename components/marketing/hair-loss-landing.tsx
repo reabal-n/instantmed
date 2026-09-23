@@ -177,7 +177,7 @@ function HairAssessmentModel() {
       aria-labelledby="hair-assessment-model-title"
       className="bg-muted/30 py-6 dark:bg-white/[0.02] sm:py-12 lg:py-16"
     >
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Reveal instant className="mx-auto max-w-3xl text-center">
           <SectionPill>Assessment model</SectionPill>
           <Heading id="hair-assessment-model-title" level="h2" className="mt-4">
@@ -217,7 +217,7 @@ function HairLossPricingSection({
 }) {
   return (
     <section id="pricing" aria-label="Hair loss assessment pricing" className="py-4 sm:py-12 lg:pt-6 lg:pb-20">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6">
         <Reveal instant className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-primary/30 bg-white shadow-xl shadow-primary/[0.1] dark:border-white/15 dark:bg-card dark:shadow-none">
           <div className="grid divide-y divide-border/50 sm:grid-cols-[0.72fr_1.28fr] sm:divide-x sm:divide-y-0">
             <div className="p-6">
@@ -258,7 +258,7 @@ export function HairLossLanding() {
       {({ isDisabled, heroCTARef, requestCtaHref, handleHeroCTA, handleHowItWorksCTA, handlePricingCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           <Hero
-            pill={isDisabled ? null : undefined}
+            availabilityServiceId="hair-loss"
             title="Private hair loss assessment, from home."
             titleClassName="max-[240px]:text-[1.75rem] max-[240px]:hyphens-none max-[240px]:[overflow-wrap:normal]"
             primaryCta={{

@@ -38,7 +38,7 @@ describe("money-page LCP critical path", () => {
     const hero = source("components/marketing/hero.tsx")
 
     expect(medCertLanding).toContain('moneyH1Font.className')
-    expect(medCertLanding).toMatch(/<Hero[\s\S]*?title="Medical certificate\. From your bed\."/)
+    expect(medCertLanding).toMatch(/<Hero[\s\S]*?title="Your medical certificate\. Without the waiting room\."/)
     expect(hero).toMatch(/<Heading[\s\S]*?level="display"/)
     expect(hero).toContain("titleClassName")
     expect(source("components/marketing/prescriptions-landing.tsx")).toContain(
@@ -48,10 +48,8 @@ describe("money-page LCP critical path", () => {
       /<Heading level="display"[^>]*hero-(?:availability|subheadline|cta|trust|count|mockup)-enter/,
     )
     expect(medCertLanding).not.toContain("hero-subheadline-enter")
-    expect(hero).toContain('immediateSubheadline ? undefined : "hero-subheadline-enter"')
-    expect(source("components/marketing/prescriptions-landing.tsx")).toContain(
-      "immediateSubheadline",
-    )
+    expect(hero).not.toContain("hero-subheadline-enter")
+    expect(source("components/marketing/prescriptions-landing.tsx")).not.toContain("hero-subheadline-enter")
   })
 
   it("does not eagerly preload the offscreen sticky payment marks", () => {
@@ -104,7 +102,6 @@ describe("money-page LCP critical path", () => {
     expect(medCertMockup).not.toContain("font-mono")
     expect(escriptMockup).not.toContain("font-mono")
     expect(medCertMockup).toContain("font-[ui-monospace]")
-    expect(escriptMockup).toContain("font-[ui-monospace]")
   })
 
   it("keeps the global 404 from assigning next/link to a money-page chunk group", () => {

@@ -250,9 +250,9 @@ describe("specialty landing analytics", () => {
 
   it("keeps server-rendered status chrome behind the availability gate", () => {
     const hero = readFileSync(join(process.cwd(), "components/marketing/hero.tsx"), "utf8")
-    expect(hero).toMatch(/<ServiceAvailabilityGate serviceId=\{pillServiceId\}>\s*<div className="hero-availability-enter/)
+    expect(hero).toMatch(/<ServiceAvailabilityGate serviceId=\{availabilityServiceId\}>\s*<div data-hero-status=/)
     const medCert = readFileSync(join(process.cwd(), "components/marketing/med-cert-landing.tsx"), "utf8")
-    expect(medCert).toContain('pillServiceId="med-cert"')
+    expect(medCert).toContain('availabilityServiceId="med-cert"')
     const inline = readFileSync(join(process.cwd(), "components/marketing/sections/how-it-works-inline.tsx"), "utf8")
     expect(inline).toContain("isDisabledProp ?? maintenanceMode")
   })

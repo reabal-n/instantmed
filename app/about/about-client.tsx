@@ -79,7 +79,7 @@ const VALUES = [
     icon: <StickerIcon name="security-shield" size={48} />,
     title: "Clinical rigour",
     description:
-      "AHPRA-registered clinical governance, documented protocols, and hard safety boundaries. Automation cannot override a safety route or widen the approved certificate protocol.",
+      "AHPRA-registered clinical governance and clear service boundaries. Requests needing an examination or urgent care are directed to a more suitable service.",
   },
   {
     icon: <StickerIcon name="lock" size={48} />,
@@ -209,7 +209,7 @@ export function AboutClient() {
           {/* Evidence section: retain only claims supported by current policy. */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
             <section className="py-12 lg:py-16">
-              <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <div className="mx-auto max-w-3xl px-4 sm:px-6">
                 <div className="grid md:grid-cols-2 gap-10 md:gap-8 items-center">
                   <div className="flex justify-center">
                     <AnimatedDonutChart
@@ -220,9 +220,9 @@ export function AboutClient() {
                     />
                   </div>
                   <div className="rounded-2xl border border-border/50 bg-white p-6 shadow-sm shadow-primary/[0.04] dark:bg-card dark:shadow-none">
-                    <p className="text-sm font-semibold text-foreground">Doctor review before issue</p>
+                    <p className="text-sm font-semibold text-foreground">Your request and outcome</p>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                      Routine certificate requests may follow the Medical Director-approved protocol. Concerns and every prescribing request require an AHPRA-registered doctor. Timing varies with clinical complexity, follow-up questions, and queue volume.
+                      Your request is assessed for suitability. A doctor may ask for more information before an outcome. Timing varies with clinical complexity, follow-up questions and queue volume.
                     </p>
                   </div>
                 </div>
@@ -264,7 +264,7 @@ export function AboutClient() {
                     <p className="text-sm text-muted-foreground leading-relaxed mb-3">
                       Trust is built on what a service refuses to do, not
                       just what it offers. Schedule 8 prescriptions,
-                      high-stakes certificates, AI-only decisions: the
+                      high-stakes certificates and unsuitable online care: the
                       things we deliberately don&apos;t do, written down
                       where you can find them.
                     </p>
