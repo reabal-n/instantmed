@@ -3,16 +3,16 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 
 import { GoogleAdsCert } from '@/components/marketing/google-ads-cert'
-import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
+import { ProductReviewBadge } from '@/components/marketing/product-review-badge'
 import { WaitCounter } from '@/components/marketing/wait-counter'
 import { ServiceAvailabilityGate, type ServiceId } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import type { WaitState } from '@/lib/brand/wait-counter'
 import { GUARANTEE, ICONIC_HOOK } from '@/lib/marketing/voice'
-import { GOOGLE_REVIEWS } from '@/lib/social-proof'
+import { PRODUCT_REVIEWS } from '@/lib/social-proof'
 import { cn } from '@/lib/utils'
 
 interface CtaConfig {
@@ -51,7 +51,7 @@ interface HeroProps {
    * stars + doctor-review + Open now pill. Pass `null` to suppress.
    */
   pill?: ReactNode | null
-  /** Text beside the Google badge in the default pill. Service pages may narrow it, e.g. "Routine short absences". */
+  /** Text beside the ProductReview badge in the default pill. Service pages may narrow it, e.g. "Routine short absences". */
   pillLabel?: string
   /**
    * Hides the pill while this service is disabled. Without it the pill still
@@ -122,9 +122,9 @@ const DEFAULT_OPEN_NOW = (
 function buildDefaultPill(liveWait: WaitState | undefined, pillLabel: string) {
   return (
     <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-2.5 rounded-full px-3 py-1.5 text-sm font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
-      {GOOGLE_REVIEWS.enabled && (
+      {PRODUCT_REVIEWS.enabled && (
         <>
-          <GoogleReviewsBadge />
+          <ProductReviewBadge />
           <span className="text-border/70" aria-hidden="true">·</span>
         </>
       )}

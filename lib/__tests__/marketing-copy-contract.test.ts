@@ -532,7 +532,7 @@ describe("marketing copy contracts", () => {
     expect(medCertLandingSource).not.toContain("SocialProofSection")
     expect(homePageSource).not.toContain("Real patients. Real reviews.")
     expect(medCertLandingSource).not.toContain("Real patients. Real reviews.")
-    expect(heroSource).toContain("GoogleReviewsBadge")
+    expect(heroSource).toContain("ProductReviewBadge")
     expect(stickyCtaSource).not.toContain("hidden lg:block fixed")
     expect(stickyCtaSource).not.toContain("top: '62px'")
   })

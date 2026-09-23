@@ -151,6 +151,7 @@ Do not use:
 - "Doctor approves in 2 hours or your money back"
 - patient testimonials or purported testimonials about a regulated health service
 - public review-count, numeric-rating, testimonial, or aggregate-rating schema claims on regulated-health advertising surfaces
+  - Operator-approved display exception (2026-09-23): the shared hero may show the ProductReview logo with five stars, linked to the InstantMed listing verified at 5.0/5 on that date. This replaces the Google review badge. Keep review counts, excerpts and aggregate-rating schema excluded; the source and verification date live in `lib/social-proof/index.ts`. This records the requested display scope, not independent legal clearance.
 - before/after outcomes
 - "clinically proven medication" in public acquisition copy
 - prescription-only medicine prices

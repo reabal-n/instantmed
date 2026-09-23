@@ -292,7 +292,7 @@ Centered headline + animated stat counters. Used on: pricing, trust.
 ### Hero Rules
 
 - The shell reserves the fixed header: every landing wrapper carries `pt-[calc(5rem+env(safe-area-inset-top))]` (`LandingPageShell`, `PrescriptionsLanding`, `MedCertLanding`, home).
-- Pill = `GoogleReviewsBadge` (G mark + stars) · `pillLabel` (default "AHPRA-registered doctors") · live `WaitCounter` when the page passes `liveWait`, otherwise "Open now". Stars never render without the Google mark.
+- Pill = `ProductReviewBadge` (ProductReview logo + stars) · `pillLabel` (default "AHPRA-registered doctors") · live `WaitCounter` when the page passes `liveWait`, otherwise "Open now". Stars never render without the ProductReview logo and listing link.
 - Trust row = `GoogleAdsCert` + `LegitScriptSeal`, two marks, one row. Pages with their own marks pass `trustRow={null}`.
 - Display titles are `hyphens-none`; long words wrap with `overflow-wrap:anywhere`.
 - Bottom padding `pb-8 sm:pb-12 lg:pb-10`; the next section starts within 120px at 1440×900 (`e2e/landing-pages.spec.ts`).
@@ -357,7 +357,7 @@ Reusable section building blocks. All accept `pill`, `title`, `subtitle`, `highl
 ## 9. Announcement Pill (Hero Badge)
 
 Trust signal above the hero headline. Centered or left-aligned to match hero variant. See §6 Hero Rules for the
-composition rule (`GoogleReviewsBadge` · `pillLabel` · live `WaitCounter` or "Open now").
+composition rule (`ProductReviewBadge` · `pillLabel` · live `WaitCounter` or "Open now").
 
 ```tsx
 // Tailwind pattern

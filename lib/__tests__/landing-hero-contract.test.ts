@@ -9,15 +9,15 @@ const read = (p: string) => readFileSync(join(root, p), "utf8")
 describe("landing hero contract (19 Sep 2026 audit)", () => {
   const hero = read("components/marketing/hero.tsx")
 
-  it("renders stars only inside the Google badge", () => {
+  it("renders stars only inside the ProductReview badge", () => {
     // The old pill drew five bare stars next to "AHPRA-registered doctors",
-    // which reads as a doctor rating. Stars belong to the Google mark.
+    // which reads as a doctor rating. Stars belong to the ProductReview mark.
     expect(hero).not.toMatch(/\[1, 2, 3, 4, 5\]\.map/)
     expect(hero).not.toContain('aria-label="Google star rating"')
     const pillStart = hero.indexOf("function buildDefaultPill")
     const pillEnd = hero.indexOf("const DEFAULT_TITLE")
     expect(pillStart).toBeGreaterThan(-1)
-    expect(hero.slice(pillStart, pillEnd)).toContain('<GoogleReviewsBadge />')
+    expect(hero.slice(pillStart, pillEnd)).toContain('<ProductReviewBadge />')
   })
 
   it("keeps the trust row to two marks on one row", () => {
@@ -26,7 +26,7 @@ describe("landing hero contract (19 Sep 2026 audit)", () => {
     const trustRow = hero.slice(trustStart, trustEnd)
     expect(trustRow).toContain("<GoogleAdsCert")
     expect(trustRow).toContain("<LegitScriptSeal")
-    expect(trustRow).not.toContain("GoogleReviewsBadge")
+    expect(trustRow).not.toContain("ProductReviewBadge")
     expect(hero).toContain('data-hero-trust-row=""')
   })
 
