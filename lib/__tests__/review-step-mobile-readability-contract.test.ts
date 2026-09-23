@@ -13,7 +13,7 @@ describe("mobile review readability contract", () => {
     expect(source).toContain('gap-3 text-base')
     expect(source).toContain('className="text-base text-muted-foreground mt-0.5"')
     expect(source).toContain('className="text-base leading-snug text-muted-foreground"')
-    expect(source).toContain('className="block text-base leading-relaxed text-foreground"')
+    expect(source).toContain('className="block text-base leading-relaxed text-foreground [overflow-wrap:anywhere]"')
   })
 
   it("gives every section Edit control a 44px touch target", () => {
