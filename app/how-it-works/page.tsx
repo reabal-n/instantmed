@@ -33,11 +33,11 @@ const howItWorksSteps = [
     description: "Pick your service and answer the relevant clinical questions. Takes about 3 minutes. No account needed to get started.",
   },
   {
-    title: "Receive an outcome or follow-up",
+    title: "Your request is assessed",
     description: `${CLINICAL_DECISION_MODEL} ${AVAILABILITY_24_7}`,
   },
   {
-    title: "Get your outcome",
+    title: "Receive your outcome",
     description: `If approved, a secure download link for your medical certificate is emailed or an eScript is sent to your phone. ${GUARANTEE}`,
   },
 ]

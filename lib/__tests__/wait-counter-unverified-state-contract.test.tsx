@@ -45,7 +45,7 @@ type QueryResult = { data: unknown[] | null; error: { message: string } | null }
 function queryReturning(result: QueryResult) {
   const builder: Record<string, unknown> = {}
   for (const method of ["select", "eq", "in", "not", "gte", "order", "limit", "or"]) {
-    builder[method] = () => builder
+    builder[method] = vi.fn(() => builder)
   }
   builder.then = (
     onFulfilled: (value: QueryResult) => unknown,
@@ -118,6 +118,18 @@ describe("wait counter never claims live doctor activity from unverified state",
     expect(html).toContain(NEUTRAL_FACT)
     expect(html).not.toMatch(ACTIVITY_CLAIM)
     expect(html).not.toMatch(FABRICATED_NUMBER)
+  })
+
+  it("uses one canonical reporting filter and retains unlinked patient requests", async () => {
+    const client = clientReturning(EMPTY, EMPTY)
+    mocks.createServiceRoleClient.mockReturnValue(client)
+    await getWaitState(NOW, "med-cert")
+    for (const { value: query } of client.from.mock.results) {
+      expect(query.or.mock.calls).toHaveLength(2)
+      expect(query.or.mock.calls[0]).toEqual(["exclude_from_reporting.is.null,exclude_from_reporting.eq.false"])
+      expect(query.or.mock.calls[1][0]).toMatch(/^patient_id\.is\.null,patient_id\.not\.in\.\(e2e/)
+      expect(query.not.mock.calls.some(([column]: string[]) => column === "patient_id")).toBe(false)
+    }
   })
 
   it("keeps the data-backed branches' copy unchanged", async () => {

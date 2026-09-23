@@ -12,7 +12,7 @@ export function getStaffQueryScope(): StaffQueryScope {
 type StaffScopeQuery = {
   eq(column: string, value: boolean): unknown
   like(column: string, pattern: string): unknown
-  not(column: string, operator: string, value: string): unknown
+  or(filters: string): unknown
 }
 
 /** Restrict test reads in SQL, before fetching any identity or answer fields. */

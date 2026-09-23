@@ -9,9 +9,9 @@ import {
 
 function createQueryRecorder() {
   return {
-    calls: [] as Array<[string, string, string]>,
-    not(column: string, operator: string, value: string) {
-      this.calls.push([column, operator, value])
+    calls: [] as string[],
+    or(filters: string) {
+      this.calls.push(filters)
       return this
     },
   }
@@ -26,11 +26,7 @@ describe("seeded E2E data guards", () => {
 
     expect(returned).toBe(query)
     expect(query.calls).toEqual([
-      [
-        "patient_id",
-        "in",
-        "(e2e00000-0000-0000-0000-000000000002,e2e00000-0000-0000-0000-000000000090,e2e00000-0000-0000-0000-0000000000a1,e2e00000-0000-0000-0000-0000000000a2,e2e00000-0000-0000-0000-0000000000a3)",
-      ],
+      "patient_id.is.null,patient_id.not.in.(e2e00000-0000-0000-0000-000000000002,e2e00000-0000-0000-0000-000000000090,e2e00000-0000-0000-0000-0000000000a1,e2e00000-0000-0000-0000-0000000000a2,e2e00000-0000-0000-0000-0000000000a3)",
     ])
   })
 

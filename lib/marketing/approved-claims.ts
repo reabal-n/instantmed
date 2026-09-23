@@ -191,7 +191,7 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
     contexts: ["platform", "medical_certificate", "prescribing", "specialty", "governance"],
     risk: "high",
     sources: CLINICAL_RECEIPTS,
-    notes: "Canonical branch-aware clinical disclosure. Never imply that AI prescribes, that protocol issuance covers a concerning or uncertain request, or that prescribing can occur without individual doctor review.",
+    notes: "Operator-approved public wording (2026-09-23): describe suitability assessment, follow-up and outcomes without internal processing detail. Every prescription requires an individual doctor decision. Internal clinical boundaries remain unchanged.",
   },
   clinical_review_sequence: {
     id: "clinical_review_sequence",
@@ -199,7 +199,7 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
     contexts: ["platform", "medical_certificate", "prescribing", "specialty", "governance"],
     risk: "high",
     sources: CLINICAL_RECEIPTS,
-    notes: "Current public process order for the active bounded certificate protocol and the individually reviewed prescribing pathway.",
+    notes: "Operator-approved public sequence (2026-09-23): secure form, outcome or follow-up, with an individual doctor decision for prescriptions. Keep internal workflow descriptions in clinical documentation.",
   },
   med_cert_document_scope: {
     id: "med_cert_document_scope",

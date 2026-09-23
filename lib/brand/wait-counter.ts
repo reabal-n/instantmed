@@ -9,7 +9,6 @@
  * marketing constants. Missing or stale data is omitted from marketing heroes.
  */
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
-import { SEEDED_E2E_PATIENT_PROFILE_IDS } from "@/lib/data/seeded-e2e-data"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -101,13 +100,13 @@ export async function getWaitState(
         .not(source.completedAtColumn, "is", null)
         .gte(source.completedAtColumn, since)
         .order(source.completedAtColumn, { ascending: false })
-        .limit(100)).not("patient_id", "in", `(${SEEDED_E2E_PATIENT_PROFILE_IDS.join(",")})`),
+        .limit(100)),
       filterReportableIntakes(supabase
         .from("intakes")
         .select("paid_at, submitted_at, created_at")
         .eq("category", source.category)
         .eq("payment_status", "paid")
-        .in("status", MED_CERT_QUEUE_STATUSES)).not("patient_id", "in", `(${SEEDED_E2E_PATIENT_PROFILE_IDS.join(",")})`),
+        .in("status", MED_CERT_QUEUE_STATUSES)),
     ])
 
     if (completedResult.error || queueResult.error) {

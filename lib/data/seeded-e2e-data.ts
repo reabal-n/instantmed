@@ -15,7 +15,7 @@ export const SEEDED_E2E_PATIENT_PROFILE_IDS = [
 const SEEDED_E2E_PATIENT_FILTER = `(${SEEDED_E2E_PATIENT_PROFILE_IDS.join(",")})`
 
 type PatientFilterQuery = {
-  not(column: string, operator: string, value: string): unknown
+  or(filters: string): unknown
 }
 
 type E2EEnv = Partial<Record<"PLAYWRIGHT" | "E2E" | "E2E_MODE" | "NODE_ENV", string>>
@@ -69,7 +69,9 @@ export function filterSeededE2EIntakes<T extends PatientFilterQuery>(
     return query
   }
 
-  return query.not("patient_id", "in", SEEDED_E2E_PATIENT_FILTER) as T
+  // NOT IN alone also removes NULL patient IDs under SQL's three-valued logic.
+  // Unlinked requests are not test records; retain them for reporting/recovery.
+  return query.or(`patient_id.is.null,patient_id.not.in.${SEEDED_E2E_PATIENT_FILTER}`) as T
 }
 
 /**

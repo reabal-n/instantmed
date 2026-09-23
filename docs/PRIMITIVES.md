@@ -10,8 +10,8 @@ Single source of truth for all platform metrics shown on marketing pages.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `SOCIAL_PROOF` | `const object` | Verified stable primitives: `refundPercent`, `operatingDays`, and internal historical counters. Public turnaround/response-time constants were removed 2026-08-09 because the delivery population changed; timing must come from current evidence and remain non-guaranteed. NO operating-hours window fields. Review counts, testimonials, public numeric ratings, employer acceptance rates, approval rates, and fulfilment-rate claims are not public primitives. |
-| `GOOGLE_REVIEWS` | `object` | Google Business Profile star-badge config. Gates the visual Google mark + stars badge only; do not expose review counts, numeric rating text, testimonial copy, or aggregate-rating schema. |
+| `SOCIAL_PROOF` | `const object` | Verified stable primitives: `refundPercent`, `operatingDays`, and internal historical counters. Public turnaround/response-time constants were removed 2026-08-09 because the delivery population changed; timing must come from current evidence and remain non-guaranteed. NO operating-hours window fields. Review counts, testimonials, separate public numeric rating copy, employer acceptance rates, approval rates, and fulfilment-rate claims are not public primitives. |
+| `PRODUCT_REVIEWS` | `object` | Verified ProductReview listing and star-badge configuration. Render through `ProductReviewBadge`, including the equivalent accessible star rating. Do not add review counts, separate numeric rating copy, testimonials or aggregate-rating schema. |
 
 **Rule:** Never hardcode a social proof number on a marketing page. Import the canonical metric from `SOCIAL_PROOF` and format it at the consumer.
 
@@ -71,7 +71,7 @@ Canonical control point for repeated public claims with clinical, operational, p
 | `APPROVED_CLAIMS` | `Record<ApprovedClaimId, ApprovedClaim>` | Approved text plus allowed contexts, risk level, implementation notes, and evidence-receipt paths. |
 | `getApprovedClaim()` | `function` | Returns the approved text for a typed claim ID. Use this in components instead of copying the string. |
 
-Core PR5 claims include `availability_24_7`, `clinical_decision_model`, `clinical_review_sequence`, `clinical_access_scope`, `complaints_timing`, `doctor_registration`, `refund_payment_process`, and the LegitScript/Google certification labels and tooltips. The clinical-model text must remain branch-aware: AI never prescribes; standard certificate requests may follow the Medical Director-approved protocol; concerning or uncertain certificate requests and every prescribing request require individual doctor review before issue.
+Core PR5 claims include `availability_24_7`, `clinical_decision_model`, `clinical_review_sequence`, `clinical_access_scope`, `complaints_timing`, `doctor_registration`, `refund_payment_process`, and the LegitScript/Google certification labels and tooltips. The operator-approved public wording (2026-09-23) describes suitability assessment, follow-up and outcomes, and states that every prescription requires an individual doctor decision. Preserve these canonical strings; do not reintroduce internal processing descriptions in public copy. Internal clinical policy remains owned by `docs/CLINICAL.md` and the clinical implementation.
 
 The request shell imports `MED_CERT_DOCUMENT_SCOPE` from `lib/marketing/certificate-copy.ts`; the registry uses the same constant for `med_cert_document_scope`. This keeps the full registry and review metadata out of the initial request bundle without duplicating the sentence. Preserve this narrow import boundary.
 
@@ -155,11 +155,11 @@ The generic service funnel template (`components/marketing/service-funnel-page.t
 | General FAQ content (/faq page) | `lib/data/general-faq.ts` |
 | Wait time display | `components/marketing/live-wait-time.tsx` → `SERVICE_CONFIG` |
 | Stat strip metrics for a service | `components/marketing/total-patients-counter.tsx` → `STAT_PRESETS` |
-| Google Reviews config | `lib/social-proof/index.ts` → `GOOGLE_REVIEWS` |
+| ProductReview config | `lib/social-proof/index.ts` → `PRODUCT_REVIEWS` |
 | A patient-count claim | No current primitive; establish a verified persisted source and complete compliance review first |
 | Paid ads or acquisition copy | `docs/ADVERTISING_COMPLIANCE.md` |
 | Educational prescription/medicine SEO content | `docs/SEO_CONTENT_POLICY.md` |
 
 ### Front-door composition (23 September 2026)
 
-`Hero` owns status, action, reassurance and linked ProductReview placement. `availabilityServiceId` gates timing; service-owned CTA gates remain unchanged. Certification marks render in `Footer`, separately from registration/refund/privacy reassurance. `Footer` contains native service discovery. Contact keeps `contact_form_submitted` as an attempt event, adds `contact_form_succeeded` only after successful delivery and uses fixed failure categories. Neither event carries entered text or identity.
+`Hero` owns status, action, reassurance and linked ProductReview placement. `availabilityServiceId` gates timing, reassurance and reviews on unavailable services; `timingServiceId` lets a general page source timing from a specific service without hiding its platform-wide reviews. Service-owned CTA gates remain unchanged. Certification marks render in `Footer`, separately from registration/refund/privacy reassurance. `Footer` contains native service discovery. Contact keeps `contact_form_submitted` as an attempt event, adds `contact_form_succeeded` only after successful delivery and uses fixed failure categories. Neither event carries entered text or identity.

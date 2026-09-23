@@ -101,7 +101,7 @@ describe("money-page LCP critical path", () => {
     expect(authProvider).toContain("initialAuthResolvedRef.current = true")
     expect(medCertMockup).not.toContain("font-mono")
     expect(escriptMockup).not.toContain("font-mono")
-    expect(medCertMockup).toContain("font-[ui-monospace]")
+    expect(medCertMockup).toContain("font-[ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation_Mono','Courier_New',monospace]")
   })
 
   it("keeps the global 404 from assigning next/link to a money-page chunk group", () => {

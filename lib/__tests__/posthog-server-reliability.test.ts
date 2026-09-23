@@ -137,10 +137,8 @@ describe("PostHog purchase reconciliation", () => {
     expect(query.or).toHaveBeenCalledWith(
       "exclude_from_reporting.is.null,exclude_from_reporting.eq.false",
     )
-    expect(query.not).toHaveBeenCalledWith(
-      "patient_id",
-      "in",
-      expect.stringContaining("e2e00000"),
+    expect(query.or).toHaveBeenCalledWith(
+      expect.stringMatching(/^patient_id\.is\.null,patient_id\.not\.in\.\(e2e/),
     )
 
     expect(fetchMock).toHaveBeenCalledOnce()

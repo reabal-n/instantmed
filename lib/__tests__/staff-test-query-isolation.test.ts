@@ -43,7 +43,13 @@ function query() {
     like: (field: string, pattern: string) => {
       filters.push(row => String(row[field]).startsWith(pattern.slice(0, -1))); return chain
     },
-    or: () => chain, // Every fixture is a prescribing intake.
+    or: (expression: string) => {
+      if (expression.startsWith("patient_id.is.null,patient_id.not.in.(")) {
+        const excluded = expression.split("(")[1].slice(0, -1).split(",")
+        filters.push(row => row.patient_id == null || !excluded.includes(String(row.patient_id)))
+      }
+      return chain // Every fixture is a prescribing intake.
+    },
     order: () => chain,
     limit: () => chain,
     then: (resolve: (value: unknown) => unknown) => {

@@ -35,8 +35,10 @@ interface HeroProps {
   className?: string
   title?: ReactNode
   titleClassName?: string
-  /** Hide service timing when that pathway is unavailable. */
+  /** Hide service-specific timing, reassurance and reviews while unavailable. */
   availabilityServiceId?: ServiceId
+  /** A general hero can show timing from a different, specific service. */
+  timingServiceId?: ServiceId
   children?: ReactNode
   primaryCta?: CtaConfig
   primaryCtaContent?: ReactNode
@@ -52,13 +54,14 @@ interface HeroProps {
 
 export function Hero({
   className, title = 'Healthcare that fits your day.', titleClassName,
-  availabilityServiceId, children,
+  availabilityServiceId, timingServiceId, children,
   primaryCta = { text: 'Get started', href: '/request' }, primaryCtaContent,
   secondaryCta, beforeCta, reassuranceRow, mockup, mockupClassName,
   liveWait, showReviews = true,
 }: HeroProps) {
   const hasTiming = liveWait && buildMedCertSpeedClaimFromWaitState(liveWait).status === 'under_hour'
   const status = hasTiming ? <WaitCounter state={liveWait} /> : null
+  const primaryButtonClassName = "h-auto min-h-12 rounded-lg px-6 py-3 text-base font-semibold whitespace-normal shadow-sm shadow-primary/15"
   const reassurance = reassuranceRow === undefined ? (
     <p className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
       <Check className="mt-1 h-4 w-4 shrink-0 text-success" aria-hidden="true" />
@@ -71,20 +74,28 @@ export function Hero({
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-12">
           <div className="min-w-0 text-left">
-            {status && <ServiceAvailabilityGate serviceId={availabilityServiceId}>
+            {status && <ServiceAvailabilityGate serviceId={timingServiceId ?? availabilityServiceId}>
               <div data-hero-status="" className="mb-5 max-w-lg">{status}</div>
             </ServiceAvailabilityGate>}
             <Heading level="display" className={cn('mb-5 hyphens-none text-balance', titleClassName)}>{title}</Heading>
             <div>{children ?? <p className="mb-6 text-base leading-relaxed text-muted-foreground sm:text-lg">Start with a secure form. Care from AHPRA-registered Australian doctors.</p>}</div>
             {beforeCta && <div className="mb-6">{beforeCta}</div>}
             <div id={primaryCta.wrapperId} ref={primaryCta.ref} className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              {primaryCtaContent ?? <Button asChild size="lg" className="h-auto min-h-12 rounded-lg px-6 py-3 text-base font-semibold whitespace-normal shadow-sm shadow-primary/15" onClick={primaryCta.onClick}>
-                <Link href={primaryCta.href} {...primaryCta.dataAttributes}>{primaryCta.text}<ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" /></Link>
-              </Button>}
+              {primaryCtaContent ?? <ServiceAvailabilityGate serviceId={availabilityServiceId} fallback={
+                <Button asChild size="lg" className={primaryButtonClassName}>
+                  <Link href="/contact">Contact us<ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" /></Link>
+                </Button>
+              }>
+                <Button asChild size="lg" className={primaryButtonClassName} onClick={primaryCta.onClick}>
+                  <Link href={primaryCta.href} {...primaryCta.dataAttributes}>{primaryCta.text}<ArrowRight className="ml-2 h-4 w-4 shrink-0" aria-hidden="true" /></Link>
+                </Button>
+              </ServiceAvailabilityGate>}
               {secondaryCta && <Button asChild variant="ghost" size="lg" className="h-auto min-h-12 px-4 py-3 text-base text-muted-foreground"><Link href={secondaryCta.href}>{secondaryCta.text}</Link></Button>}
             </div>
-            {reassurance && <div data-hero-reassurance="" className="mt-3">{reassurance}</div>}
-            {showReviews && <div data-hero-reviews="" className="mt-5"><ProductReviewBadge /></div>}
+            <ServiceAvailabilityGate serviceId={availabilityServiceId}>
+              {reassurance && <div data-hero-reassurance="" className="mt-3">{reassurance}</div>}
+              {showReviews && <div data-hero-reviews="" className="mt-5"><ProductReviewBadge /></div>}
+            </ServiceAvailabilityGate>
           </div>
           {mockup && <div data-hero-mockup="" className={cn('relative min-w-0 w-full max-w-md justify-self-center', mockupClassName)}>{mockup}</div>}
         </div>

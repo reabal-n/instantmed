@@ -229,8 +229,10 @@ export function AnimatedMobileMenu({
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : ""
+    document.documentElement.toggleAttribute("data-mobile-menu-open", isOpen)
     return () => {
       document.body.style.overflow = ""
+      document.documentElement.removeAttribute("data-mobile-menu-open")
     }
   }, [isOpen])
 
@@ -241,7 +243,7 @@ export function AnimatedMobileMenu({
       aria-label="Mobile navigation"
       aria-hidden={!isOpen}
       inert={!isOpen ? true : undefined}
-      className="lg:hidden"
+      className="relative z-[55] lg:hidden"
     >
       <div
         aria-hidden="true"

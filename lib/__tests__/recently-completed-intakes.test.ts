@@ -241,10 +241,8 @@ describe("getRecentlyCompletedIntakes", () => {
     await getRecentlyCompletedIntakes({ limit: 8, reviewerId: "doctor-1" })
 
     expect(harness.queries[0]).toContainEqual([
-      "not",
-      "patient_id",
-      "in",
-      expect.any(String),
+      "or",
+      expect.stringMatching(/^patient_id\.is\.null,patient_id\.not\.in\.\(e2e/),
     ])
   })
 
@@ -268,7 +266,7 @@ describe("getRecentlyCompletedIntakes", () => {
     expect(harness.queries).toHaveLength(3)
     for (const query of harness.queries) {
       expect(query).toContainEqual(["eq", "patient_id", SEEDED_E2E_PATIENT_PROFILE_ID])
-      expect(query).not.toContainEqual(["not", "patient_id", "in", expect.any(String)])
+      expect(query).not.toContainEqual(["or", expect.stringContaining("patient_id.not.in")])
     }
   })
 

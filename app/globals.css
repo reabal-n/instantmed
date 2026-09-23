@@ -455,6 +455,10 @@ body {
    root (components/marketing/shared/sticky-cta.tsx). Reserve that height under
    the footer on phones so the bar never covers the footer's legal links. */
 @media (max-width: 1023px) {
+  html[data-mobile-menu-open] [aria-label="Quick purchase"] {
+    visibility: hidden;
+  }
+
   html[data-sticky-cta] footer[role="contentinfo"] {
     padding-bottom: calc(var(--sticky-cta-height, 6rem) + 0.5rem + env(safe-area-inset-bottom, 0px));
   }

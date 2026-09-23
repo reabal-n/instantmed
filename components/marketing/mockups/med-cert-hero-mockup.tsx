@@ -25,7 +25,7 @@ export function MedCertHeroMockup({ compact = false }: { compact?: boolean }) {
           </div>
         </div>
         <div className="border-t border-border/60 pt-4 text-sm leading-6 text-muted-foreground">
-          <p className="font-[ui-monospace] text-foreground">Reference: SPECIMEN</p>
+          <p className="font-[ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation_Mono','Courier_New',monospace] text-foreground">Reference: SPECIMEN</p>
           <p>Check authenticity at <span className="text-primary">instantmed.com.au/verify</span></p>
         </div>
       </div>

@@ -173,7 +173,7 @@ export default async function HomePage() {
             title={TAGLINE}
             titleClassName={`${homeH1Font.className} min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5`}
             liveWait={waitState}
-            availabilityServiceId="med-cert"
+            timingServiceId="med-cert"
             primaryCta={{ text: "Get started", href: "/request", wrapperId: HOME_HERO_CTA_ID, dataAttributes: { "data-home-cta": "hero" } }}
             secondaryCta={null}
             mockup={<HeroDoctorReviewMockup />}
