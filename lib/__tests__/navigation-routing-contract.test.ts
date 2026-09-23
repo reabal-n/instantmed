@@ -122,7 +122,6 @@ describe("navigation routing contracts", () => {
       "components/shared/navbar/animated-nav-link.tsx",
       "components/shared/navbar/user-menu.tsx",
       "components/shared/navbar/services-dropdown.tsx",
-      "components/shared/navbar/resources-dropdown.tsx",
       "components/shared/navbar/mobile-menu-toggle.tsx",
       "components/shared/navbar/mobile-drawer.tsx",
       "components/ui/animated-mobile-menu.tsx",

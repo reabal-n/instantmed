@@ -99,7 +99,7 @@ describe("marketing reduced-motion contract", () => {
       "returnFocusRef.current = opener instanceof HTMLElement ? opener : null",
     )
     expect(menu).toContain("returnFocusRef.current?.focus({ preventScroll: true })")
-    expect(menu).toContain("firstNavigationLink ?? getVisibleDrawerControls(contentRef.current)[0]")
+    expect(menu).toContain("firstNavigationControl ?? getVisibleDrawerControls(contentRef.current)[0]")
     expect(menu).toContain("tabIndex={-1}")
     expect(menu).toContain('event.key !== "Tab"')
     expect(toggle).toContain('aria-controls="mobile-navigation-menu"')

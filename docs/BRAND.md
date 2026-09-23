@@ -89,7 +89,7 @@ A small live counter on hero pages: *"Average med cert today: 14 minutes from fo
 A stylised governance signature mark. The image asset already exists at `public/branding/eSignature.png`.
 
 **Surface rules** (compliant with AGENTS.md "no individual doctor names on marketing pages"):
-- Marketing pages, homepage footer: stylised signature mark only, no readable name. Acts as a logo-adjacent device.
+- Marketing pages: where a signature is used, use a stylised mark only, with no readable name. The shared footer omits the signature and caption to keep support, trust badges and legal information compact.
 - Patient-specific cert PDFs, decline emails, dashboard messages, and email signoff: the treating doctor's full name and signature are appropriate.
 - Public surfaces use "AHPRA-registered doctors" without a doctor count or individual names.
 

@@ -7,7 +7,6 @@ import { useEffect, useState } from "react"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { MobileMenuToggle } from "@/components/shared/navbar/mobile-menu-toggle"
-import { ResourcesDropdown } from "@/components/shared/navbar/resources-dropdown"
 import { ServicesDropdown } from "@/components/shared/navbar/services-dropdown"
 import { ThemeSwitch } from "@/components/shared/navbar/theme-switch"
 import { UserMenu } from "@/components/shared/navbar/user-menu"
@@ -125,20 +124,15 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               {variant === "marketing" && (
                 <>
                   <ServicesDropdown isActivePath={isActivePath} />
-                  <AnimatedNavLink
-                    href="/pricing"
-                    isActive={isActivePath("/pricing")}
-                  >
+                  <AnimatedNavLink href="/how-it-works" isActive={isActivePath("/how-it-works")}>
+                    How it works
+                  </AnimatedNavLink>
+                  <AnimatedNavLink href="/pricing" isActive={isActivePath("/pricing")}>
                     Pricing
                   </AnimatedNavLink>
-                  <AnimatedNavLink
-                    href="/blog"
-                    isActive={isActivePath("/blog")}
-                    prefetch={false}
-                  >
-                    Blog
+                  <AnimatedNavLink href="/contact" isActive={isActivePath("/contact")}>
+                    Contact us
                   </AnimatedNavLink>
-                  <ResourcesDropdown isActivePath={isActivePath} />
 
                   <UserMenu
                     variant="marketing"

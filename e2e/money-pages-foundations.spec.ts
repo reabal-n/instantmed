@@ -1233,16 +1233,16 @@ test.describe("money-page keyboard foundations", () => {
 
     const menu = page.locator('nav[data-mobile-menu-hydrated="true"]')
     const content = page.locator('[data-mobile-menu-content="true"]')
-    const focusedLink = content.locator("ul a[href]").first()
+    const focusedControl = content.locator("ul a[href], ul button:not([disabled])").first()
     await expect(menu).toBeAttached()
-    await expect(focusedLink).toBeFocused()
+    await expect(focusedControl).toBeFocused()
 
     await page.emulateMedia({ reducedMotion: "reduce" })
     await expect
       .poll(() => page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches))
       .toBe(true)
     await expect(menu).toHaveAttribute("data-mobile-menu-motion", "static")
-    await expect(focusedLink).toBeFocused()
+    await expect(focusedControl).toBeFocused()
     await waitTwoFrames(page)
     expect(await inspectActiveMeaningfulAnimations(page)).toEqual([])
 
@@ -1252,14 +1252,14 @@ test.describe("money-page keyboard foundations", () => {
       "reverse Tab should remain inside the open drawer after the live preference change",
     ).toBe(true)
     await page.keyboard.press("Tab")
-    await expect(focusedLink).toBeFocused()
+    await expect(focusedControl).toBeFocused()
 
     await page.emulateMedia({ reducedMotion: "no-preference" })
     await expect
       .poll(() => page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches))
       .toBe(false)
     await expect(menu).toHaveAttribute("data-mobile-menu-motion", "animated")
-    await expect(focusedLink).toBeFocused()
+    await expect(focusedControl).toBeFocused()
 
     await page.keyboard.press("Escape")
     await expect(content).toBeHidden()
@@ -1278,10 +1278,10 @@ test.describe("money-page keyboard foundations", () => {
 
       const close = page.getByRole("button", { name: "Close menu" })
       const content = page.locator('[data-mobile-menu-content="true"]')
-      const firstNavigationLink = content.locator("ul a[href]").first()
+      const firstNavigationControl = content.locator("ul a[href], ul button:not([disabled])").first()
       await expect(close).toHaveAttribute("aria-expanded", "true")
       await expect(content).toBeVisible()
-      await expect(firstNavigationLink).toBeFocused()
+      await expect(firstNavigationControl).toBeFocused()
       await expect(content.locator('li[tabindex="0"]')).toHaveCount(0)
 
       let reachedThemeSwitch = false

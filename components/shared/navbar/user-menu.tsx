@@ -112,19 +112,6 @@ export function UserMenu({
   if (variant === "marketing") {
     return (
       <div className="ml-2 flex items-center gap-2">
-        <Button
-          asChild
-          size="sm"
-          className="text-xs h-7 px-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
-        >
-          <Link
-            href={REQUEST_HREF}
-            onPointerDown={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-          >
-            Start a request
-          </Link>
-        </Button>
         {/*
           Auth-aware link. Renders nothing until the client provider has
           resolved the session (the auth load fires on mount for marketing
@@ -178,6 +165,19 @@ export function UserMenu({
             </Tooltip>
           </TooltipProvider>
         )}
+        <Button
+          asChild
+          size="sm"
+          className="text-xs h-7 px-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+        >
+          <Link
+            href={REQUEST_HREF}
+            onPointerDown={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            Get started
+          </Link>
+        </Button>
       </div>
     )
   }

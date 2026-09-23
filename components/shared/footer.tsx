@@ -2,12 +2,10 @@ import { Mail, Phone } from "lucide-react"
 import Link from "next/link"
 
 import { StripeBadge } from "@/components/checkout/trust-badges"
-import { DoctorSignatureView } from "@/components/marketing/doctor-signature"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
-import { MEDICAL_DIRECTOR_SIGNATURE } from "@/lib/brand/doctor-signature"
 import {
   ABN,
   COMPANY_NAME,
@@ -30,7 +28,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
       {/* Main card */}
       <div
         data-nosnippet=""
-        className="min-w-0 bg-white dark:bg-card rounded-3xl px-5 sm:px-8 py-7 sm:py-9 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none"
+        className="min-w-0 bg-white dark:bg-card rounded-3xl px-5 sm:px-8 py-6 sm:py-7 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none"
       >
         <div className="flex flex-col md:flex-row gap-6 md:gap-10">
           {/* Brand + Contact */}
@@ -57,22 +55,11 @@ export function Footer({ variant = "marketing" }: FooterProps) {
                 {CONTACT_PHONE}
               </a>
             )}
-            {/* Signature brand device #2 (docs/BRAND.md §6.2). Mark-only on
-                marketing surfaces per CLAUDE.md identity rule (no individual
-                doctor names on marketing pages). Logo-adjacent placement. */}
-            {isMarketing && (
-              <div className="mt-5 pt-4 border-t border-border/40">
-                <DoctorSignatureView data={MEDICAL_DIRECTOR_SIGNATURE} variant="mark" size="sm" />
-                <p className="mt-1.5 text-[10px] text-muted-foreground/80 italic leading-snug">
-                  Reviewed by your InstantMed doctor.
-                </p>
-              </div>
-            )}
           </div>
 
           {/* Link columns */}
-          <div className={`min-w-0 flex-1 grid grid-cols-1 min-[241px]:grid-cols-2 gap-x-4 gap-y-5 md:gap-x-8 ${isMarketing ? "md:grid-cols-3" : ""}`}>
-            <nav aria-label="Services">
+          <div className={`min-w-0 flex-1 grid grid-cols-1 min-[241px]:grid-cols-2 gap-x-4 gap-y-5 md:gap-x-8 md:grid-cols-2`}>
+            {!isMarketing && <nav aria-label="Services">
               <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Services</p>
               <div className="flex flex-col gap-1.5">
                 {footerLinks.services.map((link) => (
@@ -81,10 +68,10 @@ export function Footer({ variant = "marketing" }: FooterProps) {
                   </Link>
                 ))}
               </div>
-            </nav>
+            </nav>}
 
-            <nav aria-label="Company">
-              <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Company</p>
+            <nav aria-label="About InstantMed">
+              <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">About</p>
               <div className="flex flex-col gap-1.5">
                 {footerLinks.company.map((link) => (
                   <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
@@ -94,11 +81,10 @@ export function Footer({ variant = "marketing" }: FooterProps) {
               </div>
             </nav>
 
-            {/* Useful branded-search shortcuts. City pages remain linked from
-                /locations instead of competing for sitewide prominence. */}
+            {/* Keep support tasks separate from company information. */}
             {isMarketing && (
               <nav aria-label="Helpful links">
-                <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Helpful</p>
+                <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Help</p>
                 <div className="flex flex-col gap-1.5">
                   {footerLinks.help.map((link) => (
                     <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
@@ -151,10 +137,10 @@ export function Footer({ variant = "marketing" }: FooterProps) {
             <Link href="/refund-policy" className="hover:text-foreground transition-colors">Refund</Link>
             <Link href="/complaints" className="hover:text-foreground transition-colors">Complaints</Link>
             <Link href="/trust" className="hover:text-foreground transition-colors">Trust & Safety</Link>
+            <Link href="/sitemap-html" className="hover:text-foreground transition-colors">Site map</Link>
           </div>
         </div>
-        <p className="text-pretty italic">An apple a day keeps the doctor away. We&apos;re here for when that fails.</p>
-        <p>ABN: {ABN}</p>
+        <p className="shrink-0 whitespace-nowrap">ABN: {ABN}</p>
       </div>
     </footer>
   )

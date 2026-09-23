@@ -37,32 +37,37 @@ export function MedCertReasonLinks() {
   return (
     <section
       aria-label="Certificates by reason"
-      className="border-t border-border/30 py-8 dark:border-white/10"
+      className="border-t border-border/30 py-4 dark:border-white/10"
     >
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <nav aria-label="More medical certificate guidance" className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
-          {REASON_SLUGS.map((slug) => {
-            const config = medCertIntentConfigs[slug]
-            return (
-              <Link
-                key={slug}
-                href={`/medical-certificate/${slug}`}
-                className="text-muted-foreground transition-colors hover:text-primary"
-              >
-                {config.explainerTitle}
-              </Link>
-            )
-          })}
-          <Link
-            href="/medical-certificate/employer-acceptance"
-            className="inline-flex items-center gap-1 font-medium text-primary hover:text-primary/80"
-          >
-            Employer evidence guide <ArrowRight className="h-3 w-3" aria-hidden="true" />
-          </Link>
-          <Link href="/prescriptions" className="text-muted-foreground transition-colors hover:text-primary">
-            Repeat prescriptions
-          </Link>
-        </nav>
+        <details>
+          <summary className="mx-auto w-fit cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            More certificate guidance
+          </summary>
+          <nav aria-label="More medical certificate guidance" className="mt-4 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+            {REASON_SLUGS.map((slug) => {
+              const config = medCertIntentConfigs[slug]
+              return (
+                <Link
+                  key={slug}
+                  href={`/medical-certificate/${slug}`}
+                  className="text-muted-foreground transition-colors hover:text-primary"
+                >
+                  {config.explainerTitle}
+                </Link>
+              )
+            })}
+            <Link
+              href="/medical-certificate/employer-acceptance"
+              className="inline-flex items-center gap-1 font-medium text-primary hover:text-primary/80"
+            >
+              Employer evidence guide <ArrowRight className="h-3 w-3" aria-hidden="true" />
+            </Link>
+            <Link href="/prescriptions" className="text-muted-foreground transition-colors hover:text-primary">
+              Repeat prescriptions
+            </Link>
+          </nav>
+        </details>
       </div>
     </section>
   )

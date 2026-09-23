@@ -1,7 +1,6 @@
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { GUARANTEE } from "@/lib/marketing/voice"
-import { BRANDED_SEARCH_LINKS } from "@/lib/seo/branded-search-links"
 
 // Homepage Marketing Data
 // All content centralized for easy updates
@@ -53,14 +52,12 @@ export const footerLinks = {
   ],
   company: [
     { label: "About InstantMed", href: "/about" },
-    { label: "For Business", href: "/business" },
     { label: "Health Guides", href: "/blog" },
-    { label: "Your Options", href: "/alternatives" },
     { label: "What we won't do", href: "/what-we-wont-do" },
-    { label: "Why we're faster", href: "/why-instant" },
   ],
   help: [
-    ...BRANDED_SEARCH_LINKS.slice(2),
-    { label: "All locations", href: "/locations" },
+    { label: "Contact us", href: "/contact" },
+    { label: "FAQs", href: "/faq" },
+    { label: "Verify a certificate", href: "/verify" },
   ],
 }

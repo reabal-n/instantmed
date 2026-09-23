@@ -182,8 +182,8 @@ export function AnimatedMobileMenu({
       const opener = document.activeElement
       returnFocusRef.current = opener instanceof HTMLElement ? opener : null
       const focusFrame = requestAnimationFrame(() => {
-        const firstNavigationLink = contentRef.current?.querySelector<HTMLElement>("ul a[href]")
-        const firstControl = firstNavigationLink ?? getVisibleDrawerControls(contentRef.current)[0]
+        const firstNavigationControl = contentRef.current?.querySelector<HTMLElement>("ul a[href], ul button:not([disabled])")
+        const firstControl = firstNavigationControl ?? getVisibleDrawerControls(contentRef.current)[0]
         firstControl?.focus({ preventScroll: true })
       })
       wasOpenRef.current = true
