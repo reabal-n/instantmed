@@ -274,6 +274,31 @@ describe("detectDedicatedServiceForMedication", () => {
 })
 
 describe("weight-management routing (service live 2026-08-07)", () => {
+  it.each([
+    ["Mounjaro", "tirzepatide"],
+    ["Zepbound", "tirzepatide"],
+    ["Wegovy", "semaglutide"],
+    ["Ozempic", "semaglutide"],
+    ["Rybelsus", "semaglutide"],
+    ["Saxenda", "liraglutide"],
+    ["Victoza", "liraglutide"],
+    ["Trulicity", "dulaglutide"],
+    ["Duromine", "phentermine"],
+    ["Metermine", "phentermine"],
+  ])("routes both %s and its generic %s, including combined labels", (brand, generic) => {
+    for (const medicine of [brand, generic, `${brand.toUpperCase()} (${generic}) 5 mg`]) {
+      expect(detectDedicatedServiceForMedication(medicine, "type 2 diabetes", "type_2_diabetes"))
+        .toMatchObject({ subtype: "weight_loss", enforcement: "hard" })
+    }
+  })
+
+  it("recognises the reported triztepide spelling as a routing alias only", () => {
+    expect(detectDedicatedServiceForMedication("triztepide 5 mg"))
+      .toMatchObject({ subtype: "weight_loss", enforcement: "hard" })
+    expect(detectDedicatedServiceForMedication("Metformin", "Previously tried triztepide")).toBeNull()
+    expect(detectDedicatedServiceForMedication("nottriztepideproduct")).toBeNull()
+  })
+
   it.each(["Ozemptic", "Duramine", "Duromine", "Mounjaro", "Monjaro", "Trulicity", "dulaglutide", "GLP-1", "GLP1"])("routes %s for assessment without claiming it is unavailable", (name) => {
     const match = detectDedicatedServiceForMedication(name)
     expect(match).toMatchObject({ subtype: "weight_loss", enforcement: "hard" })

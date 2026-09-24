@@ -310,6 +310,8 @@ const WEIGHT_BRANDS: ReadonlyArray<RegExp> = [
   /\brybelsus\b/i,
   /\btrulicity\b/i,
   /\bglp[ -]?1\b/i,
+  // Reported tirzepatide spelling: exact routing alias, not a verified medicine identity.
+  /\btriztepide\b/i,
 ]
 const WEIGHT_INGREDIENTS: ReadonlyArray<string> = [
   "semaglutide",
