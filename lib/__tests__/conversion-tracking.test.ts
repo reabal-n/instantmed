@@ -9,8 +9,6 @@ import {
   updateConsent,
 } from "../analytics/conversion-tracking"
 
-type GtagCall = [string, string, Record<string, unknown>]
-
 let gtagMock: ReturnType<typeof vi.fn>
 let storage: Record<string, string>
 
@@ -55,7 +53,7 @@ beforeEach(() => {
 })
 
 describe("conversion tracking", () => {
-  it("defaults consent mode to granted until visitors opt out", () => {
+  it("keeps advertising personalisation denied by default", () => {
     const dataLayer: unknown[] = []
     Object.assign(window, { dataLayer, gtag: undefined })
 
@@ -67,55 +65,21 @@ describe("conversion tracking", () => {
     expect(commandToArray(dataLayer[0])).toEqual(["consent", "default", {
       ad_storage: "granted",
       ad_user_data: "granted",
-      ad_personalization: "granted",
+      ad_personalization: "denied",
       analytics_storage: "granted",
       functionality_storage: "granted",
-      personalization_storage: "granted",
+      personalization_storage: "denied",
       security_storage: "granted",
     }])
   })
 
-  it("maps purchase conversion to the Google Ads purchase label", () => {
-    trackConversion("PURCHASE", {
-      transaction_id: "intake_123",
-      value: 49.95,
-      currency: "AUD",
-    })
-
-    const calls = gtagMock.mock.calls as GtagCall[]
-    const conversionCall = calls.find(([kind, event]) => kind === "event" && event === "conversion")
-    expect(conversionCall?.[2].send_to).toBe("AW-17795889471/SqypCNva94YcEL_y3qVC")
-    expect(conversionCall?.[2]).toMatchObject({
-      page_location: "https://instantmed.com.au/auth/complete-account",
-      page_path: "/auth/complete-account",
-    })
-    expect(JSON.stringify(conversionCall?.[2])).not.toContain("cs_sensitive")
-
-    const purchaseCall = calls.find(([kind, event]) => kind === "event" && event === "purchase")
-    expect(purchaseCall?.[2].send_to).toBe("G-X0QJQRLL2Y")
-  })
-
-  it("queues fallback gtag calls in the same arguments shape as the Google tag shim", () => {
-    const dataLayer: unknown[] = []
-    Object.assign(window, { dataLayer, gtag: undefined })
-
-    trackConversion("PURCHASE", {
-      transaction_id: "intake_123",
-      value: 49.95,
-      currency: "AUD",
-    })
-
-    expect(window.gtag).toEqual(expect.any(Function))
-    expect(dataLayer).toHaveLength(2)
-    expectArgumentsCommand(dataLayer[0])
-    expect(commandToArray(dataLayer[0])).toEqual([
-      "event",
-      "conversion",
-      expect.objectContaining({
-        send_to: "AW-17795889471/SqypCNva94YcEL_y3qVC",
-        value: 49.95,
-      }),
-    ])
+  it("does not send or queue duplicate browser conversions", () => {
+    trackConversion("PURCHASE", { transaction_id: "private-order", value: 49.95 })
+    expect(gtagMock).not.toHaveBeenCalled()
+    Object.assign(window, { dataLayer: [], gtag: undefined })
+    trackConversion("PURCHASE", { transaction_id: "private-order", value: 49.95 })
+    expect(window.dataLayer).toEqual([])
+    expect(window.gtag).toBeUndefined()
   })
 
   it("updates consent mode correctly for marketing permissions", () => {
@@ -134,39 +98,16 @@ describe("conversion tracking", () => {
     })
   })
 
-  it("tracks checkout funnel progress without firing a Google Ads conversion action", async () => {
+  it("keeps funnel diagnostics local and never forwards health steps to Google", async () => {
     await trackFunnelStep("checkout", "prescription")
-
-    const calls = gtagMock.mock.calls as GtagCall[]
-    const conversionCall = calls.find(([kind, event]) => kind === "event" && event === "conversion")
-    expect(conversionCall).toBeUndefined()
-    expect(calls).toContainEqual([
-      "event",
-      "funnel_milestone",
-      {
-        event_category: "funnel",
-        funnel_step: "checkout",
-        send_to: "G-X0QJQRLL2Y",
-        service_type: "prescription",
-      },
-    ])
+    trackStepEvent({ serviceType: "prescription", stepIndex: 2, stepName: "medication", totalSteps: 6 })
+    expect(gtagMock).not.toHaveBeenCalled()
+    expect(storage.instantmed_funnel).toContain("checkout")
   })
 
-  it("routes intake-step analytics only to GA4", () => {
-    trackStepEvent({
-      serviceType: "prescription",
-      stepIndex: 2,
-      stepName: "medication",
-      totalSteps: 6,
-    })
-
-    expect(gtagMock).toHaveBeenCalledWith("event", "funnel_step", {
-      send_to: "G-X0QJQRLL2Y",
-      service_type: "prescription",
-      step_index: 2,
-      step_name: "medication",
-      total_steps: 6,
-    })
+  it("cannot opt into health advertising personalisation", () => {
+    updateConsent({ adPersonalization: true })
+    expect(gtagMock).toHaveBeenCalledWith("consent", "update", expect.objectContaining({ ad_personalization: "denied" }))
   })
 
   it("builds the enhanced-conversion user data payload with explicit hashed fields", async () => {

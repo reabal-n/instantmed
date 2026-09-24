@@ -2,7 +2,7 @@
 
 **Status:** finalised 24 September 2026 after Opus review and independent verification; replaces the September 23 draft. **Owner:** Rey. **Currency:** AUD.
 
-**Authority:** Reference only. This document elaborates the ranked growth item in `docs/ROADMAP.md`; it is not a parallel programme. `docs/REVENUE_MODEL.md` owns economics, `docs/OPERATIONS.md` owns live mutations, and `docs/ADVERTISING_COMPLIANCE.md` owns acquisition/privacy boundaries. The owner has authorised finalising this plan and repairing the reported reconciliation alerts. This does not approve all future bids, budgets, customer messages, clinical changes or provider configuration changes.
+**Authority:** Reference only. This document elaborates the ranked growth item in `docs/ROADMAP.md`; it is not a parallel programme. `docs/REVENUE_MODEL.md` owns economics, `docs/OPERATIONS.md` owns live mutations, and `docs/ADVERTISING_COMPLIANCE.md` owns acquisition/privacy boundaries. The owner authorised implementing this final plan on September 24. Exact Ads mutations retain the proposal/approval controls below; future cohort and provider outcomes remain evidence gates.
 
 ## 1. Outcome and commercial rules
 

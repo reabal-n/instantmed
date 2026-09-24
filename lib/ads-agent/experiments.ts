@@ -16,7 +16,7 @@ import type {
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const FEE_AWARE_EXPERIMENT_METRIC =
-  "first_order_contribution_cents_per_retained_order" as const
+  "campaign_contribution_cents_per_retained_order" as const
 
 export const EXPERIMENT_VARIABLES = [
   "ad_copy",
@@ -125,6 +125,7 @@ export interface AdsExperimentRepository {
 }
 
 interface BuildAdsExperimentArgs {
+  methodology?: AdsExperimentMethodology
   durationDays?: number
   experimentKey: string
   forecastRetainedOrders30d: number
@@ -609,14 +610,14 @@ export function buildAdsExperiment(
   const controlStartsAt = new Date(
     args.now.getTime() - durationDays * DAY_MS,
   ).toISOString()
-  const methodology: AdsExperimentMethodology =
+  const methodology: AdsExperimentMethodology = args.methodology ?? (
     args.forecastRetainedOrders30d
       >= Math.max(
         DEFAULT_MINIMUM_ORDERS_PER_ARM * 2,
         args.minimumOrdersPerArm * 2,
       )
       ? "google_custom"
-      : "versioned_sequential"
+      : "versioned_sequential")
 
   return {
     challenger: buildArmVersion({
@@ -1097,7 +1098,9 @@ function experimentFromRow(value: unknown): AdsExperiment {
     row.primary_metric,
     "primary_metric",
   )
-  if (primaryMetric !== FEE_AWARE_EXPERIMENT_METRIC) {
+  // Historical rows used a first-order label for this same campaign-level calculation.
+  if (primaryMetric !== FEE_AWARE_EXPERIMENT_METRIC
+    && primaryMetric !== "first_order_contribution_cents_per_retained_order") {
     throw new Error("invalid_experiment_primary_metric")
   }
   const status = requiredString(row.status, "status")
@@ -1321,8 +1324,27 @@ async function proposalSnapshot(
   return result.data?.snapshot ?? null
 }
 
+export function parseExperimentControls(input: {
+  maxLossCents?: string | null
+  durationDays?: string | null
+}): { maxLossCents?: number; durationDays?: number } {
+  const result: { maxLossCents?: number; durationDays?: number } = {}
+  for (const key of ["maxLossCents", "durationDays"] as const) {
+    const raw = input[key]
+    if (raw == null) continue
+    const value = Number(raw)
+    if (!/^[1-9][0-9]*$/.test(raw) || !Number.isSafeInteger(value)
+      || (key === "durationDays" && value > MAX_EXPERIMENT_DAYS)) {
+      throw new Error(`invalid_experiment_${key}`)
+    }
+    result[key] = value
+  }
+  return result
+}
+
 export async function createExperimentFromProposal(
   proposalKey: string,
+  controls: { maxLossCents?: number; durationDays?: number } = {},
 ): Promise<AdsExperiment> {
   const supabase = createServiceRoleClient()
   const proposal = await getAdsProposalByKey(supabase, proposalKey)
@@ -1333,7 +1355,10 @@ export async function createExperimentFromProposal(
   return createAdsExperiment({
     experimentKey: await nextExperimentKey(supabase, now),
     forecastRetainedOrders30d: forecastRetainedOrders(snapshot, proposal),
-    maxLossCents: DEFAULT_MAX_LOSS_CENTS,
+    // This CLI records changes to the live campaign; it does not provision a Google split experiment.
+    methodology: "versioned_sequential",
+    maxLossCents: controls.maxLossCents ?? DEFAULT_MAX_LOSS_CENTS,
+    durationDays: controls.durationDays,
     minimumOrdersPerArm: DEFAULT_MINIMUM_ORDERS_PER_ARM,
     now,
     proposal,

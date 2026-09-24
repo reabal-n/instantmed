@@ -7,6 +7,7 @@ import {
 import {
   checkExperiment,
   createExperimentFromProposal,
+  parseExperimentControls,
   evaluateExperiment,
   stopExperiment,
 } from "@/lib/ads-agent/experiments"
@@ -58,7 +59,7 @@ const USAGE = [
   "pnpm ads:agent apply --proposal=<proposal-key>",
   "pnpm ads:agent reconcile --proposal=<proposal-key>",
   "pnpm ads:agent verify --proposal=<proposal-key>",
-  "pnpm ads:agent experiment:create --proposal=<proposal-key>",
+  "pnpm ads:agent experiment:create --proposal=<proposal-key> [--max-loss-cents=15000] [--duration-days=14]",
   "pnpm ads:agent experiment:check --experiment=<experiment-key>",
   "pnpm ads:agent experiment:stop --experiment=<experiment-key>",
   "pnpm ads:agent experiment:evaluate --experiment=<experiment-key>",
@@ -150,7 +151,10 @@ async function run(command: Command): Promise<void> {
   }
 
   if (command === "experiment:create") {
-    writeJson(await createExperimentFromProposal(requiredOption("proposal")))
+    writeJson(await createExperimentFromProposal(requiredOption("proposal"), parseExperimentControls({
+      maxLossCents: option("max-loss-cents"),
+      durationDays: option("duration-days"),
+    })))
     return
   }
   if (command === "experiment:check") {

@@ -1,6 +1,6 @@
 /**
  * Google Ads Conversion Tracking
- * Fires purchase conversion events and non-conversion funnel analytics events.
+ * Legacy browser helpers; Google dispatch is disabled for privacy containment.
  *
  * Includes:
  * - Enhanced Conversions (hashed email for better attribution)
@@ -8,7 +8,7 @@
  * - Google Consent Mode v2 support
  */
 
-import { GOOGLE_ANALYTICS_ID } from '@/lib/analytics/google-tag-ids'
+import { GOOGLE_ANALYTICS_ID, GOOGLE_BROWSER_TAGS_ENABLED } from '@/lib/analytics/google-tag-ids'
 
 // Conversion action IDs — Google Ads account AW-17795889471 (account 920-501-0513)
 // Get conversion labels from: Google Ads → Goals → Conversions → click each action → Tag setup
@@ -126,7 +126,7 @@ export async function buildEnhancedConversionsUserData(
  * Call this when you have the user's email (e.g. after patient details step)
  */
 export async function setEnhancedConversionsData(params: EnhancedConversionsInput) {
-  if (typeof window === 'undefined') return
+  if (!GOOGLE_BROWSER_TAGS_ENABLED || typeof window === 'undefined') return
 
   const userData = await buildEnhancedConversionsUserData(params)
   if (!userData) return
@@ -137,7 +137,7 @@ export async function setEnhancedConversionsData(params: EnhancedConversionsInpu
 /**
  * Initialize Google Consent Mode v2
  * Call this before any gtag calls (typically in layout)
- * Australian implied consent model: defaults to granted, users opt out via cookie banner.
+ * Advertising personalisation is denied regardless of browser consent.
  */
 export function initConsentMode() {
   if (typeof window === 'undefined') return
@@ -149,10 +149,10 @@ export function initConsentMode() {
   gtag('consent', 'default', {
     ad_storage: 'granted',
     ad_user_data: 'granted',
-    ad_personalization: 'granted',
+    ad_personalization: 'denied',
     analytics_storage: 'granted',
     functionality_storage: 'granted',
-    personalization_storage: 'granted',
+    personalization_storage: 'denied',
     security_storage: 'granted',
   })
 }
@@ -171,7 +171,7 @@ export function updateConsent(granted: {
   const update = {
     ad_storage: granted.adStorage ? 'granted' : 'denied',
     ad_user_data: granted.adUserData ? 'granted' : 'denied',
-    ad_personalization: granted.adPersonalization ? 'granted' : 'denied',
+    ad_personalization: 'denied',
     analytics_storage: granted.analyticsStorage !== false ? 'granted' : 'denied',
   }
 
@@ -184,7 +184,7 @@ export function updateConsent(granted: {
  * gtag has not loaded yet.
  */
 export function trackConversion(event: ConversionEvent, data?: ConversionData) {
-  if (typeof window === 'undefined') return
+  if (!GOOGLE_BROWSER_TAGS_ENABLED || typeof window === 'undefined') return
 
   const conversionId = CONVERSION_IDS[event]
   const value = data?.value
@@ -278,42 +278,24 @@ export async function trackFunnelStep(
   service?: string,
   _email?: string,
 ) {
-  if (typeof window !== 'undefined') {
-    getOrCreateGtag()('event', 'funnel_milestone', {
-      event_category: 'funnel',
-      funnel_step: step,
-      send_to: GOOGLE_ANALYTICS_ID,
-      service_type: service,
-    })
-  }
-
   // Store funnel progression
   storeFunnelStep(step, service)
 }
 
 /**
- * Track each intake step as a generic gtag event for aggregate funnel analysis.
+ * Compatibility entry point for retired Google intake-step diagnostics.
  * This is not a Google Ads conversion action and must not be used to build
  * sensitive-health remarketing audiences.
  */
-export function trackStepEvent(params: {
+export function trackStepEvent(_params: {
   stepName: string
   stepIndex: number
   serviceType: string
   totalSteps: number
   email?: string
 }) {
-  if (typeof window === 'undefined') return
-
-  const eventParams = {
-    send_to: GOOGLE_ANALYTICS_ID,
-    step_name: params.stepName,
-    step_index: params.stepIndex,
-    service_type: params.serviceType,
-    total_steps: params.totalSteps,
-  }
-
-  getOrCreateGtag()('event', 'funnel_step', eventParams)
+  // Retained compatibility entry point. PostHog owns anonymous intake events;
+  // do not send health-step names or service context to Google destinations.
 }
 
 // Local storage helpers for attribution

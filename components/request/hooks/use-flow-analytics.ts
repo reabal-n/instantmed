@@ -18,19 +18,6 @@ import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-regi
 
 import { useRequestStore } from "../store"
 
-function trackStepEventDeferred(input: {
-  stepName: string
-  stepIndex: number
-  serviceType: string
-  totalSteps: number
-}) {
-  onFirstInteraction(() => {
-    void import("@/lib/analytics/conversion-tracking")
-      .then(({ trackStepEvent }) => trackStepEvent(input))
-      .catch(() => {})
-  })
-}
-
 function trackFunnelStepDeferred(
   step: "landing" | "start" | "intake_complete" | "checkout",
   serviceType: string,
@@ -62,7 +49,7 @@ interface UseFlowAnalyticsOptions {
  * Encapsulates all analytics tracking for the request flow:
  * - PostHog step_viewed / intake_started events
  * - Google Ads funnel milestone tracking (trackFunnelStep)
- * - Google Ads per-step remarketing events (trackStepEvent)
+ * - Anonymous PostHog step events; no Google health-flow events
  * - Step timing (stepEnteredAtRef) exposed via trackStepCompleted()
  *
  * Returns trackStepCompleted() for the parent to call when advancing steps.
@@ -144,21 +131,13 @@ export function useFlowAnalytics({
         }),
       )
 
-      // Fire a generic gtag funnel_step event for aggregate diagnostics only.
-      // Do not use these health-flow events for Google Ads remarketing audiences.
-      trackStepEventDeferred({
-        stepName: currentStep.id,
-        stepIndex: currentStepIndex,
-        serviceType: analyticsServiceType,
-        totalSteps,
-      })
+
     }
     // answers.consultSubtype intentionally excluded - only track on step/service change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, totalSteps, posthog, flowInstanceId, growthAttributionReady, growthExperienceVersion])
 
-  // Track Google Ads funnel milestones once per flow.
-  // Pass email (from store or auth pre-fill) for Enhanced Conversions cross-device attribution.
+  // Keep local funnel milestones once per flow; no Google dispatch.
   const patientEmail = storeEmail || userEmail || undefined
   useEffect(() => {
     if (!currentStep || !serviceType) return

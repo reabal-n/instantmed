@@ -14,7 +14,7 @@ const clientSource = readFileSync(
 
 describe("Google Ads conversion upload contract", () => {
   it("uses a supported configurable API version instead of the sunset v18 endpoint", () => {
-    expect(source).toContain("DEFAULT_GOOGLE_ADS_API_VERSION")
+    expect(source).toContain("getEffectiveGoogleAdsApiVersion")
     expect(source).toContain("GOOGLE_ADS_API_VERSION")
     expect(source).not.toContain("googleads.googleapis.com/v18")
   })

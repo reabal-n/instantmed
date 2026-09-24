@@ -13,6 +13,7 @@ import {
   experimentsOverlap,
   experimentVariableForMutationFamily,
   FEE_AWARE_EXPERIMENT_METRIC,
+  parseExperimentControls,
   requestExperimentStop,
 } from "@/lib/ads-agent/experiments"
 import {
@@ -206,7 +207,7 @@ describe("Google Ads experiment definition", () => {
     expect(value.service).toBe("med_certs")
     expect(value.variable).toBe("schedules")
     expect(value.primaryMetric).toBe(
-      "first_order_contribution_cents_per_retained_order",
+      "campaign_contribution_cents_per_retained_order",
     )
     expect(value.maxLossCents).toBe(15_000)
     expect(value.minimumOrdersPerArm).toBe(10)
@@ -235,6 +236,13 @@ describe("Google Ads experiment definition", () => {
       now: NOW,
       proposal: proposal(),
     }).result.methodology).toBe("google_custom")
+  })
+
+  it("can register an actual whole-campaign change as sequential despite high volume", () => {
+    const value = buildAdsExperiment({ experimentKey: "EXP-20260805-03", forecastRetainedOrders30d: 140,
+      maxLossCents: 15000, minimumOrdersPerArm: 10, now: NOW, proposal: proposal(),
+      methodology: "versioned_sequential", durationDays: 14 })
+    expect(value.result.methodology).toBe("versioned_sequential")
   })
 
   it("keeps every material variable category distinct", () => {
@@ -553,5 +561,20 @@ describe("Google Ads experiment stop boundary", () => {
       stopProposalKey: "ADS-20260810-01",
     })
     expect(stoppedStore.updated.at(-1)?.status).toBe("stopped")
+  })
+})
+
+
+describe("explicit experiment controls", () => {
+  it("parses cents and days without accepting coerced or unbounded values", () => {
+    expect(parseExperimentControls({ maxLossCents: "15000", durationDays: "14" })).toEqual({ maxLossCents: 15000, durationDays: 14 })
+    expect(parseExperimentControls({})).toEqual({})
+    for (const value of ["", "-1", "1.5", "1e4", "0", "NaN", "Infinity"]) {
+      expect(() => parseExperimentControls({ maxLossCents: value })).toThrow()
+    }
+    expect(() => parseExperimentControls({ durationDays: "31" })).toThrow()
+  })
+  it("labels the actual campaign contribution metric honestly", () => {
+    expect(FEE_AWARE_EXPERIMENT_METRIC).toBe("campaign_contribution_cents_per_retained_order")
   })
 })

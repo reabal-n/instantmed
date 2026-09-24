@@ -4,6 +4,10 @@ import { createLogger } from "@/lib/observability/logger"
 
 export const DEFAULT_GOOGLE_ADS_API_VERSION = "v24"
 
+export function getEffectiveGoogleAdsApiVersion(): string {
+  return process.env.GOOGLE_ADS_API_VERSION?.trim() || DEFAULT_GOOGLE_ADS_API_VERSION
+}
+
 const GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token"
 const ACCESS_TOKEN_EXPIRY_SAFETY_MS = 60_000
 const MAX_SEARCH_PAGES = 100
@@ -54,9 +58,7 @@ export function getGoogleAdsClientConfig(): GoogleAdsClientConfig | null {
   if (!customerId) return null
 
   return {
-    apiVersion:
-      process.env.GOOGLE_ADS_API_VERSION?.trim() ||
-      DEFAULT_GOOGLE_ADS_API_VERSION,
+    apiVersion: getEffectiveGoogleAdsApiVersion(),
     customerId,
     loginCustomerId:
       normalizeGoogleAdsNumericId(
@@ -143,16 +145,14 @@ export async function getGoogleAdsAccessToken(): Promise<string | null> {
 
 export function getGoogleAdsSearchUrl(
   customerId: string,
-  apiVersion =
-    process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
+  apiVersion = getEffectiveGoogleAdsApiVersion(),
 ): string {
   return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}/googleAds:search`
 }
 
 export function getGoogleAdsMutateUrl(
   customerId: string,
-  apiVersion =
-    process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
+  apiVersion = getEffectiveGoogleAdsApiVersion(),
 ): string {
   return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}/googleAds:mutate`
 }

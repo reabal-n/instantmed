@@ -547,6 +547,23 @@ describe("Google Ads Agent deep audit", () => {
     ]))
   })
 
+  it.each([50, 75, 76])("treats the women's health budget as a ceiling: %s", (budget) => {
+    const inputRows = rows()
+    inputRows.campaignPerformance = [{
+      campaign: { biddingStrategyType: "MANUAL_CPC", id: "40", name: "IM | Search | Women's Health", resourceName: "customers/123/campaigns/40", status: "ENABLED" },
+      campaignBudget: { amountMicros: String(budget * 1_000_000) },
+      metrics: metric({ costCents: 1500 }),
+    }]
+    const report = analyzeGoogleAdsDeepAudit({
+      accountState: state(), accountStateAvailable: true, failedQueries: [],
+      generatedAt: "2026-09-24T00:00:00.000Z", rows: inputRows,
+      successfulQueries: Object.keys(inputRows) as Array<keyof GoogleAdsDeepAuditRows>,
+      window: { days: 30, endDate: "2026-09-23", endUtcExclusive: "2026-09-23T14:00:00.000Z", startDate: "2026-08-25", startUtc: "2026-08-24T14:00:00.000Z" },
+    })
+    expect(report.signals.some((signal) => signal.code === "SPECIALTY_PILOT_BUDGET_DRIFT")).toBe(budget > 75)
+    expect(report.signals).toEqual(expect.arrayContaining([expect.objectContaining({ code: "EXTERNAL_ACCOUNT_CHANGES_REVIEW", evidence: expect.stringContaining("GOOGLE_ADS_WEB_CLIENT") })]))
+  })
+
   it("flags enabled specialty campaigns that drift from the pilot contract", () => {
     const inputRows = rows()
     inputRows.campaignPerformance = [{
