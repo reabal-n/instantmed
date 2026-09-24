@@ -10,6 +10,7 @@ import {
   hashGoogleAdsAccountState,
   type NormalizedGoogleAdsResource,
 } from "@/lib/ads-agent/account-state"
+import { campaignNegativeCoverage, negativeKeywordCovers } from "@/lib/ads-agent/negative-coverage"
 import {
   authorizeScriptsBudgetScale,
   authorizeScriptsScaleEligibility,
@@ -1807,6 +1808,16 @@ export function validateAdsMutationPolicy(args: {
   assertMedCertsBidding(operations, args.state)
   assertCreateOperationsSafe(operations, args.state)
   assertKeywordAndAudienceSafety(operations, args.state)
+  for (const [index, operation] of operations.entries()) {
+    if (operation.kind !== "negative_keyword") continue
+    const coveredInPacket = operations.some((other, otherIndex) =>
+      otherIndex !== index && other.kind === "negative_keyword"
+      && other.campaignResourceName === operation.campaignResourceName
+      && negativeKeywordCovers(other, operation))
+    if (coveredInPacket || campaignNegativeCoverage(args.state, operation.campaignResourceName, operation)) {
+      throw new Error("negative_keyword_already_covered")
+    }
+  }
   return operations
 }
 

@@ -1,11 +1,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { checkOpenAIReviewModel, checkTwilioVoiceReadiness } from "@/lib/integrations/credential-readiness"
+import { checkGoogleAdsApiVersion, checkOpenAIReviewModel, checkTwilioVoiceReadiness } from "@/lib/integrations/credential-readiness"
 
 const originalEnv = { ...process.env }
 afterEach(() => { process.env = { ...originalEnv }; vi.unstubAllGlobals() })
 
 describe("credential readiness without exporting secrets", () => {
+  it("reports the actual Ads override and fails unexpected versions without disclosing arbitrary values", () => {
+    process.env.GOOGLE_ADS_API_VERSION = "v22"
+    expect(checkGoogleAdsApiVersion()).toMatchObject([{ status: "fail", detail: expect.stringContaining("v22") }])
+    process.env.GOOGLE_ADS_API_VERSION = " v24 "
+    expect(checkGoogleAdsApiVersion()).toMatchObject([{ status: "pass", detail: expect.stringContaining("v24") }])
+    process.env.GOOGLE_ADS_API_VERSION = "private-token"
+    expect(JSON.stringify(checkGoogleAdsApiVersion())).not.toContain("private-token")
+  })
+
   it("verifies model access without returning the key or provider payload", async () => {
     process.env.OPENAI_API_KEY = "private-test-key"
     delete process.env.OPENAI_REVIEW_MODEL

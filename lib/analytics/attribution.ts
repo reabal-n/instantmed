@@ -8,7 +8,7 @@
  * at /request.
  *
  * Usage:
- *   captureAttribution()  - call once on app load (GoogleTags useEffect)
+ *   captureAttribution()  - call once on app load (AttributionCapture useEffect)
  *   getAttribution()      - call at checkout to retrieve persisted data
  */
 

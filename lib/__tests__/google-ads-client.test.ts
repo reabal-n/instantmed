@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
+  getEffectiveGoogleAdsApiVersion,
   getGoogleAdsMutateUrl,
   getGoogleAdsSearchUrl,
   mutateGoogleAds,
@@ -41,6 +42,15 @@ describe("shared Google Ads client", () => {
     expect(getGoogleAdsMutateUrl("1234567890")).toBe(
       "https://googleads.googleapis.com/v24/customers/1234567890/googleAds:mutate",
     )
+  })
+
+  it("uses the same trimmed override for runtime readiness and request URLs", () => {
+    process.env.GOOGLE_ADS_API_VERSION = " v24 "
+    expect(getEffectiveGoogleAdsApiVersion()).toBe("v24")
+    expect(getGoogleAdsSearchUrl("123")).toContain("/v24/")
+    expect(getGoogleAdsMutateUrl("123")).toContain("/v24/")
+    process.env.GOOGLE_ADS_API_VERSION = "  "
+    expect(getEffectiveGoogleAdsApiVersion()).toBe("v24")
   })
 
   it.each([undefined, "obsolete-token"])("sends OAuth without a developer token (legacy env: %s)", async (legacyToken) => {

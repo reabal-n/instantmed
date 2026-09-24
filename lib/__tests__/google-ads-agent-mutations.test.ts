@@ -2423,3 +2423,9 @@ describe("Google Ads mutation gateway", () => {
       .toBe(hashGoogleAdsAccountState(first))
   })
 })
+
+
+it("rejects a campaign negative already covered by a broader campaign phrase", () => {
+  const state = accountState({ campaignCriteria: [resource("negative/1", { campaignCriterion: { campaign: campaignResourceName, negative: true, status: "ENABLED", keyword: { text: "free", matchType: "PHRASE" } } })] })
+  expect(() => validateAdsMutationPolicy({ state, operations: [{ kind: "negative_keyword", campaignResourceName, text: "free certificate", matchType: "EXACT" }] })).toThrow("negative_keyword_already_covered")
+})

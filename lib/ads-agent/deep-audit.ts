@@ -153,6 +153,8 @@ interface GoogleAdsDeepAuditSchedule {
 interface GoogleAdsDeepAuditSignal {
   campaignId: string | null
   code:
+    | "EXTERNAL_ACCOUNT_CHANGES_REVIEW"
+    | "CHANGE_HISTORY_INCOMPLETE"
     | "BROAD_POSITIVE_KEYWORD"
     | "CONVERTED_UNTARGETED_QUERY"
     | "DISAPPROVED_RSA"
@@ -1301,13 +1303,13 @@ function buildSignals(args: {
     if (
       campaign.status === "ENABLED"
       && pilotPolicy
-      && campaign.budgetAmountCents !== pilotPolicy.budgetAmountCents
+      && (campaign.budgetAmountCents == null || campaign.budgetAmountCents > pilotPolicy.budgetAmountCents)
     ) {
       addSignal(signals, {
         campaignId: campaign.campaignId,
         code: "SPECIALTY_PILOT_BUDGET_DRIFT",
         evidence:
-          `Enabled ${service} pilot budget is ${campaign.budgetAmountCents == null ? "unavailable" : `A$${(campaign.budgetAmountCents / 100).toFixed(2)}/day`}; code-owned policy requires A$${(pilotPolicy.budgetAmountCents / 100).toFixed(2)}/day`,
+          `Enabled ${service} pilot budget is ${campaign.budgetAmountCents == null ? "unavailable" : `A$${(campaign.budgetAmountCents / 100).toFixed(2)}/day`}; code-owned policy ceiling is A$${(pilotPolicy.budgetAmountCents / 100).toFixed(2)}/day`,
         level: "action_review",
         resourceName: campaign.campaignResourceName,
       })
@@ -1421,6 +1423,29 @@ function buildSignals(args: {
         })
       }
     }
+  }
+
+  const externalChanges = args.accountState?.changeEvents.filter(
+    (event) => event.clientType !== "GOOGLE_ADS_API",
+  ) ?? []
+  if (externalChanges.length > 0) {
+    const clients = [...new Set(externalChanges.map((event) => event.clientType ?? "UNKNOWN"))].sort()
+    addSignal(signals, {
+      campaignId: null,
+      code: "EXTERNAL_ACCOUNT_CHANGES_REVIEW",
+      evidence: `${externalChanges.length} change(s) from ${clients.join(", ")} in available change history; compare affected resources and times with approved proposals and active tests, inspect auto-apply, and annotate or stop contaminated tests before scaling. These changes are not automatically classified as unauthorised; API-client edits also require proposal receipt reconciliation.`,
+      level: "action_review",
+      resourceName: null,
+    })
+  }
+  if (args.accountState?.changeEventHistorySaturated) {
+    addSignal(signals, {
+      campaignId: null,
+      code: "CHANGE_HISTORY_INCOMPLETE",
+      evidence: "Change history reached the provider row cap; narrow the audit window before claiming no overlapping or external changes.",
+      level: "action_review",
+      resourceName: null,
+    })
   }
 
   const priority = { action_review: 0, investigate: 1, opportunity: 2 }

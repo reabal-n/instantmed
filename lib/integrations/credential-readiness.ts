@@ -1,3 +1,4 @@
+import { DEFAULT_GOOGLE_ADS_API_VERSION, getEffectiveGoogleAdsApiVersion } from "@/lib/google-ads/client"
 import { getTwilioVoiceReadiness } from "@/lib/twilio/voice-config"
 
 export interface CredentialCheckResult {
@@ -45,4 +46,15 @@ export function checkTwilioVoiceReadiness(): CredentialCheckResult[] {
     return [{ status: "fail", name, detail: "TWILIO_VOICE_PUBLIC_BASE_URL must use HTTPS." }]
   }
   return [{ status: "pass", name, detail: "Enabled with required credentials, session-secret length, encryption flags and HTTPS configuration; no call was placed." }]
+}
+
+/** Configuration evidence only; scheduled authenticated jobs own provider proof. */
+export function checkGoogleAdsApiVersion(): CredentialCheckResult[] {
+  const version = getEffectiveGoogleAdsApiVersion()
+  const displayVersion = /^v[0-9]{1,3}$/.test(version) ? version : "invalid override"
+  return [{
+    name: "Google Ads API version",
+    status: version === DEFAULT_GOOGLE_ADS_API_VERSION ? "pass" : "fail",
+    detail: `Effective version: ${displayVersion}; tested version: ${DEFAULT_GOOGLE_ADS_API_VERSION}. Provider access is verified by scheduled jobs.`,
+  }]
 }
