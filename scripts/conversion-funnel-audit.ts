@@ -1585,17 +1585,17 @@ async function runStaticChecks(): Promise<ModelFinding[]> {
   }
 
   const tagIds = await readFile(resolve("lib/analytics/google-tag-ids.ts"), "utf8").catch(() => "")
-  if (!/GOOGLE_ADS_ID/.test(tagIds) || !/GOOGLE_ANALYTICS_ID/.test(tagIds)) {
+  if (!/GOOGLE_BROWSER_TAGS_ENABLED\s*=\s*false/.test(tagIds)) {
     findings.push({
       severity: "P1",
-      blocker: "Google tag ID constants are not present where expected.",
-      evidence: "lib/analytics/google-tag-ids.ts did not expose expected Google Ads and GA4 IDs during static check.",
+      blocker: "Google browser-tag privacy containment is not confirmed.",
+      evidence: "lib/analytics/google-tag-ids.ts did not explicitly disable browser tags during static check.",
       affected_service: "All paid services",
       likely_funnel_stage: "Attribution",
-      cac_impact: "Purchase imports may still work server-side, but click-to-checkout measurement is harder to reconcile.",
-      compliance_risk: "Low",
+      cac_impact: "Server purchase imports and first-party attribution must remain available independently of browser tags.",
+      compliance_risk: "High: browser advertising tags may expose health context or capability URLs.",
       confidence: "medium",
-      recommended_fix: "Restore canonical Google tag constants or update audit tooling and tag loaders to the new source of truth.",
+      recommended_fix: "Verify the browser-tag containment control and network evidence; do not restore tags without a separate privacy review.",
     })
   }
 
