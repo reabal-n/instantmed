@@ -231,6 +231,10 @@ The med-cert auto-approval E2E contract uses `/api/test/medcert-immediate-auto-a
 
 **Owned fixture cleanup:** `cleanupTestIntake` rejects returned deletion errors and propagates certificate/transport failures. It keeps the existing child-before-parent order and exact intake/certificate filters. A passing browser assertion cannot hide failed cleanup; failure does not establish that cleanup caused an earlier unrelated CI retry.
 
+### Weight preference checkout-to-clinician proof
+
+Run `corepack pnpm e2e:production -- --spec=e2e/weight-checkout-persistence.spec.ts` for the isolated database-to-browser proof. The runner executes both real checkout actions with synthetic auth context and stubbed Stripe, using the disposable Supabase database for answer writes, consent receipts and risk flags. It passes only the six resulting intake IDs and expected preferences to Playwright. The production-built doctor route independently loads those same records and verifies all three preferences after reload. No answers are reseeded, no intake is marked paid, and no prescription is issued. The runner removes the entire owned backend on success or failure. This proves checkout persistence and clinician rendering, not hosted payment or patient authentication.
+
 ### Hosted Stripe guest-checkout proof
 
 `corepack pnpm e2e:stripe-hosted` is the manual, production-bundle acceptance

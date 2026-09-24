@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto"
+import { appendFile } from "node:fs/promises"
 import * as Sentry from "@sentry/nextjs"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -456,6 +458,69 @@ describe("checkout operating hours", () => {
     mocks.updateProfile.mockResolvedValue({})
     mocks.validateMedCertPayload.mockReturnValue({ valid: true })
     mocks.validateSafetyFieldsPresent.mockReturnValue({ valid: true, missingFields: [] })
+  })
+
+  describe.skipIf(!process.env.WEIGHT_CHECKOUT_EVIDENCE_PATH)("weight checkout against isolated Supabase", () => {
+    it.each(["guest", "authenticated"].flatMap(actor => ["daily_oral", "weekly_injection", "unsure"].map(preference => ({ actor, preference }))))("persists the same intake for browser doctor review: %j", async ({ actor, preference }) => {
+      if (process.env.E2E_ISOLATED_SUPABASE !== "1" || process.env.SUPABASE_URL !== "http://127.0.0.1:55321") {
+        throw new Error("Weight checkout proof requires the disposable local Supabase runner")
+      }
+      process.env.ENCRYPTION_KEY = process.env.PHI_MASTER_KEY!
+      const { createClient } = await vi.importActual<typeof import("@supabase/supabase-js")>("@supabase/supabase-js")
+      const db = createClient(process.env.SUPABASE_URL, process.env.WEIGHT_E2E_SERVICE_ROLE_KEY!, { auth: { persistSession: false } })
+      mocks.createServiceRoleClient.mockReturnValue(db)
+      const realSafety = await vi.importActual<typeof import("@/lib/safety/evaluate")>("@/lib/safety/evaluate")
+      mocks.checkSafetyForServer.mockImplementation(realSafety.checkSafetyForServer)
+      mocks.validateSafetyFieldsPresent.mockImplementation(realSafety.validateSafetyFieldsPresent)
+      const realProfiles = await vi.importActual<typeof import("@/lib/data/profiles")>("@/lib/data/profiles")
+      mocks.updateProfile.mockImplementation(realProfiles.updateProfile)
+      const realAnswers = await vi.importActual<typeof import("@/lib/data/intake-answers")>("@/lib/data/intake-answers")
+      mocks.getIntakeAnswersForPaymentSafety.mockImplementation(realAnswers.getIntakeAnswersForPaymentSafety)
+      mocks.getPriceIdForRequest.mockReturnValue("price_e2e_weight")
+      mocks.stripeSessionCreate.mockImplementation(async (params) => {
+        const session = { id: `cs_test_weight_${randomUUID()}`, metadata: params.metadata,
+          url: "http://127.0.0.1:3060/fixture-payment-not-submitted", status: "open", payment_status: "unpaid" }
+        mocks.stripeSessionRetrieve.mockImplementation(async (id: string) => {
+          if (id !== session.id) throw new Error("Unexpected synthetic Stripe Session")
+          return session
+        })
+        return session
+      })
+      const email = `weight-${randomUUID()}@example.test`
+      const answers = transformAnswersForUnifiedCheckout("consult", {
+        ...hairLossGuestCheckoutInput().answers, consultSubtype: "weight_loss", patient_dob: "1985-04-01",
+        weightKg: "100", heightCm: "175", targetWeight: "85", previousAttempts: "diet_exercise",
+        weight_pregnancy_status: "no", weight_men2_thyroid_cancer: true, weight_pancreatitis: false,
+        eatingDisorderHistory: "no", wlAdverseReactions: "no", weightLossMedPreference: preference,
+        weightLossGoals: "Improve health and mobility over time.",
+      })
+      if (actor === "authenticated") {
+        const { data: profile, error } = await db.from("profiles").insert({
+          id: randomUUID(), email, full_name: "E2E Weight Checkout", role: "patient", date_of_birth: "1985-04-01",
+          phone: "0400000000", sex: "M", address_line1: "12 Clinical Way", suburb: "Sydney", state: "NSW", postcode: "2000",
+          medicare_number: "2123456701", medicare_irn: 1, medicare_expiry: "2028-12-01", stripe_customer_id: "cus_test_weight",
+        }).select().single()
+        expect(error).toBeNull()
+        mocks.getAuthenticatedUserWithProfile.mockResolvedValue({ user: { id: profile.id, email }, profile })
+      }
+      const result = actor === "guest"
+        ? await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), guestEmail: email, guestName: "E2E Weight Checkout",
+            flowInstanceId: undefined, serverDraftSessionId: undefined, growthExperienceVersion: undefined, subtype: "weight_loss", answers })
+        : await createIntakeAndCheckoutAction({ category: "consult", subtype: "weight_loss", type: "consult", idempotencyKey: randomUUID(), answers })
+      expect(result, JSON.stringify(result)).toMatchObject({ success: true })
+      expect(result.intakeId).toBeTruthy()
+      const { data: stored, error } = await db.from("intake_answers").select("*").eq("intake_id", result.intakeId!).single()
+      expect(error).toBeNull()
+      expect((await decryptAnswersRow(stored)).weightLossMedPreference).toBe(preference)
+      const { data: intake, error: intakeError } = await db.from("intakes").select("id,patient_id,payment_status,risk_flags").eq("id", result.intakeId!).single()
+      expect(intakeError).toBeNull()
+      expect(intake!.payment_status).toBe("pending")
+      expect(intake!.risk_flags).toEqual(expect.arrayContaining([expect.objectContaining({ code: "weight_medicine_review" })]))
+      expect(mocks.stripeSessionCreate).toHaveBeenCalledOnce()
+      // Pass only IDs/expected labels to the browser. It independently reads the
+      // exact checkout-created row through the real doctor route; never reseed answers.
+      await appendFile(process.env.WEIGHT_CHECKOUT_EVIDENCE_PATH!, JSON.stringify({ actor, preference, intakeId: intake!.id, patientId: intake!.patient_id }) + "\n")
+    })
   })
 
   it.each(["guest", "authenticated"].flatMap(actor => ["daily_oral", "weekly_injection", "unsure"].map(preference => ({ actor, preference }))))("persists weight preference through real checkout orchestration and clinician reload: %j", async ({ actor, preference }) => {
@@ -2018,7 +2083,7 @@ describe("checkout operating hours", () => {
   })
 })
 
-vi.mock("@/lib/stripe/checkout/consent-evidence", async (importOriginal) => process.env.CHECKOUT_FIXTURE_URL
+vi.mock("@/lib/stripe/checkout/consent-evidence", async (importOriginal) => (process.env.CHECKOUT_FIXTURE_URL || process.env.WEIGHT_CHECKOUT_EVIDENCE_PATH)
   ? await importOriginal<typeof import("@/lib/stripe/checkout/consent-evidence")>()
   : ({
   hasDurableCheckoutConsent: vi.fn(async () => true),

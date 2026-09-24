@@ -29,7 +29,7 @@ export const REFILL_REMINDER_WINDOW_MIN_DAYS = 70
 export const REFILL_REMINDER_WINDOW_MAX_DAYS = 77
 
 /** Weight-management service limit, independent of the repeat-Rx default. */
-export const WEIGHT_SUPPLY_WEEKS = 4
+const WEIGHT_SUPPLY_WEEKS = 4
 export const WEIGHT_SUPPLY_EXPECTATION = `If your doctor approves treatment, each consultation covers up to ${WEIGHT_SUPPLY_WEEKS} weeks of medicine, with no repeats. A new consultation is needed to continue. The pharmacy charges separately for the medicine.`
 export const WEIGHT_SUPPLY_DOCTOR_INSTRUCTION = `No repeats. Up to ${WEIGHT_SUPPLY_WEEKS} weeks per consultation; confirm the selected product, dose and pack quantity. One four-dose weekly pen or one oral pack where consistent with this limit. Continuation requires a new consultation.`
 
