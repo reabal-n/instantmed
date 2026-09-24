@@ -571,6 +571,8 @@ export const weightLossAssessmentStepSchema = z
       (v) => { const n = parseFloat(v); return Number.isFinite(n) && n >= 100 && n <= 250 },
       { message: "Please enter a valid height (100-250 cm)" },
     ),
+    // Optional so existing drafts remain valid; this does not establish suitability.
+    weightLossMedPreference: z.enum(["daily_oral", "weekly_injection", "unsure", "duromine", "glp1"]).optional(),
     targetWeight: nonEmptyString("Please enter your target weight"),
     previousAttempts: nonEmptyString("Please indicate previous weight loss attempts"),
     eatingDisorderHistory: nonEmptyString("Please answer this question"),

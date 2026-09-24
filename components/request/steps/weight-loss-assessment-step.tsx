@@ -9,7 +9,7 @@
  * soft-escalates to a doctor call (`requiresCall`) exactly like women's health;
  * everything else is reviewed asynchronously.
  *
- * Medicine-neutral (D-B): no treatment-preference cards and no drug names —
+ * Medicine-neutral: optional administration preference, with no drug names —
  * the doctor recommends the medicine, or declines, after review. TGA: patients
  * may type a drug name into free text; we never print one.
  *
@@ -133,6 +133,7 @@ const WEIGHT_LOSS_BLOCKING_REASONS = [
   ["wlAdverseReactions", "adverse reaction history"],
   ["wlAdverseReactionsDetails", "adverse reaction details"],
   ["weightLossGoals", "your weight loss goals (at least 20 characters)"],
+  ["weightLossMedPreference", "a valid treatment preference"],
 ] as const
 
 export default function WeightLossAssessmentStep({
@@ -407,6 +408,40 @@ export default function WeightLossAssessmentStep({
           </div>
         )}
       </div>
+
+      <fieldset className="space-y-3">
+        <legend className="text-base font-medium">
+          If treatment is suitable, which option would you prefer to discuss? (Optional)
+        </legend>
+        <p id="weight-treatment-help" className="text-base text-muted-foreground">
+          Your preference helps guide the assessment. The doctor will determine
+          whether treatment is appropriate and discuss its risks and monitoring needs.
+        </p>
+        <RadioGroup
+          aria-label="Treatment preference"
+          aria-describedby="weight-treatment-help"
+          value={String(answers.weightLossMedPreference || "")}
+          onValueChange={(value) => setAnswer("weightLossMedPreference", value)}
+          className="space-y-2"
+        >
+          {[
+            { value: "daily_oral", label: "Daily oral treatment", detail: "Taken by mouth each day." },
+            { value: "weekly_injection", label: "Weekly injection", detail: "Injected under the skin once a week." },
+            { value: "unsure", label: "Unsure", detail: "Discuss suitable options with the doctor." },
+          ].map((option) => (
+            <label key={option.value} className={cn(
+              "flex min-h-12 items-center gap-3 rounded-xl border p-3 cursor-pointer",
+              answers.weightLossMedPreference === option.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+            )}>
+              <RadioGroupItem value={option.value} />
+              <span className="text-base">
+                <span className="block font-medium">{option.label}</span>
+                <span className="block text-muted-foreground">{option.detail}</span>
+              </span>
+            </label>
+          ))}
+        </RadioGroup>
+      </fieldset>
 
       {/* Goals */}
       <div className="space-y-2">

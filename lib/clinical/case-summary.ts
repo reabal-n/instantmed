@@ -11,7 +11,7 @@ import {
 import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
 import { normaliseSymptomText } from "@/lib/clinical/symptom-normaliser"
-import { computeBmi, WEIGHT_LOSS_BMI_FLOOR } from "@/lib/clinical/weight-loss-eligibility"
+import { computeBmi, WEIGHT_LOSS_BMI_FLOOR, WEIGHT_TREATMENT_PREFERENCE_LABELS } from "@/lib/clinical/weight-loss-eligibility"
 import { extractRepeatRxFrequency } from "@/lib/request/repeat-rx-regimen"
 import {
   buildRepeatScriptMedicationValidationText,
@@ -1710,7 +1710,7 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       }
     : {
         action: "prescribe",
-        title: "GLP-1 pathway if clinically appropriate",
+        title: "Weight-management treatment if clinically appropriate",
         rationale: bmi !== null
           ? `BMI ${bmi.toFixed(1)}${comorbidities.length ? ` with ${comorbidities.join(", ").toLowerCase()}` : " with no stated comorbidity"} — eligibility screening passed server-side.`
           : "Screening passed server-side; confirm measurements before prescribing.",
@@ -1724,7 +1724,7 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   // fired (those cases decline, not prescribe). A needs_call case keeps the
   // intent: the doctor calls first, then may still prescribe — the plan's
   // next steps already sequence the call ahead of Parchment. No medicine is
-  // preselected: GLP-1-focused launch (D-B), agent and dose are the doctor's
+  // preselected: agent and dose are the doctor's
   // selection inside Parchment.
   const hasBlock = pregnant || men2 || pancreatitis || belowFloor
   const cautionChecks = safetyItems
@@ -1732,8 +1732,8 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     .map((item) => item.label)
   const prescriptionIntent = hasBlock ? undefined : makeIntent({
     presetLabel: "Weight-management Parchment handoff context",
-    medicationSearchHint: "GLP-1 receptor agonist — agent per doctor selection",
-    directionsTemplate: "Titrate per the selected product schedule; counsel on GI side effects and review timing.",
+    medicationSearchHint: "Weight-management medicine — agent per doctor selection",
+    directionsTemplate: "Confirm medicine-specific contraindications, interactions and monitoring; use the selected product instructions and counsel on side effects and review timing.",
     repeatsTemplate: "One-off review — continuation requires a new consult.",
     safetyChecks: [
       "Pregnancy/breastfeeding screened",
@@ -1763,6 +1763,7 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       fact("Current weight", weightKg ? `${weightKg} kg` : null),
       fact("Target weight", firstStr(answers, ["targetWeight"])),
       fact("Comorbidities", comorbidities.length ? comorbidities.join(", ") : null),
+      fact("Treatment preference", WEIGHT_TREATMENT_PREFERENCE_LABELS[str(answers, "weightLossMedPreference") || ""] || null),
       fact("Previous attempts", firstStr(answers, ["previousAttempts"])),
       fact("Adverse reactions", str(answers, "wlAdverseReactions") === "yes" ? str(answers, "wlAdverseReactionsDetails") || "Yes" : null),
     ]),

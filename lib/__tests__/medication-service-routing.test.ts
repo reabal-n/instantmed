@@ -274,6 +274,12 @@ describe("detectDedicatedServiceForMedication", () => {
 })
 
 describe("weight-management routing (service live 2026-08-07)", () => {
+  it.each(["Ozemptic", "Duramine", "Duromine", "Mounjaro", "Monjaro", "Trulicity", "dulaglutide", "GLP-1", "GLP1"])("routes %s for assessment without claiming it is unavailable", (name) => {
+    const match = detectDedicatedServiceForMedication(name)
+    expect(match).toMatchObject({ subtype: "weight_loss", enforcement: "hard" })
+    expect(match?.requestedMedicineOutsideScope).not.toBe(true)
+  })
+
   it("hard-steers weight-only GLP-1 brands with no question", () => {
     for (const name of ["Wegovy", "Saxenda", "Zepbound 2.5mg"]) {
       const match = detectDedicatedServiceForMedication(name)

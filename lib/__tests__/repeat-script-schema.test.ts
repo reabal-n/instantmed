@@ -520,7 +520,7 @@ describe("repeat script schema — dedicated-service routing", () => {
   })
 
   it("refuses weight medicines at checkout even with stale diabetes exemptions", () => {
-    for (const name of ["Mounjaro", "Monjaro", "Wegovy", "Ozempic", "Duromine", "Phentermine", "Metermine", "semaglutide", "tirzepatide"]) {
+    for (const name of ["Mounjaro", "Monjaro", "Wegovy", "Ozempic", "Ozemptic", "Duromine", "Duramine", "Trulicity", "dulaglutide", "GLP-1", "Phentermine", "Metermine", "semaglutide", "tirzepatide"]) {
       for (const contextKey of ["routing_context", "routingContext"]) {
         const result = validateRepeatScriptPayload(repeatFor({
           medication_name: name,

@@ -299,23 +299,26 @@ const INDICATION_ONLY_SIGNALS: ReadonlyArray<{ subtype: DedicatedServiceSubtype;
 // Weight-management routing (operator decision 2026-09-14): GLP-1 medicines
 // and phentermine requests cannot use repeats, including a previously saved
 // diabetes context. Routing is an assessment boundary, not approval to prescribe
-// the requested product. Phentermine remains outside the service's scope.
+// the requested product. Medicine selection remains the reviewing doctor's decision.
 const WEIGHT_BRANDS: ReadonlyArray<RegExp> = [
   /\bwegovy\b/i,
   /\bsaxenda\b/i,
   /\bzepbound\b/i,
-  /\bozempic\b/i,
+  /\bozemp(?:i|ti)c\b/i, // Includes the reported "ozemptic" spelling.
   /\bvictoza\b/i,
   /\bmo(?:u)?njaro\b/i, // Includes the reported "monjaro" spelling.
   /\brybelsus\b/i,
+  /\btrulicity\b/i,
+  /\bglp[ -]?1\b/i,
 ]
 const WEIGHT_INGREDIENTS: ReadonlyArray<string> = [
   "semaglutide",
   "tirzepatide",
   "liraglutide",
+  "dulaglutide",
 ]
 const PHENTERMINE_BRANDS: ReadonlyArray<RegExp> = [
-  /\bduromine\b/i,
+  /\bdur[oa]mine\b/i, // Includes the reported "duramine" spelling.
   /\bmetermine\b/i,
 ]
 const WEIGHT_ONLY_OUT_OF_SCOPE: ReadonlyArray<RegExp> = [
@@ -352,11 +355,8 @@ export function detectDedicatedServiceForMedication(
     return {
       subtype: "weight_loss",
       serviceLabel: "Weight Management",
-      reason: phentermineRequest
-        ? "Phentermine request requires weight-management assessment; the requested medicine remains outside prescribing scope"
-        : "Weight-management medicine requires the dedicated eligibility and safety assessment",
+      reason: "Weight-management medicine requires the dedicated eligibility and safety assessment",
       enforcement: "hard",
-      ...(phentermineRequest ? { requestedMedicineOutsideScope: true } : {}),
     }
   }
 

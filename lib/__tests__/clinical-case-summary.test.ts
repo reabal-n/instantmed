@@ -13,6 +13,12 @@ function dobForExactAge(age: number): string {
 }
 
 describe("buildClinicalCaseSummary", () => {
+  it.each([["daily_oral", "Daily oral treatment"], ["weekly_injection", "Weekly injection"], ["unsure", "Unsure — discuss with the doctor"]])("shows weight treatment preference %s without selecting a medicine", (preference, label) => {
+    const summary = buildClinicalCaseSummary({ category: "consult", subtype: "weight_loss", answers: { weightKg: "100", heightCm: "175", weightLossMedPreference: preference } })
+    expect(summary.keyFacts).toContainEqual({ label: "Treatment preference", value: label })
+    expect(summary.prescriptionIntent?.medicationSearchHint).not.toContain("GLP-1")
+  })
+
   it.each([undefined, null, "", "   "])("omits an absent legacy ED blood-pressure answer (%s) without changing current medicines", (edBpMedication) => {
     const summary = buildClinicalCaseSummary({
       category: "consult",

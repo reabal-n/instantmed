@@ -187,9 +187,8 @@ describe("deriveIntakeFlags — service routing", () => {
     expect(codes(flags)).toContain("dedicated_service_medication")
   })
 
-  it("preserves the prescribing exclusion in historical phentermine repeat flags", () => {
-    // Phentermine is outside the GLP-1-focused launched service: never steered
-    // (pay-to-be-refused churn), always doctor-flagged for a decline-to-GP.
+  it("flags historical phentermine repeats for the dedicated assessment", () => {
+    // Historical repeat records still need the dedicated weight assessment.
     const flags = deriveIntakeFlags({
       category: "prescription",
       subtype: "repeat",
@@ -201,7 +200,7 @@ describe("deriveIntakeFlags — service routing", () => {
     })
     const flag = flags.find((f) => f.code === "dedicated_service_medication")
     expect(flag?.severity).toBe("attention")
-    expect(flag?.detail).toContain("outside prescribing scope")
+    expect(flag?.detail).toContain("Weight Management")
   })
 
   it("derives the same flags for chronic_review as for repeat", () => {
