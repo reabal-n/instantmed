@@ -9,6 +9,7 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 
 import { getPaymentTraceabilityIssue } from "@/lib/data/reconciliation-helpers"
+import { filterSeededE2EIntakes, isLikelyE2EIntakeMarkers } from "@/lib/data/seeded-e2e-data"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -64,6 +65,8 @@ export interface ReconciliationResult {
 }
 
 export interface ReconciliationFilters {
+  /** The daily cron emits aggregate alerts and opts out of recovery-page warnings. */
+  emit_warnings?: boolean
   mismatch_only?: boolean
   category?: string
   date_from?: string
@@ -92,7 +95,8 @@ const DELIVERY_EMAIL_TYPES: Record<string, string[]> = {
  * Identifies mismatches between payment status and delivery outcome:
  * - med_cert: paid + approved + document exists + email sent
  * - prescription: paid + script_sent email sent
- * - consult: paid + status progressed beyond "paid"
+ * - consult: paid + approved/completed clinical outcome
+ * Awaiting review is queue work, not a payment mismatch; business-alerts owns its SLA.
  */
 export async function getReconciliationRecords(
   filters: ReconciliationFilters = {}
@@ -108,7 +112,7 @@ export async function getReconciliationRecords(
     const dateFromISO = date_from || defaultDateFrom.toISOString()
 
     // Step 1: Get paid intakes (and declined with refund issues)
-    let intakesQuery = supabase
+    let intakesQuery = filterSeededE2EIntakes(supabase
       .from("intakes")
       .select(`
         id,
@@ -138,7 +142,7 @@ export async function getReconciliationRecords(
       .or("payment_status.eq.paid,refund_status.eq.failed")
       .gte("created_at", dateFromISO)
       .order("created_at", { ascending: false })
-      .limit(500)
+      .limit(500))
 
     if (date_to) {
       intakesQuery = intakesQuery.lte("created_at", date_to)
@@ -217,6 +221,10 @@ export async function getReconciliationRecords(
     const records: ReconciliationRecord[] = []
 
     for (const intake of intakes) {
+      // Fresh-profile fixtures are not caught by the seeded-profile query filter.
+      // Do not suppress real recovery work merely because reporting excludes it.
+      if (isLikelyE2EIntakeMarkers({ referenceNumber: intake.reference_number, paymentId: intake.payment_id })) continue
+
       const patientRaw = intake.patient as unknown
       const patient = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as { email: string | null; full_name: string | null } | null
       const serviceRaw = intake.service as unknown
@@ -284,8 +292,9 @@ export async function getReconciliationRecords(
       records.push(record)
     }
 
-    // Capture Sentry warnings for old mismatches
-    await captureMismatchWarnings(records)
+    // Preserve recovery-page visibility for older integrity failures without
+    // sending a duplicate warning alongside the cron aggregate.
+    if (filters.emit_warnings !== false) await captureMismatchWarnings(records)
 
     // Calculate summary
     const summary = {
@@ -403,7 +412,7 @@ function calculateDeliveryStatus(
         deliveryStatus: "pending",
         deliveryDetails: "Awaiting review",
         lastError: null,
-        isMismatch: ageMinutes > 15,
+        isMismatch: false,
       }
     }
   }
@@ -441,13 +450,19 @@ function calculateDeliveryStatus(
         deliveryStatus: "pending",
         deliveryDetails: "Awaiting review",
         lastError: null,
-        isMismatch: ageMinutes > 15,
+        isMismatch: false,
       }
     }
   }
 
-  // Consult / Other - delivery is clinical progression, not email
-  if (status === "in_review" || status === "pending_info" || status === "approved" || status === "completed") {
+  // Clinical queue age is owned by business-alerts' stale-human-queue monitor.
+  // Review in progress is not fulfilment and is not a payment mismatch.
+  if (status === "in_review" || status === "pending_info") {
+    return { deliveryStatus: "in_progress", deliveryDetails: `Status: ${status}`, lastError: null, isMismatch: false }
+  }
+
+  // Consult / Other - completed clinical outcome, not merely a started review.
+  if (status === "approved" || status === "completed") {
     return {
       deliveryStatus: "delivered",
       deliveryDetails: `Clinical delivery: ${status}`,
@@ -461,7 +476,7 @@ function calculateDeliveryStatus(
       deliveryStatus: "pending",
       deliveryDetails: "Awaiting clinical review",
       lastError: null,
-      isMismatch: ageMinutes > 15,
+      isMismatch: false,
     }
   }
 
@@ -492,7 +507,7 @@ async function captureMismatchWarnings(records: ReconciliationRecord[]): Promise
     }
 
     const fingerprint = `${record.intake_id}:${record.delivery_status}`
-    
+
     if (warnedMismatches.has(fingerprint)) {
       continue
     }

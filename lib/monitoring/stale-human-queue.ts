@@ -19,6 +19,7 @@ export const STALE_HUMAN_QUEUE_CATEGORIES = [
   "medical_certificate",
   "prescription",
   "consultation",
+  "consult",
 ] as const
 
 export interface StaleHumanQueueAlert {

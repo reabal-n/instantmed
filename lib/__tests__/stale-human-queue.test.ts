@@ -20,6 +20,7 @@ describe("buildStaleHumanQueueAlert", () => {
       "medical_certificate",
       "prescription",
       "consultation",
+      "consult",
     ])
     expect(STALE_HUMAN_QUEUE_THRESHOLD_HOURS).toBe(24)
   })

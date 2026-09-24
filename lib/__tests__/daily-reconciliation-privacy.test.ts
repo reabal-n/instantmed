@@ -109,6 +109,31 @@ describe("daily reconciliation privacy", () => {
     expect(mocks.releaseCronLock).toHaveBeenCalledWith("daily-reconciliation")
   })
 
+  it("does not page for a paid request awaiting review within the clinical window", async () => {
+    mocks.getReconciliationRecords.mockResolvedValue({
+      data: [{ age_minutes: 180, intake_status: "paid", delivery_status: "pending", is_mismatch: false, refund_failed: false }],
+      summary: { total: 1, delivered: 0, failed: 0, mismatches: 0, pending: 1 },
+    })
+    const response = await GET(new NextRequest("https://instantmed.example/api/cron/daily-reconciliation"))
+    expect(response.status).toBe(200)
+    expect(Sentry.captureMessage).not.toHaveBeenCalled()
+  })
+
+  it("rechecks a 25-hour-old missing payment reference in the overlapping daily window", async () => {
+    mocks.getReconciliationRecords.mockResolvedValue({
+      data: [{ age_minutes: 1500, intake_status: "paid", delivery_status: "pending", is_mismatch: true, refund_failed: false,
+        payment_issue: "Paid request missing Stripe payment intent and checkout session", category: "consult" }],
+      summary: { total: 1, delivered: 0, failed: 0, mismatches: 1, pending: 1 },
+    })
+    await GET(new NextRequest("https://instantmed.example/api/cron/daily-reconciliation"))
+    const filters = mocks.getReconciliationRecords.mock.calls[0][0]
+    expect(Date.parse(filters.date_to) - Date.parse(filters.date_from)).toBe(26 * 60 * 60 * 1000)
+    expect(filters.emit_warnings).toBe(false)
+    expect(Sentry.captureMessage).toHaveBeenCalledTimes(1)
+    expect(Sentry.captureMessage).toHaveBeenCalledWith("RECONCILIATION: payment or fulfilment integrity mismatch",
+      expect.objectContaining({ level: "error", extra: expect.objectContaining({ count: 1 }) }))
+  })
+
   it("records a query failure instead of acknowledging success", async () => {
     mocks.getReconciliationRecords.mockResolvedValue({
       data: [],

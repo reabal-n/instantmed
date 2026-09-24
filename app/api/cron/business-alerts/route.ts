@@ -569,6 +569,7 @@ export async function GET(request: NextRequest) {
             .eq("status", "paid")
             .eq("payment_status", "paid")
             .in("category", [...STALE_HUMAN_QUEUE_CATEGORIES])
+            .or("reference_number.is.null,reference_number.not.ilike.E2E-%")
             .lt("paid_at", staleHumanThreshold.toISOString()),
         )
           .order("paid_at", { ascending: true })

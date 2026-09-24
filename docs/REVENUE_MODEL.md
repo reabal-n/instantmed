@@ -16,9 +16,10 @@ The active goal is staged, evidence-backed revenue growth:
 | **$2,000/month** rolling net-retained revenue run-rate | Within 30 days | Proves that the current baseline can move through focused channel work. |
 | **$5,000/month** rolling net-retained revenue run-rate | Within 90 days | Proves repeatable demand across more than one order source. |
 | **$10,000/month** rolling net-retained revenue run-rate | Next phase | Triggers a formal capacity and staffing review; it does not trigger an automatic hire. |
-| **$20,000/month** rolling net-retained revenue run-rate | Set 2026-09-19 | Proves that campaign-contribution scaling plus a second paid channel can double demand without a second doctor; reaching it reopens the capacity question on evidence rather than on volume alone. |
+| **$20,000/month** rolling net-retained revenue run-rate | Set 2026-09-19 | Intermediate checkpoint toward A$30k; no second paid channel or doctor is required by definition. |
+| **$30,000/month** rolling net-retained revenue run-rate | Finalised 2026-09-24 | Active owner-selected solo target; campaign contribution, actual cash and safe fulfilment remain separate measured outcomes. |
 
-**Attainment record:** the `$2k`, `$5k` and `$10k` rungs are closed as of 2026-09-19 by explicit operator decision; the dated checkpoints live in `docs/ROADMAP.md` §2. The `$20,000` rung was set the same day by the operator and is the active target.
+**Attainment record:** the `$2k`, `$5k` and `$10k` rungs are closed as of 2026-09-19 by explicit operator decision; the dated checkpoints live in `docs/ROADMAP.md` §2. The `$20,000` rung was set that day and remains an intermediate checkpoint; `$30,000` is the active target, finalised September 24 after review.
 
 `$1M` annual gross remains a distant directional north star for the one-off model. It is not the active planning frame and does not override the milestone ladder.
 
@@ -34,7 +35,7 @@ The dashboard measures the rolling 30-day value from payment truth. A milestone 
 
 - revenue comes from real paid orders, excluding seeded E2E and failed checkout rows
 - refunds and disputes are deducted
-- paid acquisition is first-order contribution-positive or inside an explicitly approved bounded test
+- paid acquisition is campaign-contribution-positive under section 4, including its mature-repeat spending-ceiling rules, or inside an explicitly approved bounded test
 - real clinical incidents, explicit service holds, fulfilment failures and payment integrity remain separately actionable; numeric queue or support targets do not invalidate cash revenue
 
 Leads, clicks, intake starts, gross checkout value, and temporary revenue that is later refunded do not count as milestone attainment.
