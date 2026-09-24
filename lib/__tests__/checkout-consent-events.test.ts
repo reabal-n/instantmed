@@ -24,10 +24,10 @@ describe("anonymous checkout consent tracking", () => {
       [false, "initial"], [true, "change"], [false, "change"],
     ])
     expect(events.every(({ properties }) => properties.flow_instance_id === flow)).toBe(true)
-    expect(Object.keys(events[0].properties).sort()).toEqual(["consent_checked", "flow_instance_id", "service_type", "state_source", "telemetry_version"])
+    expect(Object.keys(events[0].properties).sort()).toEqual(["consent_checked", "flow_instance_id", "service_type", "state_source", "visibility_target"])
     expect(sanitizePostHogEvent(events[0])?.properties).toMatchObject({
       flow_instance_id: flow, consent_checked: false, state_source: "initial",
-      telemetry_version: "checkout-consent-v2", $process_person_profile: false,
+      visibility_target: "checkbox", $process_person_profile: false,
     })
   })
 

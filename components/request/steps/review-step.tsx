@@ -333,7 +333,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   useEffect(() => {
     const element = consentRef.current?.querySelector('button')
     if (!element || typeof IntersectionObserver === "undefined") return
-    // v2 measures the complete consent control, not half a potentially very
+    // Measure the complete consent control, not half a potentially very
     // tall text card. Visibility is not evidence of reading or agreeing.
     let observer: IntersectionObserver | undefined
     let seen = false

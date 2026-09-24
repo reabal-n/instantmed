@@ -4,14 +4,14 @@ import { expect, test } from '@playwright/test'
 
 import { TELEHEALTH_CONSENT_VERSION } from '@/lib/constants'
 
-test('enlarged consent remains measurable on a short mobile screen', async ({ page }, testInfo) => {
+test('enlarged consent remains measurable on a short mobile screen', async ({ page, baseURL }, testInfo) => {
   const events: { event: string }[] = []
   await page.setViewportSize({ width: 320, height: 568 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.route('**/*', async route => {
     const request = route.request()
     const url = new URL(request.url())
-    if (!['localhost', '127.0.0.1'].includes(url.hostname)) return route.abort()
+    if (url.origin !== new URL(baseURL!).origin) return route.abort()
     if (url.pathname.startsWith('/ingest/')) {
       if (url.pathname.endsWith('.js')) return route.fulfill({ status: 200, contentType: 'application/javascript', body: '' })
       if (url.pathname.endsWith('/e/')) {
@@ -26,6 +26,7 @@ test('enlarged consent remains measurable on a short mobile screen', async ({ pa
     }
     if (url.pathname.startsWith('/api/draft')) return route.fulfill({ status: 404, json: {} })
     if (request.headers()['next-action']) return route.abort()
+    if (!["GET", "HEAD"].includes(request.method())) return route.abort()
     return route.continue()
   })
   await page.addInitScript(() => {
@@ -64,7 +65,7 @@ test('enlarged consent remains measurable on a short mobile screen', async ({ pa
 
 for (const mode of ['light', 'dark'] as const) {
   for (const savedVersion of ['legacy', 'current'] as const) {
-    test(`${mode} ${savedVersion}: restored mobile consent, answer edit, reconfirm and payment attempt`, async ({ page }, testInfo) => {
+    test(`${mode} ${savedVersion}: restored mobile consent, answer edit, reconfirm and payment attempt`, async ({ page, baseURL }, testInfo) => {
       let paymentAttempts = 0
       const events: { event: string; properties: Record<string, unknown> }[] = []
       const failures: string[] = []
@@ -72,7 +73,7 @@ for (const mode of ['light', 'dark'] as const) {
       await page.emulateMedia({ colorScheme: mode, reducedMotion: 'reduce' })
       await page.route('**/*', async route => {
         const request = route.request()
-        if (!['localhost', '127.0.0.1'].includes(new URL(request.url()).hostname)) return route.abort()
+        if (new URL(request.url()).origin !== new URL(baseURL!).origin) return route.abort()
         if (request.url().includes('/ingest/')) {
           if (new URL(request.url()).pathname.endsWith('.js')) return route.fulfill({ status: 200, contentType: 'application/javascript', body: '' })
           if (new URL(request.url()).pathname.endsWith('/e/')) {
@@ -87,6 +88,7 @@ for (const mode of ['light', 'dark'] as const) {
         }
         if (request.url().includes('/api/draft')) return route.fulfill({ status: 404, json: { error: 'Not found' } })
         if (request.headers()['next-action']) { paymentAttempts++; return route.abort('connectionfailed') }
+        if (!["GET", "HEAD"].includes(request.method())) return route.abort()
         return route.continue()
       })
       await page.addInitScript(() => {
@@ -138,7 +140,8 @@ for (const mode of ['light', 'dark'] as const) {
       await expect.poll(() => events.filter(event => event.event === 'checkout_review_confirm_clicked').length, { timeout: 15000 }).toBeGreaterThan(0)
       await expect.poll(() => events.filter(event => event.event === 'checkout_consent_viewed').length).toBeGreaterThan(0)
       await expect.poll(() => events.filter(event => event.event === 'checkout_consent_state' && event.properties.consent_checked === true).length).toBeGreaterThan(0)
-      const consentEvents = events.filter(event => event.properties.telemetry_version === 'checkout-consent-v2')
+      const consentEvents = events.filter(event => event.properties.visibility_target === 'checkbox')
+      expect(consentEvents.length).toBeGreaterThan(0)
       expect(consentEvents.every(event => typeof event.properties.flow_instance_id === 'string')).toBe(true)
       expect(JSON.stringify(consentEvents)).not.toMatch(/checkout-probe@example|Runny nose|Test Patient|1990-01-01/)
 
@@ -148,12 +151,12 @@ for (const mode of ['light', 'dark'] as const) {
   }
 }
 
-test('fresh certificate: defaults are not interactions and Continue records the tap before progression', async ({ page }) => {
+test('fresh certificate: defaults are not interactions and Continue records the tap before progression', async ({ page, baseURL }) => {
   const events: { event: string; properties: Record<string, unknown> }[] = []
   await page.route('**/*', async route => {
     const request = route.request()
     const url = new URL(request.url())
-    if (!['localhost', '127.0.0.1'].includes(url.hostname)) return route.abort()
+    if (url.origin !== new URL(baseURL!).origin) return route.abort()
     if (url.pathname.startsWith('/ingest/')) {
       if (url.pathname.endsWith('.js')) return route.fulfill({ status: 200, contentType: 'application/javascript', body: '' })
       if (url.pathname.endsWith('/e/')) {
@@ -168,6 +171,7 @@ test('fresh certificate: defaults are not interactions and Continue records the 
     }
     if (url.pathname.startsWith('/api/draft')) return route.fulfill({ status: 404, json: {} })
     if (request.headers()['next-action']) return route.abort()
+    if (!["GET", "HEAD"].includes(request.method())) return route.abort()
     return route.continue()
   })
   await page.addInitScript(() => {
