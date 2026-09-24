@@ -9,6 +9,7 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 
 import { getPaymentTraceabilityIssue } from "@/lib/data/reconciliation-helpers"
+import { filterSeededE2EIntakes, isLikelyE2EIntakeMarkers } from "@/lib/data/seeded-e2e-data"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -92,7 +93,8 @@ const DELIVERY_EMAIL_TYPES: Record<string, string[]> = {
  * Identifies mismatches between payment status and delivery outcome:
  * - med_cert: paid + approved + document exists + email sent
  * - prescription: paid + script_sent email sent
- * - consult: paid + status progressed beyond "paid"
+ * - consult: paid + approved/completed clinical outcome
+ * Awaiting review is queue work, not a payment mismatch; business-alerts owns its SLA.
  */
 export async function getReconciliationRecords(
   filters: ReconciliationFilters = {}
@@ -108,7 +110,7 @@ export async function getReconciliationRecords(
     const dateFromISO = date_from || defaultDateFrom.toISOString()
 
     // Step 1: Get paid intakes (and declined with refund issues)
-    let intakesQuery = supabase
+    let intakesQuery = filterSeededE2EIntakes(supabase
       .from("intakes")
       .select(`
         id,
@@ -138,7 +140,7 @@ export async function getReconciliationRecords(
       .or("payment_status.eq.paid,refund_status.eq.failed")
       .gte("created_at", dateFromISO)
       .order("created_at", { ascending: false })
-      .limit(500)
+      .limit(500))
 
     if (date_to) {
       intakesQuery = intakesQuery.lte("created_at", date_to)
@@ -217,6 +219,10 @@ export async function getReconciliationRecords(
     const records: ReconciliationRecord[] = []
 
     for (const intake of intakes) {
+      // Fresh-profile fixtures are not caught by the seeded-profile query filter.
+      // Do not suppress real recovery work merely because reporting excludes it.
+      if (isLikelyE2EIntakeMarkers({ referenceNumber: intake.reference_number, paymentId: intake.payment_id })) continue
+
       const patientRaw = intake.patient as unknown
       const patient = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as { email: string | null; full_name: string | null } | null
       const serviceRaw = intake.service as unknown
@@ -284,8 +290,7 @@ export async function getReconciliationRecords(
       records.push(record)
     }
 
-    // Capture Sentry warnings for old mismatches
-    await captureMismatchWarnings(records)
+    // The daily cron owns aggregate alerts; dashboard reads must not page.
 
     // Calculate summary
     const summary = {
@@ -403,7 +408,7 @@ function calculateDeliveryStatus(
         deliveryStatus: "pending",
         deliveryDetails: "Awaiting review",
         lastError: null,
-        isMismatch: ageMinutes > 15,
+        isMismatch: false,
       }
     }
   }
@@ -441,13 +446,19 @@ function calculateDeliveryStatus(
         deliveryStatus: "pending",
         deliveryDetails: "Awaiting review",
         lastError: null,
-        isMismatch: ageMinutes > 15,
+        isMismatch: false,
       }
     }
   }
 
-  // Consult / Other - delivery is clinical progression, not email
-  if (status === "in_review" || status === "pending_info" || status === "approved" || status === "completed") {
+  // Clinical queue age is owned by business-alerts' stale-human-queue monitor.
+  // Review in progress is not fulfilment and is not a payment mismatch.
+  if (status === "in_review" || status === "pending_info") {
+    return { deliveryStatus: "in_progress", deliveryDetails: `Status: ${status}`, lastError: null, isMismatch: false }
+  }
+
+  // Consult / Other - completed clinical outcome, not merely a started review.
+  if (status === "approved" || status === "completed") {
     return {
       deliveryStatus: "delivered",
       deliveryDetails: `Clinical delivery: ${status}`,
@@ -461,7 +472,7 @@ function calculateDeliveryStatus(
       deliveryStatus: "pending",
       deliveryDetails: "Awaiting clinical review",
       lastError: null,
-      isMismatch: ageMinutes > 15,
+      isMismatch: false,
     }
   }
 
@@ -471,67 +482,6 @@ function calculateDeliveryStatus(
     deliveryDetails: `Status: ${status}`,
     lastError: null,
     isMismatch: ageMinutes > 15,
-  }
-}
-
-// ============================================================================
-// SENTRY WARNINGS
-// ============================================================================
-
-const warnedMismatches = new Set<string>()
-
-async function captureMismatchWarnings(records: ReconciliationRecord[]): Promise<void> {
-  if (process.env.DISABLE_RECONCILIATION_SENTRY === "true") {
-    return
-  }
-
-  for (const record of records) {
-    // Only warn for mismatches older than 15 minutes
-    if (!record.is_mismatch || record.age_minutes < 15) {
-      continue
-    }
-
-    const fingerprint = `${record.intake_id}:${record.delivery_status}`
-    
-    if (warnedMismatches.has(fingerprint)) {
-      continue
-    }
-
-    warnedMismatches.add(fingerprint)
-
-    Sentry.captureMessage(`Payment reconciliation mismatch: ${record.delivery_status}`, {
-      level: "warning",
-      tags: {
-        delivery_status: record.delivery_status,
-        intake_status: record.intake_status,
-        category: record.category || "unknown",
-        service_type: record.service_type || "unknown",
-      },
-      extra: {
-        age_minutes: record.age_minutes,
-        delivery_details: record.delivery_details,
-        has_last_error: Boolean(record.last_error),
-        payment_issue: record.payment_issue,
-      },
-      fingerprint: [
-        "reconciliation-mismatch",
-        record.delivery_status,
-        record.intake_status,
-        record.category || "unknown",
-      ],
-    })
-
-    logger.warn("[Reconciliation] Mismatch detected", {
-      deliveryStatus: record.delivery_status,
-      ageMinutes: record.age_minutes,
-      category: record.category || "unknown",
-    })
-  }
-
-  // Cleanup old fingerprints
-  if (warnedMismatches.size > 1000) {
-    const toDelete = Array.from(warnedMismatches).slice(0, 500)
-    toDelete.forEach(fp => warnedMismatches.delete(fp))
   }
 }
 

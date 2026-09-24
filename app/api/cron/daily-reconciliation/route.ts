@@ -18,7 +18,7 @@ const logger = createLogger("cron-daily-reconciliation")
  * payment status and delivery outcome from the last 24 hours.
  *
  * Alerts on:
- * - Paid intakes without delivery (stuck > 2 hours)
+ * - Payment/fulfilment integrity mismatches older than 2 hours (not awaiting review)
  * - Failed refunds
  * - Failed certificate/script deliveries
  *
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     // Alert on critical issues
     if (criticalMismatches.length > 0) {
       Sentry.captureMessage(
-        `RECONCILIATION: ${criticalMismatches.length} payment(s) without delivery for 2+ hours`,
+        "RECONCILIATION: payment or fulfilment integrity mismatch",
         {
           level: "error",
           tags: {
@@ -106,6 +106,7 @@ export async function GET(request: NextRequest) {
             alert_type: "critical_mismatch",
           },
           extra: {
+            count: criticalMismatches.length,
             critical_mismatches: criticalMismatches.slice(0, 10).map((r) => ({
               status: r.intake_status,
               delivery: r.delivery_status,

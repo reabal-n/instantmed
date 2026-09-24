@@ -50,6 +50,7 @@ function createQuery<T>(result: T) {
 }
 
 function createReconciliationSupabaseMock(input?: {
+  intake?: Record<string, unknown>
   documentsError?: { message: string } | null
   emailsError?: { message: string } | null
 }) {
@@ -77,6 +78,7 @@ function createReconciliationSupabaseMock(input?: {
               status: "paid",
               stripe_payment_intent_id: null,
               subtype: "work",
+              ...input?.intake,
             }],
             error: null,
           })),
@@ -140,7 +142,7 @@ describe("payment reconciliation hardening", () => {
     })).toBeNull()
   })
 
-  it("keeps reconciliation Sentry alerts free of patient identifiers", async () => {
+  it("keeps real payment integrity visible without paging from a data read", async () => {
     mocks.createServiceRoleClient.mockReturnValue(createReconciliationSupabaseMock())
 
     const result = await getReconciliationRecords({
@@ -153,13 +155,48 @@ describe("payment reconciliation hardening", () => {
       is_mismatch: true,
       payment_issue: "Paid request missing Stripe payment intent and checkout session",
     })
-    expect(Sentry.captureMessage).toHaveBeenCalled()
+    expect(Sentry.captureMessage).not.toHaveBeenCalled()
 
     const sentryPayload = JSON.stringify(vi.mocked(Sentry.captureMessage).mock.calls)
     expect(sentryPayload).not.toContain("patient@example.test")
     expect(sentryPayload).not.toContain("Patient Name")
     expect(sentryPayload).not.toContain("REF-123")
     expect(sentryPayload).not.toContain("intake-1")
+  })
+
+  it.each(["consult", "prescription", "medical_certificate"])("keeps %s awaiting review out of payment mismatches", async (category) => {
+    mocks.createServiceRoleClient.mockReturnValue(createReconciliationSupabaseMock({
+      intake: { category, payment_id: "cs_live_fixture", stripe_payment_intent_id: "pi_live_fixture" },
+    }))
+    const result = await getReconciliationRecords({ mismatch_only: false })
+    expect(result.data[0]).toMatchObject({ delivery_status: "pending", is_mismatch: false })
+    expect(Sentry.captureMessage).not.toHaveBeenCalled()
+  })
+
+  it.each(["in_review", "pending_info"])("does not label consult %s as delivered", async (status) => {
+    mocks.createServiceRoleClient.mockReturnValue(createReconciliationSupabaseMock({
+      intake: { category: "consult", status, payment_id: "cs_live_fixture", stripe_payment_intent_id: "pi_live_fixture" },
+    }))
+    const result = await getReconciliationRecords({ mismatch_only: false })
+    expect(result.data[0]).toMatchObject({ delivery_status: "in_progress", is_mismatch: false })
+  })
+
+  it("excludes a fresh-profile E2E fixture with no Stripe payment", async () => {
+    mocks.createServiceRoleClient.mockReturnValue(createReconciliationSupabaseMock({
+      intake: { reference_number: "E2E-RECONCILIATION-FIXTURE" },
+    }))
+    const result = await getReconciliationRecords({ mismatch_only: false })
+    expect(result.data).toEqual([])
+    expect(result.summary.mismatches).toBe(0)
+    expect(Sentry.captureMessage).not.toHaveBeenCalled()
+  })
+
+  it("still flags an approved certificate without its document", async () => {
+    mocks.createServiceRoleClient.mockReturnValue(createReconciliationSupabaseMock({
+      intake: { status: "approved", payment_id: "cs_live_fixture", stripe_payment_intent_id: "pi_live_fixture" },
+    }))
+    const result = await getReconciliationRecords({ mismatch_only: false })
+    expect(result.data[0]).toMatchObject({ is_mismatch: true, delivery_details: "Approved but document not generated" })
   })
 
   it("propagates an email evidence query failure instead of inferring no delivery", async () => {
