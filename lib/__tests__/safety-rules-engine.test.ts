@@ -583,23 +583,25 @@ describe("Safety Rules Engine", () => {
       ).toBe(true)
     })
 
-    it("should DECLINE on MEN2 / medullary thyroid cancer history (D-D)", () => {
+    it("allows assessment with a retained risk flag for MEN2 / medullary thyroid cancer history (D-D)", () => {
       const result = evaluateSafety("weight-management", {
         ...safeWeightAnswers,
         weight_men2_thyroid_cancer: true,
       })
-      expect(result.outcome).toBe("DECLINE")
+      expect(result.outcome).toBe("ALLOW")
+      expect(result.riskTier).toBe("high")
       expect(
         result.triggeredRules.some((r) => r.ruleId === "weight_men2_thyroid_cancer")
       ).toBe(true)
     })
 
-    it("should DECLINE on pancreatitis history (D-D)", () => {
+    it("allows assessment with a retained risk flag for pancreatitis history (D-D)", () => {
       const result = evaluateSafety("weight-management", {
         ...safeWeightAnswers,
         weight_pancreatitis: true,
       })
-      expect(result.outcome).toBe("DECLINE")
+      expect(result.outcome).toBe("ALLOW")
+      expect(result.riskTier).toBe("high")
       expect(
         result.triggeredRules.some((r) => r.ruleId === "weight_pancreatitis")
       ).toBe(true)

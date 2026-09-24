@@ -23,6 +23,7 @@ import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/l
 import { classifyAttributionSource } from "@/lib/analytics/source-classification"
 import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
+import { WEIGHT_TREATMENT_PREFERENCE_LABELS } from "@/lib/clinical/weight-loss-eligibility"
 import { CONTACT_EMAIL,PRICING as APP_PRICING, TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { rememberSignInEmailHandoff } from "@/lib/navigation/auth-handoff"
@@ -545,7 +546,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const consultSubtypeForLabel = stringAnswer(answers.consultSubtype) || undefined
   const serviceLabel = getServiceDisplayLabel(serviceType, consultSubtypeForLabel)
   // "What to expect" re: repeats — only for services that get a repeatable script
-  // (null for med certs / women's health / weight loss). Expectation-setting copy.
+  // (weight management has a four-week limit; med certs / women's health return null).
   const repeatsExpectation = getRepeatsExpectation(serviceType, consultSubtypeForLabel)
 
   sections.push({
@@ -1043,6 +1044,8 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
         { label: 'Pancreatitis history', value: answers.weight_pancreatitis === true ? 'Yes' : 'No' },
         { label: 'Eating disorder history', value: answers.eatingDisorderHistory === 'yes' ? 'Yes' : 'No' },
       ]
+      const preference = WEIGHT_TREATMENT_PREFERENCE_LABELS[String(answers.weightLossMedPreference || "")]
+      if (preference) wlItems.push({ label: 'Treatment preference', value: preference })
       if (answers.wlAdverseReactions === 'yes') {
         wlItems.push({ label: 'Adverse reactions', value: String(answers.wlAdverseReactionsDetails || 'Yes') })
       }

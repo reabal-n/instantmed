@@ -117,5 +117,16 @@ export function deriveIntakeFlags(input: DeriveIntakeFlagsInput): IntakeFlag[] {
     flags.push(...deriveRepeatScriptFlags(input.answers))
   }
 
+  if (input.category === "consult" && input.subtype === "weight_loss") {
+    const histories = [
+      input.answers.weight_men2_thyroid_cancer === true ? "MEN2 / medullary thyroid cancer history" : null,
+      input.answers.weight_pancreatitis === true ? "Pancreatitis history" : null,
+    ].filter(Boolean)
+    if (histories.length) flags.push(makeIntakeFlag("weight_medicine_review", {
+      source: "clinical",
+      detail: `${histories.join("; ")}. Assess medicine-specific restrictions and alternatives before prescribing.`,
+    }))
+  }
+
   return dedupeIntakeFlags(flags)
 }

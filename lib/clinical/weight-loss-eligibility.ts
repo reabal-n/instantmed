@@ -39,3 +39,13 @@ export function computeBmi(weightKg: number, heightCm: number): number | null {
   if (weightKg < 30 || weightKg > 300 || heightCm < 100 || heightCm > 250) return null
   return Math.round((weightKg / (heightCm / 100) ** 2) * 10) / 10
 }
+
+/** Assessment preferences only: never select a medicine or bypass safety screening. */
+export const WEIGHT_TREATMENT_PREFERENCE_LABELS: Record<string, string> = {
+  daily_oral: "Daily oral treatment",
+  weekly_injection: "Weekly injection",
+  unsure: "Unsure — discuss with the doctor",
+  // Preserve the meaning of historical assessment answers.
+  duromine: "Daily oral treatment",
+  glp1: "Injection treatment (historical preference)",
+}

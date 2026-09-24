@@ -10,8 +10,9 @@ import {
 } from "@/lib/clinical/medication-flags"
 import { PRESCRIPTION_HISTORY_LABELS } from "@/lib/clinical/prescription-history"
 import { getRepeatRxAttestationStatus } from "@/lib/clinical/repeat-rx-attestation"
+import { WEIGHT_SUPPLY_DOCTOR_INSTRUCTION } from "@/lib/clinical/repeats-policy"
 import { normaliseSymptomText } from "@/lib/clinical/symptom-normaliser"
-import { computeBmi, WEIGHT_LOSS_BMI_FLOOR } from "@/lib/clinical/weight-loss-eligibility"
+import { computeBmi, WEIGHT_LOSS_BMI_FLOOR, WEIGHT_TREATMENT_PREFERENCE_LABELS } from "@/lib/clinical/weight-loss-eligibility"
 import { extractRepeatRxFrequency } from "@/lib/request/repeat-rx-regimen"
 import {
   buildRepeatScriptMedicationValidationText,
@@ -1647,9 +1648,8 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
 /**
  * Weight-management consult (launched 2026-08-07, form-first per D-A).
- * Server rules have already DECLINED pregnancy/MEN2/pancreatitis/below-floor
- * BMI before payment — if one of those answers still reads positive here,
- * something upstream failed and the block-severity item says so.
+ * Server rules decline pregnancy and below-floor BMI before payment. MEN2 and
+ * pancreatitis histories instead require medicine-specific doctor assessment.
  */
 function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const { answers } = input
@@ -1674,16 +1674,17 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const pancreatitis = answers.weight_pancreatitis === true
   const belowFloor = bmi !== null && bmi < WEIGHT_LOSS_BMI_FLOOR
   const needsCall = eatingDisorder || heartCondition
+  const needsMedicineReview = men2 || pancreatitis
 
   const safetyItems = [
     pregnant
       ? { severity: "block" as const, label: "Pregnant or breastfeeding", detail: "Absolute contraindication — the server should have declined this before payment. Decline with full refund." }
       : null,
     men2
-      ? { severity: "block" as const, label: "MEN2 / medullary thyroid cancer history", detail: "Absolute GLP-1 contraindication — the server should have declined this before payment." }
+      ? { severity: "caution" as const, label: "MEN2 / medullary thyroid cancer history", detail: "Review medicine-specific restrictions and alternatives before prescribing. Assessment eligibility does not establish medicine suitability." }
       : null,
     pancreatitis
-      ? { severity: "block" as const, label: "Pancreatitis history", detail: "GLP-1 contraindication — the server should have declined this before payment." }
+      ? { severity: "caution" as const, label: "Pancreatitis history", detail: "Establish the pancreatitis history and review medicine-specific precautions and alternatives before prescribing." }
       : null,
     belowFloor
       ? { severity: "block" as const, label: `BMI below ${WEIGHT_LOSS_BMI_FLOOR}`, detail: "Below the eligibility floor — the server should have declined this before payment." }
@@ -1708,15 +1709,26 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
           "If treatment is appropriate, prescribe in Parchment; otherwise decline with a full refund.",
         ],
       }
-    : {
+    : needsMedicineReview
+      ? {
+          action: "request_info",
+          title: "Assess medicine-specific risks before selecting treatment",
+          rationale: "A flagged history needs individual assessment; passing checkout does not clear any medicine for prescribing.",
+          nextSteps: [
+            "Review the disclosed history and current product information; obtain further details or contact the patient if needed.",
+            "Consider suitable alternatives or decline with a full refund if treatment is not appropriate.",
+            WEIGHT_SUPPLY_DOCTOR_INSTRUCTION,
+          ],
+        }
+      : {
         action: "prescribe",
-        title: "GLP-1 pathway if clinically appropriate",
+        title: "Weight-management treatment if clinically appropriate",
         rationale: bmi !== null
           ? `BMI ${bmi.toFixed(1)}${comorbidities.length ? ` with ${comorbidities.join(", ").toLowerCase()}` : " with no stated comorbidity"} — eligibility screening passed server-side.`
           : "Screening passed server-side; confirm measurements before prescribing.",
         nextSteps: [
           "Confirm history and current medicines.",
-          "Select medicine and dose in Parchment; one-off review, continuation needs a new consult.",
+          WEIGHT_SUPPLY_DOCTOR_INSTRUCTION,
         ],
       }
 
@@ -1724,17 +1736,17 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   // fired (those cases decline, not prescribe). A needs_call case keeps the
   // intent: the doctor calls first, then may still prescribe — the plan's
   // next steps already sequence the call ahead of Parchment. No medicine is
-  // preselected: GLP-1-focused launch (D-B), agent and dose are the doctor's
+  // preselected: agent and dose are the doctor's
   // selection inside Parchment.
-  const hasBlock = pregnant || men2 || pancreatitis || belowFloor
+  const hasBlock = pregnant || belowFloor
   const cautionChecks = safetyItems
     .filter((item) => item.severity === "caution")
     .map((item) => item.label)
   const prescriptionIntent = hasBlock ? undefined : makeIntent({
     presetLabel: "Weight-management Parchment handoff context",
-    medicationSearchHint: "GLP-1 receptor agonist — agent per doctor selection",
-    directionsTemplate: "Titrate per the selected product schedule; counsel on GI side effects and review timing.",
-    repeatsTemplate: "One-off review — continuation requires a new consult.",
+    medicationSearchHint: "Weight-management medicine — agent per doctor selection",
+    directionsTemplate: "Confirm medicine-specific contraindications, interactions and monitoring; use the selected product instructions and counsel on side effects and review timing.",
+    repeatsTemplate: WEIGHT_SUPPLY_DOCTOR_INSTRUCTION,
     safetyChecks: [
       "Pregnancy/breastfeeding screened",
       "MEN2 / medullary thyroid history screened",
@@ -1750,10 +1762,12 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const objective = `BMI ${bmi !== null ? bmi.toFixed(1) : "not computable"} (${weightKg || "?"} kg, ${heightCm || "?"} cm), target ${str(answers, "targetWeight") || "?"} kg. Comorbidities: ${comorbidities.length ? comorbidities.join(", ") : "none stated"}. Screens: pregnancy ${pregnant ? "YES" : "no"}, MEN2 ${men2 ? "YES" : "no"}, pancreatitis ${pancreatitis ? "YES" : "no"}, eating disorder ${eatingDisorder ? "YES" : "no"}.`
   const assessment = needsCall
     ? "Weight-management request with call-required history. No asynchronous decision before phone contact."
-    : "Weight-management request, screening clear on structured intake. Suitable for asynchronous review."
+    : needsMedicineReview
+      ? "Weight-management request with medicine-specific risk history. Individual assessment required before any prescription."
+      : "Weight-management request, screening clear on structured intake. Suitable for asynchronous review."
   const planText = needsCall
     ? "Call patient. Then prescribe in Parchment or decline with full refund."
-    : "If appropriate: prescribe in Parchment (one-off; continuation requires a new consult). Counsel on side effects and follow-up with GP."
+    : `${needsMedicineReview ? "Assess flagged history and medicine-specific suitability first. " : ""}If appropriate, prescribe in Parchment. ${WEIGHT_SUPPLY_DOCTOR_INSTRUCTION} Counsel on side effects and follow-up with GP.`
 
   return {
     title: "Weight-management consult",
@@ -1763,6 +1777,7 @@ function weightLossSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       fact("Current weight", weightKg ? `${weightKg} kg` : null),
       fact("Target weight", firstStr(answers, ["targetWeight"])),
       fact("Comorbidities", comorbidities.length ? comorbidities.join(", ") : null),
+      fact("Treatment preference", WEIGHT_TREATMENT_PREFERENCE_LABELS[str(answers, "weightLossMedPreference") || ""] || null),
       fact("Previous attempts", firstStr(answers, ["previousAttempts"])),
       fact("Adverse reactions", str(answers, "wlAdverseReactions") === "yes" ? str(answers, "wlAdverseReactionsDetails") || "Yes" : null),
     ]),

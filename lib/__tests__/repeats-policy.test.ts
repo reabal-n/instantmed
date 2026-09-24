@@ -43,10 +43,18 @@ describe("getRepeatsExpectation", () => {
     expect(copy).not.toContain("months")
   })
 
+  it("limits weight management to four weeks with no repeats and a new consult for continuation", () => {
+    const copy = getRepeatsExpectation("consult", "weight_loss")!
+    expect(copy).toContain("4 weeks")
+    expect(copy).toContain("no repeats")
+    expect(copy).toContain("new consultation")
+    expect(copy).toContain("If your doctor approves")
+  })
+
   it("returns null where repeats don't apply", () => {
     expect(getRepeatsExpectation("med-cert")).toBeNull()
     expect(getRepeatsExpectation("consult", "womens_health")).toBeNull()
-    expect(getRepeatsExpectation("consult", "weight_loss")).toBeNull()
+
     expect(getRepeatsExpectation("consult")).toBeNull() // bare consult, no subtype
   })
 
