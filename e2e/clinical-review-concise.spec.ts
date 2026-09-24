@@ -51,8 +51,8 @@ async function openQueueCase(page: Page, intakeId: string): Promise<Locator> {
   const prewarm = await page.request.get(`/api/doctor/intakes/${intakeId}/review-data`)
   expect(prewarm.ok(), "Synthetic review-data prewarm must succeed").toBe(true)
   await page.goto(SEED_ONLY_QUEUE)
-  const row = page.getByTestId(`queue-row-${intakeId}`)
-  // Let the responsive queue finish replacing its initial server layout.
+  const row = page.getByRole("region", { name: "Doctor request queue" }).getByTestId(`queue-row-${intakeId}`)
+  // Target the accessible queue while the responsive layout replaces its skeleton.
   await expect(row).toHaveCount(1)
   await expect(row).toBeVisible({ timeout: 30_000 })
   await row.getByRole("button", { name: /Open case for/i }).click()
@@ -454,7 +454,14 @@ test.describe("Concise clinical review", () => {
       await subjective.press("ControlOrMeta+End")
       await subjective.pressSequentially(" More typing while save is held.")
       await expect(subjective).toHaveValue(finalText)
+      // The held snapshot and the later edit are separate serialized writes.
+      // Start the durable-read assertion after the latest write responds.
+      const latestSaveCompleted = page.waitForResponse((response) =>
+        ownsAction(response, intakeId)
+        && (response.request().postData() || "").includes("More typing while save is held."),
+      { timeout: 30_000 })
       releaseSave()
+      expect((await latestSaveCompleted).ok()).toBe(true)
       await expect.poll(() => persistedNote(page, intakeId)).toContain(finalText)
       expect(saves).toBeGreaterThanOrEqual(2)
     } finally {
