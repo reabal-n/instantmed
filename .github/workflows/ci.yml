@@ -1,8 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
+  schedule:
+    - cron: '17 19 * * 1,4'
+  workflow_dispatch:
   pull_request:
     branches: [ main ]
 
@@ -70,6 +71,12 @@ jobs:
               ;;
           esac
 
+          docs_only="false"
+          if [ "$scope_known" = "true" ]; then
+            docs_only="$(printf '%s\n' "$changed_files" | bash scripts/ci-e2e-required.sh "$EVENT_NAME" docs)"
+          fi
+          printf '%s\n' "$changed_files" > .ci-changed-files
+          echo "docs-only=$docs_only" >> "$GITHUB_OUTPUT"
           echo "required=$required" >> "$GITHUB_OUTPUT"
           echo "Blocking E2E required: $required"
 
@@ -83,12 +90,14 @@ jobs:
           cache: 'pnpm'
 
       - name: Check active Node runtime
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         run: bash scripts/check-node-runtime.sh
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Restore Next.js build cache
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         uses: actions/cache@v5
         with:
           path: .next/cache
@@ -97,15 +106,19 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
 
       - name: Check stack pins (Next + tooling/React/Tailwind/Framer Motion)
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         run: bash scripts/check-stack-pins.sh
 
       - name: Check dependency dedupe
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: pnpm dedupe --check
 
       - name: Check placeholder URL env values
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         run: pnpm check:placeholder-env
 
       - name: Supabase schema lint
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         env:
           POSTGRES_URL_NON_POOLING: ${{ secrets.POSTGRES_URL_NON_POOLING }}
         run: |
@@ -119,9 +132,11 @@ jobs:
             --fail-on error
 
       - name: Security audit
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: pnpm security:audit
 
       - name: "Run lint (budget: 60s)"
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         run: |
           START=$(date +%s)
           pnpm lint --max-warnings 0
@@ -132,46 +147,63 @@ jobs:
           fi
 
       - name: Voice guard (banned phrases + em-dashes in marketing surfaces)
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         run: pnpm vitest run lib/__tests__/voice-guard.test.ts
 
       - name: Health guide image audit
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         run: pnpm content:audit:images
 
       - name: Type-check
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         run: pnpm typecheck
 
+      - name: Tests related to changed files
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' && steps.e2e_scope.outputs.required != 'true' }}
+        run: node scripts/ci-related-tests.mjs
+
       - name: Run unit tests with coverage
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: pnpm test --run --coverage
 
       - name: Resend database ordering and schema compatibility
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: |
           bash scripts/test-resend-webhook-mirrors-db.sh
           bash scripts/test-resend-webhook-mirrors-db.sh --legacy-delivery
 
       - name: Restored checkout database collision and recovery
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: bash scripts/test-checkout-restored-draft-db.sh
 
       - name: Profile encryption guarded backfill
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: bash scripts/test-profile-encryption-backfill-db.sh
 
       - name: Google Ads adjustment evidence and alert classification
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: |
           bash scripts/test-google-ads-adjustment-health-db.sh
           bash scripts/test-google-ads-adjustment-exact-cash-db.sh
 
       - name: Monitoring state concurrency and evidence ordering
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: bash scripts/test-monitor-observation-state-db.sh
 
       - name: Check design token compliance
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: bash scripts/verify-tokens.sh
 
       - name: Check for route conflicts
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         run: bash scripts/check-route-conflicts.sh
 
       - name: Check for orphaned files
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: bash scripts/check-orphaned-files.sh
 
       - name: Dead-code baseline ratchet
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: pnpm deadcode:check
 
       - name: AGENTS.md is in sync with CLAUDE.md
@@ -181,12 +213,15 @@ jobs:
         run: pnpm doc:audit
 
       - name: Portal design-system compliance (no legacy classes)
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: bash scripts/check-portal-no-legacy-classes.sh
 
       - name: Ban keyword-substring anti-pattern in clinical/safety code
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: bash scripts/check-keyword-substring-antipattern.sh
 
       - name: "Type-check and build (target: 180s, warning: 210s)"
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-build
@@ -207,16 +242,19 @@ jobs:
         run: pnpm build:release
 
       - name: Compiled server-action access boundaries (isolated fixtures)
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: pnpm exec playwright test --config=playwright.action-access.config.ts
 
       - name: Checkout consent database invariants (isolated PostgreSQL)
+        if: ${{ steps.e2e_scope.outputs.required == 'true' }}
         run: bash scripts/test-checkout-consent-db.sh
 
       - name: Bundle size gate (shared first-load JS)
+        if: ${{ steps.e2e_scope.outputs.docs-only != 'true' }}
         run: bash scripts/check-bundle-size.sh
 
       - name: Parchment sandbox smoke
-        if: ${{ vars.PARCHMENT_SMOKE_ENABLED == 'true' }}
+        if: ${{ steps.e2e_scope.outputs.required == 'true' && vars.PARCHMENT_SMOKE_ENABLED == 'true' }}
         env:
           PARCHMENT_API_URL: ${{ secrets.PARCHMENT_API_URL }}
           PARCHMENT_PARTNER_ID: ${{ secrets.PARCHMENT_PARTNER_ID }}
@@ -226,11 +264,9 @@ jobs:
           PARCHMENT_SMOKE_USER_ID: ${{ secrets.PARCHMENT_SMOKE_USER_ID }}
         run: pnpm smoke:parchment
 
-      # Post-merge detection complement to the PR-first ruleset. Direct pushes
-      # are rejected and build + e2e gate every merge, but an environment drift
-      # or post-merge rerun can still make main red. Keep that visible.
+      # Surface scheduled/manual main failures without repeating CI on each merge.
       - name: Alert Telegram on main build failure
-        if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ failure() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -250,6 +286,7 @@ jobs:
 
   lighthouse:
     needs: build
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

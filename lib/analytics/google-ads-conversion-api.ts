@@ -6,8 +6,8 @@ import * as Sentry from "@sentry/nextjs"
 
 import {
   buildGoogleAdsAuthHeaders,
-  DEFAULT_GOOGLE_ADS_API_VERSION,
   extractGoogleAdsErrorCode,
+  getEffectiveGoogleAdsApiVersion,
   getGoogleAdsAccessToken,
   getGoogleAdsClientConfig,
   getGoogleAdsSearchUrl,
@@ -341,14 +341,14 @@ export function buildGoogleAdsUserIdentifiers(
 
 export function getGoogleAdsUploadClickConversionsUrl(
   customerId: string,
-  apiVersion = process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
+  apiVersion = getEffectiveGoogleAdsApiVersion(),
 ): string {
   return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}:uploadClickConversions`
 }
 
 export function getGoogleAdsUploadConversionAdjustmentsUrl(
   customerId: string,
-  apiVersion = process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
+  apiVersion = getEffectiveGoogleAdsApiVersion(),
 ): string {
   return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}:uploadConversionAdjustments`
 }

@@ -58,7 +58,7 @@ describe("Google Ads Agent CLI contract", () => {
 
   it("keeps experiment launch and stop tied to exact proposal packets", () => {
     expect(source).toContain(
-      "createExperimentFromProposal(requiredOption(\"proposal\"))",
+      "createExperimentFromProposal(requiredOption(\"proposal\"), parseExperimentControls(",
     )
     expect(source).toContain(
       "stopExperiment(requiredOption(\"experiment\"))",

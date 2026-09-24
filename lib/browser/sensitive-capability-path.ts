@@ -1,5 +1,6 @@
 const SENSITIVE_CAPABILITY_PATH_PREFIXES = [
   "/auth/complete-account",
+  "/checkout/cancelled",
   "/track",
   "/resume",
 ] as const

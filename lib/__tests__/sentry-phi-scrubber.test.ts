@@ -20,6 +20,14 @@ function createSentryFormattedLogMessage(value: string) {
 }
 
 describe("Sentry PHI scrubber", () => {
+  it("scrubs nested Google tag URLs and resume tokens before telemetry export", () => {
+    const url = "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/123?data=step_name%3Dmedication&url=https%3A%2F%2Finstantmed.com.au%2Fcheckout%2Fcancelled%3Fresume_token%3Dprivate-capability"
+    const result = scrubSentrySpan({ description: `GET ${url}`, data: { "url.full": url } })
+    expect(JSON.stringify(result)).not.toContain("private-capability")
+    expect(JSON.stringify(result)).not.toContain("medication")
+    expect(JSON.stringify(scrubSentryEvent({ request: { url: "https://instantmed.com.au/checkout/cancelled?resume_token=private-capability" }, extra: { resume_token: "private-capability" } }))).not.toContain("private-capability")
+  })
+
   it("redacts recovery email proofs in URL strings and structured fields", () => {
     const event = scrubSentryEvent({
       request: {

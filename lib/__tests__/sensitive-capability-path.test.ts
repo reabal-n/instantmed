@@ -19,6 +19,7 @@ describe("external analytics pathname boundary", () => {
   })
 
   it.each([
+    "/checkout/cancelled",
     "/resume%2Fsigned-checkout-secret",
     "/track%252Fsigned-request-secret",
     "/resume%E0%A4%A",

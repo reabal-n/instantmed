@@ -15,10 +15,10 @@ const logger = createLogger("cron-daily-reconciliation")
  * Daily Payment Reconciliation
  *
  * Runs daily at 7 AM AEST to identify mismatches between
- * payment status and delivery outcome from the last 24 hours.
+ * payment status and delivery outcome from an overlapping 26-hour window.
  *
  * Alerts on:
- * - Paid intakes without delivery (stuck > 2 hours)
+ * - Payment/fulfilment integrity mismatches older than 2 hours (not awaiting review)
  * - Failed refunds
  * - Failed certificate/script deliveries
  *
@@ -51,12 +51,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const now = new Date()
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    // Daily cadence plus the two-hour critical-age threshold: young records
+    // must remain candidates at the next run.
+    const windowStart = new Date(now.getTime() - 26 * 60 * 60 * 1000)
 
-    // Get all reconciliation records (not just mismatches) for last 24h
+    // Aggregate alert owner; suppress duplicate per-record recovery warnings.
     const result = await getReconciliationRecords({
       mismatch_only: false,
-      date_from: twentyFourHoursAgo.toISOString(),
+      emit_warnings: false,
+      date_from: windowStart.toISOString(),
       date_to: now.toISOString(),
     })
 
@@ -98,7 +101,7 @@ export async function GET(request: NextRequest) {
     // Alert on critical issues
     if (criticalMismatches.length > 0) {
       Sentry.captureMessage(
-        `RECONCILIATION: ${criticalMismatches.length} payment(s) without delivery for 2+ hours`,
+        "RECONCILIATION: payment or fulfilment integrity mismatch",
         {
           level: "error",
           tags: {
@@ -106,6 +109,7 @@ export async function GET(request: NextRequest) {
             alert_type: "critical_mismatch",
           },
           extra: {
+            count: criticalMismatches.length,
             critical_mismatches: criticalMismatches.slice(0, 10).map((r) => ({
               status: r.intake_status,
               delivery: r.delivery_status,
@@ -142,7 +146,7 @@ export async function GET(request: NextRequest) {
 
     if (failedDeliveries.length > 0) {
       Sentry.captureMessage(
-        `RECONCILIATION: ${failedDeliveries.length} failed delivery(ies) in last 24h`,
+        `RECONCILIATION: ${failedDeliveries.length} failed delivery(ies) in reconciliation window`,
         {
           level: "warning",
           tags: {

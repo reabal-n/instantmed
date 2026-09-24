@@ -604,7 +604,7 @@ configured in Vercel.
 | `DISABLE_CONSULT_SUBTYPES=<csv>` | Disables specific consult subtypes |
 | `DISABLE_INTAKE_EVENTS=true` | Disables intake event logging |
 | `DISABLE_STUCK_INTAKE_SENTRY=true` | Disables Sentry warnings for stuck intakes |
-| `DISABLE_RECONCILIATION_SENTRY=true` | Disables Sentry warnings for reconciliation mismatches |
+| `DISABLE_RECONCILIATION_SENTRY=true` | Disables per-record recovery-page mismatch warnings; aggregate cron integrity alerts remain enabled. |
 
 ### Where Checked
 
