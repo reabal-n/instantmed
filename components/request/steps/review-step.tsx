@@ -546,7 +546,7 @@ export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const consultSubtypeForLabel = stringAnswer(answers.consultSubtype) || undefined
   const serviceLabel = getServiceDisplayLabel(serviceType, consultSubtypeForLabel)
   // "What to expect" re: repeats — only for services that get a repeatable script
-  // (null for med certs / women's health / weight loss). Expectation-setting copy.
+  // (weight management has a four-week limit; med certs / women's health return null).
   const repeatsExpectation = getRepeatsExpectation(serviceType, consultSubtypeForLabel)
 
   sections.push({

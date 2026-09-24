@@ -14,8 +14,8 @@
  * may type a drug name into free text; we never print one.
  *
  * Screening (D-D): pregnancy/breastfeeding, MEN2/medullary thyroid cancer, and
- * pancreatitis are collected here because the server safety rules DECLINE on
- * them (lib/safety/rules.ts weightRules). The answer keys match the rules
+ * pancreatitis are collected here for server safety checks and doctor review of
+ * medicine-specific risks (lib/safety/rules.ts weightRules). The answer keys match the rules
  * exactly — `weight_pregnancy_status` ('yes'/'no'), and boolean
  * `weight_men2_thyroid_cancer` / `weight_pancreatitis`.
  *
@@ -41,6 +41,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import { WEIGHT_SUPPLY_EXPECTATION } from "@/lib/clinical/repeats-policy"
 import {
   computeBmi,
   WEIGHT_LOSS_BMI_FLOOR,
@@ -442,6 +443,8 @@ export default function WeightLossAssessmentStep({
           ))}
         </RadioGroup>
       </fieldset>
+
+      <p className="text-base text-muted-foreground">{WEIGHT_SUPPLY_EXPECTATION}</p>
 
       {/* Goals */}
       <div className="space-y-2">

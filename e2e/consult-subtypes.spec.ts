@@ -465,6 +465,7 @@ test.describe("Consult Sub-Services", () => {
     await expect(page.getByText("Total today")).toBeVisible()
     await expect(page.getByText("$89.95").first()).toBeVisible()
     await expect(page.getByText("Daily oral treatment", { exact: true })).toBeVisible()
+    await expect(page.getByText(/each consultation covers up to 4 weeks of medicine, with no repeats/)).toBeVisible()
     await page.locator("#safety-consent").click()
     const pay = page.locator('[data-intake-mobile-action-bar="true"]')
       .getByRole("button", { name: "Pay $89.95", exact: true })

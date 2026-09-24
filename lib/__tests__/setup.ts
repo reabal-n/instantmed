@@ -172,6 +172,7 @@ vi.mock('@/lib/observability/logger', () => ({
 // ============================================================================
 
 vi.mock('@sentry/nextjs', () => ({
+  setMeasurement: vi.fn(),
   captureMessage: vi.fn(),
   captureException: vi.fn(),
   setUser: vi.fn(),

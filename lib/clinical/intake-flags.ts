@@ -41,6 +41,7 @@ interface TaxonomyEntry {
  * flag.
  */
 export const INTAKE_FLAG_TAXONOMY = {
+  weight_medicine_review: { label: "Weight treatment needs medicine-specific review", severity: "attention" },
   medication_needs_identification: { label: "Medication needs identification", severity: "attention" },
   medication_strength_missing: { label: "Strength not provided", severity: "attention" },
   // Form is explicitly optional in the patient intake. Preserve the omission

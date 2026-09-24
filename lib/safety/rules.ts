@@ -918,30 +918,30 @@ const weightRules: SafetyRule[] = [
   {
     id: 'weight_men2_thyroid_cancer',
     name: 'MEN2 or Medullary Thyroid Cancer History',
-    description: 'Patient or family has history of MEN2 syndrome or medullary thyroid cancer - absolute contraindication for GLP-1 agonists',
+    description: 'MEN2 or medullary thyroid cancer history requires medicine-specific doctor assessment; not a whole-service exclusion',
     conditions: [
       // Collected in weight-loss-assessment-step as a required yes/no boolean.
       { fieldId: 'weight_men2_thyroid_cancer', operator: 'equals', value: true },
     ],
-    outcome: 'DECLINE',
+    outcome: 'ALLOW',
     riskTier: 'high',
-    patientMessage: 'Due to your personal or family history of medullary thyroid cancer or MEN2 syndrome, GLP-1 weight loss medications are not suitable for you. Please discuss alternative options with your GP.',
-    doctorNote: 'MEN2/medullary thyroid cancer history - absolute contraindication for GLP-1 agonists per TGA guidelines',
+    patientMessage: 'Your doctor will review this history before deciding which treatment, if any, is suitable.',
+    doctorNote: 'MEN2/medullary thyroid cancer history - review medicine-specific restrictions and alternatives before prescribing',
     priority: 950,
     services: ['weight-management'],
   },
   {
     id: 'weight_pancreatitis',
     name: 'Pancreatitis History',
-    description: 'Patient has history of pancreatitis - absolute contraindication for GLP-1 agonists',
+    description: 'Pancreatitis history requires medicine-specific doctor assessment; not a whole-service exclusion',
     conditions: [
       // Collected in weight-loss-assessment-step as a required yes/no boolean.
       { fieldId: 'weight_pancreatitis', operator: 'equals', value: true },
     ],
-    outcome: 'DECLINE',
+    outcome: 'ALLOW',
     riskTier: 'high',
-    patientMessage: 'GLP-1 medications are contraindicated in patients with a history of pancreatitis. Please consult your regular doctor about alternative weight management options.',
-    doctorNote: 'Pancreatitis history - absolute contraindication for GLP-1 agonists per TGA guidelines. Declined for safety.',
+    patientMessage: 'Your doctor will review your pancreatitis history before deciding which treatment, if any, is suitable.',
+    doctorNote: 'Pancreatitis history - establish clinical context and review medicine-specific precautions and alternatives before prescribing.',
     priority: 950,
     services: ['weight-management'],
   },

@@ -1,7 +1,10 @@
 import * as Sentry from "@sentry/nextjs"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+import { decryptAnswersRow, type IntakeAnswersRow } from "@/lib/data/intake-answers"
+import { transformAnswersForUnifiedCheckout } from "@/lib/request/unified-checkout"
 import { ensureCheckoutConsentEvidence } from "@/lib/stripe/checkout/consent-evidence"
 
 const mocks = vi.hoisted(() => ({
@@ -453,6 +456,44 @@ describe("checkout operating hours", () => {
     mocks.updateProfile.mockResolvedValue({})
     mocks.validateMedCertPayload.mockReturnValue({ valid: true })
     mocks.validateSafetyFieldsPresent.mockReturnValue({ valid: true, missingFields: [] })
+  })
+
+  it.each(["guest", "authenticated"].flatMap(actor => ["daily_oral", "weekly_injection", "unsure"].map(preference => ({ actor, preference }))))("persists weight preference through real checkout orchestration and clinician reload: %j", async ({ actor, preference }) => {
+    const { inserts, updates, supabase } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const realSafety = await vi.importActual<typeof import("@/lib/safety/evaluate")>("@/lib/safety/evaluate")
+    mocks.checkSafetyForServer.mockImplementation(realSafety.checkSafetyForServer)
+    mocks.validateSafetyFieldsPresent.mockImplementation(realSafety.validateSafetyFieldsPresent)
+    mocks.getPriceIdForRequest.mockReturnValue("price_weight")
+    const answers = transformAnswersForUnifiedCheckout("consult", {
+      ...hairLossGuestCheckoutInput().answers,
+      consultSubtype: "weight_loss", patient_dob: "1985-04-01",
+      weightKg: "100", heightCm: "175", targetWeight: "85", previousAttempts: "diet_exercise",
+      weight_pregnancy_status: "no", weight_men2_thyroid_cancer: true, weight_pancreatitis: false,
+      eatingDisorderHistory: "no", wlAdverseReactions: "no",
+      weightLossGoals: "Improve my health and mobility over time.", weightLossMedPreference: preference,
+    })
+    if (actor === "authenticated") mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
+      user: { id: "user-1", email: "patient@example.test" },
+      profile: { id: "patient-1", date_of_birth: "1985-04-01", full_name: "Test Patient", phone: "0400000000", stripe_customer_id: "cus_weight_fixture" },
+    })
+    const result = actor === "guest"
+      ? await createGuestCheckoutAction({ ...hairLossGuestCheckoutInput(), growthExperienceVersion: undefined, subtype: "weight_loss", answers })
+      : await createIntakeAndCheckoutAction({ category: "consult", subtype: "weight_loss", type: "consult", idempotencyKey: "synthetic-weight-preference", answers })
+    expect(result, JSON.stringify({ result, errors: updates.filter(row => row.payload.checkout_error).map(row => row.payload.checkout_error) })).toMatchObject({ success: true, intakeId: "intake-1" })
+    const stored = inserts.find(({ table }) => table === "intake_answers")?.payload
+    expect(stored).toBeDefined()
+    // Simulate the JSON serialization boundary, then use the production reader
+    // and the same summary builder as the actual clinician review component.
+    const reloaded = await decryptAnswersRow(JSON.parse(JSON.stringify(stored)) as IntakeAnswersRow)
+    expect(reloaded.weightLossMedPreference).toBe(preference)
+    const summary = buildClinicalCaseSummary({ category: "consult", subtype: "weight_loss", answers: reloaded })
+    expect(summary.keyFacts).toContainEqual({ label: "Treatment preference", value: {
+      daily_oral: "Daily oral treatment", weekly_injection: "Weekly injection", unsure: "Unsure — discuss with the doctor",
+    }[preference] })
+    expect(summary.recommendedPlan.action).toBe("request_info")
+    expect(updates).toContainEqual({ table: "intakes", payload: expect.objectContaining({ risk_flags: expect.arrayContaining([expect.objectContaining({ code: "weight_medicine_review" })]) }) })
+    expect(mocks.stripeSessionCreate).toHaveBeenCalledOnce()
   })
 
   it.each(["guest", "authenticated"])("requires explicit telehealth consent before %s checkout persistence/payment", async kind => {
