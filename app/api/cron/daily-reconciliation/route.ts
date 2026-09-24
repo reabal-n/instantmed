@@ -15,7 +15,7 @@ const logger = createLogger("cron-daily-reconciliation")
  * Daily Payment Reconciliation
  *
  * Runs daily at 7 AM AEST to identify mismatches between
- * payment status and delivery outcome from the last 24 hours.
+ * payment status and delivery outcome from an overlapping 26-hour window.
  *
  * Alerts on:
  * - Payment/fulfilment integrity mismatches older than 2 hours (not awaiting review)
@@ -51,12 +51,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const now = new Date()
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    // Daily cadence plus the two-hour critical-age threshold: young records
+    // must remain candidates at the next run.
+    const windowStart = new Date(now.getTime() - 26 * 60 * 60 * 1000)
 
-    // Get all reconciliation records (not just mismatches) for last 24h
+    // Aggregate alert owner; suppress duplicate per-record recovery warnings.
     const result = await getReconciliationRecords({
       mismatch_only: false,
-      date_from: twentyFourHoursAgo.toISOString(),
+      emit_warnings: false,
+      date_from: windowStart.toISOString(),
       date_to: now.toISOString(),
     })
 
@@ -143,7 +146,7 @@ export async function GET(request: NextRequest) {
 
     if (failedDeliveries.length > 0) {
       Sentry.captureMessage(
-        `RECONCILIATION: ${failedDeliveries.length} failed delivery(ies) in last 24h`,
+        `RECONCILIATION: ${failedDeliveries.length} failed delivery(ies) in reconciliation window`,
         {
           level: "warning",
           tags: {

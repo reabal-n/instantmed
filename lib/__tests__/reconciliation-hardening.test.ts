@@ -142,7 +142,7 @@ describe("payment reconciliation hardening", () => {
     })).toBeNull()
   })
 
-  it("keeps real payment integrity visible without paging from a data read", async () => {
+  it("keeps genuine recovery warnings free of patient identifiers", async () => {
     mocks.createServiceRoleClient.mockReturnValue(createReconciliationSupabaseMock())
 
     const result = await getReconciliationRecords({
@@ -155,13 +155,20 @@ describe("payment reconciliation hardening", () => {
       is_mismatch: true,
       payment_issue: "Paid request missing Stripe payment intent and checkout session",
     })
-    expect(Sentry.captureMessage).not.toHaveBeenCalled()
+    expect(Sentry.captureMessage).toHaveBeenCalled()
 
     const sentryPayload = JSON.stringify(vi.mocked(Sentry.captureMessage).mock.calls)
     expect(sentryPayload).not.toContain("patient@example.test")
     expect(sentryPayload).not.toContain("Patient Name")
     expect(sentryPayload).not.toContain("REF-123")
     expect(sentryPayload).not.toContain("intake-1")
+  })
+
+  it("allows the cron to own alerts without duplicate data-reader warnings", async () => {
+    mocks.createServiceRoleClient.mockReturnValue(createReconciliationSupabaseMock())
+    const result = await getReconciliationRecords({ mismatch_only: false, emit_warnings: false })
+    expect(result.data[0].payment_issue).toBeTruthy()
+    expect(Sentry.captureMessage).not.toHaveBeenCalled()
   })
 
   it.each(["consult", "prescription", "medical_certificate"])("keeps %s awaiting review out of payment mismatches", async (category) => {

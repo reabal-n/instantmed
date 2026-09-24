@@ -65,6 +65,8 @@ export interface ReconciliationResult {
 }
 
 export interface ReconciliationFilters {
+  /** The daily cron emits aggregate alerts and opts out of recovery-page warnings. */
+  emit_warnings?: boolean
   mismatch_only?: boolean
   category?: string
   date_from?: string
@@ -290,7 +292,9 @@ export async function getReconciliationRecords(
       records.push(record)
     }
 
-    // The daily cron owns aggregate alerts; dashboard reads must not page.
+    // Preserve recovery-page visibility for older integrity failures without
+    // sending a duplicate warning alongside the cron aggregate.
+    if (filters.emit_warnings !== false) await captureMismatchWarnings(records)
 
     // Calculate summary
     const summary = {
@@ -482,6 +486,67 @@ function calculateDeliveryStatus(
     deliveryDetails: `Status: ${status}`,
     lastError: null,
     isMismatch: ageMinutes > 15,
+  }
+}
+
+// ============================================================================
+// SENTRY WARNINGS
+// ============================================================================
+
+const warnedMismatches = new Set<string>()
+
+async function captureMismatchWarnings(records: ReconciliationRecord[]): Promise<void> {
+  if (process.env.DISABLE_RECONCILIATION_SENTRY === "true") {
+    return
+  }
+
+  for (const record of records) {
+    // Only warn for mismatches older than 15 minutes
+    if (!record.is_mismatch || record.age_minutes < 15) {
+      continue
+    }
+
+    const fingerprint = `${record.intake_id}:${record.delivery_status}`
+
+    if (warnedMismatches.has(fingerprint)) {
+      continue
+    }
+
+    warnedMismatches.add(fingerprint)
+
+    Sentry.captureMessage(`Payment reconciliation mismatch: ${record.delivery_status}`, {
+      level: "warning",
+      tags: {
+        delivery_status: record.delivery_status,
+        intake_status: record.intake_status,
+        category: record.category || "unknown",
+        service_type: record.service_type || "unknown",
+      },
+      extra: {
+        age_minutes: record.age_minutes,
+        delivery_details: record.delivery_details,
+        has_last_error: Boolean(record.last_error),
+        payment_issue: record.payment_issue,
+      },
+      fingerprint: [
+        "reconciliation-mismatch",
+        record.delivery_status,
+        record.intake_status,
+        record.category || "unknown",
+      ],
+    })
+
+    logger.warn("[Reconciliation] Mismatch detected", {
+      deliveryStatus: record.delivery_status,
+      ageMinutes: record.age_minutes,
+      category: record.category || "unknown",
+    })
+  }
+
+  // Cleanup old fingerprints
+  if (warnedMismatches.size > 1000) {
+    const toDelete = Array.from(warnedMismatches).slice(0, 500)
+    toDelete.forEach(fp => warnedMismatches.delete(fp))
   }
 }
 
