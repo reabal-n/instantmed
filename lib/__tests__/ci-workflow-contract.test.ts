@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process"
-import { readFileSync } from "node:fs"
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -19,10 +20,10 @@ const medCertReadinessSource = readFileSync(
   "utf8",
 )
 
-function classifyE2EScope(eventName: string, changedFiles: string[]): string {
+function classifyE2EScope(eventName: string, changedFiles: string[], mode = "full"): string {
   const result = spawnSync(
     "bash",
-    [join(process.cwd(), "scripts/ci-e2e-required.sh"), eventName],
+    [join(process.cwd(), "scripts/ci-e2e-required.sh"), eventName, mode],
     {
       encoding: "utf8",
       input: `${changedFiles.join("\n")}\n`,
@@ -51,11 +52,61 @@ describe("CI workflow contract", () => {
 
   it.each([
     ["runtime TypeScript", "pull_request", ["lib/email/send-email.ts"]],
-    ["runtime MDX", "pull_request", ["content/blog/medical-certificates.mdx"]],
+
     ["workflow configuration", "pull_request", [".github/workflows/ci.yml"]],
     ["an empty file list", "pull_request", []],
   ])("keeps E2E required for %s", (_label, eventName, changedFiles) => {
     expect(classifyE2EScope(eventName, changedFiles)).toBe("true")
+  })
+
+  it.each([
+    "components/marketing/hero.tsx", "lib/seo/metadata.ts",
+    "content/blog/medical-certificates.mdx", "public/images/logo.webp",
+  ])("uses focused checks for ordinary presentation changes: %s", (file) => {
+    expect(classifyE2EScope("pull_request", [file])).toBe("false")
+  })
+
+  it.each([
+    "lib/stripe/checkout.ts", "lib/auth/session.ts", "lib/clinical/triage.ts",
+    "supabase/migrations/change.sql", "components/request/steps/review-step.tsx",
+    "components/ui/button.tsx", "app/actions/save-note.ts", "package.json",
+    "middleware.ts", "unknown-new-area/entry.ts", "app/about/route.ts", "lib/marketing/actions.ts",
+  ])("keeps sensitive and unknown changes blocking: %s", (file) => {
+    expect(classifyE2EScope("pull_request", ["docs/ROADMAP.md", file])).toBe("true")
+  })
+
+  it("runs broad checks on the schedule and manual dispatch", () => {
+    expect(classifyE2EScope("schedule", ["docs/ROADMAP.md"])).toBe("true")
+    expect(ciWorkflowSource).toContain("cron: '17 19 * * 1,4'")
+    expect(ciWorkflowSource).toContain("workflow_dispatch:")
+    expect(ciWorkflowSource).toContain("node scripts/ci-related-tests.mjs")
+  })
+
+  it("only skips application checks for a known documentation-only diff", () => {
+    expect(classifyE2EScope("pull_request", ["docs/ROADMAP.md", "docs/bookkeeping/expected-md-count"], "docs")).toBe("true")
+    for (const files of [[], ["docs/a.md", "app/actions/pay.ts"], ["content/blog/a.mdx"]]) {
+      expect(classifyE2EScope("pull_request", files, "docs")).toBe("false")
+    }
+    expect(classifyE2EScope("schedule", ["docs/a.md"], "docs")).toBe("false")
+    expect(classifyE2EScope("workflow_dispatch", ["docs/a.md"], "docs")).toBe("false")
+  })
+
+  it("forwards literal changed paths to related tests and preserves failure", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ci-related-"))
+    const runner = join(process.cwd(), "scripts/ci-related-tests.mjs")
+    try {
+      writeFileSync(join(dir, ".ci-changed-files"), "components/marketing/with space.tsx\nold-name.tsx\n")
+      writeFileSync(join(dir, "pnpm"), '#!/usr/bin/env node\nrequire("fs").writeFileSync("args.json", JSON.stringify(process.argv.slice(2)));process.exit(17)\n', { mode: 0o755 })
+      const result = spawnSync(process.execPath, [runner], { cwd: dir, env: { ...process.env, PATH: `${dir}:${process.env.PATH}` } })
+      expect(result.status).toBe(17)
+      expect(JSON.parse(readFileSync(join(dir, "args.json"), "utf8"))).toEqual([
+        "exec", "vitest", "related", "--run", "--passWithNoTests", "components/marketing/with space.tsx", "old-name.tsx",
+      ])
+      writeFileSync(join(dir, ".ci-changed-files"), "")
+      expect(spawnSync(process.execPath, [runner], { cwd: dir }).status).not.toBe(0)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   it("wires the fail-safe scope decision into the shared-fixture E2E job", () => {

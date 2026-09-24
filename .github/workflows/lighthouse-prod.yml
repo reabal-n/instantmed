@@ -1,6 +1,6 @@
 name: Lighthouse Production
 
-# Nightly production Lighthouse audit against the live site. Runs on a
+# Twice-weekly production Lighthouse audit against the live site. Runs on a
 # desktop profile across all customer-facing marketing surfaces and posts
 # the report as an artifact.
 #
@@ -8,17 +8,17 @@ name: Lighthouse Production
 #   - CI runs on a built localhost server, which tells us about code-level
 #     regressions but not real production latency, CDN behaviour, or
 #     third-party tag bloat.
-#   - Nightly run against instantmed.com.au catches cache/CDN regressions,
+#   - Twice-weekly run against instantmed.com.au catches cache/CDN regressions,
 #     third-party SDK bloat (PostHog/Sentry/etc), and real-world TLS +
 #     DNS overhead that localhost CI never sees.
 #
 # Triggers:
-#   - schedule: 02:00 UTC daily (~12:00 AEST lunchtime — non-peak)
+#   - schedule: 02:00 UTC Tuesday/Friday (~12:00 AEST lunchtime — non-peak)
 #   - workflow_dispatch: manual trigger via the Actions UI
 
 on:
   schedule:
-    - cron: "0 2 * * *"
+    - cron: "0 2 * * 2,5"
   workflow_dispatch:
 
 jobs:

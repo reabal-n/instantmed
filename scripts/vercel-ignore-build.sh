@@ -13,8 +13,8 @@
 # This is SAFE because the required CI gate `build` in .github/workflows/ci.yml
 # validates every PR with lint, typecheck, unit tests, and a production build
 # without depending on a Vercel preview URL. Lighthouse is a separate local
-# gate; shared-fixture Playwright E2E runs for every non-Markdown change and
-# fails closed when change scope is unknown. The main ruleset requires strict,
+# gate; shared-fixture Playwright E2E runs for sensitive/unclassified changes
+# and twice weekly. Documentation-only PRs skip the application build. The main ruleset requires strict,
 # up-to-date `build` and `e2e` checks; Vercel status is not a merge gate.
 #
 # Need a real preview deployment for a specific PR (e.g. to exercise the
