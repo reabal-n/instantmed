@@ -24,14 +24,13 @@ const NATIVE_WIDTH = 73
 const NATIVE_HEIGHT = 79
 
 interface LegitScriptSealProps {
-  /** `sm` = ~58×63 (inline trust rows), `md` = native 73×79 (dedicated blocks) */
-  size?: "sm" | "md"
+  /** `xs` = ~44×48 (hero proof row), `sm` = ~58×63 (inline trust rows), `md` = native 73×79 (dedicated blocks) */
+  size?: "xs" | "sm" | "md"
   className?: string
 }
 
 export function LegitScriptSeal({ size = "sm", className }: LegitScriptSealProps) {
-  const isLarge = size === "md"
-  const targetHeight = isLarge ? NATIVE_HEIGHT : 63
+  const targetHeight = size === "md" ? NATIVE_HEIGHT : size === "sm" ? 63 : 48
   const scale = targetHeight / NATIVE_HEIGHT
   const width = Math.round(NATIVE_WIDTH * scale)
   const height = Math.round(NATIVE_HEIGHT * scale)

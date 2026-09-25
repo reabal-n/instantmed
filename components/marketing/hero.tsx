@@ -2,6 +2,7 @@ import { ArrowRight, Check } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
+import { HeroCertifications } from '@/components/marketing/hero-certifications'
 import { ProductReviewBadge } from '@/components/marketing/product-review-badge'
 import { WaitCounter } from '@/components/marketing/wait-counter'
 import { ServiceAvailabilityGate, type ServiceId } from '@/components/providers/service-availability-provider'
@@ -50,6 +51,8 @@ interface HeroProps {
   /** Server-fed certificate timing; never inferred from static marketing data. */
   liveWait?: WaitState
   showReviews?: boolean
+  /** LegitScript + Google certification marks beside the reviews. On for every landing hero. */
+  showCertifications?: boolean
 }
 
 export function Hero({
@@ -57,7 +60,7 @@ export function Hero({
   availabilityServiceId, timingServiceId, children,
   primaryCta = { text: 'Get started', href: '/request' }, primaryCtaContent,
   secondaryCta, beforeCta, reassuranceRow, mockup, mockupClassName,
-  liveWait, showReviews = true,
+  liveWait, showReviews = true, showCertifications = true,
 }: HeroProps) {
   const hasTiming = liveWait && buildMedCertSpeedClaimFromWaitState(liveWait).status === 'under_hour'
   const status = hasTiming ? <WaitCounter state={liveWait} /> : null
@@ -94,8 +97,13 @@ export function Hero({
             </div>
             <ServiceAvailabilityGate serviceId={availabilityServiceId}>
               {reassurance && <div data-hero-reassurance="" className="mt-3">{reassurance}</div>}
-              {showReviews && <div data-hero-reviews="" className="mt-5"><ProductReviewBadge /></div>}
             </ServiceAvailabilityGate>
+            <div data-hero-proof="" className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+              {showReviews && <ServiceAvailabilityGate serviceId={availabilityServiceId}>
+                <div data-hero-reviews=""><ProductReviewBadge /></div>
+              </ServiceAvailabilityGate>}
+              {showCertifications && <HeroCertifications className="border-border/60 sm:border-l sm:pl-5" />}
+            </div>
           </div>
           {mockup && <div data-hero-mockup="" className={cn('relative min-w-0 w-full max-w-md justify-self-center', mockupClassName)}>{mockup}</div>}
         </div>

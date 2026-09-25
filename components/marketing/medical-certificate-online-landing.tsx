@@ -20,6 +20,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 
 import { ArticleVisuals } from "@/components/blog/article-visuals"
+import { HeroCertifications } from "@/components/marketing/hero-certifications"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -401,6 +402,7 @@ function MedicalCertificateOnlineHero({
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
             <span>{GUARANTEE} Employer and institution policies may vary.</span>
           </p>
+          <HeroCertifications className="mt-5" />
         </Reveal>
 
         <Reveal delay={0.06} className="grid gap-3 self-start">

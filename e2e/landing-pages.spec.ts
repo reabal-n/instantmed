@@ -111,13 +111,15 @@ test.describe("landing page geometry", () => {
       expect(overflow, `${landing.path}: horizontal overflow at 375px`).toBe(false)
     })
 
-    test(`${landing.path} separates reviews from footer certifications`, async ({ page }) => {
+    test(`${landing.path} shows reviews and certifications in the hero and the footer`, async ({ page }) => {
       await page.setViewportSize(PHONE)
       await seedMoneyPageState(page, "light")
       await gotoPublicRoute(page, landing.path)
       const review = page.locator('[data-hero-reviews] a')
       await expect(review).toHaveAttribute('href', 'https://www.productreview.com.au/listings/instantmed')
-      await expect(page.locator('[data-hero] [data-hero-trust-row]')).toHaveCount(0)
+      const trustRow = page.locator('[data-hero] [data-hero-trust-row]')
+      await expect(trustRow).toHaveCount(1)
+      await expect(trustRow.locator('a[href*="legitscript.com"]')).toBeVisible()
       await expect(page.getByRole('contentinfo').getByLabel('Payments and certifications')).toBeVisible()
     })
   }

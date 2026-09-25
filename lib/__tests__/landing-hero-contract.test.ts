@@ -15,9 +15,17 @@ describe("landing hero contract (19 Sep 2026 audit)", () => {
     expect(hero).not.toContain('buildDefaultPill')
   })
 
-  it("leaves certification marks in the footer", () => {
-    expect(hero).not.toContain('GoogleAdsCert')
-    expect(hero).not.toContain('LegitScriptSeal')
+  it("shows certification marks in every hero and keeps them in the footer (operator decision 2026-09-25)", () => {
+    expect(hero).toContain('<HeroCertifications')
+    expect(hero).toContain('showCertifications = true')
+    const marks = read("components/marketing/hero-certifications.tsx")
+    expect(marks).toContain('data-hero-trust-row=""')
+    expect(marks).toContain('<LegitScriptSeal size="xs" />')
+    expect(marks).toContain('<GoogleAdsCert')
+    // Bespoke SEO landing heroes carry the same marks.
+    for (const page of ["medical-certificate-online", "mens-health", "mental-health-online", "online-prescriptions", "uti-assessment", "weight-loss-online"]) {
+      expect(read(`components/marketing/${page}-landing.tsx`)).toContain("<HeroCertifications")
+    }
     const footer = read("components/shared/footer.tsx")
     expect(footer).toContain('GoogleAdsCert')
     expect(footer).toContain('LegitScriptSeal')

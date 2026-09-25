@@ -22,6 +22,7 @@ import Link from "next/link"
 import type { ReactNode, RefObject } from "react"
 
 import { ArticleVisuals } from "@/components/blog/article-visuals"
+import { HeroCertifications } from "@/components/marketing/hero-certifications"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -447,6 +448,7 @@ function OnlinePrescriptionsHero({
               message, decline, or recommend in-person care.
             </span>
           </p>
+          <HeroCertifications className="mt-5" />
         </Reveal>
 
         <Reveal delay={0.06} className="grid gap-3 self-start">

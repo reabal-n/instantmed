@@ -101,6 +101,12 @@ async function MaintenanceBanner() {
   )
 }
 
+// Accent the tagline's closing phrase; fall back to the plain claim if the approved wording changes.
+const TAGLINE_ACCENT = ' your GP.'
+const HOME_HERO_TITLE = TAGLINE.endsWith(TAGLINE_ACCENT)
+  ? <>{TAGLINE.slice(0, -TAGLINE_ACCENT.length)} <span className="text-primary">{TAGLINE_ACCENT.trim()}</span></>
+  : TAGLINE
+
 const HOME_HOW_IT_WORKS_STEPS = [
   {
     sticker: 'medical-history' as const,
@@ -170,7 +176,7 @@ export default async function HomePage() {
           {/* Hero owns the first-fold action and states the service boundary. */}
           <Hero
             className="pt-6 pb-6 sm:pt-6 sm:pb-12 lg:pt-6 lg:pb-10"
-            title={TAGLINE}
+            title={HOME_HERO_TITLE}
             titleClassName={`${homeH1Font.className} min-h-0 sm:min-h-0 lg:min-h-0 mb-4 sm:mb-5`}
             liveWait={waitState}
             timingServiceId="med-cert"

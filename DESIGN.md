@@ -293,7 +293,7 @@ Centered headline + animated stat counters. Used on: pricing, trust.
 
 - The shell reserves the fixed header: every landing wrapper carries `pt-[calc(5rem+env(safe-area-inset-top))]` (`LandingPageShell`, `PrescriptionsLanding`, `MedCertLanding`, home).
 - Status: one quiet left-aligned `WaitCounter` sentence above the heading, only with qualifying server-fed timing. No capsule, default availability claim or credential label. Keep the service and 24-hour observation window together.
-- Action: one primary CTA, one compact reassurance, then a separate linked `ProductReviewBadge`. Stars always retain the logo and listing link. Certification/payment marks belong in the footer.
+- Action: one primary CTA, one compact reassurance, then one proof row: the linked `ProductReviewBadge` beside the LegitScript seal and Google Online Pharmacy Certification mark (operator decision 2026-09-25: certifications are primary trust builders and render in every landing hero, as well as the footer). Stars always retain the logo and listing link. Payment marks stay in the footer.
 - Visual: a readable, synthetic, labelled document or delivery specimen after the action in mobile reading order. One short notice entrance; no loops.
 - Display titles are `hyphens-none`; long words wrap with `overflow-wrap:anywhere`.
 - Bottom padding `pb-8 sm:pb-12 lg:pb-10`; the next section starts within 120px at 1440×900 (`e2e/landing-pages.spec.ts`).
@@ -467,7 +467,7 @@ className="bg-white dark:bg-card border border-border
 
 ### Trust Logos
 
-Renders on explainer and audience pages (`/for/*`, `/employers`) and the homepage's closing compliance strip. The six service landing pages (medical certificate, prescriptions, ED, hair loss, women's health, weight management) do not mount this strip; their certifications appear in the shared footer (see §6 Hero Rules).
+Renders on explainer and audience pages (`/for/*`, `/employers`) and the homepage's closing compliance strip. The six service landing pages (medical certificate, prescriptions, ED, hair loss, women's health, weight management) do not mount this strip; LegitScript and Google certification marks render in the hero proof row and the shared footer (see §6 Hero Rules).
 
 ```tsx
 // AHPRA, TGA, Medicare PNGs from /public/logos/

@@ -1,4 +1,4 @@
-import { ArrowDownToLine, Check } from "lucide-react"
+import { ArrowDownToLine, Check, ShieldCheck } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -6,7 +6,10 @@ import { cn } from "@/lib/utils"
 export function MedCertHeroMockup({ compact = false }: { compact?: boolean }) {
   return (
     <figure data-hero-facsimile="" aria-label="Example medical certificate, specimen only" className="relative mx-auto w-full max-w-md">
-      <div className={cn("relative overflow-hidden rounded-2xl border border-border/60 bg-white shadow-xl shadow-primary/[0.08] dark:bg-card dark:shadow-none", compact ? "p-5" : "p-6 sm:p-8")}>
+      {/* Second sheet: gives the specimen paper depth without a decorative canvas. */}
+      <div aria-hidden="true" className="absolute inset-x-3 top-3 bottom-0 rotate-[2.5deg] rounded-2xl border border-primary/15 bg-primary/[0.06] dark:border-white/10 dark:bg-white/[0.04]" />
+      <div className={cn("relative overflow-hidden rounded-2xl border border-border/60 bg-white shadow-xl shadow-primary/[0.10] dark:bg-card dark:shadow-none", compact ? "p-5" : "p-6 sm:p-8")}>
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-sky-400 to-primary/40" />
         <div className="flex items-center justify-between gap-4 border-b border-border/60 pb-5">
           <span className="text-lg font-semibold tracking-tight text-primary">InstantMed<span className="text-brand-coral">.</span></span>
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Specimen</span>
@@ -24,9 +27,12 @@ export function MedCertHeroMockup({ compact = false }: { compact?: boolean }) {
             <p className="mt-1 text-sm text-muted-foreground">Practitioner details appear on your certificate.</p>
           </div>
         </div>
-        <div className="border-t border-border/60 pt-4 text-sm leading-6 text-muted-foreground">
-          <p className="font-[ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation_Mono','Courier_New',monospace] text-foreground">Reference: SPECIMEN</p>
-          <p>Check authenticity at <span className="text-primary">instantmed.com.au/verify</span></p>
+        <div className="flex items-start gap-3 rounded-xl bg-primary/[0.06] px-4 py-3 text-sm leading-6 text-muted-foreground dark:bg-white/[0.05]">
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" strokeWidth={1.75} aria-hidden="true" />
+          <div className="min-w-0">
+            <p className="font-[ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation_Mono','Courier_New',monospace] text-foreground">Reference: SPECIMEN</p>
+            <p>Check authenticity at <span className="font-medium text-primary-strong">instantmed.com.au/verify</span></p>
+          </div>
         </div>
       </div>
       {!compact && <figcaption className="hero-delivery-enter relative mx-4 -mt-3 flex items-center gap-3 rounded-xl border border-border/60 bg-white px-4 py-3 shadow-md shadow-primary/[0.06] dark:bg-card dark:shadow-none">
