@@ -120,6 +120,22 @@ export function formatTrustedAdsOperationSummary(
       ]
     }
 
+    if (operation.kind === "campaign_text_asset_create") {
+      return [
+        heading,
+        `Campaign: ${operation.campaignResourceName}`,
+        `Asset type: ${operation.asset.type}`,
+        `Text: ${JSON.stringify(operation.asset.text)}`,
+        ...(operation.asset.type === "BUSINESS_NAME"
+          ? [`Reuse existing asset: ${operation.asset.resourceName}`] : []),
+        ...(operation.asset.type === "SITELINK" ? [
+          `Description 1: ${JSON.stringify(operation.asset.description1)}`,
+          `Description 2: ${JSON.stringify(operation.asset.description2)}`,
+          `Final URL: ${operation.asset.finalUrl}`,
+        ] : []),
+        "Creates and enables one campaign association atomically.",
+      ]
+    }
     if (operation.kind === "responsive_search_ad_create") {
       return [
         heading,

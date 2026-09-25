@@ -6,7 +6,7 @@ import { FORM_FIRST_WEDGE } from "@/lib/marketing/voice"
 
 /**
  * Two-lane visual for the narrow women's-health hub. It makes UTI symptoms
- * and starting, switching or continuing the pill equal first-class pathways, then reunites
+ * and contraception care equal first-class pathways, then reunites
  * them at the shared doctor-review boundary.
  */
 export function WomensHealthDecisionFork({ isDisabled = false }: { isDisabled?: boolean }) {
@@ -18,7 +18,7 @@ export function WomensHealthDecisionFork({ isDisabled = false }: { isDisabled?: 
       <figcaption className="border-b border-border/50 px-5 py-4 dark:border-white/10">
         <p className="text-sm font-medium text-primary">Choose the safety screen that fits</p>
         <Heading id="womens-health-decision-title" level="h3" as="h2" className="mt-1">
-          UTI symptoms or the pill?
+          UTI symptoms or contraception?
         </Heading>
       </figcaption>
 
@@ -59,7 +59,7 @@ export function WomensHealthDecisionFork({ isDisabled = false }: { isDisabled?: 
             <HeartPulse className="h-4 w-4" aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold text-foreground">Start, switch or continue the pill</span>
+            <span className="block text-sm font-semibold text-foreground">Contraception assessment</span>
             <span className="mt-1 block text-sm leading-6 text-muted-foreground">
               Health history and prescribing safety screen.
             </span>
@@ -89,7 +89,7 @@ export function WomensHealthDecisionFork({ isDisabled = false }: { isDisabled?: 
       >
         <span className="inline-flex items-center gap-2">
           <RefreshCw className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-          Continuing the same pill uses this assessment too.
+          Continuing contraception care uses this assessment too.
         </span>
         <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       </Link>

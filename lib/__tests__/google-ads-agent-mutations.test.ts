@@ -761,6 +761,213 @@ function gateway(args: {
   }
 }
 
+describe("account call asset operations", () => {
+  const link = "customers/123/customerAssets/900~CALL"
+  const operation: AdsMutationOperation = { kind: "asset_link_status", resourceName: link, expected: "ENABLED", next: "PAUSED" }
+  function callState(status = "ENABLED", approvalStatus = "DISAPPROVED") {
+    return accountState({
+      customerAssets: [resource(link, { customerAsset: { resourceName: link, asset: "customers/123/assets/900", fieldType: "CALL", status } })],
+      assets: [resource("customers/123/assets/900", { asset: { type: "CALL", policySummary: { approvalStatus } } })],
+    })
+  }
+  it("uses the customer asset endpoint and verifies the actual account association", async () => {
+    const before = callState()
+    const after = callState("PAUSED")
+    expect(buildGoogleAdsMutateOperations([operation], before)).toEqual([{
+      customerAssetOperation: { update: { resourceName: link, status: "PAUSED" }, updateMask: "status" },
+    }])
+    const initial = proposal(before, { operations: [operation], rationale: { ...proposal(before).rationale, campaign: "Account", service: "account" } })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+    await expect(harness.gateway.applyProposal(initial.proposalKey)).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("verified")
+    await harness.gateway.buildRollbackProposal(initial.proposalKey)
+    expect(harness.store.rollbacks[0].operations).toEqual([{ ...operation, expected: "PAUSED", next: "ENABLED" }])
+  })
+  it("blocks missing account reads and mismatched field types", () => {
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state: accountState() })).toThrow("account_call_asset_unavailable")
+    const state = callState()
+    const value = state.customerAssets![0].values.customerAsset as Record<string, unknown>
+    value.fieldType = "BUSINESS_LOGO"
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state })).toThrow("account_call_asset_unavailable")
+  })
+  it("does not restore a disapproved or unreviewed call asset", () => {
+    for (const status of ["DISAPPROVED", "UNKNOWN", "UNDER_REVIEW"]) {
+      expect(() => validateAdsMutationPolicy({ operations: [{ ...operation, expected: "PAUSED", next: "ENABLED" }], state: callState("PAUSED", status) }))
+        .toThrow("account_call_asset_not_approved")
+    }
+  })
+  it("requires account scope and checks each live campaign experiment", async () => {
+    const state = callState("PAUSED", "APPROVED")
+    const enable = { ...operation, expected: "PAUSED", next: "ENABLED" } as AdsMutationOperation
+    const wrong = gateway({ accountReads: [state], initial: proposal(state, { operations: [enable] }) })
+    await expect(wrong.gateway.applyProposal("ADS-20260730-01")).resolves.toMatchObject({ outcome: "aborted", errorCode: "proposal_account_scope_required" })
+    const initial = proposal(state, { operations: [enable], rationale: { ...proposal(state).rationale, campaign: "Account", service: "account" } })
+    const harness = gateway({ accountReads: [state], initial })
+    vi.mocked(harness.store.repository.getMaterialExperimentLock).mockImplementation(async ({ campaign }) => campaign === "Scripts Search" ? { launchProposalKey: "OTHER", stopProposalKey: null } : null)
+    await expect(harness.gateway.applyProposal(initial.proposalKey)).resolves.toMatchObject({ outcome: "aborted", errorCode: "experiment_material_change_locked" })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+  it("requires GREEN tracking and checks audiences across all enabled campaigns before restoring a call", async () => {
+    const state = callState("PAUSED", "APPROVED")
+    const enable = { ...operation, expected: "PAUSED", next: "ENABLED" } as AdsMutationOperation
+    const initial = proposal(state, { operations: [enable], rationale: { ...proposal(state).rationale, campaign: "Account", service: "account" } })
+    const harness = gateway({ accountReads: [state], initial, trackingState: "RED" })
+    await expect(harness.gateway.applyProposal(initial.proposalKey)).resolves.toMatchObject({ outcome: "aborted", errorCode: "tracking_not_green" })
+    expect(harness.mutate).not.toHaveBeenCalled()
+    state.campaignCriteria.push(resource("customers/123/campaignCriteria/456~333", {
+      campaignCriterion: { campaign: campaignResourceName, negative: false, status: "ENABLED", type: "USER_LIST" },
+    }))
+    expect(() => validateAdsMutationPolicy({ operations: [enable], state })).toThrow("health_audience_operation_rejected")
+  })
+})
+
+describe("campaign text asset operations", () => {
+  it("links the existing business name without creating a duplicate asset and verifies its content", async () => {
+    const operation = { kind: "campaign_text_asset_create", campaignResourceName, asset: { type: "BUSINESS_NAME", text: "InstantMed", resourceName: "customers/123/assets/900" } } as AdsMutationOperation
+    const before = accountState({ assets: [resource("customers/123/assets/900", { asset: { type: "TEXT", textAsset: { text: "InstantMed" } } })] })
+    expect(buildGoogleAdsMutateOperations([operation], before)).toEqual([{ campaignAssetOperation: { create: { campaign: campaignResourceName, asset: "customers/123/assets/900", fieldType: "BUSINESS_NAME", status: "ENABLED" } } }])
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state: accountState() })).toThrow("business_name_asset_unavailable")
+    const after = structuredClone(before)
+    const linkName = "customers/123/campaignAssets/456~900~BUSINESS_NAME"
+    after.campaignAssets.push(resource(linkName, { campaignAsset: { campaign: campaignResourceName, asset: "customers/123/assets/900", fieldType: "BUSINESS_NAME", status: "ENABLED" } }))
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state: after })).toThrow("create_target_already_exists")
+    const initial = proposal(before, { operations: [operation] })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+    await expect(harness.gateway.applyProposal(initial.proposalKey)).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("verified")
+    await harness.gateway.buildRollbackProposal(initial.proposalKey)
+    expect(harness.store.rollbacks[0].operations).toEqual([{ kind: "asset_link_status", resourceName: linkName, expected: "ENABLED", next: "PAUSED" }])
+    const changed = structuredClone(before)
+    ;(changed.assets[0].values.asset as Record<string, unknown>).textAsset = { text: "Different brand" }
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state: changed })).toThrow("business_name_asset_unavailable")
+  })
+  it("allows the existing carer destination only for certificate ads", () => {
+    const operation = { ...rsaCreateOperation,
+      finalUrl: "https://instantmed.com.au/medical-certificate/carer" }
+    const state = accountState()
+    const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
+    campaign.name = "JDM | Search | Med Certs"
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state })).not.toThrow()
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state: accountState() }))
+      .toThrow("paid_destination_service_mismatch")
+  })
+
+  const operation = {
+    kind: "campaign_text_asset_create",
+    campaignResourceName,
+    asset: {
+      type: "SITELINK",
+      text: "How eScripts Work",
+      description1: "Sent by SMS if approved",
+      description2: "Medicine costs are separate",
+      finalUrl: "https://instantmed.com.au/prescriptions#prescription-lifecycle-title",
+    },
+  }
+
+  it("atomically creates assets and their campaign links with distinct temporary IDs", () => {
+    const google = buildGoogleAdsMutateOperations([
+      operation,
+      { ...operation, asset: { type: "CALLOUT", text: "No Subscription" } },
+    ], accountState())
+    expect(google).toEqual([
+      { assetOperation: { create: {
+        resourceName: "customers/123/assets/-1",
+        finalUrls: ["https://instantmed.com.au/prescriptions#prescription-lifecycle-title"],
+        sitelinkAsset: {
+          linkText: "How eScripts Work",
+          description1: "Sent by SMS if approved",
+          description2: "Medicine costs are separate",
+        },
+      } } },
+      { campaignAssetOperation: { create: {
+        asset: "customers/123/assets/-1", campaign: campaignResourceName,
+        fieldType: "SITELINK", status: "ENABLED",
+      } } },
+      { assetOperation: { create: {
+        resourceName: "customers/123/assets/-2",
+        calloutAsset: { calloutText: "No Subscription" },
+      } } },
+      { campaignAssetOperation: { create: {
+        asset: "customers/123/assets/-2", campaign: campaignResourceName,
+        fieldType: "CALLOUT", status: "ENABLED",
+      } } },
+    ])
+  })
+
+  it("rejects duplicate create operations and destinations for another service", () => {
+    expect(() => validateAdsMutationPolicy({
+      operations: [operation, operation], state: accountState(),
+    })).toThrow("duplicate_create_target")
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...operation, asset: {
+        ...operation.asset, finalUrl: "https://instantmed.com.au/medical-certificate",
+      } }], state: accountState(),
+    })).toThrow("paid_destination_service_mismatch")
+  })
+
+  function afterAsset(before: GoogleAdsAccountState): GoogleAdsAccountState {
+    const after = structuredClone(before)
+    after.assets.push(resource("customers/123/assets/900", { asset: {
+      type: "SITELINK",
+      finalUrls: ["https://instantmed.com.au/prescriptions#prescription-lifecycle-title"],
+      sitelinkAsset: { linkText: "How eScripts Work",
+        description1: "Sent by SMS if approved", description2: "Medicine costs are separate" },
+    } }))
+    after.campaignAssets.push(resource("customers/123/campaignAssets/456~900~SITELINK", {
+      campaignAsset: { campaign: campaignResourceName, asset: "customers/123/assets/900",
+        fieldType: "SITELINK", status: "ENABLED" },
+    }))
+    return after
+  }
+
+  it("requires the created content and enabled association before offering an exact pause rollback", async () => {
+    const before = accountState()
+    const after = afterAsset(before)
+    const initial = proposal(before, { operations: [operation as AdsMutationOperation] })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+    await expect(harness.gateway.applyProposal(initial.proposalKey))
+      .resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("verified")
+    await harness.gateway.buildRollbackProposal(initial.proposalKey)
+    expect(harness.store.rollbacks[0].operations).toEqual([{
+      kind: "asset_link_status", expected: "ENABLED", next: "PAUSED",
+      resourceName: "customers/123/campaignAssets/456~900~SITELINK",
+    }])
+  })
+
+  it("rejects duplicate live content even when its association is paused", () => {
+    const after = afterAsset(accountState())
+    const link = after.campaignAssets[0].values.campaignAsset as Record<string, unknown>
+    link.status = "PAUSED"
+    expect(() => validateAdsMutationPolicy({
+      operations: [operation], state: after,
+    })).toThrow("create_target_already_exists")
+  })
+
+  it("does not verify an asset created without the approved campaign link", async () => {
+    const before = accountState()
+    const after = afterAsset(before)
+    after.campaignAssets = []
+    const initial = proposal(before, { operations: [operation as AdsMutationOperation] })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+    await expect(harness.gateway.applyProposal(initial.proposalKey))
+      .rejects.toThrow("text_asset_rollback_resource_missing")
+    expect(harness.store.getCurrent().status).toBe("failed")
+  })
+
+  it("rejects a misleading campaign label that could avoid a material-change lock", async () => {
+    const before = accountState()
+    const initial = proposal(before, {
+      operations: [operation as AdsMutationOperation],
+      rationale: { ...proposal(before).rationale, campaign: "Other campaign" },
+    })
+    const harness = gateway({ accountReads: [before], initial })
+    await expect(harness.gateway.applyProposal(initial.proposalKey))
+      .resolves.toMatchObject({ outcome: "aborted", errorCode: "proposal_campaign_mismatch" })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+})
+
 describe("Google Ads mutation gateway", () => {
   it("detects lowerCamel Google field masks for manual tROAS changes", () => {
     const state = accountState({
@@ -1773,7 +1980,7 @@ describe("Google Ads mutation gateway", () => {
 
   it.each([
     ["Women's Health", "/uti-assessment-online"],
-    ["Women's Health", "/contraceptive-pill-assessment-online"],
+    ["Women's Health", "/contraception-assessment"],
     ["Med Certs", "/medical-certificate/work"],
   ])("accepts the approved %s child destination %s", (name, path) => {
     const state = accountState()
@@ -1788,7 +1995,7 @@ describe("Google Ads mutation gateway", () => {
   it.each([
     ["Scripts", "/uti-assessment-online"],
     ["Women's Health", "/medical-certificate/work"],
-    ["Med Certs", "/contraceptive-pill-assessment-online"],
+    ["Med Certs", "/contraception-assessment"],
   ])("rejects a %s RSA sent to another service's child page %s", (name, path) => {
     const state = accountState()
     const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
@@ -1797,6 +2004,16 @@ describe("Google Ads mutation gateway", () => {
       operations: [{ ...rsaCreateOperation, finalUrl: `https://instantmed.com.au${path}` }],
       state,
     })).toThrow("paid_destination_service_mismatch")
+  })
+
+  it("rejects the retired medicine-focused acquisition URL even for women's health", () => {
+    const state = accountState()
+    const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
+    campaign.name = "Women's Health"
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...rsaCreateOperation, finalUrl: "https://instantmed.com.au/contraceptive-pill-assessment-online" }],
+      state,
+    })).toThrow()
   })
 
   it("builds only the reviewed Google mutate shapes", () => {

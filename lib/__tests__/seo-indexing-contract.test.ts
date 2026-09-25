@@ -326,7 +326,7 @@ describe("SEO indexing contracts", () => {
       "/hair-loss",
       "/womens-health",
       "/uti-assessment-online",
-      "/contraceptive-pill-assessment-online",
+      "/contraception-assessment",
       "/consult",
     ]) {
       expect(sitemap, route).toContain(`"${route}"`)
@@ -764,7 +764,7 @@ describe("SEO indexing contracts", () => {
       "/hair-loss",
       "/womens-health",
       "/uti-assessment-online",
-      "/contraceptive-pill-assessment-online",
+      "/contraception-assessment",
       "/pricing",
       "/telehealth-australia",
       "/online-doctor-australia",

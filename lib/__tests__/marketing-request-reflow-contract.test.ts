@@ -34,7 +34,6 @@ describe("marketing and request reflow contract", () => {
 
   it.each([
     ["components/marketing/uti-assessment-landing.tsx", 2],
-    ["components/marketing/contraceptive-pill-assessment-landing.tsx", 2],
   ])("%s uses explicit single-column hero tracks", (path, expectedReflowableCtas) => {
     const landing = read(path)
 
@@ -46,6 +45,13 @@ describe("marketing and request reflow contract", () => {
     expect(landing.match(/h-auto min-h-12 w-full whitespace-normal py-3 text-center/g)).toHaveLength(
       expectedReflowableCtas,
     )
+  })
+
+  it("uses the shared reflowable hero on the contraception page", () => {
+    expect(read("components/marketing/contraception-assessment-landing.tsx")).toContain("<Hero")
+    const hero = read("components/marketing/hero.tsx")
+    expect(hero).toContain("minmax(0,1.15fr)")
+    expect(hero).toContain("whitespace-normal")
   })
 
   it("keeps pricing cards and their calls to action reflowable", () => {

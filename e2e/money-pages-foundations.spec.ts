@@ -42,7 +42,7 @@ const STICKY_SERVICE_ROUTES = [
   "/hair-loss",
   "/womens-health",
   "/uti-assessment-online",
-  "/contraceptive-pill-assessment-online",
+  "/contraception-assessment",
 ] as const
 
 const STICKY_STRESS_STATES = [

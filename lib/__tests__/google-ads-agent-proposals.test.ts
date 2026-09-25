@@ -68,6 +68,65 @@ function proposal(
   }
 }
 
+describe("account call asset status boundary", () => {
+  const operation = { kind: "asset_link_status", resourceName: "customers/123/customerAssets/900~CALL", expected: "ENABLED", next: "PAUSED" }
+  it("accepts an exact reversible account call link pause", () => {
+    expect(normalizeAdsMutationOperations([operation])).toEqual([operation])
+  })
+  it.each(["900~SITELINK", "900~BUSINESS_LOGO", "bad~CALL"])("rejects unsupported account link %s", (id) => {
+    expect(() => normalizeAdsMutationOperations([{ ...operation, resourceName: `customers/123/customerAssets/${id}` }])).toThrow()
+  })
+  it("rejects account link removal and restoration from removal", () => {
+    expect(() => normalizeAdsMutationOperations([{ ...operation, next: "REMOVED" }])).toThrow()
+    expect(() => normalizeAdsMutationOperations([{ ...operation, expected: "REMOVED" }])).toThrow()
+  })
+})
+
+describe("campaign text asset input boundary", () => {
+  it("allows only the existing InstantMed identity for business-name linking", () => {
+    const operation = { kind: "campaign_text_asset_create", campaignResourceName: "customers/123/campaigns/456", asset: { type: "BUSINESS_NAME", text: "InstantMed", resourceName: "customers/123/assets/900" } }
+    expect(normalizeAdsMutationOperations([operation])).toEqual([operation])
+    expect(() => normalizeAdsMutationOperations([{ ...operation, asset: { ...operation.asset, text: "Best Online Doctor" } }])).toThrow()
+  })
+  const asset = {
+    kind: "campaign_text_asset_create",
+    campaignResourceName: "customers/123/campaigns/456",
+    asset: {
+      type: "SITELINK",
+      text: "How eScripts Work",
+      description1: "Sent by SMS if approved",
+      description2: "Medicine costs are separate",
+      finalUrl: "https://instantmed.com.au/prescriptions#prescription-lifecycle-title",
+    },
+  }
+
+  it("binds exact sitelink content and destination into the approved hash", () => {
+    expect(normalizeAdsMutationOperations([asset])).toEqual([asset])
+    expect(hashAdsMutationOperations([asset])).not.toBe(hashAdsMutationOperations([
+      { ...asset, asset: { ...asset.asset, description2: "Use an Australian pharmacy" } },
+    ]))
+  })
+
+  it("allows bounded callouts without a destination", () => {
+    const callout = { ...asset, asset: { type: "CALLOUT", text: "Full Refund If Declined" } }
+    expect(normalizeAdsMutationOperations([callout])).toEqual([callout])
+  })
+
+  it.each([
+    { ...asset.asset, text: "x".repeat(26) },
+    { ...asset.asset, description1: "x".repeat(36) },
+    { ...asset.asset, text: "Guaranteed prescription" },
+    { ...asset.asset, text: "Buy sildenafil" },
+    { ...asset.asset, finalUrl: "https://example.com/prescriptions" },
+    { ...asset.asset, finalUrl: "https://instantmed.com.au/patient" },
+    { ...asset.asset, finalUrl: "https://instantmed.com.au/prescriptions?patient=123" },
+    { ...asset.asset, finalUrl: "https://instantmed.com.au/prescriptions#how-it-works" },
+    { type: "IMAGE", text: "image", path: "/tmp/file.png" },
+  ])("rejects unsafe, overlong, private or unsupported asset inputs", (invalid) => {
+    expect(() => normalizeAdsMutationOperations([{ ...asset, asset: invalid }])).toThrow()
+  })
+})
+
 describe("Google Ads proposal operation boundary", () => {
   it("normalizes only the restricted operation union", () => {
     expect(normalizeAdsMutationOperations([

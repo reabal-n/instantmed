@@ -39,7 +39,7 @@ const MONEY_PAGE_FILES = [
   "app/hair-loss/page.tsx",
   "app/womens-health/page.tsx",
   "app/uti-assessment-online/page.tsx",
-  "app/contraceptive-pill-assessment-online/page.tsx",
+  "app/contraception-assessment/page.tsx",
   "components/marketing/med-cert-intent-page.tsx",
 ]
 

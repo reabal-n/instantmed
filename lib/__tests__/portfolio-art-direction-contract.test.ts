@@ -67,7 +67,7 @@ describe("portfolio money-page art direction", () => {
     expect(fork).toContain('href={isDisabled ? "/contact" : "/request?service=consult&subtype=womens_health&intent=ocp_new"}')
     expect(fork).not.toContain('href="/prescriptions"')
     expect(fork).toContain("UTI symptoms")
-    expect(fork).toContain("Start, switch or continue the pill")
+    expect(fork).toContain("Contraception assessment")
     expect(fork).toContain("Doctor review before prescribing")
     expect(fork).toContain("FORM_FIRST_WEDGE")
     expect(fork).not.toMatch(/(?:linear|radial)-gradient/)

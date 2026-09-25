@@ -166,7 +166,7 @@ const SERVICE_LINKS: Record<string, {
     ],
     guides: [
       { href: "/uti-assessment-online", label: "UTI assessment online" },
-      { href: "/contraceptive-pill-assessment-online", label: "Contraceptive pill assessment online" },
+      { href: "/contraception-assessment", label: "Contraception assessment online" },
       { href: "/prescriptions", label: "Repeat prescriptions" },
       { href: "/blog/uti-prescription-online-australia", label: "UTI prescription online in Australia" },
       { href: "/blog/contraceptive-prescription-online", label: "Contraceptive prescriptions online" },

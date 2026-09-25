@@ -63,7 +63,23 @@ interface CampaignCreateAdGroup {
   responsiveSearchAd: CampaignCreateResponsiveSearchAd
 }
 
+type CampaignTextAsset =
+  | { type: "BUSINESS_NAME"; text: "InstantMed"; resourceName: string }
+  | { type: "CALLOUT"; text: string }
+  | {
+      type: "SITELINK"
+      text: string
+      description1: string
+      description2: string
+      finalUrl: string
+    }
+
 export type AdsMutationOperation =
+  | {
+      kind: "campaign_text_asset_create"
+      campaignResourceName: string
+      asset: CampaignTextAsset
+    }
   | {
       adGroups: CampaignCreateAdGroup[]
       campaignName: string
@@ -279,10 +295,11 @@ const PAID_DESTINATION_PATHS = new Set([
   "/hair-loss",
   "/medical-certificate",
   "/medical-certificate/work",
+  "/medical-certificate/carer",
   "/prescriptions",
   "/womens-health",
   "/uti-assessment-online",
-  "/contraceptive-pill-assessment-online",
+  "/contraception-assessment",
 ])
 const RATING_OR_TESTIMONIAL_PATTERN =
   /\b(?:rated|rating|ratings|stars?|testimonials?|patient reviews?|customer reviews?|patients? say)\b/i
@@ -401,6 +418,51 @@ function normalizeDisplayPath(value: unknown, field: string): string {
     throw new Error(`Invalid ${field}`)
   }
   return path
+}
+
+/** Exact public destinations only: no clinical query values or arbitrary anchors. */
+function normalizeTextAssetDestination(value: unknown): string {
+  const raw = requiredString(value, "asset destination")
+  const destination = new URL(raw)
+  const allowed = new Set([
+    ...PAID_DESTINATION_PATHS,
+    "/medical-certificate/carer",
+    "/medical-certificate/university",
+    "/how-it-works", "/pricing", "/guarantee", "/clinical-governance", "/privacy",
+  ])
+  const anchorAllowed = !destination.hash
+    || destination.pathname === "/prescriptions"
+      && destination.hash === "#prescription-lifecycle-title"
+  if (
+    destination.protocol !== "https:" || destination.hostname !== "instantmed.com.au"
+    || destination.port || destination.username || destination.password
+    || destination.search || !allowed.has(destination.pathname) || !anchorAllowed
+    || destination.pathname === "/contraceptive-pill-assessment-online"
+  ) throw new Error("Invalid text asset destination")
+  return destination.toString()
+}
+
+function normalizeCampaignTextAsset(value: unknown): CampaignTextAsset {
+  const asset = asRecord(value)
+  if (!asset) throw new Error("Invalid text asset")
+  const type = enumValue(asset.type, ["SITELINK", "CALLOUT", "BUSINESS_NAME"] as const, "asset type")
+  if (type === "BUSINESS_NAME") {
+    assertExactKeys(asset, ["type", "text", "resourceName"], "business name asset")
+    if (asset.text !== "InstantMed") throw new Error("Only the verified InstantMed business name is allowed")
+    return { type, text: "InstantMed", resourceName: resourceName(asset.resourceName, "assets") }
+  }
+  assertExactKeys(asset, type === "CALLOUT"
+    ? ["type", "text"]
+    : ["type", "text", "description1", "description2", "finalUrl"], "text asset")
+  const text = boundedText(asset.text, "asset text", 25)
+  assertPaidAdCopy(text)
+  if (type === "CALLOUT") return { type, text }
+  const description1 = boundedText(asset.description1, "asset description1", 35)
+  const description2 = boundedText(asset.description2, "asset description2", 35)
+  assertPaidAdCopy(description1)
+  assertPaidAdCopy(description2)
+  return { type, text, description1, description2,
+    finalUrl: normalizeTextAssetDestination(asset.finalUrl) }
 }
 
 function boundedText(
@@ -939,6 +1001,14 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
       ),
     }
   }
+  if (record.kind === "campaign_text_asset_create") {
+    assertExactKeys(record, ["kind", "campaignResourceName", "asset"], record.kind)
+    return {
+      kind: "campaign_text_asset_create",
+      campaignResourceName: resourceName(record.campaignResourceName, "campaigns"),
+      asset: normalizeCampaignTextAsset(record.asset),
+    }
+  }
   if (record.kind === "asset_link_status") {
     assertExactKeys(
       record,
@@ -952,11 +1022,16 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
     )
     const next = enumValue(record.next, CRITERION_STATUS_VALUES, "next")
     if (expected === next) throw new Error("Asset link status must change")
+    const name = requiredString(record.resourceName, "resourceName")
+    const accountCall = /^customers\/\d+\/customerAssets\/\d+~CALL$/.test(name)
+    if (accountCall && (expected === "REMOVED" || next === "REMOVED")) {
+      throw new Error("Account call links support pause and enable only")
+    }
     return {
       expected,
       kind: "asset_link_status",
       next,
-      resourceName: resourceName(record.resourceName, "campaignAssets"),
+      resourceName: accountCall ? name : resourceName(name, "campaignAssets"),
     }
   }
   if (record.kind === "schedule_replace") {

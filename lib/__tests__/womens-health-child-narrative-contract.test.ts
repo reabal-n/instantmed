@@ -10,9 +10,9 @@ function read(relativePath: string): string {
 }
 
 const uti = read("components/marketing/uti-assessment-landing.tsx")
-const pill = read("components/marketing/contraceptive-pill-assessment-landing.tsx")
+const pill = read("components/marketing/contraception-assessment-landing.tsx")
 const utiPage = read("app/uti-assessment-online/page.tsx")
-const pillPage = read("app/contraceptive-pill-assessment-online/page.tsx")
+const pillPage = read("app/contraception-assessment/page.tsx")
 const faqData = read("lib/data/womens-health-faq.ts")
 
 function expectOrdered(source: string, markers: string[]) {
@@ -73,42 +73,41 @@ describe("women's-health child-page narrative compression", () => {
       'id="alternatives"',
       'id="sources"',
       "<FAQSection",
-      "Request a contraceptive pill assessment",
+      "Request a contraception assessment",
     ])
 
-    expectFirstFoldContract(pill, 'id="safety"', "Confirm start, switch or continue pill")
+    expectFirstFoldContract(pill, 'id="safety"', "Confirm your contraception needs")
 
     const safety = pill.slice(
       pill.indexOf('id="safety"'),
       pill.indexOf('id="eligibility-and-scope"'),
     )
-    expect(safety).toContain("ArticleVisuals")
+    expect(pill).not.toContain("ArticleVisuals")
     expect(safety).toContain("SAFETY_CHECKS")
     expect(safety).toContain("before checkout")
     expect(safety).toContain("possible pregnancy")
     expect(safety).toContain("migraine with aura")
     expect(safety).toContain("blood clot")
     expect(safety).toContain("smoking")
-    expect(pill).toContain('visual.id === "pill-suitability-map"')
-    expect(pill).toContain('item.label === "Doctor review"')
-    expect(pill).toContain('label: "Safety exit"')
+    expect(pill).toContain("not a full contraception or sexual health service")
+    expect(pill).toContain("We do not provide procedures or device fitting")
 
     expect(pill).not.toMatch(/possible pregnancy[^.]{0,120}(?:call|message)/i)
     expect(pill).not.toContain('title="May need contact"')
     expect(pill).not.toContain('id="how-it-works"')
     expect(pill).not.toContain('id="visual-guide"')
     expect(pill).not.toContain('id="expect"')
-    expect(pill).toContain("PILL_LANDING_FAQ")
+    expect(pill).toContain("CONTRACEPTION_LANDING_FAQ")
   })
 
   it("uses the same compact FAQ set on-page and in structured data", () => {
     expect(faqData).toContain("export const UTI_LANDING_FAQ")
-    expect(faqData).toContain("export const PILL_LANDING_FAQ")
+    expect(faqData).toContain("export const CONTRACEPTION_LANDING_FAQ")
 
     expect(uti).toContain("items={UTI_LANDING_FAQ}")
     expect(utiPage).toContain("<FAQSchema faqs={[...UTI_LANDING_FAQ]} />")
-    expect(pill).toContain("items={PILL_LANDING_FAQ}")
-    expect(pillPage).toContain("<FAQSchema faqs={[...PILL_LANDING_FAQ]} />")
+    expect(pill).toContain("items={CONTRACEPTION_LANDING_FAQ}")
+    expect(pillPage).toContain("<FAQSchema faqs={[...CONTRACEPTION_LANDING_FAQ]} />")
 
     expect(faqData).toContain("this paid assessment stops before checkout")
     expect(faqData).not.toContain("The doctor may ask for a pregnancy test, contact you")

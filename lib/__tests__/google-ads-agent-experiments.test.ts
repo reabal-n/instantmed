@@ -253,6 +253,7 @@ describe("Google Ads experiment definition", () => {
     expect(experimentVariableForMutationFamily("negative_keyword")).toBe(
       "keywords",
     )
+    expect(experimentVariableForMutationFamily("campaign_text_asset_create")).toBe("assets")
     expect(experimentVariableForMutationFamily("asset_link_status")).toBe(
       "assets",
     )

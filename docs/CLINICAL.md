@@ -23,7 +23,7 @@ InstantMed is **not a broad online GP clinic** and **not a prescribing system**.
 `lib/request/consult-subtypes.ts`); morning-after and period-pain stay gated,
 and all contraceptive-pill requests, including continuation, use the women's-health
 assessment (operator decision 2026-09-17). The canonical `ocp_new` intent covers
-`contraceptionType: start | switch | continue`. Public hub, pill landing page and FAQs must include continuation in this assessment and show the women's-health fee; never send unchanged-pill patients to repeat prescriptions. Recognised pill medicines are
+`contraceptionType: start | switch | continue`. Public hub, `/contraception-assessment` landing page and FAQs must include continuing care in this assessment and show the women's-health fee; never send unchanged-pill patients to repeat prescriptions. Recognised pill medicines are
 hard-routed out of repeat scripts before payment, including payment retries. Server-enforced safety: UTI red flags and pregnancy or
 possible pregnancy decline to in-person care. Possible pregnancy, migraine with aura, blood-clot history, and smoking block checkout before payment. Patients are
 redirected to a GP or sexual health clinic without creating a paid intake. The
