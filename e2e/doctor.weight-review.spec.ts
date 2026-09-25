@@ -207,6 +207,31 @@ test.describe("Doctor weight-management review", () => {
     await setDoctorWeightCapability(false)
   })
 
+  for (const { preference, label } of [
+    { preference: "daily_oral", label: "Daily oral treatment" },
+    { preference: "weekly_injection", label: "Weekly injection" },
+  ]) {
+    test(`persisted ${preference} and medicine-specific history survive clinician reload`, async ({ page }, testInfo) => {
+      const patientId = await seedWeightPatient()
+      seededPatients.push(patientId)
+      const intakeId = await seedWeightCase({ patientId, answerOverrides: {
+        weightLossMedPreference: preference, weight_pancreatitis: true,
+      } })
+      seededIntakes.push(intakeId)
+      const login = await loginAsTestUser(page, "operator")
+      expect(login.success, login.error).toBe(true)
+      await page.goto(`/doctor/intakes/${intakeId}`)
+      await expect(page.locator('[data-review-fact="treatment_preference"]')).toContainText(label)
+      await expect(page.getByText("Establish the pancreatitis history and review medicine-specific precautions and alternatives before prescribing.").first()).toBeVisible()
+      await page.reload()
+      await expect(page.locator('[data-review-fact="treatment_preference"]')).toContainText(label)
+      await expect(page.getByText("Pancreatitis history").first()).toBeVisible()
+      await expect(page.locator('[data-review-action-rail="true"]').first().getByRole("button", { name: "Complete request" })).toBeDisabled()
+      await page.screenshot({ path: testInfo.outputPath(`weight-${preference}-review.png`), fullPage: true })
+      // Never click Prescribe, complete a request, or create provider evidence.
+    })
+  }
+
   test("admin cockpit shows the weight packet, BMI fact, Prescribe affordance, and a gated Complete request", async ({ page }) => {
     const patientId = await seedWeightPatient()
     seededPatients.push(patientId)

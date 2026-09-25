@@ -16,6 +16,14 @@ const validAnswers = {
 }
 
 describe("weight-loss assessment validation", () => {
+  it.each(["daily_oral", "weekly_injection", "unsure"])("accepts optional treatment preference %s", (weightLossMedPreference) => {
+    expect(validateWeightLossAssessmentStep({ ...validAnswers, weightLossMedPreference }).isValid).toBe(true)
+  })
+
+  it("rejects an unknown treatment preference", () => {
+    expect(validateWeightLossAssessmentStep({ ...validAnswers, weightLossMedPreference: "automatic_prescription" }).isValid).toBe(false)
+  })
+
   it("accepts a complete screen with explicit negative contraindication answers", () => {
     expect(validateWeightLossAssessmentStep(validAnswers)).toEqual({
       isValid: true,

@@ -42,10 +42,13 @@ describe("weight assessment shared checkout clinical boundary", () => {
       .toMatchObject({ ok: true })
   })
 
+  it.each(["weight_men2_thyroid_cancer", "weight_pancreatitis"])("allows assessment but preserves doctor-review flag for %s", async (field) => {
+    const result = await runClinicalValidation(weightInput({ [field]: true, weightLossMedPreference: "daily_oral" }))
+    expect(result).toMatchObject({ ok: true, data: { safetyCheck: { isAllowed: true, riskTier: "high", triggeredRuleIds: [field] }, intakeFlags: [{ code: "weight_medicine_review", severity: "attention" }] } })
+  })
+
   it.each([
     { weight_pregnancy_status: "yes" },
-    { weight_men2_thyroid_cancer: true },
-    { weight_pancreatitis: true },
     { weightKg: "65" },
     { weightKg: "85", wlHasWeightComorbidity: false },
     { weightKg: "85", wlHasWeightComorbidity: undefined },

@@ -7,7 +7,7 @@ import { basename, join, resolve } from "node:path"
 import { Redis } from "@upstash/redis"
 import { Ratelimit } from "@upstash/ratelimit"
 
-const ALLOWED_SPECS = ["e2e/certificate-resend-render.spec.ts", "e2e/plan5-navigation.spec.ts", "e2e/checkout-resume.spec.ts", "e2e/doctor.prescription-ui.spec.ts"]
+const ALLOWED_SPECS = ["e2e/certificate-resend-render.spec.ts", "e2e/plan5-navigation.spec.ts", "e2e/checkout-resume.spec.ts", "e2e/doctor.prescription-ui.spec.ts", "e2e/weight-checkout-persistence.spec.ts"]
 const LOCAL_PORTS = [3060, 55320, 55321, 55322, 55323, 55324, 55325, 55326, 55329, 55330]
 const REDIS_TOKEN = "production-e2e-local-only"
 const REDIS_IMAGE = "redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf"
@@ -410,13 +410,22 @@ async function main() {
     requireLocalSupabaseCoordinates(local)
     const env = testEnvironment(local, providerPreload, temporaryApp)
 
-    if (spec === "e2e/doctor.prescription-ui.spec.ts") {
+    if (["e2e/doctor.prescription-ui.spec.ts", "e2e/weight-checkout-persistence.spec.ts"].includes(spec)) {
       // This suite uses the same canonical clinician fixtures as CI global setup.
       // Seed only the disposable backend, from the dotenv-free application copy.
       await run(process.execPath, [
         join(temporaryApp, "node_modules/tsx/dist/cli.mjs"),
         "scripts/e2e/seed.ts",
       ], { ...env, E2E_SEED_CLI: "1" }, { cwd: temporaryApp })
+    }
+
+    if (spec === "e2e/weight-checkout-persistence.spec.ts") {
+      env.WEIGHT_CHECKOUT_EVIDENCE_PATH = join(temporaryRoot, "weight-checkout-evidence.jsonl")
+      await writeFile(env.WEIGHT_CHECKOUT_EVIDENCE_PATH, "", { mode: 0o600 })
+      await run(process.execPath, [
+        join(temporaryApp, "node_modules/vitest/vitest.mjs"), "run",
+        "lib/__tests__/stripe/checkout-operating-hours.test.ts", "--testNamePattern=weight checkout against isolated Supabase",
+      ], { ...env, WEIGHT_E2E_SERVICE_ROLE_KEY: local.SERVICE_ROLE_KEY }, { cwd: temporaryApp, stream: true })
     }
 
     // Real local Redis keeps fail-closed download/auth protection enabled.

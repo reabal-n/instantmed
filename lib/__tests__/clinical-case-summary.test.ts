@@ -13,6 +13,21 @@ function dobForExactAge(age: number): string {
 }
 
 describe("buildClinicalCaseSummary", () => {
+  it.each(["weight_men2_thyroid_cancer", "weight_pancreatitis"])("requires medicine-specific doctor review for %s without declining the whole service", (field) => {
+    const summary = buildClinicalCaseSummary({ category: "consult", subtype: "weight_loss", answers: { weightKg: "100", heightCm: "175", [field]: true } })
+    expect(summary.recommendedPlan.action).toBe("request_info")
+    expect(summary.safetyItems).toContainEqual(expect.objectContaining({ severity: "caution" }))
+    expect(summary.safetyItems.some(item => item.severity === "block")).toBe(false)
+    expect(summary.prescriptionIntent?.repeatsTemplate).toContain("No repeats")
+    expect(summary.prescriptionIntent?.repeatsTemplate).toContain("4 weeks")
+  })
+
+  it.each([["daily_oral", "Daily oral treatment"], ["weekly_injection", "Weekly injection"], ["unsure", "Unsure — discuss with the doctor"]])("shows weight treatment preference %s without selecting a medicine", (preference, label) => {
+    const summary = buildClinicalCaseSummary({ category: "consult", subtype: "weight_loss", answers: { weightKg: "100", heightCm: "175", weightLossMedPreference: preference } })
+    expect(summary.keyFacts).toContainEqual({ label: "Treatment preference", value: label })
+    expect(summary.prescriptionIntent?.medicationSearchHint).not.toContain("GLP-1")
+  })
+
   it.each([undefined, null, "", "   "])("omits an absent legacy ED blood-pressure answer (%s) without changing current medicines", (edBpMedication) => {
     const summary = buildClinicalCaseSummary({
       category: "consult",

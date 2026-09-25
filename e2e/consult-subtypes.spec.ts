@@ -414,6 +414,17 @@ test.describe("Consult Sub-Services", () => {
     await expect(page.locator("[data-coming-soon-strip='true']")).toHaveCount(0)
   })
 
+  for (const medicine of ["Ozempic", "Ozemptic", "Mounjaro", "Duromine", "Duramine"]) {
+    test(`repeat ${medicine} routes into weight assessment`, async ({ page }) => {
+      await page.goto("/request?service=repeat-script")
+      await page.getByRole("textbox", { name: "Medication name (required)", exact: true }).fill(medicine)
+      await expect(page.getByText(/The medicine you entered is not offered/)).not.toBeVisible()
+      await page.getByRole("button", { name: "Continue in Weight Management", exact: true }).click()
+      await expect(page).toHaveURL(/service=consult.*subtype=weight_loss/)
+      await expect(page.getByRole("radiogroup", { name: "Treatment preference", exact: true })).toBeVisible()
+    })
+  }
+
   test("weight management flow: assessment screens, honest BMI hint, review shows $89.95", async ({ page }, testInfo) => {
     const errors = collectBrowserErrors(page)
     await page.setViewportSize({ width: 390, height: 900 })
@@ -442,6 +453,7 @@ test.describe("Consult Sub-Services", () => {
     await radioNo(/Pancreatitis history/i)
     await radioNo(/Eating disorder history/i)
     await radioNo(/adverse reactions to weight loss medications/i)
+    await page.getByRole("radio", { name: /Daily oral treatment/i }).click()
 
     await page.getByPlaceholder(/Describe what you hope to achieve/i)
       .fill("Lose weight steadily for long-term health and better energy.")
@@ -452,6 +464,8 @@ test.describe("Consult Sub-Services", () => {
     await expect(page.getByText(/One last check/i)).toBeVisible({ timeout: 10000 })
     await expect(page.getByText("Total today")).toBeVisible()
     await expect(page.getByText("$89.95").first()).toBeVisible()
+    await expect(page.getByText("Daily oral treatment", { exact: true })).toBeVisible()
+    await expect(page.getByText(/each consultation covers up to 4 weeks of medicine, with no repeats/)).toBeVisible()
     await page.locator("#safety-consent").click()
     const pay = page.locator('[data-intake-mobile-action-bar="true"]')
       .getByRole("button", { name: "Pay $89.95", exact: true })
