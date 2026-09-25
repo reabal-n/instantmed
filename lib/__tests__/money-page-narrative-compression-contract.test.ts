@@ -29,7 +29,7 @@ describe("money-page narrative compression", () => {
       ["components/marketing/erectile-dysfunction-landing.tsx", "ED assessment"],
       ["components/marketing/hair-loss-landing.tsx", "3-min form"],
       ["components/marketing/uti-assessment-landing.tsx", "UTI symptom assessment"],
-      ["components/marketing/contraceptive-pill-assessment-landing.tsx", "Start, switch or continue pill"],
+      ["components/marketing/contraception-assessment-landing.tsx", "Contraception health review"],
     ] as const
 
     for (const [path, summary] of summaries) {
@@ -41,8 +41,8 @@ describe("money-page narrative compression", () => {
     expect(read("components/marketing/uti-assessment-landing.tsx")).toContain(
       "Start UTI assessment",
     )
-    expect(read("components/marketing/contraceptive-pill-assessment-landing.tsx")).toContain(
-      "Start pill assessment",
+    expect(read("components/marketing/contraception-assessment-landing.tsx")).toContain(
+      "Start assessment",
     )
   })
 
@@ -295,7 +295,7 @@ describe("money-page narrative compression", () => {
     }
 
     expect(source).toContain('href="/uti-assessment-online"')
-    expect(source).toContain('href="/contraceptive-pill-assessment-online"')
+    expect(source).toContain('href="/contraception-assessment"')
     expect(source).not.toContain('href="/prescriptions"')
     expect(source).toContain("migraine with aura")
     expect(source).toContain("clot history")

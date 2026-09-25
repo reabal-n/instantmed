@@ -287,16 +287,16 @@ test.describe("landing page type floor", () => {
   }
 })
 
-for (const path of ["/womens-health", "/contraceptive-pill-assessment-online"]) {
+for (const path of ["/womens-health", "/contraception-assessment"]) {
   test(`${path} sends continuing-pill patients to the correct assessment and fee`, async ({ page }) => {
     await page.setViewportSize(PHONE)
     await seedMoneyPageState(page, "light")
     await gotoPublicRoute(page, path)
-    const continuation = page.locator("main").getByRole("link").filter({ hasText: /Continu(?:ing the same pill|e your current pill)/ }).first()
+    const continuation = page.locator("main").getByRole("link").filter({ hasText: /Continuing contraception care|Review your current contraception/ }).first()
     await expect(continuation).toHaveAttribute("href", "/request?service=consult&subtype=womens_health&intent=ocp_new")
-    await page.getByRole("button", { name: "I already take the pill. Can I get a repeat?", exact: true }).click()
-    await expect(page.getByText("Yes. Continuing the same pill uses", { exact: false })).toContainText("$49.95")
-    await expect(page.getByText("Yes. Continuing the same pill uses", { exact: false })).toContainText("same safety screen")
+    await page.getByRole("button", { name: "Can I use this for continuing care?", exact: true }).click()
+    await expect(page.getByText("Continuing care uses", { exact: false })).toContainText("$49.95")
+    await expect(page.getByText("Continuing care uses", { exact: false })).toContainText("same safety screen")
   })
 }
 
@@ -304,8 +304,18 @@ test("pill continuation respects maintenance mode", async ({ page }) => {
   await page.unroute("**/api/availability")
   await stubAvailabilityEnabled(page, true)
   await seedMoneyPageState(page)
-  await gotoPublicRoute(page, "/contraceptive-pill-assessment-online")
-  const continuation = page.getByRole("link").filter({ hasText: "Continue your current pill" })
+  await gotoPublicRoute(page, "/contraception-assessment")
+  const continuation = page.getByRole("link").filter({ hasText: "Review your current contraception" })
   await expect(continuation).toHaveAttribute("href", "/contact")
   await expect(continuation).toContainText("Contact us")
+})
+
+// Preserve old bookmarks without leaving a second medicine-focused acquisition page.
+test("retired contraception address redirects to the canonical assessment", async ({ page }) => {
+  await seedMoneyPageState(page)
+  const response = await page.goto("/contraceptive-pill-assessment-online")
+  expect(response?.status()).toBe(200)
+  await expect(page).toHaveURL(/\/contraception-assessment$/)
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://instantmed.com.au/contraception-assessment")
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Contraception assessment online")
 })

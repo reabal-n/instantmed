@@ -1980,7 +1980,7 @@ describe("Google Ads mutation gateway", () => {
 
   it.each([
     ["Women's Health", "/uti-assessment-online"],
-    ["Women's Health", "/contraceptive-pill-assessment-online"],
+    ["Women's Health", "/contraception-assessment"],
     ["Med Certs", "/medical-certificate/work"],
   ])("accepts the approved %s child destination %s", (name, path) => {
     const state = accountState()
@@ -1995,7 +1995,7 @@ describe("Google Ads mutation gateway", () => {
   it.each([
     ["Scripts", "/uti-assessment-online"],
     ["Women's Health", "/medical-certificate/work"],
-    ["Med Certs", "/contraceptive-pill-assessment-online"],
+    ["Med Certs", "/contraception-assessment"],
   ])("rejects a %s RSA sent to another service's child page %s", (name, path) => {
     const state = accountState()
     const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
@@ -2004,6 +2004,16 @@ describe("Google Ads mutation gateway", () => {
       operations: [{ ...rsaCreateOperation, finalUrl: `https://instantmed.com.au${path}` }],
       state,
     })).toThrow("paid_destination_service_mismatch")
+  })
+
+  it("rejects the retired medicine-focused acquisition URL even for women's health", () => {
+    const state = accountState()
+    const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
+    campaign.name = "Women's Health"
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...rsaCreateOperation, finalUrl: "https://instantmed.com.au/contraceptive-pill-assessment-online" }],
+      state,
+    })).toThrow()
   })
 
   it("builds only the reviewed Google mutate shapes", () => {

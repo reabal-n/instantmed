@@ -18,11 +18,11 @@ const pages = [
     requiredCopy: ["UTI symptom assessment", "Doctor Review"],
   },
   {
-    file: "app/contraceptive-pill-assessment-online/page.tsx",
-    route: "/contraceptive-pill-assessment-online",
-    canonical: "https://instantmed.com.au/contraceptive-pill-assessment-online",
-    renderMarker: "ContraceptivePillAssessmentLanding",
-    requiredCopy: ["Start, switch or continue the contraceptive pill", "doctor review"],
+    file: "app/contraception-assessment/page.tsx",
+    route: "/contraception-assessment",
+    canonical: "https://instantmed.com.au/contraception-assessment",
+    renderMarker: "ContraceptionAssessmentLanding",
+    requiredCopy: ["Contraception assessment", "doctor review"],
   },
 ]
 
@@ -47,6 +47,16 @@ describe("women's-health intent entry pages", () => {
     }
   })
 
+  it("redirects the retired acquisition URL to the neutral canonical", async () => {
+    const { default: config } = await import("../../next.config.mjs")
+    const redirects = await config.redirects!()
+    expect(redirects).toContainEqual({
+      source: "/contraceptive-pill-assessment-online",
+      destination: "/contraception-assessment",
+      permanent: true,
+    })
+  })
+
   it("lets high-intent hub CTAs start the intake while retaining focused child pages", () => {
     const landing = read("components/marketing/womens-health-landing.tsx")
     const fork = read("components/marketing/womens-health-decision-fork.tsx")
@@ -69,19 +79,19 @@ describe("women's-health intent entry pages", () => {
       'href={isDisabled ? "/contact" : "/request?service=consult&subtype=womens_health&intent=ocp_new"}',
     )
     expect(landing).toContain('href="/uti-assessment-online"')
-    expect(landing).toContain('href="/contraceptive-pill-assessment-online"')
+    expect(landing).toContain('href="/contraception-assessment"')
     expect(landing).not.toContain('href="/prescriptions"')
     expect(landing).not.toContain("WomensHealthIntent")
     expect(landing).not.toContain("INTENT_COPY")
     expect(contentHubLinks).toContain("/uti-assessment-online")
-    expect(contentHubLinks).toContain("/contraceptive-pill-assessment-online")
+    expect(contentHubLinks).toContain("/contraception-assessment")
 
     // The women's-health content-hub block renders on the paid intent pages, so
     // it must carry no prescription drug-class anchor (the "UTI antibiotics
     // online" regression). Scoped to the women's-health block so the hair-loss
     // educational links elsewhere in the file are not in scope.
     const womensHealthHub = contentHubLinks.slice(contentHubLinks.indexOf('"womens-health": {'))
-    expect(womensHealthHub).not.toMatch(/\bantibiotics?\b/i)
+    expect(womensHealthHub).not.toMatch(/\b(antibiotics?|pill)\b/i)
 
     const combinedSource = [landing, fork, ...pages.map((page) => read(page.file))].join("\n")
     expect(combinedSource).not.toContain("womens_health_uti")
@@ -94,7 +104,7 @@ describe("women's-health intent entry pages", () => {
     const combinedSource = [
       read("components/marketing/womens-health-landing.tsx"),
       read("components/marketing/uti-assessment-landing.tsx"),
-      read("components/marketing/contraceptive-pill-assessment-landing.tsx"),
+      read("components/marketing/contraception-assessment-landing.tsx"),
       ...pages.map((page) => read(page.file)),
     ].join("\n")
 
@@ -102,10 +112,11 @@ describe("women's-health intent entry pages", () => {
     expect(combinedSource).toContain("migraine with aura")
     expect(combinedSource).not.toContain("Continuing the same pill? Use repeat prescriptions.")
     expect(combinedSource).not.toContain("Use repeat prescriptions instead.")
-    expect(combinedSource).toContain("Start, switch or continue the pill")
+    expect(combinedSource).toContain("Contraception assessment")
     expect(combinedSource).toContain("may call or message if a safety detail needs clarification")
     expect(combinedSource).not.toMatch(/\b(antibiotics?|same[- ]day|no call needed|no phone call)\b/i)
     expect(combinedSource).not.toMatch(/\b(guaranteed prescription|guaranteed treatment|treatment guaranteed|prescription guaranteed|guaranteed outcome)\b/i)
+    expect(combinedSource).not.toMatch(/\b(contraceptive pill|combined pill|mini-pill|progestogen|oestrogen)\b/i)
     expect(combinedSource).not.toMatch(/\b(sildenafil|tadalafil|finasteride|dutasteride|semaglutide|tirzepatide)\b/i)
   })
 

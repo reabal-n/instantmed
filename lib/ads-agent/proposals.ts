@@ -299,7 +299,7 @@ const PAID_DESTINATION_PATHS = new Set([
   "/prescriptions",
   "/womens-health",
   "/uti-assessment-online",
-  "/contraceptive-pill-assessment-online",
+  "/contraception-assessment",
 ])
 const RATING_OR_TESTIMONIAL_PATTERN =
   /\b(?:rated|rating|ratings|stars?|testimonials?|patient reviews?|customer reviews?|patients? say)\b/i

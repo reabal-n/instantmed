@@ -174,6 +174,7 @@ const nextConfig = {
         permanent: false,
       },
       // Medication pages redirect (Google Ads compliance)
+      { source: "/contraceptive-pill-assessment-online", destination: "/contraception-assessment", permanent: true },
       {
         source: "/medications",
         destination: "/",

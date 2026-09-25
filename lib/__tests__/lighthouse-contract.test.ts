@@ -64,7 +64,7 @@ describe("lighthouse CI contract", () => {
       "http://localhost:3061/hair-loss",
       "http://localhost:3061/womens-health",
       "http://localhost:3061/uti-assessment-online",
-      "http://localhost:3061/contraceptive-pill-assessment-online",
+      "http://localhost:3061/contraception-assessment",
       "http://localhost:3061/request",
     ]))
     expect(collect.numberOfRuns).toBe(3)

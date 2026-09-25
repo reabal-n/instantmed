@@ -25,7 +25,7 @@ const GUIDE_FORBIDDEN_MARKETING_VARIANT_ROOTS = [
   "/mental-health-online",
   "/weight-loss-online",
   "/uti-assessment-online",
-  "/contraceptive-pill-assessment-online",
+  "/contraception-assessment",
 ] as const
 
 /** Indexed money pages and variants that live in the root sitemap's static group. */
@@ -54,6 +54,7 @@ export const GUIDE_FORBIDDEN_TRANSACTION_ROOTS = ["/request", "/start"] as const
 
 /** Public redirect aliases that still resolve into an acquisition surface. */
 export const GUIDE_FORBIDDEN_REDIRECT_ALIAS_ROOTS = [
+  "/contraceptive-pill-assessment-online",
   "/medical-certificates",
   "/repeat-prescription",
   "/repeat-prescriptions",

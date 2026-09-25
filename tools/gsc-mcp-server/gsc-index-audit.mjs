@@ -29,7 +29,7 @@ const DEFAULT_PRIORITY_INSPECTION_PATHS = [
   "/hair-loss",
   "/womens-health",
   "/uti-assessment-online",
-  "/contraceptive-pill-assessment-online",
+  "/contraception-assessment",
   "/pricing",
   "/telehealth-australia",
   "/online-doctor-australia",

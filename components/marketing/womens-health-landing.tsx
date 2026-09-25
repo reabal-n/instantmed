@@ -48,7 +48,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   sticky: {
     ctaText: `Start assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
     ctaHref: REQUEST_HREF,
-    mobileSummary: "UTI or the pill",
+    mobileSummary: "UTI or contraception",
     responseTime: "Doctor-reviewed after submission",
   },
 }
@@ -127,10 +127,10 @@ function WomensHealthBoundarySection() {
             <div className="p-5 sm:p-6">
               <div className="flex items-center gap-3">
                 <HeartPulse className="h-5 w-5 text-pink-700 dark:text-pink-300" aria-hidden="true" />
-                <Heading level="h3">The contraceptive pill</Heading>
+                <Heading level="h3">Contraception assessment</Heading>
               </div>
               <p className="mt-3 text-base leading-7 text-muted-foreground">
-                Possible pregnancy, migraine with aura, clot history, or smoking stop this online pill assessment before payment. Missing blood pressure context, pelvic pain, heavy bleeding, STI concerns, or other safety uncertainty may also require in-person review or a different assessment.
+                Possible pregnancy, migraine with aura, clot history, or smoking stop this online contraception assessment before payment. Missing blood pressure context, pelvic pain, heavy bleeding, STI concerns, or other safety uncertainty may also require in-person review or a different assessment.
               </p>
             </div>
           </div>
@@ -152,7 +152,7 @@ function WomensHealthReviewAndPriceSection() {
           <SectionPill>Doctor review and fee</SectionPill>
           <Heading id="womens-health-review-title" level="h2" className="mt-4">One fee for either assessment</Heading>
           <p className="mt-3 text-base leading-7 text-muted-foreground">
-            The UTI and pill forms use different safety screens, but the review, refund and pharmacy-cost boundaries are the same.
+            The UTI and contraception forms use different safety screens, but the review, refund and pharmacy-cost boundaries are the same.
           </p>
         </Reveal>
 
@@ -213,17 +213,17 @@ function WomensHealthFinalChoice({ isDisabled, onChoose }: { isDisabled: boolean
             </Button>
             <Button asChild size="lg" variant="outline" className="h-auto min-h-12 whitespace-normal py-3" disabled={isDisabled} onClick={onChoose}>
               <Link href={pillHref}>
-                {isDisabled ? "Contact us" : "Start, switch or continue the pill"}
+                {isDisabled ? "Contact us" : "Contraception assessment"}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
-            Want the detail first? Read the <Link href="/uti-assessment-online" className="font-medium text-primary underline-offset-4 hover:underline">UTI assessment page</Link> or the <Link href="/contraceptive-pill-assessment-online" className="font-medium text-primary underline-offset-4 hover:underline">contraceptive pill page</Link>.
+            Want the detail first? Read the <Link href="/uti-assessment-online" className="font-medium text-primary underline-offset-4 hover:underline">UTI assessment page</Link> or the <Link href="/contraception-assessment" className="font-medium text-primary underline-offset-4 hover:underline">contraception page</Link>.
           </p>
           <Link href={pillHref} onClick={onChoose} className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            Continuing the same pill? Use the pill assessment.
+            Continuing contraception care? Use the contraception assessment.
           </Link>
         </Reveal>
       </div>
@@ -241,7 +241,7 @@ export function WomensHealthLanding() {
         <>
           <Hero
             availabilityServiceId="womens-health"
-            title="UTI or the pill. Reviewed by a doctor, from home."
+            title="UTI or contraception. Reviewed by a doctor, from home."
             primaryCta={{
               text: isDisabled ? "Contact us" : `Start assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
               href: isDisabled ? "/contact" : REQUEST_HREF,
@@ -258,7 +258,7 @@ export function WomensHealthLanding() {
             mockup={<WomensHealthDecisionFork isDisabled={isDisabled} />}
           >
             <p className="mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg">
-              {FORM_FIRST_WEDGE} Choose UTI symptoms, or starting, switching or continuing the pill. Each form has its own safety screen before payment.
+              {FORM_FIRST_WEDGE} Choose UTI symptoms, or contraception care. Each form has its own safety screen before payment.
             </p>
           </Hero>
 
@@ -269,7 +269,7 @@ export function WomensHealthLanding() {
           <FAQSection
             pill="FAQ"
             title="Women's health assessment questions"
-            subtitle="The essentials before choosing the UTI or pill assessment."
+            subtitle="The essentials before choosing the UTI or contraception assessment."
             items={WOMENS_HEALTH_HUB_FAQ}
             initialCount={6}
             onFAQOpen={handleFAQOpen}

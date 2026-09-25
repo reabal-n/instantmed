@@ -44,42 +44,26 @@ const UTI_FAQ_ITEMS = [
   },
 ] as const
 
-const PILL_FAQ_ITEMS = [
+const CONTRACEPTION_FAQ_ITEMS = [
   {
-    question: "Can I start, switch or continue a contraceptive pill online?",
-    answer: "You can request an assessment to start, switch or continue a contraceptive pill. The doctor reviews your health history and decides what is suitable after review. The specific option is determined by the doctor, not chosen from a menu.",
+    question: "What does the contraception assessment cover?",
+    answer: "A doctor reviews your contraception needs and relevant health history to decide whether this limited online service is suitable. It is not a full sexual health service. Procedures, device fitting or removal, emergency contraception and STI testing are outside its scope. The form checks your needs before payment.",
   },
   {
-    question: "Is the contraceptive pill safety screen complicated?",
-    answer: "No. The form asks routine questions about your health history, blood pressure where relevant, and anything that could affect suitability. This is a standard safety screen that a doctor would normally cover. The reviewing doctor performs the final check before deciding whether online care is appropriate.",
+    question: "Can I use this for continuing care?",
+    answer: `Continuing care uses the same women's health assessment, with a one-off doctor review fee of ${PRICING_DISPLAY.WOMENS_HEALTH}. Have your current treatment details ready. The same safety screen applies even when your circumstances are unchanged. Pharmacy costs are separate; any prescription depends on the doctor's review.`,
   },
   {
-    question: "I already take the pill. Can I get a repeat?",
-    answer: `Yes. Continuing the same pill uses the women's health assessment, with a one-off doctor review fee of ${PRICING_DISPLAY.WOMENS_HEALTH}. Have your current pill name, strength and dose or directions ready. The same safety screen applies even when your pill is unchanged. Pharmacy costs are separate; prescribing depends on the doctor's review.`,
-  },
-  {
-    question: "What information does the doctor need for a pill assessment?",
-    answer: "The assessment asks about your current contraception, pregnancy possibility, migraine with aura, blood clot history, smoking, blood pressure context, other medical conditions, and medicines that may affect contraceptive choice.",
-  },
-  {
-    question: "Can the doctor choose between a combined pill and a mini-pill?",
-    answer: "The doctor decides what is suitable from your answers. Some people are not suitable for oestrogen-containing options and may need a progestogen-only option, another contraceptive method, a call, or in-person review.",
+    question: "What information does the doctor need?",
+    answer: "Your contraception needs, pregnancy possibility, migraine with aura, blood clot history, smoking, blood pressure context, other medical conditions and current medicines. The doctor may call or message if more information is needed.",
   },
   {
     question: "Do I need a blood pressure reading?",
-    answer: "Blood pressure can matter for contraceptive safety, especially for oestrogen-containing pills. If the doctor needs a current reading or more context, they may ask for it or recommend in-person review before prescribing.",
+    answer: "The doctor may need a current blood pressure reading or more context to assess suitability. They may ask for this or recommend in-person review before deciding what care is appropriate.",
   },
   {
     question: "Can I use this if I might be pregnant?",
-    answer: "If you are pregnant or could be pregnant, this paid assessment stops before checkout. Arrange a pregnancy test and speak with your GP, sexual health clinic, or another appropriate clinician before starting or switching contraception.",
-  },
-  {
-    question: "Can I request a specific pill brand?",
-    answer: "You can tell the doctor what you have used before or what you are hoping to switch from, but the final decision is clinical. The public page does not offer a brand menu and prescription is never guaranteed.",
-  },
-  {
-    question: "Will the pill protect me from STIs?",
-    answer: "No. Oral contraceptive pills do not protect against sexually transmitted infections. Condoms, testing, and in-person sexual health care may still be needed depending on your situation.",
+    answer: "If you are pregnant or could be pregnant, this paid assessment stops before checkout. Arrange appropriate care with your GP or sexual health clinic. Seek urgent care for possible pregnancy with pain or bleeding.",
   },
 ] as const
 
@@ -104,12 +88,8 @@ export const UTI_LANDING_FAQ = [
   DECLINE_FAQ,
   COST_FAQ,
 ] as const
-export const PILL_LANDING_FAQ = [
-  PILL_FAQ_ITEMS[0],
-  PILL_FAQ_ITEMS[2],
-  PILL_FAQ_ITEMS[3],
-  PILL_FAQ_ITEMS[5],
-  PILL_FAQ_ITEMS[7],
+export const CONTRACEPTION_LANDING_FAQ = [
+  ...CONTRACEPTION_FAQ_ITEMS,
   DECLINE_FAQ,
   COST_FAQ,
 ] as const
@@ -117,8 +97,8 @@ export const PILL_LANDING_FAQ = [
 export const WOMENS_HEALTH_HUB_FAQ = [
   UTI_FAQ_ITEMS[0],
   UTI_FAQ_ITEMS[2],
-  PILL_FAQ_ITEMS[0],
-  PILL_FAQ_ITEMS[2],
+  CONTRACEPTION_FAQ_ITEMS[0],
+  CONTRACEPTION_FAQ_ITEMS[1],
   COST_FAQ,
   DECLINE_FAQ,
 ] as const

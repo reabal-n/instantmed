@@ -47,7 +47,7 @@ test.describe("money-page narrative compression", () => {
 
     for (const path of [
       "/uti-assessment-online",
-      "/contraceptive-pill-assessment-online",
+      "/contraception-assessment",
     ]) {
       await page.goto(path)
       const visual = page.locator('section[aria-label="Visual guide"] img').first()

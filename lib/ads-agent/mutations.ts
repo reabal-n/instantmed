@@ -1352,7 +1352,7 @@ const PAID_DESTINATION_BY_SERVICE = {
   womens_health: [
     "/womens-health",
     "/uti-assessment-online",
-    "/contraceptive-pill-assessment-online",
+    "/contraception-assessment",
   ],
 } as const
 

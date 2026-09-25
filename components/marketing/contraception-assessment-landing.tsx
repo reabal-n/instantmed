@@ -13,19 +13,18 @@ import {
 import Link from "next/link"
 import type { ReactNode } from "react"
 
-import { ArticleVisuals } from "@/components/blog/article-visuals"
+import { Hero } from "@/components/marketing/hero"
 import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared/landing-page-shell"
+import { CTABanner } from "@/components/sections/cta-banner"
 import { FAQSection } from "@/components/sections/faq-section"
-import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
-import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { PRICING_DISPLAY } from "@/lib/constants"
-import { PILL_LANDING_FAQ } from "@/lib/data/womens-health-faq"
+import { CONTRACEPTION_LANDING_FAQ } from "@/lib/data/womens-health-faq"
 import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
@@ -37,9 +36,9 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "womens-health",
   analyticsId: "contraceptive-pill-assessment",
   sticky: {
-    ctaText: `Start pill assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
+    ctaText: `Start assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`,
     ctaHref: ASSESSMENT_HREF,
-    mobileSummary: "Start, switch or continue pill",
+    mobileSummary: "Contraception health review",
     responseTime: "Doctor review 24/7",
   },
 }
@@ -61,39 +60,39 @@ const HERO_FACTS = [
     icon: HeartPulse,
     label: "Safety checks",
     value: "Before payment",
-    body: "Possible pregnancy and specified pill-safety risks stop this paid pathway before checkout.",
+    body: "Possible pregnancy and specified health risks stop this assessment before checkout.",
   },
 ] as const
 
 const SAFETY_CHECKS = [
   {
     title: "Pregnant or possibly pregnant",
-    body: "A yes or not-sure answer stops the paid pathway so pregnancy can be ruled out or assessed through appropriate care.",
+    body: "A yes or not-sure answer stops the assessment so pregnancy can be ruled out or assessed through appropriate care.",
   },
   {
     title: "Migraine with aura",
-    body: "A reported history stops this paid pathway and directs you to a GP or sexual health clinic.",
+    body: "A reported history stops this assessment and directs you to a GP or sexual health clinic.",
   },
   {
     title: "Blood clot history",
-    body: "A personal or close-family clot history stops this paid pathway because it changes contraceptive safety.",
+    body: "A personal or close-family clot history stops this assessment because it changes contraceptive safety.",
   },
   {
     title: "Smoking",
-    body: "A yes answer stops this paid pathway. Smoking changes which pills may be safe, especially from age 35.",
+    body: "A yes answer stops this assessment. A GP or sexual health clinic can assess your needs in person.",
   },
 ] as const
 
 const ELIGIBILITY_ITEMS = [
   "You are in Australia and aged 18 or over.",
   getApprovedClaim("prescribing_identity_required"),
-  "You want to start, switch or continue an oral contraceptive pill.",
-  "Your pre-checkout answers allow this online pathway to continue.",
+  "You want a focused contraception health assessment. The form checks whether your request fits this online service before payment.",
+  "Your pre-checkout answers allow this online assessment to continue.",
   "You can provide current contraception, blood-pressure context, medical history, and medicine details clearly.",
 ] as const
 
 const OUTSIDE_SCOPE_ITEMS = [
-  "Emergency contraception, implants, IUDs, injections, ring fitting, cervical screening, or STI testing.",
+  "Emergency contraception, procedures, device fitting or removal, cervical screening, or STI testing.",
   "Pregnancy or possible pregnancy, migraine with aura, blood clot history, or an unsafe smoking context: the form stops before checkout.",
   "Severe pelvic pain, heavy unexplained bleeding, sexual assault, chest pain, sudden shortness of breath, collapse, or other urgent symptoms.",
 ] as const
@@ -102,7 +101,7 @@ const REVIEW_COST_OUTCOMES = [
   {
     icon: ShieldCheck,
     title: "1 · Complete the safety questions",
-    body: "Confirm start, switch or continue pill in the form, then answer the health questions. Answers that rule out this pathway direct you to in-person care before payment.",
+    body: "Confirm your contraception needs in the form, then answer the health questions. Answers that rule out this assessment direct you to in-person care before payment.",
   },
   {
     icon: Stethoscope,
@@ -118,14 +117,14 @@ const REVIEW_COST_OUTCOMES = [
 
 const ALTERNATIVES = [
   {
-    title: "Continue your current pill",
+    title: "Review your current contraception",
     href: ASSESSMENT_HREF,
-    body: "Use this same safety assessment. Have your current pill name, strength and directions ready.",
+    body: "Use this same safety assessment for continuing care. Have your current health and treatment details ready.",
   },
   {
     title: "Women's health hub",
     href: WOMENS_HEALTH_HREF,
-    body: "Compare the pill and UTI symptom pathways.",
+    body: "Compare contraception and UTI symptom assessments.",
   },
   {
     title: "High blood pressure guide",
@@ -135,21 +134,6 @@ const ALTERNATIVES = [
 ] as const
 
 const SOURCES = [
-  {
-    title: "Healthdirect: combined oral contraceptive pill",
-    href: "https://www.healthdirect.gov.au/the-pill-combined-oral-contraceptive-pill",
-    body: "Australian patient information on the combined pill, safety, and doctor advice.",
-  },
-  {
-    title: "Healthdirect: progestogen-only pill",
-    href: "https://www.healthdirect.gov.au/mini-pill-progestogen-only-pill",
-    body: "Patient information on the progestogen-only pill and related contraception choices.",
-  },
-  {
-    title: "Healthdirect: contraception options",
-    href: "https://www.healthdirect.gov.au/contraception-options",
-    body: "A plain-English overview of contraception options available in Australia.",
-  },
   {
     title: "Medical Board of Australia: telehealth consultations",
     href: "https://www.medicalboard.gov.au/Codes-Guidelines-Policies/Telehealth-consultations-with-patients.aspx",
@@ -269,144 +253,43 @@ function SectionShell({
   )
 }
 
-function VisualTextIndex({ visuals }: { visuals: RenderableArticleVisual[] }) {
-  return (
-    <div className="mt-6 grid gap-4 lg:grid-cols-3">
-      {visuals.map((visual) => (
-        <div
-          key={visual.id}
-          className="rounded-2xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
-        >
-          <p className="text-xs font-semibold uppercase text-primary">{visual.eyebrow}</p>
-          <Heading level="h3" className="mt-2 text-base">
-            {visual.title}
-          </Heading>
-          <ul className="mt-4 space-y-3">
-            {visual.items.map((item) => (
-              <li key={`${visual.id}-${item.label}`} className="text-sm leading-6 text-muted-foreground">
-                <span className="font-medium text-foreground">{item.label}:</span> {item.detail}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: RenderableArticleVisual[] }) {
-  const safetyVisuals = visuals.map((visual) => {
-    if (visual.id === "pill-suitability-map") {
-      return {
-        ...visual,
-        summary: "The form checks pill-safety risks before payment. If you can continue, the doctor also considers blood pressure and other relevant health information.",
-        items: visual.items.map((item) => {
-          if (item.label === "Pregnancy context") {
-            return { ...item, detail: "Pregnant or not sure stops the paid pathway" }
-          }
-          if (item.label === "Migraine history") {
-            return { ...item, detail: "Reported migraine with aura stops the paid pathway" }
-          }
-          if (item.label === "Clot and heart risk") {
-            return { ...item, detail: "Reported blood clot history stops the paid pathway" }
-          }
-          return item
-        }),
-      }
-    }
-
-    if (visual.id === "pill-red-flag-boundary") {
-      return {
-        ...visual,
-        items: visual.items.map((item) =>
-          item.label === "Doctor review"
-            ? {
-                ...item,
-                label: "Safety exit",
-                detail: "Possible pregnancy, migraine aura, clot history, or smoking stops before checkout",
-              }
-            : item,
-        ),
-      }
-    }
-
-    return visual
-  })
-
+export function ContraceptionAssessmentLanding() {
   return (
     <LandingPageShell config={LANDING_CONFIG}>
       {({ isDisabled, heroCTARef, handleHeroCTA, handleFinalCTA, handleFAQOpen }) => (
         <div className="bg-background text-foreground">
-          <section className="relative overflow-hidden bg-background pb-14 pt-10 sm:pt-14 lg:pb-20 lg:pt-20">
-            <div
-              aria-hidden="true"
-              className="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_20%_20%,rgba(186,212,245,0.32),transparent_34%),radial-gradient(circle_at_80%_10%,rgba(245,198,160,0.24),transparent_30%)]"
-            />
-            <div className="relative mx-auto grid min-w-0 grid-cols-1 max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8">
-              <Reveal instant className="min-w-0 max-w-2xl">
-                <SectionPill>Women's health</SectionPill>
-                <Heading level="display" className="mt-5">
-                  Contraceptive pill assessment online
-                </Heading>
-                <p data-speakable className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-                  An online doctor assessment for starting, switching or continuing the contraceptive pill. For adults in Australia. One-off doctor review: {PRICING_DISPLAY.WOMENS_HEALTH}. Pharmacy costs are separate if a prescription is approved.
-                </p>
-                <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
-                  {FORM_FIRST_WEDGE}
-                </p>
-
-                <div ref={heroCTARef} className="mt-7 flex flex-col gap-3 sm:flex-row">
-                  <Button
-                    asChild
-                    size="lg"
-                    className="h-auto min-h-12 w-full whitespace-normal py-3 text-center shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 sm:w-auto"
-                    disabled={isDisabled}
-                    onClick={handleHeroCTA}
-                  >
-                    <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                      {isDisabled ? "Contact us" : "Start pill assessment"}
-                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                    </Link>
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="h-auto min-h-12 w-full whitespace-normal py-3 text-center sm:w-auto">
-                    <Link href="#safety">Check if this is suitable</Link>
-                  </Button>
-                </div>
-
-                <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-                  Safety checks come before payment. {GUARANTEE} Prescription is not guaranteed.
-                </p>
-              </Reveal>
-
-              <Reveal instant className="min-w-0">
-                <div className="rounded-3xl border border-border/50 bg-white p-6 shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none">
-                  <p className="text-xs font-semibold uppercase text-primary">Before you start</p>
-                  <Heading level="h2" className="mt-3">
-                    The service in one glance
-                  </Heading>
-                  <div className="mt-5 divide-y divide-border/50">
-                    {HERO_FACTS.map((fact) => (
-                      <div key={fact.label} className="flex gap-3 py-4 first:pt-0 last:pb-0">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          <fact.icon className="h-4 w-4" aria-hidden="true" />
-                        </span>
-                        <div>
-                          <p className="text-xs font-medium uppercase text-muted-foreground">{fact.label}</p>
-                          <p className="mt-1 text-base font-semibold text-foreground">{fact.value}</p>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Reveal>
-            </div>
-          </section>
+          <Hero
+            title="Contraception assessment online"
+            availabilityServiceId="womens-health"
+            showReviews={false}
+            primaryCta={{ text: isDisabled ? "Contact us" : "Start assessment", href: isDisabled ? "/contact" : ASSESSMENT_HREF, ref: heroCTARef, onClick: handleHeroCTA }}
+            secondaryCta={{ text: "Check if this is suitable", href: "#eligibility-and-scope" }}
+            reassuranceRow={<p className="text-sm leading-6 text-muted-foreground">Safety checks come before payment. {GUARANTEE} Prescription is not guaranteed.</p>}
+            mockup={
+              <div className="rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card">
+                <Heading level="h2">Before you start</Heading>
+                <dl className="mt-4 divide-y divide-border/50">
+                  {HERO_FACTS.map((fact) => (
+                    <div key={fact.label} className="py-4">
+                      <dt className="flex items-center gap-2 text-sm text-muted-foreground"><fact.icon className="h-4 w-4 text-primary" aria-hidden="true" />{fact.label}</dt>
+                      <dd className="mt-1 font-semibold">{fact.value}</dd>
+                      <dd className="mt-1 text-sm leading-6 text-muted-foreground">{fact.body}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            }
+          >
+            <p data-speakable className="mb-4 text-base leading-7 text-muted-foreground sm:text-lg">
+              A focused review of your contraception needs and health history by an Australian doctor. For women aged 18+ in Australia. One-off review fee: {PRICING_DISPLAY.WOMENS_HEALTH}.
+            </p>
+            <p className="mb-6 text-base leading-7 text-muted-foreground">{FORM_FIRST_WEDGE}</p>
+          </Hero>
 
           <SectionShell
             id="safety"
             pill="Safety first"
-            title="Four answers can stop this paid pathway before checkout"
+            title="Four answers can stop this assessment before checkout"
             intro="If you report possible pregnancy, migraine with aura, blood clot history, or smoking, the form directs you to a GP or sexual health clinic before payment."
           >
             <div className="grid gap-4 sm:grid-cols-2">
@@ -442,20 +325,18 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
               </div>
             </div>
 
-            <ArticleVisuals visuals={safetyVisuals} />
-            <VisualTextIndex visuals={safetyVisuals} />
           </SectionShell>
 
           <SectionShell
             id="eligibility-and-scope"
             pill="Eligibility and scope"
-            title="For starting, switching or continuing the oral contraceptive pill"
-            intro="This pathway does not replace a sexual health clinic, physical examination, emergency contraception service, or procedure."
+            title="Check whether this online assessment fits your needs"
+            intro="This is a limited online assessment, not a full contraception or sexual health service. We do not provide procedures or device fitting. The form checks your needs before payment; a doctor may recommend an in-person service."
             muted
           >
             <div className="grid gap-6 lg:grid-cols-2">
               <Checklist title="Usually a reasonable starting point" items={ELIGIBILITY_ITEMS} />
-              <Checklist title="Use another pathway or in-person care" items={OUTSIDE_SCOPE_ITEMS} caution />
+              <Checklist title="Use another assessment or in-person care" items={OUTSIDE_SCOPE_ITEMS} caution />
             </div>
           </SectionShell>
 
@@ -475,8 +356,8 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
           <SectionShell
             id="alternatives"
             pill="Other routes"
-            title="If this is not the right pathway"
-            intro="Choose the route that matches whether you need a pill assessment, UTI assessment, or in-person care."
+            title="If this is not the right assessment"
+            intro="Choose the route that matches whether you need a contraception assessment, UTI assessment, or in-person care."
             muted
           >
             <div className="grid gap-4 sm:grid-cols-3">
@@ -491,7 +372,7 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
                   </Heading>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.body}</p>
                   <span className="mt-4 inline-flex items-center text-sm font-medium text-primary">
-                    {item.href === ASSESSMENT_HREF ? (isDisabled ? "Contact us" : "Start pill assessment") : "Read more"}
+                    {item.href === ASSESSMENT_HREF ? (isDisabled ? "Contact us" : "Start assessment") : "Read more"}
                     <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden="true" />
                   </span>
                 </Link>
@@ -503,7 +384,7 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
             id="sources"
             pill="References"
             title="Australian sources"
-            intro="Reviewed against Australian patient information and telehealth guidance. Last reviewed: 2026-06."
+            intro="Patient information and standards for online doctor consultations."
           >
             <div className="grid gap-4 md:grid-cols-2">
               {SOURCES.map((source) => (
@@ -523,37 +404,23 @@ export function ContraceptivePillAssessmentLanding({ visuals }: { visuals: Rende
 
           <FAQSection
             pill="FAQ"
-            title="Contraceptive pill assessment FAQ"
-            subtitle="The essential safety, cost, and pathway questions before you start."
-            items={PILL_LANDING_FAQ}
+            title="Contraception assessment FAQ"
+            subtitle="The essential safety, cost, and assessment questions before you start."
+            items={CONTRACEPTION_LANDING_FAQ}
             onFAQOpen={handleFAQOpen}
             className="bg-muted/30 dark:bg-white/[0.02]"
           />
 
-          <section className="bg-background py-14 sm:py-16 lg:py-20">
-            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-              <Reveal className="rounded-3xl border border-border/50 bg-white p-7 text-center shadow-xl shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:p-9">
-                <SectionPill>Start safely</SectionPill>
-                <Heading level="h2" className="mt-4">
-                  Request a contraceptive pill assessment
-                </Heading>
-                <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-                  Confirm start, switch or continue pill and complete the secure health questions. Safety checks happen before payment. A doctor reviews suitable requests and decides whether prescribing is appropriate.
-                </p>
-                <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Button asChild size="lg" className="w-full sm:w-auto" disabled={isDisabled} onClick={handleFinalCTA}>
-                    <Link href={isDisabled ? "/contact" : ASSESSMENT_HREF}>
-                      {isDisabled ? "Contact us" : `Start pill assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`}
-                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                    </Link>
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                    <Link href={WOMENS_HEALTH_HREF}>Compare women's health options</Link>
-                  </Button>
-                </div>
-              </Reveal>
-            </div>
-          </section>
+          <CTABanner
+            title="Request a contraception assessment"
+            subtitle="Complete the secure health questions. Safety checks happen before payment. A doctor reviews suitable requests and decides what care is appropriate."
+            ctaText={`Start assessment · ${PRICING_DISPLAY.WOMENS_HEALTH}`}
+            ctaHref={ASSESSMENT_HREF}
+            isDisabled={isDisabled}
+            onCtaClick={handleFinalCTA}
+            secondaryText="Compare women's health assessments"
+            secondaryHref={WOMENS_HEALTH_HREF}
+          />
         </div>
       )}
     </LandingPageShell>

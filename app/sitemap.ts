@@ -62,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/weight-loss-online",
     "/womens-health",
     "/uti-assessment-online",
-    "/contraceptive-pill-assessment-online",
+    "/contraception-assessment",
     "/refund-policy",
     "/cookie-policy",
   ]
