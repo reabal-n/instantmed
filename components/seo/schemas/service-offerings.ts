@@ -57,7 +57,7 @@ const SERVICE_SCHEMA_COPY: Record<
     name: "Women's Health",
     serviceType: "Women's health assessment",
     description:
-      "Structured form-first assessment for uncomplicated urinary tract infection (UTI), and for starting or switching the contraceptive pill, reviewed by an AHPRA-registered doctor.",
+      "Online assessment for uncomplicated urinary tract infection (UTI) or contraception needs, including continuing care, reviewed by an AHPRA-registered doctor. Suitability is checked before payment.",
   },
   "weight-loss": {
     name: "Weight Management",

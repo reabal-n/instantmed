@@ -7,6 +7,7 @@ import {
   getAvailableServices,
   getServiceOffers,
 } from "@/components/seo/schemas/service-offerings"
+import { getActiveServices } from "@/lib/services/service-catalog"
 
 const root = process.cwd()
 const read = (p: string) => readFileSync(join(root, p), "utf8")
@@ -53,6 +54,20 @@ describe("structured-data required fields", () => {
       expect(offerNames).toContain(name)
       expect(procedureNames).toContain(name)
     }
+  })
+
+  it("keeps inherited service schema and navigation free of medicine-class acquisition copy", () => {
+    const prohibited = /\b(?:contraceptive pill|combined pill|mini-pill|progestogen|oestrogen)\b/i
+    const offers = getServiceOffers("https://instantmed.com.au")
+    const available = getAvailableServices()
+    const navigation = getActiveServices().map(({ title, subtitle }) => ({ title, subtitle }))
+    for (const surface of [offers, available, navigation]) {
+      expect(JSON.stringify(surface)).not.toMatch(prohibited)
+    }
+    const women = offers.find((offer) => offer.url.endsWith("/womens-health"))
+    expect(women?.price).toBe("49.95")
+    expect(women?.itemOffered.description).toContain("contraception")
+    expect(women?.itemOffered.description).toContain("doctor")
   })
 
   it("MedicalConditionSchema Drug entities carry a name", () => {
