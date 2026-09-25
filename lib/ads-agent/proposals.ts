@@ -63,7 +63,7 @@ interface CampaignCreateAdGroup {
   responsiveSearchAd: CampaignCreateResponsiveSearchAd
 }
 
-export type CampaignTextAsset =
+type CampaignTextAsset =
   | { type: "BUSINESS_NAME"; text: "InstantMed"; resourceName: string }
   | { type: "CALLOUT"; text: string }
   | {
