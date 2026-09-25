@@ -450,6 +450,34 @@ function matchingResponsiveSearchAds(
   }).sort((left, right) => left.resourceName.localeCompare(right.resourceName))
 }
 
+function matchingCampaignTextAssets(
+  state: GoogleAdsAccountState,
+  operation: Extract<AdsMutationOperation, { kind: "campaign_text_asset_create" }>,
+): Array<{ resourceName: string; status: string | null }> {
+  const assetNames = new Set(state.assets.flatMap((resource) => {
+    const asset = asRecord(resource.values.asset)
+    if (!asset || !resource.resourceName || asset.type !== operation.asset.type) return []
+    if (operation.asset.type === "CALLOUT") {
+      return asRecord(asset.calloutAsset)?.calloutText === operation.asset.text
+        ? [resource.resourceName] : []
+    }
+    const sitelink = asRecord(asset.sitelinkAsset)
+    const urls = asset.finalUrls
+    return sitelink?.linkText === operation.asset.text
+      && sitelink?.description1 === operation.asset.description1
+      && sitelink?.description2 === operation.asset.description2
+      && Array.isArray(urls) && urls.length === 1 && urls[0] === operation.asset.finalUrl
+      ? [resource.resourceName] : []
+  }))
+  return state.campaignAssets.flatMap((resource) => {
+    const link = asRecord(resource.values.campaignAsset)
+    return resource.resourceName && link?.campaign === operation.campaignResourceName
+      && link.fieldType === operation.asset.type
+      && assetNames.has(asString(link.asset) ?? "") && link.status !== "REMOVED"
+      ? [{ resourceName: resource.resourceName, status: asString(link.status) }] : []
+  })
+}
+
 function matchingPositiveKeywords(
   state: GoogleAdsAccountState,
   operation: Extract<
@@ -744,6 +772,9 @@ function operationProjection(
       keywordCount,
     }
   }
+  if (operation.kind === "campaign_text_asset_create") {
+    return { matches: matchingCampaignTextAssets(state, operation) }
+  }
   if (operation.kind === "asset_link_status") {
     return {
       status: asString(
@@ -818,6 +849,11 @@ function operationMatches(
       ? projection.attached === false && projection.keywordCount === 0
       : projection.attached === true
         && projection.keywordCount === operation.keywords.length
+  }
+  if (operation.kind === "campaign_text_asset_create") {
+    const matches = projection.matches as Array<{ status: string | null }>
+    return target === "expected" ? matches.length === 0
+      : matches.length === 1 && matches[0].status === "ENABLED"
   }
   if (
     operation.kind === "responsive_search_ad_create"
@@ -900,7 +936,27 @@ export function buildGoogleAdsMutateOperations(
   state: GoogleAdsAccountState,
 ): GoogleAdsMutateOperation[] {
   const operations = normalizeAdsMutationOperations(value)
-  return operations.flatMap((operation): GoogleAdsMutateOperation[] => {
+  return operations.flatMap((operation, index): GoogleAdsMutateOperation[] => {
+    if (operation.kind === "campaign_text_asset_create") {
+      const customerId = state.customer?.id
+      if (!customerId?.match(/^\d+$/)) throw new Error("google_ads_customer_identity_unavailable")
+      const assetName = `customers/${customerId}/assets/-${index + 1}`
+      const asset = operation.asset
+      return [
+        { assetOperation: { create: {
+          resourceName: assetName,
+          ...(asset.type === "SITELINK" ? {
+            finalUrls: [asset.finalUrl],
+            sitelinkAsset: { linkText: asset.text,
+              description1: asset.description1, description2: asset.description2 },
+          } : { calloutAsset: { calloutText: asset.text } }),
+        } } },
+        { campaignAssetOperation: { create: {
+          asset: assetName, campaign: operation.campaignResourceName,
+          fieldType: asset.type, status: "ENABLED",
+        } } },
+      ]
+    }
     if (operation.kind === "campaign_create") {
       const customerId = state.customer?.id
       if (!customerId?.match(/^\d+$/)) {
@@ -1252,7 +1308,7 @@ function campaignForAdGroup(
 const PAID_DESTINATION_BY_SERVICE = {
   ed: ["/erectile-dysfunction"],
   hair_loss: ["/hair-loss"],
-  med_certs: ["/medical-certificate", "/medical-certificate/work"],
+  med_certs: ["/medical-certificate", "/medical-certificate/work", "/medical-certificate/carer"],
   scripts: ["/prescriptions"],
   womens_health: [
     "/womens-health",
@@ -1404,6 +1460,40 @@ function assertCreateOperationsSafe(
 ): void {
   const packetTargets = new Set<string>()
   for (const operation of operations) {
+    if (operation.kind === "campaign_text_asset_create") {
+      const campaign = campaignValue(state, operation.campaignResourceName)
+      if (!campaign || campaign.status === "REMOVED"
+        || campaign.advertisingChannelType !== "SEARCH") {
+        throw new Error("create_target_parent_unavailable")
+      }
+      const service = campaignNameService(asString(campaign.name))
+      if (!service) throw new Error("ungoverned_campaign_service")
+      const target = `asset:${operation.campaignResourceName}:${JSON.stringify(operation.asset)}`
+      if (packetTargets.has(target)) throw new Error("duplicate_create_target")
+      packetTargets.add(target)
+      if (matchingCampaignTextAssets(state, operation).length) {
+        throw new Error("create_target_already_exists")
+      }
+      if (operation.asset.type === "SITELINK") {
+        const path = new URL(operation.asset.finalUrl).pathname
+        const utility = ["/how-it-works", "/pricing", "/guarantee", "/clinical-governance", "/privacy"]
+        const certificate = service === "med_certs"
+          && ["/medical-certificate/carer", "/medical-certificate/university"].includes(path)
+        if (!utility.includes(path) && !certificate
+          && !(PAID_DESTINATION_BY_SERVICE[service] as readonly string[]).includes(path)) {
+          throw new Error("paid_destination_service_mismatch")
+        }
+      }
+      const copy = operation.asset.type === "SITELINK"
+        ? [operation.asset.text, operation.asset.description1, operation.asset.description2]
+        : [operation.asset.text]
+      const prices = copy.flatMap(text => Array.from(text.matchAll(/A?\$(\d+(?:\.\d{1,2})?)/g)))
+        .map(match => Math.round(Number(match[1]) * 100))
+      if (prices.some(price => !ALLOWED_PAID_PRICE_CENTS[service].has(price))) {
+        throw new Error("paid_copy_price_mismatch")
+      }
+      continue
+    }
     if (
       operation.kind !== "responsive_search_ad_create"
       && operation.kind !== "positive_keyword_create"
@@ -1590,7 +1680,7 @@ function assertKeywordAndAudienceSafety(
         campaignAssetValue(state, operation.resourceName)?.campaign,
       )
       if (campaign) affectedScalingCampaigns.add(campaign)
-    } else if (operation.kind === "schedule_replace") {
+    } else if (operation.kind === "schedule_replace" || operation.kind === "campaign_text_asset_create") {
       affectedScalingCampaigns.add(operation.campaignResourceName)
     } else if (
       operation.kind === "responsive_search_ad_create"
@@ -1822,6 +1912,7 @@ export function validateAdsMutationPolicy(args: {
 }
 
 function isScalingOperation(operation: AdsMutationOperation): boolean {
+  if (operation.kind === "campaign_text_asset_create") return true
   if (operation.kind === "campaign_create") return true
   if (operation.kind === "campaign_status") return operation.next === "ENABLED"
   if (operation.kind === "campaign_budget") {
@@ -1960,6 +2051,17 @@ async function requireScaleAuthorization(args: {
   repository: AdsMutationGatewayRepository
   state: GoogleAdsAccountState
 }): Promise<void> {
+  for (const operation of args.operations) {
+    if (operation.kind !== "campaign_text_asset_create") continue
+    const campaign = campaignValue(args.state, operation.campaignResourceName)
+    if (normalizedCampaignLabel(campaign?.name)
+      !== normalizedCampaignLabel(args.proposal.rationale.campaign)) {
+      throw new Error("proposal_campaign_mismatch")
+    }
+    if (campaignNameService(asString(campaign?.name)) !== args.proposal.rationale.service) {
+      throw new Error("proposal_service_mismatch")
+    }
+  }
   const budgetIncreases = args.operations.filter(
     (operation): operation is Extract<
       AdsMutationOperation,
@@ -2152,6 +2254,13 @@ function reverseOperations(
     }
     if (operation.kind === "schedule_replace") {
       return { ...operation, expected: operation.next, next: operation.expected }
+    }
+    if (operation.kind === "campaign_text_asset_create") {
+      const matches = matchingCampaignTextAssets(state, operation)
+        .filter(({ status }) => status === "ENABLED")
+      if (matches.length !== 1) throw new Error("text_asset_rollback_resource_missing")
+      return { kind: "asset_link_status", expected: "ENABLED", next: "PAUSED",
+        resourceName: matches[0].resourceName }
     }
     if (operation.kind === "responsive_search_ad_create") {
       const matches = matchingResponsiveSearchAds(state, operation)

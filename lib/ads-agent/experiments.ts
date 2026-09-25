@@ -516,7 +516,7 @@ export function experimentVariableForMutationFamily(
   ) {
     return "keywords"
   }
-  if (family === "asset_link_status") return "assets"
+  if (family === "asset_link_status" || family === "campaign_text_asset_create") return "assets"
   if (
     family === "campaign_bidding"
     || family === "ad_group_cpc_bid"

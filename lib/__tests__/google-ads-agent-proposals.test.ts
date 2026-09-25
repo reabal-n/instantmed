@@ -68,6 +68,46 @@ function proposal(
   }
 }
 
+describe("campaign text asset input boundary", () => {
+  const asset = {
+    kind: "campaign_text_asset_create",
+    campaignResourceName: "customers/123/campaigns/456",
+    asset: {
+      type: "SITELINK",
+      text: "How eScripts Work",
+      description1: "Sent by SMS if approved",
+      description2: "Medicine costs are separate",
+      finalUrl: "https://instantmed.com.au/prescriptions#prescription-lifecycle-title",
+    },
+  }
+
+  it("binds exact sitelink content and destination into the approved hash", () => {
+    expect(normalizeAdsMutationOperations([asset])).toEqual([asset])
+    expect(hashAdsMutationOperations([asset])).not.toBe(hashAdsMutationOperations([
+      { ...asset, asset: { ...asset.asset, description2: "Use an Australian pharmacy" } },
+    ]))
+  })
+
+  it("allows bounded callouts without a destination", () => {
+    const callout = { ...asset, asset: { type: "CALLOUT", text: "Full Refund If Declined" } }
+    expect(normalizeAdsMutationOperations([callout])).toEqual([callout])
+  })
+
+  it.each([
+    { ...asset.asset, text: "x".repeat(26) },
+    { ...asset.asset, description1: "x".repeat(36) },
+    { ...asset.asset, text: "Guaranteed prescription" },
+    { ...asset.asset, text: "Buy sildenafil" },
+    { ...asset.asset, finalUrl: "https://example.com/prescriptions" },
+    { ...asset.asset, finalUrl: "https://instantmed.com.au/patient" },
+    { ...asset.asset, finalUrl: "https://instantmed.com.au/prescriptions?patient=123" },
+    { ...asset.asset, finalUrl: "https://instantmed.com.au/prescriptions#how-it-works" },
+    { type: "IMAGE", text: "image", path: "/tmp/file.png" },
+  ])("rejects unsafe, overlong, private or unsupported asset inputs", (invalid) => {
+    expect(() => normalizeAdsMutationOperations([{ ...asset, asset: invalid }])).toThrow()
+  })
+})
+
 describe("Google Ads proposal operation boundary", () => {
   it("normalizes only the restricted operation union", () => {
     expect(normalizeAdsMutationOperations([

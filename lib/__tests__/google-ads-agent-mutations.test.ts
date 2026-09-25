@@ -761,6 +761,134 @@ function gateway(args: {
   }
 }
 
+describe("campaign text asset operations", () => {
+  it("allows the existing carer destination only for certificate ads", () => {
+    const operation = { ...rsaCreateOperation,
+      finalUrl: "https://instantmed.com.au/medical-certificate/carer" }
+    const state = accountState()
+    const campaign = state.campaigns[0].values.campaign as Record<string, unknown>
+    campaign.name = "JDM | Search | Med Certs"
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state })).not.toThrow()
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state: accountState() }))
+      .toThrow("paid_destination_service_mismatch")
+  })
+
+  const operation = {
+    kind: "campaign_text_asset_create",
+    campaignResourceName,
+    asset: {
+      type: "SITELINK",
+      text: "How eScripts Work",
+      description1: "Sent by SMS if approved",
+      description2: "Medicine costs are separate",
+      finalUrl: "https://instantmed.com.au/prescriptions#prescription-lifecycle-title",
+    },
+  }
+
+  it("atomically creates assets and their campaign links with distinct temporary IDs", () => {
+    const google = buildGoogleAdsMutateOperations([
+      operation,
+      { ...operation, asset: { type: "CALLOUT", text: "No Subscription" } },
+    ], accountState())
+    expect(google).toEqual([
+      { assetOperation: { create: {
+        resourceName: "customers/123/assets/-1",
+        finalUrls: ["https://instantmed.com.au/prescriptions#prescription-lifecycle-title"],
+        sitelinkAsset: {
+          linkText: "How eScripts Work",
+          description1: "Sent by SMS if approved",
+          description2: "Medicine costs are separate",
+        },
+      } } },
+      { campaignAssetOperation: { create: {
+        asset: "customers/123/assets/-1", campaign: campaignResourceName,
+        fieldType: "SITELINK", status: "ENABLED",
+      } } },
+      { assetOperation: { create: {
+        resourceName: "customers/123/assets/-2",
+        calloutAsset: { calloutText: "No Subscription" },
+      } } },
+      { campaignAssetOperation: { create: {
+        asset: "customers/123/assets/-2", campaign: campaignResourceName,
+        fieldType: "CALLOUT", status: "ENABLED",
+      } } },
+    ])
+  })
+
+  it("rejects duplicate create operations and destinations for another service", () => {
+    expect(() => validateAdsMutationPolicy({
+      operations: [operation, operation], state: accountState(),
+    })).toThrow("duplicate_create_target")
+    expect(() => validateAdsMutationPolicy({
+      operations: [{ ...operation, asset: {
+        ...operation.asset, finalUrl: "https://instantmed.com.au/medical-certificate",
+      } }], state: accountState(),
+    })).toThrow("paid_destination_service_mismatch")
+  })
+
+  function afterAsset(before: GoogleAdsAccountState): GoogleAdsAccountState {
+    const after = structuredClone(before)
+    after.assets.push(resource("customers/123/assets/900", { asset: {
+      type: "SITELINK",
+      finalUrls: ["https://instantmed.com.au/prescriptions#prescription-lifecycle-title"],
+      sitelinkAsset: { linkText: "How eScripts Work",
+        description1: "Sent by SMS if approved", description2: "Medicine costs are separate" },
+    } }))
+    after.campaignAssets.push(resource("customers/123/campaignAssets/456~900~SITELINK", {
+      campaignAsset: { campaign: campaignResourceName, asset: "customers/123/assets/900",
+        fieldType: "SITELINK", status: "ENABLED" },
+    }))
+    return after
+  }
+
+  it("requires the created content and enabled association before offering an exact pause rollback", async () => {
+    const before = accountState()
+    const after = afterAsset(before)
+    const initial = proposal(before, { operations: [operation as AdsMutationOperation] })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+    await expect(harness.gateway.applyProposal(initial.proposalKey))
+      .resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("verified")
+    await harness.gateway.buildRollbackProposal(initial.proposalKey)
+    expect(harness.store.rollbacks[0].operations).toEqual([{
+      kind: "asset_link_status", expected: "ENABLED", next: "PAUSED",
+      resourceName: "customers/123/campaignAssets/456~900~SITELINK",
+    }])
+  })
+
+  it("rejects duplicate live content even when its association is paused", () => {
+    const after = afterAsset(accountState())
+    const link = after.campaignAssets[0].values.campaignAsset as Record<string, unknown>
+    link.status = "PAUSED"
+    expect(() => validateAdsMutationPolicy({
+      operations: [operation], state: after,
+    })).toThrow("create_target_already_exists")
+  })
+
+  it("does not verify an asset created without the approved campaign link", async () => {
+    const before = accountState()
+    const after = afterAsset(before)
+    after.campaignAssets = []
+    const initial = proposal(before, { operations: [operation as AdsMutationOperation] })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+    await expect(harness.gateway.applyProposal(initial.proposalKey))
+      .rejects.toThrow("text_asset_rollback_resource_missing")
+    expect(harness.store.getCurrent().status).toBe("failed")
+  })
+
+  it("rejects a misleading campaign label that could avoid a material-change lock", async () => {
+    const before = accountState()
+    const initial = proposal(before, {
+      operations: [operation as AdsMutationOperation],
+      rationale: { ...proposal(before).rationale, campaign: "Other campaign" },
+    })
+    const harness = gateway({ accountReads: [before], initial })
+    await expect(harness.gateway.applyProposal(initial.proposalKey))
+      .resolves.toMatchObject({ outcome: "aborted", errorCode: "proposal_campaign_mismatch" })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+})
+
 describe("Google Ads mutation gateway", () => {
   it("detects lowerCamel Google field masks for manual tROAS changes", () => {
     const state = accountState({
