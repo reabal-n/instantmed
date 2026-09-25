@@ -64,6 +64,7 @@ interface CampaignCreateAdGroup {
 }
 
 export type CampaignTextAsset =
+  | { type: "BUSINESS_NAME"; text: "InstantMed"; resourceName: string }
   | { type: "CALLOUT"; text: string }
   | {
       type: "SITELINK"
@@ -444,7 +445,12 @@ function normalizeTextAssetDestination(value: unknown): string {
 function normalizeCampaignTextAsset(value: unknown): CampaignTextAsset {
   const asset = asRecord(value)
   if (!asset) throw new Error("Invalid text asset")
-  const type = enumValue(asset.type, ["SITELINK", "CALLOUT"] as const, "asset type")
+  const type = enumValue(asset.type, ["SITELINK", "CALLOUT", "BUSINESS_NAME"] as const, "asset type")
+  if (type === "BUSINESS_NAME") {
+    assertExactKeys(asset, ["type", "text", "resourceName"], "business name asset")
+    if (asset.text !== "InstantMed") throw new Error("Only the verified InstantMed business name is allowed")
+    return { type, text: "InstantMed", resourceName: resourceName(asset.resourceName, "assets") }
+  }
   assertExactKeys(asset, type === "CALLOUT"
     ? ["type", "text"]
     : ["type", "text", "description1", "description2", "finalUrl"], "text asset")
@@ -1016,11 +1022,16 @@ function normalizeOperation(value: unknown): AdsMutationOperation {
     )
     const next = enumValue(record.next, CRITERION_STATUS_VALUES, "next")
     if (expected === next) throw new Error("Asset link status must change")
+    const name = requiredString(record.resourceName, "resourceName")
+    const accountCall = /^customers\/\d+\/customerAssets\/\d+~CALL$/.test(name)
+    if (accountCall && (expected === "REMOVED" || next === "REMOVED")) {
+      throw new Error("Account call links support pause and enable only")
+    }
     return {
       expected,
       kind: "asset_link_status",
       next,
-      resourceName: resourceName(record.resourceName, "campaignAssets"),
+      resourceName: accountCall ? name : resourceName(name, "campaignAssets"),
     }
   }
   if (record.kind === "schedule_replace") {

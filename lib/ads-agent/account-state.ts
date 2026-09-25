@@ -47,6 +47,8 @@ export interface GoogleAdsAccountState {
   conversionActions: NormalizedGoogleAdsResource[]
   conversionGoals: NormalizedGoogleAdsResource[]
   customer: GoogleAdsCustomerState | null
+  /** Always read live; optional only for legacy stored snapshots. */
+  customerAssets?: NormalizedGoogleAdsResource[]
   customerClientLinks: NormalizedGoogleAdsResource[]
   customerManagerLinks: NormalizedGoogleAdsResource[]
   customerUserAccess: NormalizedGoogleAdsResource[]
@@ -77,6 +79,7 @@ export interface GoogleAdsAccountStateQueries {
   conversionActions: string
   conversionGoals: string
   customer: string
+  customerAssets: string
   customerClientLinks: string
   customerManagerLinks: string
   customerUserAccess: string
@@ -398,6 +401,15 @@ export function buildGoogleAdsAccountStateQueries(
       ],
       from: "campaign_asset",
     }),
+    customerAssets: gaql({
+      fields: [
+        "customer_asset.resource_name",
+        "customer_asset.asset",
+        "customer_asset.field_type",
+        "customer_asset.status",
+      ],
+      from: "customer_asset",
+    }),
     customerClientLinks: gaql({
       fields: [
         "customer_client_link.resource_name",
@@ -633,6 +645,7 @@ export async function getAdsAccountState(args: {
     campaignSharedSets: normalizeRows(rows.campaignSharedSets),
     assets: normalizeRows(rows.assets),
     campaignAssets: normalizeRows(rows.campaignAssets),
+    customerAssets: normalizeRows(rows.customerAssets),
     customerClientLinks: normalizeRows(rows.customerClientLinks),
     customerManagerLinks: normalizeRows(rows.customerManagerLinks),
     customerUserAccess: normalizeRows(rows.customerUserAccess),

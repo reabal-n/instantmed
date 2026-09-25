@@ -761,7 +761,86 @@ function gateway(args: {
   }
 }
 
+describe("account call asset operations", () => {
+  const link = "customers/123/customerAssets/900~CALL"
+  const operation: AdsMutationOperation = { kind: "asset_link_status", resourceName: link, expected: "ENABLED", next: "PAUSED" }
+  function callState(status = "ENABLED", approvalStatus = "DISAPPROVED") {
+    return accountState({
+      customerAssets: [resource(link, { customerAsset: { resourceName: link, asset: "customers/123/assets/900", fieldType: "CALL", status } })],
+      assets: [resource("customers/123/assets/900", { asset: { type: "CALL", policySummary: { approvalStatus } } })],
+    })
+  }
+  it("uses the customer asset endpoint and verifies the actual account association", async () => {
+    const before = callState()
+    const after = callState("PAUSED")
+    expect(buildGoogleAdsMutateOperations([operation], before)).toEqual([{
+      customerAssetOperation: { update: { resourceName: link, status: "PAUSED" }, updateMask: "status" },
+    }])
+    const initial = proposal(before, { operations: [operation], rationale: { ...proposal(before).rationale, campaign: "Account", service: "account" } })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+    await expect(harness.gateway.applyProposal(initial.proposalKey)).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("verified")
+    await harness.gateway.buildRollbackProposal(initial.proposalKey)
+    expect(harness.store.rollbacks[0].operations).toEqual([{ ...operation, expected: "PAUSED", next: "ENABLED" }])
+  })
+  it("blocks missing account reads and mismatched field types", () => {
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state: accountState() })).toThrow("account_call_asset_unavailable")
+    const state = callState()
+    const value = state.customerAssets![0].values.customerAsset as Record<string, unknown>
+    value.fieldType = "BUSINESS_LOGO"
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state })).toThrow("account_call_asset_unavailable")
+  })
+  it("does not restore a disapproved or unreviewed call asset", () => {
+    for (const status of ["DISAPPROVED", "UNKNOWN", "UNDER_REVIEW"]) {
+      expect(() => validateAdsMutationPolicy({ operations: [{ ...operation, expected: "PAUSED", next: "ENABLED" }], state: callState("PAUSED", status) }))
+        .toThrow("account_call_asset_not_approved")
+    }
+  })
+  it("requires account scope and checks each live campaign experiment", async () => {
+    const state = callState("PAUSED", "APPROVED")
+    const enable = { ...operation, expected: "PAUSED", next: "ENABLED" } as AdsMutationOperation
+    const wrong = gateway({ accountReads: [state], initial: proposal(state, { operations: [enable] }) })
+    await expect(wrong.gateway.applyProposal("ADS-20260730-01")).resolves.toMatchObject({ outcome: "aborted", errorCode: "proposal_account_scope_required" })
+    const initial = proposal(state, { operations: [enable], rationale: { ...proposal(state).rationale, campaign: "Account", service: "account" } })
+    const harness = gateway({ accountReads: [state], initial })
+    vi.mocked(harness.store.repository.getMaterialExperimentLock).mockImplementation(async ({ campaign }) => campaign === "Scripts Search" ? { launchProposalKey: "OTHER", stopProposalKey: null } : null)
+    await expect(harness.gateway.applyProposal(initial.proposalKey)).resolves.toMatchObject({ outcome: "aborted", errorCode: "experiment_material_change_locked" })
+    expect(harness.mutate).not.toHaveBeenCalled()
+  })
+  it("requires GREEN tracking and checks audiences across all enabled campaigns before restoring a call", async () => {
+    const state = callState("PAUSED", "APPROVED")
+    const enable = { ...operation, expected: "PAUSED", next: "ENABLED" } as AdsMutationOperation
+    const initial = proposal(state, { operations: [enable], rationale: { ...proposal(state).rationale, campaign: "Account", service: "account" } })
+    const harness = gateway({ accountReads: [state], initial, trackingState: "RED" })
+    await expect(harness.gateway.applyProposal(initial.proposalKey)).resolves.toMatchObject({ outcome: "aborted", errorCode: "tracking_not_green" })
+    expect(harness.mutate).not.toHaveBeenCalled()
+    state.campaignCriteria.push(resource("customers/123/campaignCriteria/456~333", {
+      campaignCriterion: { campaign: campaignResourceName, negative: false, status: "ENABLED", type: "USER_LIST" },
+    }))
+    expect(() => validateAdsMutationPolicy({ operations: [enable], state })).toThrow("health_audience_operation_rejected")
+  })
+})
+
 describe("campaign text asset operations", () => {
+  it("links the existing business name without creating a duplicate asset and verifies its content", async () => {
+    const operation = { kind: "campaign_text_asset_create", campaignResourceName, asset: { type: "BUSINESS_NAME", text: "InstantMed", resourceName: "customers/123/assets/900" } } as AdsMutationOperation
+    const before = accountState({ assets: [resource("customers/123/assets/900", { asset: { type: "TEXT", textAsset: { text: "InstantMed" } } })] })
+    expect(buildGoogleAdsMutateOperations([operation], before)).toEqual([{ campaignAssetOperation: { create: { campaign: campaignResourceName, asset: "customers/123/assets/900", fieldType: "BUSINESS_NAME", status: "ENABLED" } } }])
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state: accountState() })).toThrow("business_name_asset_unavailable")
+    const after = structuredClone(before)
+    const linkName = "customers/123/campaignAssets/456~900~BUSINESS_NAME"
+    after.campaignAssets.push(resource(linkName, { campaignAsset: { campaign: campaignResourceName, asset: "customers/123/assets/900", fieldType: "BUSINESS_NAME", status: "ENABLED" } }))
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state: after })).toThrow("create_target_already_exists")
+    const initial = proposal(before, { operations: [operation] })
+    const harness = gateway({ accountReads: [before, after, after], initial })
+    await expect(harness.gateway.applyProposal(initial.proposalKey)).resolves.toMatchObject({ outcome: "applied" })
+    expect(harness.store.getCurrent().status).toBe("verified")
+    await harness.gateway.buildRollbackProposal(initial.proposalKey)
+    expect(harness.store.rollbacks[0].operations).toEqual([{ kind: "asset_link_status", resourceName: linkName, expected: "ENABLED", next: "PAUSED" }])
+    const changed = structuredClone(before)
+    ;(changed.assets[0].values.asset as Record<string, unknown>).textAsset = { text: "Different brand" }
+    expect(() => validateAdsMutationPolicy({ operations: [operation], state: changed })).toThrow("business_name_asset_unavailable")
+  })
   it("allows the existing carer destination only for certificate ads", () => {
     const operation = { ...rsaCreateOperation,
       finalUrl: "https://instantmed.com.au/medical-certificate/carer" }

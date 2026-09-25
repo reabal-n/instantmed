@@ -126,6 +126,8 @@ export function formatTrustedAdsOperationSummary(
         `Campaign: ${operation.campaignResourceName}`,
         `Asset type: ${operation.asset.type}`,
         `Text: ${JSON.stringify(operation.asset.text)}`,
+        ...(operation.asset.type === "BUSINESS_NAME"
+          ? [`Reuse existing asset: ${operation.asset.resourceName}`] : []),
         ...(operation.asset.type === "SITELINK" ? [
           `Description 1: ${JSON.stringify(operation.asset.description1)}`,
           `Description 2: ${JSON.stringify(operation.asset.description2)}`,

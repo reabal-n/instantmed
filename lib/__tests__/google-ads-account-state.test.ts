@@ -74,6 +74,14 @@ describe("Google Ads account state", () => {
     mocks.searchGoogleAds.mockImplementation(async (query: string) => rowsForQuery(query))
   })
 
+  it("fails closed when the mandatory account asset read fails", async () => {
+    mocks.searchGoogleAds.mockImplementation(async (query: string) => {
+      if (query.includes("FROM customer_asset")) throw new Error("account_asset_unavailable")
+      return rowsForQuery(query)
+    })
+    await expect(getAdsAccountState()).rejects.toThrow("account_asset_unavailable")
+  })
+
   it("builds PHI-free queries for every governed account surface", () => {
     const queries = buildGoogleAdsAccountStateQueries(
       new Date("2026-08-16T10:00:00.000Z"),
@@ -87,6 +95,7 @@ describe("Google Ads account state", () => {
     expect(joined).toContain("ad_group_criterion.keyword.text")
     expect(joined).toContain("ad_group_ad.policy_summary.approval_status")
     expect(joined).toContain("campaign_asset.resource_name")
+    expect(joined).toContain("customer_asset.resource_name")
     expect(joined).toContain("customer_client_link.resource_name")
     expect(joined).toContain("customer_manager_link.resource_name")
     expect(joined).toContain("customer_user_access.access_role")

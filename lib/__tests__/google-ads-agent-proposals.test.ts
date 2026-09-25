@@ -68,7 +68,26 @@ function proposal(
   }
 }
 
+describe("account call asset status boundary", () => {
+  const operation = { kind: "asset_link_status", resourceName: "customers/123/customerAssets/900~CALL", expected: "ENABLED", next: "PAUSED" }
+  it("accepts an exact reversible account call link pause", () => {
+    expect(normalizeAdsMutationOperations([operation])).toEqual([operation])
+  })
+  it.each(["900~SITELINK", "900~BUSINESS_LOGO", "bad~CALL"])("rejects unsupported account link %s", (id) => {
+    expect(() => normalizeAdsMutationOperations([{ ...operation, resourceName: `customers/123/customerAssets/${id}` }])).toThrow()
+  })
+  it("rejects account link removal and restoration from removal", () => {
+    expect(() => normalizeAdsMutationOperations([{ ...operation, next: "REMOVED" }])).toThrow()
+    expect(() => normalizeAdsMutationOperations([{ ...operation, expected: "REMOVED" }])).toThrow()
+  })
+})
+
 describe("campaign text asset input boundary", () => {
+  it("allows only the existing InstantMed identity for business-name linking", () => {
+    const operation = { kind: "campaign_text_asset_create", campaignResourceName: "customers/123/campaigns/456", asset: { type: "BUSINESS_NAME", text: "InstantMed", resourceName: "customers/123/assets/900" } }
+    expect(normalizeAdsMutationOperations([operation])).toEqual([operation])
+    expect(() => normalizeAdsMutationOperations([{ ...operation, asset: { ...operation.asset, text: "Best Online Doctor" } }])).toThrow()
+  })
   const asset = {
     kind: "campaign_text_asset_create",
     campaignResourceName: "customers/123/campaigns/456",

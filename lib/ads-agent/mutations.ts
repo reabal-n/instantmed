@@ -304,6 +304,33 @@ function campaignAssetValue(
   )
 }
 
+function isAccountAssetLink(operation: AdsMutationOperation): boolean {
+  return operation.kind === "asset_link_status"
+    && operation.resourceName.includes("/customerAssets/")
+}
+
+function assetLinkValue(state: GoogleAdsAccountState, resourceName: string): UnknownRecord | null {
+  return resourceName.includes("/customerAssets/")
+    ? resourceValues(state.customerAssets ?? [], resourceName, "customerAsset")
+    : campaignAssetValue(state, resourceName)
+}
+
+function assertAccountCallAssetSafe(operations: AdsMutationOperation[], state: GoogleAdsAccountState): void {
+  for (const operation of operations) {
+    if (operation.kind !== "asset_link_status" || !isAccountAssetLink(operation)) continue
+    const link = assetLinkValue(state, operation.resourceName)
+    const assetName = asString(link?.asset)
+    const asset = assetName ? resourceValues(state.assets, assetName, "asset") : null
+    if (!link || link.fieldType !== "CALL" || asset?.type !== "CALL"
+      || !state.customer?.id || !operation.resourceName.startsWith(`customers/${state.customer.id}/`)) {
+      throw new Error("account_call_asset_unavailable")
+    }
+    if (operation.next === "ENABLED" && !["APPROVED", "APPROVED_LIMITED"].includes(
+      asString(asRecord(asset.policySummary)?.approvalStatus) ?? "",
+    )) throw new Error("account_call_asset_not_approved")
+  }
+}
+
 function normalizeSchedules(value: AdSchedule[]): AdSchedule[] {
   return [...value].sort((left, right) =>
     [
@@ -456,7 +483,12 @@ function matchingCampaignTextAssets(
 ): Array<{ resourceName: string; status: string | null }> {
   const assetNames = new Set(state.assets.flatMap((resource) => {
     const asset = asRecord(resource.values.asset)
-    if (!asset || !resource.resourceName || asset.type !== operation.asset.type) return []
+    if (!asset || !resource.resourceName) return []
+    if (operation.asset.type === "BUSINESS_NAME") {
+      return resource.resourceName === operation.asset.resourceName && asset.type === "TEXT"
+        && asRecord(asset.textAsset)?.text === operation.asset.text ? [resource.resourceName] : []
+    }
+    if (asset.type !== operation.asset.type) return []
     if (operation.asset.type === "CALLOUT") {
       return asRecord(asset.calloutAsset)?.calloutText === operation.asset.text
         ? [resource.resourceName] : []
@@ -778,7 +810,7 @@ function operationProjection(
   if (operation.kind === "asset_link_status") {
     return {
       status: asString(
-        campaignAssetValue(state, operation.resourceName)?.status,
+        assetLinkValue(state, operation.resourceName)?.status,
       ),
     }
   }
@@ -942,6 +974,12 @@ export function buildGoogleAdsMutateOperations(
       if (!customerId?.match(/^\d+$/)) throw new Error("google_ads_customer_identity_unavailable")
       const assetName = `customers/${customerId}/assets/-${index + 1}`
       const asset = operation.asset
+      if (asset.type === "BUSINESS_NAME") {
+        return [{ campaignAssetOperation: { create: {
+          asset: asset.resourceName, campaign: operation.campaignResourceName,
+          fieldType: "BUSINESS_NAME", status: "ENABLED",
+        } } }]
+      }
       return [
         { assetOperation: { create: {
           resourceName: assetName,
@@ -1196,13 +1234,14 @@ export function buildGoogleAdsMutateOperations(
       ]
     }
     if (operation.kind === "asset_link_status") {
+      const operationKey = isAccountAssetLink(operation) ? "customerAssetOperation" : "campaignAssetOperation"
       if (operation.next === "REMOVED") {
         return [{
-          campaignAssetOperation: { remove: operation.resourceName },
+          [operationKey]: { remove: operation.resourceName },
         }]
       }
       return [{
-        campaignAssetOperation: {
+        [operationKey]: {
           update: {
             resourceName: operation.resourceName,
             status: operation.next,
@@ -1468,11 +1507,23 @@ function assertCreateOperationsSafe(
       }
       const service = campaignNameService(asString(campaign.name))
       if (!service) throw new Error("ungoverned_campaign_service")
-      const target = `asset:${operation.campaignResourceName}:${JSON.stringify(operation.asset)}`
+      const target = `asset:${operation.campaignResourceName}:${operation.asset.type === "BUSINESS_NAME" ? "BUSINESS_NAME" : JSON.stringify(operation.asset)}`
       if (packetTargets.has(target)) throw new Error("duplicate_create_target")
       packetTargets.add(target)
       if (matchingCampaignTextAssets(state, operation).length) {
         throw new Error("create_target_already_exists")
+      }
+      if (operation.asset.type === "BUSINESS_NAME") {
+        const asset = resourceValues(state.assets, operation.asset.resourceName, "asset")
+        if (!state.customer?.id || !operation.asset.resourceName.startsWith(`customers/${state.customer.id}/`)
+          || asset?.type !== "TEXT" || asRecord(asset.textAsset)?.text !== "InstantMed"
+          || asRecord(asset.policySummary)?.approvalStatus === "DISAPPROVED") {
+          throw new Error("business_name_asset_unavailable")
+        }
+        if (state.campaignAssets.some(resource => {
+          const link = asRecord(resource.values.campaignAsset)
+          return link?.campaign === operation.campaignResourceName && link.fieldType === "BUSINESS_NAME" && link.status !== "REMOVED"
+        })) throw new Error("create_target_already_exists")
       }
       if (operation.asset.type === "SITELINK") {
         const path = new URL(operation.asset.finalUrl).pathname
@@ -1676,6 +1727,14 @@ function assertKeywordAndAudienceSafety(
         : campaignForAdGroup(state, asString(criterion?.adGroup))
       if (campaign) affectedScalingCampaigns.add(campaign)
     } else if (operation.kind === "asset_link_status") {
+      if (isAccountAssetLink(operation)) {
+        for (const resource of state.campaigns) {
+          if (resource.resourceName && asRecord(resource.values.campaign)?.status === "ENABLED") {
+            affectedScalingCampaigns.add(resource.resourceName)
+          }
+        }
+        continue
+      }
       const campaign = asString(
         campaignAssetValue(state, operation.resourceName)?.campaign,
       )
@@ -1891,6 +1950,7 @@ export function validateAdsMutationPolicy(args: {
   state: GoogleAdsAccountState
 }): AdsMutationOperation[] {
   const operations = normalizeAdsMutationOperations(args.operations)
+  assertAccountCallAssetSafe(operations, args.state)
   assertGovernedCampaignConstitution(operations, args.state)
   assertSharedNegativeListSafe(operations, args.state)
   assertCampaignCreateSafe(operations, args.state)
@@ -2052,6 +2112,21 @@ async function requireScaleAuthorization(args: {
   state: GoogleAdsAccountState
 }): Promise<void> {
   for (const operation of args.operations) {
+    if (isAccountAssetLink(operation)) {
+      if (args.proposal.rationale.campaign !== "Account" || args.proposal.rationale.service !== "account") {
+        throw new Error("proposal_account_scope_required")
+      }
+      for (const resource of args.state.campaigns) {
+        const campaign = asRecord(resource.values.campaign)
+        if (campaign?.status !== "ENABLED") continue
+        const name = asString(campaign.name)
+        if (!name) throw new Error("account_campaign_name_unavailable")
+        await assertExperimentChangeUnlocked({
+          repository: args.repository,
+          proposal: { ...args.proposal, rationale: { ...args.proposal.rationale, campaign: name } },
+        })
+      }
+    }
     if (operation.kind !== "campaign_text_asset_create") continue
     const campaign = campaignValue(args.state, operation.campaignResourceName)
     if (normalizedCampaignLabel(campaign?.name)
