@@ -137,7 +137,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   "womens-health": {
     id: "womens-health",
     title: "Women's health",
-    subtitle: "UTI treatment & the contraceptive pill",
+    subtitle: "UTI & contraception assessment",
     slug: "womens-health",
     price: PRICING_DISPLAY.WOMENS_HEALTH,
     priceFrom: PRICING.WOMENS_HEALTH,
