@@ -181,7 +181,7 @@ Tokens come from `lib/motion/index.ts`. CSS-first; Framer Motion only where it i
 | Cards and service rows | hover lift 2 px with a shadow; press 0.99 | 180 ms | colour change only |
 | How it works (desktop, `lg` and up) | sticky illustration column; the active step's scene crossfades with an 8 px rise as each step crosses 40% of the viewport; the step number fills | 240 ms | static, scenes inline |
 | How it works (mobile) | each step shows its own scene inline; no scroll-linked motion | none | none |
-| Duration picker | selected card border and tint transition; CTA price crossfades | 150 ms | instant |
+| Duration cards | each card is a direct link that starts the request with that duration; press scale 0.99 and a tint deepen | 150 ms | colour change only |
 | FAQ accordion | `grid-template-rows` 0fr to 1fr | 220 ms | instant |
 | Menus | Services panel scales 0.98 to 1 from its trigger; mobile sheet slides | 180 ms; 220 ms in and 160 ms out | instant |
 
@@ -274,7 +274,7 @@ A quiet line above the H1: a green dot with a soft glow, then text.
 - The median line appears only for medical certificates. It shows on the homepage and on `/medical-certificate`. Prescriptions show "A doctor is online" without a median, because the prescription median is hours, not minutes.
 - **Data:**
   - `getLiveStatus()` in `lib/brand/live-status.ts` composes `getWaitState()` with a service-role count of available clinicians. It returns a boolean, never a count.
-  - It is cached for 60 seconds.
+  - It is cached for 60 seconds. The three pages use `revalidate = 60` (from 3600, 3600 and 86400), so a stale "A doctor is online" can never outlive a minute plus the 90-minute activity window.
   - It uses the existing seeded-E2E exclusion.
 - **Compliance:**
   - The singular "A doctor" avoids implying a doctor count. No count or name is ever shown.
@@ -317,7 +317,7 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
 - `ChipList`: wrapping chips with an optional mark; "good" and "see a GP" tones use ink text on a tint, with the meaning in the text itself.
 - `FitCheck`: two `ChipList` columns ("Good for" and "See a GP instead"), plus an optional note.
 - `StepStory`: a new component, numbered steps with scenes and a sticky scene column on desktop (Section 5.5). `HowItWorksInline` stays unchanged for hair loss, weight management and `/how-it-works` until the follow-up plan.
-- `DurationPicker`: three tinted cards (1, 2 or 3 days) with prices from `PRICING_DISPLAY`. Selection updates the CTA link through `buildMedCertRequestHref({ duration })` and the price through an `aria-live="polite"` region. It works without JavaScript: each card is a link.
+- `DurationPicker`: three tinted cards (1, 2 or 3 days) with prices from `PRICING_DISPLAY`. Each card is a direct link to `buildMedCertRequestHref({ duration })`, so one tap starts the request with that duration and it works without JavaScript.
 - `FeeCard`: an aligned two-column fee table.
 - `FaqSplit`: implemented as a `layout="split"` option on the existing `FAQSection` (used by about 20 pages), not a new component. Heading on the left, accordion on the right on desktop; stacked on mobile. Fixes the double link. Keeps the existing homepage FAQ questions (contract-pinned). Each item gets a stable anchor (`#faq-<slug>`). Opening the page with that hash expands and scrolls to the item, and a small "Copy link" button copies it, announcing "Link copied" politely. FAQ schema is unchanged.
 - `FinalCtaBand`: implemented as `world` and `moat` options on the existing `CTABanner` (used by 22 files), so other pages are unaffected. A centred band in the page world with the page's `MoatBadgePair`, a heading, one line, the CTA and the refund line.
@@ -339,7 +339,7 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
   - A trust row: Stripe, LegitScript, Google, and AHPRA-registered doctors as text.
   - The emergency line, then ABN and copyright, with the theme toggle.
   - The redundant three-chip row ("AHPRA-registered doctors · Refund if declined · Privacy Act protected") is removed; those points live in the page trust sections.
-- **Sticky mobile CTA** on the service pages: 88 px maximum height (from 126), with the price shown. Its summary line becomes the page's moat pair (sm): "No call needed" + "No appointment" on certificates, "No appointment" + "No video call" on prescriptions. On the homepage the sticky bar is **off by default** and becomes a PostHog experiment arm, since the research found sticky CTAs rarely help homepage-type pages.
+- **Sticky mobile CTA** on the service pages: 96 px maximum height (from 126), with the price shown. Its summary line becomes the page's moat pair (sm): "No call needed" + "No appointment" on certificates, "No appointment" + "No video call" on prescriptions. On the homepage the sticky bar is **off by default** and becomes a PostHog experiment arm, since the research found sticky CTAs rarely help homepage-type pages.
 
 ### 6.6 Trust components (new)
 
