@@ -659,7 +659,7 @@ These errors are fixed inside the redesign release (Rey chose to bundle them):
 
 ## 11. Rollout
 
-1. **Fix list PR** (Section 9), on Rey's OK.
+1. **Fix list:** bundled into the release PR, not shipped separately (Rey, 2026-09-26; see Section 9).
 2. **Direction proof:**
    - Colour tokens, the type weight, the four gate illustrations, `OutcomeStage variant="certificate"` and `LiveStatus` on `/medical-certificate`, in a draft PR.
    - Screenshots go to Rey. **Stop until approved.**
