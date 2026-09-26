@@ -24,6 +24,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 
 import { ArticleVisuals } from "@/components/blog/article-visuals"
+import { HeroCertifications } from "@/components/marketing/hero-certifications"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -492,6 +493,7 @@ export function WeightLossOnlineLanding({ visuals }: { visuals: RenderableArticl
                 <p className="mt-3 max-w-xl text-xs leading-5 text-muted-foreground">
                   This guide links to the separate assessment page. A prescription is never guaranteed. For urgent symptoms, call 000 or seek urgent care.
                 </p>
+                <HeroCertifications className="mt-5" />
               </Reveal>
 
               <Reveal delay={0.08}>

@@ -3,9 +3,12 @@ import {
   Building2,
   CheckCircle2,
   CreditCard,
+  IdCard,
+  MapPin,
   MessageSquareText,
   RotateCcw,
   Search,
+  UserRound,
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
@@ -70,6 +73,12 @@ const HOW_IT_WORKS_STEPS = [
     time: "Digital delivery",
   },
 ]
+
+const ELIGIBILITY_CHIPS = [
+  { icon: MapPin, label: "Australia only" },
+  { icon: UserRound, label: "Ages 18+" },
+  { icon: IdCard, label: "No Medicare needed" },
+] as const
 
 const MED_CERT_START_HREF = buildMedCertRequestHref({ duration: "1" })
 const MED_CERT_HERO_CTA_ID = "med-cert-hero-cta"
@@ -258,7 +267,7 @@ export function MedCertLanding({ liveWait }: { liveWait?: WaitState }) {
         <main className="relative">
           <IntakeResumeChip className="mx-4 mt-2 max-w-5xl sm:mx-auto" />
           <Hero
-            title="Your medical certificate. Without the waiting room."
+            title={<>Your medical certificate. <span className="text-primary">Without the waiting room.</span></>}
             titleClassName={moneyH1Font.className}
             liveWait={liveWait}
             availabilityServiceId="med-cert"
@@ -271,12 +280,13 @@ export function MedCertLanding({ liveWait }: { liveWait?: WaitState }) {
             secondaryCta={null}
             beforeCta={(
               <>
-                <ul aria-label="Medical certificate eligibility" className="flex max-w-xl flex-wrap justify-start gap-x-3 gap-y-1 text-sm text-foreground">
-                  <li>Australia only</li>
-                  <li aria-hidden="true" className="text-border">&middot;</li>
-                  <li>Ages 18+</li>
-                  <li aria-hidden="true" className="text-border">&middot;</li>
-                  <li>No Medicare needed</li>
+                <ul aria-label="Medical certificate eligibility" className="flex max-w-xl flex-wrap justify-start gap-2 text-sm text-foreground">
+                  {ELIGIBILITY_CHIPS.map(({ icon: Icon, label }) => (
+                    <li key={label} className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-white px-3 py-1 shadow-sm shadow-primary/[0.04] dark:border-white/10 dark:bg-card">
+                      <Icon className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
+                      {label}
+                    </li>
+                  ))}
                 </ul>
                 <p className="mt-3 inline-flex max-w-xl items-start gap-2 text-left text-sm leading-snug text-foreground sm:items-center">
                   <CheckCircle2 className="mt-px h-4 w-4 shrink-0 text-success sm:mt-0" aria-hidden="true" />

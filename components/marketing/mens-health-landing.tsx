@@ -22,6 +22,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 
 import { ArticleVisuals } from "@/components/blog/article-visuals"
+import { HeroCertifications } from "@/components/marketing/hero-certifications"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -374,6 +375,7 @@ export function MensHealthLanding({ visuals }: { visuals: RenderableArticleVisua
                 <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
                   {FORM_FIRST_WEDGE} The doctor may contact you if a safety detail needs clarification.
                 </p>
+                <HeroCertifications className="mt-5" />
               </Reveal>
 
               <Reveal className="lg:pl-4" instant>

@@ -23,6 +23,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 
 import { ArticleVisuals } from "@/components/blog/article-visuals"
+import { HeroCertifications } from "@/components/marketing/hero-certifications"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -447,6 +448,7 @@ export function MentalHealthOnlineLanding({ visuals }: { visuals: RenderableArti
                 <p className="mt-3 max-w-xl text-xs leading-5 text-muted-foreground">
                   InstantMed can only support short medical certificate review when suitable. For immediate danger, call 000. For crisis support, call Lifeline on 13 11 14.
                 </p>
+                <HeroCertifications className="mt-5" />
               </Reveal>
 
               <Reveal delay={0.08}>

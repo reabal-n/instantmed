@@ -9,6 +9,7 @@
 - The canonical marketing `Hero` now accepts a `reassuranceRow` slot plus section and mockup class overrides so a multi-service page can use truthful portfolio-wide reassurance, clear floating navigation, and prioritize decisions over decorative mobile art. Existing heroes retain their default row and responsive mockup; this is additive and does not require a version bump.
 
 ### Changed
+- Restored certification marks to every landing hero (operator decision 2026-09-25). The shared `Hero` renders one proof row: a smaller `ProductReviewBadge` (20px logo, 12px stars, 44px tap target) beside the LegitScript seal (new 48px `xs` size) and the Google Online Pharmacy Certification mark. `showCertifications={false}` opts out. The medical-certificate and home H1s accent their closing phrase in primary. No design-system version bump is required.
 - Front-door redesign (23 September 2026): quiet timing sentence, separate ProductReview attribution, readable synthetic specimens, larger text navigation, compact support footer with retained trust marks, support-first Contact and compact mobile service rows. Section headings use plain text and public CTA corners use rounded-lg. No font or stack change.
 - Set the dark `--primary-foreground` to `#0B1120` so text and icons on the unchanged teal primary clear AA contrast. Raised low-contrast medical-certificate mockup metadata and its decorative "Specimen" watermark to legible dark-mode treatments. No design-system version bump is required.
 - Corrected `GoogleAdsCert` to the exact label `Google Ads Online Pharmacy Certification`, with copy explaining that it is advertising eligibility rather than a clinical endorsement. The superseded label recorded under 1.1.0 remains below as historical release history; it is not current implementation or copy guidance.
@@ -86,6 +87,7 @@ This is a removal-only internal API cleanup. No mounted surface, token, or visua
 - `scripts/check-portal-no-legacy-classes.sh` — CI smoke check that asserts the patient portal source is free of legacy classes (`glass-card`, `dashboard-card`, gradient on content surface, banned `border-l-*` stripes, raw violet, raw orange ad-hoc combos). Magic-comment allowlist `portal-shim:allow` for explicitly sanctioned patterns (e.g. §12 shimmer sweeps).
 
 ### Changed
+- Restored certification marks to every landing hero (operator decision 2026-09-25). The shared `Hero` renders one proof row: a smaller `ProductReviewBadge` (20px logo, 12px stars, 44px tap target) beside the LegitScript seal (new 48px `xs` size) and the Google Online Pharmacy Certification mark. `showCertifications={false}` opts out. The medical-certificate and home H1s accent their closing phrase in primary. No design-system version bump is required.
 - `app/dashboard-styles.css` reduced from ~465 lines to ~75 lines. It was later removed completely in v2.0.2 after the compatibility class consumers were cleared.
 - `components/dashboard/stat-card.tsx` exports `StatCard` as the canonical KPI tile. Stripped `dashboard-stat-*` inset-glow `box-shadow`s.
 - `components/dashboard/status-badge.tsx` exports `StatusBadge` as the canonical status pill. Replaced neon `box-shadow: 0 0 12px ...` glows with canonical inset-ring status pills (§10).
@@ -128,6 +130,7 @@ Admin and doctor portal compatibility stylesheet imports were removed in v2.0.2 
 - `MockupSlot` slot prop on `<Hero>` so service pages can swap their own mockup without touching the hero shell.
 
 ### Changed
+- Restored certification marks to every landing hero (operator decision 2026-09-25). The shared `Hero` renders one proof row: a smaller `ProductReviewBadge` (20px logo, 12px stars, 44px tap target) beside the LegitScript seal (new 48px `xs` size) and the Google Online Pharmacy Certification mark. `showCertifications={false}` opts out. The medical-certificate and home H1s accent their closing phrase in primary. No design-system version bump is required.
 - Display scale extended to 60px on `lg+` (`text-6xl`) for hero impact. 48px remains the canonical `sm+` target. Locks the hero h1 at the previously-spec'd 48px on tablet and steps up to 60px on desktop, matching premium peers.
 - Home-page hero composition rationalised: GuaranteeBadge, AHPRA TrustBadgeRow pill, HeroTestimonialRotator, and the inflated patient counter removed from the hero pill. `GoogleAdsCert` (now "Telehealth Certified") + LegitScript pair retained as the trust anchor with a repositioned `LastReviewedSignal`.
 - `GoogleAdsCert` label: `Pharmacy Certified` → `Telehealth Certified`. Reflects positioning — InstantMed is a doctor-led telehealth service, not a pharmacy.
@@ -154,6 +157,7 @@ Admin and doctor portal compatibility stylesheet imports were removed in v2.0.2 
 - `ServiceIconTile` accepts `variant: "tile" | "sticker"` prop. Default is `tile` (canonical gradient-tile look). `sticker` is opt-in for marketing illustration contexts.
 
 ### Changed
+- Restored certification marks to every landing hero (operator decision 2026-09-25). The shared `Hero` renders one proof row: a smaller `ProductReviewBadge` (20px logo, 12px stars, 44px tap target) beside the LegitScript seal (new 48px `xs` size) and the Google Online Pharmacy Certification mark. `showCertifications={false}` opts out. The medical-certificate and home H1s accent their closing phrase in primary. No design-system version bump is required.
 - Hair-loss service colour: `violet` → `amber`. Resolves audit findings C1 and C2.
 - Home page service grid (`lib/marketing/homepage.ts` → `serviceCategories`) updated to use `amber` for hair loss.
 - `/request` service hub (`components/request/service-hub-screen.tsx`) now reads from `lib/services/service-catalog` and renders `ServiceIconTile` with `variant="tile"`. Retires inline service definitions and `StickerIcon` usage on the hub.

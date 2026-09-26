@@ -15,6 +15,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 
 import { ArticleVisuals } from "@/components/blog/article-visuals"
+import { HeroCertifications } from "@/components/marketing/hero-certifications"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -347,6 +348,7 @@ export function UtiAssessmentLanding({ visuals }: { visuals: RenderableArticleVi
                 <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
                   {GUARANTEE} Treatment is not guaranteed.
                 </p>
+                <HeroCertifications className="mt-5" />
               </Reveal>
 
               <Reveal instant className="min-w-0">
