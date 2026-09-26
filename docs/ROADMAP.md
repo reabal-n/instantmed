@@ -3,7 +3,7 @@
 > **Authority:** the sole source of truth for the current operating phase, ordered active work, status, and checkpoints.
 > `docs/BUSINESS_PLAN.md` owns durable strategy. `docs/REVENUE_MODEL.md` owns milestones and economic gates. Implementation plans may elaborate one item but may not redefine this queue.
 >
-> **Last refreshed:** 2026-09-24. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
+> **Last refreshed:** 2026-09-26. Refresh whenever priority or status changes; perform a deliberate review at least monthly.
 
 ---
 
@@ -69,6 +69,12 @@ This is the execution detail for ranked item 4 below, superseding the September 
 6. **ED/repeat/unpaid:** retain existing ED pilot limits or prepare an exact pause proposal. Review mature refill evidence September 27 and qualified existing service-page opportunities. Hold second-channel preparation until the owner reopens it; remove the old October 6 deadline.
 
 Use the existing experiment registry and weekly decision sheet. Record a single change, baseline, attribution lag, overlapping releases, exact approval, exposure, loss boundary and rollback. Seven days is directional; fourteen completed days is the normal decision checkpoint, extended when evidence is sparse. No forced 10–15% staircase and no autonomous pause. Fresh ledger/fee completeness is required before a whole-business profit claim. A$30k is a goal, not a dated forecast.
+
+**Landing redesign in flight — design freeze (Rey, 2026-09-26):**
+- **What's approved:** a premium redesign of the homepage, `/medical-certificate`, `/prescriptions`, and the shared header, Services menu, mobile menu and footer. See the [approved spec](superpowers/specs/2026-09-26-landing-masterpiece-design.md), the [implementation plan](superpowers/plans/2026-09-26-landing-masterpiece.md) and the [research base](research/2026-09-26-premium-health-landing-pages.md).
+- **Release:** after the October 7 Ads read, as one release, annotated in Ads and PostHog.
+- **Freeze:** until that release merges, other sessions must not edit these pages or their sections, `components/marketing/hero.tsx`, the navbar, services dropdown, mobile menu, footer or sticky CTA. Urgent production fixes are coordinated through the plan's executing session.
+- **Separate work:** the certificate request-form simplification plan touches `/request`, not these pages. It ships separately so the two changes can be read apart.
 
 **Owner-selected commercial priority — 2026-09-21:** prioritise women's health growth and diagnose certificate checkout abandonment. This supersedes the older commercial ordering below; clinical incidents and payment integrity remain first. Retain the existing women's-health AUD 50/day budget and AUD 4 ad-group CPC test. No new Ads mutation is selected by this investigation.
 

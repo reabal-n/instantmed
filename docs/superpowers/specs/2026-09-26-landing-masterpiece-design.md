@@ -114,7 +114,7 @@ Rules:
 - Tiles get a hairline border (`border-black/5`, `dark:border-white/10`), because tints reach only about 1.4:1 against ivory.
 - Coral `#FF6B5B` is a decorative accent inside illustrations only. It reaches 2.6:1 on ivory, so it never carries meaning alone and never appears on the homepage outside illustrations (existing contract).
 - Resolve the primary-blue conflict: `DESIGN.md` lists `#3B82F6`, `app/globals.css` uses `#2563EB`. `#2563EB` is canonical, because it passes 3:1 on the sky tile and `#3B82F6` does not. Update DESIGN.md and add a contract test that pins the token value.
-- Replace `serviceColorConfig` gradients with the world tokens. Remove the indigo exception from DESIGN.md section 7.
+- `ServiceIconTile` gains `variant="mark"` rendering the new marks on world tiles. The landing pages, Services menu, mobile menu and footer use it. The existing `tile` and `sticker` variants stay for patient and `/request` product surfaces until the follow-up plan. The unused `from`, `to` and `shadow` gradient fields in `serviceColorConfig` are removed, and so is the indigo exception in DESIGN.md section 7.
 
 ### 5.2 Illustration and mark system ("Morning marks")
 
@@ -247,6 +247,8 @@ Rules:
 - **Share previews:**
   - Redesign `app/opengraph-image.tsx` and `app/medical-certificate/opengraph-image.tsx`, and add `app/prescriptions/opengraph-image.tsx`.
   - Each is 1200x630 in its colour world, with the page's mark, H1, moat badge and wordmark, and no people or medicine. `app/api/og/route.tsx` keeps serving other routes.
+  - Satori (`next/og`) cannot read woff2, so a Plus Jakarta Sans TTF subset covering the OG strings is committed for these images.
+  - The current certificate share image carries banned claims ("Under 1 Hour", "Accepted Everywhere", "AHPRA-Registered GP") and a GP price comparison ("Typically ~$72 at a GP"). The redesign removes all four.
 - **Browser tint:**
   - A per-route `viewport.themeColor`: homepage ivory `#F8F7F4`, certificate dawn 50, prescriptions sky 50, with dark-mode variants.
   - This replaces the global `#3B82F6` in `app/layout.tsx`.
@@ -264,7 +266,7 @@ A quiet line above the H1: a green dot with a soft glow, then text.
 
 | State | Condition | Text |
 |---|---|---|
-| `online` | at least one clinician profile with `doctor_available = true` **and** doctor-attributed review activity in the last 90 minutes (a manual approval, decline, information request or script sent by a clinician; certificates with `activity_provenance: "auto_issued"` do not count) | "A doctor is online" (singular on purpose: the plural implies a doctor count) |
+| `online` | at least one `doctor` or `admin` profile with `doctor_available = true` **and** clinician activity on `intakes` in the last 90 minutes: either `reviewed_at` within the window with `reviewed_by` set, not `SYSTEM_AUTO_APPROVE_ID`, and `ai_approved` false or null; or `claimed_at` within the window with `claimed_by` set and not `SYSTEM_AUTO_APPROVE_ID`. Auto-issued certificates never count. | "A doctor is online" (singular on purpose: the plural implies a doctor count) |
 | `online` with median | as above, and the existing wait-counter median passes its current stale-data and queue-pressure guards and is under an hour for that service | "A doctor is online", a thin vertical rule, then "Certificates: median ~16 min over the last 24 hours" (the rule is a visual divider, not a middle dot) |
 | `open` | the online conditions fail | "Requests open 24/7" (static dot, no glow). Never "offline" or any hours window. |
 | `hidden` | maintenance mode or the service is disabled | nothing |
@@ -314,11 +316,11 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
 - `WorldBand`: full-bleed background in a world's 50 tint, with a subtle top and bottom fade.
 - `ChipList`: wrapping chips with an optional mark; "good" and "see a GP" tones use ink text on a tint, with the meaning in the text itself.
 - `FitCheck`: two `ChipList` columns ("Good for" and "See a GP instead"), plus an optional note.
-- `StepStory`: numbered steps with scenes; sticky scene column on desktop (Section 5.5).
+- `StepStory`: a new component, numbered steps with scenes and a sticky scene column on desktop (Section 5.5). `HowItWorksInline` stays unchanged for hair loss, weight management and `/how-it-works` until the follow-up plan.
 - `DurationPicker`: three tinted cards (1, 2 or 3 days) with prices from `PRICING_DISPLAY`. Selection updates the CTA link through `buildMedCertRequestHref({ duration })` and the price through an `aria-live="polite"` region. It works without JavaScript: each card is a link.
 - `FeeCard`: an aligned two-column fee table.
-- `FaqSplit`: heading on the left, accordion on the right on desktop; stacked on mobile. Fixes the double link. Keeps the existing homepage FAQ questions (contract-pinned). Each item gets a stable anchor (`#faq-<slug>`). Opening the page with that hash expands and scrolls to the item, and a small "Copy link" button copies it, announcing "Link copied" politely. FAQ schema is unchanged.
-- `FinalCtaBand`: a centred band in the page world with the page's `MoatBadgePair`, a heading, one line, the CTA and the refund line.
+- `FaqSplit`: implemented as a `layout="split"` option on the existing `FAQSection` (used by about 20 pages), not a new component. Heading on the left, accordion on the right on desktop; stacked on mobile. Fixes the double link. Keeps the existing homepage FAQ questions (contract-pinned). Each item gets a stable anchor (`#faq-<slug>`). Opening the page with that hash expands and scrolls to the item, and a small "Copy link" button copies it, announcing "Link copied" politely. FAQ schema is unchanged.
+- `FinalCtaBand`: implemented as `world` and `moat` options on the existing `CTABanner` (used by 22 files), so other pages are unaffected. A centred band in the page world with the page's `MoatBadgePair`, a heading, one line, the CTA and the refund line.
 - `MoreDetail`: a styled `details` for layered copy.
 
 ### 6.5 Chrome
@@ -342,13 +344,17 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
 ### 6.6 Trust components (new)
 
 - **`SpecimenViewer`**
-  - The hero phone's certificate card (and a "See the full certificate" link) opens an accessible dialog with a large, zoomable specimen image.
-  - The image is generated at build time from the real template by `scripts/generate-certificate-specimen.ts`, through `lib/pdf/template-renderer.ts`, using synthetic data.
-  - Forgery safeguards:
+  - The hero phone's certificate card (and a "See the full certificate" link) opens an accessible dialog with a large, zoomable, code-built A4 replica of the certificate.
+  - **It must never render or rasterise `public/templates/template.pdf`.** That template is a flat raster containing the practising doctor's name, AHPRA number, handwritten signature and seal. Publishing it would expose clinician identity and give forgers a signature.
+  - The replica is HTML/SVG:
+    - the InstantMed letterhead (logo, company address and ABN are public company facts)
+    - the exact locked body, return and support sentences from `getBodyText`, `getReturnText` and `getSupportText` in `lib/pdf/template-renderer.ts`, imported rather than retyped
+    - synthetic "Alex Taylor" data
+    - a generic "AHPRA-registered medical practitioner" block with no name, number, signature or seal
+    - a QR code encoding `https://instantmed.com.au/verify` (not a real certificate path)
+    - reference "SPECIMEN"
     - a repeated diagonal "SPECIMEN · NOT A VALID CERTIFICATE" watermark
-    - no signature image, no provider or prescriber number, and reference "SPECIMEN"
-    - WebP output, 1600 px maximum, lossy
-  - Locked PDF wording throughout. The dialog has a heading and alt text, and closes with Escape or the close button, returning focus.
+  - It renders only when the dialog opens, and is sharp at any zoom. The dialog has a heading and alt text, and closes with Escape or the close button, returning focus.
 - **`VerifyDemo`**
   - An inline card labelled "Example", with a read-only reference field ("IM-SPECIMEN") and a "Check" button.
   - Pressing it reveals a static example result:
@@ -600,6 +606,7 @@ These errors are fixed inside the redesign release (Rey chose to bundle them):
 3. `services-dropdown.tsx:76`: solid white panel with a sky border (the full redesign follows in Section 6.5).
 4. `med-cert-landing.tsx:231`: use the shared `Button` (`rounded-lg`).
 5. Add explicit width and height to the two lazy images flagged in the console.
+6. Remove the banned share-image claims in `app/medical-certificate/opengraph-image.tsx:94` (see Section 5.9).
 
 ## 10. Verification
 
@@ -622,7 +629,7 @@ These errors are fixed inside the redesign release (Rey chose to bundle them):
   - e2e 320 px overflow
   - Updated `e2e/landing-pages.spec.ts` page-length budgets, ratcheted down to the new measurements
 - **Screenshot regression gate:**
-  - Playwright `toHaveScreenshot` baselines for `/`, `/medical-certificate` and `/prescriptions` (full page), plus the open Services menu and the mobile menu, at 390x844 and 1440x900 in light mode.
+  - Reuse the existing `e2e/marketing.visual.spec.ts` rather than adding new infrastructure. Its stale darwin baselines for these three pages, from May, are retired. Its Playwright `toHaveScreenshot` covers `/`, `/medical-certificate` and `/prescriptions` (full page), plus the open Services menu and the mobile menu, at 390x844 and 1440x900 in light mode.
   - Settings: animations disabled, and `LiveStatus` text, dates and the ProductReview widget masked. Threshold `maxDiffPixelRatio` 0.01.
   - Baselines are generated on the CI Linux image through a manual `workflow_dispatch` job and committed under `e2e/__screenshots__/`.
   - The gate is report-only for the first two weeks after release, then required. Updating a baseline needs an explicit commit whose message says so.
