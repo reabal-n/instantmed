@@ -12,7 +12,7 @@ Make `/`, `/medical-certificate` and `/prescriptions`, plus the shared header, m
 
 | Measure | Today | Target |
 |---|---|---|
-| Hero copy (excluding H1, visual, status line and proof row) | 28 to 73 words | 32 words or fewer on all three pages |
+| Hero copy (excluding H1, visual, status line and proof row) | 28 to 73 words | 38 words or fewer on all three pages (the moat badges are the most valuable words in the hero) |
 | Visible words per page, excluding FAQ answers, "More detail" content, SEO link lists ("Common reasons", "Learn more"), chrome and footer | about 520 to 670 | homepage 420 or fewer, medical certificate 480 or fewer, prescriptions 440 or fewer. The research puts best-converting health pages at 355 to 1,020 words; today's words are mostly prose, and the new ones are mostly scannable labels and chips. |
 | Reading level of new copy | mixed, legal in places | about grade 6 (plain English) |
 | Lab LCP, `/medical-certificate`, 4x CPU and Fast 4G, 390x844 | 680 ms, CLS 0 | 800 ms or lower, CLS 0 |
@@ -45,7 +45,12 @@ The last row is judged by eye against Section 5.8, not by a tool.
     - tactile surfaces
     - a condensing desktop header
 12. **Safeguards (Rey, 2026-09-26):** a screenshot regression gate and linkable FAQ answers.
-13. **Moat badge (Rey, 2026-09-26):** a green badge primitive states the moat: "No appointment" for every service, and "No call needed" for medical certificates (Section 6.7).
+13. **Moat badges (Rey, 2026-09-26):**
+    - No appointment and no call are InstantMed's main moat and must be prevalent.
+    - Every page and service shows the green pair **"No appointment" + "No video call"**. Medical certificates show **"No call needed" + "No appointment"**.
+    - Prescribing and specialty copy says "A doctor reviews your form and only calls if something needs checking."
+    - Rey approves this context as the clinician and Medical Director, under `docs/VOICE.md` rule 3, noting doctor calls in only about 2 of several hundred requests. The evidence is recorded in the claims registry (Section 6.7).
+    - The only wording still off-limits on prescribing pages is an unqualified "No call needed".
 
 ## 3. What is wrong today (audit, 2026-09-26)
 
@@ -297,7 +302,7 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
 - `DurationPicker`: three tinted cards (1, 2 or 3 days) with prices from `PRICING_DISPLAY`. Selection updates the CTA link through `buildMedCertRequestHref({ duration })` and the price through an `aria-live="polite"` region. It works without JavaScript: each card is a link.
 - `FeeCard`: an aligned two-column fee table.
 - `FaqSplit`: heading on the left, accordion on the right on desktop; stacked on mobile. Fixes the double link. Keeps the existing homepage FAQ questions (contract-pinned). Each item gets a stable anchor (`#faq-<slug>`). Opening the page with that hash expands and scrolls to the item, and a small "Copy link" button copies it, announcing "Link copied" politely. FAQ schema is unchanged.
-- `FinalCtaBand`: a centred band in the page world with a heading, one line, the CTA and the refund line.
+- `FinalCtaBand`: a centred band in the page world with the page's `MoatBadgePair`, a heading, one line, the CTA and the refund line.
 - `MoreDetail`: a styled `details` for layered copy.
 
 ### 6.5 Chrome
@@ -316,7 +321,7 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
   - A trust row: Stripe, LegitScript, Google, and AHPRA-registered doctors as text.
   - The emergency line, then ABN and copyright, with the theme toggle.
   - The redundant three-chip row ("AHPRA-registered doctors · Refund if declined · Privacy Act protected") is removed; those points live in the page trust sections.
-- **Sticky mobile CTA** on the service pages: 88 px maximum height (from 126), with the price shown. Its summary line becomes the page's moat badge (sm): `no-call` on certificates, `no-appointment` on prescriptions. On the homepage the sticky bar is **off by default** and becomes a PostHog experiment arm, since the research found sticky CTAs rarely help homepage-type pages.
+- **Sticky mobile CTA** on the service pages: 88 px maximum height (from 126), with the price shown. Its summary line becomes the page's moat pair (sm): "No call needed" + "No appointment" on certificates, "No appointment" + "No video call" on prescriptions. On the homepage the sticky bar is **off by default** and becomes a PostHog experiment arm, since the research found sticky CTAs rarely help homepage-type pages.
 
 ### 6.6 Trust components (new)
 
@@ -366,10 +371,21 @@ InstantMed's structural advantage is stated as one recognisable green badge, use
 | `claim` | Label | Allowed on | Qualifier (in a popover) |
 |---|---|---|---|
 | `no-appointment` | "No appointment" (`trust_no_appointment_label`) | every service and the homepage | `trust_no_appointment_tooltip`: "Submit any time. No booking, no scheduling." |
+| `no-video-call` | "No video call". A new `trust_no_video_call_label` (contexts: platform, medical certificate, prescribing, specialty; risk low). It is literally true: InstantMed does not run video consults. | every service and the homepage | new `trust_no_video_call_tooltip`: "No video consults. A doctor reviews your form and only calls if something needs checking." |
 | `no-call` | "No call needed". This is a new `trust_no_call_needed_label` (context `medical_certificate`, risk high) and needs compliance sign-off; if declined, it falls back to the existing approved "No call for simple certs". | medical certificates only | new `trust_no_call_needed_tooltip`: "Suitable certificate requests are handled from the secure form. If something needs checking, a doctor may contact you." |
 
-**Guards.** "No call" wording is banned on prescribing and specialty pages (`docs/ADVERTISING_COMPLIANCE.md`):
-- Props form a discriminated union: `{ claim: "no-appointment" }` or `{ claim: "no-call"; service: "med-cert" }`.
+**New approved supporting line:** `form_first_call_if_needed`, "A doctor reviews your form and only calls if something needs checking."
+- Contexts: platform, prescribing, specialty.
+- Risk: medium.
+- Receipts:
+  1. `docs/CLINICAL.md` form-first model.
+  2. An aggregate, PHI-free call-rate count: prescribing and specialty requests in the trailing 180 days with a recorded doctor phone contact, against all completed requests. It is pulled during implementation and dated in the claim's notes.
+  3. Rey's clinical approval as Medical Director, dated 2026-09-26.
+- It replaces `FORM_FIRST_WEDGE` ("...may call you briefly before prescribing") as the lead form-first line on these pages. `FORM_FIRST_WEDGE` stays approved and in the registry.
+- `docs/ADVERTISING_COMPLIANCE.md` sections 5 and 6 and the `docs/VOICE.md` service table are updated to list the new approved phrasing. The ban on an unqualified "No call needed" for prescribing stays.
+
+**Guards.** Only the unqualified "No call needed" stays banned on prescribing and specialty pages (`docs/ADVERTISING_COMPLIANCE.md`). "No video call" and the conditional supporting line are allowed everywhere.
+- Props form a discriminated union: `{ claim: "no-appointment" | "no-video-call" }` or `{ claim: "no-call"; service: "med-cert" }`.
 - A new `moat-badge-contract` test allows `claim="no-call"` only in certificate-scoped files, and fails if it appears in any prescription, ED, hair loss, women's health or weight file.
 - The test also checks that both labels resolve through `getApprovedClaim()`.
 
@@ -384,7 +400,8 @@ InstantMed's structural advantage is stated as one recognisable green badge, use
 
 **System integration**
 - `BADGE_REGISTRY.no_appointment` moves from orange to the moat style.
-- `TrustBadge` delegates the `no_call` and `no_appointment` ids to `MoatBadge`, so checkout, the About page and CTA banners inherit it.
+- `TrustBadge` delegates the `no_call` and `no_appointment` ids, plus a new `no_video_call` id, to `MoatBadge`, so checkout, the About page and CTA banners inherit it.
+- A `MoatBadgePair` convenience renders the page's pair (`no-appointment` + `no-video-call`, or `no-call` + `no-appointment` on certificate surfaces) with an 8 px gap, wrapping cleanly at 320 px.
 - The styled tier's looping pulsing-dot and X-draw animations for these ids are retired.
 - DESIGN.md gains a rule: success green is used for the two moat claims (a stated patient benefit), live status and success states only.
 
@@ -398,7 +415,7 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - `LiveStatus` with the certificate median.
    - H1: "Faster than your GP." Before release, add an external substantiation source for the `tagline` claim to `lib/marketing/approved-claims.ts`, for example ABS Patient Experiences GP wait-time data plus InstantMed's own median. Today its only receipts are the brand docs, and the registry rates it medium risk. The paid-safe variant stays the ads default.
    - Subheading: "Medical certificates, repeat scripts and private assessments from AHPRA-registered Australian doctors."
-   - `MoatBadge claim="no-appointment"` (md).
+   - `MoatBadgePair`: "No appointment" + "No video call" (md).
    - **Priced service menu**, three full-width rows of 56 px or more, each with a mark tile, a label, a price and a chevron:
 
      | Row | Price | Link |
@@ -414,7 +431,7 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - Intro: "Choose a service. The fee is shown before you start."
    - Two featured world cards:
      - Certificate (dawn): mark, "From $24.95", `MoatBadge claim="no-call"` (sm), chips "Work, study or carer's leave" and "No Medicare needed", CTA "Get a certificate".
-     - Prescription (sky): mark, "$29.95", `MoatBadge claim="no-appointment"` (sm), chips "One regular medicine" and "eScript by text if approved", CTA "Get your repeat".
+     - Prescription (sky): mark, "$29.95", `MoatBadgePair` "No appointment" + "No video call" (sm), chips "One regular medicine" and "eScript by text if approved", CTA "Get your repeat".
    - Four compact assessment rows (ED, hair loss, women's health, weight), each with its world mark tile, one line, price and chevron. Data comes from the service catalogue and respects availability.
    - The "One secure form per service" block is removed.
 3. **How it works** (`StepStory` on a spectrum band)
@@ -478,9 +495,9 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
 1. **Hero**
    - `LiveStatus`, without a median.
    - H1: "Your regular medication. A simpler repeat."
-   - Subheading: "One medicine you already take, reviewed by an Australian doctor."
-   - `MoatBadge claim="no-appointment"` (md). Never "no call" on this page.
-   - Chips: "Australia only", "Ages 18+", "Medicare or IHI needed".
+   - Subheading: `form_first_call_if_needed` ("A doctor reviews your form and only calls if something needs checking.").
+   - `MoatBadgePair`: "No appointment" + "No video call" (md). Never an unqualified "No call needed" on this page.
+   - Chips: "One regular medicine", "Medicare or IHI needed". "Australia only" and "Ages 18+" move into the fit check.
    - CTA: "Get your repeat · $29.95".
    - Refund line, then the proof row.
    - Visual: `OutcomeStage variant="escript"`.
@@ -489,10 +506,10 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - See your GP instead when: A new medicine, Controlled or dependence-forming medicines, Needs tests or an exam, Urgent symptoms (call 000 in an emergency).
    - Note: `prescribing_identity_required`, verbatim.
 3. **"From form to pharmacy"** (`StepStory`, sky band)
-   - Intro: `FORM_FIRST_WEDGE`, verbatim.
+   - Intro: "No appointment, no video call. Here's the whole path."
    - Steps:
      - "Tell us your medicine" (scene 1)
-     - "Doctor review" (scene 2)
+     - "Doctor review": `form_first_call_if_needed` (scene 2)
      - "eScript by text": `prescription_if_approved` (scene 5)
      - "Any Australian pharmacy": "Show the token at the pharmacy. You pay for the medicine there." (scene 6)
    - Ends with `OutcomePaths`.
