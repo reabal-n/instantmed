@@ -29,7 +29,7 @@ The last row is judged by eye against Section 5.8, not by a tool.
 3. The hero visual combines **the real outcome on a phone** with a **status story** (received, checked, sent). Claude chooses the composition.
 4. Motion: **crafted and calm**, plus a restrained desktop moment in How it works. No scroll-jacking and nothing looping forever.
 5. Copy: **lean and layered.** Detail moves behind "more" controls that stay in the page for search engines.
-6. The homepage H1 stays **"Faster than your GP."** with a live wait time and a **glowing green indicator** that shows doctors are online. The indicator must be truthful (Section 6.1).
+6. The homepage H1 stays **"Faster than your GP."** with a live wait time and a **glowing green indicator** that shows a doctor is online. The indicator must be truthful (Section 6.1).
 7. The header, Services menu, mobile menu and footer are redesigned as part of this work.
 8. The other service pages (ED, hair loss, women's health, weight, SEO guides, `/request`) follow in a separate plan. They pick up the new marks, colours and chrome automatically through shared components.
 9. The three pages ship together **after the 7 October Google Ads checkpoint.** The Section 9 fixes ship in the same release (Rey, 2026-09-26: bundle, don't ship separately).
@@ -248,19 +248,19 @@ A quiet line above the H1: a green dot with a soft glow, then text.
 
 | State | Condition | Text |
 |---|---|---|
-| `online` | at least one clinician profile with `doctor_available = true` **and** doctor-attributed review activity in the last 90 minutes (a manual approval, decline, information request or script sent by a clinician; certificates with `activity_provenance: "auto_issued"` do not count) | "Doctors online" |
-| `online` with median | as above, and the existing wait-counter median passes its current stale-data and queue-pressure guards and is under an hour for that service | "Doctors online", a thin vertical rule, then "Certificates: median ~16 min over the last 24 hours" (the rule is a visual divider, not a middle dot) |
+| `online` | at least one clinician profile with `doctor_available = true` **and** doctor-attributed review activity in the last 90 minutes (a manual approval, decline, information request or script sent by a clinician; certificates with `activity_provenance: "auto_issued"` do not count) | "A doctor is online" (singular on purpose: the plural implies a doctor count) |
+| `online` with median | as above, and the existing wait-counter median passes its current stale-data and queue-pressure guards and is under an hour for that service | "A doctor is online", a thin vertical rule, then "Certificates: median ~16 min over the last 24 hours" (the rule is a visual divider, not a middle dot) |
 | `open` | the online conditions fail | "Requests open 24/7" (static dot, no glow). Never "offline" or any hours window. |
 | `hidden` | maintenance mode or the service is disabled | nothing |
 
-- The median line appears only for medical certificates. It shows on the homepage and on `/medical-certificate`. Prescriptions show "Doctors online" without a median, because the prescription median is hours, not minutes.
+- The median line appears only for medical certificates. It shows on the homepage and on `/medical-certificate`. Prescriptions show "A doctor is online" without a median, because the prescription median is hours, not minutes.
 - **Data:**
   - `getLiveStatus()` in `lib/brand/live-status.ts` composes `getWaitState()` with a service-role count of available clinicians. It returns a boolean, never a count.
   - It is cached for 60 seconds.
   - It uses the existing seeded-E2E exclusion.
 - **Compliance:**
-  - "Doctors" is the approved generic plural. No count or name is ever shown.
-  - Update `marketing-copy-contract` to allow "Doctors online" only inside `LiveStatus`. It must continue to ban "right now", "is reviewing" and "are reviewing" everywhere.
+  - The singular "A doctor" avoids implying a doctor count. No count or name is ever shown.
+  - Update `marketing-copy-contract` to allow "A doctor is online" only inside `LiveStatus`. It must continue to ban "right now", "is reviewing" and "are reviewing" everywhere.
   - Add the rule to BRAND.md section 6.1 and to DESIGN.md hero rules.
 - **Tests:** unit tests for every row of the table, including a stale availability flag with no recent completions (shows `open`) and a failed data query (shows `open`, never `online`).
 
@@ -343,9 +343,9 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
   - It never calls the API. The link "Check a real certificate" goes to `/verify`.
 - **`ClinicalModelPanel` ("Who checks your request")**
   - Three rows with marks:
-    1. Simple medical certificates: checked against a doctor-approved clinical protocol.
-    2. Anything concerning or uncertain: reviewed by an AHPRA-registered doctor.
-    3. Every prescription: decided by an AHPRA-registered doctor.
+    1. "Standard certificates can follow our Medical Director-approved protocol."
+    2. "Anything concerning or uncertain goes to an AHPRA-registered doctor before it's issued."
+    3. "Every prescription requires a decision by an AHPRA-registered doctor." (reuses the approved `clinical_decision_model` wording)
   - A caption, "Clinical governance by our Medical Director", beside a stylised signature mark with no readable name (BRAND.md section 6.2).
   - The row text is added to the approved-claims registry as `clinical_governance_protocol`, `clinical_governance_doctor_review` and `clinical_governance_prescribing`, with CLINICAL.md receipts, after compliance and clinical-safety review.
   - `doctor_registration` sits in "More detail".
@@ -353,16 +353,16 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
 - **`OutcomePaths` (three possible outcomes)**
   - The final beat of every `StepStory`. Three small cards, each with a mark:
     - "Approved": delivered digitally (the certificate link by email, or the eScript by text).
-    - "More information needed": a doctor may contact you.
-    - "Not suitable": `GUARANTEE`, with `refund_payment_process` in "More detail".
+    - "More information needed": "If more information is needed, a doctor may contact you." (the approved `clinical_decision_model` wording)
+    - "Not suitable": `GUARANTEE` plus "We'll explain why." (existing live copy), with `refund_payment_process` in "More detail".
   - The "may contact" wording counts toward the landing caveat budget of two per file.
 - **`ContactLine`**
-  - "Questions before you start? Call 0495 049 555 (24/7 voice messages) or email support@instantmed.com.au."
+  - "Questions before you start? Email support@instantmed.com.au or leave a voice message on 0495 049 555, any time." (It is voicemail, so the copy doesn't promise a live call.)
   - Shown beside every `FaqSplit`. The phone and email come from the existing contact constants.
 - **`WhatYouNeed`**
   - A compact checklist beside the primary CTA's section:
-    - Certificates: "Nothing to prepare. No Medicare card needed."
-    - Prescriptions: "Your medicine's name and dose", "Medicare card or IHI", "Your Australian address". The last two restate `prescribing_identity_required`, which appears verbatim in the fit check.
+    - Certificates: "No Medicare card needed. Just your details and about 3 minutes."
+    - Prescriptions: "Your medicine's name and dose", "Medicare card or IHI", "Your address and phone number". These restate the prescribing identity bundle; `prescribing_identity_required` appears verbatim in the fit check.
 
 ### 6.7 `MoatBadge` (new primitive: the moat, in green)
 
@@ -460,8 +460,8 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - Refund line, then the proof row.
    - Visual: `OutcomeStage variant="certificate"`. Tapping the certificate opens `SpecimenViewer`.
 2. **"Is this right for you?"** (`FitCheck`)
-   - Good for: Cold and flu, Gastro, Migraine, Back pain, Period pain, A mental health day, Caring for someone who is sick.
-   - See a GP instead: WorkCover or legal matters, More than 3 days off, Needs a physical exam, Ongoing or complex conditions, Emergencies: call 000.
+   - Good for: Cold and flu, Gastro, Migraine, Back pain, Period pain, A mental health day, Caring for a sick family or household member.
+   - See a GP instead: WorkCover, insurance or legal matters; Exam deferral or fitness checks; More than 3 days off; Needs a physical exam; Ongoing or complex conditions; Emergencies: call 000.
    - Note: "If your request isn't suitable, you get a full refund."
    - This fixes the "3–5 days" error. The duration value comes from `MAX_MED_CERT_DURATION_DAYS`.
 3. **"Will my employer accept it?"** (white band, split)
@@ -487,7 +487,7 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - 1 day $24.95, 2 days $29.95, 3 days $39.95, all from `PRICING_DISPLAY`.
    - Beneath: "Covers the clinical check, your secure PDF and verification. No subscription." Then the refund line, with `refund_payment_process` in "More detail".
 7. **FAQ** (`FaqSplit`, the existing five questions), with the `ContactLine`.
-8. **Final CTA band** (dawn): "Back to bed. We'll take it from here." / "Start with a secure form. Takes about 3 minutes." / CTA with price / refund line. The heading goes through compliance review; the fallback is the current "Back to bed without a waiting room."
+8. **Final CTA band** (dawn): "Get back to bed." / `ICONIC_HOOK` ("Start with a secure form. Takes about 3 minutes.") / CTA with price / refund line.
 9. **Common reasons**: `MedCertReasonLinks` as a visible compact link list, not a hidden disclosure.
 
 ### 7.3 Prescriptions (sky world), 440 words or fewer
@@ -505,6 +505,7 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - A repeat may fit when: Previously prescribed, Stable dose, One regular medicine, Health details up to date.
    - See your GP instead when: A new medicine, Controlled or dependence-forming medicines, Needs tests or an exam, Urgent symptoms (call 000 in an emergency).
    - Note: `prescribing_identity_required`, verbatim.
+   - Second note: "Medicines for ED, hair loss, the pill or weight have their own assessment." (matches the existing hard routing; no medicine names)
 3. **"From form to pharmacy"** (`StepStory`, sky band)
    - Intro: "No appointment, no video call. Here's the whole path."
    - Steps:
@@ -522,6 +523,37 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
 6. **FAQ** (`FaqSplit`: four questions with "Show all 9"; the "View all questions" link is removed), with the `ContactLine`.
 7. **Final CTA band** (sky): "Ready for your repeat?" / `ICONIC_HOOK` / CTA with price / refund line.
 8. **Learn more links** (kept, restyled).
+
+## 7A. Copy pre-clearance (2026-09-26)
+
+Reviewed with `instantmed-marketing-compliance-review` and `instantmed-clinical-safety-review` against `docs/VOICE.md`, `docs/ADVERTISING_COMPLIANCE.md`, `docs/CLINICAL.md` and `lib/marketing/approved-claims.ts`.
+
+**Decision: safe to proceed (copy only, no clinical logic changes)**, with the revisions already applied above. Every factual claim below has a source; new claims enter the registry with receipts before use.
+
+| String | Where | Verdict | Source of truth |
+|---|---|---|---|
+| "No appointment" + tooltip | every service | Keep | `trust_no_appointment_label` / `_tooltip` (contexts include prescribing and specialty) |
+| "No video call" + tooltip | every service | Keep (new claim, risk low) | CLINICAL.md form-first model; the product has no video consults (`lib/seo/data/competitor-comparisons.ts` states the format as "Async form + doctor messaging") |
+| "No call needed" + qualifier tooltip | certificate surfaces only | Keep (new claim, risk high; fallback "No call for simple certs") | ADVERTISING_COMPLIANCE section 5 (certificate protocol supports no-call framing); CLINICAL.md protocol scope |
+| "A doctor reviews your form and only calls if something needs checking." | prescribing, specialty, platform | Keep (new claim) as an explicit Medical Director policy decision | CLINICAL.md form-first model; Rey's dated approval and attestation. Does not hard-promise no call (CLINICAL.md line 77) and never constrains a clinically indicated call |
+| `LiveStatus` "A doctor is online" | hero status line | Keep, revised from "Doctors online" | Server-gated availability plus doctor activity; the singular avoids implying a count |
+| `LiveStatus` "Requests open 24/7" | fallback | Keep | `availability_24_7`; hours-copy contract |
+| Certificate median line | hero status line | Keep | existing wait-counter guards |
+| `clinical_review_sequence_short` | How it works | Keep (new claim) | CLINICAL.md protocol and prescribing rules |
+| ClinicalModelPanel rows 1 to 3 | trust sections | Keep, revised | CLINICAL.md lines 54, 71, 284; `clinical_decision_model` |
+| Fit checks (certificate and prescription) | fit sections | Keep, revised (carer wording, refused uses, dedicated-service note) | CLINICAL.md lines 90 to 94 and 284; medication routing rules |
+| OutcomePaths | How it works | Keep, revised to approved wording | `clinical_decision_model`, `GUARANTEE`, `refund_payment_process` |
+| ContactLine | beside FAQ | Keep, revised (voicemail) | Platform identity in CLAUDE.md |
+| Final headings ("Ready when you are.", "Get back to bed.", "Ready for your repeat?") | final bands | Keep ("We'll take it from here" blocked: implies an outcome) | voice only, no claim |
+| "Faster than your GP." | homepage H1 | Keep, conditional: add an external substantiation receipt before release; paid surfaces use `TAGLINE_PAID_SAFE` | `tagline` (risk medium) |
+
+**Docs updated in the same release:**
+- `docs/VOICE.md`:
+  - the form-first wedge row and rule 3, recording Rey's clinician approval of "No video call" and the conditional call line for prescribing and specialty
+  - the "Doctors online" wording rule
+- `docs/ADVERTISING_COMPLIANCE.md` sections 5 and 6: the newly approved phrasing. The unqualified "No call needed" ban for prescribing stays.
+- `docs/CLINICAL.md` form-first section: the approved public phrasing, with the unchanged engineering implication (pathways support call escalation; copy never constrains a clinically indicated call).
+- `docs/BRAND.md` section 6.1: `LiveStatus` rules.
 
 ## 8. Accessibility, performance and SEO requirements
 
