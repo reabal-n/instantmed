@@ -13,7 +13,7 @@ Make `/`, `/medical-certificate` and `/prescriptions`, plus the shared header, m
 | Measure | Today | Target |
 |---|---|---|
 | Hero copy (excluding H1, visual, status line and proof row) | 28 to 73 words | 32 words or fewer on all three pages |
-| Visible words per page, excluding FAQ answers and footer | about 520 to 670 | 300 to 400 |
+| Visible words per page, excluding FAQ answers, "More detail" content, SEO link lists ("Common reasons", "Learn more"), chrome and footer | about 520 to 670 | homepage 420 or fewer, medical certificate 480 or fewer, prescriptions 440 or fewer. The research puts best-converting health pages at 355 to 1,020 words; today's words are mostly prose, and the new ones are mostly scannable labels and chips. |
 | Reading level of new copy | mixed, legal in places | about grade 6 (plain English) |
 | Lab LCP, `/medical-certificate`, 4x CPU and Fast 4G, 390x844 | 680 ms, CLS 0 | 800 ms or lower, CLS 0 |
 | Lighthouse accessibility, best practices, SEO (mobile) | 100, 100, 100 | 100, 100, 100 |
@@ -33,6 +33,18 @@ The last row is judged by eye against Section 5.8, not by a tool.
 7. The header, Services menu, mobile menu and footer are redesigned as part of this work.
 8. The other service pages (ED, hair loss, women's health, weight, SEO guides, `/request`) follow in a separate plan. They pick up the new marks, colours and chrome automatically through shared components.
 9. The three pages ship together **after the 7 October Google Ads checkpoint.** Straight bug fixes (Section 9) may ship earlier with Rey's OK.
+10. **Trust builders (Rey, 2026-09-26):**
+    - a specimen certificate viewer and a verify demo
+    - a "Who checks your request" panel
+    - three possible outcomes
+    - a contact line and "What you'll need"
+    - the LegitScript and Google certification logos, prominent in each page's trust section as well as the hero and footer, because patients recognise them
+11. **Polish (Rey, 2026-09-26):**
+    - share previews and a browser tint per page
+    - the typographic finish pack
+    - tactile surfaces
+    - a condensing desktop header
+12. **Safeguards (Rey, 2026-09-26):** a screenshot regression gate and linkable FAQ answers.
 
 ## 3. What is wrong today (audit, 2026-09-26)
 
@@ -197,6 +209,29 @@ Rules:
 10. Cream-plus-serif. Not introduced; ivory stays, and colour worlds and illustrations carry warmth.
 11. Generic "Get started" as the homepage's main action
 
+### 5.9 Polish pack
+
+- **Typographic finish:**
+  - `text-wrap: balance` on headings and `text-wrap: pretty` on paragraphs.
+  - A `nbsp` helper keeps "$24.95", "3 days", "24/7" and "about 3 minutes" unbroken.
+  - Curly quotes and apostrophes in every string authored for this redesign. Approved-claims strings stay byte-identical, because contracts match them exactly.
+  - `tabular-nums` on prices and times.
+  - A branded `::selection` colour (primary at 18%).
+  - One focus-ring token: 2 px primary with a 2 px offset, and a teal variant in dark mode.
+  - `scroll-margin-top` on every anchor target, so in-page links land below the sticky header.
+- **Tactile surfaces:**
+  - 2 to 3% SVG film grain on hero and world-band gradients only (1 to 2% in dark mode). This is DESIGN.md's permitted hero noise, and it also prevents gradient banding.
+  - A 1 px inset top highlight on buttons and cards, and the pressed-state highlight flip from DESIGN.md section 12.
+- **Share previews:**
+  - Redesign `app/opengraph-image.tsx` and `app/medical-certificate/opengraph-image.tsx`, and add `app/prescriptions/opengraph-image.tsx`.
+  - Each is 1200x630 in its colour world, with the page's mark, H1 and wordmark, and no people or medicine. `app/api/og/route.tsx` keeps serving other routes.
+- **Browser tint:**
+  - A per-route `viewport.themeColor`: homepage ivory `#F8F7F4`, certificate dawn 50, prescriptions sky 50, with dark-mode variants.
+  - This replaces the global `#3B82F6` in `app/layout.tsx`.
+- **Condensing header (desktop, `lg` and up):**
+  - Once the hero leaves the viewport (IntersectionObserver on `[data-hero]`), the header slims from 64 to 52 px and reveals a compact CTA carrying the page's price.
+  - 200 ms; instant under reduced motion. Mobile keeps the sticky bottom CTA instead.
+
 ## 6. Shared components
 
 ### 6.1 `LiveStatus` (new; replaces the hero's `WaitCounter` placement)
@@ -260,7 +295,7 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
 - `StepStory`: numbered steps with scenes; sticky scene column on desktop (Section 5.5).
 - `DurationPicker`: three tinted cards (1, 2 or 3 days) with prices from `PRICING_DISPLAY`. Selection updates the CTA link through `buildMedCertRequestHref({ duration })` and the price through an `aria-live="polite"` region. It works without JavaScript: each card is a link.
 - `FeeCard`: an aligned two-column fee table.
-- `FaqSplit`: heading on the left, accordion on the right on desktop; stacked on mobile. Fixes the double link. Keeps the existing homepage FAQ questions (contract-pinned).
+- `FaqSplit`: heading on the left, accordion on the right on desktop; stacked on mobile. Fixes the double link. Keeps the existing homepage FAQ questions (contract-pinned). Each item gets a stable anchor (`#faq-<slug>`). Opening the page with that hash expands and scrolls to the item, and a small "Copy link" button copies it, announcing "Link copied" politely. FAQ schema is unchanged.
 - `FinalCtaBand`: a centred band in the page world with a heading, one line, the CTA and the refund line.
 - `MoreDetail`: a styled `details` for layered copy.
 
@@ -281,11 +316,52 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
   - The redundant three-chip row ("AHPRA-registered doctors · Refund if declined · Privacy Act protected") is removed; those points live in the page trust sections.
 - **Sticky mobile CTA** on the service pages: 88 px maximum height (from 126), with the price shown. On the homepage the sticky bar is **off by default** and becomes a PostHog experiment arm, since the research found sticky CTAs rarely help homepage-type pages.
 
+### 6.6 Trust components (new)
+
+- **`SpecimenViewer`**
+  - The hero phone's certificate card (and a "See the full certificate" link) opens an accessible dialog with a large, zoomable specimen image.
+  - The image is generated at build time from the real template by `scripts/generate-certificate-specimen.ts`, through `lib/pdf/template-renderer.ts`, using synthetic data.
+  - Forgery safeguards:
+    - a repeated diagonal "SPECIMEN · NOT A VALID CERTIFICATE" watermark
+    - no signature image, no provider or prescriber number, and reference "SPECIMEN"
+    - WebP output, 1600 px maximum, lossy
+  - Locked PDF wording throughout. The dialog has a heading and alt text, and closes with Escape or the close button, returning focus.
+- **`VerifyDemo`**
+  - An inline card labelled "Example", with a read-only reference field ("IM-SPECIMEN") and a "Check" button.
+  - Pressing it reveals a static example result:
+    - `employer_verify_authenticity`
+    - "Valid certificate"
+    - the issue date
+    - `employer_privacy_limited`
+  - It never calls the API. The link "Check a real certificate" goes to `/verify`.
+- **`ClinicalModelPanel` ("Who checks your request")**
+  - Three rows with marks:
+    1. Simple medical certificates: checked against a doctor-approved clinical protocol.
+    2. Anything concerning or uncertain: reviewed by an AHPRA-registered doctor.
+    3. Every prescription: decided by an AHPRA-registered doctor.
+  - A caption, "Clinical governance by our Medical Director", beside a stylised signature mark with no readable name (BRAND.md section 6.2).
+  - The row text is added to the approved-claims registry as `clinical_governance_protocol`, `clinical_governance_doctor_review` and `clinical_governance_prescribing`, with CLINICAL.md receipts, after compliance and clinical-safety review.
+  - `doctor_registration` sits in "More detail".
+  - **Certification logos:** the LegitScript seal, linking to its verification page, and the Google Online Pharmacy Certification mark sit in this panel at 56 px, each with its approved label. A "What is this?" disclosure shows the approved `legitscript_tooltip` and `google_healthcare_ads_tooltip` text, so the marks are explained honestly as advertising and merchant certifications, not clinical endorsements.
+- **`OutcomePaths` (three possible outcomes)**
+  - The final beat of every `StepStory`. Three small cards, each with a mark:
+    - "Approved": delivered digitally (the certificate link by email, or the eScript by text).
+    - "More information needed": a doctor may contact you.
+    - "Not suitable": `GUARANTEE`, with `refund_payment_process` in "More detail".
+  - The "may contact" wording counts toward the landing caveat budget of two per file.
+- **`ContactLine`**
+  - "Questions before you start? Call 0495 049 555 (24/7 voice messages) or email support@instantmed.com.au."
+  - Shown beside every `FaqSplit`. The phone and email come from the existing contact constants.
+- **`WhatYouNeed`**
+  - A compact checklist beside the primary CTA's section:
+    - Certificates: "Nothing to prepare. No Medicare card needed."
+    - Prescriptions: "Your medicine's name and dose", "Medicare card or IHI", "Your Australian address". The last two restate `prescribing_identity_required`, which appears verbatim in the fit check.
+
 ## 7. Pages
 
 Word counts are visible words excluding FAQ answers, footer and chrome.
 
-### 7.1 Homepage (spectrum world), 350 words or fewer
+### 7.1 Homepage (spectrum world), 420 words or fewer
 
 1. **Hero**
    - `LiveStatus` with the certificate median.
@@ -314,17 +390,15 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - Step 2: "A clinical check". Body: `clinical_review_sequence_short`, with the long claim in "More detail". Scene 2.
    - Step 3: "Your result, sent digitally". Body: "If approved, your certificate link arrives by email, or your eScript by text." Scene 3.
    - Chips: "About 3 minutes", "Reviewed 24/7", "Digital delivery".
-4. **"Proper medicine, not a loophole."** (white band). This replaces the government-logo strip. Four items with marks:
-   - AHPRA-registered doctors: `doctor_registration`.
-   - Checkable certificates: "Every certificate has a reference your employer can check at instantmed.com.au/verify." Links to `/verify`.
-   - Certified for healthcare: `legitscript_label` and `google_healthcare_ads_label`.
-   - Full refund if the doctor declines: `GUARANTEE`, with `refund_payment_process` in "More detail".
-
-   Then one link: "What we won't do".
-5. **FAQ** (`FaqSplit`, the existing six questions).
+   - Ends with `OutcomePaths`.
+4. **"Proper medicine, not a loophole."** (white band). This replaces the government-logo strip.
+   - `ClinicalModelPanel`, with the LegitScript and Google logos.
+   - One line: "Every certificate has a reference your employer can check at instantmed.com.au/verify." Links to `/verify`.
+   - One link: "What we won't do".
+5. **FAQ** (`FaqSplit`, the existing six questions), with the `ContactLine`.
 6. **Final CTA band** (spectrum): "Ready when you are." / `ICONIC_HOOK` / "Start a request" / refund line.
 
-### 7.2 Medical certificate (dawn world), 400 words or fewer
+### 7.2 Medical certificate (dawn world), 480 words or fewer
 
 1. **Hero**
    - `LiveStatus` with the certificate median.
@@ -333,7 +407,7 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - Chips with marks: "Australia only", "Ages 18+", "No Medicare needed".
    - CTA: "Get your certificate · From $24.95".
    - Refund line, then the proof row.
-   - Visual: `OutcomeStage variant="certificate"`.
+   - Visual: `OutcomeStage variant="certificate"`. Tapping the certificate opens `SpecimenViewer`.
 2. **"Is this right for you?"** (`FitCheck`)
    - Good for: Cold and flu, Gastro, Migraine, Back pain, Period pain, A mental health day, Caring for someone who is sick.
    - See a GP instead: WorkCover or legal matters, More than 3 days off, Needs a physical exam, Ongoing or complex conditions, Emergencies: call 000.
@@ -345,7 +419,8 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
      - "Each certificate has a reference your employer can check at instantmed.com.au/verify."
      - `MED_CERT_DOCUMENT_SCOPE`.
    - Then the careful line: "Fair Work says evidence should satisfy a reasonable person. Employer and institution policies may vary."
-   - Right: scene 4 plus a small verify-page card showing "Valid certificate" and `employer_privacy_limited`.
+   - Right: `VerifyDemo`, with scene 4 behind it.
+   - Below: a "See the full certificate" link opening `SpecimenViewer`.
    - Links: "Verify a certificate", "For employers".
    - The three resource links move into "More detail".
    - **The employer logo marquee is removed.** Update `marketing-copy-contract`, which pins it, and record the WCAG 2.2.2, trademark and template-tell reasons in the test comment.
@@ -353,14 +428,17 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - "Tell us what's going on" (about 3 minutes).
    - "A clinical check" (`clinical_review_sequence_short`).
    - "Your certificate, by secure link": "If approved, we email you a secure link to your PDF certificate."
-5. **Pricing** ("Pick your days"): `DurationPicker`.
+   - Ends with `OutcomePaths`.
+   - Beside step 1: `WhatYouNeed` (certificate variant).
+5. **Who checks your request** (white band): `ClinicalModelPanel`, with the LegitScript and Google logos.
+6. **Pricing** ("Pick your days"): `DurationPicker`.
    - 1 day $24.95, 2 days $29.95, 3 days $39.95, all from `PRICING_DISPLAY`.
    - Beneath: "Covers the clinical check, your secure PDF and verification. No subscription." Then the refund line, with `refund_payment_process` in "More detail".
-6. **FAQ** (`FaqSplit`, the existing five questions).
-7. **Final CTA band** (dawn): "Back to bed. We'll take it from here." / "Start with a secure form. Takes about 3 minutes." / CTA with price / refund line. The heading goes through compliance review; the fallback is the current "Back to bed without a waiting room."
-8. **Common reasons**: `MedCertReasonLinks` as a visible compact link list, not a hidden disclosure.
+7. **FAQ** (`FaqSplit`, the existing five questions), with the `ContactLine`.
+8. **Final CTA band** (dawn): "Back to bed. We'll take it from here." / "Start with a secure form. Takes about 3 minutes." / CTA with price / refund line. The heading goes through compliance review; the fallback is the current "Back to bed without a waiting room."
+9. **Common reasons**: `MedCertReasonLinks` as a visible compact link list, not a hidden disclosure.
 
-### 7.3 Prescriptions (sky world), 380 words or fewer
+### 7.3 Prescriptions (sky world), 440 words or fewer
 
 1. **Hero**
    - `LiveStatus`, without a median.
@@ -381,13 +459,16 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
      - "Doctor review" (scene 2)
      - "eScript by text": `prescription_if_approved` (scene 5)
      - "Any Australian pharmacy": "Show the token at the pharmacy. You pay for the medicine there." (scene 6)
-4. **"One review fee. Medicine paid separately."** (`FeeCard`)
+   - Ends with `OutcomePaths`.
+   - Beside step 1: `WhatYouNeed` (prescription variant).
+4. **Who checks your request** (white band): `ClinicalModelPanel`, with the LegitScript and Google logos. Prescriptions lead with row 3.
+5. **"One review fee. Medicine paid separately."** (`FeeCard`)
    - $29.95 doctor review, once per request, no subscription.
    - Medicine cost paid at the pharmacy (PBS or private price).
    - Full refund if the doctor declines.
-5. **FAQ** (`FaqSplit`: four questions with "Show all 9"; the "View all questions" link is removed).
-6. **Final CTA band** (sky): "Ready for your repeat?" / `ICONIC_HOOK` / CTA with price / refund line.
-7. **Learn more links** (kept, restyled).
+6. **FAQ** (`FaqSplit`: four questions with "Show all 9"; the "View all questions" link is removed), with the `ContactLine`.
+7. **Final CTA band** (sky): "Ready for your repeat?" / `ICONIC_HOOK` / CTA with price / refund line.
+8. **Learn more links** (kept, restyled).
 
 ## 8. Accessibility, performance and SEO requirements
 
@@ -400,7 +481,7 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
   - 48 px touch targets on mobile.
 - **Performance:**
   - LCP 800 ms or lower in the lab (Section 1) and CLS 0.
-  - Illustrations are inline SVG components under 6 KB each, gzipped.
+  - Illustrations are inline SVG components under 6 KB each, gzipped. The specimen image loads only when the viewer opens.
   - Added client JavaScript is 15 KB or less gzipped per page.
   - No new dependencies. The stack pin policy applies; the research shows Motion 12 supports React 18, but upgrading is out of scope.
 - **SEO:**
@@ -439,6 +520,19 @@ These items can ship before the redesign with Rey's OK, because they correct err
   - e2e hero word budget
   - e2e 320 px overflow
   - Updated `e2e/landing-pages.spec.ts` page-length budgets, ratcheted down to the new measurements
+- **Screenshot regression gate:**
+  - Playwright `toHaveScreenshot` baselines for `/`, `/medical-certificate` and `/prescriptions` (full page), plus the open Services menu and the mobile menu, at 390x844 and 1440x900 in light mode.
+  - Settings: animations disabled, and `LiveStatus` text, dates and the ProductReview widget masked. Threshold `maxDiffPixelRatio` 0.01.
+  - Baselines are generated on the CI Linux image through a manual `workflow_dispatch` job and committed under `e2e/__screenshots__/`.
+  - The gate is report-only for the first two weeks after release, then required. Updating a baseline needs an explicit commit whose message says so.
+- **Additional tests:**
+  - `SpecimenViewer`: dialog focus and Escape, alt text, and a watermark assertion on the generated asset's metadata.
+  - `VerifyDemo`: never fetches.
+  - `ClinicalModelPanel`: the new registry claims.
+  - FAQ anchors: a hash opens the right item.
+  - Condensing header: toggles at the hero boundary and honours reduced motion.
+  - `themeColor` per route.
+  - Each OG image renders.
 - **Browser proof:**
   - 1440x900 and 390x844, light and dark, reduced motion, for each page.
   - The How it works sticky sequence sampled at entry, each step and exit.
