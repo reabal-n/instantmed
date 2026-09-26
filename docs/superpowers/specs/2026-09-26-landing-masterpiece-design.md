@@ -45,6 +45,7 @@ The last row is judged by eye against Section 5.8, not by a tool.
     - tactile surfaces
     - a condensing desktop header
 12. **Safeguards (Rey, 2026-09-26):** a screenshot regression gate and linkable FAQ answers.
+13. **Moat badge (Rey, 2026-09-26):** a green badge primitive states the moat: "No appointment" for every service, and "No call needed" for medical certificates (Section 6.7).
 
 ## 3. What is wrong today (audit, 2026-09-26)
 
@@ -224,7 +225,7 @@ Rules:
   - A 1 px inset top highlight on buttons and cards, and the pressed-state highlight flip from DESIGN.md section 12.
 - **Share previews:**
   - Redesign `app/opengraph-image.tsx` and `app/medical-certificate/opengraph-image.tsx`, and add `app/prescriptions/opengraph-image.tsx`.
-  - Each is 1200x630 in its colour world, with the page's mark, H1 and wordmark, and no people or medicine. `app/api/og/route.tsx` keeps serving other routes.
+  - Each is 1200x630 in its colour world, with the page's mark, H1, moat badge and wordmark, and no people or medicine. `app/api/og/route.tsx` keeps serving other routes.
 - **Browser tint:**
   - A per-route `viewport.themeColor`: homepage ivory `#F8F7F4`, certificate dawn 50, prescriptions sky 50, with dark-mode variants.
   - This replaces the global `#3B82F6` in `app/layout.tsx`.
@@ -306,6 +307,7 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
   - Items: Services (menu), How it works, Pricing, Contact us, Log in, and a primary "Start a request" CTA.
   - The Services panel is solid white with a sky border. It has two groups. "Most requested" holds the certificate and prescription rows, each with its mark tile, one line and price. "Private assessments" holds the four specialty rows, each with a mark tile.
   - The panel fixes the yellow blurred border.
+  - The certificate row carries `MoatBadge claim="no-call"` (sm); in the mobile menu too.
 - **Mobile menu:** a full-height sheet with the same grouped service rows (marks and prices), then the secondary links, then a pinned CTA. 48 px targets.
 - **Footer:**
   - One unboxed layout.
@@ -314,7 +316,7 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
   - A trust row: Stripe, LegitScript, Google, and AHPRA-registered doctors as text.
   - The emergency line, then ABN and copyright, with the theme toggle.
   - The redundant three-chip row ("AHPRA-registered doctors · Refund if declined · Privacy Act protected") is removed; those points live in the page trust sections.
-- **Sticky mobile CTA** on the service pages: 88 px maximum height (from 126), with the price shown. On the homepage the sticky bar is **off by default** and becomes a PostHog experiment arm, since the research found sticky CTAs rarely help homepage-type pages.
+- **Sticky mobile CTA** on the service pages: 88 px maximum height (from 126), with the price shown. Its summary line becomes the page's moat badge (sm): `no-call` on certificates, `no-appointment` on prescriptions. On the homepage the sticky bar is **off by default** and becomes a PostHog experiment arm, since the research found sticky CTAs rarely help homepage-type pages.
 
 ### 6.6 Trust components (new)
 
@@ -357,6 +359,35 @@ A world backdrop sits behind: a soft radial "sun" in the world tint, made from g
     - Certificates: "Nothing to prepare. No Medicare card needed."
     - Prescriptions: "Your medicine's name and dose", "Medicare card or IHI", "Your Australian address". The last two restate `prescribing_identity_required`, which appears verbatim in the fit check.
 
+### 6.7 `MoatBadge` (new primitive: the moat, in green)
+
+InstantMed's structural advantage is stated as one recognisable green badge, used consistently: every service needs no appointment, and suitable certificate requests need no call. The component renders only approved-claims text. It cannot take free text.
+
+| `claim` | Label | Allowed on | Qualifier (in a popover) |
+|---|---|---|---|
+| `no-appointment` | "No appointment" (`trust_no_appointment_label`) | every service and the homepage | `trust_no_appointment_tooltip`: "Submit any time. No booking, no scheduling." |
+| `no-call` | "No call needed". This is a new `trust_no_call_needed_label` (context `medical_certificate`, risk high) and needs compliance sign-off; if declined, it falls back to the existing approved "No call for simple certs". | medical certificates only | new `trust_no_call_needed_tooltip`: "Suitable certificate requests are handled from the secure form. If something needs checking, a doctor may contact you." |
+
+**Guards.** "No call" wording is banned on prescribing and specialty pages (`docs/ADVERTISING_COMPLIANCE.md`):
+- Props form a discriminated union: `{ claim: "no-appointment" }` or `{ claim: "no-call"; service: "med-cert" }`.
+- A new `moat-badge-contract` test allows `claim="no-call"` only in certificate-scoped files, and fails if it appears in any prescription, ED, hair loss, women's health or weight file.
+- The test also checks that both labels resolve through `getApprovedClaim()`.
+
+**Visual**
+- **Shape:** a `rounded-full` pill, 26 px tall (sm) or 34 px (md), with 10 or 14 px horizontal padding and a 6 px gap.
+- **Surface:** `#ECFDF5` softening to `#E1F8EC` top to bottom, a 1 px `rgba(5,150,105,0.18)` border, the inset top highlight `inset 0 1px 0 rgba(255,255,255,0.8)` and a `0 1px 2px rgba(5,150,105,0.08)` shadow.
+- **Glyph:** a solid `#059669` circle with a white check drawn at 2.25 stroke in the mark style. 16 px (md) or 14 px (sm).
+- **Text:** Source Sans 3 semibold, 16 px (md) or 14 px (sm), `#065F46` (about 9:1 on the tint).
+- **Dark mode:** surface `rgba(6,78,59,0.35)`, border `rgba(52,211,153,0.25)`, text `#A7F3D0`, glyph `#34D399` with a `#022C22` check.
+- **Qualifier:** a separate 24 px "i" button next to the badge (not the badge itself) opens the qualifier popover on tap, click or focus. The badge text stays plain text.
+- **Motion:** on hero badges only, the check draws once (stroke-dashoffset, 260 ms, 200 ms after first paint). No loop and no glow; the `LiveStatus` dot stays the only glowing element. Static under reduced motion.
+
+**System integration**
+- `BADGE_REGISTRY.no_appointment` moves from orange to the moat style.
+- `TrustBadge` delegates the `no_call` and `no_appointment` ids to `MoatBadge`, so checkout, the About page and CTA banners inherit it.
+- The styled tier's looping pulsing-dot and X-draw animations for these ids are retired.
+- DESIGN.md gains a rule: success green is used for the two moat claims (a stated patient benefit), live status and success states only.
+
 ## 7. Pages
 
 Word counts are visible words excluding FAQ answers, footer and chrome.
@@ -367,6 +398,7 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - `LiveStatus` with the certificate median.
    - H1: "Faster than your GP." Before release, add an external substantiation source for the `tagline` claim to `lib/marketing/approved-claims.ts`, for example ABS Patient Experiences GP wait-time data plus InstantMed's own median. Today its only receipts are the brand docs, and the registry rates it medium risk. The paid-safe variant stays the ads default.
    - Subheading: "Medical certificates, repeat scripts and private assessments from AHPRA-registered Australian doctors."
+   - `MoatBadge claim="no-appointment"` (md).
    - **Priced service menu**, three full-width rows of 56 px or more, each with a mark tile, a label, a price and a chevron:
 
      | Row | Price | Link |
@@ -375,14 +407,14 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
      | Repeat prescription | $29.95 | `/prescriptions` |
      | Private assessments | From $49.95 | `#services` |
 
-     Each row carries `data-home-cta` analytics attributes.
+     Each row carries `data-home-cta` analytics attributes. The certificate row shows `MoatBadge claim="no-call"` (sm).
    - Refund line, then the proof row.
    - Visual: `OutcomeStage variant="home"`.
 2. **Services** ("What do you need?")
    - Intro: "Choose a service. The fee is shown before you start."
    - Two featured world cards:
-     - Certificate (dawn): mark, "From $24.95", chips "Work, study or carer's leave" and "No Medicare needed", CTA "Get a certificate".
-     - Prescription (sky): mark, "$29.95", chips "One regular medicine" and "eScript by text if approved", CTA "Get your repeat".
+     - Certificate (dawn): mark, "From $24.95", `MoatBadge claim="no-call"` (sm), chips "Work, study or carer's leave" and "No Medicare needed", CTA "Get a certificate".
+     - Prescription (sky): mark, "$29.95", `MoatBadge claim="no-appointment"` (sm), chips "One regular medicine" and "eScript by text if approved", CTA "Get your repeat".
    - Four compact assessment rows (ED, hair loss, women's health, weight), each with its world mark tile, one line, price and chevron. Data comes from the service catalogue and respects availability.
    - The "One secure form per service" block is removed.
 3. **How it works** (`StepStory` on a spectrum band)
@@ -403,8 +435,10 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
 1. **Hero**
    - `LiveStatus` with the certificate median.
    - H1: "Your medical certificate. Without the waiting room." (kept for launch; a message-matched H1 test against the Google Ads copy follows after launch).
-   - Subheading: `MED_CERT_WEDGE` + " For work, study or carer's leave."
+   - Subheading: "For work, study or carer's leave. Issued by AHPRA-registered Australian doctors."
+   - Moat row: `MoatBadge claim="no-call"` and `MoatBadge claim="no-appointment"` (md).
    - Chips with marks: "Australia only", "Ages 18+", "No Medicare needed".
+   - `MED_CERT_WEDGE` ("No video. No call. No appointment.") moves, verbatim, to be the How it works intro, so the approved line stays on the page without repeating the badges.
    - CTA: "Get your certificate · From $24.95".
    - Refund line, then the proof row.
    - Visual: `OutcomeStage variant="certificate"`. Tapping the certificate opens `SpecimenViewer`.
@@ -425,6 +459,7 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - The three resource links move into "More detail".
    - **The employer logo marquee is removed.** Update `marketing-copy-contract`, which pins it, and record the WCAG 2.2.2, trademark and template-tell reasons in the test comment.
 4. **How it works** (`StepStory`, dawn band)
+   - Intro: `MED_CERT_WEDGE`, verbatim.
    - "Tell us what's going on" (about 3 minutes).
    - "A clinical check" (`clinical_review_sequence_short`).
    - "Your certificate, by secure link": "If approved, we email you a secure link to your PDF certificate."
@@ -444,6 +479,7 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
    - `LiveStatus`, without a median.
    - H1: "Your regular medication. A simpler repeat."
    - Subheading: "One medicine you already take, reviewed by an Australian doctor."
+   - `MoatBadge claim="no-appointment"` (md). Never "no call" on this page.
    - Chips: "Australia only", "Ages 18+", "Medicare or IHI needed".
    - CTA: "Get your repeat · $29.95".
    - Refund line, then the proof row.
@@ -526,6 +562,12 @@ These items can ship before the redesign with Rey's OK, because they correct err
   - Baselines are generated on the CI Linux image through a manual `workflow_dispatch` job and committed under `e2e/__screenshots__/`.
   - The gate is report-only for the first two weeks after release, then required. Updating a baseline needs an explicit commit whose message says so.
 - **Additional tests:**
+  - `MoatBadge`:
+    - the claim allowlist
+    - registry-only labels
+    - the qualifier popover opens with keyboard and touch, and closes with Escape
+    - reduced motion stops the check draw
+    - `TrustBadge` delegation for `no_call` and `no_appointment`
   - `SpecimenViewer`: dialog focus and Escape, alt text, and a watermark assertion on the generated asset's metadata.
   - `VerifyDemo`: never fetches.
   - `ClinicalModelPanel`: the new registry claims.
@@ -539,7 +581,7 @@ These items can ship before the redesign with Rey's OK, because they correct err
   - Menus opened with the keyboard.
   - Contact sheets delivered to Rey.
 - **Reviews:**
-  - `instantmed-marketing-compliance-review` on every new or changed string, including `LiveStatus`.
+  - `instantmed-marketing-compliance-review` on every new or changed string, including `LiveStatus` and the new "No call needed" label and qualifier. The research flagged the Medical Board's telehealth guidance on care without a real-time consultation, so the review confirms the badge framing sits within the approved certificate protocol, as the existing certificate wedge does.
   - `instantmed-clinical-safety-review` on the "Is this right for you?" and "Check it fits" lists.
   - A final whole-branch code review.
 
