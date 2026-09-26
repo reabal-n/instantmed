@@ -1,6 +1,6 @@
 # Landing pages premium redesign: homepage, medical certificate, prescriptions
 
-**Status:** Draft for Rey's review (2026-09-26)
+**Status:** Approved by Rey (2026-09-26). Implementation plan: `docs/superpowers/plans/2026-09-26-landing-masterpiece.md`.
 **Supersedes:** `docs/superpowers/plans/2026-09-26-landing-premium-heroes.md` (heroes-only plan, never executed)
 **Evidence base:** `docs/research/2026-09-26-premium-health-landing-pages.md` (six-stream research report with 240 citations) and the browser audit summarised in Section 3.
 
@@ -32,7 +32,7 @@ The last row is judged by eye against Section 5.8, not by a tool.
 6. The homepage H1 stays **"Faster than your GP."** with a live wait time and a **glowing green indicator** that shows doctors are online. The indicator must be truthful (Section 6.1).
 7. The header, Services menu, mobile menu and footer are redesigned as part of this work.
 8. The other service pages (ED, hair loss, women's health, weight, SEO guides, `/request`) follow in a separate plan. They pick up the new marks, colours and chrome automatically through shared components.
-9. The three pages ship together **after the 7 October Google Ads checkpoint.** Straight bug fixes (Section 9) may ship earlier with Rey's OK.
+9. The three pages ship together **after the 7 October Google Ads checkpoint.** The Section 9 fixes ship in the same release (Rey, 2026-09-26: bundle, don't ship separately).
 10. **Trust builders (Rey, 2026-09-26):**
     - a specimen certificate viewer and a verify demo
     - a "Who checks your request" panel
@@ -379,8 +379,8 @@ InstantMed's structural advantage is stated as one recognisable green badge, use
 - Risk: medium.
 - Receipts:
   1. `docs/CLINICAL.md` form-first model.
-  2. An aggregate, PHI-free call-rate count: prescribing and specialty requests in the trailing 180 days with a recorded doctor phone contact, against all completed requests. It is pulled during implementation and dated in the claim's notes.
-  3. Rey's clinical approval as Medical Director, dated 2026-09-26.
+  2. Rey's dated attestation as Medical Director (2026-09-26): doctor phone calls to gather more information occurred in about 2 of several hundred requests. Recorded in the claim's `notes`. Per Rey, the simplest method: no new call-logging feature and no data pull.
+  3. Rey's clinical approval of the phrasing, dated 2026-09-26.
 - It replaces `FORM_FIRST_WEDGE` ("...may call you briefly before prescribing") as the lead form-first line on these pages. `FORM_FIRST_WEDGE` stays approved and in the registry.
 - `docs/ADVERTISING_COMPLIANCE.md` sections 5 and 6 and the `docs/VOICE.md` service table are updated to list the new approved phrasing. The ban on an unqualified "No call needed" for prescribing stays.
 
@@ -545,7 +545,7 @@ Word counts are visible words excluding FAQ answers, footer and chrome.
 
 ## 9. Fix list (ship-ready items)
 
-These items can ship before the redesign with Rey's OK, because they correct errors rather than change the design:
+These errors are fixed inside the redesign release (Rey chose to bundle them):
 
 1. `limitations-section.tsx:25`: "Extended absences beyond 3–5 days" becomes "More than 3 days off".
 2. `faq-section.tsx:111-122`: render only one "show all" control when `viewAllHref` is also present.
