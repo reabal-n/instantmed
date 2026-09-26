@@ -22,6 +22,22 @@ Make `/`, `/medical-certificate` and `/prescriptions`, plus the shared header, m
 
 The last row is judged by eye against Section 5.8, not by a tool.
 
+### Baseline (PostHog, 28 days to 2026-09-26)
+
+Scope: production events. Sessions count only after first interaction, because telemetry initialises on the first interaction. Not a governed catalog metric; the catalog was unavailable to this connection. Re-run the same queries for the 28 days after release.
+
+| Page | Sessions with a pageview | Hero CTA click sessions | Sticky CTA click sessions | Any landing CTA click sessions | Sessions that also started an intake |
+|---|---|---|---|---|---|
+| `/` | 273 | 14 (5.1%) | 9 (3.3%) | 21 (7.7%) | 147 of 258 (57.0%) |
+| `/medical-certificate` | 131 | 40 (30.5%) | 13 (9.9%) | 54 (41.2%) | 82 of 125 (65.6%) |
+| `/prescriptions` | 463 | 94 (20.3%) | 25 (5.4%) | 122 (26.3%) | 225 of 453 (49.7%) |
+
+The homepage's single "Get started" hero button draws 5.1% of sessions against 30.5% on the certificate page, while 57% of homepage sessions still start an intake by other routes. That is the case for the priced service menu (Section 7.1).
+
+**Queries** (HogQL, `execute-sql`):
+- **CTA and scroll:** group `$pageview` rows by `$pathname` in (`/`, `/medical-certificate`, `/prescriptions`, with trailing-slash variants). Group `landing_cta_clicked` and `landing_scroll_depth` rows by `properties.service` in (`home`, `med-cert`, `prescription`). Take `uniq($session_id)` in total and per `cta_location` (`hero`, `sticky_mobile`, `final_cta`), and per `depth_percent` of 50 or more and 75 or more, over the trailing 28 days.
+- **Intake start:** per `$session_id` over the trailing 28 days, take the first landing `$pageview` and flag whether an `intake_started` event exists in the same session. Count sessions per landing page.
+
 ## 2. Decisions already made (Rey, 2026-09-25 and 2026-09-26)
 
 1. LegitScript and Google certification marks render in every hero (PR #608, merged).
